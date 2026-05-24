@@ -5,8 +5,11 @@ namespace Tests\Feature;
 use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -19,6 +22,13 @@ class DownloadsTest extends TestCase
     {
         parent::setUp();
         Storage::fake('private');
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+
+        parent::tearDown();
     }
 
     public function test_index_shows_downloads_grouped_by_category(): void
@@ -142,6 +152,104 @@ class DownloadsTest extends TestCase
         $response->assertHeader('content-disposition');
     }
 
+    public function test_seeded_rulebooks_are_listed_in_the_download_area(): void
+    {
+        $this->actingMember();
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        $response->assertSeeText('Rollenspiel-Regelwerke');
+        $response->assertSeeText('Rollenspiel-Regelwerk 2001');
+        $response->assertSeeText('Rollenspiel-Regelwerk 2007');
+    }
+
+    public function test_bundled_rulebook_download_is_restored_when_private_file_is_missing(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+
+        $this->assertFalse(Storage::disk('private')->exists($download->file_path));
+
+        $response = $this->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+        $this->assertTrue(Storage::disk('private')->exists($download->file_path));
+    }
+
+    public function test_bundled_rulebook_restoration_uses_file_path_not_original_filename(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+        $download->update([
+            'original_filename' => 'Regelwerk-von-Uwe-Simon.pdf',
+        ]);
+
+        $this->assertFalse(Storage::disk('private')->exists($download->file_path));
+
+        $response = $this->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+        $this->assertTrue(Storage::disk('private')->exists($download->file_path));
+    }
+
+    public function test_bundled_rulebook_restoration_rejects_traversal_paths(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+        $download->update([
+            'file_path' => 'downloads/../views/pages/downloads.blade.php',
+            'original_filename' => 'downloads.blade.php',
+        ]);
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+        $this->assertStringContainsString(
+            'Die Datei existiert nicht.',
+            $response->getSession()->get('errors')->first()
+        );
+    }
+
+    public function test_bundled_rulebook_restore_falls_back_to_missing_file_message_when_private_write_fails(): void
+    {
+        $this->actingMember();
+        Exceptions::fake();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('exists')
+            ->with($download->file_path)
+            ->twice()
+            ->andReturn(false, false);
+        $disk->shouldReceive('put')
+            ->once()
+            ->with($download->file_path, Mockery::on(static fn ($stream) => is_resource($stream)))
+            ->andThrow(new \RuntimeException('Disk voll'));
+
+        Storage::shouldReceive('disk')
+            ->with('private')
+            ->times(3)
+            ->andReturn($disk);
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+        $this->assertStringContainsString(
+            'Die Datei existiert nicht.',
+            $response->getSession()->get('errors')->first()
+        );
+        Exceptions::assertReported(static fn (\RuntimeException $exception) => $exception->getMessage() === 'Disk voll');
+    }
+
     public function test_download_fails_when_file_missing(): void
     {
         $user = $this->actingMember();
@@ -238,7 +346,7 @@ class DownloadsTest extends TestCase
         $response->assertOk();
         // Der Download sollte als gesperrt angezeigt werden (Freischalten-Link statt Herunterladen)
         $response->assertSee('Freischalten');
-        $response->assertDontSee('Herunterladen');
+        $response->assertDontSee(route('downloads.download', $download), false);
     }
 
     public function test_active_purchase_with_inactive_reward_does_not_show_as_unlocked(): void
