@@ -58,4 +58,18 @@ describe('http client', () => {
             },
         });
     });
+
+    it('liest ungueltiges JSON nur einmal und faellt auf Text zurueck', async () => {
+        global.fetch.mockResolvedValue(new Response('kein-json', {
+            status: 200,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }));
+
+        await expect(http.get('/api/malformed')).resolves.toMatchObject({
+            data: 'kein-json',
+            status: 200,
+        });
+    });
 });

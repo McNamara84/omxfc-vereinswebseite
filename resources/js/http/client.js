@@ -45,22 +45,41 @@ function buildBody(body) {
     return JSON.stringify(body);
 }
 
+function responseContentType(response) {
+    return response.headers?.get?.('content-type')?.toLowerCase() ?? '';
+}
+
+function shouldParseJsonResponse(response) {
+    const contentType = responseContentType(response);
+
+    return contentType.includes('/json') || contentType.includes('+json');
+}
+
 async function parseResponseData(response) {
     if (response.status === 204 || response.status === 205) {
         return null;
     }
 
-    if (typeof response.json === 'function') {
+    if (typeof response.text === 'function') {
+        const text = await response.text();
+
+        if (text === '') {
+            return null;
+        }
+
+        if (!shouldParseJsonResponse(response)) {
+            return text;
+        }
+
         try {
-            return await response.json();
+            return JSON.parse(text);
         } catch {
-            // Fall back to text below when no JSON body is available.
+            return text;
         }
     }
 
-    if (typeof response.text === 'function') {
-        const text = await response.text();
-        return text === '' ? null : text;
+    if (typeof response.json === 'function') {
+        return response.json();
     }
 
     return null;
