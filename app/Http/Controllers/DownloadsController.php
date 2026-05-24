@@ -98,7 +98,7 @@ class DownloadsController extends Controller
 
     private function restoreBundledDownloadIfMissing(Download $download): void
     {
-        $sourcePath = base_path('resources/downloads/'.basename($download->original_filename));
+        $sourcePath = resource_path(str_replace('\\', '/', $download->file_path));
 
         if (! is_file($sourcePath)) {
             return;

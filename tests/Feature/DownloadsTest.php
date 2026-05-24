@@ -169,6 +169,24 @@ class DownloadsTest extends TestCase
         $this->assertTrue(Storage::disk('private')->exists($download->file_path));
     }
 
+    public function test_bundled_rulebook_restoration_uses_file_path_not_original_filename(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+        $download->update([
+            'original_filename' => 'Regelwerk-von-Uwe-Simon.pdf',
+        ]);
+
+        $this->assertFalse(Storage::disk('private')->exists($download->file_path));
+
+        $response = $this->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+        $this->assertTrue(Storage::disk('private')->exists($download->file_path));
+    }
+
     public function test_download_fails_when_file_missing(): void
     {
         $user = $this->actingMember();
