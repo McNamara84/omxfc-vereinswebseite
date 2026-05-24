@@ -1,7 +1,7 @@
 <x-mail::message>
-# Neue Nachricht fuer {{ $team->name }}
+# Neue Nachricht für {{ $team->name }}
 
-Es wurde eine neue Kontaktanfrage ueber die oeffentliche Arbeitsgruppen-Seite gesendet.
+Es wurde eine neue Kontaktanfrage über die öffentliche Arbeitsgruppen-Seite gesendet.
 
 - **Arbeitsgruppe:** {{ $team->name }}
 - **Absender:** {{ $absenderName }}

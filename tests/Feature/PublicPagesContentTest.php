@@ -91,6 +91,7 @@ class PublicPagesContentTest extends TestCase
             ->assertSee('jeden Dienstag')
             ->assertSeeText('Kontakt aufnehmen')
             ->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false)
+            ->assertSee('aria-label="Kontakt zur Arbeitsgruppe AG Öffentlichkeit aufnehmen"', false)
             ->assertDontSee('ag@example.com', false)
             ->assertDontSee('mailto:ag@example.com', false);
     }

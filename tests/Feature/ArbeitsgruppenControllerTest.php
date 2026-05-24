@@ -317,8 +317,9 @@ class ArbeitsgruppenControllerTest extends TestCase
             ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
             ->assertSessionHas('status');
 
-        Mail::assertSent(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) use ($ag) {
-            return $mail->team->is($ag)
+        Mail::assertQueued(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) use ($ag) {
+            return $mail->hasTo($ag->email)
+                && $mail->team->is($ag)
                 && $mail->absenderName === 'Martin'
                 && $mail->absenderEmail === 'martin@example.com'
                 && $mail->nachricht === 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mehr erfahren.';
@@ -347,6 +348,47 @@ class ArbeitsgruppenControllerTest extends TestCase
             ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
             ->assertSessionHasErrors('error');
 
-        Mail::assertNothingSent();
+        Mail::assertNothingQueued();
+    }
+
+    public function test_public_contact_form_is_rate_limited_after_five_requests(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $server = ['REMOTE_ADDR' => '203.0.113.10'];
+
+        for ($i = 1; $i <= 5; $i++) {
+            $this->withServerVariables($server)
+                ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                    'name' => "Interessent {$i}",
+                    'email' => "interessent{$i}@example.com",
+                    'message' => 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mitmachen.',
+                    'website' => '',
+                ])
+                ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+                ->assertSessionHasNoErrors();
+        }
+
+        $this->withServerVariables($server)
+            ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                'name' => 'Geblockter Interessent',
+                'email' => 'blocked@example.com',
+                'message' => 'Ich sollte wegen des Rate-Limits nicht mehr durchkommen.',
+                'website' => '',
+            ])
+            ->assertStatus(429);
+
+        Mail::assertQueuedCount(5);
+        Mail::assertNotQueued(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) {
+            return $mail->absenderEmail === 'blocked@example.com';
+        });
     }
 }

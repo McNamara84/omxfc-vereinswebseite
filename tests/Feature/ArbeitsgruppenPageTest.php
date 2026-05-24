@@ -39,6 +39,7 @@ class ArbeitsgruppenPageTest extends TestCase
         $response->assertDontSeeText('Leitung Test');
         $response->assertSeeText('Kontakt aufnehmen');
         $response->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false);
+        $response->assertSee('aria-label="Kontakt zur Arbeitsgruppe AG Test aufnehmen"', false);
         $response->assertDontSee('ag-test@example.com', false);
         $response->assertDontSee('mailto:ag-test@example.com', false);
         $response->assertSee('sm:grid-cols-2', false);

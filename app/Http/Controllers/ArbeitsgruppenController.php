@@ -35,6 +35,17 @@ class ArbeitsgruppenController extends Controller
             ->orderBy('name');
     }
 
+    private function resolvePublicAgOrAbort(Team $team): Team
+    {
+        $ag = $this->agQuery()
+            ->whereKey($team->getKey())
+            ->first();
+
+        abort_if(! $ag || blank($ag->email), 404);
+
+        return $ag;
+    }
+
     /**
      * Display a listing of the AGs.
      */
@@ -94,11 +105,7 @@ class ArbeitsgruppenController extends Controller
      */
     public function publicContact(Team $team)
     {
-        $ag = $this->agQuery()
-            ->whereKey($team->getKey())
-            ->first();
-
-        abort_if(! $ag || blank($ag->email), 404);
+        $ag = $this->resolvePublicAgOrAbort($team);
 
         return view('pages.arbeitsgruppen-kontakt', [
             'ag' => $ag,
@@ -110,11 +117,7 @@ class ArbeitsgruppenController extends Controller
      */
     public function sendPublicContact(Request $request, Team $team)
     {
-        $ag = $this->agQuery()
-            ->whereKey($team->getKey())
-            ->first();
-
-        abort_if(! $ag || blank($ag->email), 404);
+        $ag = $this->resolvePublicAgOrAbort($team);
 
         $spamErrorMessage = 'Die Nachricht konnte nicht verarbeitet werden. Bitte versuche es erneut.';
 
@@ -136,12 +139,14 @@ class ArbeitsgruppenController extends Controller
             'message.min' => 'Die Nachricht sollte mindestens 10 Zeichen lang sein.',
         ]);
 
-        Mail::to($ag->email)->send(new ArbeitsgruppenKontaktNachricht(
-            team: $ag,
-            absenderName: $validated['name'],
-            absenderEmail: $validated['email'],
-            nachricht: $validated['message'],
-        ));
+        Mail::to($ag->email)->queue(
+            (new ArbeitsgruppenKontaktNachricht(
+                team: $ag,
+                absenderName: $validated['name'],
+                absenderEmail: $validated['email'],
+                nachricht: $validated['message'],
+            ))->afterCommit(),
+        );
 
         return redirect()->route('arbeitsgruppen.kontakt', $ag)
             ->with('status', 'Deine Nachricht wurde an die Arbeitsgruppe weitergeleitet.');

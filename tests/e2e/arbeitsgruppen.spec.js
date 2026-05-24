@@ -19,7 +19,7 @@ test('arbeitsgruppen page links to the protected contact flow and keeps the cont
   await expect(article).not.toContainText('ag-hoerbuecher@maddrax-fanclub.de');
   await expect(article.getByText('Kontakt aufnehmen', { exact: true })).toBeVisible();
 
-  const contactLink = article.getByRole('link', { name: 'Kontakt per E-Mail aufnehmen' });
+  const contactLink = article.getByRole('link', { name: 'Kontakt zur Arbeitsgruppe AG Fanhoerbuecher aufnehmen' });
   await expect(contactLink).toBeVisible();
   await expect(contactLink).toHaveAttribute('href', /\/arbeitsgruppen\/\d+\/kontakt$/);
   await expect(contactLink).not.toHaveAttribute('href', /ag-hoerbuecher@maddrax-fanclub\.de/);
