@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\BuiltInServerStaticPathResolver;
+
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
@@ -12,6 +14,8 @@
 // Change to the project root directory
 chdir(__DIR__);
 
+require_once __DIR__.'/vendor/autoload.php';
+
 $uri = urldecode(
     parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? ''
 );
@@ -19,19 +23,7 @@ $uri = urldecode(
 // Remove query string for file existence check
 $cleanUri = strtok($uri, '?');
 
-$publicPath = __DIR__.'/public'.$cleanUri;
-$storagePath = str_starts_with($cleanUri, '/storage/')
-    ? __DIR__.'/storage/app/public/'.ltrim(substr($cleanUri, strlen('/storage/')), '/')
-    : null;
-$staticPath = null;
-
-// Serve public assets directly and fall back to the public storage disk when
-// the local public/storage link is unavailable.
-if ($cleanUri !== '/' && is_file($publicPath)) {
-    $staticPath = $publicPath;
-} elseif ($storagePath && is_file($storagePath)) {
-    $staticPath = $storagePath;
-}
+$staticPath = BuiltInServerStaticPathResolver::resolve(__DIR__, $cleanUri);
 
 if ($staticPath) {
     // Determine MIME type

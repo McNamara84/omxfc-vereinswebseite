@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ArbeitsgruppenPlaywrightSeeder extends Seeder
 {
-        private const PLAYWRIGHT_LOGO_PATH = 'ag-logos/arbeitsgruppen-playwright-logo.svg';
+    private const PLAYWRIGHT_LOGO_PATH = 'ag-logos/arbeitsgruppen-playwright-logo.svg';
 
-        private const PLAYWRIGHT_LOGO_SVG = <<<'SVG'
+    private const PLAYWRIGHT_LOGO_SVG = <<<'SVG'
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" role="img" aria-labelledby="title desc">
     <title id="title">AG Fanhoerbuecher Logo</title>
     <desc id="desc">Testlogo fuer Playwright-Pruefungen der Arbeitsgruppen-Seite.</desc>
