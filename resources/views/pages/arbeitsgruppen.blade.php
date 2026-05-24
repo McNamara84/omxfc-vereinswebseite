@@ -73,7 +73,7 @@
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Kontakt</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             @if($ag->email)
-                                                <x-obfuscated-mail-link :email="$ag->email" class="link link-primary" />
+                                                <a href="{{ route('arbeitsgruppen.kontakt', $ag) }}" class="link link-primary" aria-label="Kontakt per E-Mail aufnehmen">Kontakt aufnehmen</a>
                                             @else
                                                 über das Mitgliedernetzwerk
                                             @endif

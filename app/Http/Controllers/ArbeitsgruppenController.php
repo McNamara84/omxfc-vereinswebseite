@@ -88,6 +88,20 @@ class ArbeitsgruppenController extends Controller
     }
 
     /**
+     * Redirect to the public AG contact address without embedding it in the listing HTML.
+     */
+    public function publicContact(Team $team)
+    {
+        $ag = $this->agQuery()
+            ->whereKey($team->getKey())
+            ->first();
+
+        abort_if(! $ag || blank($ag->email), 404);
+
+        return redirect()->away('mailto:'.$ag->email);
+    }
+
+    /**
      * Display form to create a new AG (team).
      */
     public function create(Request $request)

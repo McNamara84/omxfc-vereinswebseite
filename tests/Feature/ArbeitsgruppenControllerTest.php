@@ -247,4 +247,46 @@ class ArbeitsgruppenControllerTest extends TestCase
             ->assertSee('AG Test')
             ->assertDontSee($member->name);
     }
+
+    public function test_public_contact_redirects_to_the_ag_mail_address(): void
+    {
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $ag))
+            ->assertRedirect('mailto:ag-kontakt@example.com');
+    }
+
+    public function test_public_contact_returns_not_found_for_non_public_teams(): void
+    {
+        $leader = User::factory()->create();
+        $privateTeam = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => true,
+            'name' => 'Privates Team',
+            'email' => 'privat@example.com',
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $privateTeam))
+            ->assertNotFound();
+    }
+
+    public function test_public_contact_returns_not_found_when_no_mail_address_exists(): void
+    {
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Ohne Mail',
+            'email' => null,
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $ag))
+            ->assertNotFound();
+    }
 }

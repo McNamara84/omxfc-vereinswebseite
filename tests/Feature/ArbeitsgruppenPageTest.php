@@ -19,7 +19,7 @@ class ArbeitsgruppenPageTest extends TestCase
             'vorname' => 'Leitung',
         ]);
 
-        Team::factory()->create([
+        $ag = Team::factory()->create([
             'name' => 'AG Test',
             'user_id' => $leader->id,
             'personal_team' => false,
@@ -38,6 +38,7 @@ class ArbeitsgruppenPageTest extends TestCase
         $response->assertSeeText('Leitung');
         $response->assertDontSeeText('Leitung Test');
         $response->assertSeeText('Kontakt aufnehmen');
+        $response->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false);
         $response->assertDontSee('ag-test@example.com', false);
         $response->assertDontSee('mailto:ag-test@example.com', false);
         $response->assertSee('sm:grid-cols-2', false);

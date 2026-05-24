@@ -21,7 +21,8 @@ test('arbeitsgruppen page shows obfuscated contact details and a stacked contact
 
   const contactLink = article.getByRole('link', { name: 'Kontakt per E-Mail aufnehmen' });
   await expect(contactLink).toBeVisible();
-  await expect(contactLink).toHaveAttribute('href', /^mailto:ag-hoerbuecher@maddrax-fanclub\.de$/);
+  await expect(contactLink).toHaveAttribute('href', /\/arbeitsgruppen\/\d+\/kontakt$/);
+  await expect(contactLink).not.toHaveAttribute('href', /ag-hoerbuecher@maddrax-fanclub\.de/);
 
   const leadershipCard = article.locator('dl > div').nth(0);
   const contactCard = article.locator('dl > div').nth(2);

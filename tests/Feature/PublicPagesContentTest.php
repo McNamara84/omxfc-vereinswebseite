@@ -73,7 +73,7 @@ class PublicPagesContentTest extends TestCase
             'vorname' => 'Martin',
         ]);
 
-        Team::factory()->create([
+        $ag = Team::factory()->create([
             'name' => 'AG Öffentlichkeit',
             'user_id' => $leader->id,
             'personal_team' => false,
@@ -90,6 +90,7 @@ class PublicPagesContentTest extends TestCase
             ->assertDontSeeText('Martin Gobrecht')
             ->assertSee('jeden Dienstag')
             ->assertSeeText('Kontakt aufnehmen')
+            ->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false)
             ->assertDontSee('ag@example.com', false)
             ->assertDontSee('mailto:ag@example.com', false);
     }
