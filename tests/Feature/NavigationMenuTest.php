@@ -20,6 +20,20 @@ class NavigationMenuTest extends TestCase
     use CreatesUserWithRole;
     use RefreshDatabase;
 
+    private function addAgRollenspielMembership(User $user): User
+    {
+        $owner = User::factory()->create();
+
+        $team = Team::factory()->create([
+            'user_id' => $owner->id,
+            'name' => 'AG Rollenspiel',
+            'personal_team' => false,
+        ]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        return $user->refresh();
+    }
+
     private function createManagementUserWithDifferentCurrentTeam(Role $role): User
     {
         $managementTeam = Team::membersTeam() ?? Team::factory()->create([
@@ -191,6 +205,30 @@ class NavigationMenuTest extends TestCase
         $this->assertNotNull($teamsSection);
         $this->assertSame(['EARDRAX Dashboard', 'Kompendium', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
         $this->assertLessThanOrEqual(2, count($queries));
+    }
+
+    public function test_ag_rollenspiel_member_sees_character_editor_in_teams_section(): void
+    {
+        $user = $this->addAgRollenspielMembership($this->createUserWithRole(Role::Mitglied));
+
+        $navigation = app(NavigationBuilder::class)->build($user);
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+
+        $this->assertNotNull($teamsSection);
+        $this->assertContains('Charakter-Editor', array_column($teamsSection['items'], 'title'));
+    }
+
+    public function test_global_admin_with_different_current_team_sees_character_editor_in_teams_section_only(): void
+    {
+        $user = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
+
+        $navigation = app(NavigationBuilder::class)->build($user);
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+        $adminSection = collect($navigation['sections'])->firstWhere('title', 'Admin');
+
+        $this->assertNotNull($teamsSection);
+        $this->assertContains('Charakter-Editor', array_column($teamsSection['items'], 'title'));
+        $this->assertNull($adminSection);
     }
 
     public function test_authenticated_users_see_termine_link_in_veranstaltungen_menu(): void

@@ -55,5 +55,10 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('access-dashboard', function ($user) {
             return $user->hasTeamPermission($user->currentTeam, 'read');
         });
+
+        Gate::define('access-rpg-char-editor', function (User $user) {
+            return $user->hasAnyMitgliederTeamRole(\App\Enums\Role::Admin)
+                || $user->isMemberOfTeam('AG Rollenspiel');
+        });
     }
 }
