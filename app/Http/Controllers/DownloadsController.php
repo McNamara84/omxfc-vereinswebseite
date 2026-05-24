@@ -117,7 +117,9 @@ class DownloadsController extends Controller
 
         try {
             Storage::disk('private')->put($path, $stream);
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            report($exception);
+
             return;
         } finally {
             fclose($stream);

@@ -7,6 +7,7 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\Concerns\CreatesUserWithRole;
@@ -219,6 +220,7 @@ class DownloadsTest extends TestCase
     public function test_bundled_rulebook_restore_falls_back_to_missing_file_message_when_private_write_fails(): void
     {
         $this->actingMember();
+        Exceptions::fake();
 
         $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
 
@@ -245,6 +247,7 @@ class DownloadsTest extends TestCase
             'Die Datei existiert nicht.',
             $response->getSession()->get('errors')->first()
         );
+        Exceptions::assertReported(static fn (\RuntimeException $exception) => $exception->getMessage() === 'Disk voll');
     }
 
     public function test_download_fails_when_file_missing(): void
