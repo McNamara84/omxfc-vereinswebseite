@@ -92,7 +92,7 @@
 
                     <div class="space-y-4">
                         @foreach($this->pendingRequests as $request)
-                            <div wire:key="edit-request-{{ $request->id }}" class="border border-warning/30 rounded-lg p-4 bg-warning/10">
+                            <div wire:key="kassenbuch-request-{{ $request->id }}" class="border border-warning/30 rounded-lg p-4 bg-warning/10">
                                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                                     <div class="flex-1">
                                         <div class="flex flex-wrap items-center gap-2">

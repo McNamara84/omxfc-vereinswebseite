@@ -145,7 +145,7 @@ class KassenbuchEditRequestTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('entry');
+        $response->assertSessionHas('error', 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.');
     }
 
     public function test_cannot_request_edit_when_approved_exists(): void
@@ -171,7 +171,7 @@ class KassenbuchEditRequestTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('entry');
+        $response->assertSessionHas('error', 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.');
     }
 
     public function test_sonstiges_requires_reason_text(): void
@@ -806,7 +806,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_approve_already_rejected_request(): void
@@ -828,7 +828,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_reject_already_approved_request(): void
@@ -850,7 +850,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_reject_already_rejected_request(): void
@@ -872,7 +872,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     // === N+1 Query Prevention Test ===

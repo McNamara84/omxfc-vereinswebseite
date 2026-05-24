@@ -105,6 +105,34 @@ class KassenbuchDeleteRequestTest extends TestCase
         Mail::assertNothingQueued();
     }
 
+    public function test_cannot_request_delete_when_pending_request_exists_and_error_is_visible(): void
+    {
+        Mail::fake();
+
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+            'reason_text' => 'Bereits angefragt',
+            'request_type' => KassenbuchEditRequestType::Delete->value,
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($kassenwart)
+            ->from('/kassenbuch')
+            ->followingRedirects()
+            ->post("/kassenbuch/eintrag/{$entry->id}/loeschung-anfragen", [
+                'reason_text' => 'Noch einmal löschen',
+            ]);
+
+        $response->assertOk();
+        $response->assertSee('Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.');
+        Mail::assertNothingQueued();
+    }
+
     public function test_vorstand_cannot_request_delete(): void
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);

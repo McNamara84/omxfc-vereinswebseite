@@ -151,7 +151,7 @@ class KassenbuchController extends Controller
         });
 
         if (isset($result['error'])) {
-            return back()->withErrors(['entry' => $result['error']]);
+            return back()->with('error', $result['error']);
         }
 
         return back()->with('status', 'Bearbeitungsanfrage wurde gestellt.');
@@ -199,7 +199,7 @@ class KassenbuchController extends Controller
         });
 
         if (isset($result['error'])) {
-            return back()->withErrors(['entry' => $result['error']]);
+            return back()->with('error', $result['error']);
         }
 
         $this->queueDeleteRequestSubmittedMail(
@@ -276,7 +276,7 @@ class KassenbuchController extends Controller
         });
 
         if (isset($result['error'])) {
-            return back()->withErrors(['request' => $result['error']]);
+            return back()->with('error', $result['error']);
         }
 
         if (($result['request_type'] ?? null) === KassenbuchEditRequestType::Delete->value) {
@@ -346,7 +346,7 @@ class KassenbuchController extends Controller
         });
 
         if (isset($result['error'])) {
-            return back()->withErrors(['request' => $result['error']]);
+            return back()->with('error', $result['error']);
         }
 
         if (($result['request_type'] ?? null) === KassenbuchEditRequestType::Delete->value) {
