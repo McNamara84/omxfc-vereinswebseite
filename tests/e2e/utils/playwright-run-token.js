@@ -15,5 +15,11 @@ export function createPlaywrightRunToken(prefix = 'local', { uuidFactory = defau
 }
 
 export function resolvePlaywrightRunToken(currentValue, options = {}) {
-    return currentValue ?? createPlaywrightRunToken(options.prefix ?? 'local', options);
+    const normalizedCurrentValue = typeof currentValue === 'string'
+        ? currentValue.trim()
+        : currentValue;
+
+    return normalizedCurrentValue
+        ? normalizedCurrentValue
+        : createPlaywrightRunToken(options.prefix ?? 'local', options);
 }

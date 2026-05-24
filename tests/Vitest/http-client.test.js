@@ -47,6 +47,16 @@ describe('http client', () => {
         expect(options.headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
     });
 
+    it('sendet den CSRF-Header nicht an fremde Origins', async () => {
+        document.head.innerHTML = '<meta name="csrf-token" content="TOKEN">';
+        global.fetch.mockResolvedValue(jsonResponse({ ok: true }));
+
+        await http.get('https://example.com/api/test');
+        const [, options] = global.fetch.mock.calls[0];
+
+        expect(options.headers.get('X-CSRF-TOKEN')).toBeNull();
+    });
+
     it('beruecksichtigt Laufzeit-Aenderungen an den globalen Default-Headern', async () => {
         http.defaults.headers.common.Accept = 'application/json';
         global.fetch.mockResolvedValue(jsonResponse({ status: 'ok' }));

@@ -17,6 +17,15 @@ describe('playwright run token helper', () => {
     it('uebernimmt vorhandene Tokens unveraendert', () => {
         expect(resolvePlaywrightRunToken('provided-token', { prefix: 'docker' })).toBe('provided-token');
     });
+
+    it('behandelt leere oder whitespace-only Tokens wie fehlende Werte', () => {
+        const token = resolvePlaywrightRunToken('   ', {
+            prefix: 'docker',
+            uuidFactory: () => 'uuid-456',
+        });
+
+        expect(token).toBe('docker-uuid-456');
+    });
 });
 
 describe('playwright docker harness', () => {

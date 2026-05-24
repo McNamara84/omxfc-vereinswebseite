@@ -20,7 +20,37 @@ function defaultRequestHeaders() {
     return http.defaults?.headers?.common ?? defaultHeaders;
 }
 
-function buildHeaders(headers = {}, body) {
+function requestUrl(input) {
+    if (typeof Request !== 'undefined' && input instanceof Request) {
+        return input.url;
+    }
+
+    if (typeof URL !== 'undefined' && input instanceof URL) {
+        return input.href;
+    }
+
+    return typeof input === 'string' ? input : null;
+}
+
+function isSameOriginRequest(input) {
+    if (typeof window === 'undefined' || !window.location?.origin) {
+        return false;
+    }
+
+    const url = requestUrl(input);
+
+    if (url === null) {
+        return false;
+    }
+
+    try {
+        return new URL(url, window.location.origin).origin === window.location.origin;
+    } catch {
+        return false;
+    }
+}
+
+function buildHeaders(input, headers = {}, body) {
     const mergedHeaders = new Headers(defaultRequestHeaders());
 
     Object.entries(headers).forEach(([key, value]) => {
@@ -30,7 +60,7 @@ function buildHeaders(headers = {}, body) {
     });
 
     const token = csrfToken();
-    if (token && !mergedHeaders.has('X-CSRF-TOKEN')) {
+    if (token && isSameOriginRequest(input) && !mergedHeaders.has('X-CSRF-TOKEN')) {
         mergedHeaders.set('X-CSRF-TOKEN', token);
     }
 
@@ -101,7 +131,7 @@ function toResponseObject(response, data) {
 async function request(input, { method = 'GET', headers, body, ...options } = {}) {
     const response = await fetch(input, {
         method,
-        headers: buildHeaders(headers, body),
+        headers: buildHeaders(input, headers, body),
         body: typeof body === 'undefined' ? undefined : buildBody(body),
         ...options,
     });
