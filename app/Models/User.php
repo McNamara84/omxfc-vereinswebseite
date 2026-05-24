@@ -317,6 +317,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the preferred first name for public AG listings.
+     */
+    public function publicFirstName(): ?string
+    {
+        if (filled($this->vorname)) {
+            return trim((string) $this->vorname);
+        }
+
+        $fullName = trim((string) $this->name);
+
+        if ($fullName === '') {
+            return null;
+        }
+
+        $nameParts = preg_split('/\s+/u', $fullName);
+
+        if (! is_array($nameParts) || $nameParts === []) {
+            return null;
+        }
+
+        return $nameParts[0] ?: null;
+    }
+
+    /**
      * Get all reward purchases for this user.
      */
     public function rewardPurchases(): HasMany

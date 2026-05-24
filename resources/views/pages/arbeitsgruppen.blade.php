@@ -54,11 +54,11 @@
                                     </p>
                                 </div>
 
-                                <dl class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                <dl class="grid gap-3 sm:grid-cols-2">
                                     <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">AG-Leitung</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
-                                            {{ $ag->owner?->name ?: 'Wird im Team abgestimmt' }}
+                                            {{ $ag->owner?->publicFirstName() ?: 'Wird im Team abgestimmt' }}
                                         </dd>
                                     </div>
 
@@ -69,11 +69,11 @@
                                         </dd>
                                     </div>
 
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2 xl:col-span-1">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Kontakt</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             @if($ag->email)
-                                                <a href="mailto:{{ $ag->email }}" class="link link-primary break-all">{{ $ag->email }}</a>
+                                                <x-obfuscated-mail-link :email="$ag->email" class="link link-primary" />
                                             @else
                                                 über das Mitgliedernetzwerk
                                             @endif

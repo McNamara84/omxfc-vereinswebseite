@@ -68,7 +68,11 @@ class PublicPagesContentTest extends TestCase
 
     public function test_arbeitsgruppen_page_shows_leader_schedule_and_contact(): void
     {
-        $leader = User::factory()->create(['name' => 'Max Mustermann']);
+        $leader = User::factory()->create([
+            'name' => 'Martin Gobrecht',
+            'vorname' => 'Martin',
+        ]);
+
         Team::factory()->create([
             'name' => 'AG Öffentlichkeit',
             'user_id' => $leader->id,
@@ -82,8 +86,11 @@ class PublicPagesContentTest extends TestCase
             ->assertOk()
             ->assertSee('AG Öffentlichkeit')
             ->assertSee('Beschreibung der AG')
-            ->assertSee('Max Mustermann')
+            ->assertSeeText('Martin')
+            ->assertDontSeeText('Martin Gobrecht')
             ->assertSee('jeden Dienstag')
-            ->assertSee('ag@example.com');
+            ->assertSeeText('Kontakt aufnehmen')
+            ->assertDontSee('ag@example.com', false)
+            ->assertDontSee('mailto:ag@example.com', false);
     }
 }
