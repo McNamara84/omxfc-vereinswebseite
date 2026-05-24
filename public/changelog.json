@@ -1,4 +1,24 @@
-[ 
+[
+  {
+    "version": "1.12.0",
+    "pub_date": "2026-05-24",
+    "notes": [
+      "[New] Vereinsauktionen mit Gebotsverlauf, Höchstgeboten und Statusanzeige für laufende und abgeschlossene Auktionen eingeführt",
+      "[New] Neues Veranstaltungssystem mit flexiblen Event-Seiten, Anmeldung, Merchandise-Auswahl und VIP-Autoren ergänzt",
+      "[New] Newsletter-Archiv für Mitglieder bereitgestellt, damit veröffentlichte Vereins-News jederzeit nachlesbar bleiben",
+      "[New] Geführte Touren erleichtern den Einstieg in wichtige Bereiche der Webseite",
+      "[New] Rezensionen lassen sich jetzt komfortabel im Markdown-Editor verfassen und formatieren",
+      "[New] Treffen werden in einer dynamischen Übersicht mit direktem Zugang zu aktuellen Terminen gebündelt",
+      "[New] Neue Baxx-Belohnungen und Spezialangebote ergänzt, darunter die Freischaltung der Mitgliederkarte und neue Maddraxiversum-Inhalte",
+      "[New] Kassenbuch unterstützt jetzt Löschanfragen mit Freigabe- und Benachrichtigungsprozess",
+      "[New] Rollenspiel-Regelwerke im Download-Bereich verfügbar",
+      "[Improved] Kompendium-Suche reagiert schneller und liefert präzisere Ergebnisse",
+      "[Improved] Fotogalerie zeigt aktuelle 2026-Fotos und lädt externe Nextcloud-Alben zuverlässiger",
+      "[Improved] Oberfläche, Navigation und Dialoge wurden an vielen Stellen modernisiert und klarer strukturiert",
+      "[Improved] Öffentliche Kontaktinformationen schützen die Privatsphäre besser durch Vornamensdarstellung und verschleierte E-Mail-Adressen",
+      "[Fixed] Arbeitsgruppen-Logos werden nicht mehr abgeschnitten dargestellt"
+    ]
+  },
   {
     "version": "1.11.0",
     "pub_date": "2026-04-27",
