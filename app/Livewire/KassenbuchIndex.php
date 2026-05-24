@@ -91,13 +91,13 @@ class KassenbuchIndex extends Component
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         return KassenbuchEntry::where('team_id', $team->id)
-            ->with(['pendingEditRequest', 'approvedEditRequest', 'creator', 'lastEditor'])
+            ->with(['pendingRequest', 'pendingEditRequest', 'approvedEditRequest', 'pendingDeleteRequest', 'creator', 'lastEditor'])
             ->orderBy('buchungsdatum', 'desc')
             ->get();
     }
 
     #[Computed]
-    public function pendingEditRequests(): ?Collection
+    public function pendingRequests(): ?Collection
     {
         if (! $this->canProcessEditRequests) {
             return null;

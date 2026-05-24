@@ -41,6 +41,16 @@ class KassenbuchEntryPolicy
     }
 
     /**
+     * Determine if the user can request to delete the entry.
+     */
+    public function requestDelete(User $user, KassenbuchEntry $entry): bool
+    {
+        $role = $this->role($user);
+
+        return $role && in_array($role, [Role::Kassenwart, Role::Admin], true);
+    }
+
+    /**
      * Determine if the user can edit the entry.
      */
     public function edit(User $user, KassenbuchEntry $entry): bool

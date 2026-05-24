@@ -33,6 +33,7 @@
         ['id' => 'preview-kassenbuch-payment', 'label' => 'Kassenbuch Zahlungsdaten', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
         ['id' => 'preview-kassenbuch-create', 'label' => 'Kassenbucheintrag hinzufügen', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
         ['id' => 'preview-kassenbuch-request-edit', 'label' => 'Bearbeitung anfragen', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
+        ['id' => 'preview-kassenbuch-request-delete', 'label' => 'Löschung anfragen', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
         ['id' => 'preview-kassenbuch-edit', 'label' => 'Kassenbucheintrag bearbeiten', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
         ['id' => 'preview-kassenbuch-reject-request', 'label' => 'Bearbeitungsanfrage ablehnen', 'source' => 'resources/views/livewire/kassenbuch-index.blade.php', 'family' => 'Livewire Overlay', 'backdropClass' => 'bg-black/50'],
         ['id' => 'preview-romantausch-photo', 'label' => 'Romantausch Fotoansicht', 'source' => 'resources/views/livewire/romantausch-index.blade.php', 'family' => 'Galerie Overlay', 'backdropClass' => 'bg-black/70 backdrop-blur-sm'],

@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Enums\KassenbuchEditReasonType;
+use App\Enums\KassenbuchEditRequestType;
 use App\Enums\KassenbuchEntryType;
+use App\Enums\Role;
 use App\Http\Requests\KassenbuchEntryRequest;
+use App\Mail\KassenbuchDeleteApproved;
+use App\Mail\KassenbuchDeleteRejected;
+use App\Mail\KassenbuchDeleteRequestSubmitted;
 use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
+use App\Models\Team;
 use App\Models\User;
 use App\Services\KassenbuchService;
 use App\Services\MembersTeamProvider;
@@ -16,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 #[Middleware(middleware: 'vorstand-or-kassenwart', except: ['kassenstand'])]
 class KassenbuchController extends Controller
@@ -107,9 +114,7 @@ class KassenbuchController extends Controller
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Entry muss zum Team gehören
-        if ($entry->team_id !== $team->id) {
-            abort(404);
-        }
+        $this->abortIfEntryNotInTeam($entry, $team);
 
         $this->authorize('requestEdit', $entry);
 
@@ -129,8 +134,8 @@ class KassenbuchController extends Controller
             $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($entry->id);
 
             // Prüfe erneut innerhalb der Transaction mit frischen Daten
-            if ($lockedEntry->hasPendingEditRequest() || $lockedEntry->hasApprovedEditRequest()) {
-                return ['error' => 'Für diesen Eintrag existiert bereits eine offene Bearbeitungsanfrage.'];
+            if ($lockedEntry->hasPendingRequest() || $lockedEntry->hasApprovedRequest()) {
+                return ['error' => 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.'];
             }
 
             KassenbuchEditRequest::create([
@@ -138,6 +143,7 @@ class KassenbuchController extends Controller
                 'requested_by' => Auth::id(),
                 'reason_type' => $data['reason_type'],
                 'reason_text' => $data['reason_text'] ?? null,
+                'request_type' => KassenbuchEditRequestType::Edit->value,
                 'status' => KassenbuchEditRequest::STATUS_PENDING,
             ]);
 
@@ -152,6 +158,61 @@ class KassenbuchController extends Controller
     }
 
     /**
+     * Request to delete a kassenbuch entry.
+     */
+    public function requestDelete(Request $request, KassenbuchEntry $entry)
+    {
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        $this->abortIfEntryNotInTeam($entry, $team);
+
+        $this->authorize('requestDelete', $entry);
+
+        $data = $request->validate([
+            'reason_text' => 'required|string|max:500',
+        ]);
+
+        if (blank($data['reason_text'] ?? null)) {
+            return back()->withErrors(['reason_text' => 'Für die Löschanfrage ist eine Begründung erforderlich.']);
+        }
+
+        $result = DB::transaction(function () use ($entry, $data) {
+            $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($entry->id);
+
+            if ($lockedEntry->hasPendingRequest() || $lockedEntry->hasApprovedRequest()) {
+                return ['error' => 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.'];
+            }
+
+            KassenbuchEditRequest::create([
+                'kassenbuch_entry_id' => $lockedEntry->id,
+                'requested_by' => Auth::id(),
+                'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+                'reason_text' => $data['reason_text'],
+                'request_type' => KassenbuchEditRequestType::Delete->value,
+                'status' => KassenbuchEditRequest::STATUS_PENDING,
+            ]);
+
+            return [
+                'entry_snapshot' => $this->entrySnapshot($lockedEntry),
+                'reason_text' => $data['reason_text'],
+            ];
+        });
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['entry' => $result['error']]);
+        }
+
+        $this->queueDeleteRequestSubmittedMail(
+            $team,
+            Auth::user(),
+            $result['entry_snapshot'],
+            $result['reason_text'],
+        );
+
+        return back()->with('status', 'Löschanfrage wurde gestellt.');
+    }
+
+    /**
      * Approve an edit request.
      */
     public function approveEditRequest(KassenbuchEditRequest $editRequest)
@@ -159,20 +220,46 @@ class KassenbuchController extends Controller
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Request muss zum Team gehören
-        if ($editRequest->entry->team_id !== $team->id) {
-            abort(404);
-        }
+        $this->abortIfRequestNotInTeam($editRequest, $team);
 
         $this->authorize('processEditRequest', KassenbuchEntry::class);
 
         // Atomare Operation: Lock, prüfe Status, update
-        $result = DB::transaction(function () use ($editRequest) {
+        $result = DB::transaction(function () use ($editRequest, $team) {
             $lockedRequest = KassenbuchEditRequest::query()
+                ->with('requester')
                 ->lockForUpdate()
                 ->findOrFail($editRequest->id);
 
             if (! $lockedRequest->isPending()) {
                 return ['error' => 'Diese Anfrage wurde bereits bearbeitet.'];
+            }
+
+            if ($lockedRequest->isDeleteRequest()) {
+                $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($lockedRequest->kassenbuch_entry_id);
+                $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->firstOrFail();
+                $entrySnapshot = $this->entrySnapshot($lockedEntry);
+
+                $lockedRequest->update([
+                    'status' => KassenbuchEditRequest::STATUS_APPROVED,
+                    'processed_by' => Auth::id(),
+                    'processed_at' => now(),
+                ]);
+
+                $kassenstand->betrag -= $lockedEntry->betrag;
+                $kassenstand->letzte_aktualisierung = now();
+                $kassenstand->save();
+
+                $lockedEntry->delete();
+
+                return [
+                    'success' => true,
+                    'message' => 'Löschung wurde freigegeben und durchgeführt.',
+                    'request_type' => KassenbuchEditRequestType::Delete->value,
+                    'entry_snapshot' => $entrySnapshot,
+                    'reason_text' => $lockedRequest->reason_text ?? '',
+                    'requester' => $lockedRequest->requester,
+                ];
             }
 
             $lockedRequest->update([
@@ -181,14 +268,28 @@ class KassenbuchController extends Controller
                 'processed_at' => now(),
             ]);
 
-            return ['success' => true];
+            return [
+                'success' => true,
+                'message' => 'Bearbeitung wurde freigegeben.',
+                'request_type' => KassenbuchEditRequestType::Edit->value,
+            ];
         });
 
         if (isset($result['error'])) {
             return back()->withErrors(['request' => $result['error']]);
         }
 
-        return back()->with('status', 'Bearbeitung wurde freigegeben.');
+        if (($result['request_type'] ?? null) === KassenbuchEditRequestType::Delete->value) {
+            $this->queueDeleteApprovedMail(
+                $team,
+                $result['requester'],
+                Auth::user(),
+                $result['entry_snapshot'],
+                $result['reason_text'],
+            );
+        }
+
+        return back()->with('status', $result['message']);
     }
 
     /**
@@ -199,9 +300,7 @@ class KassenbuchController extends Controller
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Request muss zum Team gehören
-        if ($editRequest->entry->team_id !== $team->id) {
-            abort(404);
-        }
+        $this->abortIfRequestNotInTeam($editRequest, $team);
 
         $this->authorize('processEditRequest', KassenbuchEntry::class);
 
@@ -212,11 +311,19 @@ class KassenbuchController extends Controller
         // Atomare Operation: Lock, prüfe Status, update
         $result = DB::transaction(function () use ($editRequest, $data) {
             $lockedRequest = KassenbuchEditRequest::query()
+                ->with('requester')
                 ->lockForUpdate()
                 ->findOrFail($editRequest->id);
 
             if (! $lockedRequest->isPending()) {
                 return ['error' => 'Diese Anfrage wurde bereits bearbeitet.'];
+            }
+
+            $entrySnapshot = null;
+
+            if ($lockedRequest->isDeleteRequest()) {
+                $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($lockedRequest->kassenbuch_entry_id);
+                $entrySnapshot = $this->entrySnapshot($lockedEntry);
             }
 
             $lockedRequest->update([
@@ -226,14 +333,33 @@ class KassenbuchController extends Controller
                 'rejection_reason' => $data['rejection_reason'] ?? null,
             ]);
 
-            return ['success' => true];
+            return [
+                'success' => true,
+                'message' => $lockedRequest->isDeleteRequest()
+                    ? 'Löschanfrage wurde abgelehnt.'
+                    : 'Bearbeitungsanfrage wurde abgelehnt.',
+                'request_type' => $lockedRequest->request_type->value,
+                'entry_snapshot' => $entrySnapshot,
+                'reason_text' => $lockedRequest->reason_text,
+                'requester' => $lockedRequest->requester,
+            ];
         });
 
         if (isset($result['error'])) {
             return back()->withErrors(['request' => $result['error']]);
         }
 
-        return back()->with('status', 'Bearbeitungsanfrage wurde abgelehnt.');
+        if (($result['request_type'] ?? null) === KassenbuchEditRequestType::Delete->value) {
+            $this->queueDeleteRejectedMail(
+                $result['requester'],
+                Auth::user(),
+                $result['entry_snapshot'],
+                $result['reason_text'] ?? '',
+                $data['rejection_reason'] ?? null,
+            );
+        }
+
+        return back()->with('status', $result['message']);
     }
 
     /**
@@ -296,5 +422,99 @@ class KassenbuchController extends Controller
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde aktualisiert.');
+    }
+
+    private function abortIfEntryNotInTeam(KassenbuchEntry $entry, Team $team): void
+    {
+        if ($entry->team_id !== $team->id) {
+            abort(404);
+        }
+    }
+
+    private function abortIfRequestNotInTeam(KassenbuchEditRequest $editRequest, Team $team): void
+    {
+        $exists = KassenbuchEntry::withTrashed()
+            ->whereKey($editRequest->kassenbuch_entry_id)
+            ->where('team_id', $team->id)
+            ->exists();
+
+        if (! $exists) {
+            abort(404);
+        }
+    }
+
+    /**
+     * @return array{id:int,beschreibung:string,buchungsdatum:string,typ:string,typ_label:string,betrag:float,betrag_formatiert:string}
+     */
+    private function entrySnapshot(KassenbuchEntry $entry): array
+    {
+        $amount = (float) $entry->betrag;
+
+        return [
+            'id' => $entry->id,
+            'beschreibung' => $entry->beschreibung,
+            'buchungsdatum' => $entry->buchungsdatum->format('d.m.Y'),
+            'typ' => $entry->typ->value,
+            'typ_label' => $entry->typ === KassenbuchEntryType::Einnahme ? 'Einnahme' : 'Ausgabe',
+            'betrag' => $amount,
+            'betrag_formatiert' => number_format(abs($amount), 2, ',', '.').' €',
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function vorstandEmails(Team $team): array
+    {
+        return $team->activeUsers()
+            ->wherePivot('role', Role::Vorstand->value)
+            ->whereNotNull('users.email')
+            ->pluck('users.email')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function queueDeleteRequestSubmittedMail(Team $team, User $requester, array $entrySnapshot, string $reasonText): void
+    {
+        $recipients = $this->vorstandEmails($team);
+
+        if ($recipients === []) {
+            return;
+        }
+
+        Mail::to($recipients)->queue(new KassenbuchDeleteRequestSubmitted($requester, $entrySnapshot, $reasonText));
+    }
+
+    private function queueDeleteApprovedMail(Team $team, User $requester, User $processor, array $entrySnapshot, string $reasonText): void
+    {
+        $recipients = collect($this->vorstandEmails($team))
+            ->push($requester->email)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($recipients === []) {
+            return;
+        }
+
+        Mail::to($recipients)->queue(new KassenbuchDeleteApproved($requester, $processor, $entrySnapshot, $reasonText));
+    }
+
+    private function queueDeleteRejectedMail(User $requester, User $processor, array $entrySnapshot, string $reasonText, ?string $rejectionReason): void
+    {
+        if (blank($requester->email)) {
+            return;
+        }
+
+        Mail::to($requester->email)->queue(new KassenbuchDeleteRejected(
+            $requester,
+            $processor,
+            $entrySnapshot,
+            $reasonText,
+            $rejectionReason,
+        ));
     }
 }

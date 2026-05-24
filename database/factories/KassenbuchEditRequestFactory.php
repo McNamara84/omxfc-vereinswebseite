@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\KassenbuchEditReasonType;
+use App\Enums\KassenbuchEditRequestType;
 use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\User;
@@ -28,6 +29,7 @@ class KassenbuchEditRequestFactory extends Factory
             'processed_by' => null,
             'reason_type' => fake()->randomElement(KassenbuchEditReasonType::values()),
             'reason_text' => fake()->optional(0.5)->sentence(),
+            'request_type' => KassenbuchEditRequestType::Edit->value,
             'status' => KassenbuchEditRequest::STATUS_PENDING,
             'rejection_reason' => null,
             'processed_at' => null,
@@ -80,6 +82,18 @@ class KassenbuchEditRequestFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'reason_type' => $type->value,
+        ]);
+    }
+
+    /**
+     * Mark the request as a delete request.
+     */
+    public function deleteRequest(?string $reasonText = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'request_type' => KassenbuchEditRequestType::Delete->value,
+            'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+            'reason_text' => $reasonText ?? fake()->sentence(),
         ]);
     }
 

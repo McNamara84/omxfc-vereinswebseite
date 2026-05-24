@@ -117,6 +117,34 @@ class KassenbuchEntryPolicyTest extends TestCase
         $this->assertFalse($this->policy->requestEdit($mitglied, $entry));
     }
 
+    #[TestWith([Role::Kassenwart])]
+    #[TestWith([Role::Admin])]
+    public function test_request_delete_allows_kassenwart_and_admin(Role $role): void
+    {
+        $user = $this->createUserWithRole($role);
+        $entry = $this->createKassenbuchEntry($user);
+
+        $this->assertTrue($this->policy->requestDelete($user, $entry));
+    }
+
+    public function test_request_delete_denies_vorstand(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $this->assertFalse($this->policy->requestDelete($vorstand, $entry));
+    }
+
+    public function test_request_delete_denies_mitglied(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $mitglied = $this->createUserWithRole(Role::Mitglied);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $this->assertFalse($this->policy->requestDelete($mitglied, $entry));
+    }
+
     // Note: The test for "pending request exists" was removed because
     // this check was moved from Policy to Controller for better UX
     // (user-friendly error message instead of 403)
