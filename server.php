@@ -14,7 +14,7 @@ use App\Support\BuiltInServerStaticPathResolver;
 // Change to the project root directory
 chdir(__DIR__);
 
-require_once __DIR__.'/vendor/autoload.php';
+require_once __DIR__.'/app/Support/BuiltInServerStaticPathResolver.php';
 
 $uri = urldecode(
     parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? ''
