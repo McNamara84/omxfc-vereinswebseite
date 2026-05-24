@@ -28,6 +28,12 @@ test('arbeitsgruppen page links to the protected contact flow and keeps the cont
   await expect(logoImage).toHaveClass(/object-contain/);
   await expect(logoImage).not.toHaveClass(/object-cover/);
 
+  const logoSource = await logoImage.getAttribute('src');
+  expect(logoSource).toBeTruthy();
+
+  const logoResponse = await page.request.get(logoSource);
+  expect(logoResponse.ok()).toBeTruthy();
+
   const contactLink = article.getByRole('link', { name: 'Kontakt zur Arbeitsgruppe AG Fanhoerbuecher aufnehmen' });
   await expect(contactLink).toBeVisible();
   await expect(contactLink).toHaveAttribute('href', /\/arbeitsgruppen\/\d+\/kontakt$/);
