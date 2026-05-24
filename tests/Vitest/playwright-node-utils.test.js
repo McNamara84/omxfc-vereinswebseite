@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 
-import { createProjectRuns, isDirectExecution } from '../e2e/run-playwright-docker.mjs';
+import { createProjectRuns, isDirectExecution, main } from '../e2e/run-playwright-docker.mjs';
 import { createPlaywrightRunToken, resolvePlaywrightRunToken } from '../e2e/utils/playwright-run-token.js';
 
 describe('playwright run token helper', () => {
@@ -71,6 +71,45 @@ describe('playwright docker harness', () => {
         expect(() => isDirectExecution('tests/e2e/run-playwright-docker.mjs')).not.toThrow();
         expect(isDirectExecution('tests/e2e/run-playwright-docker.mjs')).toBe(true);
         expect(isDirectExecution('tests/e2e/other-script.mjs')).toBe(false);
+    });
+
+    it('startet main ohne childEnv-Scope-Fehler und merged die Env korrekt', async () => {
+        const cleanupManagedDockerPortFn = vi.fn();
+        const spawnFn = vi.fn(() => {
+            const handlers = new Map();
+
+            queueMicrotask(() => {
+                handlers.get('exit')?.(0);
+            });
+
+            return {
+                on(event, handler) {
+                    handlers.set(event, handler);
+                    return this;
+                },
+            };
+        });
+
+        const exitCode = await main({
+            argv: ['tests/e2e/homepage-performance.spec.js', '--project=webkit'],
+            env: {
+                PLAYWRIGHT_RUN_TOKEN: 'provided-token',
+                PLAYWRIGHT_PORT: '8100',
+            },
+            spawnFn,
+            cleanupManagedDockerPortFn,
+        });
+
+        expect(exitCode).toBe(0);
+        expect(spawnFn).toHaveBeenCalledTimes(1);
+        expect(spawnFn.mock.calls[0][2].env).toMatchObject({
+            PLAYWRIGHT_USE_DOCKER: '1',
+            PLAYWRIGHT_RUN_TOKEN: 'provided-token',
+            PLAYWRIGHT_PORT: '8100',
+        });
+        expect(cleanupManagedDockerPortFn).toHaveBeenCalledTimes(2);
+        expect(cleanupManagedDockerPortFn).toHaveBeenNthCalledWith(1, 8100);
+        expect(cleanupManagedDockerPortFn).toHaveBeenNthCalledWith(2, 8100);
     });
 });
 

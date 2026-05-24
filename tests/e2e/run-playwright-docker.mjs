@@ -44,12 +44,12 @@ export function createProjectRuns({ args, env, basePort }) {
     }));
 }
 
-const runPlaywright = (args, envOverrides = {}) => new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [playwrightCli, 'test', ...args], {
+const runPlaywright = (args, baseEnv, envOverrides = {}, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
+    const child = spawnFn(process.execPath, [playwrightCli, 'test', ...args], {
         stdio: 'inherit',
         windowsHide: shouldHideWindowsShell,
         env: {
-            ...childEnv,
+            ...baseEnv,
             ...envOverrides,
         },
     });
@@ -63,7 +63,12 @@ const runPlaywright = (args, envOverrides = {}) => new Promise((resolve, reject)
     });
 });
 
-export async function main({ argv = process.argv.slice(2), env = process.env } = {}) {
+export async function main({
+    argv = process.argv.slice(2),
+    env = process.env,
+    spawnFn = spawn,
+    cleanupManagedDockerPortFn = cleanupManagedDockerPort,
+} = {}) {
     const captureModalScreenshots = argv.includes('--capture-modal-screenshots');
     const playwrightArgs = captureModalScreenshots
         ? argv.filter((arg) => arg !== '--capture-modal-screenshots')
@@ -82,11 +87,11 @@ export async function main({ argv = process.argv.slice(2), env = process.env } =
     for (const run of projectRuns) {
         const projectPort = Number(run.env.PLAYWRIGHT_PORT ?? childEnv.PLAYWRIGHT_PORT ?? basePort);
 
-        cleanupManagedDockerPort(projectPort);
+        cleanupManagedDockerPortFn(projectPort);
 
-        const code = await runPlaywright(run.args, run.env);
+        const code = await runPlaywright(run.args, childEnv, run.env, { spawnFn });
 
-        cleanupManagedDockerPort(projectPort);
+        cleanupManagedDockerPortFn(projectPort);
 
         if (code !== 0) {
             return code;
