@@ -12,8 +12,8 @@
 
 | Layer | Stack | Pfad |
 |-------|-------|------|
-| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.3 | `app/` |
-| Frontend | Vite 7, Tailwind 4, Alpine.js | `resources/` |
+| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.5 | `app/` |
+| Frontend | Vite 8, Tailwind 4, Alpine.js | `resources/` |
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
 | CI | PHPUnit, Vitest 4, Playwright | `.github/workflows/` |
 
@@ -40,7 +40,7 @@ npm run docker:dev:key:generate
 docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
 
 # Optionaler Host-Fallback
-composer install && npm install      # Node 24 LTS (siehe .node-version)
+composer install && npm install      # Node 26 (Single Source of Truth: .node-version)
 cp .env.example .env && php artisan key:generate
 php artisan migrate
 
@@ -64,6 +64,8 @@ npm run test:e2e:docker
 - Für Playwright lokal bevorzugt `npm run test:e2e:docker`; der Docker-PHP-Helfer nutzt dafür standardmäßig `docker-compose.dev.yml`.
 
 ## Projekt-Konventionen
+
+- Node-26-Built-ins wie `randomUUIDv7()`, `Map.prototype.getOrInsert*()` und `Iterator.concat()` nur in Node-only-Dateien verwenden, z.B. `playwright.config.js` oder `tests/e2e/**`. In `resources/js/**` und Blade-Inline-Skripten bleiben sie tabu, bis die Browser-Zielmatrix das explizit traegt.
 
 ### Deutsche Domain-Sprache
 Routes, Views und Models verwenden deutsche Begriffe:

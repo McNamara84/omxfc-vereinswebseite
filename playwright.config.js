@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 import { formatDockerServiceCommand, formatPhpCommand, shouldUseDockerPhp, toPhpRuntimePath } from './tests/e2e/utils/php.js';
+import { resolvePlaywrightRunToken } from './tests/e2e/utils/playwright-run-token.js';
 
 const databasePath = toPhpRuntimePath(path.resolve('database/playwright.sqlite'));
 const playwrightPort = Number(process.env.PLAYWRIGHT_PORT ?? 8001);
 const vitePort = Number(process.env.VITE_PORT ?? process.env.DOCKER_DEV_VITE_PORT ?? 5173);
 const phpServerHost = shouldUseDockerPhp() ? '0.0.0.0' : '127.0.0.1';
-const playwrightRunToken = process.env.PLAYWRIGHT_RUN_TOKEN ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const playwrightRunToken = resolvePlaywrightRunToken(process.env.PLAYWRIGHT_RUN_TOKEN, { prefix: 'local' });
 const playwrightViteDevServerUrl = process.env.VITE_DEV_SERVER_URL
   ?? process.env.DOCKER_DEV_VITE_DEV_SERVER_URL
   ?? `http://localhost:${vitePort}`;

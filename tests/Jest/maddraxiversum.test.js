@@ -1,5 +1,16 @@
 import { jest } from '@jest/globals';
 
+function jsonResponse(data, { ok = true, status = 200, statusText = 'OK' } = {}) {
+  return {
+    ok,
+    status,
+    statusText,
+    headers: { get: () => 'application/json' },
+    json: jest.fn().mockResolvedValue(data),
+    text: jest.fn().mockResolvedValue(JSON.stringify(data)),
+  };
+}
+
 describe('maddraxiversum', () => {
   let mod;
   let mockMap;
@@ -35,9 +46,13 @@ describe('maddraxiversum', () => {
 
     await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
 
-    const axios = (await import('axios')).default;
-    jest.spyOn(axios, 'get').mockResolvedValue({ data: { query: { results: {} } } });
-    jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
+    globalThis.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/maddraxikon-staedte') {
+        return Promise.resolve(jsonResponse({ query: { results: {} } }));
+      }
+
+      return Promise.resolve(jsonResponse({ status: 'completed', mission: {} }));
+    });
 
     document.body.innerHTML = `
       <dialog id="mission-modal"></dialog>
@@ -111,7 +126,6 @@ describe('maddraxiversum extended behaviour', () => {
   let mockMarker;
   let mockCluster;
   let mockLatLngBounds;
-  let axios;
   let popupOpen;
   let domReady;
   let addEventListenerSpy;
@@ -159,13 +173,17 @@ describe('maddraxiversum extended behaviour', () => {
       },
     }));
     await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
-    axios = (await import('axios')).default;
-    jest.spyOn(axios, 'get').mockImplementation((url) =>
-      url === '/maddraxikon-staedte'
-        ? Promise.resolve({ data: { query: { results: cityResults } } })
-        : Promise.resolve(statusResult)
-    );
-    jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
+    globalThis.fetch = jest.fn().mockImplementation((url) => {
+      if (url === '/maddraxikon-staedte') {
+        return Promise.resolve(jsonResponse({ query: { results: cityResults } }));
+      }
+
+      if (url === '/mission/status') {
+        return Promise.resolve(jsonResponse(statusResult.data));
+      }
+
+      return Promise.resolve(jsonResponse({ status: 'completed', mission: {} }));
+    });
 
     document.body.innerHTML = `
       <dialog id="mission-modal"></dialog>
@@ -201,7 +219,9 @@ describe('maddraxiversum extended behaviour', () => {
         },
       },
     });
-    expect(axios.get).toHaveBeenCalledWith('/maddraxikon-staedte');
+    expect(globalThis.fetch).toHaveBeenCalledWith('/maddraxikon-staedte', expect.objectContaining({
+      method: 'GET',
+    }));
     expect(mockMarker.bindPopup).toHaveBeenCalled();
     expect(mockCluster.addLayer).toHaveBeenCalledWith(mockMarker);
     expect(mockMap.addLayer).toHaveBeenCalledWith(mockCluster);
@@ -232,11 +252,10 @@ describe('maddraxiversum extended behaviour', () => {
     jest.useFakeTimers();
     startBtn.click();
     await jest.runAllTimersAsync();
-    expect(axios.post).toHaveBeenCalledWith(
-      '/mission/starten',
-      expect.any(Object),
-      expect.objectContaining({ headers: { 'X-CSRF-TOKEN': 'TOKEN' } })
-    );
+    const missionStartCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/starten');
+    expect(missionStartCall).toBeDefined();
+    expect(missionStartCall[1].method).toBe('POST');
+    expect(missionStartCall[1].headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
     expect(mockMap.fitBounds).toHaveBeenCalled();
     jest.useRealTimers();
   });
@@ -263,7 +282,8 @@ describe('maddraxiversum extended behaviour', () => {
     domReady();
     await jest.runAllTimersAsync();
     jest.useRealTimers();
-    expect(axios.get).toHaveBeenCalledWith('/mission/status');
+    const missionStatusCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/status');
+    expect(missionStatusCall).toBeDefined();
     expect(mockMap.fitBounds).toHaveBeenCalled();
   });
 });

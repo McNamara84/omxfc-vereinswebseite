@@ -56,7 +56,7 @@
         "pestphp/pest-plugin-mutate": "5.x-dev#c61cb58ddfb552918a90f6e117800c389b580bbc",
         "pestphp/pest-plugin-profanity": "5.x-dev#73aa4c14735b8f0682e06205b35b8481dd8628a9",
         "phpunit/phpunit": "13.1.8",
-        "symfony/process": "8.1.x-dev#93d6507ad72e3f2df1cc8d41bbbc431fef1b7b74"
+        "symfony/process": "8.1.x-dev#f686de254d1970f8dd0991ed55a36a8fd731e2d9"
     },
     "autoload": {
         "psr-4": {

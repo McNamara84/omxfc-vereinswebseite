@@ -1,4 +1,5 @@
 import { expect, test } from './test-support.js';
+import { createDatetimeLocalRange } from './utils/temporal.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -175,12 +176,12 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Wähle Sichtbarkeit
         await page.getByTestId('visibility-internal').click();
 
+        const { start: today, end: nextWeek } = createDatetimeLocalRange();
+
         // Setze Startdatum (heute)
-        const today = new Date().toISOString().slice(0, 16);
         await page.getByTestId('starts-at-input').fill(today);
 
         // Setze Enddatum (in 7 Tagen)
-        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
         await page.getByTestId('ends-at-input').fill(nextWeek);
 
         // Zusätzliche Antwortmöglichkeiten zuerst anlegen, dann befüllen.

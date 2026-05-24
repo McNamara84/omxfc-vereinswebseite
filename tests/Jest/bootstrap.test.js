@@ -1,19 +1,17 @@
 import { jest } from '@jest/globals';
 
-// Using jest.unstable_mockModule because Jest's stable mock API currently
-// lacks full support for mocking ES modules loaded via dynamic import.
-// This enables us to intercept the axios dependency in the bootstrap module.
-
 describe('bootstrap module', () => {
   beforeEach(() => {
     jest.resetModules();
+    delete window.omxfcHttp;
   });
 
-  test('sets global axios instance with default header', async () => {
-    const mockAxios = { defaults: { headers: { common: {} } } };
-    await jest.unstable_mockModule('axios', () => ({ default: mockAxios }));
+  test('sets global http instance with default header', async () => {
+    const { default: http } = await import('../../resources/js/http/client.js');
+
     await import('../../resources/js/bootstrap.js');
-    expect(window.axios).toBe(mockAxios);
-    expect(mockAxios.defaults.headers.common['X-Requested-With']).toBe('XMLHttpRequest');
+
+    expect(window.omxfcHttp).toBe(http);
+    expect(http.defaults.headers.common['X-Requested-With']).toBe('XMLHttpRequest');
   });
 });

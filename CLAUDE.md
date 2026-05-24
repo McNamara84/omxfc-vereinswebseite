@@ -48,14 +48,14 @@ This document provides comprehensive guidance for AI assistants working with the
   - Laravel Jetstream 5.5 (team management, authentication)
   - Laravel Sanctum 4.3 (API authentication)
   - Livewire 4.x (reactive components)
-  - Laravel Scout 10.14 with TNTSearch (full-text search)
+    - Laravel Scout 11.x with TNTSearch (full-text search)
   - Spatie Laravel PDF (PDF generation)
   - Spatie Laravel Sitemap 8.0 (sitemap generation)
 
 ### Frontend
 - **CSS Framework:** Tailwind CSS 4.x
 - **UI Components:** maryUI 2.8 (Blade component library)
-- **Build Tool:** Vite 7.x
+- **Build Tool:** Vite 8.x
 - **JavaScript:**
   - Alpine.js (via Jetstream)
   - Alpine.js Focus plugin 3.15
@@ -67,14 +67,14 @@ This document provides comprehensive guidance for AI assistants working with the
 - **PHP Testing:** PHPUnit 13.x
 - **JavaScript Testing:**
   - Jest 30.2 (legacy tests)
-  - Vitest 4.0 (modern tests)
-  - Playwright 1.57 (E2E tests)
+    - Vitest 4.1 (modern tests)
+    - Playwright 1.60 (E2E tests)
   - @axe-core/playwright 4.11 (accessibility testing)
 - **Code Style:** Laravel Pint 1.29
 
 ### Development Tools
-- **Package Manager:** Composer 2.6+, npm 10
-- **Node.js:** v20 LTS
+- **Package Manager:** Composer 2.6+, npm 11
+- **Node.js:** v26 (see `.node-version`)
 - **Database:** MariaDB/MySQL (production), SQLite in-memory (testing)
 - **Queue:** Database driver (can be configured for Redis)
 - **Cache:** Database driver (can be configured for Redis)
@@ -1338,7 +1338,7 @@ php artisan migrate --force
 
 ---
 
-**Last Updated:** 2025-12-17
-**Laravel Version:** 12.0
+**Last Updated:** 2026-05-24
+**Laravel Version:** 13.0
 **PHP Version:** 8.5
-**Node Version:** 20 LTS
+**Node Version:** 26

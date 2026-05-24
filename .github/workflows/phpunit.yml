@@ -17,14 +17,14 @@ jobs:
       APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.5'
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
@@ -33,7 +33,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.composer/cache
           key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
@@ -42,7 +42,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache PHPUnit result cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .phpunit.cache
           key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
@@ -73,14 +73,14 @@ jobs:
       APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.5'
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
@@ -89,7 +89,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.composer/cache
           key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
@@ -98,7 +98,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache PHPUnit result cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .phpunit.cache
           key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
@@ -129,14 +129,14 @@ jobs:
       APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+      - uses: actions/checkout@v6
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.5'
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
@@ -145,7 +145,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.composer/cache
           key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
@@ -183,12 +183,12 @@ jobs:
       APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
           # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.5'
           coverage: xdebug
@@ -196,7 +196,7 @@ jobs:
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: vendor
           key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
@@ -205,7 +205,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.composer/cache
           key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
@@ -214,7 +214,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Cache PHPUnit result cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .phpunit.cache
           key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
@@ -254,13 +254,13 @@ jobs:
             sed -i 's/Coverage/PHP Coverage/' badge-output/php-coverage.svg
           fi
       - name: Upload PHP coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: php-coverage-report
           path: coverage.xml
       - name: Upload PHP coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: php-coverage-badge
           path: badge-output/php-coverage.svg
@@ -274,20 +274,20 @@ jobs:
     name: JS Coverage
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
           # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Install Node dependencies
         run: npm ci
       - name: Run Jest tests with coverage
-        run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
+        run: npm run test:coverage
       - name: Create JS coverage badge
         if: github.ref == 'refs/heads/main'
         run: |
@@ -297,13 +297,13 @@ jobs:
             sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
           fi
       - name: Upload JS coverage summary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: js-coverage-summary
           path: coverage/coverage-summary.json
       - name: Upload JS coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: js-coverage-badge
           path: output/js-coverage.svg
@@ -325,25 +325,25 @@ jobs:
           fi
       - name: Download PHP coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: php-coverage-badge
           path: artifacts/php/badge
       - name: Download JS coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: js-coverage-badge
           path: artifacts/js/badge
       - name: Download JS coverage summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: js-coverage-summary
           path: artifacts/js/summary
       - name: Download PHP coverage report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: php-coverage-report
           path: artifacts/php/report

@@ -10,13 +10,13 @@ runs:
   steps:
     - name: Setup Node.js (from .node-version)
       if: ${{ inputs.node-version == '' }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version-file: '.node-version'
         cache: 'npm'
     - name: Setup Node.js (explicit)
       if: ${{ inputs.node-version != '' }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'

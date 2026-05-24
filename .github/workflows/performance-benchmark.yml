@@ -15,13 +15,13 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+      - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
         with:
           php-version: '8.5'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: '.node-version'
 
@@ -84,7 +84,7 @@ jobs:
 
           const outputsFile = process.env.GITHUB_OUTPUT;
           const summaryPath = process.env.GITHUB_STEP_SUMMARY;
-          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics.js')).href;
+          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics-reporting.js')).href;
           const {
             formatMetricsForSummary,
             formatBenchmarkTitle,
@@ -181,7 +181,7 @@ jobs:
 
       - name: Report homepage benchmark check run
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PLAYWRIGHT_PROJECT: chromium
           BENCHMARK_TITLE: ${{ steps.publish_performance_metrics.outputs.benchmark_title }}
@@ -251,7 +251,7 @@ jobs:
 
       - name: Upload performance artifact
         if: always() && steps.publish_performance_metrics.outputs.metrics_found == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: homepage-performance
           path: playwright-performance/homepage.json

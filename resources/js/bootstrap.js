@@ -1,4 +1,3 @@
-import axios from 'axios';
-window.axios = axios;
+import http from './http/client';
 
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.omxfcHttp = http;
