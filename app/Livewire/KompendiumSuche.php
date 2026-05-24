@@ -101,23 +101,25 @@ class KompendiumSuche extends Component
             $radius = 200;
 
             $parsed = $searchService->parseSearchQuery($query);
-            $tntQuery = $searchService->buildTntSearchQuery($parsed) ?: $query;
 
-            // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
-            $tntQuery = str_replace('"', '', $tntQuery);
+            if (! $searchService->hasPositiveOperands($parsed)) {
+                $this->results = [];
+                $this->lastPage = 1;
+                $this->error = 'Bitte gib mindestens einen positiven Suchbegriff ein.';
+                $this->isPhraseSearch = $parsed['isPhraseSearch'];
+                $this->searchInfo = [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                ];
 
-            if ($tntQuery === '') {
-                $stripped = preg_replace('/"[^"]*"/', '', $query);
-                $tntQuery = trim($stripped);
-
-                if ($tntQuery === '') {
-                    $this->lastPage = 1;
-                    $this->isPhraseSearch = false;
-                    $this->searchInfo = ['phrases' => [], 'terms' => []];
-
-                    return;
-                }
+                return;
             }
+
+            $tntQuery = $searchService->buildTntSearchQuery($parsed);
 
             $raw = $searchService->search($tntQuery);
             $ids = array_values($raw['paths'] ?? $raw['ids'] ?? []);
@@ -126,25 +128,22 @@ class KompendiumSuche extends Component
             $textCache = [];
             $maxCandidates = 200;
 
-            if ($parsed['isPhraseSearch']) {
+            $requiresPostFilter = $parsed['usesOrOperator']
+                || $parsed['usesNotOperator']
+                || $parsed['isPhraseSearch']
+                || count($parsed['terms']) > 1;
+
+            if ($requiresPostFilter) {
                 $candidates = array_slice($ids, 0, $maxCandidates);
-                $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
+                $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache, $searchService) {
                     if (! Storage::disk('private')->exists($path)) {
                         return false;
                     }
 
                     $text = Storage::disk('private')->get($path);
 
-                    foreach ($parsed['phrases'] as $phrase) {
-                        if (mb_stripos($text, $phrase) === false) {
-                            return false;
-                        }
-                    }
-
-                    foreach ($parsed['terms'] as $term) {
-                        if (mb_stripos($text, $term) === false) {
-                            return false;
-                        }
+                    if (! $searchService->matchesText($text, $parsed)) {
+                        return false;
                     }
 
                     $textCache[$path] = $text;
@@ -179,7 +178,14 @@ class KompendiumSuche extends Component
 
             if (empty($snippetTerms)) {
                 $this->isPhraseSearch = $parsed['isPhraseSearch'];
-                $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+                $this->searchInfo = [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                ];
 
                 return;
             }
@@ -209,7 +215,14 @@ class KompendiumSuche extends Component
 
             $this->results = array_merge($this->results, $hits);
             $this->isPhraseSearch = $parsed['isPhraseSearch'];
-            $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+            $this->searchInfo = [
+                'phrases' => $parsed['phrases'],
+                'terms' => $parsed['terms'],
+                'excludedPhrases' => $parsed['excludedPhrases'],
+                'excludedTerms' => $parsed['excludedTerms'],
+                'usesOrOperator' => $parsed['usesOrOperator'],
+                'usesNotOperator' => $parsed['usesNotOperator'],
+            ];
         } catch (\Throwable $e) {
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
             $this->lastPage = $this->page;

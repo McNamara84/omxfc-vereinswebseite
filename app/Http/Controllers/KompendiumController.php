@@ -142,29 +142,27 @@ class KompendiumController extends Controller
         /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
         /* ------------------------------------------------------------------ */
         $parsed = $this->searchService->parseSearchQuery($query);
-        $tntQuery = $this->searchService->buildTntSearchQuery($parsed) ?: $query;
 
-        // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
-        $tntQuery = str_replace('"', '', $tntQuery);
-
-        // Fallback: Wenn Quotes vorhanden waren, aber keine gültigen Begriffe extrahiert
-        // werden konnten (z.B. "A" oder ""), auf den bereinigten Original-Query zurückfallen.
-        if ($tntQuery === '') {
-            $stripped = preg_replace('/"[^"]*"/', '', $query);
-            $tntQuery = trim($stripped);
-
-            if ($tntQuery === '') {
-                // Kein brauchbarer Suchbegriff übrig → leere Ergebnisse zurückgeben
-                return response()->json([
-                    'data' => [],
-                    'currentPage' => $page,
-                    'lastPage' => 1,
-                    'serienCounts' => [],
-                    'isPhraseSearch' => false,
-                    'searchInfo' => ['phrases' => [], 'terms' => []],
-                ]);
-            }
+        if (! $this->searchService->hasPositiveOperands($parsed)) {
+            return response()->json([
+                'data' => [],
+                'currentPage' => 1,
+                'lastPage' => 1,
+                'serienCounts' => [],
+                'isPhraseSearch' => $parsed['isPhraseSearch'],
+                'searchInfo' => [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                ],
+                'message' => 'Bitte gib mindestens einen positiven Suchbegriff ein.',
+            ]);
         }
+
+        $tntQuery = $this->searchService->buildTntSearchQuery($parsed);
 
         /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
@@ -185,7 +183,12 @@ class KompendiumController extends Controller
         $maxPostFilterCandidates = 200;
         $candidatesTruncated = false;
 
-        if ($parsed['isPhraseSearch']) {
+        $requiresPostFilter = $parsed['usesOrOperator']
+            || $parsed['usesNotOperator']
+            || $parsed['isPhraseSearch']
+            || count($parsed['terms']) > 1;
+
+        if ($requiresPostFilter) {
             if (count($ids) > $maxPostFilterCandidates) {
                 $candidatesTruncated = true;
             }
@@ -197,18 +200,8 @@ class KompendiumController extends Controller
 
                 $text = Storage::disk('private')->get($path);
 
-                // Alle Phrasen müssen als exakte Substrings vorkommen
-                foreach ($parsed['phrases'] as $phrase) {
-                    if (mb_stripos($text, $phrase) === false) {
-                        return false;
-                    }
-                }
-
-                // Alle freien Begriffe müssen ebenfalls vorkommen
-                foreach ($parsed['terms'] as $term) {
-                    if (mb_stripos($text, $term) === false) {
-                        return false;
-                    }
+                if (! $this->searchService->matchesText($text, $parsed)) {
+                    return false;
                 }
 
                 // Nur Treffer cachen, um RAM zu sparen
@@ -363,6 +356,10 @@ class KompendiumController extends Controller
             'searchInfo' => [
                 'phrases' => $parsed['phrases'],
                 'terms' => $parsed['terms'],
+                'excludedPhrases' => $parsed['excludedPhrases'],
+                'excludedTerms' => $parsed['excludedTerms'],
+                'usesOrOperator' => $parsed['usesOrOperator'],
+                'usesNotOperator' => $parsed['usesNotOperator'],
             ],
         ];
 

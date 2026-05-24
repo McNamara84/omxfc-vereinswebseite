@@ -367,7 +367,7 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertSee('Aktuell sind die folgenden Romane für die Suche indexiert:');
+        $response->assertSee('Aktuell sind diese Serien für die Suche indexiert:');
         // Zusammengefasste \u00dcbersicht: Serienname im <strong>-Tag und Zyklus in der Beschreibung
         $response->assertSee('<strong>Maddrax</strong>', false);
         $response->assertSee('Euree-Zyklus');
@@ -486,7 +486,7 @@ class KompendiumControllerTest extends TestCase
         $this->assertEquals('Beides', $data[0]['title']);
     }
 
-    public function test_search_without_quotes_behaves_as_before(): void
+    public function test_search_without_quotes_requires_all_terms(): void
     {
         $user = $this->actingMemberWithPoints(150);
         $this->purchaseKompendiumForUser($user);
@@ -502,14 +502,14 @@ class KompendiumControllerTest extends TestCase
             ]
         );
 
-        // Ohne Anführungszeichen: keine Post-Filterung
+        // Ohne Anführungszeichen gilt jetzt AND-Semantik
         $response = $this->getJson('/kompendium/suche?q=matthew+drax');
 
         $response->assertOk();
         $data = $response->json('data');
 
-        // Beide Treffer kommen durch (OR-Logik wie bisher)
-        $this->assertCount(2, $data);
+        // Kein Dokument enthält beide Begriffe gleichzeitig
+        $this->assertCount(0, $data);
         $this->assertFalse($response->json('isPhraseSearch'));
     }
 
@@ -535,6 +535,102 @@ class KompendiumControllerTest extends TestCase
             'searchInfo' => [
                 'phrases' => ['matthew drax'],
                 'terms' => ['abenteuer'],
+                'excludedPhrases' => [],
+                'excludedTerms' => [],
+                'usesOrOperator' => false,
+                'usesNotOperator' => false,
+            ],
+        ]);
+    }
+
+    public function test_search_with_or_returns_documents_matching_either_clause(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Matthew.txt' => 'Matthew durchsuchte die Anlage.',
+                'romane/maddrax/002 - Aruula.txt' => 'Aruula sicherte den Rückzug.',
+                'romane/maddrax/003 - Sonstiges.txt' => 'Xij Hamel plante im Verborgenen.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Matthew.txt',
+                'romane/maddrax/002 - Aruula.txt',
+                'romane/maddrax/003 - Sonstiges.txt',
+            ]
+        );
+
+        $response = $this->getJson('/kompendium/suche?q=matthew+OR+aruula');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(2, $data);
+        $response->assertJson([
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => ['matthew', 'aruula'],
+                'excludedPhrases' => [],
+                'excludedTerms' => [],
+                'usesOrOperator' => true,
+                'usesNotOperator' => false,
+            ],
+        ]);
+    }
+
+    public function test_search_with_not_excludes_matching_documents(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Treffer.txt' => 'Matthew erkundete die Anlage allein.',
+                'romane/maddrax/002 - Ausgeschlossen.txt' => 'Matthew und Aruula planten gemeinsam.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Treffer.txt',
+                'romane/maddrax/002 - Ausgeschlossen.txt',
+            ]
+        );
+
+        $response = $this->getJson('/kompendium/suche?q=matthew+NOT+aruula');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(1, $data);
+        $this->assertSame('Treffer', $data[0]['title']);
+        $response->assertJson([
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => ['matthew'],
+                'excludedPhrases' => [],
+                'excludedTerms' => ['aruula'],
+                'usesOrOperator' => false,
+                'usesNotOperator' => true,
+            ],
+        ]);
+    }
+
+    public function test_search_with_only_negative_terms_returns_helpful_message(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $response = $this->getJson('/kompendium/suche?q=NOT+aruula');
+
+        $response->assertOk()->assertJson([
+            'data' => [],
+            'message' => 'Bitte gib mindestens einen positiven Suchbegriff ein.',
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => [],
+                'excludedPhrases' => [],
+                'excludedTerms' => ['aruula'],
+                'usesOrOperator' => false,
+                'usesNotOperator' => true,
             ],
         ]);
     }

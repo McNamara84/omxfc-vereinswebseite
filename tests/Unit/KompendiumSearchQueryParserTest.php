@@ -13,6 +13,8 @@ use Tests\TestCase;
  */
 #[CoversMethod(KompendiumSearchService::class, 'parseSearchQuery')]
 #[CoversMethod(KompendiumSearchService::class, 'buildTntSearchQuery')]
+#[CoversMethod(KompendiumSearchService::class, 'hasPositiveOperands')]
+#[CoversMethod(KompendiumSearchService::class, 'matchesText')]
 class KompendiumSearchQueryParserTest extends TestCase
 {
     use RefreshDatabase;
@@ -67,6 +69,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($result['isPhraseSearch']);
         $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
         $this->assertEmpty($result['terms']);
+        $this->assertCount(1, $result['groups']);
     }
 
     #[Test]
@@ -117,6 +120,28 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($result['isPhraseSearch']);
         $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
         $this->assertArraysAreEqual(['abenteuer', 'mutation'], $result['terms']);
+    }
+
+    #[Test]
+    public function parse_or_erzeugt_mehrere_gruppen(): void
+    {
+        $result = $this->service->parseSearchQuery('Matthew OR Aruula Abenteuer');
+
+        $this->assertTrue($result['usesOrOperator']);
+        $this->assertCount(2, $result['groups']);
+        $this->assertSame(['matthew'], $result['groups'][0]['requiredTerms']);
+        $this->assertSame(['aruula', 'abenteuer'], $result['groups'][1]['requiredTerms']);
+    }
+
+    #[Test]
+    public function parse_not_und_minus_notieren_ausschluesse(): void
+    {
+        $result = $this->service->parseSearchQuery('Matthew NOT Aruula -"Volk der Tiefe"');
+
+        $this->assertTrue($result['usesNotOperator']);
+        $this->assertSame(['matthew'], $result['terms']);
+        $this->assertSame(['aruula'], $result['excludedTerms']);
+        $this->assertSame(['volk der tiefe'], $result['excludedPhrases']);
     }
 
     #[Test]
@@ -176,6 +201,17 @@ class KompendiumSearchQueryParserTest extends TestCase
     }
 
     #[Test]
+    public function build_query_ignoriert_ausgeschlossene_begriffe(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula NOT Mutant');
+        $tntQuery = $this->service->buildTntSearchQuery($parsed);
+
+        $this->assertStringContainsString('matthew', $tntQuery);
+        $this->assertStringContainsString('aruula', $tntQuery);
+        $this->assertStringNotContainsString('mutant', $tntQuery);
+    }
+
+    #[Test]
     public function build_query_dedupliziert_woerter(): void
     {
         $parsed = $this->service->parseSearchQuery('"Matthew Drax" Matthew');
@@ -192,5 +228,42 @@ class KompendiumSearchQueryParserTest extends TestCase
         $tntQuery = $this->service->buildTntSearchQuery($parsed);
 
         $this->assertEquals('abenteuer mutation', $tntQuery);
+    }
+
+    #[Test]
+    public function has_positive_operands_ist_false_bei_nur_negativen_begriffen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('NOT Aruula');
+
+        $this->assertFalse($this->service->hasPositiveOperands($parsed));
+        $this->assertFalse($parsed['hasPositiveOperands']);
+    }
+
+    #[Test]
+    public function matches_text_verlangt_standardmaessig_and_semantik(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew Drax');
+
+        $this->assertTrue($this->service->matchesText('Matthew und Drax tauchen beide im Text auf.', $parsed));
+        $this->assertFalse($this->service->matchesText('Nur Matthew ist vorhanden.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_beruecksichtigt_or_gruppen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+
+        $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
+        $this->assertTrue($this->service->matchesText('Matthew war ebenfalls da.', $parsed));
+        $this->assertFalse($this->service->matchesText('Xij Hamel sprach allein.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_respektiert_not_und_phrasen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('"Matthew Drax" NOT Aruula');
+
+        $this->assertTrue($this->service->matchesText('Matthew Drax erkundete die Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew Drax und Aruula sprachen miteinander.', $parsed));
     }
 }
