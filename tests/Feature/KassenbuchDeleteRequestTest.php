@@ -199,8 +199,10 @@ class KassenbuchDeleteRequestTest extends TestCase
         $this->assertSame(100.0, (float) Kassenstand::where('team_id', $this->team->id)->value('betrag'));
 
         Mail::assertQueued(KassenbuchDeleteApproved::class, fn ($mail) => $mail->hasTo($kassenwart->email)
-            && $mail->hasTo($vorstandA->email)
-            && $mail->hasTo($vorstandB->email));
+            && ! $mail->hasTo($vorstandA->email)
+            && ! $mail->hasTo($vorstandB->email)
+            && $mail->hasBcc($vorstandA->email)
+            && $mail->hasBcc($vorstandB->email));
     }
 
     public function test_vorstand_can_approve_delete_request_without_existing_kassenstand_row(): void

@@ -489,18 +489,32 @@ class KassenbuchController extends Controller
 
     private function queueDeleteApprovedMail(Team $team, User $requester, User $processor, array $entrySnapshot, string $reasonText): void
     {
-        $recipients = collect($this->vorstandEmails($team))
-            ->push($requester->email)
+        $vorstandRecipients = collect($this->vorstandEmails($team))
             ->filter()
             ->unique()
             ->values()
             ->all();
 
-        if ($recipients === []) {
+        $primaryRecipient = blank($requester->email)
+            ? array_shift($vorstandRecipients)
+            : $requester->email;
+
+        $bccRecipients = collect($vorstandRecipients)
+            ->when(filled($requester->email), fn ($emails) => $emails->reject(fn ($email) => $email === $requester->email))
+            ->values()
+            ->all();
+
+        if (blank($primaryRecipient)) {
             return;
         }
 
-        Mail::to($recipients)->queue(new KassenbuchDeleteApproved($requester, $processor, $entrySnapshot, $reasonText));
+        $pendingMail = Mail::to($primaryRecipient);
+
+        if ($bccRecipients !== []) {
+            $pendingMail->bcc($bccRecipients);
+        }
+
+        $pendingMail->queue(new KassenbuchDeleteApproved($requester, $processor, $entrySnapshot, $reasonText));
     }
 
     private function queueDeleteRejectedMail(User $requester, User $processor, array $entrySnapshot, string $reasonText, ?string $rejectionReason): void
