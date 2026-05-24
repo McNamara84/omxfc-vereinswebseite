@@ -21,12 +21,16 @@ class BuiltInServerStaticPathResolverTest extends TestCase
         mkdir($this->projectRoot.DIRECTORY_SEPARATOR.'public', 0777, true);
         mkdir($this->projectRoot.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'ag-logos', 0777, true);
         mkdir($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'nested', 0777, true);
+        mkdir($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'.git', 0777, true);
+        mkdir($this->projectRoot.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'.private', 0777, true);
 
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'app.css', 'body {}');
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'index.php', '<?php echo "index";');
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'.htaccess', 'deny from all');
+        file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'.git'.DIRECTORY_SEPARATOR.'config', '[core]');
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'nested'.DIRECTORY_SEPARATOR.'.secret', 'hidden');
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'ag-logos'.DIRECTORY_SEPARATOR.'logo.svg', '<svg></svg>');
+        file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'storage'.DIRECTORY_SEPARATOR.'app'.DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR.'.private'.DIRECTORY_SEPARATOR.'logo.svg', '<svg></svg>');
         file_put_contents($this->projectRoot.DIRECTORY_SEPARATOR.'secret.txt', 'secret');
     }
 
@@ -77,6 +81,8 @@ class BuiltInServerStaticPathResolverTest extends TestCase
         $this->assertNull(BuiltInServerStaticPathResolver::resolve($this->projectRoot, '/index.php'));
         $this->assertNull(BuiltInServerStaticPathResolver::resolve($this->projectRoot, '/.htaccess'));
         $this->assertNull(BuiltInServerStaticPathResolver::resolve($this->projectRoot, '/nested/.secret'));
+        $this->assertNull(BuiltInServerStaticPathResolver::resolve($this->projectRoot, '/.git/config'));
+        $this->assertNull(BuiltInServerStaticPathResolver::resolve($this->projectRoot, '/storage/.private/logo.svg'));
     }
 
     #[Test]

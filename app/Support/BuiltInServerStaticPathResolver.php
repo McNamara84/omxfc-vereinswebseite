@@ -116,7 +116,15 @@ final class BuiltInServerStaticPathResolver
 
     private static function isDisallowedStaticRequestPath(string $requestPath): bool
     {
-        $basename = basename($requestPath);
+        $segments = array_values(array_filter(explode('/', trim($requestPath, '/')), static fn (string $segment) => $segment !== ''));
+
+        foreach ($segments as $segment) {
+            if (str_starts_with($segment, '.')) {
+                return true;
+            }
+        }
+
+        $basename = $segments === [] ? '' : end($segments);
 
         if ($basename === '' || str_starts_with($basename, '.')) {
             return true;
