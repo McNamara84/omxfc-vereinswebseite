@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Download;
-use App\Models\Reward;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;

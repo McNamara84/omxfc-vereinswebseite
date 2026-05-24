@@ -104,12 +104,16 @@ class DownloadsController extends Controller
             return;
         }
 
-        $contents = file_get_contents($sourcePath);
+        $stream = fopen($sourcePath, 'rb');
 
-        if ($contents === false) {
+        if ($stream === false) {
             return;
         }
 
-        Storage::disk('private')->put($download->file_path, $contents);
+        try {
+            Storage::disk('private')->put($download->file_path, $stream);
+        } finally {
+            fclose($stream);
+        }
     }
 }
