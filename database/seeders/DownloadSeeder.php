@@ -6,6 +6,7 @@ use App\Models\Download;
 use App\Models\Reward;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DownloadSeeder extends Seeder
@@ -52,6 +53,30 @@ class DownloadSeeder extends Seeder
                 'reward_slug' => 'downloads-kurzgeschichte-1',
                 'sort_order' => 0,
             ],
+            [
+                'title' => 'Rollenspiel-Regelwerk 2001',
+                'slug' => 'rollenspiel-regelwerk-2001',
+                'description' => 'Rollenspiel-Regelwerk von 2001 von Uwe Simon.',
+                'category' => 'Rollenspiel-Regelwerke',
+                'file_path' => 'downloads/Regelwerk2001.pdf',
+                'original_filename' => 'Regelwerk2001.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size' => $this->bundledFileSize('Regelwerk2001.pdf'),
+                'reward_slug' => null,
+                'sort_order' => 0,
+            ],
+            [
+                'title' => 'Rollenspiel-Regelwerk 2007',
+                'slug' => 'rollenspiel-regelwerk-2007',
+                'description' => 'Rollenspiel-Regelwerk von 2007 von Thomas Biskup.',
+                'category' => 'Rollenspiel-Regelwerke',
+                'file_path' => 'downloads/Regelwerk2007.pdf',
+                'original_filename' => 'Regelwerk2007.pdf',
+                'mime_type' => 'application/pdf',
+                'file_size' => $this->bundledFileSize('Regelwerk2007.pdf'),
+                'reward_slug' => null,
+                'sort_order' => 1,
+            ],
         ];
 
         foreach ($downloads as $data) {
@@ -65,7 +90,8 @@ class DownloadSeeder extends Seeder
 
             // Link the corresponding reward to this download
             if ($rewardSlug) {
-                Reward::where('slug', $rewardSlug)
+                DB::table('rewards')
+                    ->where('slug', $rewardSlug)
                     ->whereNull('download_id')
                     ->update(['download_id' => $download->id]);
             }
@@ -76,5 +102,18 @@ class DownloadSeeder extends Seeder
                 Storage::disk('private')->put($data['file_path'], 'Dummy-Datei für Entwicklung');
             }
         }
+    }
+
+    private function bundledFileSize(string $fileName): ?int
+    {
+        $sourcePath = base_path('resources/downloads/'.$fileName);
+
+        if (! is_file($sourcePath)) {
+            return null;
+        }
+
+        $fileSize = filesize($sourcePath);
+
+        return $fileSize === false ? null : $fileSize;
     }
 }

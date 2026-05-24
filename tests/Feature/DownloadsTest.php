@@ -142,6 +142,33 @@ class DownloadsTest extends TestCase
         $response->assertHeader('content-disposition');
     }
 
+    public function test_seeded_rulebooks_are_listed_in_the_download_area(): void
+    {
+        $this->actingMember();
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        $response->assertSeeText('Rollenspiel-Regelwerke');
+        $response->assertSeeText('Rollenspiel-Regelwerk 2001');
+        $response->assertSeeText('Rollenspiel-Regelwerk 2007');
+    }
+
+    public function test_bundled_rulebook_download_is_restored_when_private_file_is_missing(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+
+        $this->assertFalse(Storage::disk('private')->exists($download->file_path));
+
+        $response = $this->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+        $this->assertTrue(Storage::disk('private')->exists($download->file_path));
+    }
+
     public function test_download_fails_when_file_missing(): void
     {
         $user = $this->actingMember();
@@ -238,7 +265,7 @@ class DownloadsTest extends TestCase
         $response->assertOk();
         // Der Download sollte als gesperrt angezeigt werden (Freischalten-Link statt Herunterladen)
         $response->assertSee('Freischalten');
-        $response->assertDontSee('Herunterladen');
+        $response->assertDontSee(route('downloads.download', $download), false);
     }
 
     public function test_active_purchase_with_inactive_reward_does_not_show_as_unlocked(): void

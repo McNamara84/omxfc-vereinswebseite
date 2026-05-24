@@ -6,6 +6,7 @@ use App\Models\Download;
 use App\Models\RewardPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class DownloadsController extends Controller
@@ -30,8 +31,9 @@ class DownloadsController extends Controller
 
         // Ermittle alle Download-IDs, die der User über Reward-Käufe freigeschaltet hat.
         // Per Join statt lazy Loading, um N+1-Queries zu vermeiden.
-        $unlockedDownloadIds = RewardPurchase::where('reward_purchases.user_id', $user->id)
-            ->active()
+        $unlockedDownloadIds = DB::table('reward_purchases')
+            ->where('reward_purchases.user_id', $user->id)
+            ->whereNull('reward_purchases.refunded_at')
             ->join('rewards', 'reward_purchases.reward_id', '=', 'rewards.id')
             ->whereNotNull('rewards.download_id')
             ->where('rewards.is_active', true)
@@ -66,7 +68,8 @@ class DownloadsController extends Controller
             }
 
             // Prüfe ob der User die verknüpfte Belohnung freigeschaltet hat
-            $hasAccess = RewardPurchase::where('user_id', $user->id)
+            $hasAccess = RewardPurchase::query()
+                ->where('user_id', $user->id)
                 ->active()
                 ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))
                 ->exists();
@@ -80,9 +83,33 @@ class DownloadsController extends Controller
 
         $path = $download->file_path;
         if (! Storage::disk('private')->exists($path)) {
+            $this->restoreBundledDownloadIfMissing($download);
+        }
+
+        if (! Storage::disk('private')->exists($path)) {
             return back()->withErrors('Die Datei existiert nicht.');
         }
 
-        return Storage::disk('private')->download($path, $download->original_filename);
+        return response()->download(
+            Storage::disk('private')->path($path),
+            $download->original_filename
+        );
+    }
+
+    private function restoreBundledDownloadIfMissing(Download $download): void
+    {
+        $sourcePath = base_path('resources/downloads/'.basename($download->original_filename));
+
+        if (! is_file($sourcePath)) {
+            return;
+        }
+
+        $contents = file_get_contents($sourcePath);
+
+        if ($contents === false) {
+            return;
+        }
+
+        Storage::disk('private')->put($download->file_path, $contents);
     }
 }
