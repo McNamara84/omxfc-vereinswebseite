@@ -1,5 +1,5 @@
 # Build Stage für Node/Vite
-FROM node:24-alpine as node-builder
+FROM node:26-alpine as node-builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci

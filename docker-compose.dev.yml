@@ -99,7 +99,7 @@ services:
       - omxfc-dev-network
 
   vite:
-    image: node:24-alpine
+    image: node:26-alpine
     init: true
     working_dir: /workspace
     command: ['sh', '/workspace/docker/dev/start-vite.sh']

@@ -2,7 +2,7 @@
 
 ![Laravel 13](https://img.shields.io/badge/laravel-13-red?logo=laravel&style=flat)
 ![PHP 8.5](https://img.shields.io/badge/php-8.5-blue?logo=php)
-![Node 24](https://img.shields.io/badge/node-24-5FA04E?logo=node.js&logoColor=white)
+![Node 26](https://img.shields.io/badge/node-26-5FA04E?logo=node.js&logoColor=white)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
 [![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
@@ -59,7 +59,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
 | PHP              | ≥ 8.5 inklusive Extensions: `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | ≥ 2.6, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 24 LTS (siehe `.node-version`), nur für klassische Host-Entwicklung nötig |
+| Node.js & npm    | Node 26 (Single Source of Truth: `.node-version`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -210,7 +210,7 @@ Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 24 (LTS) (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

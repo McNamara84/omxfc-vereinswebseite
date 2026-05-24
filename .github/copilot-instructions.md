@@ -40,7 +40,7 @@ npm run docker:dev:key:generate
 docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
 
 # Optionaler Host-Fallback
-composer install && npm install      # Node 24 LTS (siehe .node-version)
+composer install && npm install      # Node 26 (Single Source of Truth: .node-version)
 cp .env.example .env && php artisan key:generate
 php artisan migrate
 
