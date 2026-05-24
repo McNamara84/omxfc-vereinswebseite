@@ -84,10 +84,6 @@ final class BuiltInServerStaticPathResolver
 
         $candidatePath = self::buildProjectPath($projectRoot, 'public', $requestPath);
 
-        if ($candidatePath === null) {
-            return null;
-        }
-
         $resolvedPath = realpath($candidatePath);
 
         if ($resolvedPath === false || ! is_file($resolvedPath)) {
@@ -97,7 +93,7 @@ final class BuiltInServerStaticPathResolver
         return self::pathIsWithinBase($resolvedPath, $publicRoot) ? $resolvedPath : null;
     }
 
-    private static function buildProjectPath(string $projectRoot, string $baseDirectory, string $requestPath): ?string
+    private static function buildProjectPath(string $projectRoot, string $baseDirectory, string $requestPath): string
     {
         $relativePath = ltrim($requestPath, '/');
         $basePath = rtrim($projectRoot, '/\\').DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $baseDirectory);
