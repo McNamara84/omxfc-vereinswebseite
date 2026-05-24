@@ -38,6 +38,7 @@ class ArbeitsgruppenPlaywrightSeeder extends Seeder
             'description' => 'EARDRAX: Die AG macht inszenierte Lesungen fuer YouTube zuganglich und sucht weitere Mitwirkende.',
             'meeting_schedule' => 'Nach Bedarf und Projektphase',
             'email' => 'ag-hoerbuecher@maddrax-fanclub.de',
+            'logo_path' => 'ag-logos/arbeitsgruppen-playwright-logo.svg',
         ]);
 
         $team->users()->syncWithoutDetaching([

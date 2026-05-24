@@ -46,4 +46,16 @@ class ArbeitsgruppenPlaywrightSeederTest extends TestCase
             'name' => 'AG Fanhoerbuecher',
         ]);
     }
+
+    public function test_seeder_creates_public_ag_with_logo_contract_for_playwright(): void
+    {
+        $seeder = new ArbeitsgruppenPlaywrightSeeder();
+        $seeder->run();
+
+        $this->assertDatabaseHas('teams', [
+            'name' => 'AG Fanhoerbuecher',
+            'personal_team' => false,
+            'logo_path' => 'ag-logos/arbeitsgruppen-playwright-logo.svg',
+        ]);
+    }
 }

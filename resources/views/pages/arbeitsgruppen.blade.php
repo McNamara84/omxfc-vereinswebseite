@@ -26,20 +26,28 @@
                     <article class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/88 shadow-xl shadow-base-content/5 backdrop-blur">
                         <div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
-                        <div class="grid gap-0 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+                        <div
+                            @class([
+                                'grid gap-0 lg:grid-cols-[minmax(16rem,0.78fr)_minmax(0,1fr)] lg:items-stretch' => $ag->logo_path,
+                            ])
+                        >
                             @if($ag->logo_path)
                                 <div class="border-b border-base-content/10 bg-base-200/55 lg:border-b-0 lg:border-r">
-                                    <img
-                                        loading="lazy"
-                                        src="{{ asset('storage/' . $ag->logo_path) }}"
-                                        alt="Logo der {{ $ag->name }}"
-                                        class="ag-logo h-full max-h-72 w-full object-cover"
-                                    >
+                                    <div class="flex h-full min-h-52 items-center justify-center bg-base-200/70 p-6 sm:min-h-60 sm:p-8" data-testid="ag-logo-stage">
+                                        <img
+                                            loading="lazy"
+                                            decoding="async"
+                                            src="{{ asset('storage/' . $ag->logo_path) }}"
+                                            alt="Logo der {{ $ag->name }}"
+                                            class="max-h-36 max-w-full object-contain sm:max-h-44 lg:max-h-52"
+                                            data-testid="ag-logo-image"
+                                        >
+                                    </div>
                                 </div>
                             @endif
 
-                            <div class="space-y-5 p-6 sm:p-7">
-                                <div class="space-y-3">
+                            <div class="space-y-6 p-6 sm:p-7 lg:p-8">
+                                <div class="space-y-4">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="badge badge-outline rounded-full px-3 py-3">Arbeitsgruppe</span>
                                         @if($ag->meeting_schedule)
@@ -49,27 +57,27 @@
 
                                     <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content sm:text-[2rem]">{{ $ag->name }}</h2>
 
-                                    <p class="max-w-3xl text-sm leading-relaxed text-base-content/76 sm:text-base">
+                                    <p class="max-w-[65ch] text-sm leading-7 text-base-content/76 sm:text-base">
                                         {{ $ag->description ?: 'Diese Arbeitsgruppe bringt Mitglieder mit einem gemeinsamen Schwerpunkt zusammen und organisiert Austausch, Aufgaben und konkrete Vereinsbeiträge.' }}
                                     </p>
                                 </div>
 
-                                <dl class="grid gap-3 sm:grid-cols-2" data-testid="ag-detail-grid">
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4" data-testid="ag-lead-card">
+                                <dl class="grid gap-4 sm:grid-cols-2" data-testid="ag-detail-grid">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:p-5" data-testid="ag-lead-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">AG-Leitung</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             {{ $ag->owner?->publicFirstName() ?: 'Wird im Team abgestimmt' }}
                                         </dd>
                                     </div>
 
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4" data-testid="ag-meeting-card">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:p-5" data-testid="ag-meeting-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Treffen</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             {{ $ag->meeting_schedule ?: 'Nach Bedarf und Projektphase' }}
                                         </dd>
                                     </div>
 
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2" data-testid="ag-contact-card">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2 sm:p-5" data-testid="ag-contact-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Kontakt</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             @if($ag->email)
