@@ -7,6 +7,7 @@ use Database\Seeders\ArbeitsgruppenPlaywrightSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
 use Tests\TestCase;
 
@@ -45,5 +46,25 @@ class ArbeitsgruppenPlaywrightSeederTest extends TestCase
         $this->assertDatabaseMissing('teams', [
             'name' => 'AG Fanhoerbuecher',
         ]);
+    }
+
+    public function test_seeder_creates_public_ag_with_logo_contract_for_playwright(): void
+    {
+        Storage::fake('public');
+
+        $seeder = new ArbeitsgruppenPlaywrightSeeder();
+        $seeder->run();
+
+        $this->assertDatabaseHas('teams', [
+            'name' => 'AG Fanhoerbuecher',
+            'personal_team' => false,
+            'logo_path' => 'ag-logos/arbeitsgruppen-playwright-logo.svg',
+        ]);
+
+        Storage::disk('public')->assertExists('ag-logos/arbeitsgruppen-playwright-logo.svg');
+        $this->assertStringContainsString(
+            '<svg',
+            Storage::disk('public')->get('ag-logos/arbeitsgruppen-playwright-logo.svg')
+        );
     }
 }

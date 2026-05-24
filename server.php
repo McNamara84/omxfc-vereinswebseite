@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\BuiltInServerStaticPathResolver;
+
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
@@ -12,6 +14,8 @@
 // Change to the project root directory
 chdir(__DIR__);
 
+require_once __DIR__.'/app/Support/BuiltInServerStaticPathResolver.php';
+
 $uri = urldecode(
     parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? ''
 );
@@ -19,10 +23,9 @@ $uri = urldecode(
 // Remove query string for file existence check
 $cleanUri = strtok($uri, '?');
 
-$publicPath = __DIR__.'/public'.$cleanUri;
+$staticPath = BuiltInServerStaticPathResolver::resolve(__DIR__, $cleanUri);
 
-// Check if the file exists in public directory
-if ($cleanUri !== '/' && is_file($publicPath)) {
+if ($staticPath) {
     // Determine MIME type
     $mimeTypes = [
         'css' => 'text/css',
@@ -49,18 +52,18 @@ if ($cleanUri !== '/' && is_file($publicPath)) {
         'pdf' => 'application/pdf',
     ];
 
-    $ext = strtolower(pathinfo($publicPath, PATHINFO_EXTENSION));
-    $mime = $mimeTypes[$ext] ?? (function_exists('mime_content_type') ? mime_content_type($publicPath) : 'application/octet-stream');
+    $ext = strtolower(pathinfo($staticPath, PATHINFO_EXTENSION));
+    $mime = $mimeTypes[$ext] ?? (function_exists('mime_content_type') ? mime_content_type($staticPath) : 'application/octet-stream');
 
     header('Content-Type: '.$mime);
-    header('Content-Length: '.filesize($publicPath));
+    header('Content-Length: '.filesize($staticPath));
 
     // Cache static assets for 1 hour in testing
     if (in_array($ext, ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'webp', 'avif', 'woff', 'woff2', 'ttf', 'eot'])) {
         header('Cache-Control: public, max-age=3600');
     }
 
-    readfile($publicPath);
+    readfile($staticPath);
 
     return;
 }
