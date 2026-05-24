@@ -12,8 +12,8 @@
 
 | Layer | Stack | Pfad |
 |-------|-------|------|
-| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.3 | `app/` |
-| Frontend | Vite 7, Tailwind 4, Alpine.js | `resources/` |
+| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.5 | `app/` |
+| Frontend | Vite 8, Tailwind 4, Alpine.js | `resources/` |
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
 | CI | PHPUnit, Vitest 4, Playwright | `.github/workflows/` |
 

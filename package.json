@@ -16,6 +16,7 @@
         "docker:dev:test:jest": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T vite npm run test",
         "docker:dev:test:vitest": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T vite npm run test:vitest",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --coverageReporters=json-summary --coverageDirectory=coverage",
         "test:e2e": "playwright test",
         "test:e2e:docker": "node tests/e2e/run-playwright-docker.mjs",
         "test:e2e:modal-screenshots:docker": "node tests/e2e/run-playwright-docker.mjs --capture-modal-screenshots tests/e2e/modal-preview.spec.js --project=chromium",
