@@ -177,11 +177,12 @@ class KompendiumController extends Controller
 
         /* ------------------------------------------------------------------ */
         /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
-        /*  Obergrenze für Kandidaten, um I/O und RAM zu begrenzen. */
+        /*  Konfigurierbares I/O-Budget pro Request, damit Suche und Pagination */
+        /*  unter Last kontrollierbar bleiben. */
         /* ------------------------------------------------------------------ */
         $textCache = [];
         $requiredMatches = ($page + 1) * $perPage;
-        $maxPostFilterCandidates = min(max(200, $requiredMatches * 200), 10_000);
+        $postFilterBudget = $this->searchService->postFilterBudget();
         $candidatesTruncated = false;
         $scannedCandidates = 0;
 
@@ -202,8 +203,9 @@ class KompendiumController extends Controller
                     return Storage::disk('private')->get($path);
                 },
                 $requiredMatches,
-                200,
-                $maxPostFilterCandidates,
+                $postFilterBudget['initialBatchSize'],
+                $postFilterBudget['maxCandidatesPerRequest'],
+                $postFilterBudget['batchGrowthFactor'],
             );
 
             $ids = $postFilter['matchedPaths'];

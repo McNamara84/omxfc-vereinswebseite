@@ -306,4 +306,47 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertGreaterThan(200, $result['scannedCandidates']);
         $this->assertFalse($result['candidatesTruncated']);
     }
+
+    #[Test]
+    public function post_filter_result_paths_respektiert_ein_kleineres_maximum_als_die_initiale_batchgroesse(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 150) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 120
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            100,
+            50,
+        );
+
+        $this->assertSame([], $result['matchedPaths']);
+        $this->assertSame(50, $result['scannedCandidates']);
+        $this->assertTrue($result['candidatesTruncated']);
+    }
+
+    #[Test]
+    public function post_filter_budget_liest_konfigurierbare_grenzen(): void
+    {
+        config()->set('kompendium.post_filter.initial_batch_size', 80);
+        config()->set('kompendium.post_filter.max_candidates_per_request', 450);
+        config()->set('kompendium.post_filter.batch_growth_factor', 3);
+
+        $this->assertSame([
+            'initialBatchSize' => 80,
+            'maxCandidatesPerRequest' => 450,
+            'batchGrowthFactor' => 3,
+        ], $this->service->postFilterBudget());
+    }
 }

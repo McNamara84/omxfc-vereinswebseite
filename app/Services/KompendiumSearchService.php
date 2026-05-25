@@ -286,14 +286,17 @@ class KompendiumSearchService
         int $requiredMatches,
         int $initialBatchSize = 200,
         int $maxCandidates = 2000,
+        int $batchGrowthFactor = 2,
     ): array {
         $matchedPaths = [];
         $textCache = [];
         $scannedCandidates = 0;
         $totalCandidates = count($paths);
-        $scanLimit = min($totalCandidates, max($initialBatchSize, $maxCandidates));
+        $normalizedMaxCandidates = max(1, $maxCandidates);
+        $scanLimit = min($totalCandidates, $normalizedMaxCandidates);
         $requiredMatches = max(1, $requiredMatches);
         $batchSize = min($initialBatchSize, $scanLimit);
+        $batchGrowthFactor = max(2, $batchGrowthFactor);
 
         while ($scannedCandidates < $scanLimit) {
             $currentBatchSize = min($batchSize, $scanLimit - $scannedCandidates);
@@ -320,7 +323,7 @@ class KompendiumSearchService
                 break;
             }
 
-            $batchSize = min($batchSize * 2, $scanLimit - $scannedCandidates);
+            $batchSize = min($batchSize * $batchGrowthFactor, $scanLimit - $scannedCandidates);
 
             if ($batchSize <= 0) {
                 break;
@@ -332,6 +335,18 @@ class KompendiumSearchService
             'textCache' => $textCache,
             'candidatesTruncated' => $scannedCandidates < $totalCandidates,
             'scannedCandidates' => $scannedCandidates,
+        ];
+    }
+
+    /**
+     * @return array{initialBatchSize: int, maxCandidatesPerRequest: int, batchGrowthFactor: int}
+     */
+    public function postFilterBudget(): array
+    {
+        return [
+            'initialBatchSize' => max(1, (int) config('kompendium.post_filter.initial_batch_size', 150)),
+            'maxCandidatesPerRequest' => max(1, (int) config('kompendium.post_filter.max_candidates_per_request', 1200)),
+            'batchGrowthFactor' => max(2, (int) config('kompendium.post_filter.batch_growth_factor', 2)),
         ];
     }
 

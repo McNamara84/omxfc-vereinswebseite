@@ -133,7 +133,7 @@ class KompendiumSuche extends Component
 
             $textCache = [];
             $requiredMatches = ($this->page + 1) * $perPage;
-            $maxCandidates = min(max(200, $requiredMatches * 200), 10_000);
+            $postFilterBudget = $searchService->postFilterBudget();
 
             $requiresPostFilter = $parsed['usesOrOperator']
                 || $parsed['usesNotOperator']
@@ -152,8 +152,9 @@ class KompendiumSuche extends Component
                         return Storage::disk('private')->get($path);
                     },
                     $requiredMatches,
-                    200,
-                    $maxCandidates,
+                    $postFilterBudget['initialBatchSize'],
+                    $postFilterBudget['maxCandidatesPerRequest'],
+                    $postFilterBudget['batchGrowthFactor'],
                 );
 
                 $ids = $postFilter['matchedPaths'];
