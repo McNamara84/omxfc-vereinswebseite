@@ -6,65 +6,42 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Support\Facades\Blade;
+use App\Support\TestingBladeComponentRegistry;
 use Mary\MaryServiceProvider;
 
-function purchaseKompendiumForBrowserUser(User $user): void
-{
-    $reward = Reward::query()->where('slug', 'kompendium')->firstOrFail();
-
-    RewardPurchase::create([
-        'user_id' => $user->id,
-        'reward_id' => $reward->id,
-        'cost_baxx' => $reward->cost_baxx,
-        'purchased_at' => now(),
-    ]);
-}
-
-function registerTestingBladeComponents(): void
-{
-    Blade::component('testing.components.button', 'button');
-    Blade::component('testing.components.badge', 'badge');
-    Blade::component('testing.components.checkbox', 'checkbox');
-    Blade::component('testing.components.avatar', 'avatar');
-    Blade::component('testing.components.file', 'file');
-    Blade::component('testing.components.icon', 'icon');
-    Blade::component('testing.components.icon', 'svg');
-    Blade::component('testing.components.input', 'input');
-    Blade::component('testing.components.main', 'main');
-    Blade::component('testing.components.mary-modal', 'mary-modal');
-    Blade::component('testing.components.mary-modal', 'modal');
-    Blade::component('testing.components.password', 'password');
-    Blade::component('testing.components.select', 'select');
-    Blade::component('testing.components.stat', 'stat');
-    Blade::component('testing.components.table', 'table');
-    Blade::component('testing.components.theme-toggle', 'theme-toggle');
-    Blade::component('testing.components.toast', 'toast');
-}
-
-function createKompendiumBrowserUser(object $test, int $points): User
-{
-    $team = Team::membersTeam() ?? Team::factory()->create(['name' => 'Mitglieder']);
-
-    $user = User::factory()->create(['current_team_id' => $team->id]);
-    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-    $test->actingAs($user->refresh());
-
-    if ($points > 0) {
-        $user->incrementTeamPoints($points);
-    }
-
-    return $user->refresh();
-}
-
 it('erstellt einen screenshot der neuen kompendium ui', function () {
+    $createKompendiumBrowserUser = function (int $points): User {
+        $team = Team::membersTeam() ?? Team::factory()->create(['name' => 'Mitglieder']);
+
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $this->actingAs($user->refresh());
+
+        if ($points > 0) {
+            $user->incrementTeamPoints($points);
+        }
+
+        return $user->refresh();
+    };
+
+    $purchaseKompendiumForBrowserUser = static function (User $user): void {
+        $reward = Reward::query()->where('slug', 'kompendium')->firstOrFail();
+
+        RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+    };
+
     try {
         (new MaryServiceProvider(app()))->registerComponents();
 
-        $user = createKompendiumBrowserUser($this, 150);
+        $user = $createKompendiumBrowserUser(150);
 
-        purchaseKompendiumForBrowserUser($user);
+        $purchaseKompendiumForBrowserUser($user);
 
         KompendiumRoman::create([
             'dateiname' => '001 - Die Ruinenstadt.txt',
@@ -104,6 +81,6 @@ it('erstellt einen screenshot der neuen kompendium ui', function () {
             ->assertNoJavaScriptErrors()
             ->screenshotElement('main', 'kompendium-ui');
     } finally {
-        registerTestingBladeComponents();
+        TestingBladeComponentRegistry::register();
     }
 });

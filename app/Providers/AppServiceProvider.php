@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\PollVisibility;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
+use App\Support\TestingBladeComponentRegistry;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Polls\ActivePollResolver;
@@ -168,28 +169,10 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('vorstand', fn () => Auth::check() && Auth::user()?->hasVorstandRole());
 
         if ($this->app->runningUnitTests()) {
-            $registerTestingComponents = static function (): void {
-                Blade::component('testing.components.button', 'button');
-                Blade::component('testing.components.badge', 'badge');
-                Blade::component('testing.components.checkbox', 'checkbox');
-                Blade::component('testing.components.avatar', 'avatar');
-                Blade::component('testing.components.file', 'file');
-                Blade::component('testing.components.icon', 'icon');
-                Blade::component('testing.components.icon', 'svg');
-                Blade::component('testing.components.input', 'input');
-                Blade::component('testing.components.main', 'main');
-                Blade::component('testing.components.mary-modal', 'mary-modal');
-                Blade::component('testing.components.mary-modal', 'modal');
-                Blade::component('testing.components.password', 'password');
-                Blade::component('testing.components.select', 'select');
-                Blade::component('testing.components.stat', 'stat');
-                Blade::component('testing.components.table', 'table');
-                Blade::component('testing.components.theme-toggle', 'theme-toggle');
-                Blade::component('testing.components.toast', 'toast');
-            };
-
-            $registerTestingComponents();
-            $this->app->booted($registerTestingComponents);
+            TestingBladeComponentRegistry::register();
+            $this->app->booted(static function (): void {
+                TestingBladeComponentRegistry::register();
+            });
         }
 
         // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
