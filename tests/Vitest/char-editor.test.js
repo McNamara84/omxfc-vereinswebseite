@@ -1,9 +1,8 @@
 /**
  * Tests für die Char-Editor Alpine-Komponente.
  *
- * char-editor.js registriert Alpine.data() im 'alpine:init'-Event.
- * Wir mocken window.Alpine.data() und dispatchen das Event nach dem Import,
- * um die Factory-Funktion abzufangen.
+ * char-editor.js registriert Alpine.data() sofort, wenn window.Alpine bereits
+ * verfügbar ist. Andernfalls wartet das Modul auf 'alpine:init'.
  */
 
 let editorFactory;
@@ -16,14 +15,14 @@ beforeEach(async () => {
                 editorFactory = factory;
             }
         }),
+        initTree: vi.fn(),
     };
+
+    document.body.innerHTML = '<form x-data="charEditor"></form>';
 
     // Modul-Cache leeren und neu importieren
     vi.resetModules();
     await import('@/alpine/char-editor.js');
-
-    // alpine:init Event dispatchen, damit Alpine.data() aufgerufen wird
-    document.dispatchEvent(new CustomEvent('alpine:init'));
 });
 
 function createEditor(overrides = {}) {
@@ -33,6 +32,55 @@ function createEditor(overrides = {}) {
     instance.$watch = vi.fn();
     return instance;
 }
+
+describe('charEditor – Registrierung', () => {
+    it('registriert die Komponente sofort wenn Alpine bereits verfügbar ist', () => {
+        expect(window.Alpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
+        expect(editorFactory).toBeTypeOf('function');
+        expect(window.Alpine.initTree).toHaveBeenCalledWith(document.querySelector('[x-data="charEditor"]'));
+    });
+
+    it('registriert die Komponente über alpine:init wenn Alpine erst später verfügbar ist', async () => {
+        vi.resetModules();
+        editorFactory = undefined;
+        delete window.Alpine;
+
+        const lateAlpine = {
+            data: vi.fn((name, factory) => {
+                if (name === 'charEditor') {
+                    editorFactory = factory;
+                }
+            }),
+            initTree: vi.fn(),
+        };
+
+        await import('@/alpine/char-editor.js');
+
+        expect(editorFactory).toBeUndefined();
+
+        window.Alpine = lateAlpine;
+        document.dispatchEvent(new CustomEvent('alpine:init'));
+
+        expect(lateAlpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
+        expect(editorFactory).toBeTypeOf('function');
+        expect(lateAlpine.initTree).not.toHaveBeenCalled();
+    });
+
+    it('initialisiert bereits hydratisierte charEditor-Wurzeln nicht erneut', async () => {
+        vi.resetModules();
+
+        const existingRoot = document.querySelector('[x-data="charEditor"]');
+        existingRoot._x_dataStack = [{}];
+
+        window.Alpine.data.mockClear();
+        window.Alpine.initTree.mockClear();
+
+        await import('@/alpine/char-editor.js');
+
+        expect(window.Alpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
+        expect(window.Alpine.initTree).not.toHaveBeenCalled();
+    });
+});
 
 describe('charEditor – Attribut-Clamping', () => {
     it('begrenzt Attribut auf attributeMax (Nicht-Barbar)', () => {

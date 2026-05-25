@@ -10,7 +10,25 @@ const CULTURE_DESCRIPTIONS = {
 
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
-document.addEventListener('alpine:init', () => {
+function hydrateExistingCharEditors() {
+    if (!window.Alpine || typeof window.Alpine.initTree !== 'function') {
+        return;
+    }
+
+    document.querySelectorAll('[x-data="charEditor"], [x-data^="charEditor("]').forEach((element) => {
+        if (element._x_dataStack) {
+            return;
+        }
+
+        window.Alpine.initTree(element);
+    });
+}
+
+function registerCharEditor({ hydrateExisting = false } = {}) {
+    if (!window.Alpine || typeof window.Alpine.data !== 'function') {
+        return;
+    }
+
     window.Alpine.data('charEditor', () => ({
     // Basic info
     playerName: '',
@@ -403,4 +421,14 @@ document.addEventListener('alpine:init', () => {
         return this.raceLocked.disadvantages.includes(value);
     },
 }));
-});
+
+    if (hydrateExisting) {
+        hydrateExistingCharEditors();
+    }
+}
+
+if (window.Alpine && typeof window.Alpine.data === 'function') {
+    registerCharEditor({ hydrateExisting: true });
+} else {
+    document.addEventListener('alpine:init', registerCharEditor);
+}

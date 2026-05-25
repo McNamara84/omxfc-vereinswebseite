@@ -44,7 +44,7 @@
                     <div class="md:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
                         <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" :disabled="advancedUnlocked">
-                        <img x-show="portraitPreview" :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau">
+                        <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
                     </div>
 
                     <div class="md:col-span-2">
@@ -53,8 +53,8 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end mb-6" x-show="basicsFilled && !advancedUnlocked">
-                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" />
+                <div class="flex justify-end mb-6" x-show="basicsFilled && !advancedUnlocked" x-cloak>
+                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
                 </div>
 
                 <fieldset :disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
