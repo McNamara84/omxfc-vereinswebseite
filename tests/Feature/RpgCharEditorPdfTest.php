@@ -202,6 +202,6 @@ class RpgCharEditorPdfTest extends TestCase
 
     public function test_dompdf_dependency_is_installed(): void
     {
-        $this->assertTrue(class_exists(\Dompdf\Dompdf::class));
+        $this->assertTrue(class_exists('Dompdf\\Dompdf'));
     }
 }
