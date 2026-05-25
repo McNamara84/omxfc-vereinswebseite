@@ -70,7 +70,7 @@ class AppServiceProviderTest extends TestCase
 
     public function test_app_layout_skips_vite_assets_during_unit_tests(): void
     {
-        Config::set('app.testing_minimal_layout', true);
+        $this->assertTrue(config('app.testing_minimal_layout'));
 
         $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
 
