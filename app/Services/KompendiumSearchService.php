@@ -304,6 +304,7 @@ class KompendiumSearchService
 
             foreach ($candidateBatch as $path) {
                 $text = $loadText($path);
+                $scannedCandidates++;
 
                 if (! is_string($text)) {
                     continue;
@@ -315,9 +316,11 @@ class KompendiumSearchService
 
                 $matchedPaths[] = $path;
                 $textCache[$path] = $text;
-            }
 
-            $scannedCandidates += $currentBatchSize;
+                if (count($matchedPaths) >= $requiredMatches) {
+                    break;
+                }
+            }
 
             if (count($matchedPaths) >= $requiredMatches) {
                 break;

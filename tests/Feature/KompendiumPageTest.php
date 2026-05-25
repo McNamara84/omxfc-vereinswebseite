@@ -39,8 +39,9 @@ class KompendiumPageTest extends TestCase
         $response->assertSeeText('Aktueller Stand');
         $response->assertSee('data-testid="kompendium-primary-access"', false);
         $response->assertSee('data-testid="kompendium-access-help-button"', false);
+        $response->assertSee('data-testid="kompendium-series-help-button"', false);
         $primaryAccessPosition = strpos($html, 'data-testid="kompendium-primary-access"');
-        $indexedSeriesPosition = strpos($html, 'Indexierte Serien');
+        $indexedSeriesPosition = strpos($html, 'data-testid="kompendium-series-help-button"');
 
         $this->assertIsInt($primaryAccessPosition);
         $this->assertIsInt($indexedSeriesPosition);
@@ -62,8 +63,9 @@ class KompendiumPageTest extends TestCase
         $response->assertSeeLivewire('kompendium-suche');
         $response->assertSee('data-testid="kompendium-primary-search"', false);
         $response->assertSee('data-testid="kompendium-search-help-button"', false);
+        $response->assertSee('data-testid="kompendium-series-help-button"', false);
         $primarySearchPosition = strpos($html, 'data-testid="kompendium-primary-search"');
-        $indexedSeriesPosition = strpos($html, 'Indexierte Serien');
+        $indexedSeriesPosition = strpos($html, 'data-testid="kompendium-series-help-button"');
 
         $this->assertIsInt($primarySearchPosition);
         $this->assertIsInt($indexedSeriesPosition);

@@ -303,8 +303,40 @@ class KompendiumSearchQueryParserTest extends TestCase
         );
 
         $this->assertSame([sprintf('romane/maddrax/%03d - Test.txt', 205)], $result['matchedPaths']);
-        $this->assertGreaterThan(200, $result['scannedCandidates']);
+        $this->assertSame(205, $result['scannedCandidates']);
         $this->assertFalse($result['candidatesTruncated']);
+    }
+
+    #[Test]
+    public function post_filter_result_paths_bricht_innerhalb_einer_batch_ab_sobald_genug_treffer_gefunden_sind(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 20) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 3
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            20,
+            20,
+        );
+
+        $this->assertSame([sprintf('romane/maddrax/%03d - Test.txt', 3)], $result['matchedPaths']);
+        $this->assertSame(3, $result['scannedCandidates']);
+        $this->assertSame([
+            sprintf('romane/maddrax/%03d - Test.txt', 3) => 'Aruula fand endlich den gesuchten Hinweis.',
+        ], $result['textCache']);
+        $this->assertTrue($result['candidatesTruncated']);
     }
 
     #[Test]
