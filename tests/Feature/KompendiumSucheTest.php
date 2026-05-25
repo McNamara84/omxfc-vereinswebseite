@@ -7,6 +7,8 @@ use App\Models\KompendiumRoman;
 use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Mockery;
 use Tests\TestCase;
@@ -14,6 +16,20 @@ use Tests\TestCase;
 class KompendiumSucheTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function setupSearchMock(array $files, array $searchResultPaths): void
+    {
+        Storage::fake('private');
+
+        foreach ($files as $path => $content) {
+            Storage::disk('private')->put($path, $content);
+        }
+
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($searchResultPaths) {
+            $mock->shouldReceive('search')
+                ->andReturn(['ids' => $searchResultPaths]);
+        });
+    }
 
     protected function tearDown(): void
     {
@@ -209,5 +225,66 @@ class KompendiumSucheTest extends TestCase
             ->set('candidatesTruncated', true)
             ->set('scannedCandidates', 400)
             ->assertSee('Für die Suchlogik wurden bisher 400 Kandidaten nachgeprüft.');
+    }
+
+    public function test_component_serienfilter_fuellt_die_seite_mit_spaeteren_treffern_aus_der_ausgewaehlten_serie(): void
+    {
+        $files = [];
+        $searchResultPaths = [];
+
+        foreach (range(1, 6) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        foreach (range(1, 5) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        $this->setupSearchMock($files, $searchResultPaths);
+
+        Livewire::test(KompendiumSuche::class)
+            ->set('selectedSerien', ['maddrax'])
+            ->set('query', '"Aruula"')
+            ->call('performSearch')
+            ->assertSet('lastPage', 1)
+            ->assertSee('5 Treffer bisher geladen.')
+            ->assertSee('Maddrax Treffer 1')
+            ->assertDontSee('Mission Treffer 1');
+    }
+
+    public function test_load_more_haltet_last_page_mindestens_auf_der_aktuellen_seite_bei_trunkierung_nach_serienfilter(): void
+    {
+        Config::set('kompendium.post_filter.initial_batch_size', 5);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 5);
+
+        $files = [];
+        $searchResultPaths = [];
+
+        foreach (range(1, 5) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        foreach (range(1, 2) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        $this->setupSearchMock($files, $searchResultPaths);
+
+        Livewire::test(KompendiumSuche::class)
+            ->set('selectedSerien', ['maddrax'])
+            ->set('query', '"Aruula"')
+            ->set('lastPage', 2)
+            ->call('loadMore')
+            ->assertSet('page', 2)
+            ->assertSet('candidatesTruncated', true)
+            ->assertSet('lastPage', 2);
     }
 }

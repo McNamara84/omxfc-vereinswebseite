@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -371,14 +372,49 @@ class KompendiumSearchQueryParserTest extends TestCase
     #[Test]
     public function post_filter_budget_liest_konfigurierbare_grenzen(): void
     {
-        config()->set('kompendium.post_filter.initial_batch_size', 80);
-        config()->set('kompendium.post_filter.max_candidates_per_request', 450);
-        config()->set('kompendium.post_filter.batch_growth_factor', 3);
+        Config::set('kompendium.post_filter.initial_batch_size', 80);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 450);
+        Config::set('kompendium.post_filter.batch_growth_factor', 3);
 
         $this->assertSame([
             'initialBatchSize' => 80,
             'maxCandidatesPerRequest' => 450,
             'batchGrowthFactor' => 3,
         ], $this->service->postFilterBudget());
+    }
+
+    #[Test]
+    public function post_filter_result_paths_zaehlt_nur_passende_treffer_fuer_das_required_matches_limit(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Aruula OR Hinweis');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 6) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = 'Aruula fand einen wichtigen Hinweis.';
+        }
+
+        foreach (range(1, 2) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = 'Aruula fand einen wichtigen Hinweis.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            2,
+            10,
+            10,
+            2,
+            static fn (string $path): bool => str_contains($path, '/maddrax/'),
+        );
+
+        $this->assertCount(8, $result['matchedPaths']);
+        $this->assertSame(8, $result['scannedCandidates']);
+        $this->assertFalse($result['candidatesTruncated']);
     }
 }

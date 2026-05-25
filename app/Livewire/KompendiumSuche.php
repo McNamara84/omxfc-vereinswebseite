@@ -134,6 +134,7 @@ class KompendiumSuche extends Component
             $textCache = [];
             $requiredMatches = ($this->page + 1) * $perPage;
             $postFilterBudget = $searchService->postFilterBudget();
+            $selectedSerienLookup = array_fill_keys($this->selectedSerien, true);
 
             $requiresPostFilter = $parsed['usesOrOperator']
                 || $parsed['usesNotOperator']
@@ -155,6 +156,9 @@ class KompendiumSuche extends Component
                     $postFilterBudget['initialBatchSize'],
                     $postFilterBudget['maxCandidatesPerRequest'],
                     $postFilterBudget['batchGrowthFactor'],
+                    empty($selectedSerienLookup)
+                        ? null
+                        : fn (string $path): bool => isset($selectedSerienLookup[$this->extractSerie($path)]),
                 );
 
                 $ids = $postFilter['matchedPaths'];
@@ -183,9 +187,17 @@ class KompendiumSuche extends Component
 
             $total = count($ids);
             $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
-            $paginationTotal = $this->candidatesTruncated && $total >= ($this->page * $perPage)
-                ? max($total, ($this->page * $perPage) + 1)
-                : $total;
+            $paginationTotal = $total;
+
+            if ($this->candidatesTruncated) {
+                $minimumVisibleTotal = $this->page * $perPage;
+                $paginationTotal = max($paginationTotal, $minimumVisibleTotal);
+
+                if ($total >= $minimumVisibleTotal) {
+                    $paginationTotal = max($paginationTotal, $minimumVisibleTotal + 1);
+                }
+            }
+
             $this->lastPage = max(1, (int) ceil($paginationTotal / $perPage));
 
             $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);

@@ -70,7 +70,8 @@ class KompendiumSearchService
      * Zerlegt den Suchbegriff in Phrasen (in Anführungszeichen) und freie Begriffe.
      *
      * Beispiel: '"Matthew Drax" OR Abenteuer NOT Mutation'
-     * → gruppiert als ("Matthew Drax") OR (Abenteuer AND NOT Mutation)
+        * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
+        *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
      *
      * @return array{
      *     groups: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
@@ -239,6 +240,9 @@ class KompendiumSearchService
             return false;
         }
 
+        // NOT bzw. ein führendes Minus wirken für die Kompendium-Suche global
+        // über die gesamte Query, auch wenn die positiven Operanden in OR-Gruppen
+        // organisiert werden.
         if ($this->containsExcludedOperands(
             $text,
             $parsed['excludedTerms'] ?? [],
@@ -277,6 +281,7 @@ class KompendiumSearchService
      *     excludedPhrases?: list<string>
      * }  $parsed
      * @param  callable(string): ?string  $loadText
+     * @param  null|callable(string): bool  $countsTowardRequiredMatches
      * @return array{matchedPaths: list<string>, textCache: array<string, string>, candidatesTruncated: bool, scannedCandidates: int}
      */
     public function postFilterResultPaths(
@@ -287,9 +292,11 @@ class KompendiumSearchService
         int $initialBatchSize = 200,
         int $maxCandidates = 2000,
         int $batchGrowthFactor = 2,
+        ?callable $countsTowardRequiredMatches = null,
     ): array {
         $matchedPaths = [];
         $textCache = [];
+        $countedMatches = 0;
         $scannedCandidates = 0;
         $totalCandidates = count($paths);
         $normalizedMaxCandidates = max(1, $maxCandidates);
@@ -317,12 +324,16 @@ class KompendiumSearchService
                 $matchedPaths[] = $path;
                 $textCache[$path] = $text;
 
-                if (count($matchedPaths) >= $requiredMatches) {
+                if ($countsTowardRequiredMatches === null || $countsTowardRequiredMatches($path)) {
+                    $countedMatches++;
+                }
+
+                if ($countedMatches >= $requiredMatches) {
                     break;
                 }
             }
 
-            if (count($matchedPaths) >= $requiredMatches) {
+            if ($countedMatches >= $requiredMatches) {
                 break;
             }
 

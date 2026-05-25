@@ -185,6 +185,7 @@ class KompendiumController extends Controller
         $postFilterBudget = $this->searchService->postFilterBudget();
         $candidatesTruncated = false;
         $scannedCandidates = 0;
+        $selectedSerienLookup = array_fill_keys($selectedSerien, true);
 
         $requiresPostFilter = $parsed['usesOrOperator']
             || $parsed['usesNotOperator']
@@ -206,6 +207,9 @@ class KompendiumController extends Controller
                 $postFilterBudget['initialBatchSize'],
                 $postFilterBudget['maxCandidatesPerRequest'],
                 $postFilterBudget['batchGrowthFactor'],
+                empty($selectedSerienLookup)
+                    ? null
+                    : fn (string $path): bool => isset($selectedSerienLookup[$this->extractSerieFromPath($path)]),
             );
 
             $ids = $postFilter['matchedPaths'];
@@ -343,9 +347,16 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         /*  Pagination-Objekt für das Frontend */
         /* ------------------------------------------------------------------ */
-        $paginationTotal = $candidatesTruncated && $total >= ($page * $perPage)
-            ? max($total, ($page * $perPage) + 1)
-            : $total;
+        $paginationTotal = $total;
+
+        if ($candidatesTruncated) {
+            $minimumVisibleTotal = $page * $perPage;
+            $paginationTotal = max($paginationTotal, $minimumVisibleTotal);
+
+            if ($total >= $minimumVisibleTotal) {
+                $paginationTotal = max($paginationTotal, $minimumVisibleTotal + 1);
+            }
+        }
 
         $paginator = new LengthAwarePaginator(
             $hits,

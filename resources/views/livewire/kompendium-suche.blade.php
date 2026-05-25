@@ -24,7 +24,7 @@
                     </button>
                 </div>
                 <p class="text-sm leading-relaxed text-base-content/70 sm:text-base">
-                    Leerzeichen verknüpfen Begriffe mit UND. Für Alternativen nutze OR, für Ausschlüsse NOT oder ein führendes Minus.
+                    Leerzeichen verknüpfen Begriffe mit UND. Für Alternativen nutze OR, für globale Ausschlüsse NOT oder ein führendes Minus.
                 </p>
             </div>
 
@@ -119,7 +119,7 @@
                         </button>
                     </div>
                     <p class="mt-2 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        Leerzeichen bedeuten UND, Anführungszeichen markieren exakte Phrasen, OR verbindet Alternativen und NOT oder ein führendes Minus schließt Begriffe aus.
+                        Leerzeichen bedeuten UND, Anführungszeichen markieren exakte Phrasen, OR verbindet Alternativen und NOT oder ein führendes Minus schließen Begriffe global aus.
                     </p>
                 </div>
             </div>
@@ -225,7 +225,7 @@
                 <li>Leerzeichen bedeuten UND: matthew drax findet nur Treffer, in denen beide Begriffe vorkommen.</li>
                 <li>Anführungszeichen suchen exakt: "matthew drax" findet nur diese Wortfolge.</li>
                 <li>OR verbindet Alternativen: matthew OR aruula findet Treffer mit einem der beiden Begriffe.</li>
-                <li>NOT oder ein führendes Minus schließt aus: matthew NOT aruula oder matthew -aruula.</li>
+                <li>NOT oder ein führendes Minus schließen global aus: matthew NOT aruula oder matthew -aruula entfernen jeden Treffer mit aruula, auch in OR-Kombinationen.</li>
                 <li>Zwei Wörter innerhalb einer Phrase bleiben zusammen: "matthew drax" ist eine exakte Phrase und kein UND aus zwei Einzelbegriffen.</li>
             </ul>
         </div>
