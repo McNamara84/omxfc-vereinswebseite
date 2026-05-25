@@ -70,8 +70,8 @@ class KompendiumSearchService
      * Zerlegt den Suchbegriff in Phrasen (in Anführungszeichen) und freie Begriffe.
      *
      * Beispiel: '"Matthew Drax" OR Abenteuer NOT Mutation'
-        * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
-        *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
+      * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
+      *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
      *
      * @return array{
      *     groups: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
