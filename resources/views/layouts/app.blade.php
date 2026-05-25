@@ -32,7 +32,7 @@
     <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700&display=swap" rel="stylesheet" />
     <!-- Styles -->
     @php($isMinimalTestLayout = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
-    @php($shouldSkipViteAssets = app()->runningUnitTests())
+    @php($shouldSkipViteAssets = app()->runningUnitTests() && config('app.testing_skip_vite_assets', true))
     @include('layouts.partials.theme-bootstrap')
     @unless ($shouldSkipViteAssets)
         @vite(['resources/css/app.css'])

@@ -142,29 +142,27 @@ class KompendiumController extends Controller
         /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
         /* ------------------------------------------------------------------ */
         $parsed = $this->searchService->parseSearchQuery($query);
-        $tntQuery = $this->searchService->buildTntSearchQuery($parsed) ?: $query;
 
-        // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
-        $tntQuery = str_replace('"', '', $tntQuery);
-
-        // Fallback: Wenn Quotes vorhanden waren, aber keine gültigen Begriffe extrahiert
-        // werden konnten (z.B. "A" oder ""), auf den bereinigten Original-Query zurückfallen.
-        if ($tntQuery === '') {
-            $stripped = preg_replace('/"[^"]*"/', '', $query);
-            $tntQuery = trim($stripped);
-
-            if ($tntQuery === '') {
-                // Kein brauchbarer Suchbegriff übrig → leere Ergebnisse zurückgeben
-                return response()->json([
-                    'data' => [],
-                    'currentPage' => $page,
-                    'lastPage' => 1,
-                    'serienCounts' => [],
-                    'isPhraseSearch' => false,
-                    'searchInfo' => ['phrases' => [], 'terms' => []],
-                ]);
-            }
+        if (! $this->searchService->hasPositiveOperands($parsed)) {
+            return response()->json([
+                'data' => [],
+                'currentPage' => 1,
+                'lastPage' => 1,
+                'serienCounts' => [],
+                'isPhraseSearch' => $parsed['isPhraseSearch'],
+                'searchInfo' => [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                ],
+                'message' => 'Bitte gib mindestens einen positiven Suchbegriff ein.',
+            ]);
         }
+
+        $tntQuery = $this->searchService->buildTntSearchQuery($parsed);
 
         /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
@@ -179,43 +177,45 @@ class KompendiumController extends Controller
 
         /* ------------------------------------------------------------------ */
         /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
-        /*  Obergrenze für Kandidaten, um I/O und RAM zu begrenzen. */
+        /*  Konfigurierbares I/O-Budget pro Request, damit Suche und Pagination */
+        /*  unter Last kontrollierbar bleiben. */
         /* ------------------------------------------------------------------ */
         $textCache = [];
-        $maxPostFilterCandidates = 200;
+        $requiredMatches = ($page + 1) * $perPage;
+        $postFilterBudget = $this->searchService->postFilterBudget();
         $candidatesTruncated = false;
+        $scannedCandidates = 0;
+        $selectedSerienLookup = array_fill_keys($selectedSerien, true);
 
-        if ($parsed['isPhraseSearch']) {
-            if (count($ids) > $maxPostFilterCandidates) {
-                $candidatesTruncated = true;
-            }
-            $candidates = array_slice($ids, 0, $maxPostFilterCandidates);
-            $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
-                if (! Storage::disk('private')->exists($path)) {
-                    return false;
-                }
+        $requiresPostFilter = $parsed['usesOrOperator']
+            || $parsed['usesNotOperator']
+            || $parsed['isPhraseSearch']
+            || count($parsed['terms']) > 1;
 
-                $text = Storage::disk('private')->get($path);
-
-                // Alle Phrasen müssen als exakte Substrings vorkommen
-                foreach ($parsed['phrases'] as $phrase) {
-                    if (mb_stripos($text, $phrase) === false) {
-                        return false;
+        if ($requiresPostFilter) {
+            $postFilter = $this->searchService->postFilterResultPaths(
+                $ids,
+                $parsed,
+                function (string $path): ?string {
+                    if (! Storage::disk('private')->exists($path)) {
+                        return null;
                     }
-                }
 
-                // Alle freien Begriffe müssen ebenfalls vorkommen
-                foreach ($parsed['terms'] as $term) {
-                    if (mb_stripos($text, $term) === false) {
-                        return false;
-                    }
-                }
+                    return Storage::disk('private')->get($path);
+                },
+                $requiredMatches,
+                $postFilterBudget['initialBatchSize'],
+                $postFilterBudget['maxCandidatesPerRequest'],
+                $postFilterBudget['batchGrowthFactor'],
+                empty($selectedSerienLookup)
+                    ? null
+                    : fn (string $path): bool => isset($selectedSerienLookup[$this->extractSerieFromPath($path)]),
+            );
 
-                // Nur Treffer cachen, um RAM zu sparen
-                $textCache[$path] = $text;
-
-                return true;
-            }));
+            $ids = $postFilter['matchedPaths'];
+            $textCache = $postFilter['textCache'];
+            $candidatesTruncated = $postFilter['candidatesTruncated'];
+            $scannedCandidates = $postFilter['scannedCandidates'];
         }
 
         /* ------------------------------------------------------------------ */
@@ -347,9 +347,20 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         /*  Pagination-Objekt für das Frontend */
         /* ------------------------------------------------------------------ */
+        $paginationTotal = $total;
+
+        if ($candidatesTruncated) {
+            $minimumVisibleTotal = $page * $perPage;
+            $paginationTotal = max($paginationTotal, $minimumVisibleTotal);
+
+            if ($total >= $minimumVisibleTotal) {
+                $paginationTotal = max($paginationTotal, $minimumVisibleTotal + 1);
+            }
+        }
+
         $paginator = new LengthAwarePaginator(
             $hits,
-            $total,
+            $paginationTotal,
             $perPage,
             $page
         );
@@ -363,11 +374,16 @@ class KompendiumController extends Controller
             'searchInfo' => [
                 'phrases' => $parsed['phrases'],
                 'terms' => $parsed['terms'],
+                'excludedPhrases' => $parsed['excludedPhrases'],
+                'excludedTerms' => $parsed['excludedTerms'],
+                'usesOrOperator' => $parsed['usesOrOperator'],
+                'usesNotOperator' => $parsed['usesNotOperator'],
             ],
         ];
 
         if ($candidatesTruncated) {
             $responseData['candidatesTruncated'] = true;
+            $responseData['scannedCandidates'] = $scannedCandidates;
         }
 
         return response()->json($responseData);

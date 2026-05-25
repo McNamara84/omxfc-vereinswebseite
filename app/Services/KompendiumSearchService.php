@@ -15,6 +15,19 @@ use Typesense\Exceptions\ObjectNotFound;
  */
 class KompendiumSearchService
 {
+    /**
+     * @return array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}
+     */
+    private function emptySearchGroup(): array
+    {
+        return [
+            'requiredTerms' => [],
+            'requiredPhrases' => [],
+            'excludedTerms' => [],
+            'excludedPhrases' => [],
+        ];
+    }
+
     public function indexExists(): bool
     {
         $indexName = (new RomanExcerpt)->searchableAs();
@@ -56,42 +69,138 @@ class KompendiumSearchService
     /**
      * Zerlegt den Suchbegriff in Phrasen (in Anführungszeichen) und freie Begriffe.
      *
-     * Beispiel: '"Matthew Drax" Abenteuer "Volk der Tiefe"'
-     * → ['phrases' => ['matthew drax', 'volk der tiefe'], 'terms' => ['abenteuer'], 'isPhraseSearch' => true]
+     * Beispiel: '"Matthew Drax" OR Abenteuer NOT Mutation'
+      * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
+      *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
      *
-     * @return array{phrases: list<string>, terms: list<string>, isPhraseSearch: bool}
+     * @return array{
+     *     groups: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+     *     phrases: list<string>,
+     *     terms: list<string>,
+     *     excludedPhrases: list<string>,
+     *     excludedTerms: list<string>,
+     *     isPhraseSearch: bool,
+     *     usesOrOperator: bool,
+     *     usesNotOperator: bool,
+     *     hasPositiveOperands: bool
+     * }
      */
     public function parseSearchQuery(string $query): array
     {
-        $phrases = [];
-
         // Typografische Anführungszeichen zu geraden normalisieren
         $query = str_replace(["\u{201C}", "\u{201D}", "\u{201E}", "\u{00AB}", "\u{00BB}"], '"', $query);
 
-        // Phrasen in Anführungszeichen extrahieren
-        if (preg_match_all('/"([^"]+)"/', $query, $matches)) {
-            foreach ($matches[1] as $phrase) {
-                $trimmed = trim($phrase);
-                if (mb_strlen($trimmed) >= 2) {
-                    $phrases[] = mb_strtolower($trimmed);
+        $groups = [];
+        $currentGroup = $this->emptySearchGroup();
+        $excludedPhrases = [];
+        $excludedTerms = [];
+        $usesOrOperator = false;
+        $usesNotOperator = false;
+        $negateNextOperand = false;
+
+        preg_match_all('/-?"[^"]*"|-?\S+/u', $query, $matches);
+        $tokens = $matches[0] ?? [];
+
+        foreach ($tokens as $rawToken) {
+            if (preg_match('/^or$/iu', $rawToken) === 1) {
+                $usesOrOperator = true;
+
+                if ($this->groupHasPositiveOperands($currentGroup)) {
+                    $groups[] = $currentGroup;
                 }
+
+                $currentGroup = $this->emptySearchGroup();
+                $negateNextOperand = false;
+
+                continue;
+            }
+
+            if (preg_match('/^and$/iu', $rawToken) === 1) {
+                continue;
+            }
+
+            if (preg_match('/^not$/iu', $rawToken) === 1) {
+                $usesNotOperator = true;
+                $negateNextOperand = true;
+
+                continue;
+            }
+
+            $token = $rawToken;
+            $isNegated = $negateNextOperand;
+            $negateNextOperand = false;
+
+            if (str_starts_with($token, '-')) {
+                $usesNotOperator = true;
+                $isNegated = true;
+                $token = mb_substr($token, 1);
+            }
+
+            if ($token === '') {
+                continue;
+            }
+
+            $isPhrase = str_starts_with($token, '"') && str_ends_with($token, '"');
+            $value = $isPhrase
+                ? trim(mb_substr($token, 1, -1))
+                : trim($token);
+
+            if (mb_strlen($value) < 2) {
+                continue;
+            }
+
+            $normalizedValue = mb_strtolower($value);
+
+            if ($isNegated) {
+                $bucket = $isPhrase ? 'excludedPhrases' : 'excludedTerms';
+
+                if (! in_array($normalizedValue, $$bucket, true)) {
+                    $$bucket[] = $normalizedValue;
+                }
+
+                continue;
+            }
+
+            $bucket = match (true) {
+                $isPhrase => 'requiredPhrases',
+                default => 'requiredTerms',
+            };
+
+            if (! in_array($normalizedValue, $currentGroup[$bucket], true)) {
+                $currentGroup[$bucket][] = $normalizedValue;
             }
         }
 
-        // Alle Quoted-Bereiche (inkl. leere Quotes) aus dem Query entfernen
-        $remaining = preg_replace('/"[^"]*"/', '', $query);
+        if ($this->groupHasPositiveOperands($currentGroup)) {
+            $groups[] = $currentGroup;
+        }
 
-        // Freie Begriffe aus dem Rest extrahieren
-        $terms = array_values(array_filter(
-            preg_split('/\s+/', trim($remaining)),
-            fn ($term) => mb_strlen($term) >= 2
-        ));
-        $terms = array_map('mb_strtolower', $terms);
+        $phrases = [];
+        $terms = [];
+
+        foreach ($groups as $group) {
+            $phrases = array_merge($phrases, $group['requiredPhrases']);
+            $terms = array_merge($terms, $group['requiredTerms']);
+        }
+
+        $phrases = array_values(array_unique($phrases));
+        $terms = array_values(array_unique($terms));
+        $excludedPhrases = array_values(array_unique($excludedPhrases));
+        $excludedTerms = array_values(array_unique($excludedTerms));
 
         return [
+            'groups' => $groups,
             'phrases' => $phrases,
             'terms' => $terms,
-            'isPhraseSearch' => count($phrases) > 0,
+            'excludedPhrases' => $excludedPhrases,
+            'excludedTerms' => $excludedTerms,
+            'isPhraseSearch' => count($phrases) > 0 || count($excludedPhrases) > 0,
+            'usesOrOperator' => $usesOrOperator,
+            'usesNotOperator' => $usesNotOperator,
+            'hasPositiveOperands' => $this->hasPositiveOperands([
+                'phrases' => $phrases,
+                'terms' => $terms,
+            ]),
         ];
     }
 
@@ -112,6 +221,174 @@ class KompendiumSearchService
         $allWords = array_merge($allWords, $parsed['terms']);
 
         return implode(' ', array_unique(array_filter($allWords)));
+    }
+
+    /**
+     * @param  array{phrases?: list<string>, terms?: list<string>}  $parsed
+     */
+    public function hasPositiveOperands(array $parsed): bool
+    {
+        return ! empty($parsed['phrases']) || ! empty($parsed['terms']);
+    }
+
+     /**
+      * @param  array{
+      *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+      *     terms?: list<string>,
+      *     phrases?: list<string>,
+      *     excludedTerms?: list<string>,
+      *     excludedPhrases?: list<string>
+      * }  $parsed
+      */
+    public function matchesText(string $text, array $parsed): bool
+    {
+        if (! $this->hasPositiveOperands($parsed)) {
+            return false;
+        }
+
+        // NOT bzw. ein führendes Minus wirken für die Kompendium-Suche global
+        // über die gesamte Query, auch wenn die positiven Operanden in OR-Gruppen
+        // organisiert werden.
+        if ($this->containsExcludedOperands(
+            $text,
+            $parsed['excludedTerms'] ?? [],
+            $parsed['excludedPhrases'] ?? [],
+        )) {
+            return false;
+        }
+
+        $groups = $parsed['groups'] ?? [];
+
+        if ($groups === []) {
+            $groups = [[
+                'requiredTerms' => $parsed['terms'] ?? [],
+                'requiredPhrases' => $parsed['phrases'] ?? [],
+                'excludedTerms' => [],
+                'excludedPhrases' => [],
+            ]];
+        }
+
+        foreach ($groups as $group) {
+            if ($this->groupMatchesText($text, $group)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<string>  $paths
+     * @param  array{
+     *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+     *     terms?: list<string>,
+     *     phrases?: list<string>,
+     *     excludedTerms?: list<string>,
+     *     excludedPhrases?: list<string>
+     * }  $parsed
+     * @param  callable(string): ?string  $loadText
+     * @param  null|callable(string): bool  $countsTowardRequiredMatches
+     * @return array{matchedPaths: list<string>, textCache: array<string, string>, candidatesTruncated: bool, scannedCandidates: int}
+     */
+    public function postFilterResultPaths(
+        array $paths,
+        array $parsed,
+        callable $loadText,
+        int $requiredMatches,
+        int $initialBatchSize = 200,
+        int $maxCandidates = 2000,
+        int $batchGrowthFactor = 2,
+        ?callable $countsTowardRequiredMatches = null,
+    ): array {
+        $matchedPaths = [];
+        $textCache = [];
+        $countedMatches = 0;
+        $scannedCandidates = 0;
+        $totalCandidates = count($paths);
+        $normalizedMaxCandidates = max(1, $maxCandidates);
+        $scanLimit = min($totalCandidates, $normalizedMaxCandidates);
+        $requiredMatches = max(1, $requiredMatches);
+        $batchSize = min($initialBatchSize, $scanLimit);
+        $batchGrowthFactor = max(2, $batchGrowthFactor);
+
+        while ($scannedCandidates < $scanLimit) {
+            $currentBatchSize = min($batchSize, $scanLimit - $scannedCandidates);
+            $candidateBatch = array_slice($paths, $scannedCandidates, $currentBatchSize);
+
+            foreach ($candidateBatch as $path) {
+                $text = $loadText($path);
+                $scannedCandidates++;
+
+                if (! is_string($text)) {
+                    continue;
+                }
+
+                if (! $this->matchesText($text, $parsed)) {
+                    continue;
+                }
+
+                $matchedPaths[] = $path;
+                $textCache[$path] = $text;
+
+                if ($countsTowardRequiredMatches === null || $countsTowardRequiredMatches($path)) {
+                    $countedMatches++;
+                }
+
+                if ($countedMatches >= $requiredMatches) {
+                    break;
+                }
+            }
+
+            if ($countedMatches >= $requiredMatches) {
+                break;
+            }
+
+            $batchSize = min($batchSize * $batchGrowthFactor, $scanLimit - $scannedCandidates);
+
+            if ($batchSize <= 0) {
+                break;
+            }
+        }
+
+        return [
+            'matchedPaths' => $matchedPaths,
+            'textCache' => $textCache,
+            'candidatesTruncated' => $scannedCandidates < $totalCandidates,
+            'scannedCandidates' => $scannedCandidates,
+        ];
+    }
+
+    /**
+     * @return array{initialBatchSize: int, maxCandidatesPerRequest: int, batchGrowthFactor: int}
+     */
+    public function postFilterBudget(): array
+    {
+        return [
+            'initialBatchSize' => max(1, (int) config('kompendium.post_filter.initial_batch_size', 150)),
+            'maxCandidatesPerRequest' => max(1, (int) config('kompendium.post_filter.max_candidates_per_request', 1200)),
+            'batchGrowthFactor' => max(2, (int) config('kompendium.post_filter.batch_growth_factor', 2)),
+        ];
+    }
+
+    /**
+     * @param  list<string>  $excludedTerms
+     * @param  list<string>  $excludedPhrases
+     */
+    private function containsExcludedOperands(string $text, array $excludedTerms, array $excludedPhrases): bool
+    {
+        foreach ($excludedPhrases as $phrase) {
+            if (mb_stripos($text, $phrase) !== false) {
+                return true;
+            }
+        }
+
+        foreach ($excludedTerms as $term) {
+            if (mb_stripos($text, $term) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -181,6 +458,47 @@ class KompendiumSearchService
     {
         return config('scout.driver') === 'typesense'
             && $exception instanceof ObjectNotFound;
+    }
+
+    /**
+     * @param  array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}  $group
+     */
+    private function groupMatchesText(string $text, array $group): bool
+    {
+        foreach ($group['excludedPhrases'] as $phrase) {
+            if (mb_stripos($text, $phrase) !== false) {
+                return false;
+            }
+        }
+
+        foreach ($group['excludedTerms'] as $term) {
+            if (mb_stripos($text, $term) !== false) {
+                return false;
+            }
+        }
+
+        foreach ($group['requiredPhrases'] as $phrase) {
+            if (mb_stripos($text, $phrase) === false) {
+                return false;
+            }
+        }
+
+        foreach ($group['requiredTerms'] as $term) {
+            if (mb_stripos($text, $term) === false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}  $group
+     */
+    private function groupHasPositiveOperands(array $group): bool
+    {
+        return $group['requiredTerms'] !== []
+            || $group['requiredPhrases'] !== [];
     }
 
     /**

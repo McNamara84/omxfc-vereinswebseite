@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -13,6 +14,9 @@ use Tests\TestCase;
  */
 #[CoversMethod(KompendiumSearchService::class, 'parseSearchQuery')]
 #[CoversMethod(KompendiumSearchService::class, 'buildTntSearchQuery')]
+#[CoversMethod(KompendiumSearchService::class, 'hasPositiveOperands')]
+#[CoversMethod(KompendiumSearchService::class, 'matchesText')]
+#[CoversMethod(KompendiumSearchService::class, 'postFilterResultPaths')]
 class KompendiumSearchQueryParserTest extends TestCase
 {
     use RefreshDatabase;
@@ -67,6 +71,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($result['isPhraseSearch']);
         $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
         $this->assertEmpty($result['terms']);
+        $this->assertCount(1, $result['groups']);
     }
 
     #[Test]
@@ -117,6 +122,40 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($result['isPhraseSearch']);
         $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
         $this->assertArraysAreEqual(['abenteuer', 'mutation'], $result['terms']);
+    }
+
+    #[Test]
+    public function parse_or_erzeugt_mehrere_gruppen(): void
+    {
+        $result = $this->service->parseSearchQuery('Matthew OR Aruula Abenteuer');
+
+        $this->assertTrue($result['usesOrOperator']);
+        $this->assertCount(2, $result['groups']);
+        $this->assertSame(['matthew'], $result['groups'][0]['requiredTerms']);
+        $this->assertSame(['aruula', 'abenteuer'], $result['groups'][1]['requiredTerms']);
+    }
+
+    #[Test]
+    public function parse_not_und_minus_notieren_ausschluesse(): void
+    {
+        $result = $this->service->parseSearchQuery('Matthew NOT Aruula -"Volk der Tiefe"');
+
+        $this->assertTrue($result['usesNotOperator']);
+        $this->assertSame(['matthew'], $result['terms']);
+        $this->assertSame(['aruula'], $result['excludedTerms']);
+        $this->assertSame(['volk der tiefe'], $result['excludedPhrases']);
+    }
+
+    #[Test]
+    public function parse_or_nimmt_keine_gruppe_ohne_positive_operanden_auf(): void
+    {
+        $result = $this->service->parseSearchQuery('NOT aruula OR matthew');
+
+        $this->assertTrue($result['usesOrOperator']);
+        $this->assertCount(1, $result['groups']);
+        $this->assertSame(['matthew'], $result['groups'][0]['requiredTerms']);
+        $this->assertSame([], $result['groups'][0]['excludedTerms']);
+        $this->assertSame(['aruula'], $result['excludedTerms']);
     }
 
     #[Test]
@@ -176,6 +215,17 @@ class KompendiumSearchQueryParserTest extends TestCase
     }
 
     #[Test]
+    public function build_query_ignoriert_ausgeschlossene_begriffe(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula NOT Mutant');
+        $tntQuery = $this->service->buildTntSearchQuery($parsed);
+
+        $this->assertStringContainsString('matthew', $tntQuery);
+        $this->assertStringContainsString('aruula', $tntQuery);
+        $this->assertStringNotContainsString('mutant', $tntQuery);
+    }
+
+    #[Test]
     public function build_query_dedupliziert_woerter(): void
     {
         $parsed = $this->service->parseSearchQuery('"Matthew Drax" Matthew');
@@ -192,5 +242,201 @@ class KompendiumSearchQueryParserTest extends TestCase
         $tntQuery = $this->service->buildTntSearchQuery($parsed);
 
         $this->assertEquals('abenteuer mutation', $tntQuery);
+    }
+
+    #[Test]
+    public function has_positive_operands_ist_false_bei_nur_negativen_begriffen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('NOT Aruula');
+
+        $this->assertFalse($this->service->hasPositiveOperands($parsed));
+        $this->assertFalse($parsed['hasPositiveOperands']);
+    }
+
+    #[Test]
+    public function matches_text_verlangt_standardmaessig_and_semantik(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew Drax');
+
+        $this->assertTrue($this->service->matchesText('Matthew und Drax tauchen beide im Text auf.', $parsed));
+        $this->assertFalse($this->service->matchesText('Nur Matthew ist vorhanden.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_beruecksichtigt_or_gruppen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+
+        $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
+        $this->assertTrue($this->service->matchesText('Matthew war ebenfalls da.', $parsed));
+        $this->assertFalse($this->service->matchesText('Xij Hamel sprach allein.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_respektiert_not_und_phrasen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('"Matthew Drax" NOT Aruula');
+
+        $this->assertTrue($this->service->matchesText('Matthew Drax erkundete die Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew Drax und Aruula sprachen miteinander.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_wendet_globale_ausschluesse_auch_bei_or_gruppen_an(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula NOT Mutant');
+
+        $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew traf auf einen Mutant in der Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Aruula warnte vor einem Mutant.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_laesst_exclude_only_or_prefix_nicht_zu_einem_breiten_match_werden(): void
+    {
+        $parsed = $this->service->parseSearchQuery('NOT aruula OR matthew');
+
+        $this->assertFalse($this->service->matchesText('Xij Hamel blieb im Schatten.', $parsed));
+        $this->assertTrue($this->service->matchesText('Matthew erkundete die Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew und Aruula sprachen miteinander.', $parsed));
+    }
+
+    #[Test]
+    public function post_filter_result_paths_erweitert_kandidaten_iterativ_bis_genug_treffer_vorliegen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 205) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 205
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            200,
+            1000,
+        );
+
+        $this->assertSame([sprintf('romane/maddrax/%03d - Test.txt', 205)], $result['matchedPaths']);
+        $this->assertSame(205, $result['scannedCandidates']);
+        $this->assertFalse($result['candidatesTruncated']);
+    }
+
+    #[Test]
+    public function post_filter_result_paths_bricht_innerhalb_einer_batch_ab_sobald_genug_treffer_gefunden_sind(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 20) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 3
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            20,
+            20,
+        );
+
+        $this->assertSame([sprintf('romane/maddrax/%03d - Test.txt', 3)], $result['matchedPaths']);
+        $this->assertSame(3, $result['scannedCandidates']);
+        $this->assertSame([
+            sprintf('romane/maddrax/%03d - Test.txt', 3) => 'Aruula fand endlich den gesuchten Hinweis.',
+        ], $result['textCache']);
+        $this->assertTrue($result['candidatesTruncated']);
+    }
+
+    #[Test]
+    public function post_filter_result_paths_respektiert_ein_kleineres_maximum_als_die_initiale_batchgroesse(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 150) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 120
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            100,
+            50,
+        );
+
+        $this->assertSame([], $result['matchedPaths']);
+        $this->assertSame(50, $result['scannedCandidates']);
+        $this->assertTrue($result['candidatesTruncated']);
+    }
+
+    #[Test]
+    public function post_filter_budget_liest_konfigurierbare_grenzen(): void
+    {
+        Config::set('kompendium.post_filter.initial_batch_size', 80);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 450);
+        Config::set('kompendium.post_filter.batch_growth_factor', 3);
+
+        $this->assertSame([
+            'initialBatchSize' => 80,
+            'maxCandidatesPerRequest' => 450,
+            'batchGrowthFactor' => 3,
+        ], $this->service->postFilterBudget());
+    }
+
+    #[Test]
+    public function post_filter_result_paths_zaehlt_nur_passende_treffer_fuer_das_required_matches_limit(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Aruula OR Hinweis');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 6) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = 'Aruula fand einen wichtigen Hinweis.';
+        }
+
+        foreach (range(1, 2) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = 'Aruula fand einen wichtigen Hinweis.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            2,
+            10,
+            10,
+            2,
+            static fn (string $path): bool => str_contains($path, '/maddrax/'),
+        );
+
+        $this->assertCount(8, $result['matchedPaths']);
+        $this->assertSame(8, $result['scannedCandidates']);
+        $this->assertFalse($result['candidatesTruncated']);
     }
 }

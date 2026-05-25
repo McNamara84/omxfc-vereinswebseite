@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -367,7 +368,7 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertSee('Aktuell sind die folgenden Romane für die Suche indexiert:');
+        $response->assertSee('Aktuell sind diese Serien für die Suche indexiert:');
         // Zusammengefasste \u00dcbersicht: Serienname im <strong>-Tag und Zyklus in der Beschreibung
         $response->assertSee('<strong>Maddrax</strong>', false);
         $response->assertSee('Euree-Zyklus');
@@ -486,7 +487,7 @@ class KompendiumControllerTest extends TestCase
         $this->assertEquals('Beides', $data[0]['title']);
     }
 
-    public function test_search_without_quotes_behaves_as_before(): void
+    public function test_search_without_quotes_requires_all_terms(): void
     {
         $user = $this->actingMemberWithPoints(150);
         $this->purchaseKompendiumForUser($user);
@@ -502,14 +503,14 @@ class KompendiumControllerTest extends TestCase
             ]
         );
 
-        // Ohne Anführungszeichen: keine Post-Filterung
+        // Ohne Anführungszeichen gilt jetzt AND-Semantik
         $response = $this->getJson('/kompendium/suche?q=matthew+drax');
 
         $response->assertOk();
         $data = $response->json('data');
 
-        // Beide Treffer kommen durch (OR-Logik wie bisher)
-        $this->assertCount(2, $data);
+        // Kein Dokument enthält beide Begriffe gleichzeitig
+        $this->assertCount(0, $data);
         $this->assertFalse($response->json('isPhraseSearch'));
     }
 
@@ -535,6 +536,102 @@ class KompendiumControllerTest extends TestCase
             'searchInfo' => [
                 'phrases' => ['matthew drax'],
                 'terms' => ['abenteuer'],
+                'excludedPhrases' => [],
+                'excludedTerms' => [],
+                'usesOrOperator' => false,
+                'usesNotOperator' => false,
+            ],
+        ]);
+    }
+
+    public function test_search_with_or_returns_documents_matching_either_clause(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Matthew.txt' => 'Matthew durchsuchte die Anlage.',
+                'romane/maddrax/002 - Aruula.txt' => 'Aruula sicherte den Rückzug.',
+                'romane/maddrax/003 - Sonstiges.txt' => 'Xij Hamel plante im Verborgenen.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Matthew.txt',
+                'romane/maddrax/002 - Aruula.txt',
+                'romane/maddrax/003 - Sonstiges.txt',
+            ]
+        );
+
+        $response = $this->getJson('/kompendium/suche?q=matthew+OR+aruula');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(2, $data);
+        $response->assertJson([
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => ['matthew', 'aruula'],
+                'excludedPhrases' => [],
+                'excludedTerms' => [],
+                'usesOrOperator' => true,
+                'usesNotOperator' => false,
+            ],
+        ]);
+    }
+
+    public function test_search_with_not_excludes_matching_documents(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Treffer.txt' => 'Matthew erkundete die Anlage allein.',
+                'romane/maddrax/002 - Ausgeschlossen.txt' => 'Matthew und Aruula planten gemeinsam.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Treffer.txt',
+                'romane/maddrax/002 - Ausgeschlossen.txt',
+            ]
+        );
+
+        $response = $this->getJson('/kompendium/suche?q=matthew+NOT+aruula');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(1, $data);
+        $this->assertSame('Treffer', $data[0]['title']);
+        $response->assertJson([
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => ['matthew'],
+                'excludedPhrases' => [],
+                'excludedTerms' => ['aruula'],
+                'usesOrOperator' => false,
+                'usesNotOperator' => true,
+            ],
+        ]);
+    }
+
+    public function test_search_with_only_negative_terms_returns_helpful_message(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $response = $this->getJson('/kompendium/suche?q=NOT+aruula');
+
+        $response->assertOk()->assertJson([
+            'data' => [],
+            'message' => 'Bitte gib mindestens einen positiven Suchbegriff ein.',
+            'searchInfo' => [
+                'phrases' => [],
+                'terms' => [],
+                'excludedPhrases' => [],
+                'excludedTerms' => ['aruula'],
+                'usesOrOperator' => false,
+                'usesNotOperator' => true,
             ],
         ]);
     }
@@ -701,8 +798,10 @@ class KompendiumControllerTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(150);
         $this->purchaseKompendiumForUser($user);
+        Config::set('kompendium.post_filter.initial_batch_size', 200);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 200);
 
-        // Erzeuge 201 Dateien, um das Limit von 200 zu überschreiten
+        // Erzeuge 201 Dateien, um das konfigurierte Limit von 200 zu überschreiten.
         $files = [];
         $searchResultPaths = [];
         for ($i = 1; $i <= 201; $i++) {
@@ -716,7 +815,7 @@ class KompendiumControllerTest extends TestCase
         $response = $this->getJson('/kompendium/suche?q=%22Matthew+Drax%22');
 
         $response->assertOk();
-        $this->assertTrue($response->json('candidatesTruncated'), 'candidatesTruncated sollte true sein bei > 200 Kandidaten');
+        $this->assertTrue($response->json('candidatesTruncated'), 'candidatesTruncated sollte true sein bei > konfiguriertem Limit');
     }
 
     public function test_phrase_search_no_truncation_flag_when_candidates_within_limit(): void
@@ -737,5 +836,70 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertArrayNotHasKey('candidatesTruncated', $response->json());
+    }
+
+    public function test_search_with_serien_filter_scans_until_genug_treffer_in_der_ausgewaehlten_serie_vorliegen(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $files = [];
+        $searchResultPaths = [];
+
+        foreach (range(1, 6) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        foreach (range(1, 5) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        $this->setupSearchMock(files: $files, searchResultPaths: $searchResultPaths);
+
+        $response = $this->getJson('/kompendium/suche?q=%22Aruula%22&serien[]=maddrax');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        $this->assertCount(5, $data);
+        $this->assertSame('Maddrax Treffer 1', $data[0]['title']);
+        $this->assertSame(6, $response->json('serienCounts.missionmars'));
+        $this->assertSame(5, $response->json('serienCounts.maddrax'));
+    }
+
+    public function test_search_response_keeps_last_page_at_least_current_page_when_truncated_after_serien_filter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+        Config::set('kompendium.post_filter.initial_batch_size', 5);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 5);
+
+        $files = [];
+        $searchResultPaths = [];
+
+        foreach (range(1, 5) as $number) {
+            $path = sprintf('romane/missionmars/%03d - Mission Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        foreach (range(1, 2) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Maddrax Treffer %d.txt', $number, $number);
+            $files[$path] = 'Aruula fand einen wichtigen Hinweis.';
+            $searchResultPaths[] = $path;
+        }
+
+        $this->setupSearchMock(files: $files, searchResultPaths: $searchResultPaths);
+
+        $response = $this->getJson('/kompendium/suche?q=%22Aruula%22&page=2&serien[]=maddrax');
+
+        $response->assertOk();
+        $this->assertTrue($response->json('candidatesTruncated'));
+        $this->assertSame(2, $response->json('currentPage'));
+        $this->assertSame(2, $response->json('lastPage'));
     }
 }

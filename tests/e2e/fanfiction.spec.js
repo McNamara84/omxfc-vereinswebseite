@@ -171,20 +171,23 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     test('Vorstand kann Entwurf veröffentlichen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction');
 
-        // Finde einen Entwurf (die "Dunkle Prophezeiung" aus dem Seeder)
-        const draftRow = page.locator('tr', { hasText: 'Entwurf' }).first();
+        const storyRow = page.getByRole('row', { name: /Die dunkle Prophezeiung/i });
+        await expect(storyRow).toBeVisible();
+        const statusCell = storyRow.getByRole('cell').nth(2);
 
-        if (await draftRow.isVisible()) {
-            // Klicke auf Veröffentlichen-Button
-            const publishButton = draftRow.getByRole('button', { name: /Veröffentlichen/i });
+        if (await statusCell.getByText(/^Entwurf$/).isVisible()) {
+            const publishButton = storyRow.getByRole('button', { name: /Veröffentlichen/i });
+            await expect(publishButton).toBeVisible();
 
-            if (await publishButton.isVisible()) {
-                await publishButton.click();
-
-                // Erfolgs-Meldung prüfen
-                await expect(page.getByText(/erfolgreich veröffentlicht/i).first()).toBeVisible();
-            }
+            await Promise.all([
+                page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+                publishButton.click(),
+            ]);
         }
+
+        const updatedRow = page.getByRole('row', { name: /Die dunkle Prophezeiung/i });
+        await expect(updatedRow.getByRole('cell').nth(2).getByText(/^Veröffentlicht$/)).toBeVisible({ timeout: 15000 });
+        await expect(updatedRow.getByRole('button', { name: /Veröffentlichen/i })).toHaveCount(0);
     });
 });
 

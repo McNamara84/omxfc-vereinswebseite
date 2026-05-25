@@ -32,6 +32,10 @@ class KompendiumSuche extends Component
 
     public bool $hasSearched = false;
 
+    public bool $candidatesTruncated = false;
+
+    public int $scannedCandidates = 0;
+
     private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
     private const ALLOWED_BASE_PATH = 'romane/';
@@ -94,6 +98,8 @@ class KompendiumSuche extends Component
     {
         try {
             $this->error = null;
+            $this->candidatesTruncated = false;
+            $this->scannedCandidates = 0;
             $searchService = app(KompendiumSearchService::class);
             $query = mb_strtolower(trim($this->query));
             $perPage = 5;
@@ -101,56 +107,64 @@ class KompendiumSuche extends Component
             $radius = 200;
 
             $parsed = $searchService->parseSearchQuery($query);
-            $tntQuery = $searchService->buildTntSearchQuery($parsed) ?: $query;
 
-            // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
-            $tntQuery = str_replace('"', '', $tntQuery);
+            if (! $searchService->hasPositiveOperands($parsed)) {
+                $this->results = [];
+                $this->lastPage = 1;
+                $this->error = 'Bitte gib mindestens einen positiven Suchbegriff ein.';
+                $this->isPhraseSearch = $parsed['isPhraseSearch'];
+                $this->searchInfo = [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                ];
 
-            if ($tntQuery === '') {
-                $stripped = preg_replace('/"[^"]*"/', '', $query);
-                $tntQuery = trim($stripped);
-
-                if ($tntQuery === '') {
-                    $this->lastPage = 1;
-                    $this->isPhraseSearch = false;
-                    $this->searchInfo = ['phrases' => [], 'terms' => []];
-
-                    return;
-                }
+                return;
             }
+
+            $tntQuery = $searchService->buildTntSearchQuery($parsed);
 
             $raw = $searchService->search($tntQuery);
             $ids = array_values($raw['paths'] ?? $raw['ids'] ?? []);
             $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
 
             $textCache = [];
-            $maxCandidates = 200;
+            $requiredMatches = ($this->page + 1) * $perPage;
+            $postFilterBudget = $searchService->postFilterBudget();
+            $selectedSerienLookup = array_fill_keys($this->selectedSerien, true);
 
-            if ($parsed['isPhraseSearch']) {
-                $candidates = array_slice($ids, 0, $maxCandidates);
-                $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
-                    if (! Storage::disk('private')->exists($path)) {
-                        return false;
-                    }
+            $requiresPostFilter = $parsed['usesOrOperator']
+                || $parsed['usesNotOperator']
+                || $parsed['isPhraseSearch']
+                || count($parsed['terms']) > 1;
 
-                    $text = Storage::disk('private')->get($path);
-
-                    foreach ($parsed['phrases'] as $phrase) {
-                        if (mb_stripos($text, $phrase) === false) {
-                            return false;
+            if ($requiresPostFilter) {
+                $postFilter = $searchService->postFilterResultPaths(
+                    $ids,
+                    $parsed,
+                    function (string $path): ?string {
+                        if (! Storage::disk('private')->exists($path)) {
+                            return null;
                         }
-                    }
 
-                    foreach ($parsed['terms'] as $term) {
-                        if (mb_stripos($text, $term) === false) {
-                            return false;
-                        }
-                    }
+                        return Storage::disk('private')->get($path);
+                    },
+                    $requiredMatches,
+                    $postFilterBudget['initialBatchSize'],
+                    $postFilterBudget['maxCandidatesPerRequest'],
+                    $postFilterBudget['batchGrowthFactor'],
+                    empty($selectedSerienLookup)
+                        ? null
+                        : fn (string $path): bool => isset($selectedSerienLookup[$this->extractSerie($path)]),
+                );
 
-                    $textCache[$path] = $text;
-
-                    return true;
-                }));
+                $ids = $postFilter['matchedPaths'];
+                $textCache = $postFilter['textCache'];
+                $this->candidatesTruncated = $postFilter['candidatesTruncated'];
+                $this->scannedCandidates = $postFilter['scannedCandidates'];
             }
 
             $serienCounts = [];
@@ -173,13 +187,33 @@ class KompendiumSuche extends Component
 
             $total = count($ids);
             $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
-            $this->lastPage = max(1, (int) ceil($total / $perPage));
+            $paginationTotal = $total;
+
+            if ($this->candidatesTruncated) {
+                $minimumVisibleTotal = $this->page * $perPage;
+                $paginationTotal = max($paginationTotal, $minimumVisibleTotal);
+
+                if ($total >= $minimumVisibleTotal) {
+                    $paginationTotal = max($paginationTotal, $minimumVisibleTotal + 1);
+                }
+            }
+
+            $this->lastPage = max(1, (int) ceil($paginationTotal / $perPage));
 
             $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
 
             if (empty($snippetTerms)) {
                 $this->isPhraseSearch = $parsed['isPhraseSearch'];
-                $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+                $this->searchInfo = [
+                    'phrases' => $parsed['phrases'],
+                    'terms' => $parsed['terms'],
+                    'excludedPhrases' => $parsed['excludedPhrases'],
+                    'excludedTerms' => $parsed['excludedTerms'],
+                    'usesOrOperator' => $parsed['usesOrOperator'],
+                    'usesNotOperator' => $parsed['usesNotOperator'],
+                    'candidatesTruncated' => $this->candidatesTruncated,
+                    'scannedCandidates' => $this->scannedCandidates,
+                ];
 
                 return;
             }
@@ -209,7 +243,16 @@ class KompendiumSuche extends Component
 
             $this->results = array_merge($this->results, $hits);
             $this->isPhraseSearch = $parsed['isPhraseSearch'];
-            $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+            $this->searchInfo = [
+                'phrases' => $parsed['phrases'],
+                'terms' => $parsed['terms'],
+                'excludedPhrases' => $parsed['excludedPhrases'],
+                'excludedTerms' => $parsed['excludedTerms'],
+                'usesOrOperator' => $parsed['usesOrOperator'],
+                'usesNotOperator' => $parsed['usesNotOperator'],
+                'candidatesTruncated' => $this->candidatesTruncated,
+                'scannedCandidates' => $this->scannedCandidates,
+            ];
         } catch (\Throwable $e) {
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
             $this->lastPage = $this->page;

@@ -7,6 +7,7 @@ const databasePath = toPhpRuntimePath(path.resolve('database/playwright.sqlite')
 const playwrightPort = Number(process.env.PLAYWRIGHT_PORT ?? 8001);
 const vitePort = Number(process.env.VITE_PORT ?? process.env.DOCKER_DEV_VITE_PORT ?? 5173);
 const phpServerHost = shouldUseDockerPhp() ? '0.0.0.0' : '127.0.0.1';
+const isCI = !!process.env.CI;
 const playwrightRunToken = resolvePlaywrightRunToken(process.env.PLAYWRIGHT_RUN_TOKEN, { prefix: 'local' });
 const playwrightViteDevServerUrl = process.env.VITE_DEV_SERVER_URL
   ?? process.env.DOCKER_DEV_VITE_DEV_SERVER_URL
@@ -15,7 +16,7 @@ process.env.PLAYWRIGHT_RUN_TOKEN = playwrightRunToken;
 const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS ?? NaN);
 const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorkers > 0
   ? configuredWorkers
-  : shouldUseDockerPhp()
+  : isCI || shouldUseDockerPhp()
     ? 1
     : undefined;
 const phpEnvironment = {
@@ -51,7 +52,6 @@ const phpCommand = shouldUseDockerPhp()
 
 // WebKit auf Linux CI ist notorisch instabil (Timeout-Probleme)
 // Daher nur Chromium und Firefox auf CI verwenden
-const isCI = !!process.env.CI;
 const shouldReuseExistingServerByDefault = !isCI && !shouldUseDockerPhp();
 const shouldReuseExistingServer = process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === undefined
   ? shouldReuseExistingServerByDefault
