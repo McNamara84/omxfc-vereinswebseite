@@ -129,7 +129,7 @@
             </div>
 
             <x-slot:actions>
-                <x-button label="Schließen" @click="document.getElementById('kompendium-access-help-modal').close()" />
+                <x-button label="Schließen" onclick="document.getElementById('kompendium-access-help-modal').close()" />
             </x-slot:actions>
         </x-mary-modal>
 
@@ -140,7 +140,7 @@
             </div>
 
             <x-slot:actions>
-                <x-button label="Schließen" @click="document.getElementById('kompendium-series-help-modal').close()" />
+                <x-button label="Schließen" onclick="document.getElementById('kompendium-series-help-modal').close()" />
             </x-slot:actions>
         </x-mary-modal>
     </x-member-page>

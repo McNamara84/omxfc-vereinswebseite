@@ -15,6 +15,12 @@ class KompendiumSucheTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
+
     public function test_component_renders(): void
     {
         Livewire::test(KompendiumSuche::class)

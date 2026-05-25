@@ -223,7 +223,7 @@
         </div>
 
         <x-slot:actions>
-            <x-button label="Schließen" @click="document.getElementById('kompendium-search-help-modal').close()" />
+            <x-button label="Schließen" onclick="document.getElementById('kompendium-search-help-modal').close()" />
         </x-slot:actions>
     </x-mary-modal>
 
@@ -235,7 +235,7 @@
         </div>
 
         <x-slot:actions>
-            <x-button label="Schließen" @click="document.getElementById('kompendium-filter-help-modal').close()" />
+            <x-button label="Schließen" onclick="document.getElementById('kompendium-filter-help-modal').close()" />
         </x-slot:actions>
     </x-mary-modal>
 </div>
