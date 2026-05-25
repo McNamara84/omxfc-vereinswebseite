@@ -16,6 +16,28 @@ class RpgCharEditorPdfTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function validPdfPayload(array $overrides = []): array
+    {
+        return array_replace_recursive([
+            'player_name' => 'Spieler Eins',
+            'character_name' => 'Foo Bar',
+            'race' => 'Barbar',
+            'culture' => 'Landbewohner',
+            'description' => 'Ein erfahrener Charakter aus Wudan.',
+            'attributes' => [
+                'st' => 2,
+                'ge' => 1,
+            ],
+            'skills' => [
+                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Nahkampf', 'value' => 1],
+            ],
+            'advantages' => ['Zäh'],
+            'disadvantages' => ['Auffällig'],
+            'equipment' => 'Messer, Seil, Feldflasche',
+        ], $overrides);
+    }
+
     private function createMember(Role|string $role = Role::Mitglied): User
     {
         $team = Team::membersTeam();
@@ -98,6 +120,18 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('portrait');
     }
 
+    public function test_pdf_endpoint_renders_real_pdf_for_ag_rollenspiel_member(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $this->assertStringContainsString('foo-bar.pdf', $response->headers->get('content-disposition'));
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
     public function test_pdf_generates_without_portrait_for_global_admin_with_different_current_team(): void
     {
         $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
@@ -118,6 +152,20 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
 
         $response->assertOk();
+    }
+
+    public function test_pdf_endpoint_renders_real_pdf_with_uploaded_portrait(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(['character_name' => 'Mit Portrait']),
+            'portrait' => UploadedFile::fake()->image('avatar.png', 120, 120),
+        ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('mit-portrait.pdf', $response->headers->get('content-disposition'));
+        $this->assertStringStartsWith('%PDF', $response->getContent());
     }
 
     public function test_pdf_includes_base64_portrait_when_uploaded_for_ag_rollenspiel_member(): void
@@ -152,8 +200,8 @@ class RpgCharEditorPdfTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_laravel_pdf_is_configured(): void
+    public function test_dompdf_dependency_is_installed(): void
     {
-        $this->assertSame(base_path('node_modules'), config('laravel-pdf.browsershot.node_modules_path'));
+        $this->assertTrue(class_exists('Dompdf\\Dompdf'));
     }
 }
