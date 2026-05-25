@@ -33,12 +33,7 @@ class BaxxMilestoneActivityService
         }
 
         DB::transaction(function () use ($userPoint, $membersTeam): void {
-            $currentEarnedBaxx = (int) UserPoint::query()
-                ->where('user_id', $userPoint->user_id)
-                ->where('team_id', $membersTeam->id)
-                ->sum('points');
-
-            $baselineEarnedBaxx = $this->baselineEarnedBaxxBefore($userPoint, $membersTeam->id);
+            ['baseline' => $baselineEarnedBaxx, 'current' => $currentEarnedBaxx] = $this->earnedBaxxSnapshot($userPoint, $membersTeam->id);
             $progress = $this->lockProgress($userPoint->user_id, $baselineEarnedBaxx);
             $processedEarnedBaxx = max($baselineEarnedBaxx, (int) $progress->processed_count);
 
@@ -63,35 +58,52 @@ class BaxxMilestoneActivityService
         });
     }
 
-    private function baselineEarnedBaxxBefore(UserPoint $userPoint, int $membersTeamId): int
+    /**
+     * @return array{baseline: int, current: int}
+     */
+    private function earnedBaxxSnapshot(UserPoint $userPoint, int $membersTeamId): array
     {
-        return (int) UserPoint::query()
+        $createdAt = $userPoint->getRawOriginal('created_at') ?? $userPoint->created_at;
+
+        $snapshot = UserPoint::query()
             ->where('user_id', $userPoint->user_id)
             ->where('team_id', $membersTeamId)
-            ->where(function ($query) use ($userPoint) {
-                $query->where('created_at', '<', $userPoint->created_at)
-                    ->orWhere(function ($sameTimestampQuery) use ($userPoint) {
-                        $sameTimestampQuery->where('created_at', $userPoint->created_at)
-                            ->where('id', '<', $userPoint->id);
-                    });
-            })
-            ->sum('points');
+            ->selectRaw('COALESCE(SUM(points), 0) as current_earned_baxx')
+            ->selectRaw(
+                'COALESCE(SUM(CASE WHEN created_at < ? OR (created_at = ? AND id < ?) THEN points ELSE 0 END), 0) as baseline_earned_baxx',
+                [$createdAt, $createdAt, $userPoint->id]
+            )
+            ->toBase()
+            ->first();
+
+        return [
+            'baseline' => (int) ($snapshot?->baseline_earned_baxx ?? 0),
+            'current' => (int) ($snapshot?->current_earned_baxx ?? 0),
+        ];
     }
 
     private function lockProgress(int $userId, int $initialProcessedCount): BaxxEarningProgress
     {
+        $progress = BaxxEarningProgress::query()
+            ->where('user_id', $userId)
+            ->where('action_key', self::ACTION_KEY)
+            ->lockForUpdate()
+            ->first();
+
+        if ($progress) {
+            return $progress;
+        }
+
         $timestamp = now();
 
-        BaxxEarningProgress::query()->upsert(
-            [[
+        BaxxEarningProgress::query()->insertOrIgnore(
+            [
                 'user_id' => $userId,
                 'action_key' => self::ACTION_KEY,
                 'processed_count' => $initialProcessedCount,
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
-            ]],
-            ['user_id', 'action_key'],
-            ['updated_at']
+            ]
         );
 
         return BaxxEarningProgress::query()

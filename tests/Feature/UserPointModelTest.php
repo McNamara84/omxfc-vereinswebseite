@@ -10,6 +10,8 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\BaxxMilestoneActivityService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -186,6 +188,49 @@ class UserPointModelTest extends TestCase
         $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
         $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
         $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_100')->count());
+    }
+
+    public function test_reprocessing_same_user_point_is_idempotent_and_keeps_progress_timestamp(): void
+    {
+        $user = $this->createMember();
+
+        Carbon::setTestNow('2026-05-25 12:00:00');
+
+        try {
+            $userPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 25,
+            ]);
+
+            $progress = BaxxEarningProgress::query()
+                ->where('user_id', $user->id)
+                ->where('action_key', 'dashboard_baxx_milestone')
+                ->firstOrFail();
+
+            $this->assertSame(25, $progress->processed_count);
+
+            $initialUpdatedAt = $progress->updated_at?->copy();
+
+            Carbon::setTestNow('2026-05-25 12:05:00');
+
+            app(BaxxMilestoneActivityService::class)->recordForUserPoint($userPoint->id);
+
+            $progress->refresh();
+
+            $actions = Activity::query()
+                ->where('subject_type', User::class)
+                ->where('subject_id', $user->id)
+                ->pluck('action')
+                ->all();
+
+            $this->assertSame($initialUpdatedAt?->toDateTimeString(), $progress->updated_at?->toDateTimeString());
+            $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
+            $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_points_for_other_team_do_not_create_members_baxx_milestone_activity(): void
