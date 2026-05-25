@@ -16,6 +16,7 @@ class AppServiceProviderTest extends TestCase
 
     private const TEST_VITE_BUILD_DIRECTORY = 'build-app-service-provider-test';
     private const TEST_VITE_ASSET = 'assets/app-service-provider-test.css';
+    private const TEST_VITE_SCRIPT_ASSET = 'assets/app-service-provider-test.js';
 
     public function test_password_reset_does_not_change_existing_verified_timestamp(): void
     {
@@ -76,6 +77,18 @@ class AppServiceProviderTest extends TestCase
         $this->assertStringContainsString('Testinhalt', $html);
         $this->assertStringNotContainsString('resources/css/app.css', $html);
         $this->assertStringNotContainsString('resources/js/app.js', $html);
+    }
+
+    public function test_app_layout_keeps_vite_assets_without_minimal_test_layout(): void
+    {
+        Config::set('app.testing_minimal_layout', false);
+
+        $this->withTemporaryViteManifest(function (): void {
+            $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
+
+            $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET, $html);
+            $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_SCRIPT_ASSET, $html);
+        });
     }
 
     public function test_testing_environment_ignores_standard_vite_hot_file(): void
@@ -147,6 +160,7 @@ class AppServiceProviderTest extends TestCase
         $assetsDirectory = $buildDirectory.'/assets';
         $manifestPath = $buildDirectory.'/manifest.json';
         $assetPath = $buildDirectory.'/'.self::TEST_VITE_ASSET;
+        $scriptAssetPath = $buildDirectory.'/'.self::TEST_VITE_SCRIPT_ASSET;
 
         $buildDirectoryCreated = ! is_dir($buildDirectory);
         $assetsDirectoryCreated = ! is_dir($assetsDirectory);
@@ -154,6 +168,8 @@ class AppServiceProviderTest extends TestCase
         $originalManifestContents = $originalManifestExists ? file_get_contents($manifestPath) : null;
         $originalAssetExists = is_file($assetPath);
         $originalAssetContents = $originalAssetExists ? file_get_contents($assetPath) : null;
+        $originalScriptAssetExists = is_file($scriptAssetPath);
+        $originalScriptAssetContents = $originalScriptAssetExists ? file_get_contents($scriptAssetPath) : null;
 
         if ($buildDirectoryCreated) {
             mkdir($buildDirectory, 0777, true);
@@ -169,11 +185,18 @@ class AppServiceProviderTest extends TestCase
                 'src' => 'resources/css/app.css',
                 'isEntry' => true,
             ],
+            'resources/js/app.js' => [
+                'file' => self::TEST_VITE_SCRIPT_ASSET,
+                'src' => 'resources/js/app.js',
+                'isEntry' => true,
+            ],
         ], JSON_THROW_ON_ERROR));
         file_put_contents($assetPath, 'body { display: block; }');
+        file_put_contents($scriptAssetPath, 'console.log("app-service-provider-test");');
 
         clearstatcache(true, $manifestPath);
         clearstatcache(true, $assetPath);
+        clearstatcache(true, $scriptAssetPath);
         Vite::useBuildDirectory(self::TEST_VITE_BUILD_DIRECTORY);
 
         try {
@@ -193,6 +216,12 @@ class AppServiceProviderTest extends TestCase
                 unlink($assetPath);
             }
 
+            if ($originalScriptAssetExists) {
+                file_put_contents($scriptAssetPath, $originalScriptAssetContents ?: '');
+            } elseif (is_file($scriptAssetPath)) {
+                unlink($scriptAssetPath);
+            }
+
             if ($assetsDirectoryCreated) {
                 @rmdir($assetsDirectory);
             }
@@ -203,6 +232,7 @@ class AppServiceProviderTest extends TestCase
 
             clearstatcache(true, $manifestPath);
             clearstatcache(true, $assetPath);
+            clearstatcache(true, $scriptAssetPath);
         }
     }
 }
