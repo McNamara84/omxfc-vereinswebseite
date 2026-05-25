@@ -14,7 +14,7 @@ class BaxxMilestoneActivityService
     private const ACTION_KEY = 'dashboard_baxx_milestone';
 
     /**
-     * @var array<int, int>
+        * @var list<int>
      */
     private const MILESTONES = [1, 25, 100, 250, 500];
 
@@ -141,18 +141,19 @@ class BaxxMilestoneActivityService
      */
     private function existingMilestoneActions(int $userId): array
     {
+        /** @var list<string> $milestoneActions */
         $milestoneActions = collect(self::MILESTONES)
             ->map(fn (int $milestone): string => $this->milestoneAction($milestone))
             ->all();
 
-        return Activity::query()
+        if ($milestoneActions === []) {
+            return [];
+        }
+
+        return DB::table((new Activity)->getTable())
             ->where('subject_type', User::class)
             ->where('subject_id', $userId)
-            ->where(function ($query) use ($milestoneActions): void {
-                foreach ($milestoneActions as $action) {
-                    $query->orWhere('action', $action);
-                }
-            })
+            ->whereIn('action', $milestoneActions)
             ->pluck('action')
             ->mapWithKeys(fn (string $action): array => [$action => true])
             ->all();
