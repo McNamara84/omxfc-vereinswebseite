@@ -42,7 +42,7 @@ CREATE TABLE `audiobook_episodes` (
   `episode_number` varchar(255) NOT NULL,
   `title` varchar(255) NOT NULL,
   `author` varchar(255) NOT NULL,
-  `status` enum('Skripterstellung','Korrekturlesung','Rollenbesetzung','Aufnahmensammlung','Musikerstellung','Audiobearbeitung','Videobearbeitung','Grafiken','Ver??ffentlichungsplanung','Ver??ffentlichung') NOT NULL,
+  `status` enum('Skripterstellung','Korrekturlesung','Rollenbesetzung','Aufnahmensammlung','Musikerstellung','Audiobearbeitung','Videobearbeitung','Grafiken','Veröffentlichungsplanung','Veröffentlichung') NOT NULL,
   `responsible_user_id` bigint(20) unsigned DEFAULT NULL,
   `progress` tinyint(3) unsigned NOT NULL DEFAULT 0,
   `notes` text DEFAULT NULL,
