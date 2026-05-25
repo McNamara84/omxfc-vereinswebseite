@@ -237,6 +237,14 @@ class KompendiumSearchService
             return false;
         }
 
+        if ($this->containsExcludedOperands(
+            $text,
+            $parsed['excludedTerms'] ?? [],
+            $parsed['excludedPhrases'] ?? [],
+        )) {
+            return false;
+        }
+
         $groups = $parsed['groups'] ?? [];
 
         if ($groups === []) {
@@ -250,6 +258,27 @@ class KompendiumSearchService
 
         foreach ($groups as $group) {
             if ($this->groupMatchesText($text, $group)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  list<string>  $excludedTerms
+     * @param  list<string>  $excludedPhrases
+     */
+    private function containsExcludedOperands(string $text, array $excludedTerms, array $excludedPhrases): bool
+    {
+        foreach ($excludedPhrases as $phrase) {
+            if (mb_stripos($text, $phrase) !== false) {
+                return true;
+            }
+        }
+
+        foreach ($excludedTerms as $term) {
+            if (mb_stripos($text, $term) !== false) {
                 return true;
             }
         }

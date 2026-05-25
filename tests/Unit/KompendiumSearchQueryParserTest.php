@@ -266,4 +266,14 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($this->service->matchesText('Matthew Drax erkundete die Anlage.', $parsed));
         $this->assertFalse($this->service->matchesText('Matthew Drax und Aruula sprachen miteinander.', $parsed));
     }
+
+    #[Test]
+    public function matches_text_wendet_globale_ausschluesse_auch_bei_or_gruppen_an(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula NOT Mutant');
+
+        $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew traf auf einen Mutant in der Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Aruula warnte vor einem Mutant.', $parsed));
+    }
 }
