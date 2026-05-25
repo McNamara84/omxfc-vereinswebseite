@@ -68,8 +68,19 @@ const gotoBundleCreateForm = async (page) => {
     await expect(page.locator('select[name="series"]')).toBeVisible({ timeout: 15000 });
 };
 
-const submitBundleForm = async (page) => {
-    await page.locator('#bundle-offer-form button[type="submit"]').click();
+const submitBundleForm = async (page, waitForUrl = null) => {
+    const submitButton = page.locator('#bundle-offer-form button[type="submit"]');
+
+    if (waitForUrl) {
+        await Promise.all([
+            page.waitForURL(waitForUrl, { waitUntil: 'domcontentloaded', timeout: 30000 }),
+            submitButton.click(),
+        ]);
+
+        return;
+    }
+
+    await submitButton.click();
 };
 
 // Die Enum-Werte aus BookType.php
@@ -134,16 +145,13 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
             // Absenden
-            await submitBundleForm(page);
+            await submitBundleForm(page, /romantauschboerse$/);
 
-            // Sollte zur Übersicht weiterleiten
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Romantauschbörse/i, { timeout: 15000 });
 
-            // WICHTIG: Erfolgsmeldung prüfen - dieser Check hätte den Bug mit dem
-            // fehlenden 'properties'-Feld in Activity::create() gefangen, da bei
-            // einem DB-Fehler keine Erfolgsmeldung angezeigt wird.
-            const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Stapel-Angebot.*erstellt/i });
-            await expect(successMessage).toBeVisible();
+            // Dauerhafter Erfolgspfad statt flüchtigem Flash: Das neue Bundle muss
+            // auf der Übersicht sichtbar sein. Damit fallen DB-Fehler weiterhin auf.
+            await expect(page.getByText('Nummern: 1-5').first()).toBeVisible({ timeout: 15000 });
         });
     });
 
@@ -156,9 +164,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '10-15');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Stapel-Bereich sollte sichtbar sein
             const bundleSection = page.locator('[data-bundle-id]').first();
@@ -173,9 +179,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '20-25');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Bearbeiten-Link sollte für eigene Stapel sichtbar sein
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
@@ -192,9 +196,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '30-35');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Klicke auf Bearbeiten
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
@@ -218,9 +220,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '90-92');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Finde das Bundle über data-book-numbers-display mit "90-92" Substring.
             // .first() wählt das erste Match falls mehrere existieren (Test-Isolation).
@@ -246,9 +246,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '50-52');
             await page.selectOption('select[name="condition"]', CONDITION_Z3);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Gehe zur Bearbeiten-Seite
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
@@ -305,9 +303,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '60-65');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             // Gehe zur Bearbeiten-Seite
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
@@ -346,9 +342,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '70-75');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await submitBundleForm(page);
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await submitBundleForm(page, /romantauschboerse$/);
 
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
