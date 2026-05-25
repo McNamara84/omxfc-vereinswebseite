@@ -228,7 +228,9 @@ class KompendiumSearchService
      * @param  array{
      *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
      *     terms?: list<string>,
-     *     phrases?: list<string>
+        *     phrases?: list<string>,
+        *     excludedTerms?: list<string>,
+        *     excludedPhrases?: list<string>
      * }  $parsed
      */
     public function matchesText(string $text, array $parsed): bool
@@ -263,6 +265,74 @@ class KompendiumSearchService
         }
 
         return false;
+    }
+
+    /**
+     * @param  list<string>  $paths
+     * @param  array{
+     *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+     *     terms?: list<string>,
+     *     phrases?: list<string>,
+     *     excludedTerms?: list<string>,
+     *     excludedPhrases?: list<string>
+     * }  $parsed
+     * @param  callable(string): ?string  $loadText
+     * @return array{matchedPaths: list<string>, textCache: array<string, string>, candidatesTruncated: bool, scannedCandidates: int}
+     */
+    public function postFilterResultPaths(
+        array $paths,
+        array $parsed,
+        callable $loadText,
+        int $requiredMatches,
+        int $initialBatchSize = 200,
+        int $maxCandidates = 2000,
+    ): array {
+        $matchedPaths = [];
+        $textCache = [];
+        $scannedCandidates = 0;
+        $totalCandidates = count($paths);
+        $scanLimit = min($totalCandidates, max($initialBatchSize, $maxCandidates));
+        $requiredMatches = max(1, $requiredMatches);
+        $batchSize = min($initialBatchSize, $scanLimit);
+
+        while ($scannedCandidates < $scanLimit) {
+            $currentBatchSize = min($batchSize, $scanLimit - $scannedCandidates);
+            $candidateBatch = array_slice($paths, $scannedCandidates, $currentBatchSize);
+
+            foreach ($candidateBatch as $path) {
+                $text = $loadText($path);
+
+                if (! is_string($text)) {
+                    continue;
+                }
+
+                if (! $this->matchesText($text, $parsed)) {
+                    continue;
+                }
+
+                $matchedPaths[] = $path;
+                $textCache[$path] = $text;
+            }
+
+            $scannedCandidates += $currentBatchSize;
+
+            if (count($matchedPaths) >= $requiredMatches) {
+                break;
+            }
+
+            $batchSize = min($batchSize * 2, $scanLimit - $scannedCandidates);
+
+            if ($batchSize <= 0) {
+                break;
+            }
+        }
+
+        return [
+            'matchedPaths' => $matchedPaths,
+            'textCache' => $textCache,
+            'candidatesTruncated' => $scannedCandidates < $totalCandidates,
+            'scannedCandidates' => $scannedCandidates,
+        ];
     }
 
     /**

@@ -15,6 +15,7 @@ use Tests\TestCase;
 #[CoversMethod(KompendiumSearchService::class, 'buildTntSearchQuery')]
 #[CoversMethod(KompendiumSearchService::class, 'hasPositiveOperands')]
 #[CoversMethod(KompendiumSearchService::class, 'matchesText')]
+#[CoversMethod(KompendiumSearchService::class, 'postFilterResultPaths')]
 class KompendiumSearchQueryParserTest extends TestCase
 {
     use RefreshDatabase;
@@ -275,5 +276,34 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
         $this->assertFalse($this->service->matchesText('Matthew traf auf einen Mutant in der Anlage.', $parsed));
         $this->assertFalse($this->service->matchesText('Aruula warnte vor einem Mutant.', $parsed));
+    }
+
+    #[Test]
+    public function post_filter_result_paths_erweitert_kandidaten_iterativ_bis_genug_treffer_vorliegen(): void
+    {
+        $parsed = $this->service->parseSearchQuery('Matthew OR Aruula');
+        $paths = [];
+        $texts = [];
+
+        foreach (range(1, 205) as $number) {
+            $path = sprintf('romane/maddrax/%03d - Test.txt', $number);
+            $paths[] = $path;
+            $texts[$path] = $number === 205
+                ? 'Aruula fand endlich den gesuchten Hinweis.'
+                : 'Xij Hamel blieb im Schatten.';
+        }
+
+        $result = $this->service->postFilterResultPaths(
+            $paths,
+            $parsed,
+            static fn (string $path): ?string => $texts[$path] ?? null,
+            1,
+            200,
+            1000,
+        );
+
+        $this->assertSame([sprintf('romane/maddrax/%03d - Test.txt', 205)], $result['matchedPaths']);
+        $this->assertGreaterThan(200, $result['scannedCandidates']);
+        $this->assertFalse($result['candidatesTruncated']);
     }
 }

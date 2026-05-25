@@ -188,4 +188,26 @@ class KompendiumSucheTest extends TestCase
             ->assertSet('error', 'Bitte gib mindestens einen positiven Suchbegriff ein.')
             ->assertSet('results', []);
     }
+
+    public function test_component_labels_loaded_results_as_bisher_geladen(): void
+    {
+        Livewire::test(KompendiumSuche::class)
+            ->set('hasSearched', true)
+            ->set('results', [
+                ['cycle' => 'Maddrax', 'romanNr' => '001', 'title' => 'Test 1', 'serie' => 'maddrax', 'snippets' => ['Treffer 1']],
+                ['cycle' => 'Maddrax', 'romanNr' => '002', 'title' => 'Test 2', 'serie' => 'maddrax', 'snippets' => ['Treffer 2']],
+            ])
+            ->set('page', 2)
+            ->set('lastPage', 3)
+            ->assertSee('2 Treffer bisher geladen, aktuell Seite 2 von 3.');
+    }
+
+    public function test_component_shows_candidate_limit_hint_when_post_filter_is_truncated(): void
+    {
+        Livewire::test(KompendiumSuche::class)
+            ->set('hasSearched', true)
+            ->set('candidatesTruncated', true)
+            ->set('scannedCandidates', 400)
+            ->assertSee('Für die Suchlogik wurden bisher 400 Kandidaten nachgeprüft.');
+    }
 }

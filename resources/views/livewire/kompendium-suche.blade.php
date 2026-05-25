@@ -158,13 +158,21 @@
         </div>
     @endif
 
+    @if($hasSearched && $candidatesTruncated && !$error)
+        <div class="rounded-[1.25rem] border-l-4 border-warning bg-warning/10 p-4" data-testid="kompendium-candidate-limit-hint">
+            <p class="text-sm leading-relaxed text-base-content/80 sm:text-base">
+                Für die Suchlogik wurden bisher {{ $scannedCandidates }} Kandidaten nachgeprüft. Weitere passende Treffer sind möglich. Verfeinere die Suche oder lade weitere Treffer nach, um tiefer in der Trefferliste zu prüfen.
+            </p>
+        </div>
+    @endif
+
     <section id="results" class="space-y-6">
         @if(!empty($results))
             <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-base-content">Treffer</h2>
                     <p class="text-sm leading-relaxed text-base-content/68 sm:text-base">
-                        {{ count($results) }} Treffer auf dieser Seite{{ $lastPage > 1 ? ', Seite ' . $page . ' von ' . $lastPage : '' }}.
+                        {{ count($results) }} Treffer bisher geladen{{ $lastPage > 1 ? ', aktuell Seite ' . $page . ' von ' . ($candidatesTruncated ? 'mindestens ' : '') . $lastPage : '' }}.
                     </p>
                 </div>
             </div>

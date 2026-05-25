@@ -180,8 +180,10 @@ class KompendiumController extends Controller
         /*  Obergrenze für Kandidaten, um I/O und RAM zu begrenzen. */
         /* ------------------------------------------------------------------ */
         $textCache = [];
-        $maxPostFilterCandidates = 200;
+        $requiredMatches = ($page + 1) * $perPage;
+        $maxPostFilterCandidates = min(max(200, $requiredMatches * 200), 10_000);
         $candidatesTruncated = false;
+        $scannedCandidates = 0;
 
         $requiresPostFilter = $parsed['usesOrOperator']
             || $parsed['usesNotOperator']
@@ -189,26 +191,25 @@ class KompendiumController extends Controller
             || count($parsed['terms']) > 1;
 
         if ($requiresPostFilter) {
-            if (count($ids) > $maxPostFilterCandidates) {
-                $candidatesTruncated = true;
-            }
-            $candidates = array_slice($ids, 0, $maxPostFilterCandidates);
-            $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
-                if (! Storage::disk('private')->exists($path)) {
-                    return false;
-                }
+            $postFilter = $this->searchService->postFilterResultPaths(
+                $ids,
+                $parsed,
+                function (string $path): ?string {
+                    if (! Storage::disk('private')->exists($path)) {
+                        return null;
+                    }
 
-                $text = Storage::disk('private')->get($path);
+                    return Storage::disk('private')->get($path);
+                },
+                $requiredMatches,
+                200,
+                $maxPostFilterCandidates,
+            );
 
-                if (! $this->searchService->matchesText($text, $parsed)) {
-                    return false;
-                }
-
-                // Nur Treffer cachen, um RAM zu sparen
-                $textCache[$path] = $text;
-
-                return true;
-            }));
+            $ids = $postFilter['matchedPaths'];
+            $textCache = $postFilter['textCache'];
+            $candidatesTruncated = $postFilter['candidatesTruncated'];
+            $scannedCandidates = $postFilter['scannedCandidates'];
         }
 
         /* ------------------------------------------------------------------ */
@@ -340,9 +341,13 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         /*  Pagination-Objekt für das Frontend */
         /* ------------------------------------------------------------------ */
+        $paginationTotal = $candidatesTruncated && $total >= ($page * $perPage)
+            ? max($total, ($page * $perPage) + 1)
+            : $total;
+
         $paginator = new LengthAwarePaginator(
             $hits,
-            $total,
+            $paginationTotal,
             $perPage,
             $page
         );
@@ -365,6 +370,7 @@ class KompendiumController extends Controller
 
         if ($candidatesTruncated) {
             $responseData['candidatesTruncated'] = true;
+            $responseData['scannedCandidates'] = $scannedCandidates;
         }
 
         return response()->json($responseData);

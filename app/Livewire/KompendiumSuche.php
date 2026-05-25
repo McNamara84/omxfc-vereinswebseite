@@ -32,6 +32,10 @@ class KompendiumSuche extends Component
 
     public bool $hasSearched = false;
 
+    public bool $candidatesTruncated = false;
+
+    public int $scannedCandidates = 0;
+
     private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
     private const ALLOWED_BASE_PATH = 'romane/';
@@ -94,6 +98,8 @@ class KompendiumSuche extends Component
     {
         try {
             $this->error = null;
+            $this->candidatesTruncated = false;
+            $this->scannedCandidates = 0;
             $searchService = app(KompendiumSearchService::class);
             $query = mb_strtolower(trim($this->query));
             $perPage = 5;
@@ -126,7 +132,8 @@ class KompendiumSuche extends Component
             $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
 
             $textCache = [];
-            $maxCandidates = 200;
+            $requiredMatches = ($this->page + 1) * $perPage;
+            $maxCandidates = min(max(200, $requiredMatches * 200), 10_000);
 
             $requiresPostFilter = $parsed['usesOrOperator']
                 || $parsed['usesNotOperator']
@@ -134,22 +141,25 @@ class KompendiumSuche extends Component
                 || count($parsed['terms']) > 1;
 
             if ($requiresPostFilter) {
-                $candidates = array_slice($ids, 0, $maxCandidates);
-                $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache, $searchService) {
-                    if (! Storage::disk('private')->exists($path)) {
-                        return false;
-                    }
+                $postFilter = $searchService->postFilterResultPaths(
+                    $ids,
+                    $parsed,
+                    function (string $path): ?string {
+                        if (! Storage::disk('private')->exists($path)) {
+                            return null;
+                        }
 
-                    $text = Storage::disk('private')->get($path);
+                        return Storage::disk('private')->get($path);
+                    },
+                    $requiredMatches,
+                    200,
+                    $maxCandidates,
+                );
 
-                    if (! $searchService->matchesText($text, $parsed)) {
-                        return false;
-                    }
-
-                    $textCache[$path] = $text;
-
-                    return true;
-                }));
+                $ids = $postFilter['matchedPaths'];
+                $textCache = $postFilter['textCache'];
+                $this->candidatesTruncated = $postFilter['candidatesTruncated'];
+                $this->scannedCandidates = $postFilter['scannedCandidates'];
             }
 
             $serienCounts = [];
@@ -172,7 +182,10 @@ class KompendiumSuche extends Component
 
             $total = count($ids);
             $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
-            $this->lastPage = max(1, (int) ceil($total / $perPage));
+            $paginationTotal = $this->candidatesTruncated && $total >= ($this->page * $perPage)
+                ? max($total, ($this->page * $perPage) + 1)
+                : $total;
+            $this->lastPage = max(1, (int) ceil($paginationTotal / $perPage));
 
             $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
 
@@ -185,6 +198,8 @@ class KompendiumSuche extends Component
                     'excludedTerms' => $parsed['excludedTerms'],
                     'usesOrOperator' => $parsed['usesOrOperator'],
                     'usesNotOperator' => $parsed['usesNotOperator'],
+                    'candidatesTruncated' => $this->candidatesTruncated,
+                    'scannedCandidates' => $this->scannedCandidates,
                 ];
 
                 return;
@@ -222,6 +237,8 @@ class KompendiumSuche extends Component
                 'excludedTerms' => $parsed['excludedTerms'],
                 'usesOrOperator' => $parsed['usesOrOperator'],
                 'usesNotOperator' => $parsed['usesNotOperator'],
+                'candidatesTruncated' => $this->candidatesTruncated,
+                'scannedCandidates' => $this->scannedCandidates,
             ];
         } catch (\Throwable $e) {
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
