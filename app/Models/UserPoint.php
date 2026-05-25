@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -22,6 +23,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UserPoint extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::created(function (UserPoint $userPoint): void {
+            $userPointId = $userPoint->id;
+
+            DB::afterCommit(function () use ($userPointId): void {
+                app(\App\Services\BaxxMilestoneActivityService::class)
+                    ->recordForUserPoint($userPointId);
+            });
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

@@ -3,11 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\Activity;
+use App\Models\BaxxEarningProgress;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\BaxxMilestoneActivityService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -113,5 +117,219 @@ class UserPointModelTest extends TestCase
             'team_id' => $user->currentTeam->id,
             'points' => 4,
         ]);
+    }
+
+    public function test_first_user_point_creates_initial_baxx_milestone_activity(): void
+    {
+        $user = $this->createMember();
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 1,
+        ]);
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => 'baxx_milestone_reached_1',
+        ]);
+    }
+
+    public function test_large_point_jump_creates_each_crossed_baxx_milestone_once(): void
+    {
+        $user = $this->createMember();
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 130,
+        ]);
+
+        $actions = Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->pluck('action')
+            ->all();
+
+        $this->assertContains('baxx_milestone_reached_1', $actions);
+        $this->assertContains('baxx_milestone_reached_25', $actions);
+        $this->assertContains('baxx_milestone_reached_100', $actions);
+        $this->assertNotContains('baxx_milestone_reached_250', $actions);
+    }
+
+    public function test_follow_up_points_do_not_duplicate_previous_baxx_milestones(): void
+    {
+        $user = $this->createMember();
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 80,
+        ]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 40,
+        ]);
+
+        $actions = Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->pluck('action')
+            ->all();
+
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_100')->count());
+    }
+
+    public function test_reprocessing_same_user_point_is_idempotent_and_keeps_progress_timestamp(): void
+    {
+        $user = $this->createMember();
+
+        Carbon::setTestNow('2026-05-25 12:00:00');
+
+        try {
+            $userPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 25,
+            ]);
+
+            $progress = BaxxEarningProgress::query()
+                ->where('user_id', $user->id)
+                ->where('action_key', 'dashboard_baxx_milestone')
+                ->firstOrFail();
+
+            $this->assertSame(25, $progress->processed_count);
+
+            $initialUpdatedAt = $progress->updated_at?->copy();
+
+            Carbon::setTestNow('2026-05-25 12:05:00');
+
+            app(BaxxMilestoneActivityService::class)->recordForUserPoint($userPoint->id);
+
+            $progress->refresh();
+
+            $actions = Activity::query()
+                ->where('subject_type', User::class)
+                ->where('subject_id', $user->id)
+                ->pluck('action')
+                ->all();
+
+            $this->assertSame($initialUpdatedAt?->toDateTimeString(), $progress->updated_at?->toDateTimeString());
+            $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
+            $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    public function test_out_of_order_initial_processing_still_creates_lowest_milestones(): void
+    {
+        $user = $this->createMember();
+
+        [$firstPoint, $secondPoint] = UserPoint::withoutEvents(function () use ($user): array {
+            $firstPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 1,
+            ]);
+
+            $secondPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 24,
+            ]);
+
+            return [$firstPoint, $secondPoint];
+        });
+
+        $service = app(BaxxMilestoneActivityService::class);
+        $service->recordForUserPoint($secondPoint->id);
+        $service->recordForUserPoint($firstPoint->id);
+
+        $actions = Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->pluck('action')
+            ->all();
+
+        $progress = BaxxEarningProgress::query()
+            ->where('user_id', $user->id)
+            ->where('action_key', 'dashboard_baxx_milestone')
+            ->firstOrFail();
+
+        $this->assertSame(25, $progress->processed_count);
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
+    }
+
+    public function test_points_for_other_team_do_not_create_members_baxx_milestone_activity(): void
+    {
+        $user = $this->createMember();
+        $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Nebenverein']);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 100,
+        ]);
+
+        $this->assertDatabaseMissing('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => 'baxx_milestone_reached_1',
+        ]);
+    }
+
+    public function test_existing_history_does_not_create_retroactive_baxx_milestones_when_feature_starts_late(): void
+    {
+        $user = $this->createMember();
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 90,
+        ]);
+
+        Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->delete();
+
+        BaxxEarningProgress::query()
+            ->where('user_id', $user->id)
+            ->where('action_key', 'dashboard_baxx_milestone')
+            ->delete();
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 15,
+        ]);
+
+        $actions = Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->pluck('action')
+            ->all();
+
+        $this->assertSame(['baxx_milestone_reached_100'], $actions);
     }
 }

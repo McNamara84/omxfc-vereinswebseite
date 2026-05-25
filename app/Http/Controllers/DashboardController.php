@@ -9,16 +9,20 @@ use App\Models\Activity;
 use App\Models\BookOffer;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
+use App\Models\FanfictionComment;
 use App\Models\Review;
 use App\Models\ReviewComment;
+use App\Models\RewardPurchase;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\FanfictionAccessService;
 use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use App\Services\TourAssignmentService;
 use App\Services\UserRoleService;
+use App\Support\PreviewText;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -32,6 +36,7 @@ class DashboardController extends Controller
         private MembersTeamProvider $membersTeamProvider,
         private ReviewBaxxService $reviewBaxxService,
         private RewardService $rewardService,
+        private FanfictionAccessService $fanfictionAccessService,
         private TourAssignmentService $tourAssignmentService,
     ) {}
 
@@ -195,7 +200,15 @@ class DashboardController extends Controller
         $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
-            ->get();
+            ->get()
+            ->loadMorph('subject', [
+                BookSwap::class => ['offer.user', 'request.user'],
+                Fanfiction::class => ['reward'],
+                FanfictionComment::class => ['fanfiction.reward'],
+                ReviewComment::class => ['review'],
+                RewardPurchase::class => ['reward'],
+            ]);
+        $activities = $this->prepareActivityFeed($activities, $user);
 
         $prominentReviewSpecialOffer = $this->reviewBaxxService->getProminentSpecialOffer();
         $focusCards = $this->buildFocusCards(
@@ -256,6 +269,41 @@ class DashboardController extends Controller
             'topUsersSummary',
             'topUsersPayload',
         ));
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Collection<int, Activity>  $activities
+     * @return \Illuminate\Database\Eloquent\Collection<int, Activity>
+     */
+    private function prepareActivityFeed(\Illuminate\Database\Eloquent\Collection $activities, User $user): \Illuminate\Database\Eloquent\Collection
+    {
+        if (! $activities->contains(fn (Activity $activity): bool => $activity->subject_type === Fanfiction::class && $activity->action === 'published')) {
+            return $activities;
+        }
+
+        $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
+
+        $activities->each(function (Activity $activity) use ($user, $unlockedRewardIds): void {
+            if ($activity->subject_type !== Fanfiction::class || $activity->action !== 'published') {
+                return;
+            }
+
+            $fanfiction = $activity->subject;
+
+            if (! $fanfiction instanceof Fanfiction) {
+                return;
+            }
+
+            $previewSource = $this->fanfictionAccessService->hasUnlocked($user, $fanfiction, $unlockedRewardIds)
+                ? $fanfiction->content
+                : $fanfiction->teaser;
+
+            $activity->forceFill([
+                'dashboard_fanfiction_preview' => (string) PreviewText::make($previewSource, 160),
+            ]);
+        });
+
+        return $activities;
     }
 
     private function buildDashboardHeaderBadges(int $availableBaxx, ?string $walletWarning, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array

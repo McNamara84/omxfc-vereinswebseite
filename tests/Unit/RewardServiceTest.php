@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Enums\Role;
+use App\Models\Activity;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;
@@ -44,6 +45,27 @@ class RewardServiceTest extends TestCase
         $this->assertEquals(5, $purchase->cost_baxx);
         $this->assertNotNull($purchase->purchased_at);
         $this->assertNull($purchase->refunded_at);
+    }
+
+    public function test_purchase_reward_creates_activity_for_unlocked_reward(): void
+    {
+        $user = $this->actingMemberWithPoints(10);
+        $reward = Reward::factory()->create(['cost_baxx' => 5]);
+
+        $purchase = $this->service->purchaseReward($user, $reward);
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => RewardPurchase::class,
+            'subject_id' => $purchase->id,
+            'action' => 'reward_unlocked',
+        ]);
+
+        $this->assertSame(1, Activity::query()
+            ->where('subject_type', RewardPurchase::class)
+            ->where('subject_id', $purchase->id)
+            ->where('action', 'reward_unlocked')
+            ->count());
     }
 
     public function test_purchase_reward_fails_with_insufficient_baxx(): void

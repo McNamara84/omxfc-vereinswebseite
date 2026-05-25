@@ -510,6 +510,7 @@ CREATE TABLE `user_points` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
+  KEY `user_points_baxx_lookup_index` (`user_id`,`team_id`,`created_at`,`id`),
   KEY `user_points_user_id_foreign` (`user_id`),
   KEY `user_points_team_id_foreign` (`team_id`),
   KEY `user_points_todo_id_foreign` (`todo_id`),
@@ -624,3 +625,4 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (47,'2025_09_26_094
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (48,'2025_09_26_130232_add_contact_and_pseudonym_to_audiobook_roles_table',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (50,'2025_11_29_102701_fix_mission_mars_enum_value_in_books_table',3);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (51,'2025_12_02_000001_make_activities_user_id_nullable',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (52,'2026_05_25_140000_add_baxx_lookup_index_to_user_points_table',4);

@@ -8,18 +8,26 @@ use App\Enums\TodoStatus;
 use App\Models\Activity;
 use App\Models\AdminMessage;
 use App\Models\Book;
+use App\Models\BookSwap;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
+use App\Models\Fanfiction;
+use App\Models\FanfictionComment;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Review;
 use App\Models\ReviewComment;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Livewire\TodoIndex;
 use App\Models\TodoCategory;
 use App\Models\User;
+use App\Models\UserPoint;
+use App\Services\RewardService;
+use App\Services\Romantausch\SwapMatchingService;
 use App\Support\PreviewText;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -302,6 +310,294 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeTextInOrder(['Kommentar zu', $review->title, 'von', $user->name]);
         $response->assertDontSeeText('Auszug aus dem Kommentar');
         $response->assertDontSee('„');
+    }
+
+    public function test_activity_created_and_displayed_for_reward_unlock(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 12,
+        ]);
+
+        $reward = Reward::factory()->create([
+            'title' => 'Mitgliederkarte',
+            'slug' => 'activity-feed-mitgliederkarte',
+            'cost_baxx' => 5,
+        ]);
+
+        $purchase = app(RewardService::class)->purchaseReward($user, $reward);
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => RewardPurchase::class,
+            'subject_id' => $purchase->id,
+            'action' => 'reward_unlocked',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText($user->name);
+        $response->assertSeeText('Mitgliederkarte');
+        $response->assertSeeText('freigeschaltet');
+    }
+
+    public function test_dashboard_shows_published_fanfiction_activity(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'title' => 'Orbit im Sturm',
+            'content' => 'Die Crew erreicht eine verlassene Station und entdeckt dort ein seltsames Signal, das immer stärker wird.',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Fanfiction::class,
+            'subject_id' => $fanfiction->id,
+            'action' => 'published',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Neue Fanfiction: Orbit im Sturm');
+        $response->assertSeeText(PreviewText::make($fanfiction->content, 160));
+    }
+
+    public function test_dashboard_shows_teaser_preview_for_locked_fanfiction_activity(): void
+    {
+        $viewer = $this->actingMember();
+        $author = $this->actingMember();
+        $this->actingAs($viewer);
+
+        $reward = Reward::factory()->create([
+            'title' => 'Fanfiction-Freischaltung',
+        ]);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $viewer->currentTeam->id,
+            'user_id' => $author->id,
+            'created_by' => $author->id,
+            'reward_id' => $reward->id,
+            'title' => 'Geheimsignal',
+            'content' => 'Die Crew entdeckt [den verborgenen Sender](https://example.com/spoiler) und entschlüsselt das Signal. '.str_repeat('Weitere Hinweise tauchen auf. ', 12),
+        ]);
+
+        Activity::create([
+            'user_id' => $author->id,
+            'subject_type' => Fanfiction::class,
+            'subject_id' => $fanfiction->id,
+            'action' => 'published',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Neue Fanfiction: Geheimsignal');
+        $response->assertSeeText((string) PreviewText::make($fanfiction->teaser, 160));
+        $response->assertDontSeeText((string) PreviewText::make($fanfiction->content, 160));
+    }
+
+    public function test_dashboard_handles_deleted_fanfiction_activity(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'title' => 'Verlorenes Logbuch',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Fanfiction::class,
+            'subject_id' => $fanfiction->id,
+            'action' => 'published',
+        ]);
+
+        $fanfiction->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Gelöschter Eintrag');
+        $response->assertSeeText('nicht mehr verfügbar');
+    }
+
+    public function test_dashboard_shows_fanfiction_comment_activity(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'title' => 'Signal aus der Tiefe',
+        ]);
+
+        $comment = FanfictionComment::factory()->create([
+            'fanfiction_id' => $fanfiction->id,
+            'user_id' => $user->id,
+            'content' => 'Spannender Einstieg mit starkem Cliffhanger am Ende.',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => FanfictionComment::class,
+            'subject_id' => $comment->id,
+            'action' => 'created',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(['Kommentar zu', $fanfiction->title, 'von', $user->name]);
+        $response->assertSeeText(PreviewText::make($comment->content, 140));
+    }
+
+    public function test_dashboard_shows_bundle_activity_as_package(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'Z1',
+            'bundle_id' => 'paket-001',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => BookOffer::class,
+            'subject_id' => $offer->id,
+            'action' => 'bundle_created',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Neues Romantausch-Paket');
+        $response->assertSeeText('Roman1');
+        $response->assertSeeText('Mehrere Heftangebote wurden als Paket für die Börse eingestellt.');
+        $response->assertDontSeeText('Neues Angebot: Roman1');
+    }
+
+    public function test_activity_created_and_displayed_for_completed_swap(): void
+    {
+        $offerUser = $this->actingMember();
+        $requestUser = $this->actingMember();
+        $this->actingAs($offerUser);
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 21,
+            'book_title' => 'Maddrax 21',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 21,
+            'book_title' => 'Maddrax 21',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $swap = BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $service = app(SwapMatchingService::class);
+        $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $offerUser);
+        $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $requestUser);
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => null,
+            'subject_type' => BookSwap::class,
+            'subject_id' => $swap->id,
+            'action' => 'swap_completed',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Tausch erfolgreich abgeschlossen');
+        $response->assertSeeText($offerUser->name);
+        $response->assertSeeText($requestUser->name);
+        $response->assertSeeText('haben ihren Romantausch bestätigt.');
+        $response->assertSeeText('Maddrax 21');
+        $response->assertDontSeeText('Unbekannter Nutzer');
+    }
+
+    public function test_dashboard_shows_completed_challenge_with_baxx_value(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $category = TodoCategory::create(['name' => 'Baxx', 'slug' => 'baxx']);
+        $todo = Todo::create([
+            'team_id' => $user->currentTeam->id,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id,
+            'title' => 'Archiv pflegen',
+            'points' => 7,
+            'category_id' => $category->id,
+            'status' => TodoStatus::Verified->value,
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'completed',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Archiv pflegen');
+        $response->assertSeeText('7 Baxx');
+        $response->assertSeeText('erfolgreich abgeschlossen');
+    }
+
+    public function test_dashboard_shows_baxx_milestone_activity(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'todo_id' => null,
+            'points' => 100,
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText($user->name);
+        $response->assertSeeText('100 Baxx erreicht');
+        $response->assertSeeText('Meilenstein');
     }
 
     public function test_dashboard_displays_recent_activities(): void

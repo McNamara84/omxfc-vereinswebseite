@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Activity;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;
@@ -118,13 +119,22 @@ class RewardService
                 ]);
             }
 
-            return RewardPurchase::create([
+            $purchase = RewardPurchase::create([
                 'user_id' => $user->id,
                 'reward_id' => $reward->id,
                 'wallet_team_id' => $walletTeam->id,
                 'cost_baxx' => $reward->cost_baxx,
                 'purchased_at' => now(),
             ]);
+
+            Activity::create([
+                'user_id' => $user->id,
+                'subject_type' => RewardPurchase::class,
+                'subject_id' => $purchase->id,
+                'action' => 'reward_unlocked',
+            ]);
+
+            return $purchase;
         });
     }
 
