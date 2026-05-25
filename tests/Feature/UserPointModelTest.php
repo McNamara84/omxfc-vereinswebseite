@@ -233,6 +233,48 @@ class UserPointModelTest extends TestCase
         }
     }
 
+    public function test_out_of_order_initial_processing_still_creates_lowest_milestones(): void
+    {
+        $user = $this->createMember();
+
+        [$firstPoint, $secondPoint] = UserPoint::withoutEvents(function () use ($user): array {
+            $firstPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 1,
+            ]);
+
+            $secondPoint = UserPoint::create([
+                'user_id' => $user->id,
+                'team_id' => $user->currentTeam->id,
+                'todo_id' => null,
+                'points' => 24,
+            ]);
+
+            return [$firstPoint, $secondPoint];
+        });
+
+        $service = app(BaxxMilestoneActivityService::class);
+        $service->recordForUserPoint($secondPoint->id);
+        $service->recordForUserPoint($firstPoint->id);
+
+        $actions = Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->pluck('action')
+            ->all();
+
+        $progress = BaxxEarningProgress::query()
+            ->where('user_id', $user->id)
+            ->where('action_key', 'dashboard_baxx_milestone')
+            ->firstOrFail();
+
+        $this->assertSame(25, $progress->processed_count);
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_1')->count());
+        $this->assertSame(1, collect($actions)->filter(fn (string $action) => $action === 'baxx_milestone_reached_25')->count());
+    }
+
     public function test_points_for_other_team_do_not_create_members_baxx_milestone_activity(): void
     {
         $user = $this->createMember();

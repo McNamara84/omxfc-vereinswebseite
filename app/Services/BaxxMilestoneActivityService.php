@@ -36,13 +36,18 @@ class BaxxMilestoneActivityService
             ['baseline' => $baselineEarnedBaxx, 'current' => $currentEarnedBaxx] = $this->earnedBaxxSnapshot($userPoint, $membersTeam->id);
             $progress = $this->lockProgress($userPoint->user_id, $baselineEarnedBaxx);
             $processedEarnedBaxx = max($baselineEarnedBaxx, (int) $progress->processed_count);
+            $effectiveMilestoneFloor = $processedEarnedBaxx;
+            $existingMilestoneActions = [];
 
-            if ($currentEarnedBaxx <= $processedEarnedBaxx) {
-                return;
+            if ((int) $progress->processed_count > $baselineEarnedBaxx) {
+                $effectiveMilestoneFloor = $baselineEarnedBaxx;
+                $existingMilestoneActions = $this->existingMilestoneActions($userPoint->user_id);
             }
 
             foreach (self::MILESTONES as $milestone) {
-                if ($milestone <= $processedEarnedBaxx || $milestone > $currentEarnedBaxx) {
+                $action = $this->milestoneAction($milestone);
+
+                if ($milestone <= $effectiveMilestoneFloor || $milestone > $currentEarnedBaxx || isset($existingMilestoneActions[$action])) {
                     continue;
                 }
 
@@ -50,8 +55,10 @@ class BaxxMilestoneActivityService
                     'user_id' => $userPoint->user_id,
                     'subject_type' => User::class,
                     'subject_id' => $userPoint->user_id,
-                    'action' => $this->milestoneAction($milestone),
+                    'action' => $action,
                 ]);
+
+                $existingMilestoneActions[$action] = true;
             }
 
             $this->markProcessedCount($progress, $currentEarnedBaxx);
@@ -127,5 +134,27 @@ class BaxxMilestoneActivityService
     private function milestoneAction(int $milestone): string
     {
         return 'baxx_milestone_reached_'.$milestone;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private function existingMilestoneActions(int $userId): array
+    {
+        $milestoneActions = collect(self::MILESTONES)
+            ->map(fn (int $milestone): string => $this->milestoneAction($milestone))
+            ->all();
+
+        return Activity::query()
+            ->where('subject_type', User::class)
+            ->where('subject_id', $userId)
+            ->where(function ($query) use ($milestoneActions): void {
+                foreach ($milestoneActions as $action) {
+                    $query->orWhere('action', $action);
+                }
+            })
+            ->pluck('action')
+            ->mapWithKeys(fn (string $action): array => [$action => true])
+            ->all();
     }
 }

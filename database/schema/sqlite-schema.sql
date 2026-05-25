@@ -177,6 +177,7 @@ CREATE TABLE IF NOT EXISTS "user_points"(
   foreign key("team_id") references "teams"("id") on delete cascade,
   foreign key("todo_id") references "todos"("id") on delete set null
 );
+CREATE INDEX "user_points_baxx_lookup_index" on "user_points"("user_id", "team_id", "created_at", "id");
 CREATE TABLE IF NOT EXISTS "todo_categories"(
   "id" integer primary key autoincrement not null,
   "name" varchar not null,
@@ -489,3 +490,4 @@ INSERT INTO migrations VALUES(50,'2025_11_29_102701_fix_mission_mars_enum_value_
 INSERT INTO migrations VALUES(51,'2025_12_02_000001_make_activities_user_id_nullable',3);
 INSERT INTO migrations VALUES(52,'2025_12_17_160000_create_fantreffen_vip_authors_table',4);
 INSERT INTO migrations VALUES(53,'2025_12_17_192547_add_sort_order_index_to_fantreffen_vip_authors_table',4);
+INSERT INTO migrations VALUES(54,'2026_05_25_140000_add_baxx_lookup_index_to_user_points_table',5);
