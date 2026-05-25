@@ -265,9 +265,16 @@ test.describe('Umfragen Admin Dashboard', () => {
 
         // Try to access admin page directly
         const response = await page.goto('/admin/umfragen');
+        const currentPath = new URL(page.url()).pathname;
+        const pollManagementHeader = page.getByTestId('page-header').filter({
+            hasText: 'Umfrage verwalten',
+        });
 
-        // Should be forbidden (403) or redirected (302/303)
-        expect(response?.status()).not.toBe(200);
+        // Durable denial signal: either a real 403 response or a redirect away
+        // from the management URL. Browser engines can differ in the final status
+        // they expose after redirects, so a bare status===200 check is too brittle.
+        expect(response?.status() === 403 || currentPath !== '/admin/umfragen').toBe(true);
+        await expect(pollManagementHeader).toHaveCount(0);
     });
 
     test('guest is redirected from poll management', async ({ page }) => {

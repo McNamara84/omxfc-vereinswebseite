@@ -231,15 +231,15 @@ class KompendiumSearchService
         return ! empty($parsed['phrases']) || ! empty($parsed['terms']);
     }
 
-    /**
-     * @param  array{
-     *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
-     *     terms?: list<string>,
-        *     phrases?: list<string>,
-        *     excludedTerms?: list<string>,
-        *     excludedPhrases?: list<string>
-     * }  $parsed
-     */
+     /**
+      * @param  array{
+      *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+      *     terms?: list<string>,
+      *     phrases?: list<string>,
+      *     excludedTerms?: list<string>,
+      *     excludedPhrases?: list<string>
+      * }  $parsed
+      */
     public function matchesText(string $text, array $parsed): bool
     {
         if (! $this->hasPositiveOperands($parsed)) {
