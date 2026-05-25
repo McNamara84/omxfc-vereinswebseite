@@ -7,10 +7,12 @@ void omxfcLogoUrl;
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
 import anchor from '@alpinejs/anchor';
+import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
+import persist from '@alpinejs/persist';
 import { scheduleInitAlpine } from './alpine-init';
 
-scheduleInitAlpine(Alpine, [anchor, focus]);
+scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);
 
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';

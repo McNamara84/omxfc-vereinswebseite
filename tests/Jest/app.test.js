@@ -37,8 +37,13 @@ async function loadApp(matches) {
   await jest.unstable_mockModule('../../resources/js/alpine/char-editor.js', () => ({}));
   await jest.unstable_mockModule('../../resources/js/alpine/hoerbuch-role-repeater.js', () => ({}));
   await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
-  
-  // Mock Alpine.js and its focus plugin
+
+  const anchorPlugin = { name: 'anchor' };
+  const focusPlugin = { name: 'focus' };
+  const persistPlugin = { name: 'persist' };
+  const collapsePlugin = { name: 'collapse' };
+
+  // Mock Alpine.js and its plugins
   const mockAlpine = {
     plugin: jest.fn(),
     start: jest.fn(),
@@ -46,15 +51,27 @@ async function loadApp(matches) {
     version: '3.15.4',
   };
   await jest.unstable_mockModule('alpinejs', () => ({ default: mockAlpine }));
-  await jest.unstable_mockModule('@alpinejs/focus', () => ({ default: {} }));
-  
+  await jest.unstable_mockModule('@alpinejs/anchor', () => ({ default: anchorPlugin }));
+  await jest.unstable_mockModule('@alpinejs/focus', () => ({ default: focusPlugin }));
+  await jest.unstable_mockModule('@alpinejs/persist', () => ({ default: persistPlugin }));
+  await jest.unstable_mockModule('@alpinejs/collapse', () => ({ default: collapsePlugin }));
+
   await import('../../resources/js/app.js');
-  return handler;
+  return {
+    handler,
+    mockAlpine,
+    plugins: {
+      anchorPlugin,
+      focusPlugin,
+      persistPlugin,
+      collapsePlugin,
+    },
+  };
 }
 
 describe('app module', () => {
   test('applies dark class based on preference', async () => {
-    const handler = await loadApp(true);
+    const { handler } = await loadApp(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('coffee');
     handler({ matches: false });
@@ -63,7 +80,7 @@ describe('app module', () => {
   });
 
   test('adds dark class when preference changes to dark', async () => {
-    const handler = await loadApp(false);
+    const { handler } = await loadApp(false);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(document.documentElement.dataset.theme).toBe('caramellatte');
     handler({ matches: true });
@@ -74,5 +91,15 @@ describe('app module', () => {
   test('exposes Leaflet globally', async () => {
     await loadApp(true);
     expect(window.L).toEqual({});
+  });
+
+  test('registers all Alpine plugins required by the layout', async () => {
+    const { mockAlpine, plugins } = await loadApp(true);
+
+    expect(mockAlpine.plugin).toHaveBeenCalledTimes(4);
+    expect(mockAlpine.plugin).toHaveBeenNthCalledWith(1, plugins.anchorPlugin);
+    expect(mockAlpine.plugin).toHaveBeenNthCalledWith(2, plugins.focusPlugin);
+    expect(mockAlpine.plugin).toHaveBeenNthCalledWith(3, plugins.persistPlugin);
+    expect(mockAlpine.plugin).toHaveBeenNthCalledWith(4, plugins.collapsePlugin);
   });
 });
