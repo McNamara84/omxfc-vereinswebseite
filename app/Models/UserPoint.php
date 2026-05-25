@@ -27,9 +27,11 @@ class UserPoint extends Model
     protected static function booted(): void
     {
         static::created(function (UserPoint $userPoint): void {
-            DB::afterCommit(function () use ($userPoint): void {
+            $userPointId = $userPoint->id;
+
+            DB::afterCommit(function () use ($userPointId): void {
                 app(\App\Services\BaxxMilestoneActivityService::class)
-                    ->recordForUserPoint($userPoint->id);
+                    ->recordForUserPoint($userPointId);
             });
         });
     }

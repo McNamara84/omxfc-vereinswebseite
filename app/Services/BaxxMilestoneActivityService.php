@@ -13,9 +13,7 @@ class BaxxMilestoneActivityService
 {
     private const ACTION_KEY = 'dashboard_baxx_milestone';
 
-    /**
-        * @var list<int>
-     */
+    /** @var list<int> */
     private const MILESTONES = [1, 25, 100, 250, 500];
 
     public function recordForUserPoint(int $userPointId): void
