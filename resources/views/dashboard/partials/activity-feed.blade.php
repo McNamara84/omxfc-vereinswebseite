@@ -89,11 +89,11 @@
                         </div>
                     @elseif($activity->subject_type === \App\Models\Fanfiction::class && $activity->action === 'published')
                         @php
-                            $fanfictionPreview = \App\Support\PreviewText::make($subject->content ?? '', 160);
+                            $fanfictionPreview = (string) ($activity->dashboard_fanfiction_preview ?? '');
                         @endphp
                         <div class="space-y-1">
                             <a href="{{ route('fanfiction.show', $subject) }}" wire:navigate class="font-semibold text-info hover:underline">Neue Fanfiction: {{ $subject->title }}</a>
-                            @if($fanfictionPreview->isNotEmpty())
+                            @if(filled($fanfictionPreview))
                                 <p class="text-sm text-base-content" aria-label="Auszug aus der Fanfiction">„{{ $fanfictionPreview }}"</p>
                             @endif
                         </div>

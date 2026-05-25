@@ -374,6 +374,68 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText(PreviewText::make($fanfiction->content, 160));
     }
 
+    public function test_dashboard_shows_teaser_preview_for_locked_fanfiction_activity(): void
+    {
+        $viewer = $this->actingMember();
+        $author = $this->actingMember();
+        $this->actingAs($viewer);
+
+        $reward = Reward::factory()->create([
+            'title' => 'Fanfiction-Freischaltung',
+        ]);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $viewer->currentTeam->id,
+            'user_id' => $author->id,
+            'created_by' => $author->id,
+            'reward_id' => $reward->id,
+            'title' => 'Geheimsignal',
+            'content' => 'Die Crew entdeckt [den verborgenen Sender](https://example.com/spoiler) und entschlüsselt das Signal. '.str_repeat('Weitere Hinweise tauchen auf. ', 12),
+        ]);
+
+        Activity::create([
+            'user_id' => $author->id,
+            'subject_type' => Fanfiction::class,
+            'subject_id' => $fanfiction->id,
+            'action' => 'published',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Neue Fanfiction: Geheimsignal');
+        $response->assertSeeText((string) PreviewText::make($fanfiction->teaser, 160));
+        $response->assertDontSeeText((string) PreviewText::make($fanfiction->content, 160));
+    }
+
+    public function test_dashboard_handles_deleted_fanfiction_activity(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'created_by' => $user->id,
+            'title' => 'Verlorenes Logbuch',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Fanfiction::class,
+            'subject_id' => $fanfiction->id,
+            'action' => 'published',
+        ]);
+
+        $fanfiction->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Gelöschter Eintrag');
+        $response->assertSeeText('nicht mehr verfügbar');
+    }
+
     public function test_dashboard_shows_fanfiction_comment_activity(): void
     {
         $user = $this->actingMember();
