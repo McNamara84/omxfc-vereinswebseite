@@ -147,6 +147,18 @@ class KompendiumSearchQueryParserTest extends TestCase
     }
 
     #[Test]
+    public function parse_or_nimmt_keine_gruppe_ohne_positive_operanden_auf(): void
+    {
+        $result = $this->service->parseSearchQuery('NOT aruula OR matthew');
+
+        $this->assertTrue($result['usesOrOperator']);
+        $this->assertCount(1, $result['groups']);
+        $this->assertSame(['matthew'], $result['groups'][0]['requiredTerms']);
+        $this->assertSame([], $result['groups'][0]['excludedTerms']);
+        $this->assertSame(['aruula'], $result['excludedTerms']);
+    }
+
+    #[Test]
     public function parse_konvertiert_alles_zu_lowercase(): void
     {
         $result = $this->service->parseSearchQuery('"MATTHEW DRAX" ABENTEUER');
@@ -277,6 +289,16 @@ class KompendiumSearchQueryParserTest extends TestCase
         $this->assertTrue($this->service->matchesText('Aruula betrat den Raum.', $parsed));
         $this->assertFalse($this->service->matchesText('Matthew traf auf einen Mutant in der Anlage.', $parsed));
         $this->assertFalse($this->service->matchesText('Aruula warnte vor einem Mutant.', $parsed));
+    }
+
+    #[Test]
+    public function matches_text_laesst_exclude_only_or_prefix_nicht_zu_einem_breiten_match_werden(): void
+    {
+        $parsed = $this->service->parseSearchQuery('NOT aruula OR matthew');
+
+        $this->assertFalse($this->service->matchesText('Xij Hamel blieb im Schatten.', $parsed));
+        $this->assertTrue($this->service->matchesText('Matthew erkundete die Anlage.', $parsed));
+        $this->assertFalse($this->service->matchesText('Matthew und Aruula sprachen miteinander.', $parsed));
     }
 
     #[Test]

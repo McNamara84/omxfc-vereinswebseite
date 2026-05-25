@@ -92,6 +92,8 @@ class KompendiumSearchService
 
         $groups = [];
         $currentGroup = $this->emptySearchGroup();
+        $excludedPhrases = [];
+        $excludedTerms = [];
         $usesOrOperator = false;
         $usesNotOperator = false;
         $negateNextOperand = false;
@@ -103,7 +105,7 @@ class KompendiumSearchService
             if (preg_match('/^or$/iu', $rawToken) === 1) {
                 $usesOrOperator = true;
 
-                if ($this->groupHasOperands($currentGroup)) {
+                if ($this->groupHasPositiveOperands($currentGroup)) {
                     $groups[] = $currentGroup;
                 }
 
@@ -149,10 +151,18 @@ class KompendiumSearchService
 
             $normalizedValue = mb_strtolower($value);
 
+            if ($isNegated) {
+                $bucket = $isPhrase ? 'excludedPhrases' : 'excludedTerms';
+
+                if (! in_array($normalizedValue, $$bucket, true)) {
+                    $$bucket[] = $normalizedValue;
+                }
+
+                continue;
+            }
+
             $bucket = match (true) {
-                $isPhrase && $isNegated => 'excludedPhrases',
                 $isPhrase => 'requiredPhrases',
-                $isNegated => 'excludedTerms',
                 default => 'requiredTerms',
             };
 
@@ -161,20 +171,16 @@ class KompendiumSearchService
             }
         }
 
-        if ($this->groupHasOperands($currentGroup)) {
+        if ($this->groupHasPositiveOperands($currentGroup)) {
             $groups[] = $currentGroup;
         }
 
         $phrases = [];
         $terms = [];
-        $excludedPhrases = [];
-        $excludedTerms = [];
 
         foreach ($groups as $group) {
             $phrases = array_merge($phrases, $group['requiredPhrases']);
             $terms = array_merge($terms, $group['requiredTerms']);
-            $excludedPhrases = array_merge($excludedPhrases, $group['excludedPhrases']);
-            $excludedTerms = array_merge($excludedTerms, $group['excludedTerms']);
         }
 
         $phrases = array_values(array_unique($phrases));
@@ -489,12 +495,10 @@ class KompendiumSearchService
     /**
      * @param  array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}  $group
      */
-    private function groupHasOperands(array $group): bool
+    private function groupHasPositiveOperands(array $group): bool
     {
         return $group['requiredTerms'] !== []
-            || $group['requiredPhrases'] !== []
-            || $group['excludedTerms'] !== []
-            || $group['excludedPhrases'] !== [];
+            || $group['requiredPhrases'] !== [];
     }
 
     /**
