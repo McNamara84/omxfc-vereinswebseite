@@ -432,6 +432,7 @@ class ActivityFeedTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Neues Romantausch-Paket');
         $response->assertSeeText('Roman1');
+        $response->assertSeeText('Mehrere Heftangebote wurden als Paket für die Börse eingestellt.');
         $response->assertDontSeeText('Neues Angebot: Roman1');
     }
 
@@ -481,6 +482,7 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText('Tausch erfolgreich abgeschlossen');
         $response->assertSeeText($offerUser->name);
         $response->assertSeeText($requestUser->name);
+        $response->assertSeeText('haben ihren Romantausch bestätigt.');
         $response->assertSeeText('Maddrax 21');
         $response->assertDontSeeText('Unbekannter Nutzer');
     }

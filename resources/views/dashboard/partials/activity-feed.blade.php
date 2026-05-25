@@ -100,7 +100,7 @@
                     @elseif($activity->subject_type === \App\Models\BookOffer::class && $activity->action === 'bundle_created')
                         <div class="space-y-1">
                             <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Neues Romantausch-Paket: {{ $subject->book_title }}</a>
-                            <p class="text-sm text-base-content">Mehrere Heftangebote wurden als Paket fuer die Boerse eingestellt.</p>
+                            <p class="text-sm text-base-content">Mehrere Heftangebote wurden als Paket für die Börse eingestellt.</p>
                         </div>
                     @elseif($activity->subject_type === \App\Models\BookOffer::class)
                         <div class="space-y-1">
@@ -198,7 +198,7 @@
                                 @else
                                     <span>ein weiteres Mitglied</span>
                                 @endif
-                                haben ihren Romantausch bestaetigt.
+                                haben ihren Romantausch bestätigt.
                             </p>
                             @if($swapTitle)
                                 <p class="text-sm text-base-content">Abgeschlossenes Heft: <a href="{{ route('romantausch.index') }}" wire:navigate class="text-info hover:underline">{{ $swapTitle }}</a></p>
