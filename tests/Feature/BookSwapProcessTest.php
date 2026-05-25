@@ -8,6 +8,7 @@ use App\Livewire\RomantauschIndex;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
 use App\Mail\BookSwapMatched;
+use App\Models\Activity;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
@@ -488,5 +489,44 @@ class BookSwapProcessTest extends TestCase
                 'completed' => false,
             ]);
         }
+    }
+
+    public function test_complete_swap_creates_activity_for_completed_exchange(): void
+    {
+        $offerUser = $this->createMember();
+        $requestUser = $this->createMember();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 13,
+            'book_title' => 'Titel 13',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 13,
+            'book_title' => 'Titel 13',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $swap = app(SwapMatchingService::class)->completeSwap($offer, $request);
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => null,
+            'subject_type' => BookSwap::class,
+            'subject_id' => $swap->id,
+            'action' => 'swap_completed',
+        ]);
+
+        $this->assertSame(1, Activity::query()
+            ->where('subject_type', BookSwap::class)
+            ->where('subject_id', $swap->id)
+            ->where('action', 'swap_completed')
+            ->count());
     }
 }

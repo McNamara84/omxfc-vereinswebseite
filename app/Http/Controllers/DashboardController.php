@@ -9,8 +9,10 @@ use App\Models\Activity;
 use App\Models\BookOffer;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
+use App\Models\FanfictionComment;
 use App\Models\Review;
 use App\Models\ReviewComment;
+use App\Models\RewardPurchase;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
@@ -195,7 +197,13 @@ class DashboardController extends Controller
         $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
-            ->get();
+            ->get()
+            ->loadMorph('subject', [
+                BookSwap::class => ['offer.user', 'request.user'],
+                FanfictionComment::class => ['fanfiction'],
+                ReviewComment::class => ['review'],
+                RewardPurchase::class => ['reward'],
+            ]);
 
         $prominentReviewSpecialOffer = $this->reviewBaxxService->getProminentSpecialOffer();
         $focusCards = $this->buildFocusCards(

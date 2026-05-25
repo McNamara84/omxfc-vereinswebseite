@@ -268,6 +268,7 @@ class SwapMatchingService
                 $lockedSwap->request->update(['completed' => true]);
 
                 $awardedPoints = $this->baxxService->awardForCompletedSwap($lockedSwap->loadMissing(['offer', 'request']));
+                $this->createCompletedSwapActivity($lockedSwap);
 
                 $result['completed'] = true;
                 $result['points_awarded'] = array_sum($awardedPoints) > 0;
@@ -296,8 +297,19 @@ class SwapMatchingService
             $lockedRequest->update(['completed' => true]);
 
             $this->baxxService->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
+            $this->createCompletedSwapActivity($swap);
 
             return $swap;
         });
+    }
+
+    private function createCompletedSwapActivity(BookSwap $swap): void
+    {
+        Activity::create([
+            'user_id' => null,
+            'subject_type' => BookSwap::class,
+            'subject_id' => $swap->id,
+            'action' => 'swap_completed',
+        ]);
     }
 }
