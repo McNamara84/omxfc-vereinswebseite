@@ -27,7 +27,6 @@ test.describe('RPG Charakter-Editor', () => {
 
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');
-        await page.waitForLoadState('networkidle');
 
         await expect(page.getByTestId('page-header')).toContainText('Charakter-Editor');
         await expect(page.getByTestId('char-editor-form')).toBeVisible();

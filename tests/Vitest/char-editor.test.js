@@ -16,6 +16,12 @@ beforeEach(async () => {
             }
         }),
         initTree: vi.fn(),
+        destroyTree: vi.fn(),
+        $data: vi.fn(() => ({
+            basicsFilled: vi.fn(),
+            formValid: vi.fn(),
+            advancedUnlocked: false,
+        })),
     };
 
     document.body.innerHTML = '<form x-data="charEditor"></form>';
@@ -38,6 +44,7 @@ describe('charEditor – Registrierung', () => {
         expect(window.Alpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
         expect(editorFactory).toBeTypeOf('function');
         expect(window.Alpine.initTree).toHaveBeenCalledWith(document.querySelector('[x-data="charEditor"]'));
+        expect(window.Alpine.destroyTree).not.toHaveBeenCalled();
     });
 
     it('registriert die Komponente über alpine:init wenn Alpine erst später verfügbar ist', async () => {
@@ -79,6 +86,25 @@ describe('charEditor – Registrierung', () => {
 
         expect(window.Alpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
         expect(window.Alpine.initTree).not.toHaveBeenCalled();
+        expect(window.Alpine.destroyTree).not.toHaveBeenCalled();
+    });
+
+    it('reinitialisiert bereits gestartete Wurzeln mit unvollständigem Scope', async () => {
+        vi.resetModules();
+
+        const existingRoot = document.querySelector('[x-data="charEditor"]');
+        existingRoot._x_dataStack = [{}];
+
+        window.Alpine.data.mockClear();
+        window.Alpine.initTree.mockClear();
+        window.Alpine.destroyTree.mockClear();
+        window.Alpine.$data.mockReturnValueOnce({ playerName: 'alt' });
+
+        await import('@/alpine/char-editor.js');
+
+        expect(window.Alpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
+        expect(window.Alpine.destroyTree).toHaveBeenCalledWith(existingRoot);
+        expect(window.Alpine.initTree).toHaveBeenCalledWith(existingRoot);
     });
 });
 
@@ -274,7 +300,7 @@ describe('charEditor – Computed Properties', () => {
             race: 'Barbar',
             culture: 'Landbewohner',
         });
-        expect(e.basicsFilled).toBeTruthy();
+        expect(e.basicsFilled()).toBeTruthy();
     });
 
     it('basicsFilled false wenn Angabe fehlt', () => {
@@ -284,13 +310,13 @@ describe('charEditor – Computed Properties', () => {
             race: 'Barbar',
             culture: 'Landbewohner',
         });
-        expect(e.basicsFilled).toBeFalsy();
+        expect(e.basicsFilled()).toBeFalsy();
     });
 
     it('apUsed zählt nur positive Attributwerte', () => {
         const e = createEditor();
         e.attributes = { st: 1, ge: -1, ro: 0, wi: 1, wa: 0, in: 0, au: 0 };
-        expect(e.apUsed).toBe(2); // 1 + 0 + 0 + 1 + 0 + 0 + 0
+        expect(e.apUsed()).toBe(2); // 1 + 0 + 0 + 1 + 0 + 0 + 0
     });
 
     it('fpUsed ignoriert exact-Grants', () => {
@@ -300,6 +326,6 @@ describe('charEditor – Computed Properties', () => {
             { name: 'FixSkill', value: 3 },
             { name: 'Frei', value: 2 },
         ];
-        expect(e.fpUsed).toBe(2);
+        expect(e.fpUsed()).toBe(2);
     });
 });

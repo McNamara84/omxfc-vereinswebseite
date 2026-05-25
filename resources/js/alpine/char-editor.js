@@ -11,20 +11,33 @@ const CULTURE_DESCRIPTIONS = {
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
 function hydrateExistingCharEditors() {
-    if (!window.Alpine || typeof window.Alpine.initTree !== 'function') {
+    if (!window.Alpine
+        || typeof window.Alpine.initTree !== 'function'
+        || typeof window.Alpine.destroyTree !== 'function'
+        || typeof window.Alpine.$data !== 'function') {
         return;
     }
 
     document.querySelectorAll('[x-data="charEditor"], [x-data^="charEditor("]').forEach((element) => {
-        if (element._x_dataStack) {
+        const scope = element._x_dataStack ? window.Alpine.$data(element) : null;
+        const hasRegisteredState = scope
+            && typeof scope.basicsFilled === 'function'
+            && typeof scope.formValid === 'function'
+            && Object.hasOwn(scope, 'advancedUnlocked');
+
+        if (hasRegisteredState) {
             return;
+        }
+
+        if (element._x_dataStack) {
+            window.Alpine.destroyTree(element);
         }
 
         window.Alpine.initTree(element);
     });
 }
 
-function registerCharEditor({ hydrateExisting = false } = {}) {
+export function registerCharEditor({ hydrateExisting = false } = {}) {
     if (!window.Alpine || typeof window.Alpine.data !== 'function') {
         return;
     }
@@ -61,23 +74,23 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     // UI state
     advancedUnlocked: false,
 
-    get basicsFilled() {
+    basicsFilled() {
         return this.playerName.trim() && this.characterName.trim() && this.race && this.culture;
     },
 
-    get attributeMax() {
+    attributeMax() {
         return this.race === 'Barbar' ? 2 : 1;
     },
 
-    get apUsed() {
+    apUsed() {
         return ATTRIBUTE_IDS.reduce((sum, id) => sum + Math.max(this.attributes[id], 0), 0);
     },
 
-    get apRemaining() {
-        return this.base.AP + this.raceAPBonus - this.apUsed;
+    apRemaining() {
+        return this.base.AP + this.raceAPBonus - this.apUsed();
     },
 
-    get fpUsed() {
+    fpUsed() {
         return this.skills.reduce((sum, skill) => {
             const grant = this.getGrant(skill.name);
             const start = grant ? grant.value : 0;
@@ -87,35 +100,35 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }, 0);
     },
 
-    get fpRemaining() {
-        return this.base.FP - this.fpUsed;
+    fpRemaining() {
+        return this.base.FP - this.fpUsed();
     },
 
-    get chosenAdvantagesCount() {
+    chosenAdvantagesCount() {
         return this.selectedAdvantages.filter(a => a !== 'Zäh').length;
     },
 
-    get freeAdvantagePoints() {
-        return this.base.freeAdvantages - this.chosenAdvantagesCount;
+    freeAdvantagePoints() {
+        return this.base.freeAdvantages - this.chosenAdvantagesCount();
     },
 
-    get hasKindZweierWelten() {
+    hasKindZweierWelten() {
         return this.selectedAdvantages.includes('Kind zweier Welten');
     },
 
-    get formValid() {
-        return this.apRemaining === 0
-            && this.fpRemaining === 0
-            && this.selectedDisadvantages.length >= this.chosenAdvantagesCount;
+    formValid() {
+        return this.apRemaining() === 0
+            && this.fpRemaining() === 0
+            && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
     },
 
-    get allUsedSkillNames() {
+    allUsedSkillNames() {
         const used = new Set([
             ...Object.keys(this.raceGrants),
             ...Object.keys(this.cultureGrants),
             ...this.skills.map(s => s.name).filter(Boolean),
         ]);
-        if (!this.hasKindZweierWelten) {
+        if (!this.hasKindZweierWelten()) {
             if (this.raceGrants['Intuition']) used.add('Bildung');
             if (this.raceGrants['Bildung']) used.add('Intuition');
         }
@@ -132,14 +145,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     clampAttribute(id) {
         let val = this.attributes[id];
         if (typeof val !== 'number' || isNaN(val)) val = 0;
-        val = Math.max(-1, Math.min(val, this.attributeMax));
+        val = Math.max(-1, Math.min(val, this.attributeMax()));
 
         // Check AP budget
         const othersUsed = ATTRIBUTE_IDS.reduce((sum, otherId) => {
             if (otherId === id) return sum;
             return sum + Math.max(this.attributes[otherId], 0);
         }, 0);
-        const maxForThis = Math.max(-1, Math.min(this.base.AP + this.raceAPBonus - othersUsed, this.attributeMax));
+        const maxForThis = Math.max(-1, Math.min(this.base.AP + this.raceAPBonus - othersUsed, this.attributeMax()));
         val = Math.min(val, maxForThis);
 
         this.attributes[id] = val;
@@ -171,7 +184,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Skill management ---
     addSkill() {
-        if (this.fpRemaining <= 0) return;
+        if (this.fpRemaining() <= 0) return;
         this.skills.push({ name: '', value: 0, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
     },
 
@@ -228,7 +241,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const grant = this.getGrant(skill.name);
         if (grant && grant.type === 'exact') return true;
         // Education/Intuition exclusivity
-        if (!this.hasKindZweierWelten) {
+        if (!this.hasKindZweierWelten()) {
             const intuitionGrant = !!this.raceGrants['Intuition'];
             const bildungGrant = !!this.raceGrants['Bildung'];
             if (intuitionGrant && skill.name === 'Bildung') return true;
@@ -272,11 +285,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     isSkillNameUsed(name, currentIndex) {
         if (!name) return false;
-        return this.allUsedSkillNames.has(name) && !this.skills.some((s, i) => i === currentIndex && s.name === name);
+        return this.allUsedSkillNames().has(name) && !this.skills.some((s, i) => i === currentIndex && s.name === name);
     },
 
     isSkillOptionDisabled(optionValue) {
-        return this.allUsedSkillNames.has(optionValue);
+        return this.allUsedSkillNames().has(optionValue);
     },
 
     // --- Race handling ---
@@ -308,7 +321,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (!cache) return;
         ATTRIBUTE_IDS.forEach(id => {
             if (cache.attributes[id] !== undefined) {
-                this.attributes[id] = Math.max(-1, Math.min(cache.attributes[id], this.attributeMax));
+                this.attributes[id] = Math.max(-1, Math.min(cache.attributes[id], this.attributeMax()));
             }
         });
         cache.skills.forEach(cached => {
@@ -414,7 +427,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     isAdvantageDisabled(value) {
         if (value === 'Zäh') return true;
-        return !this.selectedAdvantages.includes(value) && this.chosenAdvantagesCount >= this.base.freeAdvantages;
+        return !this.selectedAdvantages.includes(value) && this.chosenAdvantagesCount() >= this.base.freeAdvantages;
     },
 
     isDisadvantageDisabled(value) {

@@ -68,8 +68,10 @@ class AppServiceProviderTest extends TestCase
         $this->assertSame($url, $view->getData()['socialImage']);
     }
 
-    public function test_app_layout_skips_vite_assets_during_unit_tests(): void
+    public function test_app_layout_skips_vite_assets_for_minimal_test_layout(): void
     {
+        Config::set('app.testing_minimal_layout', true);
+
         $this->assertTrue(config('app.testing_skip_vite_assets'));
 
         $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
@@ -81,8 +83,6 @@ class AppServiceProviderTest extends TestCase
 
     public function test_app_layout_keeps_vite_assets_without_minimal_test_layout(): void
     {
-        Config::set('app.testing_skip_vite_assets', false);
-
         $this->withTemporaryViteManifest(function (): void {
             $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
 

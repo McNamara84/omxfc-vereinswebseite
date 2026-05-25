@@ -10,9 +10,11 @@ import anchor from '@alpinejs/anchor';
 import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
 import persist from '@alpinejs/persist';
+import { registerCharEditor } from './alpine/char-editor';
 import { scheduleInitAlpine } from './alpine-init';
 
 scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);
+registerCharEditor({ hydrateExisting: true });
 
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';
@@ -89,7 +91,6 @@ import 'leaflet/dist/leaflet.css';
 // Leaflet global verfügbar machen
 window.L = L;
 
-import './alpine/char-editor';
 import './alpine/hoerbuch-role-repeater';
 import { registerMarkdownEditorLifecycle } from './reviews/markdown-editor';
 import './todos';
