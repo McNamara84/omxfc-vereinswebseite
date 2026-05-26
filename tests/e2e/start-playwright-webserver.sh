@@ -14,7 +14,11 @@ trap cleanup EXIT INT TERM
 mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache
 touch storage/logs/laravel.log
 
-printf '%s' "${VITE_DEV_SERVER_URL:-http://localhost:${VITE_PORT:-5173}}" > /var/www/html/public/playwright.hot
+if [ "${PLAYWRIGHT_USE_VITE_HOT:-0}" = "1" ]; then
+    printf '%s' "${VITE_DEV_SERVER_URL:-http://localhost:${VITE_PORT:-5173}}" > /var/www/html/public/playwright.hot
+else
+    rm -f /var/www/html/public/playwright.hot
+fi
 
 RUN_TOKEN="${PLAYWRIGHT_RUN_TOKEN:-local-default}"
 READY_FILE="/var/www/html/storage/framework/testing/playwright-ready-${RUN_TOKEN}.flag"

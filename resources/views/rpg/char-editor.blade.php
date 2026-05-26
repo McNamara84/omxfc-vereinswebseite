@@ -8,10 +8,10 @@
         />
 
         <x-ui.panel title="Charakterdaten" description="Alle Pflichtfelder, Freischaltungen und Exportaktionen bleiben in einem einzigen Editorfluss gebündelt.">
-            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor" data-testid="char-editor-form">
+            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" data-testid="char-editor-form">
                 @csrf
 
-                <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints">
+                <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints()">
                 <input type="hidden" name="figurenstaerke" value="1">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -44,7 +44,7 @@
                     <div class="md:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
                         <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" :disabled="advancedUnlocked">
-                        <img x-show="portraitPreview" :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau">
+                        <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
                     </div>
 
                     <div class="md:col-span-2">
@@ -53,18 +53,18 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end mb-6" x-show="basicsFilled && !advancedUnlocked">
-                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" />
+                <div class="flex justify-end mb-6" x-show="basicsFilled() && !advancedUnlocked" x-cloak>
+                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
                 </div>
 
                 <fieldset :disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Attribute</h2>
-                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining"></p>
+                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining()"></p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
                             <div>
-                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" x-bind:max="attributeMax" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
+                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" x-bind:max="attributeMax()" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
                             </div>
                             @endforeach
                         </div>
@@ -72,7 +72,7 @@
 
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Fertigkeiten</h2>
-                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Fertigkeitspunkte: ' + fpRemaining"></p>
+                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Fertigkeitspunkte: ' + fpRemaining()"></p>
                         <div x-show="race === 'Barbar'" class="mb-2">
                             <label for="barbar-combat-select" class="text-sm font-medium text-base-content mb-1">Barbar Kampfbonus</label>
                             <select id="barbar-combat-select" class="select select-bordered w-full sm:w-auto" x-model="barbarCombatSkill" @change="setBarbarCombatSkill(barbarCombatSkill)">
@@ -116,7 +116,7 @@
                                 </div>
                             </template>
                         </div>
-                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining <= 0" />
+                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining() <= 0" />
                         <datalist id="skills-list">
                             <option value="Athletik"></option>
                             <option value="Beruf"></option>
@@ -193,8 +193,8 @@
                     </div>
 
                     <div class="flex justify-end space-x-2">
-                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
-                        <x-button id="submit-button" type="submit" x-bind:disabled="!formValid" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
+                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid()" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
+                        <x-button id="submit-button" type="submit" x-bind:disabled="!formValid()" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
                     </div>
                 </fieldset>
             </form>

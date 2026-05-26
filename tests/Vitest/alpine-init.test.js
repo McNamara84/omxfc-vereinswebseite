@@ -107,30 +107,24 @@ describe('alpine-init', () => {
             expect(livewireAlpine.start).not.toHaveBeenCalled();
         });
 
-        it('registriert Plugins auf Livewires Alpine, nicht auf dem App-Modul', () => {
+        it('registriert im Livewire-Modus keine Plugins aus dem App-Bundle', () => {
             const focus = vi.fn();
 
             initAlpine(mockAlpineModule, [focus]);
 
-            // Plugin wird auf Livewires Alpine registriert
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
-            expect(livewireAlpine.plugin).toHaveBeenCalledTimes(1);
-
-            // NICHT auf dem App-Modul
+            expect(livewireAlpine.plugin).not.toHaveBeenCalled();
             expect(mockAlpineModule.plugin).not.toHaveBeenCalled();
         });
 
-        it('registriert mehrere Plugins auf Livewires Alpine', () => {
+        it('registriert auch bei mehreren Plugins nichts nach', () => {
             const focus = vi.fn();
             const persist = vi.fn();
             const collapse = vi.fn();
 
             initAlpine(mockAlpineModule, [focus, persist, collapse]);
 
-            expect(livewireAlpine.plugin).toHaveBeenCalledTimes(3);
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(persist);
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(collapse);
+            expect(livewireAlpine.plugin).not.toHaveBeenCalled();
+            expect(mockAlpineModule.plugin).not.toHaveBeenCalled();
         });
     });
 
@@ -200,16 +194,17 @@ describe('alpine-init', () => {
             expect(callOrder).toEqual(['A', 'B', 'C']);
         });
 
-        it('Plugins-Reihenfolge bleibt im Livewire-Modus erhalten', () => {
-            const callOrder = [];
-            const pluginA = () => callOrder.push('A');
-            const pluginB = () => callOrder.push('B');
+        it('führt Plugin-Funktionen im Livewire-Modus nicht aus', () => {
+            const pluginA = vi.fn();
+            const pluginB = vi.fn();
 
-            window.Alpine = { plugin: vi.fn((fn) => fn()) };
+            window.Alpine = { plugin: vi.fn() };
 
             initAlpine(mockAlpineModule, [pluginA, pluginB]);
 
-            expect(callOrder).toEqual(['A', 'B']);
+            expect(pluginA).not.toHaveBeenCalled();
+            expect(pluginB).not.toHaveBeenCalled();
+            expect(window.Alpine.plugin).not.toHaveBeenCalled();
         });
     });
 
@@ -244,6 +239,21 @@ describe('alpine-init', () => {
             // Weder Livewires Alpine noch das App-Modul dürfen start() aufrufen
             expect(window.Alpine.start).not.toHaveBeenCalled();
             expect(mockAlpineModule.start).not.toHaveBeenCalled();
+        });
+
+        it('verhindert doppelte Persist-Registrierung auf Livewire-Alpine', () => {
+            const persistPlugin = vi.fn();
+
+            window.Alpine = {
+                plugin: vi.fn(() => {
+                    throw new TypeError('Cannot redefine property: $persist');
+                }),
+                start: vi.fn(),
+                persist: vi.fn(),
+            };
+
+            expect(() => initAlpine(mockAlpineModule, [persistPlugin])).not.toThrow();
+            expect(window.Alpine.plugin).not.toHaveBeenCalled();
         });
 
         it('prüft nicht _x_dataStack als Guard (alter fehlerhafter Guard)', () => {
@@ -312,13 +322,14 @@ describe('alpine-init', () => {
             expect(window.Alpine).toBe(mockAlpineModule);
         });
 
-        it('registriert Plugins im Livewire-Modus nur wenn plugin eine Funktion ist', () => {
+        it('ignoriert Plugins im Livewire-Modus auch wenn plugin eine Funktion ist', () => {
             const pluginFn = vi.fn();
             window.Alpine = { plugin: vi.fn() };
 
             initAlpine(mockAlpineModule, [pluginFn]);
 
-            expect(window.Alpine.plugin).toHaveBeenCalledWith(pluginFn);
+            expect(window.Alpine.plugin).not.toHaveBeenCalled();
+            expect(pluginFn).not.toHaveBeenCalled();
         });
 
         it('überspringt Plugins im Livewire-Modus wenn plugin keine Funktion ist', () => {
@@ -395,11 +406,11 @@ describe('scheduleInitAlpine', () => {
             });
         });
 
-        it('registriert Plugins sofort wenn Livewire-Alpine bereits vorhanden (Short-Circuit)', () => {
+        it('registriert bei vorhandenem Livewire-Alpine keine App-Bundle-Plugins nach (Short-Circuit)', () => {
             // Szenario: Livewires reguläres Script wurde bereits synchron ausgeführt
             // und hat window.Alpine gesetzt, aber DOM ist noch am Laden.
-            // Plugins müssen sofort registriert werden, damit sie wirksam sind
-            // bevor Livewire Alpine.start() bei DOMContentLoaded aufruft.
+            // App-Bundle-Plugins dürfen auf Livewires Alpine NICHT erneut
+            // registriert werden.
             Object.defineProperty(document, 'readyState', {
                 value: 'loading',
                 writable: true,
@@ -417,8 +428,8 @@ describe('scheduleInitAlpine', () => {
             const focus = vi.fn();
             scheduleInitAlpine(mockAlpineModule, [focus]);
 
-            // Plugin wurde SOFORT auf Livewires Alpine registriert
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+            expect(livewireAlpine.plugin).not.toHaveBeenCalled();
+            expect(focus).not.toHaveBeenCalled();
 
             // window.Alpine wurde NICHT überschrieben
             expect(window.Alpine).toBe(livewireAlpine);
@@ -495,7 +506,7 @@ describe('scheduleInitAlpine', () => {
             });
         });
 
-        it('erkennt Livewires Alpine wenn DOMContentLoaded feuert', () => {
+        it('erkennt Livewires Alpine wenn DOMContentLoaded feuert und registriert nichts nach', () => {
             Object.defineProperty(document, 'readyState', {
                 value: 'loading',
                 writable: true,
@@ -521,8 +532,8 @@ describe('scheduleInitAlpine', () => {
             expect(window.Alpine).toBe(livewireAlpine);
             expect(window.Alpine).not.toBe(mockAlpineModule);
 
-            // Plugin wurde auf Livewires Alpine registriert
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+            expect(livewireAlpine.plugin).not.toHaveBeenCalled();
+            expect(focus).not.toHaveBeenCalled();
 
             // Kein start() auf dem App-Modul
             expect(mockAlpineModule.start).not.toHaveBeenCalled();
@@ -568,7 +579,7 @@ describe('scheduleInitAlpine', () => {
             expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
         });
 
-        it('erkennt vorhandenes Livewire-Alpine sofort', () => {
+        it('erkennt vorhandenes Livewire-Alpine sofort ohne Plugin-Nachregistrierung', () => {
             const livewireAlpine = { plugin: vi.fn(), __fromLivewire: true };
             window.Alpine = livewireAlpine;
 
@@ -582,7 +593,8 @@ describe('scheduleInitAlpine', () => {
             scheduleInitAlpine(mockAlpineModule, [focus]);
 
             expect(window.Alpine).toBe(livewireAlpine);
-            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+            expect(livewireAlpine.plugin).not.toHaveBeenCalled();
+            expect(focus).not.toHaveBeenCalled();
             expect(mockAlpineModule.start).not.toHaveBeenCalled();
         });
     });

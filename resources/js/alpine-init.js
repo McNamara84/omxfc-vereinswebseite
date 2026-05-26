@@ -15,13 +15,10 @@
  */
 export function initAlpine(alpineModule, plugins = []) {
     if (window.Alpine) {
-        // Livewire hat Alpine bereits geladen — nur Plugins registrieren.
-        // WICHTIG: window.Alpine NICHT überschreiben, da es Livewire-Extensions enthält.
-        if (typeof window.Alpine.plugin === 'function') {
-            for (const plugin of plugins) {
-                window.Alpine.plugin(plugin);
-            }
-        }
+        // Livewire hat Alpine bereits geladen und bringt die benoetigten
+        // Alpine-Plugins selbst mit. App-Bundle-Plugins hier erneut auf
+        // derselben Instanz zu registrieren, kann fatal sein
+        // (z. B. $persist -> Cannot redefine property).
         return { mode: 'livewire', alpine: window.Alpine };
     }
 
@@ -55,8 +52,9 @@ export function scheduleInitAlpine(alpineModule, plugins = []) {
     const run = () => initAlpine(alpineModule, plugins);
 
     if (window.Alpine) {
-        // Livewires Alpine ist bereits verfügbar — Plugins sofort registrieren,
-        // damit sie wirksam sind bevor Livewire Alpine.start() bei DOMContentLoaded aufruft.
+        // Livewires Alpine ist bereits verfuegbar.
+        // Keine Plugins aus dem App-Bundle nachregistrieren; Livewire kuemmert
+        // sich selbst um seine Alpine-Plugins.
         run();
     } else if (document.readyState === 'loading') {
         // DOM wird noch geparst, kein Alpine vorhanden — warte auf DOMContentLoaded,
