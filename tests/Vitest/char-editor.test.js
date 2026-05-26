@@ -67,8 +67,10 @@ describe('charEditor – Registrierung', () => {
 
         window.Alpine = lateAlpine;
         document.dispatchEvent(new CustomEvent('alpine:init'));
+        document.dispatchEvent(new CustomEvent('alpine:init'));
 
         expect(lateAlpine.data).toHaveBeenCalledWith('charEditor', expect.any(Function));
+        expect(lateAlpine.data).toHaveBeenCalledTimes(1);
         expect(editorFactory).toBeTypeOf('function');
         expect(lateAlpine.initTree).not.toHaveBeenCalled();
     });

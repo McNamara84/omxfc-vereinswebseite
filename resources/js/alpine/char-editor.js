@@ -443,5 +443,5 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 if (window.Alpine && typeof window.Alpine.data === 'function') {
     registerCharEditor({ hydrateExisting: true });
 } else {
-    document.addEventListener('alpine:init', registerCharEditor);
+    document.addEventListener('alpine:init', () => registerCharEditor(), { once: true });
 }
