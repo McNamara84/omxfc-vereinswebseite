@@ -14,7 +14,7 @@ afterEach(() => {
   window.Alpine = originalAlpine;
 });
 
-async function loadApp(matches) {
+async function loadApp(matches, { existingAlpine } = {}) {
   jest.resetModules();
   document.documentElement.className = '';
   document.documentElement.dataset.theme = '';
@@ -55,6 +55,10 @@ async function loadApp(matches) {
   await jest.unstable_mockModule('@alpinejs/focus', () => ({ default: focusPlugin }));
   await jest.unstable_mockModule('@alpinejs/persist', () => ({ default: persistPlugin }));
   await jest.unstable_mockModule('@alpinejs/collapse', () => ({ default: collapsePlugin }));
+
+  if (existingAlpine) {
+    window.Alpine = existingAlpine;
+  }
 
   await import('../../resources/js/app.js');
   return {
@@ -101,5 +105,21 @@ describe('app module', () => {
     expect(mockAlpine.plugin).toHaveBeenNthCalledWith(2, plugins.focusPlugin);
     expect(mockAlpine.plugin).toHaveBeenNthCalledWith(3, plugins.persistPlugin);
     expect(mockAlpine.plugin).toHaveBeenNthCalledWith(4, plugins.collapsePlugin);
+  });
+
+  test('does not re-register Alpine plugins when Livewire Alpine already exists', async () => {
+    const livewireAlpine = {
+      plugin: jest.fn(),
+      start: jest.fn(),
+      persist: jest.fn(),
+      version: '3.15.4-livewire',
+    };
+
+    const { mockAlpine } = await loadApp(true, { existingAlpine: livewireAlpine });
+
+    expect(mockAlpine.plugin).not.toHaveBeenCalled();
+    expect(mockAlpine.start).not.toHaveBeenCalled();
+    expect(livewireAlpine.plugin).not.toHaveBeenCalled();
+    expect(livewireAlpine.start).not.toHaveBeenCalled();
   });
 });
