@@ -5,6 +5,7 @@ import { cleanupManagedDockerPort } from './utils/docker.js';
 import { resolvePlaywrightRunToken } from './utils/playwright-run-token.js';
 
 const playwrightCli = path.resolve('node_modules/playwright/cli.js');
+const viteCli = path.resolve('node_modules/vite/bin/vite.js');
 const shouldHideWindowsShell = process.platform === 'win32';
 
 function createChildEnv(env, forwardedScreenshotFlag) {
@@ -63,6 +64,22 @@ const runPlaywright = (args, baseEnv, envOverrides = {}, { spawnFn = spawn } = {
     });
 });
 
+const runViteBuild = (baseEnv, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
+    const child = spawnFn(process.execPath, [viteCli, 'build'], {
+        stdio: 'inherit',
+        windowsHide: shouldHideWindowsShell,
+        env: baseEnv,
+    });
+
+    child.on('exit', (code) => {
+        resolve(code ?? 1);
+    });
+
+    child.on('error', (error) => {
+        reject(error);
+    });
+});
+
 export async function main({
     argv = process.argv.slice(2),
     env = process.env,
@@ -78,6 +95,16 @@ export async function main({
         : env.PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS ?? null;
     const basePort = Number(env.PLAYWRIGHT_PORT ?? 8001);
     const childEnv = createChildEnv(env, forwardedScreenshotFlag);
+    const shouldUseViteHot = childEnv.PLAYWRIGHT_USE_VITE_HOT === '1';
+
+    if (!shouldUseViteHot) {
+        const buildCode = await runViteBuild(childEnv, { spawnFn });
+
+        if (buildCode !== 0) {
+            return buildCode;
+        }
+    }
+
     const projectRuns = createProjectRuns({
         args: playwrightArgs,
         env: childEnv,

@@ -73,7 +73,7 @@ describe('playwright docker harness', () => {
         expect(isDirectExecution('tests/e2e/other-script.mjs')).toBe(false);
     });
 
-    it('startet main ohne childEnv-Scope-Fehler und merged die Env korrekt', async () => {
+    it('baut vor Docker-Playwright standardmaessig die Vite-Assets', async () => {
         const cleanupManagedDockerPortFn = vi.fn();
         const spawnFn = vi.fn(() => {
             const handlers = new Map();
@@ -101,8 +101,12 @@ describe('playwright docker harness', () => {
         });
 
         expect(exitCode).toBe(0);
-        expect(spawnFn).toHaveBeenCalledTimes(1);
-        expect(spawnFn.mock.calls[0][2].env).toMatchObject({
+        expect(spawnFn).toHaveBeenCalledTimes(2);
+        expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/node_modules[\\/]vite[\\/]bin[\\/]vite\.js$/),
+            'build',
+        ]);
+        expect(spawnFn.mock.calls[1][2].env).toMatchObject({
             PLAYWRIGHT_USE_DOCKER: '1',
             PLAYWRIGHT_RUN_TOKEN: 'provided-token',
             PLAYWRIGHT_PORT: '8100',
@@ -110,6 +114,44 @@ describe('playwright docker harness', () => {
         expect(cleanupManagedDockerPortFn).toHaveBeenCalledTimes(2);
         expect(cleanupManagedDockerPortFn).toHaveBeenNthCalledWith(1, 8100);
         expect(cleanupManagedDockerPortFn).toHaveBeenNthCalledWith(2, 8100);
+    });
+
+    it('ueberspringt den Vite-Build wenn Hotfile explizit aktiviert ist', async () => {
+        const cleanupManagedDockerPortFn = vi.fn();
+        const spawnFn = vi.fn(() => {
+            const handlers = new Map();
+
+            queueMicrotask(() => {
+                handlers.get('exit')?.(0);
+            });
+
+            return {
+                on(event, handler) {
+                    handlers.set(event, handler);
+                    return this;
+                },
+            };
+        });
+
+        const exitCode = await main({
+            argv: ['tests/e2e/homepage-performance.spec.js', '--project=webkit'],
+            env: {
+                PLAYWRIGHT_RUN_TOKEN: 'provided-token',
+                PLAYWRIGHT_PORT: '8100',
+                PLAYWRIGHT_USE_VITE_HOT: '1',
+            },
+            spawnFn,
+            cleanupManagedDockerPortFn,
+        });
+
+        expect(exitCode).toBe(0);
+        expect(spawnFn).toHaveBeenCalledTimes(1);
+        expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
+            'test',
+            'tests/e2e/homepage-performance.spec.js',
+            '--project=webkit',
+        ]);
     });
 });
 
@@ -127,11 +169,22 @@ describe('playwright config smoke import', () => {
 
     it('laedt die Config und setzt einen konsistenten Run-Token', async () => {
         delete process.env.PLAYWRIGHT_RUN_TOKEN;
+        delete process.env.PLAYWRIGHT_USE_VITE_HOT;
         vi.resetModules();
 
         const { default: config } = await import('../../playwright.config.js');
 
         expect(process.env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^local-/);
         expect(config.webServer.env.PLAYWRIGHT_RUN_TOKEN).toBe(process.env.PLAYWRIGHT_RUN_TOKEN);
+        expect(config.webServer.env.PLAYWRIGHT_USE_VITE_HOT).toBe('0');
+    });
+
+    it('reicht PLAYWRIGHT_USE_VITE_HOT explizit an den Webserver weiter', async () => {
+        process.env.PLAYWRIGHT_USE_VITE_HOT = '1';
+        vi.resetModules();
+
+        const { default: config } = await import('../../playwright.config.js');
+
+        expect(config.webServer.env.PLAYWRIGHT_USE_VITE_HOT).toBe('1');
     });
 });
