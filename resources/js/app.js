@@ -10,11 +10,10 @@ import anchor from '@alpinejs/anchor';
 import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
 import persist from '@alpinejs/persist';
-import { registerCharEditor } from './alpine/char-editor';
+import './alpine/char-editor';
 import { scheduleInitAlpine } from './alpine-init';
 
 scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);
-registerCharEditor({ hydrateExisting: true });
 
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';

@@ -37,7 +37,7 @@ function hydrateExistingCharEditors() {
     });
 }
 
-export function registerCharEditor({ hydrateExisting = false } = {}) {
+function registerCharEditor({ hydrateExisting = false } = {}) {
     if (!window.Alpine || typeof window.Alpine.data !== 'function') {
         return;
     }
