@@ -245,21 +245,23 @@ test.describe('Umfragen Admin Dashboard', () => {
             await expect(page.locator('.tooltip, [data-tip]')).toHaveCount(0);
         }
     });
+});
 
+test.describe('Umfragen Admin Dashboard Access Control', () => {
     test('member cannot access poll management', async ({ page }) => {
-        // Skip beforeEach admin login - wir starten frisch
+        // Der Zugriffsschutz-Test startet ohne Admin-Login.
         test.setTimeout(60000);
-        
+
         // Clear all cookies and storage to ensure fresh session
         await page.context().clearCookies();
-        
+
         // Login as regular member (created by TodoPlaywrightSeeder)
         await page.goto('/login');
         await page.waitForLoadState('domcontentloaded');
         await page.fill('input[name="email"]', 'playwright-member@example.com');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"]');
-        
+
         // Wait for login to complete (redirect away from /login)
         await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 30000 });
 
@@ -278,7 +280,7 @@ test.describe('Umfragen Admin Dashboard', () => {
     });
 
     test('guest is redirected from poll management', async ({ page }) => {
-        // Visit page without login
+        // Der Zugriffsschutz-Test startet ohne Admin-Login.
         await page.context().clearCookies();
         await page.goto('/admin/umfragen', { waitUntil: 'domcontentloaded' });
 

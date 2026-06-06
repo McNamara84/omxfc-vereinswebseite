@@ -87,6 +87,35 @@ class MitgliederIndexLivewireTest extends TestCase
             ]);
     }
 
+    public function test_index_shows_alias_author_aliases_and_released_contact_links(): void
+    {
+        $team = Team::membersTeam();
+
+        $member = User::factory()->create([
+            'name' => 'Stefan Kontakt',
+            'vorname' => 'Stefan',
+            'nachname' => 'Kontakt',
+            'current_team_id' => $team->id,
+            'alias' => 'Stefan K',
+            'author_aliases' => ['Ian Rolf Hill'],
+            'contact_release_maddraxikon' => true,
+            'contact_release_nextcloud' => true,
+            'maddraxikon_username' => 'Stefan K',
+            'nextcloud_username' => 'Holger',
+        ]);
+        $team->users()->attach($member, ['role' => Role::Ehrenmitglied->value]);
+
+        $this->actingAs($this->actingMember('Mitglied'));
+
+        Livewire::test(MitgliederIndex::class)
+            ->assertSee('Alias: Stefan K')
+            ->assertSee('Ian Rolf Hill')
+            ->assertSee('Maddraxikon')
+            ->assertSee('Nextcloud')
+            ->assertSee('https://de.maddraxikon.com/index.php?title=Benutzer:Stefan_K', false)
+            ->assertSee('https://cloud.maddrax-fanclub.de/u/Holger', false);
+    }
+
     public function test_index_sorts_members_by_last_activity_desc(): void
     {
         $team = Team::membersTeam();

@@ -226,6 +226,13 @@
     </thead>
     <tbody>
     @forelse($this->members as $member)
+    @php
+        $memberAlias = $member->displayAlias();
+        $memberAuthorAliases = collect($member->displayAliases())
+            ->reject(fn (string $alias) => $memberAlias && $alias === $memberAlias)
+            ->values();
+        $memberContactMethods = $member->releasedContactMethods();
+    @endphp
     <tr wire:key="member-{{ $member->id }}" class="hover:bg-base-200">
         {{-- Name --}}
         <td>
@@ -236,11 +243,36 @@
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
                         {{ $member->name }}
                     </div>
+                    @if($memberAlias)
+                        <div class="text-sm font-medium text-primary">Alias: {{ $memberAlias }}</div>
+                    @endif
+                    @if($memberAuthorAliases->isNotEmpty())
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            @foreach($memberAuthorAliases as $authorAlias)
+                                <span class="badge badge-outline badge-sm">{{ $authorAlias }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                     @if($this->canViewDetails)
                     <div class="text-sm text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
                     @endif
                 </div>
             </a>
+            @if($memberContactMethods !== [])
+                <div class="mt-2 flex flex-wrap gap-1 pl-14">
+                    @foreach($memberContactMethods as $method)
+                        <a
+                            href="{{ $method['href'] }}"
+                            @if(in_array($method['key'], ['maddraxikon', 'nextcloud'], true)) target="_blank" rel="noopener noreferrer" @endif
+                            class="inline-flex items-center gap-1 rounded-full bg-base-200 px-2 py-1 text-xs text-base-content hover:bg-primary hover:text-primary-content"
+                            aria-label="{{ $method['label'] }} von {{ $member->name }}"
+                        >
+                            <x-icon name="{{ $method['icon'] }}" class="h-3.5 w-3.5" />
+                            <span>{{ $method['label'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </td>
 
         {{-- Mitglied seit --}}
@@ -408,6 +440,13 @@
         </div>
 
         @forelse($this->members as $member)
+        @php
+            $memberAlias = $member->displayAlias();
+            $memberAuthorAliases = collect($member->displayAliases())
+                ->reject(fn (string $alias) => $memberAlias && $alias === $memberAlias)
+                ->values();
+            $memberContactMethods = $member->releasedContactMethods();
+        @endphp
         <x-ui.panel class="!p-4" wire:key="member-mobile-{{ $member->id }}">
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
@@ -416,12 +455,38 @@
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
                         {{ $member->name }}
                     </div>
+                    @if($memberAlias)
+                        <div class="text-sm font-medium text-primary">Alias: {{ $memberAlias }}</div>
+                    @endif
+                    @if($memberAuthorAliases->isNotEmpty())
+                        <div class="mt-1 flex flex-wrap gap-1">
+                            @foreach($memberAuthorAliases as $authorAlias)
+                                <span class="badge badge-outline badge-sm">{{ $authorAlias }}</span>
+                            @endforeach
+                        </div>
+                    @endif
                     <div class="text-xs text-base-content">
                         {{ $member->membership->role }} •
                         Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
                     </div>
                 </div>
             </a>
+
+            @if($memberContactMethods !== [])
+            <div class="mb-4 flex flex-wrap gap-1">
+                @foreach($memberContactMethods as $method)
+                    <a
+                        href="{{ $method['href'] }}"
+                        @if(in_array($method['key'], ['maddraxikon', 'nextcloud'], true)) target="_blank" rel="noopener noreferrer" @endif
+                        class="inline-flex items-center gap-1 rounded-full bg-base-200 px-2 py-1 text-xs text-base-content hover:bg-primary hover:text-primary-content"
+                        aria-label="{{ $method['label'] }} von {{ $member->name }}"
+                    >
+                        <x-icon name="{{ $method['icon'] }}" class="h-3.5 w-3.5" />
+                        <span>{{ $method['label'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+            @endif
 
             <div class="mb-4">
                 <div class="grid grid-cols-2 gap-4">
