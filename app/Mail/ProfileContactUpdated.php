@@ -17,11 +17,11 @@ class ProfileContactUpdated extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
+    public Carbon $contactChangedAt;
+
     /**
      * @param  array<int, string>  $changedContactLabels
      */
-    public Carbon $contactChangedAt;
-
     public function __construct(
         public User $user,
         public array $changedContactLabels,

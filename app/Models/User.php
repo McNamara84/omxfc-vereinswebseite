@@ -368,9 +368,10 @@ class User extends Authenticatable
     public function displayAliases(): array
     {
         $aliases = [];
+        $displayAlias = $this->displayAlias();
 
-        if ($this->displayAlias()) {
-            $aliases[] = $this->displayAlias();
+        if ($displayAlias) {
+            $aliases[] = $displayAlias;
         }
 
         foreach ($this->author_aliases ?? [] as $authorAlias) {
