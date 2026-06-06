@@ -7,7 +7,6 @@ use App\Livewire\RomantauschBundleForm;
 use App\Livewire\RomantauschIndex;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
-use App\Livewire\RomantauschShowOffer;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -20,9 +19,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use LogicException;
 use RuntimeException;
-use Livewire\Livewire;
 use Tests\Concerns\CreatesTestData;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -43,6 +42,18 @@ class RomantauschLivewireTest extends TestCase
         $this->actingMember();
 
         $this->get('/romantauschboerse')->assertOk();
+    }
+
+    public function test_index_displays_romantausch_success_message_from_session(): void
+    {
+        $this->actingMember();
+        session()->put('romantausch.success', 'Gesuch erstellt.');
+
+        $this->get('/romantauschboerse')
+            ->assertOk()
+            ->assertSeeText('Gesuch erstellt.');
+
+        $this->assertNull(session('romantausch.success'));
     }
 
     public function test_index_displays_structured_information_panel(): void
@@ -236,10 +247,10 @@ class RomantauschLivewireTest extends TestCase
             'photos' => [],
         ]);
 
-        $description = BookType::MissionMars->value . ' 2 - Roman ohne Foto';
+        $description = BookType::MissionMars->value.' 2 - Roman ohne Foto';
 
         Livewire::test(RomantauschIndex::class)
-            ->assertSee('Kein Foto vorhanden für ' . e($description), false);
+            ->assertSee('Kein Foto vorhanden für '.e($description), false);
     }
 
     // ──────────────────────────────────────────────
@@ -438,6 +449,8 @@ class RomantauschLivewireTest extends TestCase
             ->call('save')
             ->assertRedirect(route('romantausch.index'));
 
+        $this->assertSame('Angebot erstellt.', session('romantausch.success'));
+
         $this->assertDatabaseHas('book_offers', [
             'user_id' => $user->id,
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
@@ -566,7 +579,7 @@ class RomantauschLivewireTest extends TestCase
                 'user_id' => $user->id,
                 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => $i,
-                'book_title' => 'Roman' . $i,
+                'book_title' => 'Roman'.$i,
                 'condition' => 'neu',
             ]);
         }
@@ -826,6 +839,8 @@ class RomantauschLivewireTest extends TestCase
             ->set('condition', 'neu')
             ->call('save')
             ->assertRedirect(route('romantausch.index'));
+
+        $this->assertSame('Gesuch erstellt.', session('romantausch.success'));
 
         $this->assertDatabaseHas('book_requests', [
             'user_id' => $user->id,
@@ -1204,7 +1219,7 @@ class RomantauschLivewireTest extends TestCase
     {
         $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $bundleId = (string) \Illuminate\Support\Str::uuid();
+        $bundleId = (string) Str::uuid();
 
         BookOffer::create([
             'user_id' => $user->id,
@@ -1305,7 +1320,7 @@ class RomantauschLivewireTest extends TestCase
         $this->mock(BookPhotoService::class, function ($mock) {
             $mock->shouldReceive('uploadPhotos')
                 ->once()
-                ->andThrow(new \RuntimeException('Foto-Upload fehlgeschlagen.'));
+                ->andThrow(new RuntimeException('Foto-Upload fehlgeschlagen.'));
         });
 
         Livewire::test(RomantauschOfferForm::class)

@@ -89,7 +89,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.locator('#offer-form button[type="submit"]').click();
 
             // Sollte zur Übersicht weiterleiten
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // WICHTIG: Erfolgsmeldung prüfen - dieser Check fängt DB-Fehler wie den
             // Activity::create() Bug, bei dem ein nicht existierendes 'properties'-Feld
@@ -118,7 +118,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.locator('#offer-form button[type="submit"]').click();
 
             // Warte auf Weiterleitung
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // Prüfe, dass das Angebot in der Liste erscheint
             // (Maddrax Band 77 sollte jetzt sichtbar sein)
@@ -166,7 +166,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.locator('#request-form button[type="submit"]').click();
 
             // Sollte zur Übersicht weiterleiten
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // Erfolgsmeldung prüfen
             const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Gesuch erstellt/i });
@@ -192,7 +192,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.locator('#offer-form button[type="submit"]').click();
             
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // Bearbeiten-Link sollte sichtbar sein
             const editLink = page.locator('a[href*="/angebot/"][href*="/bearbeiten"]').first();
@@ -216,7 +216,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.locator('#offer-form button[type="submit"]').click();
             
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // Klicke auf Bearbeiten
             const editLink = page.locator('a[href*="/angebot/"][href*="/bearbeiten"]').first();
@@ -247,7 +247,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.locator('#offer-form button[type="submit"]').click();
             
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await page.waitForURL(/romantauschboerse$/);
 
             // Löschen-Button ist im Formular mit dem Text "Löschen" in einem span
             // Der Button enthält <span>Löschen</span>, daher suchen wir nach dem Text im Button

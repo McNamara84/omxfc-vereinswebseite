@@ -12,10 +12,10 @@ use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use LogicException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use LogicException;
 
 class RomantauschRequestForm extends Component
 {
@@ -167,7 +167,7 @@ class RomantauschRequestForm extends Component
             $matchingService->matchSwap($bookRequest, 'request');
         }
 
-        session()->flash('success', $this->isEditing ? 'Gesuch aktualisiert.' : 'Gesuch erstellt.');
+        session()->put('romantausch.success', $this->isEditing ? 'Gesuch aktualisiert.' : 'Gesuch erstellt.');
         $this->redirect(route('romantausch.index'));
     }
 

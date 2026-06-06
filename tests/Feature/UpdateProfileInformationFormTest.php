@@ -265,19 +265,19 @@ class UpdateProfileInformationFormTest extends TestCase
         Mail::assertNotQueued(ProfileContactUpdated::class);
     }
 
-    public function test_contact_release_requires_matching_contact_values(): void
+    public function test_contact_release_requires_non_blank_matching_contact_values(): void
     {
         Mail::fake();
-        $this->actingAs($this->createMember());
+        $this->actingAs($user = $this->createMember());
 
         Livewire::test(UpdateProfileInformationForm::class)
             ->set('state', $this->profileFormData([
-                'telefon' => '',
+                'telefon' => '   ',
                 'contact_release_phone' => true,
                 'contact_release_maddraxikon' => true,
-                'maddraxikon_username' => '',
+                'maddraxikon_username' => '   ',
                 'contact_release_nextcloud' => true,
-                'nextcloud_username' => '',
+                'nextcloud_username' => '   ',
             ]))
             ->call('updateProfileInformation')
             ->assertHasErrors([
@@ -285,6 +285,15 @@ class UpdateProfileInformationFormTest extends TestCase
                 'maddraxikon_username',
                 'nextcloud_username',
             ]);
+
+        $user->refresh();
+
+        $this->assertFalse($user->contact_release_phone);
+        $this->assertFalse($user->contact_release_maddraxikon);
+        $this->assertFalse($user->contact_release_nextcloud);
+        $this->assertSame('0123', $user->telefon);
+        $this->assertSame('Max Muster', $user->maddraxikon_username);
+        $this->assertSame('MaxCloud', $user->nextcloud_username);
 
         Mail::assertNotQueued(ProfileContactUpdated::class);
     }

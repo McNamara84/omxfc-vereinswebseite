@@ -1,8 +1,13 @@
 <x-member-page class="space-y-8">
-    @if(session('success'))
+    @php
+        $romantauschSuccessMessage = session()->pull('romantausch.success');
+        $successMessage = session('success') ?? $romantauschSuccessMessage;
+    @endphp
+
+    @if($successMessage)
         <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible
                  role="alert" data-testid="flash-success">
-            {{ session('success') }}
+            {{ $successMessage }}
         </x-alert>
     @endif
 

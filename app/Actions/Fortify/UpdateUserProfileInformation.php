@@ -24,6 +24,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     public function update(User $user, array $input): void
     {
         $contactSnapshotBefore = $this->contactSnapshot($user);
+        $input = $this->normalizeNullableStringInputs($input, [
+            'telefon',
+            'maddraxikon_username',
+            'nextcloud_username',
+        ]);
 
         Validator::make($input, [
             'vorname' => ['required', 'string', 'max:255'],
@@ -143,6 +148,22 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     * @param  array<int, string>  $keys
+     * @return array<string, mixed>
+     */
+    private function normalizeNullableStringInputs(array $input, array $keys): array
+    {
+        foreach ($keys as $key) {
+            if (array_key_exists($key, $input) && is_string($input[$key])) {
+                $input[$key] = $this->nullableString($input[$key]);
+            }
+        }
+
+        return $input;
     }
 
     /**

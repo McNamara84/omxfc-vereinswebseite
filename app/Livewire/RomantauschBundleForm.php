@@ -8,10 +8,12 @@ use App\Models\BookOffer;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
 use App\Support\ConditionOptions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 class RomantauschBundleForm extends Component
@@ -29,7 +31,7 @@ class RomantauschBundleForm extends Component
 
     public ?string $condition_max = null;
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $photos = [];
 
     /** @var array<string> */
@@ -214,7 +216,7 @@ class RomantauschBundleForm extends Component
             if (! empty($this->photos)) {
                 try {
                     $newPhotoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof \Illuminate\Http\UploadedFile),
+                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
                     );
                 } catch (\RuntimeException $e) {
                     $this->addError('photos', 'Foto-Upload fehlgeschlagen.');
@@ -240,13 +242,13 @@ class RomantauschBundleForm extends Component
                 return;
             }
 
-            session()->flash('success', 'Stapel-Angebot aktualisiert.');
+            $successMessage = 'Stapel-Angebot aktualisiert.';
         } else {
             $photoPaths = [];
             if (! empty($this->photos)) {
                 try {
                     $photoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof \Illuminate\Http\UploadedFile),
+                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
                     );
                 } catch (\RuntimeException $e) {
                     $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
@@ -270,9 +272,10 @@ class RomantauschBundleForm extends Component
                 return;
             }
 
-            session()->flash('success', 'Stapel-Angebot mit '.count($result['offers']).' Romanen erstellt.');
+            $successMessage = 'Stapel-Angebot mit '.count($result['offers']).' Romanen erstellt.';
         }
 
+        session()->put('romantausch.success', $successMessage);
         $this->redirect(route('romantausch.index'));
     }
 
@@ -295,7 +298,7 @@ class RomantauschBundleForm extends Component
         $bundleService = app(BundleService::class);
         $bundleService->deleteBundle($this->bundleId, Auth::id());
 
-        session()->flash('success', 'Stapel-Angebot gelöscht.');
+        session()->put('romantausch.success', 'Stapel-Angebot gelöscht.');
         $this->redirect(route('romantausch.index'));
     }
 

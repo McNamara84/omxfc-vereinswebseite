@@ -10,13 +10,15 @@ use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use App\Support\ConditionOptions;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use LogicException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use LogicException;
 
 class RomantauschOfferForm extends Component
 {
@@ -31,7 +33,7 @@ class RomantauschOfferForm extends Component
 
     public string $condition = 'Z0';
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public $photos = [];
 
     /** @var array<string> */
@@ -180,7 +182,7 @@ class RomantauschOfferForm extends Component
             if (! empty($this->photos)) {
                 try {
                     $newPhotoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof \Illuminate\Http\UploadedFile),
+                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
                     );
                 } catch (\RuntimeException $e) {
                     $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
@@ -206,7 +208,7 @@ class RomantauschOfferForm extends Component
             if (! empty($this->photos)) {
                 try {
                     $photoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof \Illuminate\Http\UploadedFile),
+                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
                     );
                 } catch (\RuntimeException $e) {
                     $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
@@ -251,7 +253,7 @@ class RomantauschOfferForm extends Component
             $matchingService->matchSwap($offer, 'offer');
         }
 
-        session()->flash('success', $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.');
+        session()->put('romantausch.success', $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.');
         $this->redirect(route('romantausch.index'));
     }
 
