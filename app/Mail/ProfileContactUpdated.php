@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,6 +11,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Carbon;
 
 class ProfileContactUpdated extends Mailable implements ShouldQueue
 {
@@ -18,10 +20,15 @@ class ProfileContactUpdated extends Mailable implements ShouldQueue
     /**
      * @param  array<int, string>  $changedContactLabels
      */
+    public Carbon $contactChangedAt;
+
     public function __construct(
         public User $user,
         public array $changedContactLabels,
-    ) {}
+        CarbonInterface|string|null $contactChangedAt = null,
+    ) {
+        $this->contactChangedAt = Carbon::parse($contactChangedAt ?? $user->contact_released_at ?? now());
+    }
 
     public function envelope(): Envelope
     {
@@ -37,6 +44,7 @@ class ProfileContactUpdated extends Mailable implements ShouldQueue
             with: [
                 'user' => $this->user,
                 'changedContactLabels' => $this->changedContactLabels,
+                'contactChangedAt' => $this->contactChangedAt,
                 'profileUrl' => route('profile.view', $this->user),
             ],
         );

@@ -4,8 +4,8 @@
 {{ $user->name }} hat freigegebene Kontaktdaten im Profil aktualisiert.
 
 - **Profil:** [{{ $user->name }}]({{ $profileUrl }})
-- **Geaenderte Kontaktwege:** {{ implode(', ', $changedContactLabels) }}
-- **Zeitpunkt:** {{ now()->format('d.m.Y H:i') }}
+- **Geänderte Kontaktwege:** {{ implode(', ', $changedContactLabels) }}
+- **Zeitpunkt:** {{ $contactChangedAt->timezone(config('app.timezone'))->format('d.m.Y H:i') }}
 
 <x-mail::panel>
 Newsletter-Versand, CSV-Export und die Funktion zum Kopieren aller E-Mail-Adressen verwenden weiterhin die hinterlegte Konto-E-Mail-Adresse.

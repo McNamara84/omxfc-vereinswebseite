@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Mail\ProfileContactUpdated;
 use App\Models\Team;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -41,7 +42,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'mitgliedsbeitrag' => ['required', 'numeric', 'min:12', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'alias' => ['nullable', 'string', 'max:255'],
-            'author_aliases' => ['nullable', 'array'],
+            'author_aliases' => ['nullable', 'array', 'max:10'],
             'author_aliases.*' => ['nullable', 'string', 'max:255'],
             'contact_release_email' => ['nullable', 'boolean'],
             'contact_release_phone' => ['nullable', 'boolean'],
@@ -100,8 +101,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'nextcloud_username' => $updates['nextcloud_username'],
         ]);
 
+        $contactChangedAt = null;
+
         if ($changedContactLabels !== []) {
-            $updates['contact_released_at'] = now();
+            $contactChangedAt = now();
+            $updates['contact_released_at'] = $contactChangedAt;
         }
 
         if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
@@ -111,7 +115,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         if ($changedContactLabels !== []) {
-            $this->notifyBoardAboutContactUpdate($user->refresh(), $changedContactLabels);
+            $this->notifyBoardAboutContactUpdate($user->refresh(), $changedContactLabels, $contactChangedAt);
         }
     }
 
@@ -215,7 +219,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * @param  array<int, string>  $changedContactLabels
      */
-    private function notifyBoardAboutContactUpdate(User $user, array $changedContactLabels): void
+    private function notifyBoardAboutContactUpdate(User $user, array $changedContactLabels, CarbonInterface $contactChangedAt): void
     {
         $team = Team::membersTeam();
 
@@ -248,6 +252,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             return;
         }
 
-        Mail::to($recipients)->queue(new ProfileContactUpdated($user, $changedContactLabels));
+        Mail::to($recipients)->queue(new ProfileContactUpdated($user, $changedContactLabels, $contactChangedAt));
     }
 }
