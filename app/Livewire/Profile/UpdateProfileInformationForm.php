@@ -45,7 +45,24 @@ class UpdateProfileInformationForm extends Component
             'land',
             'telefon',
             'mitgliedsbeitrag',
+            'alias',
+            'author_aliases',
+            'contact_release_email',
+            'contact_release_phone',
+            'contact_release_maddraxikon',
+            'contact_release_nextcloud',
+            'maddraxikon_username',
+            'nextcloud_username',
         ]);
+
+        $this->state['alias'] = $this->state['alias'] ?? '';
+        $this->state['author_aliases'] = $this->state['author_aliases'] ?: [''];
+        $this->state['contact_release_email'] = (bool) ($this->state['contact_release_email'] ?? false);
+        $this->state['contact_release_phone'] = (bool) ($this->state['contact_release_phone'] ?? false);
+        $this->state['contact_release_maddraxikon'] = (bool) ($this->state['contact_release_maddraxikon'] ?? false);
+        $this->state['contact_release_nextcloud'] = (bool) ($this->state['contact_release_nextcloud'] ?? false);
+        $this->state['maddraxikon_username'] = $this->state['maddraxikon_username'] ?? '';
+        $this->state['nextcloud_username'] = $this->state['nextcloud_username'] ?? '';
     }
 
     /**
@@ -88,6 +105,35 @@ class UpdateProfileInformationForm extends Component
         auth()->user()->deleteProfilePhoto();
 
         $this->dispatch('refresh-navigation-menu');
+    }
+
+    public function addAuthorAlias(): void
+    {
+        $aliases = $this->state['author_aliases'] ?? [];
+
+        if (! is_array($aliases)) {
+            $aliases = [];
+        }
+
+        if (count($aliases) >= 10) {
+            return;
+        }
+
+        $aliases[] = '';
+        $this->state['author_aliases'] = $aliases;
+    }
+
+    public function removeAuthorAlias(int $index): void
+    {
+        $aliases = $this->state['author_aliases'] ?? [];
+
+        if (! is_array($aliases) || ! array_key_exists($index, $aliases)) {
+            return;
+        }
+
+        unset($aliases[$index]);
+
+        $this->state['author_aliases'] = array_values($aliases) ?: [''];
     }
 
     /**

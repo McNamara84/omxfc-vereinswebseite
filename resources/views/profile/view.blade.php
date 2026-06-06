@@ -22,6 +22,12 @@
                 ['label' => 'Lieblingszyklus', 'value' => $user->lieblingszyklus ? $user->lieblingszyklus . '-Zyklus' : null],
                 ['label' => 'Lieblingsthema', 'value' => $user->lieblingsthema],
             ])->filter(fn (array $entry) => filled($entry['value']))->values();
+
+            $displayAlias = $user->displayAlias();
+            $authorAliases = collect($user->displayAliases())
+                ->reject(fn (string $alias) => $displayAlias && $alias === $displayAlias)
+                ->values();
+            $releasedContactMethods = $user->releasedContactMethods();
         @endphp
 
         <div class="space-y-8">
@@ -65,7 +71,18 @@
                                 <div class="space-y-1">
                                     <h1 class="font-display text-3xl font-semibold tracking-tight text-base-content">{{ $user->name }}</h1>
                                     <p class="text-base text-base-content/72">{{ $user->vorname }} {{ $user->nachname }}</p>
+                                    @if($displayAlias)
+                                        <p class="text-base font-medium text-primary">{{ __('Alias') }}: {{ $displayAlias }}</p>
+                                    @endif
                                 </div>
+
+                                @if($authorAliases->isNotEmpty())
+                                    <div class="flex flex-wrap gap-2">
+                                        @foreach($authorAliases as $authorAlias)
+                                            <x-badge :value="$authorAlias" class="badge-outline" icon="o-pencil" />
+                                        @endforeach
+                                    </div>
+                                @endif
 
                                 <div class="flex flex-wrap items-center gap-3 text-sm text-base-content/78">
                                     <x-badge value="{{ $memberRole }}" class="badge-primary" icon="o-identification" />
@@ -106,6 +123,26 @@
                                         <h3 class="text-sm font-semibold text-base-content">{{ $badge['name'] }}</h3>
                                         <p class="mt-1 text-xs leading-relaxed text-base-content/72">{{ $badge['description'] }}</p>
                                     </div>
+                                @endforeach
+                            </div>
+                        </x-ui.panel>
+                    @endif
+
+                    @if($releasedContactMethods !== [])
+                        <x-ui.panel title="Freigegebene Kontaktwege" description="Diese Kontaktmöglichkeiten hat das Mitglied für andere Mitglieder freigegeben.">
+                            <div class="grid gap-3">
+                                @foreach($releasedContactMethods as $method)
+                                    <a
+                                        href="{{ $method['href'] }}"
+                                        @if(in_array($method['key'], ['maddraxikon', 'nextcloud'], true)) target="_blank" rel="noopener noreferrer" @endif
+                                        class="flex items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-4 py-3 text-base-content transition hover:border-primary/40 hover:bg-base-200"
+                                    >
+                                        <x-icon name="{{ $method['icon'] }}" class="h-5 w-5 text-primary" />
+                                        <span class="min-w-0">
+                                            <span class="block text-sm font-semibold">{{ $method['label'] }}</span>
+                                            <span class="block truncate text-sm text-base-content/72">{{ $method['value'] }}</span>
+                                        </span>
+                                    </a>
                                 @endforeach
                             </div>
                         </x-ui.panel>

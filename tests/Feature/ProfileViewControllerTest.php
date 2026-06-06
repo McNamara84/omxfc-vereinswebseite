@@ -26,10 +26,10 @@ class ProfileViewControllerTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function createMember(string $role = 'Mitglied'): User
+    private function createMember(string $role = 'Mitglied', array $attributes = []): User
     {
         $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $user = User::factory()->create(array_merge(['current_team_id' => $team->id], $attributes));
         $team->users()->attach($user, ['role' => Role::from($role)->value]);
 
         return $user;
@@ -106,6 +106,43 @@ class ProfileViewControllerTest extends TestCase
         $response->assertViewHas('isOwnProfile', false);
         $response->assertViewHas('memberRole', Role::Mitglied);
         $response->assertViewHas('canViewDetails', false);
+        $response->assertDontSee($target->email);
+        $response->assertDontSee($target->telefon);
+    }
+
+    public function test_view_other_member_shows_released_contact_methods_and_aliases(): void
+    {
+        $viewer = $this->createMember();
+        $target = $this->createMember('Ehrenmitglied', [
+            'name' => 'Stefan Kontakt',
+            'vorname' => 'Stefan',
+            'nachname' => 'Kontakt',
+            'email' => 'stefan@example.com',
+            'telefon' => '0123 45 67',
+            'alias' => 'Stefan K',
+            'author_aliases' => ['Ian Rolf Hill', 'Jo Zybell'],
+            'contact_release_email' => true,
+            'contact_release_phone' => true,
+            'contact_release_maddraxikon' => true,
+            'contact_release_nextcloud' => true,
+            'maddraxikon_username' => 'Stefan K',
+            'nextcloud_username' => 'Holger',
+        ]);
+        $this->actingAs($viewer);
+
+        $response = $this->get("/profil/{$target->id}");
+
+        $response->assertOk();
+        $response->assertViewHas('canViewDetails', false);
+        $response->assertSee('Alias');
+        $response->assertSee('Stefan K');
+        $response->assertSee('Ian Rolf Hill');
+        $response->assertSee('Jo Zybell');
+        $response->assertSee('Freigegebene Kontaktwege');
+        $response->assertSee('mailto:stefan@example.com', false);
+        $response->assertSee('tel:01234567', false);
+        $response->assertSee('https://de.maddraxikon.com/index.php?title=Benutzer:Stefan_K', false);
+        $response->assertSee('https://cloud.maddrax-fanclub.de/u/Holger', false);
     }
 
     public function test_view_other_member_with_admin_role_shows_contact(): void

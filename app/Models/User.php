@@ -70,6 +70,15 @@ class User extends Authenticatable
         'lat',
         'lon',
         'telefon',
+        'alias',
+        'author_aliases',
+        'contact_release_email',
+        'contact_release_phone',
+        'contact_release_maddraxikon',
+        'contact_release_nextcloud',
+        'maddraxikon_username',
+        'nextcloud_username',
+        'contact_released_at',
         'verein_gefunden',
         'mitgliedsbeitrag',
         'einstiegsroman',
@@ -126,6 +135,12 @@ class User extends Authenticatable
             'last_activity' => 'integer',
             'lat' => 'float',
             'lon' => 'float',
+            'author_aliases' => 'array',
+            'contact_release_email' => 'boolean',
+            'contact_release_phone' => 'boolean',
+            'contact_release_maddraxikon' => 'boolean',
+            'contact_release_nextcloud' => 'boolean',
+            'contact_released_at' => 'datetime',
         ];
     }
 
@@ -338,6 +353,116 @@ class User extends Authenticatable
         }
 
         return $nameParts[0] ?: null;
+    }
+
+    public function displayAlias(): ?string
+    {
+        $alias = trim((string) $this->alias);
+
+        return $alias === '' ? null : $alias;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function displayAliases(): array
+    {
+        $aliases = [];
+
+        if ($this->displayAlias()) {
+            $aliases[] = $this->displayAlias();
+        }
+
+        foreach ($this->author_aliases ?? [] as $authorAlias) {
+            $authorAlias = trim((string) $authorAlias);
+
+            if ($authorAlias !== '') {
+                $aliases[] = $authorAlias;
+            }
+        }
+
+        return array_values(array_unique($aliases));
+    }
+
+    public function hasReleasedContactMethods(): bool
+    {
+        return $this->releasedContactMethods() !== [];
+    }
+
+    /**
+     * @return array<int, array{key:string,label:string,value:string,href:string,icon:string}>
+     */
+    public function releasedContactMethods(): array
+    {
+        $methods = [];
+
+        if ($this->contact_release_email && filled($this->email)) {
+            $methods[] = [
+                'key' => 'email',
+                'label' => 'E-Mail',
+                'value' => (string) $this->email,
+                'href' => 'mailto:'.$this->email,
+                'icon' => 'o-envelope',
+            ];
+        }
+
+        if ($this->contact_release_phone && filled($this->telefon)) {
+            $phoneHref = preg_replace('/[^\d+]/', '', (string) $this->telefon) ?: (string) $this->telefon;
+
+            $methods[] = [
+                'key' => 'phone',
+                'label' => 'Telefon',
+                'value' => (string) $this->telefon,
+                'href' => 'tel:'.$phoneHref,
+                'icon' => 'o-phone',
+            ];
+        }
+
+        if ($this->contact_release_maddraxikon && filled($this->maddraxikon_username) && $this->maddraxikonProfileUrl()) {
+            $methods[] = [
+                'key' => 'maddraxikon',
+                'label' => 'Maddraxikon',
+                'value' => (string) $this->maddraxikon_username,
+                'href' => $this->maddraxikonProfileUrl(),
+                'icon' => 'o-book-open',
+            ];
+        }
+
+        if ($this->contact_release_nextcloud && filled($this->nextcloud_username) && $this->nextcloudProfileUrl()) {
+            $methods[] = [
+                'key' => 'nextcloud',
+                'label' => 'Nextcloud',
+                'value' => (string) $this->nextcloud_username,
+                'href' => $this->nextcloudProfileUrl(),
+                'icon' => 'o-cloud',
+            ];
+        }
+
+        return $methods;
+    }
+
+    public function maddraxikonProfileUrl(): ?string
+    {
+        $username = trim((string) $this->maddraxikon_username);
+
+        if ($username === '') {
+            return null;
+        }
+
+        $username = preg_replace('/\s+/u', '_', $username) ?: $username;
+
+        return 'https://de.maddraxikon.com/index.php?title=Benutzer:'.rawurlencode($username);
+    }
+
+    public function nextcloudProfileUrl(): ?string
+    {
+        $username = trim((string) $this->nextcloud_username);
+
+        if ($username === '') {
+            return null;
+        }
+
+        return 'https://cloud.maddrax-fanclub.de/u/'.rawurlencode($username);
     }
 
     /**

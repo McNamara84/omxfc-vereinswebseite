@@ -5,14 +5,16 @@ namespace Tests\Feature;
 use App\Enums\BookType;
 use App\Enums\Role;
 use App\Enums\TodoStatus;
+use App\Livewire\RezensionForm;
+use App\Livewire\RomantauschOfferForm;
+use App\Livewire\RomantauschRequestForm;
+use App\Livewire\TodoIndex;
 use App\Models\Activity;
 use App\Models\AdminMessage;
 use App\Models\Book;
-use App\Models\BookSwap;
-use App\Livewire\RomantauschOfferForm;
-use App\Livewire\RomantauschRequestForm;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
+use App\Models\BookSwap;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
 use App\Models\FantreffenAnmeldung;
@@ -22,7 +24,6 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\Todo;
-use App\Livewire\TodoIndex;
 use App\Models\TodoCategory;
 use App\Models\User;
 use App\Models\UserPoint;
@@ -66,7 +67,7 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
 
         Livewire::actingAs($user)
-            ->test(\App\Livewire\RezensionForm::class, ['book' => $book])
+            ->test(RezensionForm::class, ['book' => $book])
             ->set('title', 'Tolle Rezension')
             ->set('content', str_repeat('A', 140))
             ->call('save');
@@ -753,7 +754,7 @@ class ActivityFeedTest extends TestCase
             ]);
             $this->fail('Activity creation with null user_id should fail after down migration.');
         } catch (QueryException $exception) {
-            $this->assertStringContainsString('NOT NULL', $exception->getMessage());
+            $this->assertMatchesRegularExpression('/NOT NULL|cannot be null/i', $exception->getMessage());
         } finally {
             $migration->up();
         }
