@@ -419,22 +419,26 @@ class User extends Authenticatable
             ];
         }
 
-        if ($this->contact_release_maddraxikon && filled($this->maddraxikon_username) && $this->maddraxikonProfileUrl()) {
+        $maddraxikonProfileUrl = $this->maddraxikonProfileUrl();
+
+        if ($this->contact_release_maddraxikon && filled($this->maddraxikon_username) && $maddraxikonProfileUrl) {
             $methods[] = [
                 'key' => 'maddraxikon',
                 'label' => 'Maddraxikon',
                 'value' => (string) $this->maddraxikon_username,
-                'href' => $this->maddraxikonProfileUrl(),
+                'href' => $maddraxikonProfileUrl,
                 'icon' => 'o-book-open',
             ];
         }
 
-        if ($this->contact_release_nextcloud && filled($this->nextcloud_username) && $this->nextcloudProfileUrl()) {
+        $nextcloudProfileUrl = $this->nextcloudProfileUrl();
+
+        if ($this->contact_release_nextcloud && filled($this->nextcloud_username) && $nextcloudProfileUrl) {
             $methods[] = [
                 'key' => 'nextcloud',
                 'label' => 'Nextcloud',
                 'value' => (string) $this->nextcloud_username,
-                'href' => $this->nextcloudProfileUrl(),
+                'href' => $nextcloudProfileUrl,
                 'icon' => 'o-cloud',
             ];
         }
