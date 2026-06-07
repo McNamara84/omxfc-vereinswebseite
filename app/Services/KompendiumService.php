@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\KompendiumRoman;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -25,6 +26,17 @@ class KompendiumService
         'volkdertiefe' => 'Das Volk der Tiefe',
         '2012' => '2012 - Das Jahr der Apokalypse',
         'abenteurer' => 'Die Abenteurer',
+    ];
+
+    private const PUBLICATION_DATE_FIELDS = [
+        'erstveroeffentlicht_am',
+        'erstveroeffentlicht',
+        'erstveroeffentlichung',
+        'evt',
+        'release_date',
+        'published_at',
+        'publication_date',
+        'datum',
     ];
 
     public function __construct(
@@ -53,7 +65,7 @@ class KompendiumService
     /**
      * Findet Metadaten (Zyklus) für einen Roman aus allen Serien.
      *
-     * @return array{serie: string, serie_name: string, zyklus: string|null, roman: array}|null
+     * @return array{serie: string, serie_name: string, zyklus: string|null, erstveroeffentlicht_am: Carbon|null, roman: array}|null
      */
     public function findeMetadaten(int $nummer, string $titel): ?array
     {
@@ -69,6 +81,7 @@ class KompendiumService
                     'serie' => $serienKey,
                     'serie_name' => $serienName,
                     'zyklus' => $roman['zyklus'] ?? null,
+                    'erstveroeffentlicht_am' => $this->erstveroeffentlichtAmAusMetadaten($roman),
                     'roman' => $roman,
                 ];
             }
@@ -85,7 +98,7 @@ class KompendiumService
      * 2. Normalisierter Match (case-insensitive + Sonderzeichen bereinigt)
      * 3. Nummer-Match (eindeutig über alle Serien)
      *
-     * @return array{serie: string, serie_name: string, zyklus: string|null, roman: array, match_typ: string}|null
+     * @return array{serie: string, serie_name: string, zyklus: string|null, erstveroeffentlicht_am: Carbon|null, roman: array, match_typ: string}|null
      */
     public function findeMetadatenMitFuzzy(int $nummer, string $titel): ?array
     {
@@ -106,6 +119,7 @@ class KompendiumService
                     'serie' => $serienKey,
                     'serie_name' => $serienName,
                     'zyklus' => $roman['zyklus'] ?? null,
+                    'erstveroeffentlicht_am' => $this->erstveroeffentlichtAmAusMetadaten($roman),
                     'roman' => $roman,
                     'match_typ' => 'exakt',
                 ];
@@ -121,6 +135,7 @@ class KompendiumService
                     'serie' => $serienKey,
                     'serie_name' => $serienName,
                     'zyklus' => $roman['zyklus'] ?? null,
+                    'erstveroeffentlicht_am' => $this->erstveroeffentlichtAmAusMetadaten($roman),
                     'roman' => $roman,
                     'match_typ' => 'normalisiert',
                 ];
@@ -135,6 +150,8 @@ class KompendiumService
                     'nummer' => $r['nummer'],
                     'titel' => $r['titel'] ?? '',
                     'zyklus' => $r['zyklus'] ?? null,
+                    'erstveroeffentlicht_am' => $this->erstveroeffentlichtAmAusMetadaten($r),
+                    'roman' => $r,
                 ]);
             }
         }
@@ -147,12 +164,118 @@ class KompendiumService
                 'serie' => $match['serie'],
                 'serie_name' => $match['serie_name'],
                 'zyklus' => $match['zyklus'],
-                'roman' => $match,
+                'erstveroeffentlicht_am' => $match['erstveroeffentlicht_am'],
+                'roman' => $match['roman'],
                 'match_typ' => 'nummer',
             ];
         }
 
         return null;
+    }
+
+    public function findeErstveroeffentlichtAm(string $serienKey, int $nummer, string $titel): ?Carbon
+    {
+        if (! array_key_exists($serienKey, self::SERIEN)) {
+            return null;
+        }
+
+        $serie = $this->maddraxDataService->getSeries($serienKey);
+        $normalisiertTitel = $this->normalisiereTitel($titel);
+
+        $roman = $serie->first(fn ($r) => ($r['nummer'] ?? null) === $nummer &&
+            ($r['titel'] ?? '') === $titel
+        );
+
+        if (! $roman) {
+            $roman = $serie->first(fn ($r) => ($r['nummer'] ?? null) === $nummer &&
+                $this->normalisiereTitel($r['titel'] ?? '') === $normalisiertTitel
+            );
+        }
+
+        if (! $roman) {
+            return null;
+        }
+
+        return $this->erstveroeffentlichtAmAusMetadaten($roman);
+    }
+
+    public function erstveroeffentlichtAmAusMetadaten(array $roman): ?Carbon
+    {
+        foreach (self::PUBLICATION_DATE_FIELDS as $field) {
+            if (! array_key_exists($field, $roman)) {
+                continue;
+            }
+
+            $date = $this->parseErstveroeffentlichtAm($roman[$field]);
+
+            if ($date !== null) {
+                return $date;
+            }
+        }
+
+        return null;
+    }
+
+    public function parseErstveroeffentlichtAm(mixed $value): ?Carbon
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value)->startOfDay();
+        }
+
+        if (! is_scalar($value)) {
+            return null;
+        }
+
+        $dateString = trim((string) $value);
+
+        if ($dateString === '') {
+            return null;
+        }
+
+        $dateString = str_replace("\u{00A0}", ' ', $dateString);
+        $dateString = preg_replace('/\s+/', ' ', $dateString) ?? $dateString;
+
+        if (preg_match('/^\d{4}$/', $dateString) === 1) {
+            return Carbon::create((int) $dateString, 1, 1)->startOfDay();
+        }
+
+        if (preg_match('/^\d{4}-\d{1,2}$/', $dateString) === 1) {
+            try {
+                return Carbon::createFromFormat('Y-m', $dateString)->startOfMonth();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        if (preg_match('/^\d{1,2}\.\s*\d{1,2}\.\s*\d{4}$/', $dateString) === 1) {
+            try {
+                return Carbon::createFromFormat('d.m.Y', str_replace(' ', '', $dateString))->startOfDay();
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        $normalisiert = strtr($dateString, [
+            'Januar' => 'January',
+            'Februar' => 'February',
+            'Maerz' => 'March',
+            'März' => 'March',
+            'April' => 'April',
+            'Mai' => 'May',
+            'Juni' => 'June',
+            'Juli' => 'July',
+            'August' => 'August',
+            'September' => 'September',
+            'Oktober' => 'October',
+            'November' => 'November',
+            'Dezember' => 'December',
+        ]);
+
+        try {
+            return Carbon::parse($normalisiert)->startOfDay();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**

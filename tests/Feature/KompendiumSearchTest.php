@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\KompendiumRoman;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\User;
@@ -25,6 +26,31 @@ class KompendiumSearchTest extends TestCase
             'reward_id' => $reward->id,
             'cost_baxx' => $reward->cost_baxx,
             'purchased_at' => now(),
+        ]);
+    }
+
+    private function createIndexedSearchRoman(
+        User $user,
+        string $path,
+        string $content,
+        string $serie,
+        int $romanNr,
+        string $titel,
+        ?string $erstveroeffentlichtAm = null,
+    ): void {
+        Storage::disk('private')->put($path, $content);
+
+        KompendiumRoman::create([
+            'dateiname' => basename($path),
+            'dateipfad' => $path,
+            'serie' => $serie,
+            'roman_nr' => $romanNr,
+            'titel' => $titel,
+            'erstveroeffentlicht_am' => $erstveroeffentlichtAm,
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+            'indexiert_am' => now(),
         ]);
     }
 
@@ -227,6 +253,20 @@ class KompendiumSearchTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_search_validates_invalid_sort_parameter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->getJson('/kompendium/suche?q=test&sort=ungueltig')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['sort']);
+
+        $this->getJson('/kompendium/suche?q=test&direction=seitwaerts')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['direction']);
+    }
+
     public function test_search_ignores_path_traversal_attempts(): void
     {
         $user = $this->actingMemberWithPoints(150);
@@ -303,6 +343,117 @@ class KompendiumSearchTest extends TestCase
         $response->assertOk();
         $this->assertCount(2, $response->json('data'));
         $this->assertEquals(2, $response->json('currentPage'));
+    }
+
+    public function test_search_can_reverse_relevance_order(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        Storage::fake('private');
+
+        $ids = [
+            'romane/maddrax/001 - RelevantA.txt',
+            'romane/maddrax/002 - RelevantB.txt',
+            'romane/maddrax/003 - RelevantC.txt',
+        ];
+
+        $this->createIndexedSearchRoman($user, $ids[0], 'Content reverseorder', 'maddrax', 1, 'RelevantA');
+        $this->createIndexedSearchRoman($user, $ids[1], 'Content reverseorder', 'maddrax', 2, 'RelevantB');
+        $this->createIndexedSearchRoman($user, $ids[2], 'Content reverseorder', 'maddrax', 3, 'RelevantC');
+
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($ids) {
+            $mock->shouldReceive('search')
+                ->with('reverseorder')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 3],
+                    'ids' => $ids,
+                ]);
+        });
+
+        $response = $this->getJson('/kompendium/suche?q=reverseorder&sort=relevance&direction=asc');
+
+        $response->assertOk();
+        $this->assertSame(['RelevantC', 'RelevantB', 'RelevantA'], array_column($response->json('data'), 'title'));
+        $this->assertSame('relevance', $response->json('sort'));
+        $this->assertSame('asc', $response->json('direction'));
+    }
+
+    public function test_search_sorts_by_publication_date_in_both_directions_with_missing_dates_as_oldest(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        Storage::fake('private');
+
+        $ids = [
+            'romane/maddrax/003 - Neuer Treffer.txt',
+            'romane/maddrax/001 - Ohne Datum.txt',
+            'romane/maddrax/002 - Alter Treffer.txt',
+        ];
+
+        $this->createIndexedSearchRoman($user, $ids[0], 'Content datumsortierung', 'maddrax', 3, 'Neuer Treffer', '2024-01-01');
+        $this->createIndexedSearchRoman($user, $ids[1], 'Content datumsortierung', 'maddrax', 1, 'Ohne Datum');
+        $this->createIndexedSearchRoman($user, $ids[2], 'Content datumsortierung', 'maddrax', 2, 'Alter Treffer', '2020-01-01');
+
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($ids) {
+            $mock->shouldReceive('search')
+                ->with('datumsortierung')
+                ->twice()
+                ->andReturn([
+                    'hits' => ['total_hits' => 3],
+                    'ids' => $ids,
+                ]);
+        });
+
+        $ascending = $this->getJson('/kompendium/suche?q=datumsortierung&sort=first_published');
+        $ascending->assertOk();
+        $this->assertSame(['Ohne Datum', 'Alter Treffer', 'Neuer Treffer'], array_column($ascending->json('data'), 'title'));
+        $this->assertSame('first_published', $ascending->json('sort'));
+        $this->assertSame('asc', $ascending->json('direction'));
+
+        $descending = $this->getJson('/kompendium/suche?q=datumsortierung&sort=first_published&direction=desc');
+        $descending->assertOk();
+        $this->assertSame(['Neuer Treffer', 'Alter Treffer', 'Ohne Datum'], array_column($descending->json('data'), 'title'));
+        $this->assertSame('desc', $descending->json('direction'));
+    }
+
+    public function test_search_keeps_series_filter_counts_when_sorting_by_publication_date(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        Storage::fake('private');
+
+        $ids = [
+            'romane/missionmars/002 - Mars Neuer.txt',
+            'romane/maddrax/002 - Maddrax Neuer.txt',
+            'romane/missionmars/001 - Mars Alter.txt',
+            'romane/maddrax/001 - Maddrax Alter.txt',
+        ];
+
+        $this->createIndexedSearchRoman($user, $ids[0], 'Content serienfilter', 'missionmars', 2, 'Mars Neuer', '2024-01-01');
+        $this->createIndexedSearchRoman($user, $ids[1], 'Content serienfilter', 'maddrax', 2, 'Maddrax Neuer', '2023-01-01');
+        $this->createIndexedSearchRoman($user, $ids[2], 'Content serienfilter', 'missionmars', 1, 'Mars Alter', '2020-01-01');
+        $this->createIndexedSearchRoman($user, $ids[3], 'Content serienfilter', 'maddrax', 1, 'Maddrax Alter', '2019-01-01');
+
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($ids) {
+            $mock->shouldReceive('search')
+                ->with('serienfilter')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 4],
+                    'ids' => $ids,
+                ]);
+        });
+
+        $response = $this->getJson('/kompendium/suche?q=serienfilter&sort=first_published&direction=asc&serien[]=maddrax');
+
+        $response->assertOk();
+        $this->assertSame(['Maddrax Alter', 'Maddrax Neuer'], array_column($response->json('data'), 'title'));
+        $this->assertSame(2, $response->json('serienCounts.maddrax'));
+        $this->assertSame(2, $response->json('serienCounts.missionmars'));
     }
 
     /* --------------------------------------------------------------------- */

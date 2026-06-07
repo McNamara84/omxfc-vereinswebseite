@@ -42,6 +42,10 @@ class KompendiumSucheTest extends TestCase
         Livewire::test(KompendiumSuche::class)
             ->assertSee('Suchbegriff')
             ->assertSeeHtml('data-testid="kompendium-search-help-button"')
+            ->assertSeeHtml('data-testid="kompendium-sort-field"')
+            ->assertSeeHtml('data-testid="kompendium-sort-direction"')
+            ->assertSet('sort', 'relevance')
+            ->assertSet('direction', 'desc')
             ->assertOk();
     }
 
@@ -225,6 +229,58 @@ class KompendiumSucheTest extends TestCase
             ->set('candidatesTruncated', true)
             ->set('scannedCandidates', 400)
             ->assertSee('Für die Suchlogik wurden bisher 400 Kandidaten nachgeprüft.');
+    }
+
+    public function test_sort_wechsel_auf_erstveroeffentlichung_setzt_richtung_auf_aufsteigend(): void
+    {
+        Livewire::test(KompendiumSuche::class)
+            ->set('direction', 'desc')
+            ->set('sort', 'first_published')
+            ->assertSet('direction', 'asc');
+    }
+
+    public function test_component_sortiert_nach_erstveroeffentlichungsdatum(): void
+    {
+        $files = [
+            'romane/maddrax/002 - Neuer Treffer.txt' => 'Aruula sortiert diesen Treffer.',
+            'romane/maddrax/001 - Alter Treffer.txt' => 'Aruula sortiert diesen Treffer.',
+        ];
+
+        $searchResultPaths = array_keys($files);
+        $this->setupSearchMock($files, $searchResultPaths);
+
+        $user = User::factory()->create();
+
+        KompendiumRoman::create([
+            'dateiname' => '002 - Neuer Treffer.txt',
+            'dateipfad' => 'romane/maddrax/002 - Neuer Treffer.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 2,
+            'titel' => 'Neuer Treffer',
+            'erstveroeffentlicht_am' => '2024-01-01',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        KompendiumRoman::create([
+            'dateiname' => '001 - Alter Treffer.txt',
+            'dateipfad' => 'romane/maddrax/001 - Alter Treffer.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Alter Treffer',
+            'erstveroeffentlicht_am' => '2020-01-01',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        Livewire::test(KompendiumSuche::class)
+            ->set('sort', 'first_published')
+            ->set('query', 'Aruula')
+            ->call('performSearch')
+            ->assertSeeInOrder(['Alter Treffer', 'Neuer Treffer'])
+            ->assertSee('Erstveroeffentlicht: 01.01.2020');
     }
 
     public function test_component_serienfilter_fuellt_die_seite_mit_spaeteren_treffern_aus_der_ausgewaehlten_serie(): void

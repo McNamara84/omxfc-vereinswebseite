@@ -139,6 +139,36 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
+    public function finde_metadaten_liefert_erstveroeffentlichungsdatum_aus_evt(): void
+    {
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree', 'evt' => '2024-01'],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $result = $this->service->findeMetadaten(1, 'Der Gott aus dem Eis');
+
+        $this->assertNotNull($result);
+        $this->assertSame('2024-01-01', $result['erstveroeffentlicht_am']?->toDateString());
+    }
+
+    #[Test]
+    public function parse_erstveroeffentlicht_am_normalisiert_gaengige_datumsformate(): void
+    {
+        $this->assertSame('2024-01-01', $this->service->parseErstveroeffentlichtAm('2024-01')?->toDateString());
+        $this->assertSame('2024-05-07', $this->service->parseErstveroeffentlichtAm('7.5.2024')?->toDateString());
+        $this->assertSame('2024-01-01', $this->service->parseErstveroeffentlichtAm('2024')?->toDateString());
+        $this->assertNull($this->service->parseErstveroeffentlichtAm('kein datum'));
+    }
+
+    #[Test]
     public function get_serien_liste_gibt_alle_serien_zurueck(): void
     {
         $serien = $this->service->getSerienListe();

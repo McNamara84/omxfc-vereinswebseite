@@ -1,0 +1,46 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\KompendiumRoman;
+use App\Models\User;
+use App\Services\KompendiumService;
+use App\Services\MaddraxDataService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class BackfillKompendiumPublicationDatesTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_command_backfills_publication_dates_from_metadata(): void
+    {
+        $maddraxDataService = $this->createStub(MaddraxDataService::class);
+        $maddraxDataService
+            ->method('getSeries')
+            ->willReturnCallback(fn (string $key) => collect($key === 'maddrax' ? [
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree', 'evt' => '1999-02-16'],
+            ] : []));
+
+        $this->app->instance(KompendiumService::class, new KompendiumService($maddraxDataService));
+
+        $user = User::factory()->create();
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Der Gott aus dem Eis.txt',
+            'dateipfad' => 'romane/maddrax/001 - Der Gott aus dem Eis.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Der Gott aus dem Eis',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        $this->artisan('kompendium:backfill-publication-dates')
+            ->expectsOutput('1 aktualisiert, 0 unveraendert, 0 ohne Datum.')
+            ->assertSuccessful();
+
+        $this->assertSame('1999-02-16', $roman->fresh()->erstveroeffentlicht_am?->toDateString());
+    }
+}

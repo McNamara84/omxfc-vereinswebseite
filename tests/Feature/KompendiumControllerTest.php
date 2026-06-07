@@ -842,6 +842,8 @@ class KompendiumControllerTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(150);
         $this->purchaseKompendiumForUser($user);
+        Config::set('kompendium.post_filter.initial_batch_size', 5);
+        Config::set('kompendium.post_filter.max_candidates_per_request', 20);
 
         $files = [];
         $searchResultPaths = [];

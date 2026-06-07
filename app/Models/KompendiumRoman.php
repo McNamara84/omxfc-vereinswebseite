@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $roman_nr
  * @property string $titel
  * @property string|null $zyklus
+ * @property Carbon|null $erstveroeffentlicht_am
  * @property Carbon $hochgeladen_am
  * @property int $hochgeladen_von
  * @property Carbon|null $indexiert_am
@@ -35,6 +36,7 @@ class KompendiumRoman extends Model
         'roman_nr',
         'titel',
         'zyklus',
+        'erstveroeffentlicht_am',
         'hochgeladen_am',
         'hochgeladen_von',
         'indexiert_am',
@@ -43,6 +45,7 @@ class KompendiumRoman extends Model
     ];
 
     protected $casts = [
+        'erstveroeffentlicht_am' => 'date',
         'hochgeladen_am' => 'datetime',
         'indexiert_am' => 'datetime',
         'roman_nr' => 'integer',
