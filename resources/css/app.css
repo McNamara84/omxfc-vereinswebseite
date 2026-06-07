@@ -1,5 +1,7 @@
 @config "../../tailwind.config.js";
 @import "tailwindcss";
+@source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
+@custom-variant dark (&:where(.dark, .dark *));
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
     themes: caramellatte --default, coffee --prefersdark;
@@ -262,5 +264,4 @@ dialog.modal:is(.modal-open, [open], :target) > .modal-backdrop {
     display: table;
     clear: both;
 }
-
 
