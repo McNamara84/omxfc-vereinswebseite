@@ -16,6 +16,8 @@ class KompendiumSearchSorter
 
     private const VERY_OLD_DATE = '0000-01-01';
 
+    private const METADATA_PATH_CHUNK_SIZE = 500;
+
     /**
      * @return list<string>
      */
@@ -131,16 +133,29 @@ class KompendiumSearchSorter
     private function metadataForPaths(array $paths): array
     {
         $uniquePaths = array_values(array_unique($paths));
-        $romane = KompendiumRoman::query()
-            ->whereIn('dateipfad', $uniquePaths)
-            ->get()
-            ->keyBy('dateipfad');
+
+        if ($uniquePaths === []) {
+            return [];
+        }
+
+        $romane = [];
+
+        foreach (array_chunk($uniquePaths, self::METADATA_PATH_CHUNK_SIZE) as $pathChunk) {
+            foreach (
+                KompendiumRoman::query()
+                    ->select(['dateipfad', 'serie', 'roman_nr', 'erstveroeffentlicht_am'])
+                    ->whereIn('dateipfad', $pathChunk)
+                    ->get() as $roman
+            ) {
+                $romane[$roman->dateipfad] = $roman;
+            }
+        }
 
         $metadata = [];
 
         foreach ($uniquePaths as $path) {
             /** @var KompendiumRoman|null $roman */
-            $roman = $romane->get($path);
+            $roman = $romane[$path] ?? null;
 
             $metadata[$path] = [
                 'erstveroeffentlichtAm' => $roman?->erstveroeffentlicht_am?->toDateString(),

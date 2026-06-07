@@ -56,6 +56,39 @@ class KompendiumAdminTest extends TestCase
         $this->app->instance(KompendiumService::class, new KompendiumService($maddraxDataService));
     }
 
+    private function assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum(?string $datum): void
+    {
+        $this->bindKompendiumMetadata([
+            'maddrax' => [
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree', 'evt' => '1999-02-16'],
+            ],
+        ]);
+
+        Storage::disk('private')->put('romane/maddrax/001 - Der Gott aus dem Eis.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Der Gott aus dem Eis.txt',
+            'dateipfad' => 'romane/maddrax/001 - Der Gott aus dem Eis.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Der Gott aus dem Eis',
+            'erstveroeffentlicht_am' => '2000-01-01',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editErstveroeffentlichtAm', $datum)
+            ->call('speichern')
+            ->assertHasNoErrors()
+            ->assertSet('showEditModal', false);
+
+        $this->assertSame('1999-02-16', $roman->fresh()->erstveroeffentlicht_am?->toDateString());
+    }
+
     #[Test]
     public function admin_kann_kompendium_admin_seite_aufrufen(): void
     {
@@ -515,6 +548,18 @@ class KompendiumAdminTest extends TestCase
         // Datei wurde verschoben
         Storage::disk('private')->assertExists('romane/missionmars/005 - NeuerTitel.txt');
         Storage::disk('private')->assertMissing('romane/maddrax/001 - AlterTitel.txt');
+    }
+
+    #[Test]
+    public function speichern_nutzt_metadaten_fallback_wenn_erstveroeffentlichungsdatum_als_leerer_string_geleert_wird(): void
+    {
+        $this->assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum('');
+    }
+
+    #[Test]
+    public function speichern_nutzt_metadaten_fallback_wenn_erstveroeffentlichungsdatum_null_ist(): void
+    {
+        $this->assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum(null);
     }
 
     #[Test]

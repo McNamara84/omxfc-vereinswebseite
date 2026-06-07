@@ -6,6 +6,7 @@ use App\Models\KompendiumRoman;
 use App\Models\User;
 use App\Services\KompendiumSearchSorter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
@@ -80,6 +81,39 @@ class KompendiumSearchSorterTest extends TestCase
         $this->assertSame([$newest, $maddraxOne, $maddraxTen, $missionMars, $missing], $descending['paths']);
         $this->assertNull($ascending['metadata'][$missing]['erstveroeffentlichtAm']);
         $this->assertSame(99, $ascending['metadata'][$missing]['romanNrSort']);
+    }
+
+    public function test_metadata_lookup_chunks_large_path_lists_and_selects_needed_columns(): void
+    {
+        $paths = array_map(
+            fn (int $number): string => sprintf('romane/maddrax/%03d - Chunk %d.txt', $number, $number),
+            range(1, 1001)
+        );
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $result = (new KompendiumSearchSorter)->orderPathsWithMetadata($paths, 'relevance', 'desc');
+
+        DB::disableQueryLog();
+
+        $metadataQueries = collect(DB::getQueryLog())
+            ->filter(fn (array $query): bool => str_contains($query['query'], 'kompendium_romane'))
+            ->values();
+
+        $this->assertSame($paths, $result['paths']);
+        $this->assertCount(3, $metadataQueries);
+
+        foreach ($metadataQueries as $query) {
+            $this->assertLessThanOrEqual(500, count($query['bindings']));
+        }
+
+        $firstQuery = strtolower($metadataQueries->first()['query']);
+        $this->assertStringNotContainsString('select *', $firstQuery);
+        $this->assertStringContainsString('dateipfad', $firstQuery);
+        $this->assertStringContainsString('serie', $firstQuery);
+        $this->assertStringContainsString('roman_nr', $firstQuery);
+        $this->assertStringContainsString('erstveroeffentlicht_am', $firstQuery);
     }
 
     private function createRoman(

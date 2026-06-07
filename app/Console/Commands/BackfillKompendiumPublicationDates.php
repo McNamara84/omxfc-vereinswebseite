@@ -25,6 +25,12 @@ class BackfillKompendiumPublicationDates extends Command
             ->orderBy('id')
             ->chunkById(100, function ($romane) use ($kompendiumService, $dryRun, &$updated, &$missing, &$unchanged): void {
                 foreach ($romane as $roman) {
+                    if ($roman->erstveroeffentlicht_am !== null) {
+                        $unchanged++;
+
+                        continue;
+                    }
+
                     $date = $kompendiumService->findeErstveroeffentlichtAm(
                         $roman->serie,
                         $roman->roman_nr,
@@ -38,12 +44,6 @@ class BackfillKompendiumPublicationDates extends Command
                     }
 
                     $dateString = $date->toDateString();
-
-                    if ($roman->erstveroeffentlicht_am?->toDateString() === $dateString) {
-                        $unchanged++;
-
-                        continue;
-                    }
 
                     $updated++;
 

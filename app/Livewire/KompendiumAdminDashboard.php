@@ -55,7 +55,7 @@ class KompendiumAdminDashboard extends Component
 
     public string $editTitel = '';
 
-    public string $editErstveroeffentlichtAm = '';
+    public ?string $editErstveroeffentlichtAm = null;
 
     /** Timestamp für Optimistic Locking beim Bearbeiten */
     public ?string $editUpdatedAt = null;
@@ -223,7 +223,7 @@ class KompendiumAdminDashboard extends Component
         $this->editZyklus = $roman->zyklus ?? '';
         $this->editNummer = $roman->roman_nr;
         $this->editTitel = $roman->titel;
-        $this->editErstveroeffentlichtAm = $roman->erstveroeffentlicht_am?->toDateString() ?? '';
+        $this->editErstveroeffentlichtAm = $roman->erstveroeffentlicht_am?->toDateString();
         $this->editUpdatedAt = $roman->updated_at?->toISOString();
         $this->showEditModal = true;
     }
@@ -233,6 +233,10 @@ class KompendiumAdminDashboard extends Component
      */
     public function speichern(): void
     {
+        $this->editErstveroeffentlichtAm = filled($this->editErstveroeffentlichtAm)
+            ? $this->editErstveroeffentlichtAm
+            : null;
+
         $this->validate([
             'editId' => 'required|integer|exists:kompendium_romane,id',
             'editSerie' => ['required', Rule::in(array_keys(KompendiumService::SERIEN))],
@@ -311,7 +315,7 @@ class KompendiumAdminDashboard extends Component
         }
 
         $service = app(KompendiumService::class);
-        $erstveroeffentlichtAm = $this->editErstveroeffentlichtAm !== ''
+        $erstveroeffentlichtAm = filled($this->editErstveroeffentlichtAm)
             ? $this->editErstveroeffentlichtAm
             : $service->findeErstveroeffentlichtAm($this->editSerie, $this->editNummer, $sichererTitel)?->toDateString();
 
