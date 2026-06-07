@@ -27,7 +27,7 @@ class KompendiumController extends Controller
         private KompendiumService $kompendiumService,
         private KompendiumSearchService $searchService,
         private RewardService $rewardService,
-        private KompendiumSearchLogService $searchLogService
+        private ?KompendiumSearchLogService $searchLogService = null
     ) {}
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
@@ -432,7 +432,7 @@ class KompendiumController extends Controller
             return;
         }
 
-        $this->searchLogService->record(Auth::user(), [
+        ($this->searchLogService ?? app(KompendiumSearchLogService::class))->record(Auth::user(), [
             'query' => $query,
             'parsed_query' => $parsed ? [
                 'phrases' => $parsed['phrases'] ?? [],
