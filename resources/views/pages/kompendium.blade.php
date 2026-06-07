@@ -66,6 +66,7 @@
                         <div class="flex flex-wrap items-center gap-2">
                             @if($istAdmin ?? false)
                                 <x-button label="Kompendium verwalten" link="{{ route('kompendium.admin') }}" wire:navigate icon="o-cog-6-tooth" class="btn-ghost btn-sm text-primary" />
+                                <x-button label="Suchstatistik" link="{{ route('kompendium.admin.search-statistics') }}" wire:navigate icon="o-chart-bar-square" class="btn-ghost btn-sm text-primary" />
                             @endif
                             <button
                                 type="button"
