@@ -143,6 +143,23 @@ describe('app module', () => {
     expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
   });
 
+  test('toggles from class-only dark state back to light mode', async () => {
+    await loadApp(false, {
+      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+    });
+
+    document.documentElement.dataset.theme = '';
+    document.documentElement.classList.add('dark');
+
+    document.querySelector('[data-theme-toggle]').click();
+
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('false');
+    expect(window.localStorage.getItem('mary-theme')).toBe('"caramellatte"');
+    expect(window.localStorage.getItem('mary-class')).toBe('""');
+  });
+
   test('exposes Leaflet globally', async () => {
     await loadApp(true);
     expect(window.L).toEqual({});

@@ -28,7 +28,7 @@ it('schaltet die startseite ueber den header-toggle in den dark mode', function 
         ->assertScript('window.localStorage.getItem("mary-class")', '"dark"')
         ->assertNoJavaScriptErrors();
 
-    $page->script('() => window.location.reload()');
+    $page->script('window.location.reload()');
     $page->waitForEvent('domcontentloaded');
 
     $page->assertScript('document.documentElement.dataset.theme', 'coffee')

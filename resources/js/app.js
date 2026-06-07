@@ -59,7 +59,9 @@ const applyAndStoreTheme = (isDark) => {
     try {
         window.localStorage.setItem('mary-theme', JSON.stringify(theme));
         window.localStorage.setItem('mary-class', JSON.stringify(themeClass));
-    } catch {}
+    } catch {
+        // localStorage can be unavailable in private or locked-down browser contexts; the DOM theme is already applied.
+    }
 
     window.dispatchEvent(new CustomEvent('theme-changed', { detail: theme }));
     window.dispatchEvent(new CustomEvent('theme-changed-class', { detail: themeClass }));
@@ -132,7 +134,7 @@ document.addEventListener('click', (event) => {
     }
 
     event.preventDefault();
-    applyAndStoreTheme(document.documentElement.dataset.theme !== DARK_THEME);
+    applyAndStoreTheme(! currentThemeIsDark());
 });
 
 // Leaflet importieren
