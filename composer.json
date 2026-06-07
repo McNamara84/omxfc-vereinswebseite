@@ -49,15 +49,15 @@
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9",
-        "pestphp/pest": "5.x-dev#4d550cecfd17b85a2eac939cea0e338b38c3b2da",
-        "pestphp/pest-plugin": "5.x-dev#7f837d8162e854d1cdae388371f3a8875ae1615b",
-        "pestphp/pest-plugin-arch": "5.x-dev#e152889f90b9bc6e8b9545ec5329682e0fa0d842",
-        "pestphp/pest-plugin-browser": "5.x-dev#25271f0cfd2359b52a6b2accc17a31ea13d5da24",
-        "pestphp/pest-plugin-laravel": "5.x-dev#3dd5713e5f90cd6648e5a0621207459639dd6a62",
-        "pestphp/pest-plugin-mutate": "5.x-dev#c61cb58ddfb552918a90f6e117800c389b580bbc",
-        "pestphp/pest-plugin-profanity": "5.x-dev#73aa4c14735b8f0682e06205b35b8481dd8628a9",
+        "pestphp/pest": "5.x-dev",
+        "pestphp/pest-plugin": "5.x-dev",
+        "pestphp/pest-plugin-arch": "5.x-dev",
+        "pestphp/pest-plugin-browser": "5.x-dev",
+        "pestphp/pest-plugin-laravel": "5.x-dev",
+        "pestphp/pest-plugin-mutate": "5.x-dev",
+        "pestphp/pest-plugin-profanity": "5.x-dev",
         "phpunit/phpunit": "13.1.8",
-        "symfony/process": "8.1.x-dev#f686de254d1970f8dd0991ed55a36a8fd731e2d9"
+        "symfony/process": "8.2.x-dev"
     },
     "autoload": {
         "psr-4": {
