@@ -37,6 +37,7 @@
                 wire:keydown.enter="performSearch"
                 placeholder="Begriff, Phrase oder Operator eingeben …"
                 icon="o-magnifying-glass"
+                maxlength="{{ \App\Services\KompendiumSearchLogService::MAX_QUERY_LENGTH }}"
                 data-testid="kompendium-search"
             />
 

@@ -64,7 +64,18 @@ class KompendiumSuche extends Component
 
     public function performSearch(): void
     {
-        if (mb_strlen(trim($this->query)) < 2) {
+        $query = trim($this->query);
+
+        if (mb_strlen($query) < 2) {
+            return;
+        }
+
+        if (mb_strlen($query) > KompendiumSearchLogService::MAX_QUERY_LENGTH) {
+            $this->page = 1;
+            $this->results = [];
+            $this->hasSearched = true;
+            $this->error = 'Bitte gib maximal '.KompendiumSearchLogService::MAX_QUERY_LENGTH.' Zeichen ein.';
+
             return;
         }
 
@@ -93,7 +104,9 @@ class KompendiumSuche extends Component
             return;
         }
 
-        if ($this->hasSearched && mb_strlen(trim($this->query)) >= 2) {
+        $query = trim($this->query);
+
+        if ($this->hasSearched && mb_strlen($query) >= 2 && mb_strlen($query) <= KompendiumSearchLogService::MAX_QUERY_LENGTH) {
             $this->page = 1;
             $this->results = [];
             $this->executeSearch('filter_change');
@@ -118,7 +131,9 @@ class KompendiumSuche extends Component
 
     private function refreshSearchIfReady(): void
     {
-        if ($this->hasSearched && mb_strlen(trim($this->query)) >= 2) {
+        $query = trim($this->query);
+
+        if ($this->hasSearched && mb_strlen($query) >= 2 && mb_strlen($query) <= KompendiumSearchLogService::MAX_QUERY_LENGTH) {
             $this->page = 1;
             $this->results = [];
             $this->executeSearch('sort_change');

@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Livewire\KompendiumSearchAnalyticsDashboard;
 use App\Models\KompendiumSearchLog;
 use App\Models\User;
+use App\Services\KompendiumSearchAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
@@ -95,6 +96,17 @@ class KompendiumSearchAnalyticsDashboardTest extends TestCase
             ->assertDontSee('Trefferbegriff')
             ->set('term', 'Leer')
             ->assertSee('Leerlauf');
+    }
+
+    public function test_analytics_term_filter_uses_lowercase_binding_for_normalized_query(): void
+    {
+        $bindings = app(KompendiumSearchAnalyticsService::class)
+            ->query(['term' => 'Aru', 'include_admin_searches' => true])
+            ->getQuery()
+            ->getBindings();
+
+        $this->assertContains('%Aru%', $bindings);
+        $this->assertContains('%aru%', $bindings);
     }
 
     public function test_dashboard_can_reset_all_logs_and_has_no_export_button(): void

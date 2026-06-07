@@ -8,7 +8,7 @@ use App\Models\User;
 
 class KompendiumSearchLogService
 {
-    private const MAX_QUERY_LENGTH = 500;
+    public const MAX_QUERY_LENGTH = 255;
 
     private const MAX_NORMALIZED_QUERY_LENGTH = 255;
 
@@ -36,9 +36,9 @@ class KompendiumSearchLogService
             return null;
         }
 
-        $query = $this->limit(trim((string) ($payload['query'] ?? '')), self::MAX_QUERY_LENGTH);
+        $query = trim((string) ($payload['query'] ?? ''));
 
-        if ($query === '' || mb_strlen($query) < 2) {
+        if ($query === '' || mb_strlen($query) < 2 || mb_strlen($query) > self::MAX_QUERY_LENGTH) {
             return null;
         }
 

@@ -9,6 +9,7 @@ use App\Models\KompendiumSearchLog;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\User;
+use App\Services\KompendiumSearchLogService;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -150,6 +151,22 @@ class KompendiumSearchLoggingTest extends TestCase
         $this->assertSame(0, $log->results_count);
     }
 
+    public function test_livewire_rejects_query_longer_than_search_log_limit_without_logging(): void
+    {
+        Storage::fake('private');
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        Livewire::actingAs($user)
+            ->test(KompendiumSuche::class)
+            ->set('query', str_repeat('a', KompendiumSearchLogService::MAX_QUERY_LENGTH + 1))
+            ->call('performSearch')
+            ->assertSet('error', 'Bitte gib maximal '.KompendiumSearchLogService::MAX_QUERY_LENGTH.' Zeichen ein.')
+            ->assertSet('results', []);
+
+        $this->assertSame(0, KompendiumSearchLog::query()->count());
+    }
+
     public function test_admin_search_is_stored_but_marked_as_admin_search(): void
     {
         Storage::fake('private');
@@ -188,6 +205,18 @@ class KompendiumSearchLoggingTest extends TestCase
 
         $this->assertSame(1, KompendiumSearchLog::query()->count());
         $this->assertSame('api_search', KompendiumSearchLog::query()->firstOrFail()->source);
+    }
+
+    public function test_api_search_rejects_query_longer_than_search_log_limit_without_logging(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->getJson('/kompendium/suche?q='.str_repeat('a', KompendiumSearchLogService::MAX_QUERY_LENGTH + 1))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['q']);
+
+        $this->assertSame(0, KompendiumSearchLog::query()->count());
     }
 
     public function test_search_without_kompendium_access_does_not_write_log(): void

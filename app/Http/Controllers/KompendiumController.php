@@ -129,7 +129,7 @@ class KompendiumController extends Controller
         $sorter = app(KompendiumSearchSorter::class);
 
         $request->validate([
-            'q' => 'required|string|min:2',
+            'q' => ['required', 'string', 'min:2', 'max:'.KompendiumSearchLogService::MAX_QUERY_LENGTH],
             'page' => 'sometimes|integer|min:1',
             'serien' => 'sometimes|array',
             'serien.*' => ['string', Rule::in($validSerienKeys)],

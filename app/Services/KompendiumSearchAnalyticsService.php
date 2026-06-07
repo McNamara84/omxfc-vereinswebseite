@@ -27,9 +27,11 @@ class KompendiumSearchAnalyticsService
             ->when((bool) ($filters['only_zero_results'] ?? false), fn (Builder $query) => $query->where('results_count', 0))
             ->when(filled($filters['term'] ?? null), function (Builder $query) use ($filters): void {
                 $term = trim((string) $filters['term']);
-                $query->where(function (Builder $inner) use ($term): void {
+                $normalizedTerm = $this->normalizeFilterTerm($term);
+
+                $query->where(function (Builder $inner) use ($term, $normalizedTerm): void {
                     $inner->where('query', 'like', "%{$term}%")
-                        ->orWhere('normalized_query', 'like', "%{$term}%");
+                        ->orWhere('normalized_query', 'like', "%{$normalizedTerm}%");
                 });
             });
     }
@@ -191,5 +193,13 @@ class KompendiumSearchAnalyticsService
         } catch (\Throwable) {
             return $fallback;
         }
+    }
+
+    private function normalizeFilterTerm(string $term): string
+    {
+        $normalized = mb_strtolower(trim($term));
+        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+
+        return mb_substr($normalized, 0, 255);
     }
 }
