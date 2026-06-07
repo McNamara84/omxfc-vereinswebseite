@@ -36,6 +36,22 @@ const applyDark = (isDark) => {
     return nextIsDark;
 };
 
+const applyAndStoreTheme = (isDark) => {
+    const nextIsDark = applyDark(isDark);
+    const theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
+    const themeClass = nextIsDark ? 'dark' : '';
+
+    try {
+        window.localStorage.setItem('mary-theme', JSON.stringify(theme));
+        window.localStorage.setItem('mary-class', JSON.stringify(themeClass));
+    } catch {}
+
+    window.dispatchEvent(new CustomEvent('theme-changed', { detail: theme }));
+    window.dispatchEvent(new CustomEvent('theme-changed-class', { detail: themeClass }));
+
+    return nextIsDark;
+};
+
 const getStoredTheme = () => {
     try {
         const raw = window.localStorage.getItem('mary-theme');
@@ -81,6 +97,19 @@ window.addEventListener('storage', (event) => {
     }
 
     applyStoredOrSystemTheme();
+});
+
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    if (! event.target.closest('[data-theme-toggle]')) {
+        return;
+    }
+
+    event.preventDefault();
+    applyAndStoreTheme(document.documentElement.dataset.theme !== DARK_THEME);
 });
 
 // Leaflet importieren
