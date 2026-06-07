@@ -50,7 +50,10 @@ class BackfillKompendiumPublicationDates extends Command
                     if (! $dryRun) {
                         DB::table('kompendium_romane')
                             ->where('id', $roman->id)
-                            ->update(['erstveroeffentlicht_am' => $dateString]);
+                            ->update([
+                                'erstveroeffentlicht_am' => $dateString,
+                                'updated_at' => now(),
+                            ]);
                     }
                 }
             });
