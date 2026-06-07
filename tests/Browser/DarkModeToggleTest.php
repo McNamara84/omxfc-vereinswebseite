@@ -29,7 +29,7 @@ it('schaltet die startseite ueber den header-toggle in den dark mode', function 
         ->assertNoJavaScriptErrors();
 
     $page->script('window.location.reload()');
-    $page->waitForEvent('domcontentloaded');
+    $page->waitForText('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!');
 
     $page->assertScript('document.documentElement.dataset.theme', 'coffee')
         ->assertScript('document.documentElement.classList.contains("dark")', true)
