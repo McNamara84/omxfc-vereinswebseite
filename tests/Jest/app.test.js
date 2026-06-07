@@ -14,8 +14,10 @@ afterEach(() => {
   window.Alpine = originalAlpine;
 });
 
-async function loadApp(matches, { existingAlpine } = {}) {
+async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
   jest.resetModules();
+  window.localStorage.clear();
+  document.body.innerHTML = bodyHtml;
   document.documentElement.className = '';
   document.documentElement.dataset.theme = '';
   delete window.L;
@@ -90,6 +92,72 @@ describe('app module', () => {
     handler({ matches: true });
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('coffee');
+  });
+
+  test('syncs theme toggle pressed state on initial load', async () => {
+    await loadApp(true, {
+      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+    });
+
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('syncs theme toggle pressed state when system preference changes', async () => {
+    const { handler } = await loadApp(false, {
+      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+    });
+
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('false');
+
+    handler({ matches: true });
+
+    expect(document.documentElement.dataset.theme).toBe('coffee');
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('syncs theme toggle pressed state after storage theme updates', async () => {
+    await loadApp(false, {
+      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+    });
+
+    window.localStorage.setItem('mary-theme', JSON.stringify('coffee'));
+    window.localStorage.setItem('mary-class', JSON.stringify('dark'));
+
+    const event = new Event('storage');
+    Object.defineProperty(event, 'key', { value: 'mary-theme' });
+    window.dispatchEvent(event);
+
+    expect(document.documentElement.dataset.theme).toBe('coffee');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('syncs newly rendered theme toggles after livewire navigation', async () => {
+    await loadApp(false);
+
+    document.documentElement.dataset.theme = 'coffee';
+    document.documentElement.classList.add('dark');
+    document.body.innerHTML = '<button data-theme-toggle aria-pressed="false"></button>';
+    document.dispatchEvent(new Event('livewire:navigated'));
+
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('toggles from class-only dark state back to light mode', async () => {
+    await loadApp(false, {
+      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+    });
+
+    document.documentElement.dataset.theme = '';
+    document.documentElement.classList.add('dark');
+
+    document.querySelector('[data-theme-toggle]').click();
+
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('false');
+    expect(window.localStorage.getItem('mary-theme')).toBe('"caramellatte"');
+    expect(window.localStorage.getItem('mary-class')).toBe('""');
   });
 
   test('exposes Leaflet globally', async () => {

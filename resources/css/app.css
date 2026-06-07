@@ -262,5 +262,3 @@ dialog.modal:is(.modal-open, [open], :target) > .modal-backdrop {
     display: table;
     clear: both;
 }
-
-

@@ -93,7 +93,17 @@
 
             <x-slot:actions>
                 {{-- Theme-Toggle --}}
-                <x-theme-toggle darkTheme="coffee" lightTheme="caramellatte" darkClass="dark" lightClass="" class="w-5 h-5" />
+                <button
+                    type="button"
+                    data-testid="theme-toggle"
+                    data-theme-toggle
+                    aria-label="Dark Mode umschalten"
+                    aria-pressed="false"
+                    class="btn btn-ghost btn-sm btn-circle"
+                >
+                    <x-icon name="o-sun" class="h-5 w-5 dark:hidden" aria-hidden="true" />
+                    <x-icon name="o-moon" class="hidden h-5 w-5 dark:inline-flex" aria-hidden="true" />
+                </button>
 
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">

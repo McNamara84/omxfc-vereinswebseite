@@ -26,12 +26,45 @@ const getSystemPrefersDark = () => window.matchMedia('(prefers-color-scheme: dar
 const resolveSystemPreference = (event) =>
     typeof event?.matches === 'boolean' ? event.matches : getSystemPrefersDark();
 
+const currentThemeIsDark = () => {
+    const root = document.documentElement;
+
+    return root.dataset.theme === DARK_THEME || root.classList.contains('dark');
+};
+
+const syncThemeToggleState = () => {
+    const pressed = currentThemeIsDark() ? 'true' : 'false';
+
+    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.setAttribute('aria-pressed', pressed);
+    });
+};
+
 const applyDark = (isDark) => {
     const root = document.documentElement;
     const nextIsDark = Boolean(isDark);
 
     root.classList.toggle('dark', nextIsDark);
     root.dataset.theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
+    syncThemeToggleState();
+
+    return nextIsDark;
+};
+
+const applyAndStoreTheme = (isDark) => {
+    const nextIsDark = applyDark(isDark);
+    const theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
+    const themeClass = nextIsDark ? 'dark' : '';
+
+    try {
+        window.localStorage.setItem('mary-theme', JSON.stringify(theme));
+        window.localStorage.setItem('mary-class', JSON.stringify(themeClass));
+    } catch {
+        // localStorage can be unavailable in private or locked-down browser contexts; the DOM theme is already applied.
+    }
+
+    window.dispatchEvent(new CustomEvent('theme-changed', { detail: theme }));
+    window.dispatchEvent(new CustomEvent('theme-changed-class', { detail: themeClass }));
 
     return nextIsDark;
 };
@@ -76,11 +109,32 @@ if (typeof prefersDark.addEventListener === 'function') {
 }
 
 window.addEventListener('storage', (event) => {
-    if (event.key !== 'mary-theme') {
+    if (! ['mary-theme', 'mary-class', null].includes(event.key)) {
         return;
     }
 
     applyStoredOrSystemTheme();
+});
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncThemeToggleState, { once: true });
+} else {
+    syncThemeToggleState();
+}
+
+document.addEventListener('livewire:navigated', syncThemeToggleState);
+
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    if (! event.target.closest('[data-theme-toggle]')) {
+        return;
+    }
+
+    event.preventDefault();
+    applyAndStoreTheme(! currentThemeIsDark());
 });
 
 // Leaflet importieren
