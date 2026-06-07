@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->text('query');
-            $table->string('normalized_query', 255)->index();
+            $table->string('normalized_query', 255);
             $table->json('parsed_query')->nullable();
             $table->json('selected_serien')->nullable();
             $table->string('sort')->default('relevance');

@@ -95,7 +95,7 @@ class KompendiumSearchAnalyticsService
             ->orderByDesc('total')
             ->limit($limit)
             ->get()
-            ->load('user:id,name,email')
+            ->loadMissing('user:id,name,email')
             ->map(fn (KompendiumSearchLog $log) => [
                 'user' => $log->user,
                 'total' => (int) $log->total,
@@ -173,8 +173,8 @@ class KompendiumSearchAnalyticsService
     {
         return match ($source) {
             'search_submit' => 'Suchstart',
-            'filter_change' => 'Filter geaendert',
-            'sort_change' => 'Sortierung geaendert',
+            'filter_change' => 'Filter geändert',
+            'sort_change' => 'Sortierung geändert',
             'api_search' => 'API-Suche',
             default => $source,
         };

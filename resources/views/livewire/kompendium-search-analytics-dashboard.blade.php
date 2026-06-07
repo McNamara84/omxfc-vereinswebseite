@@ -3,7 +3,7 @@
         <x-ui.page-header
             eyebrow="Adminbereich"
             title="Kompendium-Suchstatistik"
-            description="Analysiere Suchbegriffe, Nulltreffer, Filterverhalten und Nutzeraktivitaet der Kompendium-Volltextsuche."
+            description="Analysiere Suchbegriffe, Nulltreffer, Filterverhalten und Nutzeraktivität der Kompendium-Volltextsuche."
             data-testid="search-statistics-header"
         >
             <x-slot:actions>
@@ -35,7 +35,7 @@
 
                 <x-select label="Nutzer" :options="$userOptions" wire:model.live="userId" data-testid="search-statistics-user" />
                 <x-select label="Quelle" :options="$this->sourceOptions" wire:model.live="source" data-testid="search-statistics-source" />
-                <x-input label="Suchbegriff enthaelt" wire:model.live.debounce.300ms="term" icon="o-magnifying-glass" data-testid="search-statistics-term" />
+                <x-input label="Suchbegriff enthält" wire:model.live.debounce.300ms="term" icon="o-magnifying-glass" data-testid="search-statistics-term" />
 
                 <div class="flex flex-col gap-3 pt-1">
                     <label class="label cursor-pointer justify-start gap-3">
@@ -44,16 +44,16 @@
                     </label>
                     <label class="label cursor-pointer justify-start gap-3">
                         <input type="checkbox" wire:model.live="includeAdminSearches" class="checkbox checkbox-sm" data-testid="search-statistics-include-admin" />
-                        <span class="label-text">Admin-Suchen einschliessen</span>
+                        <span class="label-text">Admin-Suchen einschließen</span>
                     </label>
                 </div>
             </div>
 
             <div class="mt-4 flex flex-wrap justify-between gap-2 border-t border-base-content/10 pt-4">
                 <p class="text-sm leading-relaxed text-base-content/68" data-testid="admin-searches-default-note">
-                    Admin-Suchen sind standardmaessig ausgeblendet und koennen ueber den Filter eingeschlossen werden.
+                    Admin-Suchen sind standardmäßig ausgeblendet und können über den Filter eingeschlossen werden.
                 </p>
-                <x-button label="Filter zuruecksetzen" wire:click="resetFilters" icon="o-arrow-path" class="btn-ghost btn-sm" />
+                <x-button label="Filter zurücksetzen" wire:click="resetFilters" icon="o-arrow-path" class="btn-ghost btn-sm" />
             </div>
         </x-ui.panel>
 
@@ -66,13 +66,13 @@
         </div>
 
         <div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-            <x-ui.panel title="Suchanfragen im Zeitraum" description="Eine kompakte Tagesansicht der geloggten Suchaktivitaet." data-testid="searches-over-time-chart">
+            <x-ui.panel title="Suchanfragen im Zeitraum" description="Eine kompakte Tagesansicht der geloggten Suchaktivität." data-testid="searches-over-time-chart">
                 @php
                     $timelineMax = max((int) ($this->searchesOverTime->max('total') ?? 0), 1);
                 @endphp
                 @if($this->searchesOverTime->isEmpty())
                     <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
-                        Keine Suchdaten im gewaehlten Zeitraum.
+                        Keine Suchdaten im gewählten Zeitraum.
                     </p>
                 @else
                     <div class="flex h-64 items-end gap-2 overflow-x-auto border-b border-base-content/10 pb-3">
@@ -106,7 +106,7 @@
                         </div>
                     @empty
                         <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
-                            Keine Quellen im gewaehlten Zeitraum.
+                            Keine Quellen im gewählten Zeitraum.
                         </p>
                     @endforelse
                 </div>
@@ -114,7 +114,7 @@
         </div>
 
         <div class="grid gap-6 xl:grid-cols-2">
-            <x-ui.panel title="Top-Suchbegriffe" description="Die am haeufigsten eingegebenen Suchbegriffe." data-testid="top-search-queries">
+            <x-ui.panel title="Top-Suchbegriffe" description="Die am häufigsten eingegebenen Suchbegriffe." data-testid="top-search-queries">
                 @php
                     $topMax = max((int) ($this->topQueries->max('total') ?? 0), 1);
                 @endphp
@@ -134,7 +134,7 @@
                         </div>
                     @empty
                         <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
-                            Keine Suchbegriffe im gewaehlten Zeitraum.
+                            Keine Suchbegriffe im gewählten Zeitraum.
                         </p>
                     @endforelse
                 </div>
@@ -157,7 +157,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="2" class="py-6 text-center text-base-content/60">Keine Nulltreffer im gewaehlten Zeitraum.</td>
+                                    <td colspan="2" class="py-6 text-center text-base-content/60">Keine Nulltreffer im gewählten Zeitraum.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -166,7 +166,7 @@
             </x-ui.panel>
         </div>
 
-        <x-ui.panel title="Nutzerstatistik" description="Suchaktivitaet je Nutzer, standardmaessig ohne Admin-Suchen." data-testid="user-search-statistics">
+        <x-ui.panel title="Nutzerstatistik" description="Suchaktivität je Nutzer, standardmäßig ohne Admin-Suchen." data-testid="user-search-statistics">
             <div class="overflow-x-auto">
                 <table class="table">
                     <thead>
@@ -182,7 +182,7 @@
                         @forelse($this->userStats as $entry)
                             <tr>
                                 <td>
-                                    <span class="font-medium">{{ $entry['user']?->name ?? 'Geloeschter Nutzer' }}</span>
+                                    <span class="font-medium">{{ $entry['user']?->name ?? 'Gelöschter Nutzer' }}</span>
                                     @if($entry['user']?->email)
                                         <span class="block text-xs text-base-content/55">{{ $entry['user']->email }}</span>
                                     @endif
@@ -194,7 +194,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-6 text-center text-base-content/60">Keine Nutzerstatistik im gewaehlten Zeitraum.</td>
+                                <td colspan="5" class="py-6 text-center text-base-content/60">Keine Nutzerstatistik im gewählten Zeitraum.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -221,7 +221,7 @@
                             <tr>
                                 <td class="whitespace-nowrap">{{ $log->created_at->format('d.m.Y H:i') }}</td>
                                 <td>
-                                    {{ $log->user?->name ?? 'Geloeschter Nutzer' }}
+                                    {{ $log->user?->name ?? 'Gelöschter Nutzer' }}
                                     @if($log->is_admin_search)
                                         <x-badge value="Admin" class="badge-outline badge-xs ml-1" />
                                     @endif
@@ -245,7 +245,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="py-6 text-center text-base-content/60">Keine Suchlogs im gewaehlten Zeitraum.</td>
+                                <td colspan="7" class="py-6 text-center text-base-content/60">Keine Suchlogs im gewählten Zeitraum.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -259,17 +259,17 @@
             @endif
         </x-ui.panel>
 
-        <x-ui.panel title="Suchlogs zuruecksetzen" description="Loescht alle gespeicherten Suchlogs dauerhaft. Diese Aktion betrifft die komplette Suchstatistik." data-testid="reset-search-logs-panel">
+        <x-ui.panel title="Suchlogs zurücksetzen" description="Löscht alle gespeicherten Suchlogs dauerhaft. Diese Aktion betrifft die komplette Suchstatistik." data-testid="reset-search-logs-panel">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm leading-relaxed text-base-content/70">
-                    Einzelne Eintraege koennen nicht geloescht werden. Der Reset entfernt alle Suchlogs gesammelt.
+                    Einzelne Einträge können nicht gelöscht werden. Der Reset entfernt alle Suchlogs gesammelt.
                 </p>
                 <x-button
-                    label="Alle Suchlogs zuruecksetzen"
+                    label="Alle Suchlogs zurücksetzen"
                     icon="o-trash"
                     class="btn-error"
                     wire:click="resetLogs"
-                    wire:confirm="Alle Kompendium-Suchlogs wirklich dauerhaft loeschen?"
+                    wire:confirm="Alle Kompendium-Suchlogs wirklich dauerhaft löschen?"
                     data-testid="reset-search-logs-button"
                 />
             </div>

@@ -109,7 +109,7 @@ class KompendiumSearchAnalyticsDashboardTest extends TestCase
             ->assertDontSee('CSV')
             ->assertDontSee('Export')
             ->call('resetLogs')
-            ->assertSee('2 Suchlog-Eintraege wurden geloescht.');
+            ->assertSee('2 Suchlog-Einträge wurden gelöscht.');
 
         $this->assertSame(0, KompendiumSearchLog::query()->count());
     }

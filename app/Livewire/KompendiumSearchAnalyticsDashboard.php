@@ -101,7 +101,7 @@ class KompendiumSearchAnalyticsDashboard extends Component
             $this->sourceOptions,
         );
 
-        session()->flash('success', "{$deleted} Suchlog-Eintraege wurden geloescht.");
+        session()->flash('success', "{$deleted} Suchlog-Einträge wurden gelöscht.");
     }
 
     #[Computed]
@@ -158,8 +158,8 @@ class KompendiumSearchAnalyticsDashboard extends Component
         return collect([
             ['id' => '', 'name' => 'Alle Quellen'],
             ['id' => 'search_submit', 'name' => 'Suchstart'],
-            ['id' => 'filter_change', 'name' => 'Filter geaendert'],
-            ['id' => 'sort_change', 'name' => 'Sortierung geaendert'],
+            ['id' => 'filter_change', 'name' => 'Filter geändert'],
+            ['id' => 'sort_change', 'name' => 'Sortierung geändert'],
             ['id' => 'api_search', 'name' => 'API-Suche'],
         ])->merge(
             app(KompendiumSearchAnalyticsService::class)->availableSources()
