@@ -169,6 +169,12 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
+    public function parse_erstveroeffentlicht_am_gibt_null_fuer_ungueltiges_jahresformat_zurueck(): void
+    {
+        $this->assertNull($this->service->parseErstveroeffentlichtAm('0000'));
+    }
+
+    #[Test]
     public function get_serien_liste_gibt_alle_serien_zurueck(): void
     {
         $serien = $this->service->getSerienListe();

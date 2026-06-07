@@ -236,7 +236,17 @@ class KompendiumService
         $dateString = preg_replace('/\s+/', ' ', $dateString) ?? $dateString;
 
         if (preg_match('/^\d{4}$/', $dateString) === 1) {
-            return Carbon::create((int) $dateString, 1, 1)->startOfDay();
+            $year = (int) $dateString;
+
+            if ($year < 1) {
+                return null;
+            }
+
+            try {
+                return Carbon::create($year, 1, 1)->startOfDay();
+            } catch (\Throwable) {
+                return null;
+            }
         }
 
         if (preg_match('/^\d{4}-\d{1,2}$/', $dateString) === 1) {
