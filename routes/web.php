@@ -11,7 +11,6 @@ use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\FanfictionAdminController;
 use App\Http\Controllers\FanfictionCommentController;
 use App\Http\Controllers\FanfictionController;
-use App\Http\Controllers\FantreffenController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\KompendiumController;
@@ -26,13 +25,31 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\ProfileViewController;
-use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\ReviewCommentController;
+use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\RpgCharEditorController;
+use App\Http\Controllers\StatistikController;
+use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TourAdminController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\VeranstaltungController;
 use App\Http\Controllers\VeranstaltungVerwaltungController;
+use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Livewire\BelohnungenAdmin;
+use App\Livewire\BelohnungenIndex;
+use App\Livewire\FanfictionCreate;
+use App\Livewire\FanfictionEdit;
+use App\Livewire\FantreffenAdminDashboard;
+use App\Livewire\FantreffenVipAuthors;
+use App\Livewire\HoerbuchForm;
+use App\Livewire\HoerbuchIndex;
+use App\Livewire\HoerbuchShow;
+use App\Livewire\KassenbuchIndex;
+use App\Livewire\KompendiumAdminDashboard;
+use App\Livewire\KompendiumSearchAnalyticsDashboard;
+use App\Livewire\MeetingAdmin;
+use App\Livewire\MitgliederIndex;
 use App\Livewire\RezensionForm;
 use App\Livewire\RezensionIndex;
 use App\Livewire\RezensionShow;
@@ -41,26 +58,16 @@ use App\Livewire\RomantauschIndex;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
 use App\Livewire\RomantauschShowOffer;
-use App\Http\Controllers\RpgCharEditorController;
-use App\Http\Controllers\StatistikController;
-use App\Http\Controllers\ThreeDModelController;
-use App\Http\Middleware\RedirectIfAnwaerter;
-use App\Livewire\BelohnungenAdmin;
-use App\Livewire\MeetingAdmin;
 use App\Livewire\ThreeDModelForm;
 use App\Livewire\ThreeDModelIndex;
 use App\Livewire\ThreeDModelShow;
-use App\Livewire\BelohnungenIndex;
-use App\Livewire\FanfictionCreate;
-use App\Livewire\FanfictionEdit;
-use App\Livewire\FantreffenAdminDashboard;
-use App\Livewire\FantreffenVipAuthors;
-use App\Livewire\KassenbuchIndex;
-use App\Livewire\KompendiumAdminDashboard;
-use App\Livewire\MitgliederIndex;
+use App\Livewire\TodoForm;
+use App\Livewire\TodoIndex;
+use App\Livewire\TodoShow;
 use App\Livewire\Umfragen\UmfrageVerwaltung;
 use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
+use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -99,8 +106,8 @@ Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [VeranstaltungControlle
 
 // Hörbücher – Übersicht + Einzelfolgen öffentlich lesbar (kein Auth nötig), aber nicht im Menü / nicht indexiert
 Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
-    Route::livewire('/', \App\Livewire\HoerbuchIndex::class)->name('index');
-    Route::livewire('{episode}', \App\Livewire\HoerbuchShow::class)->name('show')->whereNumber('episode');
+    Route::livewire('/', HoerbuchIndex::class)->name('index');
+    Route::livewire('{episode}', HoerbuchShow::class)->name('show')->whereNumber('episode');
 });
 
 if (app()->environment(['local', 'testing'])) {
@@ -142,20 +149,20 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
         Route::livewire('/{veranstaltung}/anmeldungen', FantreffenAdminDashboard::class)
             ->name('anmeldungen')
-            ->middleware('can:manage,'.\App\Models\Veranstaltung::class);
+            ->middleware('can:manage,'.Veranstaltung::class);
 
         Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)
             ->name('vip-authors')
-            ->middleware('can:manage,'.\App\Models\Veranstaltung::class);
+            ->middleware('can:manage,'.Veranstaltung::class);
     });
 
     Route::get('/admin/fantreffen-2026', fn () => redirect()->route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']))
         ->name('admin.fantreffen.2026')
-        ->middleware('can:manage,'.\App\Models\Veranstaltung::class);
+        ->middleware('can:manage,'.Veranstaltung::class);
 
     Route::get('/admin/fantreffen-2026/vip-autoren', fn () => redirect()->route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']))
         ->name('admin.fantreffen.vip-authors')
-        ->middleware('can:manage,'.\App\Models\Veranstaltung::class);
+        ->middleware('can:manage,'.Veranstaltung::class);
 
     // Fanfiction Admin (Vorstand)
     Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->middleware('vorstand-or-kassenwart')->group(function () {
@@ -236,10 +243,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::prefix('aufgaben')->name('todos.')->group(function () {
-        Route::livewire('/', \App\Livewire\TodoIndex::class)->name('index');
-        Route::livewire('erstellen', \App\Livewire\TodoForm::class)->name('create');
-        Route::livewire('{todo}', \App\Livewire\TodoShow::class)->name('show');
-        Route::livewire('{todo}/bearbeiten', \App\Livewire\TodoForm::class)->name('edit');
+        Route::livewire('/', TodoIndex::class)->name('index');
+        Route::livewire('erstellen', TodoForm::class)->name('create');
+        Route::livewire('{todo}', TodoShow::class)->name('show');
+        Route::livewire('{todo}/bearbeiten', TodoForm::class)->name('edit');
     });
 
     Route::prefix('auktionen')->name('auktionen.')->controller(AuktionController::class)->group(function () {
@@ -251,8 +258,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
         Route::get('previous-speaker', [HoerbuchController::class, 'previousSpeaker'])->name('previous-speaker');
         Route::patch('rollen/{role}/hochgeladen', [HoerbuchController::class, 'updateRoleUploaded'])->name('roles.uploaded');
-        Route::livewire('erstellen', \App\Livewire\HoerbuchForm::class)->name('create')->middleware('hoerbuch-manage');
-        Route::livewire('{episode}/bearbeiten', \App\Livewire\HoerbuchForm::class)->name('edit')->middleware('hoerbuch-manage');
+        Route::livewire('erstellen', HoerbuchForm::class)->name('create')->middleware('hoerbuch-manage');
+        Route::livewire('{episode}/bearbeiten', HoerbuchForm::class)->name('edit')->middleware('hoerbuch-manage');
     });
 
     Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('auth')->group(function () {
@@ -385,6 +392,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('admin', KompendiumAdminDashboard::class)
             ->middleware('admin')
             ->name('admin');
+
+        Route::get('admin/suchstatistik', KompendiumSearchAnalyticsDashboard::class)
+            ->middleware('admin')
+            ->name('admin.search-statistics');
     });
 
     Route::get('/statistiken', [StatistikController::class, 'index'])->name('statistik.index');

@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\KompendiumRoman;
 use App\Models\Reward;
 use App\Models\User;
+use App\Services\KompendiumSearchLogService;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumSearchSorter;
 use App\Services\KompendiumService;
@@ -25,7 +26,8 @@ class KompendiumController extends Controller
     public function __construct(
         private KompendiumService $kompendiumService,
         private KompendiumSearchService $searchService,
-        private RewardService $rewardService
+        private RewardService $rewardService,
+        private ?KompendiumSearchLogService $searchLogService = null
     ) {}
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
@@ -127,7 +129,7 @@ class KompendiumController extends Controller
         $sorter = app(KompendiumSearchSorter::class);
 
         $request->validate([
-            'q' => 'required|string|min:2',
+            'q' => ['required', 'string', 'min:2', 'max:'.KompendiumSearchLogService::MAX_QUERY_LENGTH],
             'page' => 'sometimes|integer|min:1',
             'serien' => 'sometimes|array',
             'serien.*' => ['string', Rule::in($validSerienKeys)],
@@ -135,7 +137,8 @@ class KompendiumController extends Controller
             'direction' => ['sometimes', 'string', Rule::in($sorter->validDirections())],
         ]);
 
-        $query = mb_strtolower($request->input('q'));
+        $rawQuery = trim((string) $request->input('q'));
+        $query = mb_strtolower($rawQuery);
         $selectedSerien = $request->input('serien', []);
         $page = (int) $request->input('page', 1);
         $sort = $sorter->normalizeSort($request->input('sort'));
@@ -152,6 +155,8 @@ class KompendiumController extends Controller
         $parsed = $this->searchService->parseSearchQuery($query);
 
         if (! $this->searchService->hasPositiveOperands($parsed)) {
+            $this->logSearchRequest($request, $rawQuery, $parsed, $selectedSerien, $sort, $direction, 0, false, 0, 'no_positive_operands');
+
             return response()->json([
                 'data' => [],
                 'currentPage' => 1,
@@ -406,7 +411,47 @@ class KompendiumController extends Controller
             $responseData['scannedCandidates'] = $scannedCandidates;
         }
 
+        $this->logSearchRequest($request, $rawQuery, $parsed, $selectedSerien, $sort, $direction, $total, $candidatesTruncated, $scannedCandidates);
+
         return response()->json($responseData);
+    }
+
+    private function logSearchRequest(
+        Request $request,
+        string $query,
+        ?array $parsed,
+        array $selectedSerien,
+        string $sort,
+        string $direction,
+        int $resultsCount,
+        bool $candidatesTruncated,
+        int $scannedCandidates,
+        string $status = 'ok',
+    ): void {
+        if ((int) $request->input('page', 1) !== 1) {
+            return;
+        }
+
+        ($this->searchLogService ?? app(KompendiumSearchLogService::class))->record(Auth::user(), [
+            'query' => $query,
+            'parsed_query' => $parsed ? [
+                'phrases' => $parsed['phrases'] ?? [],
+                'terms' => $parsed['terms'] ?? [],
+                'excludedPhrases' => $parsed['excludedPhrases'] ?? [],
+                'excludedTerms' => $parsed['excludedTerms'] ?? [],
+                'isPhraseSearch' => $parsed['isPhraseSearch'] ?? false,
+                'usesOrOperator' => $parsed['usesOrOperator'] ?? false,
+                'usesNotOperator' => $parsed['usesNotOperator'] ?? false,
+            ] : null,
+            'selected_serien' => $selectedSerien,
+            'sort' => $sort,
+            'direction' => $direction,
+            'results_count' => $resultsCount,
+            'source' => 'api_search',
+            'status' => $status,
+            'candidates_truncated' => $candidatesTruncated,
+            'scanned_candidates' => $scannedCandidates,
+        ]);
     }
 
     /* --------------------------------------------------------------------- */

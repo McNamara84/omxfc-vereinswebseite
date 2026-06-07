@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\KompendiumRoman;
+use App\Services\KompendiumSearchLogService;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumSearchSorter;
 use App\Services\KompendiumService;
@@ -63,7 +64,18 @@ class KompendiumSuche extends Component
 
     public function performSearch(): void
     {
-        if (mb_strlen(trim($this->query)) < 2) {
+        $query = trim($this->query);
+
+        if (mb_strlen($query) < 2) {
+            return;
+        }
+
+        if (mb_strlen($query) > KompendiumSearchLogService::MAX_QUERY_LENGTH) {
+            $this->page = 1;
+            $this->results = [];
+            $this->hasSearched = true;
+            $this->error = 'Bitte gib maximal '.KompendiumSearchLogService::MAX_QUERY_LENGTH.' Zeichen ein.';
+
             return;
         }
 
@@ -71,7 +83,7 @@ class KompendiumSuche extends Component
         $this->results = [];
         $this->hasSearched = true;
         $this->error = null;
-        $this->executeSearch();
+        $this->executeSearch('search_submit');
     }
 
     public function loadMore(): void
@@ -92,10 +104,12 @@ class KompendiumSuche extends Component
             return;
         }
 
-        if ($this->hasSearched && mb_strlen(trim($this->query)) >= 2) {
+        $query = trim($this->query);
+
+        if ($this->hasSearched && mb_strlen($query) >= 2 && mb_strlen($query) <= KompendiumSearchLogService::MAX_QUERY_LENGTH) {
             $this->page = 1;
             $this->results = [];
-            $this->executeSearch();
+            $this->executeSearch('filter_change');
         }
     }
 
@@ -117,14 +131,16 @@ class KompendiumSuche extends Component
 
     private function refreshSearchIfReady(): void
     {
-        if ($this->hasSearched && mb_strlen(trim($this->query)) >= 2) {
+        $query = trim($this->query);
+
+        if ($this->hasSearched && mb_strlen($query) >= 2 && mb_strlen($query) <= KompendiumSearchLogService::MAX_QUERY_LENGTH) {
             $this->page = 1;
             $this->results = [];
-            $this->executeSearch();
+            $this->executeSearch('sort_change');
         }
     }
 
-    private function executeSearch(): void
+    private function executeSearch(?string $logSource = null): void
     {
         try {
             $this->error = null;
@@ -134,7 +150,8 @@ class KompendiumSuche extends Component
             $sorter = app(KompendiumSearchSorter::class);
             $this->sort = $sorter->normalizeSort($this->sort);
             $this->direction = $sorter->normalizeDirection($this->direction, $this->sort);
-            $query = mb_strtolower(trim($this->query));
+            $rawQuery = trim($this->query);
+            $query = mb_strtolower($rawQuery);
             $perPage = 5;
             $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
             $radius = 200;
@@ -154,6 +171,7 @@ class KompendiumSuche extends Component
                     'usesOrOperator' => $parsed['usesOrOperator'],
                     'usesNotOperator' => $parsed['usesNotOperator'],
                 ];
+                $this->logSearchEvent($logSource, $rawQuery, $parsed, 0, 'no_positive_operands');
 
                 return;
             }
@@ -239,6 +257,8 @@ class KompendiumSuche extends Component
 
             $this->lastPage = max(1, (int) ceil($paginationTotal / $perPage));
 
+            $this->logSearchEvent($logSource, $rawQuery, $parsed, $total);
+
             $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
 
             if (empty($snippetTerms)) {
@@ -295,6 +315,7 @@ class KompendiumSuche extends Component
                 'scannedCandidates' => $this->scannedCandidates,
             ];
         } catch (\Throwable $e) {
+            $this->logSearchEvent($logSource, trim($this->query), null, 0, 'error');
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
             $this->lastPage = $this->page;
             report($e);
@@ -363,6 +384,34 @@ class KompendiumSuche extends Component
         }
 
         return $deduped;
+    }
+
+    private function logSearchEvent(?string $source, string $query, ?array $parsed, int $resultsCount, string $status = 'ok'): void
+    {
+        if (! $source) {
+            return;
+        }
+
+        app(KompendiumSearchLogService::class)->record(auth()->user(), [
+            'query' => $query,
+            'parsed_query' => $parsed ? [
+                'phrases' => $parsed['phrases'] ?? [],
+                'terms' => $parsed['terms'] ?? [],
+                'excludedPhrases' => $parsed['excludedPhrases'] ?? [],
+                'excludedTerms' => $parsed['excludedTerms'] ?? [],
+                'isPhraseSearch' => $parsed['isPhraseSearch'] ?? false,
+                'usesOrOperator' => $parsed['usesOrOperator'] ?? false,
+                'usesNotOperator' => $parsed['usesNotOperator'] ?? false,
+            ] : null,
+            'selected_serien' => $this->selectedSerien,
+            'sort' => $this->sort,
+            'direction' => $this->direction,
+            'results_count' => $resultsCount,
+            'source' => $source,
+            'status' => $status,
+            'candidates_truncated' => $this->candidatesTruncated,
+            'scanned_candidates' => $this->scannedCandidates,
+        ]);
     }
 
     /**

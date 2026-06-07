@@ -9,6 +9,7 @@
         >
             <x-slot:actions>
                 <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+                <x-button label="Suchstatistik" link="{{ route('kompendium.admin.search-statistics') }}" wire:navigate icon="o-chart-bar-square" class="btn-primary" />
             </x-slot:actions>
         </x-ui.page-header>
 
