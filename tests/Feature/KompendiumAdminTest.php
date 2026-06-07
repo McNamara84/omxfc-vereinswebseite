@@ -9,6 +9,8 @@ use App\Livewire\KompendiumAdminDashboard;
 use App\Models\KompendiumRoman;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\KompendiumService;
+use App\Services\MaddraxDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
@@ -42,6 +44,49 @@ class KompendiumAdminTest extends TestCase
         // Normaler User
         $this->normalUser = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($this->normalUser, ['role' => Role::Mitglied->value]);
+    }
+
+    private function bindKompendiumMetadata(array $seriesByKey): void
+    {
+        $maddraxDataService = $this->createStub(MaddraxDataService::class);
+        $maddraxDataService
+            ->method('getSeries')
+            ->willReturnCallback(fn (string $key) => collect($seriesByKey[$key] ?? []));
+
+        $this->app->instance(KompendiumService::class, new KompendiumService($maddraxDataService));
+    }
+
+    private function assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum(?string $datum): void
+    {
+        $this->bindKompendiumMetadata([
+            'maddrax' => [
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree', 'evt' => '1999-02-16'],
+            ],
+        ]);
+
+        Storage::disk('private')->put('romane/maddrax/001 - Der Gott aus dem Eis.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Der Gott aus dem Eis.txt',
+            'dateipfad' => 'romane/maddrax/001 - Der Gott aus dem Eis.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Der Gott aus dem Eis',
+            'erstveroeffentlicht_am' => '2000-01-01',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editErstveroeffentlichtAm', $datum)
+            ->call('speichern')
+            ->assertHasNoErrors()
+            ->assertSet('showEditModal', false);
+
+        $this->assertSame('1999-02-16', $roman->fresh()->erstveroeffentlicht_am?->toDateString());
     }
 
     #[Test]
@@ -92,6 +137,30 @@ class KompendiumAdminTest extends TestCase
         ]);
 
         Storage::disk('private')->assertExists('romane/maddrax/001 - Der Gott aus dem Eis.txt');
+    }
+
+    #[Test]
+    public function upload_uebernimmt_erstveroeffentlichungsdatum_aus_metadaten(): void
+    {
+        $this->bindKompendiumMetadata([
+            'maddrax' => [
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree', 'evt' => '1999-02-16'],
+            ],
+        ]);
+
+        $file = UploadedFile::fake()->create('001 - Der Gott aus dem Eis.txt', 100, 'text/plain');
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->set('uploads', [$file])
+            ->set('ausgewaehlteSerie', 'maddrax')
+            ->call('hochladen')
+            ->assertHasNoErrors();
+
+        $roman = KompendiumRoman::query()->firstWhere('dateipfad', 'romane/maddrax/001 - Der Gott aus dem Eis.txt');
+
+        $this->assertNotNull($roman);
+        $this->assertSame('1999-02-16', $roman->erstveroeffentlicht_am?->toDateString());
     }
 
     #[Test]
@@ -402,6 +471,7 @@ class KompendiumAdminTest extends TestCase
             'roman_nr' => 1,
             'titel' => 'TestRoman',
             'zyklus' => 'Euree',
+            'erstveroeffentlicht_am' => '2001-02-03',
             'hochgeladen_am' => now(),
             'hochgeladen_von' => $this->admin->id,
             'status' => 'hochgeladen',
@@ -415,7 +485,8 @@ class KompendiumAdminTest extends TestCase
             ->assertSet('editSerie', 'maddrax')
             ->assertSet('editZyklus', 'Euree')
             ->assertSet('editNummer', 1)
-            ->assertSet('editTitel', 'TestRoman');
+            ->assertSet('editTitel', 'TestRoman')
+            ->assertSet('editErstveroeffentlichtAm', '2001-02-03');
     }
 
     #[Test]
@@ -462,6 +533,7 @@ class KompendiumAdminTest extends TestCase
             ->set('editZyklus', '')
             ->set('editNummer', 5)
             ->set('editTitel', 'NeuerTitel')
+            ->set('editErstveroeffentlichtAm', '2005-06-07')
             ->call('speichern')
             ->assertSet('showEditModal', false);
 
@@ -470,11 +542,24 @@ class KompendiumAdminTest extends TestCase
         $this->assertNull($roman->zyklus);
         $this->assertEquals(5, $roman->roman_nr);
         $this->assertEquals('NeuerTitel', $roman->titel);
+        $this->assertSame('2005-06-07', $roman->erstveroeffentlicht_am?->toDateString());
         $this->assertEquals('romane/missionmars/005 - NeuerTitel.txt', $roman->dateipfad);
 
         // Datei wurde verschoben
         Storage::disk('private')->assertExists('romane/missionmars/005 - NeuerTitel.txt');
         Storage::disk('private')->assertMissing('romane/maddrax/001 - AlterTitel.txt');
+    }
+
+    #[Test]
+    public function speichern_nutzt_metadaten_fallback_wenn_erstveroeffentlichungsdatum_als_leerer_string_geleert_wird(): void
+    {
+        $this->assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum('');
+    }
+
+    #[Test]
+    public function speichern_nutzt_metadaten_fallback_wenn_erstveroeffentlichungsdatum_null_ist(): void
+    {
+        $this->assertSpeichernNutztMetadatenFallbackBeiGeleertemDatum(null);
     }
 
     #[Test]

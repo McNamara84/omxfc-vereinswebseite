@@ -7,6 +7,7 @@ use App\Models\KompendiumRoman;
 use App\Models\Reward;
 use App\Models\User;
 use App\Services\KompendiumSearchService;
+use App\Services\KompendiumSearchSorter;
 use App\Services\KompendiumService;
 use App\Services\RewardService;
 use Illuminate\Http\JsonResponse;
@@ -123,17 +124,24 @@ class KompendiumController extends Controller
 
         /* ----- Validierung ------------------------------------------------- */
         $validSerienKeys = array_keys(KompendiumService::SERIEN);
+        $sorter = app(KompendiumSearchSorter::class);
 
         $request->validate([
             'q' => 'required|string|min:2',
             'page' => 'sometimes|integer|min:1',
             'serien' => 'sometimes|array',
             'serien.*' => ['string', Rule::in($validSerienKeys)],
+            'sort' => ['sometimes', 'string', Rule::in($sorter->validSorts())],
+            'direction' => ['sometimes', 'string', Rule::in($sorter->validDirections())],
         ]);
 
         $query = mb_strtolower($request->input('q'));
         $selectedSerien = $request->input('serien', []);
         $page = (int) $request->input('page', 1);
+        $sort = $sorter->normalizeSort($request->input('sort'));
+        $direction = $request->has('direction')
+            ? $sorter->normalizeDirection($request->input('direction'), $sort)
+            : $sorter->defaultDirectionForSort($sort);
         $perPage = 5;
         $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
         $radius = 200;
@@ -158,6 +166,8 @@ class KompendiumController extends Controller
                     'usesOrOperator' => $parsed['usesOrOperator'],
                     'usesNotOperator' => $parsed['usesNotOperator'],
                 ],
+                'sort' => $sort,
+                'direction' => $direction,
                 'message' => 'Bitte gib mindestens einen positiven Suchbegriff ein.',
             ]);
         }
@@ -181,7 +191,9 @@ class KompendiumController extends Controller
         /*  unter Last kontrollierbar bleiben. */
         /* ------------------------------------------------------------------ */
         $textCache = [];
-        $requiredMatches = ($page + 1) * $perPage;
+        $requiredMatches = $sorter->needsFullPostFilter($sort, $direction)
+            ? PHP_INT_MAX
+            : (($page + 1) * $perPage);
         $postFilterBudget = $this->searchService->postFilterBudget();
         $candidatesTruncated = false;
         $scannedCandidates = 0;
@@ -234,6 +246,10 @@ class KompendiumController extends Controller
         if (! empty($selectedSerien)) {
             $ids = array_values(array_filter($ids, fn ($path) => in_array($pathToSerie[$path], $selectedSerien, true)));
         }
+
+        $ordered = $sorter->orderPathsWithMetadata($ids, $sort, $direction);
+        $ids = $ordered['paths'];
+        $pathMetadata = $ordered['metadata'];
 
         $total = count($ids);
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
@@ -340,6 +356,8 @@ class KompendiumController extends Controller
                 'romanNr' => $romanNr,
                 'title' => $title,
                 'serie' => $serie,
+                'erstveroeffentlichtAm' => $pathMetadata[$path]['erstveroeffentlichtAm'] ?? null,
+                'erstveroeffentlichtAmFormatted' => $pathMetadata[$path]['erstveroeffentlichtAmFormatted'] ?? null,
                 'snippets' => $snippets,
             ];
         }
@@ -379,6 +397,8 @@ class KompendiumController extends Controller
                 'usesOrOperator' => $parsed['usesOrOperator'],
                 'usesNotOperator' => $parsed['usesNotOperator'],
             ],
+            'sort' => $sort,
+            'direction' => $direction,
         ];
 
         if ($candidatesTruncated) {

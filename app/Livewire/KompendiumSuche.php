@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
+use App\Services\KompendiumSearchSorter;
 use App\Services\KompendiumService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,6 +16,10 @@ class KompendiumSuche extends Component
     public string $query = '';
 
     public array $selectedSerien = [];
+
+    public string $sort = KompendiumSearchSorter::SORT_RELEVANCE;
+
+    public string $direction = KompendiumSearchSorter::DIRECTION_DESC;
 
     public array $results = [];
 
@@ -94,6 +99,31 @@ class KompendiumSuche extends Component
         }
     }
 
+    public function updatedSort(): void
+    {
+        $sorter = app(KompendiumSearchSorter::class);
+        $this->sort = $sorter->normalizeSort($this->sort);
+        $this->direction = $sorter->defaultDirectionForSort($this->sort);
+        $this->refreshSearchIfReady();
+    }
+
+    public function updatedDirection(): void
+    {
+        $sorter = app(KompendiumSearchSorter::class);
+        $this->sort = $sorter->normalizeSort($this->sort);
+        $this->direction = $sorter->normalizeDirection($this->direction, $this->sort);
+        $this->refreshSearchIfReady();
+    }
+
+    private function refreshSearchIfReady(): void
+    {
+        if ($this->hasSearched && mb_strlen(trim($this->query)) >= 2) {
+            $this->page = 1;
+            $this->results = [];
+            $this->executeSearch();
+        }
+    }
+
     private function executeSearch(): void
     {
         try {
@@ -101,6 +131,9 @@ class KompendiumSuche extends Component
             $this->candidatesTruncated = false;
             $this->scannedCandidates = 0;
             $searchService = app(KompendiumSearchService::class);
+            $sorter = app(KompendiumSearchSorter::class);
+            $this->sort = $sorter->normalizeSort($this->sort);
+            $this->direction = $sorter->normalizeDirection($this->direction, $this->sort);
             $query = mb_strtolower(trim($this->query));
             $perPage = 5;
             $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
@@ -132,7 +165,9 @@ class KompendiumSuche extends Component
             $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
 
             $textCache = [];
-            $requiredMatches = ($this->page + 1) * $perPage;
+            $requiredMatches = $sorter->needsFullPostFilter($this->sort, $this->direction)
+                ? PHP_INT_MAX
+                : (($this->page + 1) * $perPage);
             $postFilterBudget = $searchService->postFilterBudget();
             $selectedSerienLookup = array_fill_keys($this->selectedSerien, true);
 
@@ -184,6 +219,10 @@ class KompendiumSuche extends Component
                     fn ($path) => in_array($pathToSerie[$path], $this->selectedSerien, true)
                 ));
             }
+
+            $ordered = $sorter->orderPathsWithMetadata($ids, $this->sort, $this->direction);
+            $ids = $ordered['paths'];
+            $pathMetadata = $ordered['metadata'];
 
             $total = count($ids);
             $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
@@ -237,6 +276,8 @@ class KompendiumSuche extends Component
                     'romanNr' => $romanNr,
                     'title' => $title,
                     'serie' => $serie,
+                    'erstveroeffentlichtAm' => $pathMetadata[$path]['erstveroeffentlichtAm'] ?? null,
+                    'erstveroeffentlichtAmFormatted' => $pathMetadata[$path]['erstveroeffentlichtAmFormatted'] ?? null,
                     'snippets' => $snippets,
                 ];
             }

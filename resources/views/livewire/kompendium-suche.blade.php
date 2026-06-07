@@ -49,6 +49,36 @@
                 wire:target="performSearch"
             />
         </div>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <label class="form-control w-full">
+                <span class="label">
+                    <span class="label-text text-sm font-semibold text-base-content/70">Sortieren nach</span>
+                </span>
+                <select
+                    wire:model.live="sort"
+                    class="select select-bordered w-full"
+                    data-testid="kompendium-sort-field"
+                >
+                    <option value="relevance">Relevanz</option>
+                    <option value="first_published">Erstveroeffentlichung</option>
+                </select>
+            </label>
+
+            <label class="form-control w-full">
+                <span class="label">
+                    <span class="label-text text-sm font-semibold text-base-content/70">Reihenfolge</span>
+                </span>
+                <select
+                    wire:model.live="direction"
+                    class="select select-bordered w-full"
+                    data-testid="kompendium-sort-direction"
+                >
+                    <option value="desc">Absteigend</option>
+                    <option value="asc">Aufsteigend</option>
+                </select>
+            </label>
+        </div>
     </section>
 
     @if(count($this->verfuegbareSerien) >= 2)
@@ -183,6 +213,11 @@
                 <h3 class="mb-2 font-semibold text-primary">
                     {{ $hit['cycle'] }} – {{ $hit['romanNr'] }}: {{ $hit['title'] }}
                 </h3>
+                @if(!empty($hit['erstveroeffentlichtAmFormatted']))
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/50">
+                        Erstveroeffentlicht: {{ $hit['erstveroeffentlichtAmFormatted'] }}
+                    </p>
+                @endif
                 {{-- Snippet-HTML ist sicher: Segmente werden mit e() escaped,
                      nur <mark>-Tags werden für Treffer-Highlighting eingefügt. --}}
                 @foreach($hit['snippets'] as $snippet)

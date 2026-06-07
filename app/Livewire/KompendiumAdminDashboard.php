@@ -55,6 +55,8 @@ class KompendiumAdminDashboard extends Component
 
     public string $editTitel = '';
 
+    public ?string $editErstveroeffentlichtAm = null;
+
     /** Timestamp für Optimistic Locking beim Bearbeiten */
     public ?string $editUpdatedAt = null;
 
@@ -179,6 +181,7 @@ class KompendiumAdminDashboard extends Component
                 'roman_nr' => $parsed['nummer'],
                 'titel' => $parsed['titel'],
                 'zyklus' => $meta['zyklus'] ?? null,
+                'erstveroeffentlicht_am' => $meta['erstveroeffentlicht_am'] ?? null,
                 'hochgeladen_am' => now(),
                 'hochgeladen_von' => auth()->id(),
             ]);
@@ -220,6 +223,7 @@ class KompendiumAdminDashboard extends Component
         $this->editZyklus = $roman->zyklus ?? '';
         $this->editNummer = $roman->roman_nr;
         $this->editTitel = $roman->titel;
+        $this->editErstveroeffentlichtAm = $roman->erstveroeffentlicht_am?->toDateString();
         $this->editUpdatedAt = $roman->updated_at?->toISOString();
         $this->showEditModal = true;
     }
@@ -229,12 +233,17 @@ class KompendiumAdminDashboard extends Component
      */
     public function speichern(): void
     {
+        $this->editErstveroeffentlichtAm = filled($this->editErstveroeffentlichtAm)
+            ? $this->editErstveroeffentlichtAm
+            : null;
+
         $this->validate([
             'editId' => 'required|integer|exists:kompendium_romane,id',
             'editSerie' => ['required', Rule::in(array_keys(KompendiumService::SERIEN))],
             'editZyklus' => 'nullable|string|max:100',
             'editNummer' => 'required|integer|min:1',
             'editTitel' => 'required|string|max:255',
+            'editErstveroeffentlichtAm' => 'nullable|date',
         ]);
 
         $roman = KompendiumRoman::findOrFail($this->editId);
@@ -305,10 +314,16 @@ class KompendiumAdminDashboard extends Component
             }
         }
 
+        $service = app(KompendiumService::class);
+        $erstveroeffentlichtAm = filled($this->editErstveroeffentlichtAm)
+            ? $this->editErstveroeffentlichtAm
+            : $service->findeErstveroeffentlichtAm($this->editSerie, $this->editNummer, $sichererTitel)?->toDateString();
+
         // DB aktualisieren (ein einzelner Update-Aufruf für alle Felder)
         $updateDaten = [
             'serie' => $this->editSerie,
             'zyklus' => $this->editZyklus ?: null,
+            'erstveroeffentlicht_am' => $erstveroeffentlichtAm,
             'roman_nr' => $this->editNummer,
             'titel' => $sichererTitel,
             'dateiname' => $neuerDateiname,

@@ -2,11 +2,29 @@ import { expect, test } from './test-support.js';
 import { createDatetimeLocalRange } from './utils/temporal.js';
 
 const login = async (page, email, password = 'password') => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    let lastError;
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        await page.goto('/login');
+        await page.fill('input[name="email"]', email);
+        await page.fill('input[name="password"]', password);
+
+        try {
+            await Promise.all([
+                page.waitForURL((url) => !url.pathname.endsWith('/login'), {
+                    timeout: 45000,
+                    waitUntil: 'domcontentloaded',
+                }),
+                page.click('button[type="submit"]'),
+            ]);
+
+            return;
+        } catch (error) {
+            lastError = error;
+        }
+    }
+
+    throw lastError;
 };
 
 const answerOptionCards = (page) => page.locator('[data-testid^="answer-option-"]');

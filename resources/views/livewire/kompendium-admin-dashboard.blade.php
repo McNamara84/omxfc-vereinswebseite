@@ -220,7 +220,7 @@
         <x-ui.panel title="Romanliste" description="Bearbeite Metadaten, starte Indexierung oder bereinige Einträge direkt aus der tabellarischen Übersicht." data-testid="novels-table-card" wire:poll.5s>
             {{-- Skeleton Loading State --}}
             <div wire:loading.delay wire:target="bearbeiten, indexieren, deIndexieren, retryFehler, loeschen, alleIndexieren, alleDeIndexieren, filterStatus, suchbegriff">
-                <x-skeleton-table :columns="6" :rows="10" />
+                <x-skeleton-table :columns="7" :rows="10" />
             </div>
             <div wire:loading.remove wire:target="bearbeiten, indexieren, deIndexieren, retryFehler, loeschen, alleIndexieren, alleDeIndexieren, filterStatus, suchbegriff">
             <div class="overflow-x-auto">
@@ -230,6 +230,7 @@
                             <th>Nr.</th>
                             <th>Titel</th>
                             <th>Zyklus</th>
+                            <th>Erstveroeffentlicht</th>
                             <th>Status</th>
                             <th>Hochgeladen</th>
                             <th class="text-right">Aktionen</th>
@@ -251,6 +252,9 @@
                                 </td>
                                 <td class="text-base-content">
                                     {{ $roman->zyklus ?? '-' }}
+                                </td>
+                                <td class="text-base-content">
+                                    {{ $roman->erstveroeffentlicht_am?->format('d.m.Y') ?? '-' }}
                                 </td>
                                 <td>
                                     @switch($roman->status)
@@ -322,7 +326,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-8 text-base-content">
+                                <td colspan="7" class="text-center py-8 text-base-content">
                                     @if($filterStatus || $suchbegriff)
                                         <x-icon name="o-funnel" class="w-12 h-12 mx-auto mb-2 opacity-30" />
                                         Keine Romane gefunden, die den Filterkriterien entsprechen.
@@ -386,7 +390,18 @@
                     wire:model="editTitel"
                     data-testid="edit-titel" />
 
+                <x-input
+                    label="Erstveroeffentlicht am"
+                    type="date"
+                    wire:model="editErstveroeffentlichtAm"
+                    hint="Leer lassen, um das Datum aus den Serien-Metadaten zu uebernehmen, falls vorhanden."
+                    data-testid="edit-erstveroeffentlicht-am" />
+
                 @error('editTitel')
+                    <span class="text-error text-sm">{{ $message }}</span>
+                @enderror
+
+                @error('editErstveroeffentlichtAm')
                     <span class="text-error text-sm">{{ $message }}</span>
                 @enderror
             </div>
