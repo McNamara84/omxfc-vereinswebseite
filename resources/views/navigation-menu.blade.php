@@ -98,6 +98,7 @@
                     data-testid="theme-toggle"
                     data-theme-toggle
                     aria-label="Dark Mode umschalten"
+                    aria-pressed="false"
                     class="btn btn-ghost btn-sm btn-circle"
                 >
                     <x-icon name="o-sun" class="h-5 w-5 dark:hidden" aria-hidden="true" />
