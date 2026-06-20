@@ -315,6 +315,19 @@ describe('charEditor – Kultur-Logik', () => {
         expect(barbar.culture).toBe('');
     });
 
+    it('erzwingt Hydrit-Kultur ohne direkten Kultur-Handler-Durchlauf', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+        const handleCultureChange = vi.spyOn(e, 'handleCultureChange');
+
+        expect(e.enforceCultureForRace()).toBe(true);
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(handleCultureChange).not.toHaveBeenCalled();
+        expect(e.cultureGrants).toEqual({});
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+    });
+
     it('Rassenwechsel zu Hydrit setzt Kultur auf Meeresbewohner und ersetzt alte Kultur-Grants', () => {
         const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
         e.applyCultureLandbewohner();
@@ -325,9 +338,13 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.culture).toBe('Meeresbewohner');
         expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Farmer']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+
+        e.handleCultureChange();
+
         expect(e.cultureGrants['Beruf: Farmer']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Wissenschaftler).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
     });
 
@@ -338,6 +355,10 @@ describe('charEditor – Kultur-Logik', () => {
         e.handleCultureChange();
 
         expect(e.culture).toBe('Meeresbewohner');
+        expect(e.cultureGrants).toEqual({});
+
+        e.handleCultureChange();
+
         expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
     });

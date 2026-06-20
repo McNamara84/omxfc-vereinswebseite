@@ -175,8 +175,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (allowedCultures.length !== 1) return false;
 
         const [defaultCulture] = allowedCultures;
+        this.clearCulture();
         this.culture = defaultCulture;
-        this.handleCultureChange();
 
         return true;
     },
@@ -469,7 +469,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Culture handling ---
     handleCultureChange() {
-        if (!this.isCultureSelectable(this.culture) && this.enforceCultureForRace()) {
+        if (!this.isCultureSelectable(this.culture)) {
+            this.enforceCultureForRace();
             return;
         }
 
