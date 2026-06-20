@@ -252,6 +252,46 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceLocked.disadvantages).toContain('Gejagt');
         expect(e.selectedDisadvantages).toContain('Primitiv');
     });
+
+    it('Hydrit erhält Athletik, Bildung, natürliche Waffen und Pflichtmerkmale', () => {
+        const e = createEditor();
+        e.applyRaceHydrit();
+
+        expect(e.raceGrants.Athletik).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants['Natürliche Waffen']).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Kiemen', 'Natürliche Waffen']));
+        expect(e.raceLocked.advantages).toEqual(['Kiemen', 'Natürliche Waffen']);
+        expect(e.selectedDisadvantages).toContain('Anfälligkeit gegen Wahnsinn');
+        expect(e.raceLocked.disadvantages).toEqual(['Anfälligkeit gegen Wahnsinn']);
+    });
+
+    it('Hydrit-Pflichtvorteile verbrauchen keine freien Vorteilspunkte', () => {
+        const e = createEditor();
+        e.applyRaceHydrit();
+
+        expect(e.chosenAdvantagesCount()).toBe(0);
+        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Kiemen', 'Natürliche Waffen']);
+
+        e.selectedAdvantages.push('Schnell', 'Kampfreflexe', 'Nachtsicht');
+        e.enforceAdvantageLimit();
+
+        expect(e.selectedAdvantages).toEqual(['Zäh', 'Kiemen', 'Natürliche Waffen', 'Schnell', 'Kampfreflexe']);
+    });
+
+    it('Rassenwechsel entfernt Hydrit-Pflichtmerkmale und behält nur übrige Grants', () => {
+        const e = createEditor();
+        e.applyRaceHydrit();
+        e.clearRace();
+
+        expect(e.raceLocked.advantages).toEqual([]);
+        expect(e.raceLocked.disadvantages).toEqual([]);
+        expect(e.selectedAdvantages).toEqual(['Zäh']);
+        expect(e.selectedDisadvantages).not.toContain('Anfälligkeit gegen Wahnsinn');
+        expect(e.skills.find(s => s.name === 'Athletik')).toBeUndefined();
+    });
 });
 
 describe('charEditor – Kultur-Logik', () => {
@@ -268,6 +308,83 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants).toHaveProperty('Unterhalten');
         expect(e.cultureGrants).toHaveProperty('Beruf');
         expect(e.cultureGrants).toHaveProperty('Kunde');
+    });
+
+    it('Meeresbewohner erhält Athletik und die Standard-Wahlboni', () => {
+        const e = createEditor();
+        e.applyCultureMeeresbewohner();
+
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['Beruf: Farmer']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Wissenschaftler).toEqual({ type: 'min', value: 1 });
+        expect(e.seaProfessionSkill).toBe('Beruf: Farmer');
+        expect(e.seaKnowledgeOrCombatSkill).toBe('Wissenschaftler');
+    });
+
+    it('Meeresbewohner-Wahlboni ersetzen den vorherigen Kulturbonus', () => {
+        const e = createEditor();
+        e.applyCultureMeeresbewohner();
+
+        e.setSeaProfessionSkill('Beruf: Künstler');
+        e.setSeaKnowledgeOrCombatSkill('Nahkampf');
+
+        expect(e.cultureGrants['Beruf: Farmer']).toBeUndefined();
+        expect(e.cultureGrants.Wissenschaftler).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Künstler']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Beruf: Farmer')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Wissenschaftler')).toBeUndefined();
+    });
+
+    it('Wahlboni ersetzen alte Optionen auch wenn x-model bereits den neuen Wert gesetzt hat', () => {
+        const e = createEditor();
+        e.applyRaceBarbar();
+        e.applyCultureStadtbewohner();
+        e.applyCultureMeeresbewohner();
+
+        e.barbarCombatSkill = 'Fernkampf';
+        e.setBarbarCombatSkill(e.barbarCombatSkill);
+        e.citySkill = 'Sprachen';
+        e.setCitySkill(e.citySkill);
+        e.seaProfessionSkill = 'Beruf: Künstler';
+        e.setSeaProfessionSkill(e.seaProfessionSkill);
+        e.seaKnowledgeOrCombatSkill = 'Nahkampf';
+        e.setSeaKnowledgeOrCombatSkill(e.seaKnowledgeOrCombatSkill);
+
+        expect(e.raceGrants.Nahkampf).toBeUndefined();
+        expect(e.raceGrants.Fernkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Unterhalten).toBeUndefined();
+        expect(e.cultureGrants.Sprachen).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['Beruf: Farmer']).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Künstler']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Wissenschaftler).toBeUndefined();
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+    });
+
+    it('kombiniert überlappende Rassen- und Kultur-Grants über den höchsten Mindestwert', () => {
+        const e = createEditor();
+        e.applyRaceHydrit();
+        e.applyCultureMeeresbewohner();
+
+        const athletik = e.skills.find(s => s.name === 'Athletik');
+
+        expect(e.getGrant('Athletik')).toEqual({ type: 'min', value: 2 });
+        expect(athletik).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+        expect(e.fpUsed()).toBe(0);
+    });
+
+    it('Kulturwechsel entfernt Meeresbewohner-Boni ohne überlappende Rassen-Grants zu löschen', () => {
+        const e = createEditor();
+        e.applyRaceHydrit();
+        e.applyCultureMeeresbewohner();
+        e.clearCulture();
+
+        const athletik = e.skills.find(s => s.name === 'Athletik');
+
+        expect(athletik).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.cultureGrants).toEqual({});
+        expect(e.skills.find(s => s.name === 'Beruf: Farmer')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Wissenschaftler')).toBeUndefined();
     });
 });
 
