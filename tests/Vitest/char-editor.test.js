@@ -316,6 +316,46 @@ describe('charEditor – Vorteile/Nachteile', () => {
     });
 });
 
+describe('charEditor – Submit-Mirroring', () => {
+    it('spiegelt Basisfelder erst nach Freischaltung', () => {
+        const e = createEditor();
+
+        expect(e.shouldMirrorBaseFields()).toBe(false);
+
+        e.advancedUnlocked = true;
+
+        expect(e.shouldMirrorBaseFields()).toBe(true);
+    });
+
+    it('sendet den Portrait-Preview nur wenn einer vorhanden ist', () => {
+        const e = createEditor();
+
+        expect(e.shouldSubmitPortraitPreview()).toBe(false);
+
+        e.portraitPreview = 'data:image/png;base64,abc=';
+
+        expect(e.shouldSubmitPortraitPreview()).toBe(false);
+
+        e.advancedUnlocked = true;
+
+        expect(e.shouldSubmitPortraitPreview()).toBe(true);
+    });
+
+    it('spiegelt gesperrte Skill-Namen und deaktivierte Skill-Werte', () => {
+        const e = createEditor();
+        const freeSkill = { name: 'Athletik', value: 2, nameDisabled: false, valueDisabled: false };
+        const lockedNameSkill = { name: 'Nahkampf', value: 1, nameDisabled: true, valueDisabled: false };
+        const exactGrantSkill = { name: 'Beruf: Landwirt', value: 2, nameDisabled: true, valueDisabled: true };
+
+        expect(e.shouldMirrorSkillName(freeSkill)).toBe(false);
+        expect(e.shouldMirrorSkillValue(freeSkill)).toBe(false);
+        expect(e.shouldMirrorSkillName(lockedNameSkill)).toBe(true);
+        expect(e.shouldMirrorSkillValue(lockedNameSkill)).toBe(false);
+        expect(e.shouldMirrorSkillName(exactGrantSkill)).toBe(true);
+        expect(e.shouldMirrorSkillValue(exactGrantSkill)).toBe(true);
+    });
+});
+
 describe('charEditor – Computed Properties', () => {
     it('basicsFilled true wenn alle Grunddaten gesetzt', () => {
         const e = createEditor({

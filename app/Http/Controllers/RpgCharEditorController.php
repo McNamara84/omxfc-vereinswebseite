@@ -4,10 +4,24 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class RpgCharEditorController extends Controller
 {
+    private const ATTRIBUTE_KEYS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+
+    private const CHARACTER_KEYS = [
+        'player_name',
+        'character_name',
+        'race',
+        'culture',
+        'description',
+        'equipment',
+    ];
+
+    private const PORTRAIT_MAX_BYTES = 2_097_152;
+
     /**
      * Show the character editor form.
      */
@@ -23,20 +37,16 @@ class RpgCharEditorController extends Controller
     {
         $request->validate([
             'portrait' => 'nullable|image|max:2048',
+            'portrait_data_url' => 'nullable|string',
         ]);
 
-        $portrait = null;
-        if ($request->hasFile('portrait') && $request->file('portrait')->isValid()) {
-            $portrait = 'data:'.$request->file('portrait')->getMimeType().';base64,'.base64_encode($request->file('portrait')->get());
-        }
-
         $data = [
-            'character' => $request->all(),
-            'attributes' => $request->input('attributes', []),
-            'skills' => $request->input('skills', []),
-            'advantages' => $request->input('advantages', []),
-            'disadvantages' => $request->input('disadvantages', []),
-            'portrait' => $portrait,
+            'character' => $this->characterPayload($request),
+            'attributes' => $this->attributesPayload($request->input('attributes', [])),
+            'skills' => $this->skillsPayload($request->input('skills', [])),
+            'advantages' => $this->listPayload($request->input('advantages', [])),
+            'disadvantages' => $this->listPayload($request->input('disadvantages', [])),
+            'portrait' => $this->portraitPayload($request),
         ];
 
         $name = Str::slug($request->input('character_name', 'charakter')) ?: 'charakter';
@@ -46,5 +56,114 @@ class RpgCharEditorController extends Controller
             ->format('a4')
             ->margins(10, 10, 10, 10)
             ->inline($name.'.pdf');
+    }
+
+    private function characterPayload(Request $request): array
+    {
+        $character = [];
+
+        foreach (self::CHARACTER_KEYS as $key) {
+            $character[$key] = $request->input($key, '');
+        }
+
+        return $character;
+    }
+
+    private function attributesPayload(mixed $attributes): array
+    {
+        if (! is_array($attributes)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach (self::ATTRIBUTE_KEYS as $key) {
+            if (array_key_exists($key, $attributes)) {
+                $payload[$key] = $attributes[$key];
+            }
+        }
+
+        return $payload;
+    }
+
+    private function skillsPayload(mixed $skills): array
+    {
+        if (! is_array($skills)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($skills as $skill) {
+            if (! is_array($skill)) {
+                continue;
+            }
+
+            $name = trim((string) ($skill['name'] ?? ''));
+
+            if ($name === '') {
+                continue;
+            }
+
+            $payload[] = [
+                'name' => $name,
+                'value' => (string) ($skill['value'] ?? ''),
+            ];
+        }
+
+        return $payload;
+    }
+
+    private function listPayload(mixed $values): array
+    {
+        if (! is_array($values)) {
+            $values = filled($values) ? [$values] : [];
+        }
+
+        $payload = [];
+
+        foreach ($values as $value) {
+            $normalized = trim((string) $value);
+
+            if ($normalized !== '') {
+                $payload[] = $normalized;
+            }
+        }
+
+        return array_values(array_unique($payload));
+    }
+
+    private function portraitPayload(Request $request): ?string
+    {
+        if ($request->hasFile('portrait') && $request->file('portrait')->isValid()) {
+            return 'data:'.$request->file('portrait')->getMimeType().';base64,'.base64_encode($request->file('portrait')->get());
+        }
+
+        return $this->portraitDataUrlPayload($request->input('portrait_data_url'));
+    }
+
+    private function portraitDataUrlPayload(mixed $dataUrl): ?string
+    {
+        $dataUrl = trim((string) $dataUrl);
+
+        if ($dataUrl === '') {
+            return null;
+        }
+
+        if (! preg_match('/^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([A-Za-z0-9+\/\r\n=]+)$/', $dataUrl, $matches)) {
+            throw ValidationException::withMessages([
+                'portrait' => 'Das Portraet konnte nicht fuer den PDF-Export verarbeitet werden.',
+            ]);
+        }
+
+        $binary = base64_decode($matches[2], true);
+
+        if ($binary === false || strlen($binary) > self::PORTRAIT_MAX_BYTES || @getimagesizefromstring($binary) === false) {
+            throw ValidationException::withMessages([
+                'portrait' => 'Das Portraet konnte nicht fuer den PDF-Export verarbeitet werden.',
+            ]);
+        }
+
+        return 'data:'.$matches[1].';base64,'.base64_encode($binary);
     }
 }

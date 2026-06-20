@@ -47,6 +47,12 @@
             <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" data-testid="char-editor-form">
                 @csrf
 
+                <input type="hidden" name="player_name" :value="playerName" :disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="character_name" :value="characterName" :disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="race" :value="race" :disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="culture" :value="culture" :disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" :disabled="!shouldSubmitPortraitPreview()">
+
                 <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints()">
                 <input type="hidden" name="figurenstaerke" value="1">
 
@@ -126,6 +132,16 @@
                         <div class="space-y-2">
                             <template x-for="(skill, index) in skills" :key="index">
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                                    <input type="hidden"
+                                        :name="'skills[' + index + '][name]'"
+                                        :value="skill.name"
+                                        :disabled="!shouldMirrorSkillName(skill)"
+                                    >
+                                    <input type="hidden"
+                                        :name="'skills[' + index + '][value]'"
+                                        :value="skill.value"
+                                        :disabled="!shouldMirrorSkillValue(skill)"
+                                    >
                                     <input type="text" list="skills-list"
                                         :name="'skills[' + index + '][name]'"
                                         class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"

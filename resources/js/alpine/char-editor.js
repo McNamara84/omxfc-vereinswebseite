@@ -122,6 +122,22 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
     },
 
+    shouldMirrorBaseFields() {
+        return this.advancedUnlocked;
+    },
+
+    shouldSubmitPortraitPreview() {
+        return this.advancedUnlocked && Boolean(this.portraitPreview);
+    },
+
+    shouldMirrorSkillName(skill) {
+        return Boolean(skill?.nameDisabled);
+    },
+
+    shouldMirrorSkillValue(skill) {
+        return this.isSkillDisabled(skill);
+    },
+
     allUsedSkillNames() {
         const used = new Set([
             ...Object.keys(this.raceGrants),
