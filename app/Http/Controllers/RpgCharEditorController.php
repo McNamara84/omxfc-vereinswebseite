@@ -30,6 +30,8 @@ class RpgCharEditorController extends Controller
 
     private const PDF_EXPORT_SESSION_MINUTES = 10;
 
+    private const PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
+
     /**
      * Show the character editor form.
      */
@@ -46,11 +48,14 @@ class RpgCharEditorController extends Controller
         $data = $this->pdfPayload($request);
         $token = (string) Str::uuid();
 
+        $this->forgetPreviousPdfExport($request);
+
         $request->session()->put($this->pdfExportSessionKey($token), [
             'user_id' => (string) $request->user()->getAuthIdentifier(),
             'expires_at' => now()->addMinutes(self::PDF_EXPORT_SESSION_MINUTES)->getTimestamp(),
             'data' => $data,
         ]);
+        $request->session()->put(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY, $token);
 
         return redirect()->route('rpg.char-editor.pdf.show', ['token' => $token]);
     }
@@ -65,6 +70,7 @@ class RpgCharEditorController extends Controller
 
         if (! $this->isValidPdfExport($request, $export)) {
             $request->session()->forget($sessionKey);
+            $this->forgetActivePdfExport($request, $token);
             abort(404);
         }
 
@@ -102,6 +108,24 @@ class RpgCharEditorController extends Controller
     private function pdfExportSessionKey(string $token): string
     {
         return 'rpg-char-editor-pdf.'.$token;
+    }
+
+    private function forgetPreviousPdfExport(Request $request): void
+    {
+        $previousToken = $request->session()->pull(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY);
+
+        if (is_string($previousToken)) {
+            $request->session()->forget($this->pdfExportSessionKey($previousToken));
+        }
+    }
+
+    private function forgetActivePdfExport(Request $request, string $token): void
+    {
+        if ($request->session()->get(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY) !== $token) {
+            return;
+        }
+
+        $request->session()->forget(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY);
     }
 
     private function isValidPdfExport(Request $request, mixed $export): bool

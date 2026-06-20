@@ -103,16 +103,16 @@ test.describe('RPG Charakter-Editor', () => {
             }
         });
 
-        const popupPromise = page.waitForEvent('popup', { timeout: 5000 }).catch(() => null);
-
-        await page.getByTestId('pdf-button').click();
-        const popup = await popupPromise;
+        const [popup] = await Promise.all([
+            page.waitForEvent('popup', { timeout: 5000 }),
+            page.getByTestId('pdf-button').click(),
+        ]);
 
         await expect.poll(() => pdfRequests.some((request) => request.method === 'GET' && pdfViewerPath.test(request.pathname))).toBe(true);
         expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname === '/rpg/char-editor/pdf')).toHaveLength(1);
         expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname !== '/rpg/char-editor/pdf')).toHaveLength(0);
 
-        await popup?.close().catch(() => {});
+        await popup.close().catch(() => {});
     });
 
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
