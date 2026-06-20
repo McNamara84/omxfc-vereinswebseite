@@ -334,9 +334,14 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor')
         ->middleware('can:access-rpg-char-editor');
 
-    Route::post('/rpg/char-editor/pdf', [RpgCharEditorController::class, 'pdf'])
+    Route::post('/rpg/char-editor/pdf', [RpgCharEditorController::class, 'storePdfExport'])
         ->name('rpg.char-editor.pdf')
         ->middleware('can:access-rpg-char-editor');
+
+    Route::get('/rpg/char-editor/pdf/{token}', [RpgCharEditorController::class, 'showPdf'])
+        ->name('rpg.char-editor.pdf.show')
+        ->middleware('can:access-rpg-char-editor')
+        ->whereUuid('token');
 
     Route::prefix('romantauschboerse')->name('romantausch.')->group(function () {
         Route::livewire('/', RomantauschIndex::class)->name('index');

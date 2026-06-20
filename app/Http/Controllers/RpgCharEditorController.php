@@ -28,6 +28,8 @@ class RpgCharEditorController extends Controller
 
     private const PORTRAIT_DATA_URL_MAX_CHARS = self::PORTRAIT_DATA_URL_PREFIX_MAX_CHARS + self::PORTRAIT_MAX_BASE64_CHARS;
 
+    private const PDF_EXPORT_SESSION_MINUTES = 10;
+
     /**
      * Show the character editor form.
      */
@@ -37,16 +39,46 @@ class RpgCharEditorController extends Controller
     }
 
     /**
-     * Generate a character sheet PDF.
+     * Prepare a character sheet PDF and redirect to a GET viewer URL.
      */
-    public function pdf(Request $request)
+    public function storePdfExport(Request $request)
+    {
+        $data = $this->pdfPayload($request);
+        $token = (string) Str::uuid();
+
+        $request->session()->put($this->pdfExportSessionKey($token), [
+            'user_id' => (string) $request->user()->getAuthIdentifier(),
+            'expires_at' => now()->addMinutes(self::PDF_EXPORT_SESSION_MINUTES)->getTimestamp(),
+            'data' => $data,
+        ]);
+
+        return redirect()->route('rpg.char-editor.pdf.show', ['token' => $token]);
+    }
+
+    /**
+     * Generate a character sheet PDF from a prepared export payload.
+     */
+    public function showPdf(Request $request, string $token)
+    {
+        $sessionKey = $this->pdfExportSessionKey($token);
+        $export = $request->session()->get($sessionKey);
+
+        if (! $this->isValidPdfExport($request, $export)) {
+            $request->session()->forget($sessionKey);
+            abort(404);
+        }
+
+        return $this->pdfResponse($export['data']);
+    }
+
+    private function pdfPayload(Request $request): array
     {
         $request->validate([
             'portrait' => 'nullable|image|max:2048',
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
         ]);
 
-        $data = [
+        return [
             'character' => $this->characterPayload($request),
             'attributes' => $this->attributesPayload($request->input('attributes', [])),
             'skills' => $this->skillsPayload($request->input('skills', [])),
@@ -54,7 +86,10 @@ class RpgCharEditorController extends Controller
             'disadvantages' => $this->listPayload($request->input('disadvantages', [])),
             'portrait' => $this->portraitPayload($request),
         ];
+    }
 
+    private function pdfResponse(array $data)
+    {
         $name = Str::slug($data['character']['character_name'] ?: 'charakter') ?: 'charakter';
 
         return Pdf::view('rpg.char-sheet', $data)
@@ -62,6 +97,20 @@ class RpgCharEditorController extends Controller
             ->format('a4')
             ->margins(10, 10, 10, 10)
             ->inline($name.'.pdf');
+    }
+
+    private function pdfExportSessionKey(string $token): string
+    {
+        return 'rpg-char-editor-pdf.'.$token;
+    }
+
+    private function isValidPdfExport(Request $request, mixed $export): bool
+    {
+        return is_array($export)
+            && ($export['user_id'] ?? null) === (string) $request->user()->getAuthIdentifier()
+            && is_numeric($export['expires_at'] ?? null)
+            && (int) $export['expires_at'] >= now()->getTimestamp()
+            && is_array($export['data'] ?? null);
     }
 
     private function characterPayload(Request $request): array
