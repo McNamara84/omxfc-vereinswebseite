@@ -79,9 +79,9 @@
                         <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
                         <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" :disabled="advancedUnlocked">
                             <option value="" disabled>Kultur wählen</option>
-                            <option value="Landbewohner">Landbewohner</option>
-                            <option value="Stadtbewohner">Stadtbewohner</option>
-                            <option value="Meeresbewohner">Meeresbewohner</option>
+                            <option value="Landbewohner" :disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
+                            <option value="Stadtbewohner" :disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
+                            <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
                         </select>
                     </div>
 

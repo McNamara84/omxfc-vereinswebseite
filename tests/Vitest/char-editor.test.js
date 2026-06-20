@@ -295,6 +295,74 @@ describe('charEditor – Rassen-Logik', () => {
 });
 
 describe('charEditor – Kultur-Logik', () => {
+    it('Hydrit erlaubt nur Meeresbewohner als Kultur', () => {
+        const e = createEditor({ race: 'Hydrit' });
+
+        expect(e.allowedCulturesForRace()).toEqual(['Meeresbewohner']);
+        expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Landbewohner')).toBe(false);
+        expect(e.isCultureSelectable('Stadtbewohner')).toBe(false);
+
+        e.race = 'Barbar';
+
+        expect(e.isCultureSelectable('Landbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Stadtbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+
+        const barbar = createEditor({ race: 'Barbar', culture: '' });
+        barbar.handleRaceChange();
+
+        expect(barbar.culture).toBe('');
+    });
+
+    it('erzwingt Hydrit-Kultur ohne direkten Kultur-Handler-Durchlauf', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+        const handleCultureChange = vi.spyOn(e, 'handleCultureChange');
+
+        expect(e.enforceCultureForRace()).toBe(true);
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(handleCultureChange).not.toHaveBeenCalled();
+        expect(e.cultureGrants).toEqual({});
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+    });
+
+    it('Rassenwechsel zu Hydrit setzt Kultur auf Meeresbewohner und ersetzt alte Kultur-Grants', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+
+        e.handleRaceChange();
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Farmer']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+
+        e.handleCultureChange();
+
+        expect(e.cultureGrants['Beruf: Farmer']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Wissenschaftler).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+    });
+
+    it('direkter Kulturwechsel verhindert ungueltige Hydrit-Kultur', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyRaceHydrit();
+
+        e.handleCultureChange();
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(e.cultureGrants).toEqual({});
+
+        e.handleCultureChange();
+
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+    });
+
     it('Landbewohner erhält Viehzüchter und Landwirt als Exact-Grants', () => {
         const e = createEditor();
         e.applyCultureLandbewohner();

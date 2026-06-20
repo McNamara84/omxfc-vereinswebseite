@@ -299,6 +299,44 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_export_accepts_hydrit_with_meeresbewohner_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Hydrit'
+                && $data['character']['culture'] === 'Meeresbewohner'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Hydrit',
+            'culture' => 'Meeresbewohner',
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_hydrit_with_other_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Hydrit',
+            'culture' => 'Landbewohner',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
     public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
