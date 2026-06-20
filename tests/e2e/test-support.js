@@ -5,7 +5,7 @@ const defaultStableActionFallbackTimeout = 1500;
 const parseTimeout = (value, fallback = defaultStableActionFallbackTimeout) => {
     const parsedValue = Number(value);
 
-    return Number.isFinite(parsedValue) ? parsedValue : fallback;
+    return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : fallback;
 };
 const stableActionFallbackTimeout = parseTimeout(
     process.env.PLAYWRIGHT_STABLE_ACTION_FALLBACK_TIMEOUT
