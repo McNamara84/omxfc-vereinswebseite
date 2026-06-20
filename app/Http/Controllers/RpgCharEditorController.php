@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -57,7 +58,7 @@ class RpgCharEditorController extends Controller
         ]);
         $request->session()->put(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY, $token);
 
-        return redirect()->route('rpg.char-editor.pdf.show', ['token' => $token]);
+        return redirect()->route('rpg.char-editor.pdf.show', ['token' => $token], Response::HTTP_SEE_OTHER);
     }
 
     /**

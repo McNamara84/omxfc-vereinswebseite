@@ -95,7 +95,9 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
 
-        $response->assertRedirect();
+        $response
+            ->assertStatus(Response::HTTP_SEE_OTHER)
+            ->assertRedirect();
 
         $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
 
