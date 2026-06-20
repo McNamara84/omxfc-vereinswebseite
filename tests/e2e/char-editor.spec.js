@@ -209,6 +209,46 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload).toContain('Gejagt');
     });
 
+    test('erzwingt Meeresbewohner als einzige Kultur fuer Hydrit', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#culture').selectOption('Landbewohner');
+        await expect(page.locator('#culture')).toHaveValue('Landbewohner');
+
+        await page.locator('#race').selectOption('Hydrit');
+
+        await expect(page.locator('#culture')).toHaveValue('Meeresbewohner');
+
+        const cultureOptions = await page.locator('#culture').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(cultureOptions).toMatchObject({
+            Landbewohner: true,
+            Stadtbewohner: true,
+            Meeresbewohner: false,
+        });
+
+        await page.getByTestId('char-editor-continue-button').click();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+            };
+        });
+
+        expect(payload).toEqual({
+            race: 'Hydrit',
+            culture: 'Meeresbewohner',
+        });
+    });
+
     test('setzt Hydrit- und Meeresbewohner-Regeln inklusive Wahlboni im Formularpayload um', async ({ page }) => {
         await openAdvancedEditor(page, { race: 'Hydrit', culture: 'Meeresbewohner' });
 

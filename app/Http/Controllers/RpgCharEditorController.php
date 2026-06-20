@@ -188,7 +188,20 @@ class RpgCharEditorController extends Controller
             $character[$key] = $this->stringPayload($request->input($key, ''));
         }
 
+        $this->validateCharacterRules($character);
+
         return $character;
+    }
+
+    private function validateCharacterRules(array $character): void
+    {
+        if (($character['race'] ?? '') !== 'Hydrit' || ($character['culture'] ?? '') === 'Meeresbewohner') {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'culture' => 'Hydriten können laut Regelwerk nur die Kultur Meeresbewohner wählen.',
+        ]);
     }
 
     private function stringPayload(mixed $value): string

@@ -295,6 +295,53 @@ describe('charEditor – Rassen-Logik', () => {
 });
 
 describe('charEditor – Kultur-Logik', () => {
+    it('Hydrit erlaubt nur Meeresbewohner als Kultur', () => {
+        const e = createEditor({ race: 'Hydrit' });
+
+        expect(e.allowedCulturesForRace()).toEqual(['Meeresbewohner']);
+        expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Landbewohner')).toBe(false);
+        expect(e.isCultureSelectable('Stadtbewohner')).toBe(false);
+
+        e.race = 'Barbar';
+
+        expect(e.isCultureSelectable('Landbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Stadtbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+
+        const barbar = createEditor({ race: 'Barbar', culture: '' });
+        barbar.handleRaceChange();
+
+        expect(barbar.culture).toBe('');
+    });
+
+    it('Rassenwechsel zu Hydrit setzt Kultur auf Meeresbewohner und ersetzt alte Kultur-Grants', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+
+        e.handleRaceChange();
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Farmer']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Wissenschaftler).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+    });
+
+    it('direkter Kulturwechsel verhindert ungueltige Hydrit-Kultur', () => {
+        const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
+        e.applyRaceHydrit();
+
+        e.handleCultureChange();
+
+        expect(e.culture).toBe('Meeresbewohner');
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+    });
+
     it('Landbewohner erhält Viehzüchter und Landwirt als Exact-Grants', () => {
         const e = createEditor();
         e.applyCultureLandbewohner();

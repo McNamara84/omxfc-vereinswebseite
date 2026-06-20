@@ -10,6 +10,7 @@ const CULTURE_DESCRIPTIONS = {
     Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.'
 };
 
+const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
 function hydrateExistingCharEditors() {
@@ -156,6 +157,28 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             if (this.raceGrants['Bildung']) used.add('Intuition');
         }
         return used;
+    },
+
+    allowedCulturesForRace(race = this.race) {
+        if (race === 'Hydrit') return ['Meeresbewohner'];
+
+        return CULTURE_NAMES;
+    },
+
+    isCultureSelectable(culture) {
+        return this.allowedCulturesForRace().includes(culture);
+    },
+
+    enforceCultureForRace() {
+        const allowedCultures = this.allowedCulturesForRace();
+        if (allowedCultures.includes(this.culture)) return false;
+        if (allowedCultures.length !== 1) return false;
+
+        const [defaultCulture] = allowedCultures;
+        this.culture = defaultCulture;
+        this.handleCultureChange();
+
+        return true;
     },
 
     // --- Methods ---
@@ -358,6 +381,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Guul') this.applyRaceGuul();
         if (this.race === 'Hydrit') this.applyRaceHydrit();
         this.restoreRaceState(this.race);
+        this.enforceCultureForRace();
         this._prevRace = this.race;
         this.updateDescription();
     },
@@ -445,6 +469,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Culture handling ---
     handleCultureChange() {
+        if (!this.isCultureSelectable(this.culture) && this.enforceCultureForRace()) {
+            return;
+        }
+
         this.clearCulture();
         if (this.culture === 'Landbewohner') this.applyCultureLandbewohner();
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
