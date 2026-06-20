@@ -65,6 +65,45 @@ test.describe('RPG Charakter-Editor', () => {
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
     });
 
+    test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                playerName: data.get('player_name'),
+                characterName: data.get('character_name'),
+                race: data.get('race'),
+                culture: data.get('culture'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.playerName).toBe('Playwright Spieler');
+        expect(payload.characterName).toBe('Wudan');
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Landbewohner');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Beruf: Landwirt', value: '2' }),
+        ]));
+        expect(payload.skills.filter((skill) => skill.value && !skill.name)).toEqual([]);
+    });
+
     test('zeigt Besonderheiten als Checkbox-Listen und begrenzt freie Vorteile', async ({ page }) => {
         await openAdvancedEditor(page);
 

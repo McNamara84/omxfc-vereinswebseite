@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Http\Controllers\RpgCharEditorController;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -86,6 +87,259 @@ class RpgCharEditorPdfTest extends TestCase
         $user->forceFill(['current_team_id' => $otherTeam->id])->save();
 
         return $user->refresh();
+    }
+
+    public function test_pdf_view_receives_normalized_browser_payload_for_disabled_editor_fields(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                return $data['character'] === [
+                    'player_name' => 'Holger',
+                    'character_name' => 'Holli',
+                    'race' => 'Barbar',
+                    'culture' => 'Landbewohner',
+                    'description' => 'Beschreibung aus dem Editor',
+                    'equipment' => 'Seil und Messer',
+                ]
+                    && $data['attributes'] === ['st' => '2', 'ge' => '1']
+                    && $data['skills'] === [
+                        ['name' => 'Nahkampf', 'value' => '4'],
+                        ['name' => 'Beruf: Landwirt', 'value' => '2'],
+                    ]
+                    && $data['advantages'] === ['Zaeh', 'Anfuehrer']
+                    && $data['disadvantages'] === ['Aberglaeubisch']
+                    && $data['portrait'] === null;
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            '_token' => 'ignored by payload whitelist',
+            'player_name' => 'Holger',
+            'character_name' => 'Holli',
+            'race' => 'Barbar',
+            'culture' => 'Landbewohner',
+            'description' => 'Beschreibung aus dem Editor',
+            'attributes' => [
+                'st' => '2',
+                'ge' => '1',
+                'unknown' => '99',
+            ],
+            'skills' => [
+                ['value' => '4'],
+                ['name' => 'Nahkampf', 'value' => '4'],
+                ['name' => 'Beruf: Landwirt', 'value' => '2'],
+                ['name' => '', 'value' => '4'],
+            ],
+            'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
+            'disadvantages' => ['Aberglaeubisch', ''],
+            'equipment' => 'Seil und Messer',
+            'unexpected' => 'wird nicht an die PDF-View gereicht',
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                return $data['attributes'] === [
+                    'st' => '2',
+                    'ge' => '',
+                    'ro' => '',
+                    'wi' => '0',
+                    'wa' => '',
+                    'in' => '1',
+                    'au' => '-1',
+                ]
+                    && $data['skills'] === [
+                        ['name' => 'Fahren', 'value' => ''],
+                        ['name' => 'Diebeskunst', 'value' => '4'],
+                    ]
+                    && $data['advantages'] === ['Zaeh', 'Anfuehrer']
+                    && $data['disadvantages'] === ['Aberglaeubisch'];
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            'character_name' => 'Collection Payload',
+            'attributes' => [
+                'st' => ' 2 ',
+                'ge' => ['manipuliert'],
+                'ro' => false,
+                'wi' => 0,
+                'wa' => null,
+                'in' => true,
+                'au' => ' -1 ',
+            ],
+            'skills' => [
+                ['name' => ['manipuliert'], 'value' => '4'],
+                ['name' => ' Fahren ', 'value' => ['manipuliert']],
+                ['name' => ' Diebeskunst ', 'value' => 4],
+                ['name' => false, 'value' => '3'],
+            ],
+            'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
+            'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_portrait_data_url_payload_ignores_non_scalar_values(): void
+    {
+        $controller = app(RpgCharEditorController::class);
+        $method = new \ReflectionMethod($controller, 'portraitDataUrlPayload');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke($controller, ['manipuliert']));
+        $this->assertNull($method->invoke($controller, (object) ['manipuliert' => true]));
+    }
+
+    public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === [
+                'player_name' => 'Holger',
+                'character_name' => '',
+                'race' => '123',
+                'culture' => '',
+                'description' => '',
+                'equipment' => '',
+            ]))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            'player_name' => ' Holger ',
+            'character_name' => ['manipuliert'],
+            'race' => 123,
+            'culture' => false,
+            'description' => ['manipuliert'],
+            'equipment' => null,
+        ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('charakter.pdf', $response->headers->get('content-disposition'));
+    }
+
+    public function test_pdf_includes_base64_portrait_from_editor_preview_when_file_input_is_disabled(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['portrait'] === $dataUrl))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(['character_name' => 'Preview Portrait']),
+            'portrait_data_url' => $dataUrl,
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_rejects_editor_preview_portrait_data_url_above_character_limit(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $maxChars = (new \ReflectionClass(RpgCharEditorController::class))
+            ->getReflectionConstant('PORTRAIT_DATA_URL_MAX_CHARS')
+            ->getValue();
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => str_repeat('A', $maxChars + 1),
+        ]);
+
+        $response->assertSessionHasErrors('portrait_data_url');
+    }
+
+    public function test_pdf_rejects_editor_preview_portrait_data_url_with_line_breaks(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+        $base64 = base64_encode($image->get());
+        $dataUrl = 'data:image/png;base64,'.substr($base64, 0, 8)."\n".substr($base64, 8);
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => $dataUrl,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
+    }
+
+    public function test_pdf_rejects_editor_preview_portrait_data_url_with_mismatched_mime_type(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $image = UploadedFile::fake()->image('avatar.jpg', 1, 1);
+        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => $dataUrl,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
+    }
+
+    public function test_pdf_rejects_invalid_editor_preview_portrait_data(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
+        ]);
+
+        $response->assertSessionHasErrors([
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
     }
 
     public function test_pdf_downloads_with_sanitized_filename_for_ag_rollenspiel_member(): void

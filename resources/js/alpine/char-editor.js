@@ -122,6 +122,25 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
     },
 
+    shouldMirrorBaseFields() {
+        return this.advancedUnlocked;
+    },
+
+    shouldSubmitPortraitPreview() {
+        return this.advancedUnlocked && Boolean(this.portraitPreview);
+    },
+
+    shouldMirrorSkillName(skill) {
+        return Boolean(skill?.nameDisabled);
+    },
+
+    shouldMirrorSkillValue(skill) {
+        if (!skill) return false;
+        if (skill.valueDisabled) return true;
+
+        return this.getGrant(skill.name)?.type === 'exact';
+    },
+
     allUsedSkillNames() {
         const used = new Set([
             ...Object.keys(this.raceGrants),
