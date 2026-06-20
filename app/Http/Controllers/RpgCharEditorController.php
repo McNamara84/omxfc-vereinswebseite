@@ -49,7 +49,7 @@ class RpgCharEditorController extends Controller
             'portrait' => $this->portraitPayload($request),
         ];
 
-        $name = Str::slug($request->input('character_name', 'charakter')) ?: 'charakter';
+        $name = Str::slug($data['character']['character_name'] ?: 'charakter') ?: 'charakter';
 
         return Pdf::view('rpg.char-sheet', $data)
             ->driver('dompdf')
@@ -63,10 +63,19 @@ class RpgCharEditorController extends Controller
         $character = [];
 
         foreach (self::CHARACTER_KEYS as $key) {
-            $character[$key] = $request->input($key, '');
+            $character[$key] = $this->stringPayload($request->input($key, ''));
         }
 
         return $character;
+    }
+
+    private function stringPayload(mixed $value): string
+    {
+        if (! is_scalar($value) && $value !== null) {
+            return '';
+        }
+
+        return trim((string) $value);
     }
 
     private function attributesPayload(mixed $attributes): array
@@ -152,7 +161,7 @@ class RpgCharEditorController extends Controller
 
         if (! preg_match('/^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([A-Za-z0-9+\/\r\n=]+)$/', $dataUrl, $matches)) {
             throw ValidationException::withMessages([
-                'portrait' => 'Das Portraet konnte nicht fuer den PDF-Export verarbeitet werden.',
+                'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
             ]);
         }
 
@@ -160,7 +169,7 @@ class RpgCharEditorController extends Controller
 
         if ($binary === false || strlen($binary) > self::PORTRAIT_MAX_BYTES || @getimagesizefromstring($binary) === false) {
             throw ValidationException::withMessages([
-                'portrait' => 'Das Portraet konnte nicht fuer den PDF-Export verarbeitet werden.',
+                'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
             ]);
         }
 

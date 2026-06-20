@@ -147,6 +147,41 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === [
+                'player_name' => 'Holger',
+                'character_name' => '',
+                'race' => '123',
+                'culture' => '',
+                'description' => '',
+                'equipment' => '',
+            ]))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            'player_name' => ' Holger ',
+            'character_name' => ['manipuliert'],
+            'race' => 123,
+            'culture' => false,
+            'description' => ['manipuliert'],
+            'equipment' => null,
+        ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('charakter.pdf', $response->headers->get('content-disposition'));
+    }
+
     public function test_pdf_includes_base64_portrait_from_editor_preview_when_file_input_is_disabled(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -181,7 +216,9 @@ class RpgCharEditorPdfTest extends TestCase
             'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
         ]);
 
-        $response->assertSessionHasErrors('portrait');
+        $response->assertSessionHasErrors([
+            'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
     }
 
     public function test_pdf_downloads_with_sanitized_filename_for_ag_rollenspiel_member(): void

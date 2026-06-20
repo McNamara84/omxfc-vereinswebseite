@@ -341,18 +341,27 @@ describe('charEditor – Submit-Mirroring', () => {
         expect(e.shouldSubmitPortraitPreview()).toBe(true);
     });
 
-    it('spiegelt gesperrte Skill-Namen und deaktivierte Skill-Werte', () => {
+    it('spiegelt nur wirklich gesperrte Skill-Werte', () => {
         const e = createEditor();
         const freeSkill = { name: 'Athletik', value: 2, nameDisabled: false, valueDisabled: false };
         const lockedNameSkill = { name: 'Nahkampf', value: 1, nameDisabled: true, valueDisabled: false };
         const exactGrantSkill = { name: 'Beruf: Landwirt', value: 2, nameDisabled: true, valueDisabled: true };
 
+        e.cultureGrants = { 'Beruf: Viehzuechter': { type: 'exact', value: 2 } };
+        const exactGrantWithoutFlag = { name: 'Beruf: Viehzuechter', value: 2, nameDisabled: true, valueDisabled: false };
+
+        e.raceGrants = { Intuition: { type: 'min', value: 1 } };
+        const uiDisabledByExclusivity = { name: 'Bildung', value: 1, nameDisabled: false, valueDisabled: false };
+
+        expect(e.isSkillDisabled(uiDisabledByExclusivity)).toBe(true);
+        expect(e.shouldMirrorSkillValue(uiDisabledByExclusivity)).toBe(false);
         expect(e.shouldMirrorSkillName(freeSkill)).toBe(false);
         expect(e.shouldMirrorSkillValue(freeSkill)).toBe(false);
         expect(e.shouldMirrorSkillName(lockedNameSkill)).toBe(true);
         expect(e.shouldMirrorSkillValue(lockedNameSkill)).toBe(false);
         expect(e.shouldMirrorSkillName(exactGrantSkill)).toBe(true);
         expect(e.shouldMirrorSkillValue(exactGrantSkill)).toBe(true);
+        expect(e.shouldMirrorSkillValue(exactGrantWithoutFlag)).toBe(true);
     });
 });
 

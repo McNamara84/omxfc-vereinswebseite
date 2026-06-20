@@ -135,7 +135,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     shouldMirrorSkillValue(skill) {
-        return this.isSkillDisabled(skill);
+        if (!skill) return false;
+        if (skill.valueDisabled) return true;
+
+        return this.getGrant(skill.name)?.type === 'exact';
     },
 
     allUsedSkillNames() {
