@@ -292,6 +292,28 @@ describe('charEditor – Vorteile/Nachteile', () => {
         const e = createEditor();
         expect(e.isAdvantageDisabled('Zäh')).toBe(true);
     });
+
+    it('sperrt weitere Vorteile, sobald zwei frei gewählt sind', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Schnell', 'Kampfreflexe'];
+
+        expect(e.isAdvantageDisabled('Nachtsicht')).toBe(true);
+        expect(e.isAdvantageDisabled('Schnell')).toBe(false);
+    });
+
+    it('meldet deaktivierte ausgewählte Vorteile für Hidden Inputs', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Schnell'];
+
+        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh']);
+    });
+
+    it('meldet ausgewählte Pflichtnachteile für Hidden Inputs', () => {
+        const e = createEditor();
+        e.applyRaceGuul();
+
+        expect(e.selectedLockedDisadvantages()).toEqual(['Primitiv', 'Gejagt']);
+    });
 });
 
 describe('charEditor – Computed Properties', () => {

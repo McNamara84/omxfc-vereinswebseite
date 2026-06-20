@@ -1,3 +1,39 @@
+@php
+    $advantages = [
+        'Anführer',
+        'Gestaltwandler',
+        'Gesteigertes Attribut',
+        'Gesteigerter Sinn',
+        'High-Tech-Ausrüstung',
+        'Kampfreflexe',
+        'Kaltblütig',
+        'Kiemen',
+        'Kind zweier Welten',
+        'Nachtsicht',
+        'Natürliche Waffen',
+        'Panzerung',
+        'Psychische Kraft',
+        'Psychisches Reservoir',
+        'Regeneration',
+        'Scharfschütze',
+        'Schnell',
+        'Sprachbegabt',
+        'Tiergefährte',
+        'Zäh',
+    ];
+
+    $disadvantages = [
+        'Abergläubisch',
+        'Abhängige',
+        'Anfälligkeit gegen Wahnsinn',
+        'Auffällig',
+        'Blutdurst',
+        'Ehrenkodex',
+        'Feind',
+        'Primitiv',
+        'Gejagt',
+    ];
+@endphp
 <x-app-layout>
     <x-member-page class="max-w-4xl">
         <x-ui.page-header
@@ -146,47 +182,73 @@
                         <h2 class="text-xl font-semibold text-primary mb-2">Besonderheiten</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="advantages" class="block text-sm font-medium text-base-content mb-1">Vorteile</label>
-                                <select name="advantages[]" id="advantages" multiple class="select select-bordered w-full min-h-40" x-model="selectedAdvantages">
-                                    <option value="Anführer" :disabled="isAdvantageDisabled('Anführer')">Anführer</option>
-                                    <option value="Gestaltwandler" :disabled="isAdvantageDisabled('Gestaltwandler')">Gestaltwandler</option>
-                                    <option value="Gesteigertes Attribut" :disabled="isAdvantageDisabled('Gesteigertes Attribut')">Gesteigertes Attribut</option>
-                                    <option value="Gesteigerter Sinn" :disabled="isAdvantageDisabled('Gesteigerter Sinn')">Gesteigerter Sinn</option>
-                                    <option value="High-Tech-Ausrüstung" :disabled="isAdvantageDisabled('High-Tech-Ausrüstung')">High-Tech-Ausrüstung</option>
-                                    <option value="Kampfreflexe" :disabled="isAdvantageDisabled('Kampfreflexe')">Kampfreflexe</option>
-                                    <option value="Kaltblütig" :disabled="isAdvantageDisabled('Kaltblütig')">Kaltblütig</option>
-                                    <option value="Kiemen" :disabled="isAdvantageDisabled('Kiemen')">Kiemen</option>
-                                    <option value="Kind zweier Welten" :disabled="isAdvantageDisabled('Kind zweier Welten')">Kind zweier Welten</option>
-                                    <option value="Nachtsicht" :disabled="isAdvantageDisabled('Nachtsicht')">Nachtsicht</option>
-                                    <option value="Natürliche Waffen" :disabled="isAdvantageDisabled('Natürliche Waffen')">Natürliche Waffen</option>
-                                    <option value="Panzerung" :disabled="isAdvantageDisabled('Panzerung')">Panzerung</option>
-                                    <option value="Psychische Kraft" :disabled="isAdvantageDisabled('Psychische Kraft')">Psychische Kraft</option>
-                                    <option value="Psychisches Reservoir" :disabled="isAdvantageDisabled('Psychisches Reservoir')">Psychisches Reservoir</option>
-                                    <option value="Regeneration" :disabled="isAdvantageDisabled('Regeneration')">Regeneration</option>
-                                    <option value="Scharfschütze" :disabled="isAdvantageDisabled('Scharfschütze')">Scharfschütze</option>
-                                    <option value="Schnell" :disabled="isAdvantageDisabled('Schnell')">Schnell</option>
-                                    <option value="Sprachbegabt" :disabled="isAdvantageDisabled('Sprachbegabt')">Sprachbegabt</option>
-                                    <option value="Tiergefährte" :disabled="isAdvantageDisabled('Tiergefährte')">Tiergefährte</option>
-                                    <option value="Zäh" :disabled="isAdvantageDisabled('Zäh')" selected>Zäh</option>
-                                </select>
+                                <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                                    <h3 id="advantages-heading" class="text-sm font-medium text-base-content">Vorteile</h3>
+                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Freie Vorteile: ' + freeAdvantagePoints()"></p>
+                                </div>
+
+                                <template x-for="disabledAdvantage in selectedDisabledAdvantages()" :key="'disabled-advantage-' + disabledAdvantage">
+                                    <input type="hidden" name="advantages[]" :value="disabledAdvantage">
+                                </template>
+
+                                <div class="max-h-80 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="advantages-heading" data-testid="char-editor-advantages-list">
+                                    @foreach($advantages as $advantage)
+                                        <label
+                                            for="advantage-{{ $loop->index }}"
+                                            class="flex min-h-12 items-start gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm transition"
+                                            :class="{ 'border-primary/60 bg-primary/5': selectedAdvantages.includes(@js($advantage)), 'opacity-60': isAdvantageDisabled(@js($advantage)), 'hover:border-primary/50': !isAdvantageDisabled(@js($advantage)) }"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="advantage-{{ $loop->index }}"
+                                                name="advantages[]"
+                                                value="{{ $advantage }}"
+                                                class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
+                                                x-model="selectedAdvantages"
+                                                :disabled="isAdvantageDisabled(@js($advantage))"
+                                            >
+                                            <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
+                                            @if($advantage === 'Zäh')
+                                                <span class="badge badge-primary badge-outline shrink-0">Pflicht</span>
+                                            @endif
+                                        </label>
+                                    @endforeach
+                                </div>
                             </div>
                             <div>
-                                <label for="disadvantages" class="block text-sm font-medium text-base-content mb-1">Nachteile</label>
-                                <select name="disadvantages[]" id="disadvantages" multiple class="select select-bordered w-full min-h-40" x-model="selectedDisadvantages">
-                                    <option value="Abergläubisch" :disabled="isDisadvantageDisabled('Abergläubisch')">Abergläubisch</option>
-                                    <option value="Abhängige" :disabled="isDisadvantageDisabled('Abhängige')">Abhängige</option>
-                                    <option value="Anfälligkeit gegen Wahnsinn" :disabled="isDisadvantageDisabled('Anfälligkeit gegen Wahnsinn')">Anfälligkeit gegen Wahnsinn</option>
-                                    <option value="Auffällig" :disabled="isDisadvantageDisabled('Auffällig')">Auffällig</option>
-                                    <option value="Blutdurst" :disabled="isDisadvantageDisabled('Blutdurst')">Blutdurst</option>
-                                    <option value="Ehrenkodex" :disabled="isDisadvantageDisabled('Ehrenkodex')">Ehrenkodex</option>
-                                    <option value="Feind" :disabled="isDisadvantageDisabled('Feind')">Feind</option>
-                                    <option value="Primitiv" :disabled="isDisadvantageDisabled('Primitiv')">Primitiv</option>
-                                    <option value="Gejagt" :disabled="isDisadvantageDisabled('Gejagt')">Gejagt</option>
-                                </select>
+                                <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+                                    <h3 id="disadvantages-heading" class="text-sm font-medium text-base-content">Nachteile</h3>
+                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Gewählte Nachteile: ' + selectedDisadvantages.length + ' / benötigt: ' + chosenAdvantagesCount()"></p>
+                                </div>
+
+                                <template x-for="lockedDisadvantage in selectedLockedDisadvantages()" :key="'locked-disadvantage-' + lockedDisadvantage">
+                                    <input type="hidden" name="disadvantages[]" :value="lockedDisadvantage">
+                                </template>
+
+                                <div class="max-h-80 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="disadvantages-heading" data-testid="char-editor-disadvantages-list">
+                                    @foreach($disadvantages as $disadvantage)
+                                        <label
+                                            for="disadvantage-{{ $loop->index }}"
+                                            class="flex min-h-12 items-start gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm transition"
+                                            :class="{ 'border-primary/60 bg-primary/5': selectedDisadvantages.includes(@js($disadvantage)), 'opacity-60': isDisadvantageDisabled(@js($disadvantage)), 'hover:border-primary/50': !isDisadvantageDisabled(@js($disadvantage)) }"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="disadvantage-{{ $loop->index }}"
+                                                name="disadvantages[]"
+                                                value="{{ $disadvantage }}"
+                                                class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
+                                                x-model="selectedDisadvantages"
+                                                :disabled="isDisadvantageDisabled(@js($disadvantage))"
+                                            >
+                                            <span class="min-w-0 flex-1 leading-5">{{ $disadvantage }}</span>
+                                            <template x-if="isDisadvantageDisabled(@js($disadvantage))"><span class="badge badge-primary badge-outline shrink-0">Pflicht</span></template>
+                                        </label>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
-
                     <div class="mb-6">
                         <h2 id="equipment-heading" class="text-xl font-semibold text-primary mb-2">Ausrüstung</h2>
                         <x-textarea name="equipment" id="equipment" rows="4" x-model="equipment" aria-labelledby="equipment-heading" />
