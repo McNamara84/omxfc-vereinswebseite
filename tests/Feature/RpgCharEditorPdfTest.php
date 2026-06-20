@@ -306,7 +306,25 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors([
-            'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
+    }
+
+    public function test_pdf_rejects_editor_preview_portrait_data_url_with_mismatched_mime_type(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $image = UploadedFile::fake()->image('avatar.jpg', 1, 1);
+        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => $dataUrl,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
         ]);
     }
 
@@ -320,7 +338,7 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors([
-            'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
         ]);
     }
 

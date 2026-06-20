@@ -347,8 +347,8 @@ describe('charEditor – Submit-Mirroring', () => {
         const lockedNameSkill = { name: 'Nahkampf', value: 1, nameDisabled: true, valueDisabled: false };
         const exactGrantSkill = { name: 'Beruf: Landwirt', value: 2, nameDisabled: true, valueDisabled: true };
 
-        e.cultureGrants = { 'Beruf: Viehzuechter': { type: 'exact', value: 2 } };
-        const exactGrantWithoutFlag = { name: 'Beruf: Viehzuechter', value: 2, nameDisabled: true, valueDisabled: false };
+        e.cultureGrants = { 'Beruf: Viehzüchter': { type: 'exact', value: 2 } };
+        const exactGrantWithoutFlag = { name: 'Beruf: Viehzüchter', value: 2, nameDisabled: true, valueDisabled: false };
 
         e.raceGrants = { Intuition: { type: 'min', value: 1 } };
         const uiDisabledByExclusivity = { name: 'Bildung', value: 1, nameDisabled: false, valueDisabled: false };

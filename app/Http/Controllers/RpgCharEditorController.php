@@ -165,20 +165,29 @@ class RpgCharEditorController extends Controller
             return null;
         }
 
-        if (! preg_match('/^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([A-Za-z0-9+\/=]+)$/', $dataUrl, $matches)) {
-            throw ValidationException::withMessages([
-                'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
-            ]);
+        if (! preg_match('/^data:(image\/(?:png|jpeg|gif|webp|bmp));base64,([A-Za-z0-9+\/=]+)$/', $dataUrl, $matches)) {
+            throw $this->portraitDataUrlValidationException();
         }
 
         $binary = base64_decode($matches[2], true);
+        $imageInfo = $binary === false ? false : @getimagesizefromstring($binary);
 
-        if ($binary === false || strlen($binary) > self::PORTRAIT_MAX_BYTES || @getimagesizefromstring($binary) === false) {
-            throw ValidationException::withMessages([
-                'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
-            ]);
+        if (
+            $binary === false
+            || strlen($binary) > self::PORTRAIT_MAX_BYTES
+            || $imageInfo === false
+            || ($imageInfo['mime'] ?? null) !== $matches[1]
+        ) {
+            throw $this->portraitDataUrlValidationException();
         }
 
         return 'data:'.$matches[1].';base64,'.base64_encode($binary);
+    }
+
+    private function portraitDataUrlValidationException(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
     }
 }
