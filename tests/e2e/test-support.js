@@ -1,7 +1,16 @@
 import { expect, test as base } from '@playwright/test';
 import { waitForUrl, withNavigationDefaults } from './utils/navigation.js';
 
-const stableActionFallbackTimeout = Number(process.env.PLAYWRIGHT_STABLE_ACTION_FALLBACK_TIMEOUT ?? process.env.PLAYWRIGHT_STABLE_CLICK_FALLBACK_TIMEOUT ?? 1500);
+const defaultStableActionFallbackTimeout = 1500;
+const parseTimeout = (value, fallback = defaultStableActionFallbackTimeout) => {
+    const parsedValue = Number(value);
+
+    return Number.isFinite(parsedValue) ? parsedValue : fallback;
+};
+const stableActionFallbackTimeout = parseTimeout(
+    process.env.PLAYWRIGHT_STABLE_ACTION_FALLBACK_TIMEOUT
+        ?? process.env.PLAYWRIGHT_STABLE_CLICK_FALLBACK_TIMEOUT,
+);
 const locatorStableActionPatchSymbol = Symbol.for('omxfc.playwright.locatorStableActionFallback');
 const retryableNavigationErrors = [
     'net::ERR_EMPTY_RESPONSE',
