@@ -7,10 +7,13 @@ import { resolvePlaywrightRunToken } from './utils/playwright-run-token.js';
 const playwrightCli = path.resolve('node_modules/playwright/cli.js');
 const viteCli = path.resolve('node_modules/vite/bin/vite.js');
 const shouldHideWindowsShell = process.platform === 'win32';
+const installableBrowserProjects = new Set(['chromium', 'firefox', 'webkit']);
+const defaultBrowserCachePath = path.resolve('.playwright-browsers');
 
 function createChildEnv(env, forwardedScreenshotFlag) {
     return {
         ...env,
+        PLAYWRIGHT_BROWSERS_PATH: env.PLAYWRIGHT_BROWSERS_PATH ?? defaultBrowserCachePath,
         PLAYWRIGHT_USE_DOCKER: '1',
         ...(forwardedScreenshotFlag === null
             ? {}
@@ -44,6 +47,55 @@ export function createProjectRuns({ args, env, basePort }) {
         },
     }));
 }
+
+function extractProjectNames(args) {
+    const projects = [];
+
+    for (let index = 0; index < args.length; index += 1) {
+        const arg = args[index];
+
+        if (arg === '--project' && args[index + 1]) {
+            projects.push(args[index + 1]);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith('--project=')) {
+            projects.push(arg.slice('--project='.length));
+        }
+    }
+
+    return projects;
+}
+
+export function collectBrowserInstallProjects(projectRuns) {
+    return [
+        ...new Set(projectRuns
+            .flatMap((run) => extractProjectNames(run.args))
+            .filter((project) => installableBrowserProjects.has(project))),
+    ];
+}
+
+const runPlaywrightInstall = (projects, baseEnv, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
+    if (projects.length === 0) {
+        resolve(0);
+        return;
+    }
+
+    const child = spawnFn(process.execPath, [playwrightCli, 'install', ...projects], {
+        stdio: 'inherit',
+        windowsHide: shouldHideWindowsShell,
+        env: baseEnv,
+    });
+
+    child.on('exit', (code) => {
+        resolve(code ?? 1);
+    });
+
+    child.on('error', (error) => {
+        reject(error);
+    });
+});
 
 const runPlaywright = (args, baseEnv, envOverrides = {}, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
     const child = spawnFn(process.execPath, [playwrightCli, 'test', ...args], {
@@ -97,6 +149,25 @@ export async function main({
     const childEnv = createChildEnv(env, forwardedScreenshotFlag);
     const shouldUseViteHot = childEnv.PLAYWRIGHT_USE_VITE_HOT === '1';
 
+    const projectRuns = createProjectRuns({
+        args: playwrightArgs,
+        env: childEnv,
+        basePort,
+    });
+    const shouldInstallBrowsers = childEnv.PLAYWRIGHT_SKIP_BROWSER_INSTALL !== '1';
+
+    if (shouldInstallBrowsers) {
+        const installCode = await runPlaywrightInstall(
+            collectBrowserInstallProjects(projectRuns),
+            childEnv,
+            { spawnFn },
+        );
+
+        if (installCode !== 0) {
+            return installCode;
+        }
+    }
+
     if (!shouldUseViteHot) {
         const buildCode = await runViteBuild(childEnv, { spawnFn });
 
@@ -104,12 +175,6 @@ export async function main({
             return buildCode;
         }
     }
-
-    const projectRuns = createProjectRuns({
-        args: playwrightArgs,
-        env: childEnv,
-        basePort,
-    });
 
     for (const run of projectRuns) {
         const projectPort = Number(run.env.PLAYWRIGHT_PORT ?? childEnv.PLAYWRIGHT_PORT ?? basePort);

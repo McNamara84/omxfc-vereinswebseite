@@ -31,6 +31,7 @@ yarn-error.log
 /coverage
 /performance-results
 /playwright-performance
+/.playwright-browsers
 /test-results
 coverage.xml
 omxfc_vereinswebseite

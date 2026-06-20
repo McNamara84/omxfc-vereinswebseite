@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 
-import { createProjectRuns, isDirectExecution, main } from '../e2e/run-playwright-docker.mjs';
+import { collectBrowserInstallProjects, createProjectRuns, isDirectExecution, main } from '../e2e/run-playwright-docker.mjs';
 import { createPlaywrightRunToken, resolvePlaywrightRunToken } from '../e2e/utils/playwright-run-token.js';
 
 describe('playwright run token helper', () => {
@@ -67,6 +67,17 @@ describe('playwright docker harness', () => {
         ]);
     });
 
+    it('ermittelt installierbare Browserprojekte ohne Duplikate', () => {
+        const projects = collectBrowserInstallProjects([
+            { args: ['--project=chromium'] },
+            { args: ['--project', 'firefox'] },
+            { args: ['--project=mobile-chrome'] },
+            { args: ['--project', 'chromium'] },
+        ]);
+
+        expect(projects).toEqual(['chromium', 'firefox']);
+    });
+
     it('erkennt direkte Ausfuehrung auch mit relativem Scriptpfad robust', () => {
         expect(() => isDirectExecution('tests/e2e/run-playwright-docker.mjs')).not.toThrow();
         expect(isDirectExecution('tests/e2e/run-playwright-docker.mjs')).toBe(true);
@@ -101,12 +112,17 @@ describe('playwright docker harness', () => {
         });
 
         expect(exitCode).toBe(0);
-        expect(spawnFn).toHaveBeenCalledTimes(2);
+        expect(spawnFn).toHaveBeenCalledTimes(3);
         expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
+            'install',
+            'webkit',
+        ]);
+        expect(spawnFn.mock.calls[1][1]).toEqual([
             expect.stringMatching(/node_modules[\\/]vite[\\/]bin[\\/]vite\.js$/),
             'build',
         ]);
-        expect(spawnFn.mock.calls[1][2].env).toMatchObject({
+        expect(spawnFn.mock.calls[2][2].env).toMatchObject({
             PLAYWRIGHT_USE_DOCKER: '1',
             PLAYWRIGHT_RUN_TOKEN: 'provided-token',
             PLAYWRIGHT_PORT: '8100',
@@ -145,8 +161,13 @@ describe('playwright docker harness', () => {
         });
 
         expect(exitCode).toBe(0);
-        expect(spawnFn).toHaveBeenCalledTimes(1);
+        expect(spawnFn).toHaveBeenCalledTimes(2);
         expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
+            'install',
+            'webkit',
+        ]);
+        expect(spawnFn.mock.calls[1][1]).toEqual([
             expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
             'test',
             'tests/e2e/homepage-performance.spec.js',
