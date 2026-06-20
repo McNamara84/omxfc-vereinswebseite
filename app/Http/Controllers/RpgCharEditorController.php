@@ -88,7 +88,7 @@ class RpgCharEditorController extends Controller
 
         foreach (self::ATTRIBUTE_KEYS as $key) {
             if (array_key_exists($key, $attributes)) {
-                $payload[$key] = $attributes[$key];
+                $payload[$key] = $this->stringPayload($attributes[$key]);
             }
         }
 
@@ -108,7 +108,7 @@ class RpgCharEditorController extends Controller
                 continue;
             }
 
-            $name = trim((string) ($skill['name'] ?? ''));
+            $name = $this->stringPayload($skill['name'] ?? '');
 
             if ($name === '') {
                 continue;
@@ -116,7 +116,7 @@ class RpgCharEditorController extends Controller
 
             $payload[] = [
                 'name' => $name,
-                'value' => (string) ($skill['value'] ?? ''),
+                'value' => $this->stringPayload($skill['value'] ?? ''),
             ];
         }
 
@@ -126,13 +126,13 @@ class RpgCharEditorController extends Controller
     private function listPayload(mixed $values): array
     {
         if (! is_array($values)) {
-            $values = filled($values) ? [$values] : [];
+            $values = [$values];
         }
 
         $payload = [];
 
         foreach ($values as $value) {
-            $normalized = trim((string) $value);
+            $normalized = $this->stringPayload($value);
 
             if ($normalized !== '') {
                 $payload[] = $normalized;
@@ -153,7 +153,7 @@ class RpgCharEditorController extends Controller
 
     private function portraitDataUrlPayload(mixed $dataUrl): ?string
     {
-        $dataUrl = trim((string) $dataUrl);
+        $dataUrl = $this->stringPayload($dataUrl);
 
         if ($dataUrl === '') {
             return null;

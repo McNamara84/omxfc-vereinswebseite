@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Http\Controllers\RpgCharEditorController;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,6 +146,71 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
 
         $response->assertOk();
+    }
+
+    public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                return $data['attributes'] === [
+                    'st' => '2',
+                    'ge' => '',
+                    'ro' => '',
+                    'wi' => '0',
+                    'wa' => '',
+                    'in' => '1',
+                    'au' => '-1',
+                ]
+                    && $data['skills'] === [
+                        ['name' => 'Fahren', 'value' => ''],
+                        ['name' => 'Diebeskunst', 'value' => '4'],
+                    ]
+                    && $data['advantages'] === ['Zaeh', 'Anfuehrer']
+                    && $data['disadvantages'] === ['Aberglaeubisch'];
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            'character_name' => 'Collection Payload',
+            'attributes' => [
+                'st' => ' 2 ',
+                'ge' => ['manipuliert'],
+                'ro' => false,
+                'wi' => 0,
+                'wa' => null,
+                'in' => true,
+                'au' => ' -1 ',
+            ],
+            'skills' => [
+                ['name' => ['manipuliert'], 'value' => '4'],
+                ['name' => ' Fahren ', 'value' => ['manipuliert']],
+                ['name' => ' Diebeskunst ', 'value' => 4],
+                ['name' => false, 'value' => '3'],
+            ],
+            'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
+            'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
+        ]);
+
+        $response->assertOk();
+    }
+
+    public function test_portrait_data_url_payload_ignores_non_scalar_values(): void
+    {
+        $controller = app(RpgCharEditorController::class);
+        $method = new \ReflectionMethod($controller, 'portraitDataUrlPayload');
+        $method->setAccessible(true);
+
+        $this->assertNull($method->invoke($controller, ['manipuliert']));
+        $this->assertNull($method->invoke($controller, (object) ['manipuliert' => true]));
     }
 
     public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
