@@ -273,6 +273,43 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_rejects_editor_preview_portrait_data_url_above_character_limit(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $maxChars = (new \ReflectionClass(RpgCharEditorController::class))
+            ->getReflectionConstant('PORTRAIT_DATA_URL_MAX_CHARS')
+            ->getValue();
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => str_repeat('A', $maxChars + 1),
+        ]);
+
+        $response->assertSessionHasErrors('portrait_data_url');
+    }
+
+    public function test_pdf_rejects_editor_preview_portrait_data_url_with_line_breaks(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+        $base64 = base64_encode($image->get());
+        $dataUrl = 'data:image/png;base64,'.substr($base64, 0, 8)."\n".substr($base64, 8);
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+            ...$this->validPdfPayload(),
+            'portrait_data_url' => $dataUrl,
+        ]);
+
+        $response->assertSessionHasErrors([
+            'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
+        ]);
+    }
+
     public function test_pdf_rejects_invalid_editor_preview_portrait_data(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

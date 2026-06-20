@@ -22,6 +22,12 @@ class RpgCharEditorController extends Controller
 
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
+    private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
+
+    private const PORTRAIT_DATA_URL_PREFIX_MAX_CHARS = 23;
+
+    private const PORTRAIT_DATA_URL_MAX_CHARS = self::PORTRAIT_DATA_URL_PREFIX_MAX_CHARS + self::PORTRAIT_MAX_BASE64_CHARS;
+
     /**
      * Show the character editor form.
      */
@@ -37,7 +43,7 @@ class RpgCharEditorController extends Controller
     {
         $request->validate([
             'portrait' => 'nullable|image|max:2048',
-            'portrait_data_url' => 'nullable|string',
+            'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
         ]);
 
         $data = [
@@ -159,7 +165,7 @@ class RpgCharEditorController extends Controller
             return null;
         }
 
-        if (! preg_match('/^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([A-Za-z0-9+\/\r\n=]+)$/', $dataUrl, $matches)) {
+        if (! preg_match('/^data:(image\/(?:png|jpe?g|gif|webp|bmp));base64,([A-Za-z0-9+\/=]+)$/', $dataUrl, $matches)) {
             throw ValidationException::withMessages([
                 'portrait' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
             ]);
