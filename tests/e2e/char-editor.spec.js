@@ -23,6 +23,29 @@ const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohn
 };
 
 const checkbox = (page, name, value) => page.locator(`input[type="checkbox"][name="${name}"][value="${value}"]`);
+const completeValidBarbarExport = async (page) => {
+    await page.getByTestId('char-editor-form').evaluate((form) => {
+        const state = window.Alpine?.$data(form);
+
+        if (!state) {
+            throw new Error('Charakter-Editor-State konnte nicht gefunden werden.');
+        }
+
+        state.attributes.st = 2;
+        state.attributes.ge = 1;
+
+        for (const skill of state.skills) {
+            if (!skill.valueDisabled) {
+                skill.value = 4;
+            }
+        }
+
+        state.skills.push({ name: 'Fahren', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+        state.skills.push({ name: 'Handeln', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+    });
+
+    await expect(page.getByTestId('pdf-button')).toBeEnabled();
+};
 
 test.describe('RPG Charakter-Editor', () => {
     test('lädt ohne Persist-Fehler und sperrt den Formularfluss initial korrekt', async ({ page }) => {
@@ -63,6 +86,33 @@ test.describe('RPG Charakter-Editor', () => {
 
         expect(pageErrors).toEqual([]);
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
+    });
+
+    test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }) => {
+        await openAdvancedEditor(page);
+        await completeValidBarbarExport(page);
+
+        const pdfRequests = [];
+        const pdfViewerPath = /^\/rpg\/char-editor\/pdf\/[0-9a-f-]{36}$/;
+
+        page.context().on('request', (request) => {
+            const url = new URL(request.url());
+
+            if (url.pathname.startsWith('/rpg/char-editor/pdf')) {
+                pdfRequests.push({ method: request.method(), pathname: url.pathname });
+            }
+        });
+
+        const [popup] = await Promise.all([
+            page.waitForEvent('popup', { timeout: 5000 }),
+            page.getByTestId('pdf-button').click(),
+        ]);
+
+        await expect.poll(() => pdfRequests.some((request) => request.method === 'GET' && pdfViewerPath.test(request.pathname))).toBe(true);
+        expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname === '/rpg/char-editor/pdf')).toHaveLength(1);
+        expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname !== '/rpg/char-editor/pdf')).toHaveLength(0);
+
+        await popup.close().catch(() => {});
     });
 
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {

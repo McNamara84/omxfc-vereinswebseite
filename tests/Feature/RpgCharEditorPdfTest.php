@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Tests\TestCase;
@@ -16,6 +17,20 @@ use Tests\TestCase;
 class RpgCharEditorPdfTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::store('rpg_pdf_exports')->flush();
+    }
+
+    protected function tearDown(): void
+    {
+        Cache::store('rpg_pdf_exports')->flush();
+
+        parent::tearDown();
+    }
 
     private function validPdfPayload(array $overrides = []): array
     {
@@ -89,6 +104,142 @@ class RpgCharEditorPdfTest extends TestCase
         return $user->refresh();
     }
 
+    public function test_pdf_export_post_redirects_to_get_viewer_url(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+
+        $response
+            ->assertStatus(Response::HTTP_SEE_OTHER)
+            ->assertRedirect();
+
+        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+
+        $this->assertMatchesRegularExpression('#^/rpg/char-editor/pdf/[0-9a-f-]{36}$#', $path);
+    }
+
+    public function test_pdf_export_get_route_can_be_opened_repeatedly_by_pdf_viewers(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+
+        Pdf::shouldReceive('view')
+            ->twice()
+            ->with('rpg.char-sheet', \Mockery::type('array'))
+            ->andReturnUsing(fn () => new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $this->actingAs($member)->get($path)->assertOk();
+        $this->actingAs($member)->get($path)->assertOk();
+    }
+
+    public function test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $firstResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'character_name' => 'Erster Charakter',
+        ]));
+        $firstToken = basename(parse_url($firstResponse->headers->get('Location'), PHP_URL_PATH));
+        $firstCacheKey = 'rpg-char-editor-pdf:'.$firstToken;
+        $firstSessionPayloadKey = 'rpg-char-editor-pdf.'.$firstToken;
+
+        $firstResponse
+            ->assertRedirect()
+            ->assertSessionMissing($firstSessionPayloadKey)
+            ->assertSessionHas('rpg-char-editor-pdf.active-token', $firstToken);
+
+        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
+
+        $secondResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'character_name' => 'Zweiter Charakter',
+        ]));
+        $secondToken = basename(parse_url($secondResponse->headers->get('Location'), PHP_URL_PATH));
+        $secondCacheKey = 'rpg-char-editor-pdf:'.$secondToken;
+        $secondSessionPayloadKey = 'rpg-char-editor-pdf.'.$secondToken;
+
+        $secondResponse
+            ->assertRedirect()
+            ->assertSessionMissing($firstSessionPayloadKey)
+            ->assertSessionMissing($secondSessionPayloadKey)
+            ->assertSessionHas('rpg-char-editor-pdf.active-token', $secondToken);
+
+        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
+        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($secondCacheKey));
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)->get('/rpg/char-editor/pdf/'.$firstToken)->assertNotFound();
+    }
+
+    public function test_pdf_export_get_route_is_scoped_to_exporting_user(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $otherMember = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::type('array'))
+            ->andReturnUsing(fn () => new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $this->actingAs($otherMember)->get($path)->assertNotFound();
+        $this->actingAs($member)->get($path)->assertOk();
+    }
+
+    public function test_pdf_export_get_route_rejects_unknown_tokens(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->get('/rpg/char-editor/pdf/00000000-0000-4000-8000-000000000000')
+            ->assertNotFound();
+    }
+
+    public function test_pdf_export_get_route_rejects_expired_tokens(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $token = '00000000-0000-4000-8000-000000000001';
+
+        Pdf::shouldReceive('view')->never();
+
+        $cacheKey = 'rpg-char-editor-pdf:'.$token;
+
+        Cache::store('rpg_pdf_exports')->put($cacheKey, [
+            'user_id' => (string) $member->getAuthIdentifier(),
+            'expires_at' => now()->subMinute()->getTimestamp(),
+            'data' => $this->validPdfPayload(),
+        ], now()->addMinute());
+
+        $this->withSession([
+            'rpg-char-editor-pdf.active-token' => $token,
+        ])
+            ->actingAs($member)
+            ->get('/rpg/char-editor/pdf/'.$token)
+            ->assertNotFound()
+            ->assertSessionMissing('rpg-char-editor-pdf.active-token');
+
+        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($cacheKey));
+    }
+
     public function test_pdf_view_receives_normalized_browser_payload_for_disabled_editor_fields(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -121,7 +272,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             '_token' => 'ignored by payload whitelist',
             'player_name' => 'Holger',
             'character_name' => 'Holli',
@@ -179,7 +330,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Collection Payload',
             'attributes' => [
                 'st' => ' 2 ',
@@ -235,7 +386,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'player_name' => ' Holger ',
             'character_name' => ['manipuliert'],
             'race' => 123,
@@ -265,7 +416,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             ...$this->validPdfPayload(['character_name' => 'Preview Portrait']),
             'portrait_data_url' => $dataUrl,
         ]);
@@ -355,7 +506,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo/Bar',
             'portrait' => UploadedFile::fake()->image('avatar.jpg'),
         ]);
@@ -378,7 +529,7 @@ class RpgCharEditorPdfTest extends TestCase
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -401,7 +552,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($admin)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo',
         ]);
 
@@ -412,7 +563,7 @@ class RpgCharEditorPdfTest extends TestCase
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             ...$this->validPdfPayload(['character_name' => 'Mit Portrait']),
             'portrait' => UploadedFile::fake()->image('avatar.png', 120, 120),
         ]);
@@ -437,7 +588,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo',
             'portrait' => UploadedFile::fake()->image('avatar.png'),
         ]);
