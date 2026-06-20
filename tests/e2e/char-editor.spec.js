@@ -158,4 +158,63 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload).toContain('Primitiv');
         expect(payload).toContain('Gejagt');
     });
+
+    test('setzt Hydrit- und Meeresbewohner-Regeln inklusive Wahlboni im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Hydrit', culture: 'Meeresbewohner' });
+
+        await expect(checkbox(page, 'advantages[]', 'Kiemen')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Kiemen')).toBeDisabled();
+        await expect(checkbox(page, 'advantages[]', 'Natürliche Waffen')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Natürliche Waffen')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Anfälligkeit gegen Wahnsinn')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Anfälligkeit gegen Wahnsinn')).toBeDisabled();
+        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+
+        await page.locator('#sea-profession-select').selectOption('Beruf: Künstler');
+        await page.locator('#sea-knowledge-combat-select').selectOption('Nahkampf');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                advantages: data.getAll('advantages[]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Hydrit');
+        expect(payload.culture).toBe('Meeresbewohner');
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Kiemen', 'Natürliche Waffen']));
+        expect(payload.disadvantages).toContain('Anfälligkeit gegen Wahnsinn');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Athletik', value: '2' }),
+            expect.objectContaining({ name: 'Bildung', value: '1' }),
+            expect.objectContaining({ name: 'Natürliche Waffen', value: '1' }),
+            expect.objectContaining({ name: 'Beruf: Künstler', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+        ]));
+        expect(payload.skills.filter((skill) => skill.name === 'Athletik')).toHaveLength(1);
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Beruf: Farmer' }),
+        ]));
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Wissenschaftler' }),
+        ]));
+    });
 });

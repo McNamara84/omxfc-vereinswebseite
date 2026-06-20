@@ -1,11 +1,13 @@
 const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
-    Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.'
+    Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.',
+    Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.'
 };
 
 const CULTURE_DESCRIPTIONS = {
     Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.',
-    Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.'
+    Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.',
+    Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.'
 };
 
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
@@ -62,6 +64,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     cultureGrants: {},
     barbarCombatSkill: null,
     citySkill: null,
+    seaProfessionSkill: null,
+    seaKnowledgeOrCombatSkill: null,
     raceCache: {},
 
     // Dynamic data
@@ -105,7 +109,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     chosenAdvantagesCount() {
-        return this.selectedAdvantages.filter(a => a !== 'Zäh').length;
+        return this.selectedAdvantages.filter(a => a !== 'Zäh' && !this.raceLocked.advantages.includes(a)).length;
     },
 
     freeAdvantagePoints() {
@@ -223,25 +227,56 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const grants = source === 'Rasse' ? this.raceGrants : this.cultureGrants;
         grants[name] = { type: 'min', value };
         const skill = this.ensureSkill(name);
-        skill.nameDisabled = true;
-        skill.locked = true;
-        skill.badge = source;
-        if (skill.value < value) skill.value = value;
+        this.applyGrantToSkill(skill);
     },
 
     setFreeExact(name, value, source) {
         const grants = source === 'Rasse' ? this.raceGrants : this.cultureGrants;
         grants[name] = { type: 'exact', value };
         const skill = this.ensureSkill(name);
+        this.applyGrantToSkill(skill);
+    },
+
+    applyGrantToSkill(skill) {
+        const grant = this.getGrant(skill.name);
+        if (!grant) return;
+
+        const hasRaceGrant = Boolean(this.raceGrants[skill.name]);
+        const hasCultureGrant = Boolean(this.cultureGrants[skill.name]);
+
         skill.nameDisabled = true;
-        skill.valueDisabled = true;
         skill.locked = true;
-        skill.badge = source;
-        skill.value = value;
+        skill.badge = hasRaceGrant && hasCultureGrant ? 'Rasse/Kultur' : (hasRaceGrant ? 'Rasse' : 'Kultur');
+        skill.valueDisabled = grant.type === 'exact';
+
+        if (grant.type === 'exact') {
+            skill.value = grant.value;
+        } else if (skill.value < grant.value) {
+            skill.value = grant.value;
+        }
+    },
+
+    refreshGrantedSkill(name) {
+        const skill = this.skills.find(s => s.name === name);
+        if (!skill) return;
+
+        const grant = this.getGrant(name);
+        if (!grant) {
+            this.skills = this.skills.filter(s => s !== skill);
+            return;
+        }
+
+        this.applyGrantToSkill(skill);
     },
 
     getGrant(name) {
-        return this.raceGrants[name] || this.cultureGrants[name] || null;
+        const grants = [this.raceGrants[name], this.cultureGrants[name]].filter(Boolean);
+        if (!grants.length) return null;
+
+        return {
+            type: grants.some(grant => grant.type === 'exact') ? 'exact' : 'min',
+            value: Math.max(...grants.map(grant => grant.value)),
+        };
     },
 
     getSkillMin(name) {
@@ -321,6 +356,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.clearRace();
         if (this.race === 'Barbar') this.applyRaceBarbar();
         if (this.race === 'Guul') this.applyRaceGuul();
+        if (this.race === 'Hydrit') this.applyRaceHydrit();
         this.restoreRaceState(this.race);
         this._prevRace = this.race;
         this.updateDescription();
@@ -353,10 +389,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     clearRace() {
+        const previousRaceSkills = Object.keys(this.raceGrants);
+        const previousLockedAdvantages = [...this.raceLocked.advantages];
+        const previousLockedDisadvantages = [...this.raceLocked.disadvantages];
+
         this.raceAPBonus = 0;
-        this.skills = this.skills.filter(s => s.badge !== 'Rasse');
         this.raceGrants = {};
         this.barbarCombatSkill = null;
+        previousRaceSkills.forEach(name => this.refreshGrantedSkill(name));
+        this.selectedAdvantages = this.selectedAdvantages.filter(value => value === 'Zäh' || !previousLockedAdvantages.includes(value));
+        this.selectedDisadvantages = this.selectedDisadvantages.filter(value => !previousLockedDisadvantages.includes(value));
+        this.raceLocked.advantages = [];
         this.raceLocked.disadvantages = [];
     },
 
@@ -376,19 +419,28 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Primitiv', 'Gejagt'])];
     },
 
+    applyRaceHydrit() {
+        this.setFreeMin('Athletik', 2, 'Rasse');
+        this.setFreeMin('Bildung', 1, 'Rasse');
+        this.setFreeMin('Natürliche Waffen', 1, 'Rasse');
+        this.raceLocked.advantages = ['Kiemen', 'Natürliche Waffen'];
+        this.raceLocked.disadvantages = ['Anfälligkeit gegen Wahnsinn'];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Kiemen', 'Natürliche Waffen'])];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Anfälligkeit gegen Wahnsinn'])];
+    },
+
     setBarbarCombatSkill(skillName) {
-        const prev = this.barbarCombatSkill;
-        if (prev && prev !== skillName) {
-            this.skills = this.skills.filter(s => s.name !== prev || s.badge !== 'Rasse');
-            delete this.raceGrants[prev];
-        }
+        ['Nahkampf', 'Fernkampf']
+            .filter(name => name !== skillName && this.raceGrants[name])
+            .forEach(name => {
+                delete this.raceGrants[name];
+                this.refreshGrantedSkill(name);
+            });
+
         this.barbarCombatSkill = skillName;
         this.raceGrants[skillName] = { type: 'min', value: 1 };
         const skill = this.ensureSkill(skillName);
-        skill.nameDisabled = true;
-        skill.locked = true;
-        skill.badge = 'Rasse';
-        if (skill.value < 1) skill.value = 1;
+        this.applyGrantToSkill(skill);
     },
 
     // --- Culture handling ---
@@ -396,13 +448,18 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.clearCulture();
         if (this.culture === 'Landbewohner') this.applyCultureLandbewohner();
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
+        if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
         this.updateDescription();
     },
 
     clearCulture() {
-        this.skills = this.skills.filter(s => s.badge !== 'Kultur');
+        const previousCultureSkills = Object.keys(this.cultureGrants);
+
         this.cultureGrants = {};
         this.citySkill = null;
+        this.seaProfessionSkill = null;
+        this.seaKnowledgeOrCombatSkill = null;
+        previousCultureSkills.forEach(name => this.refreshGrantedSkill(name));
     },
 
     applyCultureLandbewohner() {
@@ -417,27 +474,62 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Kunde', 1, 'Kultur');
     },
 
+    applyCultureMeeresbewohner() {
+        this.setFreeMin('Athletik', 1, 'Kultur');
+        this.setSeaProfessionSkill('Beruf: Farmer');
+        this.setSeaKnowledgeOrCombatSkill('Wissenschaftler');
+    },
+
     setCitySkill(skillName) {
-        const prev = this.citySkill;
-        if (prev && prev !== skillName) {
-            this.skills = this.skills.filter(s => s.name !== prev || s.badge !== 'Kultur');
-            delete this.cultureGrants[prev];
-        }
+        ['Unterhalten', 'Sprachen']
+            .filter(name => name !== skillName && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                this.refreshGrantedSkill(name);
+            });
+
         this.citySkill = skillName;
         this.cultureGrants[skillName] = { type: 'min', value: 1 };
         const skill = this.ensureSkill(skillName);
-        skill.nameDisabled = true;
-        skill.locked = true;
-        skill.badge = 'Kultur';
-        if (skill.value < 1) skill.value = 1;
+        this.applyGrantToSkill(skill);
+    },
+
+    setSeaProfessionSkill(skillName) {
+        ['Beruf: Farmer', 'Beruf: Künstler']
+            .filter(name => name !== skillName && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                this.refreshGrantedSkill(name);
+            });
+
+        this.seaProfessionSkill = skillName;
+        this.cultureGrants[skillName] = { type: 'min', value: 1 };
+        const skill = this.ensureSkill(skillName);
+        this.applyGrantToSkill(skill);
+    },
+
+    setSeaKnowledgeOrCombatSkill(skillName) {
+        ['Wissenschaftler', 'Techniker', 'Nahkampf']
+            .filter(name => name !== skillName && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                this.refreshGrantedSkill(name);
+            });
+
+        this.seaKnowledgeOrCombatSkill = skillName;
+        this.cultureGrants[skillName] = { type: 'min', value: 1 };
+        const skill = this.ensureSkill(skillName);
+        this.applyGrantToSkill(skill);
     },
 
     // --- Advantages ---
     enforceAdvantageLimit() {
         const max = this.base.freeAdvantages;
-        const chosen = this.selectedAdvantages.filter(a => a !== 'Zäh');
+        const locked = this.selectedAdvantages.filter(a => this.raceLocked.advantages.includes(a));
+        const chosen = this.selectedAdvantages.filter(a => a !== 'Zäh' && !this.raceLocked.advantages.includes(a));
+
         if (chosen.length > max) {
-            this.selectedAdvantages = ['Zäh', ...chosen.slice(0, max)];
+            this.selectedAdvantages = [...new Set(['Zäh', ...locked, ...chosen.slice(0, max)])];
         }
         if (!this.selectedAdvantages.includes('Zäh')) {
             this.selectedAdvantages = ['Zäh', ...this.selectedAdvantages];

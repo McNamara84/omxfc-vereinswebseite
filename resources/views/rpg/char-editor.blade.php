@@ -71,6 +71,7 @@
                             <option value="" disabled>Rasse wählen</option>
                             <option value="Barbar">Barbar</option>
                             <option value="Guul">Guul</option>
+                            <option value="Hydrit">Hydrit</option>
                         </select>
                     </div>
 
@@ -80,6 +81,7 @@
                             <option value="" disabled>Kultur wählen</option>
                             <option value="Landbewohner">Landbewohner</option>
                             <option value="Stadtbewohner">Stadtbewohner</option>
+                            <option value="Meeresbewohner">Meeresbewohner</option>
                         </select>
                     </div>
 
@@ -129,6 +131,23 @@
                                 <option value="Sprachen">Sprachen (+1)</option>
                             </select>
                         </div>
+                        <div x-show="culture === 'Meeresbewohner'" class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div>
+                                <label for="sea-profession-select" class="text-sm font-medium text-base-content mb-1">Meeresbewohner Beruf-Bonus</label>
+                                <select id="sea-profession-select" class="select select-bordered w-full" x-model="seaProfessionSkill" @change="setSeaProfessionSkill(seaProfessionSkill)">
+                                    <option value="Beruf: Farmer">Beruf: Farmer (+1)</option>
+                                    <option value="Beruf: Künstler">Beruf: Künstler (+1)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="sea-knowledge-combat-select" class="text-sm font-medium text-base-content mb-1">Meeresbewohner Zusatzbonus</label>
+                                <select id="sea-knowledge-combat-select" class="select select-bordered w-full" x-model="seaKnowledgeOrCombatSkill" @change="setSeaKnowledgeOrCombatSkill(seaKnowledgeOrCombatSkill)">
+                                    <option value="Wissenschaftler">Wissenschaftler (+1)</option>
+                                    <option value="Techniker">Techniker (+1)</option>
+                                    <option value="Nahkampf">Nahkampf (+1)</option>
+                                </select>
+                            </div>
+                        </div>
                         <div class="space-y-2">
                             <template x-for="(skill, index) in skills" :key="index">
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
@@ -172,6 +191,8 @@
                         <datalist id="skills-list">
                             <option value="Athletik"></option>
                             <option value="Beruf"></option>
+                            <option value="Beruf: Farmer"></option>
+                            <option value="Beruf: Künstler"></option>
                             <option value="Bildung"></option>
                             <option value="Diebeskunst"></option>
                             <option value="Fahren"></option>
@@ -226,6 +247,8 @@
                                             <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
                                             @if($advantage === 'Zäh')
                                                 <span class="badge badge-primary badge-outline shrink-0">Pflicht</span>
+                                            @else
+                                                <template x-if="raceLocked.advantages.includes(@js($advantage))"><span class="badge badge-primary badge-outline shrink-0">Pflicht</span></template>
                                             @endif
                                         </label>
                                     @endforeach
