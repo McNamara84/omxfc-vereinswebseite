@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -31,6 +33,10 @@ class RpgCharEditorController extends Controller
 
     private const PDF_EXPORT_SESSION_MINUTES = 10;
 
+    private const PDF_EXPORT_CACHE_STORE = 'rpg_pdf_exports';
+
+    private const PDF_EXPORT_CACHE_KEY_PREFIX = 'rpg-char-editor-pdf:';
+
     private const PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
 
     /**
@@ -50,12 +56,12 @@ class RpgCharEditorController extends Controller
         $token = (string) Str::uuid();
 
         $this->forgetPreviousPdfExport($request);
-
-        $request->session()->put($this->pdfExportSessionKey($token), [
+        $this->putPdfExport($token, [
             'user_id' => (string) $request->user()->getAuthIdentifier(),
             'expires_at' => now()->addMinutes(self::PDF_EXPORT_SESSION_MINUTES)->getTimestamp(),
             'data' => $data,
         ]);
+
         $request->session()->put(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY, $token);
 
         return redirect()->route('rpg.char-editor.pdf.show', ['token' => $token], Response::HTTP_SEE_OTHER);
@@ -66,11 +72,13 @@ class RpgCharEditorController extends Controller
      */
     public function showPdf(Request $request, string $token)
     {
-        $sessionKey = $this->pdfExportSessionKey($token);
-        $export = $request->session()->get($sessionKey);
+        $export = $this->getPdfExport($token);
 
         if (! $this->isValidPdfExport($request, $export)) {
-            $request->session()->forget($sessionKey);
+            if (! $this->isFreshPdfExportOwnedByAnotherUser($request, $export)) {
+                $this->forgetPdfExport($token);
+            }
+
             $this->forgetActivePdfExport($request, $token);
             abort(404);
         }
@@ -106,9 +114,33 @@ class RpgCharEditorController extends Controller
             ->inline($name.'.pdf');
     }
 
-    private function pdfExportSessionKey(string $token): string
+    private function pdfExportCache(): CacheRepository
     {
-        return 'rpg-char-editor-pdf.'.$token;
+        return Cache::store(self::PDF_EXPORT_CACHE_STORE);
+    }
+
+    private function pdfExportCacheKey(string $token): string
+    {
+        return self::PDF_EXPORT_CACHE_KEY_PREFIX.$token;
+    }
+
+    private function putPdfExport(string $token, array $export): void
+    {
+        $this->pdfExportCache()->put(
+            $this->pdfExportCacheKey($token),
+            $export,
+            now()->addMinutes(self::PDF_EXPORT_SESSION_MINUTES),
+        );
+    }
+
+    private function getPdfExport(string $token): mixed
+    {
+        return $this->pdfExportCache()->get($this->pdfExportCacheKey($token));
+    }
+
+    private function forgetPdfExport(string $token): void
+    {
+        $this->pdfExportCache()->forget($this->pdfExportCacheKey($token));
     }
 
     private function forgetPreviousPdfExport(Request $request): void
@@ -116,7 +148,7 @@ class RpgCharEditorController extends Controller
         $previousToken = $request->session()->pull(self::PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY);
 
         if (is_string($previousToken)) {
-            $request->session()->forget($this->pdfExportSessionKey($previousToken));
+            $this->forgetPdfExport($previousToken);
         }
     }
 
@@ -133,6 +165,16 @@ class RpgCharEditorController extends Controller
     {
         return is_array($export)
             && ($export['user_id'] ?? null) === (string) $request->user()->getAuthIdentifier()
+            && is_numeric($export['expires_at'] ?? null)
+            && (int) $export['expires_at'] >= now()->getTimestamp()
+            && is_array($export['data'] ?? null);
+    }
+
+    private function isFreshPdfExportOwnedByAnotherUser(Request $request, mixed $export): bool
+    {
+        return is_array($export)
+            && is_string($export['user_id'] ?? null)
+            && ($export['user_id'] ?? null) !== (string) $request->user()->getAuthIdentifier()
             && is_numeric($export['expires_at'] ?? null)
             && (int) $export['expires_at'] >= now()->getTimestamp()
             && is_array($export['data'] ?? null);

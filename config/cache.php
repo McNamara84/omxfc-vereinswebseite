@@ -46,6 +46,12 @@ return [
             'lock_table' => env('DB_CACHE_LOCK_TABLE'),
         ],
 
+        'rpg_pdf_exports' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/rpg-char-editor-pdf'),
+            'lock_path' => storage_path('framework/cache/rpg-char-editor-pdf'),
+        ],
+
         'file' => [
             'driver' => 'file',
             'path' => storage_path('framework/cache/data'),

@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Tests\TestCase;
@@ -16,6 +17,20 @@ use Tests\TestCase;
 class RpgCharEditorPdfTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::store('rpg_pdf_exports')->flush();
+    }
+
+    protected function tearDown(): void
+    {
+        Cache::store('rpg_pdf_exports')->flush();
+
+        parent::tearDown();
+    }
 
     private function validPdfPayload(array $overrides = []): array
     {
@@ -126,7 +141,7 @@ class RpgCharEditorPdfTest extends TestCase
         $this->actingAs($member)->get($path)->assertOk();
     }
 
-    public function test_pdf_export_replaces_previous_session_payload_when_new_export_is_created(): void
+    public function test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
@@ -134,24 +149,31 @@ class RpgCharEditorPdfTest extends TestCase
             'character_name' => 'Erster Charakter',
         ]));
         $firstToken = basename(parse_url($firstResponse->headers->get('Location'), PHP_URL_PATH));
-        $firstSessionKey = 'rpg-char-editor-pdf.'.$firstToken;
+        $firstCacheKey = 'rpg-char-editor-pdf:'.$firstToken;
+        $firstSessionPayloadKey = 'rpg-char-editor-pdf.'.$firstToken;
 
         $firstResponse
             ->assertRedirect()
-            ->assertSessionHas($firstSessionKey)
+            ->assertSessionMissing($firstSessionPayloadKey)
             ->assertSessionHas('rpg-char-editor-pdf.active-token', $firstToken);
+
+        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
 
         $secondResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'character_name' => 'Zweiter Charakter',
         ]));
         $secondToken = basename(parse_url($secondResponse->headers->get('Location'), PHP_URL_PATH));
-        $secondSessionKey = 'rpg-char-editor-pdf.'.$secondToken;
+        $secondCacheKey = 'rpg-char-editor-pdf:'.$secondToken;
+        $secondSessionPayloadKey = 'rpg-char-editor-pdf.'.$secondToken;
 
         $secondResponse
             ->assertRedirect()
-            ->assertSessionMissing($firstSessionKey)
-            ->assertSessionHas($secondSessionKey)
+            ->assertSessionMissing($firstSessionPayloadKey)
+            ->assertSessionMissing($secondSessionPayloadKey)
             ->assertSessionHas('rpg-char-editor-pdf.active-token', $secondToken);
+
+        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
+        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($secondCacheKey));
 
         Pdf::shouldReceive('view')->never();
 
@@ -166,9 +188,19 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
         $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::type('array'))
+            ->andReturnUsing(fn () => new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
         $this->actingAs($otherMember)->get($path)->assertNotFound();
+        $this->actingAs($member)->get($path)->assertOk();
     }
 
     public function test_pdf_export_get_route_rejects_unknown_tokens(): void
@@ -189,19 +221,23 @@ class RpgCharEditorPdfTest extends TestCase
 
         Pdf::shouldReceive('view')->never();
 
+        $cacheKey = 'rpg-char-editor-pdf:'.$token;
+
+        Cache::store('rpg_pdf_exports')->put($cacheKey, [
+            'user_id' => (string) $member->getAuthIdentifier(),
+            'expires_at' => now()->subMinute()->getTimestamp(),
+            'data' => $this->validPdfPayload(),
+        ], now()->addMinute());
+
         $this->withSession([
             'rpg-char-editor-pdf.active-token' => $token,
-            'rpg-char-editor-pdf.'.$token => [
-                'user_id' => (string) $member->getAuthIdentifier(),
-                'expires_at' => now()->subMinute()->getTimestamp(),
-                'data' => $this->validPdfPayload(),
-            ],
         ])
             ->actingAs($member)
             ->get('/rpg/char-editor/pdf/'.$token)
             ->assertNotFound()
-            ->assertSessionMissing('rpg-char-editor-pdf.'.$token)
             ->assertSessionMissing('rpg-char-editor-pdf.active-token');
+
+        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($cacheKey));
     }
 
     public function test_pdf_view_receives_normalized_browser_payload_for_disabled_editor_fields(): void
