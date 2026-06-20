@@ -425,8 +425,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
     },
 
+    selectedDisabledAdvantages() {
+        return this.selectedAdvantages.filter(value => this.isAdvantageDisabled(value));
+    },
+
+    selectedLockedDisadvantages() {
+        return this.selectedDisadvantages.filter(value => this.isDisadvantageDisabled(value));
+    },
+
     isAdvantageDisabled(value) {
         if (value === 'Zäh') return true;
+        if (this.raceLocked.advantages.includes(value)) return true;
         return !this.selectedAdvantages.includes(value) && this.chosenAdvantagesCount() >= this.base.freeAdvantages;
     },
 
