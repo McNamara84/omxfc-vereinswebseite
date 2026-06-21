@@ -226,9 +226,21 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
+        if ($race === 'Präkristofluu' && $culture !== 'Mensch des 21. Jahrhunderts') {
+            throw ValidationException::withMessages([
+                'culture' => 'Präkristofluu können laut Regelwerk nur die Kultur Mensch des 21. Jahrhunderts wählen.',
+            ]);
+        }
+
         if ($culture === 'Bunkermensch' && $race !== 'Techno') {
             throw ValidationException::withMessages([
                 'culture' => 'Die Kultur Bunkermensch ist laut Regelwerk nur für Technos zugelassen.',
+            ]);
+        }
+
+        if ($culture === 'Mensch des 21. Jahrhunderts' && $race !== 'Präkristofluu') {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur Mensch des 21. Jahrhunderts ist laut Regelwerk nur für Präkristofluu zugelassen.',
             ]);
         }
 
