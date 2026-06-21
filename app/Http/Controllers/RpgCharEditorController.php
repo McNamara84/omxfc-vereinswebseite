@@ -24,6 +24,8 @@ class RpgCharEditorController extends Controller
         'equipment',
     ];
 
+    private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
+
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
     private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
@@ -226,6 +228,12 @@ class RpgCharEditorController extends Controller
         if ($culture === 'Volk der 13 Inseln' && $race !== 'Barbar') {
             throw ValidationException::withMessages([
                 'culture' => 'Die Kultur Volk der 13 Inseln ist laut Regelwerk nur für Barbaren zugelassen.',
+            ]);
+        }
+
+        if ($culture === 'Volk der 13 Inseln' && ! in_array($character['gender'] ?? '', self::GENDER_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'gender' => 'Für die Kultur Volk der 13 Inseln muss ein gültiges Geschlecht gewählt werden.',
             ]);
         }
 

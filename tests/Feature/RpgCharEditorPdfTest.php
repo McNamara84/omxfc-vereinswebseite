@@ -105,6 +105,29 @@ class RpgCharEditorPdfTest extends TestCase
         return $user->refresh();
     }
 
+    public function test_char_sheet_formats_gender_values_for_pdf_view(): void
+    {
+        $html = view('rpg.char-sheet', [
+            'character' => [
+                'player_name' => 'Spieler Eins',
+                'character_name' => 'Foo Bar',
+                'gender' => 'maennlich',
+                'race' => 'Barbar',
+                'culture' => 'Landbewohner',
+                'description' => '',
+                'equipment' => '',
+            ],
+            'attributes' => [],
+            'skills' => [],
+            'advantages' => [],
+            'disadvantages' => [],
+            'portrait' => null,
+        ])->render();
+
+        $this->assertStringContainsString('Geschlecht:</strong> Männlich', $html);
+        $this->assertStringNotContainsString('maennlich', $html);
+    }
+
     public function test_pdf_export_post_redirects_to_get_viewer_url(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -444,6 +467,49 @@ class RpgCharEditorPdfTest extends TestCase
         ]));
 
         $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_male_volk_der_13_inseln_without_required_advantage(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['gender'] === 'maennlich'
+                && $data['character']['culture'] === 'Volk der 13 Inseln'
+                && ! in_array('Psychische Kraft', $data['advantages'], true)))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'gender' => 'maennlich',
+            'culture' => 'Volk der 13 Inseln',
+            'advantages' => ['Zaeh'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_volk_der_13_inseln_without_valid_gender(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        foreach (['', 'unbekannt'] as $gender) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'gender' => $gender,
+                'culture' => 'Volk der 13 Inseln',
+                'advantages' => ['Zaeh'],
+            ]));
+
+            $response->assertSessionHasErrors('gender');
+        }
     }
 
     public function test_pdf_export_rejects_volk_der_13_inseln_for_non_barbar(): void
