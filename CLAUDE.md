@@ -66,9 +66,8 @@ This document provides comprehensive guidance for AI assistants working with the
 ### Testing & Quality
 - **PHP Testing:** PHPUnit 13.x
 - **JavaScript Testing:**
-  - Jest 30.2 (legacy tests)
-    - Vitest 4.1 (modern tests)
-    - Playwright 1.60 (E2E tests)
+  - Vitest 4.1 (unit tests)
+  - Playwright 1.60 (E2E tests)
   - @axe-core/playwright 4.11 (accessibility testing)
 - **Code Style:** Laravel Pint 1.29
 
@@ -149,9 +148,8 @@ omxfc-vereinswebseite/
 │   ├── Concerns/             # Reusable test traits
 │   ├── e2e/                  # Playwright E2E tests
 │   ├── Feature/              # Feature tests (20+)
-│   ├── Jest/                 # Jest tests
 │   ├── Unit/                 # Unit tests (14+)
-│   └── Vitest/               # Vitest tests
+│   └── Vitest/               # Vitest JavaScript tests
 ├── .github/
 │   ├── actions/              # Reusable GitHub Actions
 │   └── workflows/            # CI/CD workflows
@@ -160,9 +158,9 @@ omxfc-vereinswebseite/
 ├── package.json              # Node dependencies
 ├── phpunit.xml               # PHPUnit configuration
 ├── playwright.config.js      # Playwright configuration
+├── vitest.config.js          # Vitest configuration
 ├── tailwind.config.js        # Tailwind CSS configuration
 ├── vite.config.js            # Vite build configuration
-└── jest.config.js            # Jest configuration
 ```
 
 ### Key Models
@@ -504,8 +502,7 @@ tests/
 ├── Concerns/          # Reusable test traits
 ├── Feature/           # Feature tests (HTTP, integration)
 ├── Unit/              # Unit tests (isolated logic)
-├── Jest/              # Legacy JavaScript tests
-├── Vitest/            # Modern JavaScript tests
+├── Vitest/            # JavaScript unit tests
 └── e2e/               # Playwright end-to-end tests
 ```
 
@@ -580,7 +577,7 @@ $this->actingAs($regularUser)
 
 The project maintains test coverage badges for both PHP and JavaScript:
 - PHP Coverage: Feature tests with PHPUnit
-- JS Coverage: Unit tests with Jest
+- JS Coverage: Unit tests with Vitest
 - E2E Coverage: Playwright tests across Chromium, Firefox, WebKit
 - Accessibility: Axe-core checks in E2E tests
 
@@ -1145,8 +1142,7 @@ Book::chunk(100, function ($books) {
 | Feature tests | `tests/Feature/` |
 | Unit tests | `tests/Unit/` |
 | E2E tests | `tests/e2e/` |
-| Jest tests | `tests/Jest/` |
-| Vitest tests | `tests/Vitest/` |
+| JavaScript unit tests | `tests/Vitest/` |
 
 ---
 
