@@ -12,8 +12,10 @@ describe('statistik module', () => {
   let drawAuthorChart;
   let drawCycleChart;
   let mockChart;
+  let originalGetContext;
 
   beforeEach(async () => {
+    originalGetContext = HTMLCanvasElement.prototype.getContext;
     vi.resetModules();
     mockChart = mockChartModule();
 
@@ -21,6 +23,11 @@ describe('statistik module', () => {
     ({ drawAuthorChart, drawCycleChart } = mod);
 
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+  });
+
+  afterEach(() => {
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
+    vi.restoreAllMocks();
   });
 
   test('drawAuthorChart renders bar chart with given labels and data', () => {

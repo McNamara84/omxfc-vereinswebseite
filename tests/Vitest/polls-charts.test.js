@@ -38,12 +38,15 @@ vi.mock('chart.js', () => {
 });
 
 describe('polls/charts.js - updateCharts Guards', () => {
+    let originalGetContext;
+
     // Modul nur einmal importieren, um Event-Listener-Akkumulation zu vermeiden
     beforeAll(async () => {
         await import('@/polls/charts.js');
     });
 
     beforeEach(() => {
+        originalGetContext = HTMLCanvasElement.prototype.getContext;
         // Reset DOM
         document.body.innerHTML = '';
         // Reset Mock-Aufrufe über globalThis
@@ -52,6 +55,11 @@ describe('polls/charts.js - updateCharts Guards', () => {
 
         // Mock getContext für Canvas-Elemente
         HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+    });
+
+    afterEach(() => {
+        HTMLCanvasElement.prototype.getContext = originalGetContext;
+        vi.restoreAllMocks();
     });
 
     /**
