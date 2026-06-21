@@ -452,7 +452,7 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Reiten', 'value' => 1],
-                ['name' => 'Ueberleben', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
             ],
         ]));
 
@@ -509,7 +509,7 @@ class RpgCharEditorPdfTest extends TestCase
                     && $data['character']['culture'] === 'Untergrundbewohner'
                     && $skills->has('Athletik')
                     && $skills->has('Beruf: Bergmann')
-                    && $skills->has('Ueberleben');
+                    && $skills->has('Überleben');
             }))
             ->andReturn(new class extends PdfBuilder
             {
@@ -525,7 +525,7 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Athletik', 'value' => 1],
                 ['name' => 'Beruf: Bergmann', 'value' => 1],
-                ['name' => 'Ueberleben', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
             ],
         ]));
 
