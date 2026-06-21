@@ -11,6 +11,8 @@ const CULTURE_DESCRIPTIONS = {
     Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.',
     Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.',
     Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, überleben in unwirtlicher Natur und werden von sesshaften Völkern oft misstrauisch betrachtet.',
+    Ruinenbewohner: 'Ruinenbewohner leben in den Resten der Städte aus der Zeit vor Kristoflus als Banditen, Jäger und Sammler. Ihre Gesellschaften sind primitiv und von Brutalität und Not geprägt.',
+    Untergrundbewohner: 'Untergrundbewohner leben in Höhlen und alten Stollen, um sich vor den Gefahren der Oberfläche zu schützen. Sie arbeiten überwiegend als Bergleute, Jäger und Sammler. Häufig haben sie seltsame Rituale und clanartige Strukturen von großer Starrheit entwickelt.',
     'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Dänemark und Finnland. Es besteht vor allem aus Jägern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.'
 };
 
@@ -21,6 +23,7 @@ const TECHNO_SKILL_POOL_POINTS = 12;
 const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
 const NOMADE_COMBAT_SKILLS = ['Nahkampf', 'Fernkampf'];
 const NOMADE_MOVEMENT_SKILLS = ['Reiten', 'Athletik'];
+const RUINENBEWOHNER_BONUS_SKILLS = ['Nahkampf', 'Fernkampf', 'Athletik', 'Kunde'];
 const VOLK_DER_13_INSELN_CULTURE = 'Volk der 13 Inseln';
 const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
 const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
@@ -84,6 +87,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     bunkermenschBonusSkill: null,
     nomadeCombatSkill: null,
     nomadeMovementSkill: null,
+    ruinenbewohnerBonusSkill: null,
     volkDer13InselnProfessionSkill: null,
     technoSkillNames: TECHNO_SKILLS,
     technoSkillPoolPoints: TECHNO_SKILL_POOL_POINTS,
@@ -648,6 +652,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
         if (this.culture === 'Bunkermensch') this.applyCultureBunkermensch();
         if (this.culture === 'Nomade') this.applyCultureNomade();
+        if (this.culture === 'Ruinenbewohner') this.applyCultureRuinenbewohner();
+        if (this.culture === 'Untergrundbewohner') this.applyCultureUntergrundbewohner();
         if (this.culture === VOLK_DER_13_INSELN_CULTURE) this.applyCultureVolkDer13Inseln();
         this.updateDescription();
     },
@@ -680,6 +686,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.bunkermenschBonusSkill = null;
         this.nomadeCombatSkill = null;
         this.nomadeMovementSkill = null;
+        this.ruinenbewohnerBonusSkill = null;
         this.volkDer13InselnProfessionSkill = null;
         this.setCultureLockedAdvantages([]);
         previousCultureSkills.forEach(name => this.refreshGrantedSkill(name));
@@ -713,6 +720,18 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('\u00dcberleben', 1, 'Kultur');
         this.setNomadeCombatSkill('Nahkampf');
         this.setNomadeMovementSkill('Reiten');
+    },
+
+    applyCultureRuinenbewohner() {
+        this.setFreeMin('Diebeskunst', 1, 'Kultur');
+        this.setFreeMin('Heimlichkeit', 1, 'Kultur');
+        this.setRuinenbewohnerBonusSkill('Nahkampf');
+    },
+
+    applyCultureUntergrundbewohner() {
+        this.setFreeMin('Athletik', 1, 'Kultur');
+        this.setFreeMin('Beruf: Bergmann', 1, 'Kultur');
+        this.setFreeMin('\u00dcberleben', 1, 'Kultur');
     },
 
     applyCultureVolkDer13Inseln() {
@@ -786,6 +805,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     setNomadeMovementSkill(skillName) {
         this.setCultureChoiceSkill(skillName, NOMADE_MOVEMENT_SKILLS, 'nomadeMovementSkill');
+    },
+
+    setRuinenbewohnerBonusSkill(skillName) {
+        this.setCultureChoiceSkill(skillName, RUINENBEWOHNER_BONUS_SKILLS, 'ruinenbewohnerBonusSkill');
     },
 
     setVolkDer13InselnProfessionSkill(skillName) {

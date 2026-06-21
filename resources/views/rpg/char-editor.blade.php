@@ -97,6 +97,8 @@
                             <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
                             <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
                             <option value="Nomade" :disabled="!isCultureSelectable('Nomade')">Nomade</option>
+                            <option value="Ruinenbewohner" :disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
+                            <option value="Untergrundbewohner" :disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
                             <option value="Volk der 13 Inseln" :disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
                         </select>
                     </div>
@@ -202,6 +204,15 @@
                                 </select>
                             </div>
                         </div>
+                        <div x-show="culture === 'Ruinenbewohner'" class="mb-2">
+                            <label for="ruinenbewohner-bonus-select" class="text-sm font-medium text-base-content mb-1">Ruinenbewohner Zusatzbonus</label>
+                            <select id="ruinenbewohner-bonus-select" class="select select-bordered w-full sm:w-auto" x-model="ruinenbewohnerBonusSkill" @change="setRuinenbewohnerBonusSkill(ruinenbewohnerBonusSkill)">
+                                <option value="Nahkampf">Nahkampf (+1)</option>
+                                <option value="Fernkampf">Fernkampf (+1)</option>
+                                <option value="Athletik">Athletik (+1)</option>
+                                <option value="Kunde">Kunde (+1)</option>
+                            </select>
+                        </div>
                         <div x-show="culture === 'Volk der 13 Inseln'" class="mb-2">
                             <label for="volk-13-profession-select" class="text-sm font-medium text-base-content mb-1">Volk der 13 Inseln Beruf-Bonus</label>
                             <select id="volk-13-profession-select" class="select select-bordered w-full sm:w-auto" x-model="volkDer13InselnProfessionSkill" @change="setVolkDer13InselnProfessionSkill(volkDer13InselnProfessionSkill)">
@@ -253,6 +264,7 @@
                             <option value="Athletik"></option>
                             <option value="Beruf"></option>
                             <option value="Beruf: Bauer"></option>
+                            <option value="Beruf: Bergmann"></option>
                             <option value="Beruf: Fischer"></option>
                             <option value="Beruf: Farmer"></option>
                             <option value="Beruf: Künstler"></option>
