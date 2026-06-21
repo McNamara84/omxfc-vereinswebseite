@@ -50,6 +50,7 @@
 
                 <input type="hidden" name="player_name" :value="playerName" :disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="character_name" :value="characterName" :disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="gender" :value="gender" :disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="race" :value="race" :disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="culture" :value="culture" :disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" :disabled="!shouldSubmitPortraitPreview()">
@@ -64,6 +65,16 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
+                    </div>
+
+                    <div :class="{ 'opacity-50': advancedUnlocked }">
+                        <label for="gender" class="block text-sm font-medium text-base-content mb-1">Geschlecht</label>
+                        <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" :disabled="advancedUnlocked">
+                            <option value="" disabled>Geschlecht wählen</option>
+                            <option value="weiblich">Weiblich</option>
+                            <option value="maennlich">Männlich</option>
+                            <option value="divers">Divers / keine Angabe</option>
+                        </select>
                     </div>
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
@@ -85,6 +96,8 @@
                             <option value="Stadtbewohner" :disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
                             <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
                             <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
+                            <option value="Nomade" :disabled="!isCultureSelectable('Nomade')">Nomade</option>
+                            <option value="Volk der 13 Inseln" :disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
                         </select>
                     </div>
 
@@ -173,6 +186,29 @@
                                 <option value="Wissenschaftler">Wissenschaftler (+1)</option>
                             </select>
                         </div>
+                        <div x-show="culture === 'Nomade'" class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div>
+                                <label for="nomade-combat-select" class="text-sm font-medium text-base-content mb-1">Nomade Kampfbonus</label>
+                                <select id="nomade-combat-select" class="select select-bordered w-full" x-model="nomadeCombatSkill" @change="setNomadeCombatSkill(nomadeCombatSkill)">
+                                    <option value="Nahkampf">Nahkampf (+1)</option>
+                                    <option value="Fernkampf">Fernkampf (+1)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="nomade-movement-select" class="text-sm font-medium text-base-content mb-1">Nomade Bewegungsbonus</label>
+                                <select id="nomade-movement-select" class="select select-bordered w-full" x-model="nomadeMovementSkill" @change="setNomadeMovementSkill(nomadeMovementSkill)">
+                                    <option value="Reiten">Reiten (+1)</option>
+                                    <option value="Athletik">Athletik (+1)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div x-show="culture === 'Volk der 13 Inseln'" class="mb-2">
+                            <label for="volk-13-profession-select" class="text-sm font-medium text-base-content mb-1">Volk der 13 Inseln Beruf-Bonus</label>
+                            <select id="volk-13-profession-select" class="select select-bordered w-full sm:w-auto" x-model="volkDer13InselnProfessionSkill" @change="setVolkDer13InselnProfessionSkill(volkDer13InselnProfessionSkill)">
+                                <option value="Beruf: Bauer">Beruf: Bauer (+1)</option>
+                                <option value="Beruf: Fischer">Beruf: Fischer (+1)</option>
+                            </select>
+                        </div>
                         <div class="space-y-2">
                             <template x-for="(skill, index) in skills" :key="index">
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
@@ -216,6 +252,8 @@
                         <datalist id="skills-list">
                             <option value="Athletik"></option>
                             <option value="Beruf"></option>
+                            <option value="Beruf: Bauer"></option>
+                            <option value="Beruf: Fischer"></option>
                             <option value="Beruf: Farmer"></option>
                             <option value="Beruf: Künstler"></option>
                             <option value="Bildung"></option>

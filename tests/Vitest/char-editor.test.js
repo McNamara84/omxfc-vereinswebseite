@@ -381,6 +381,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.isCultureSelectable('Landbewohner')).toBe(true);
         expect(e.isCultureSelectable('Stadtbewohner')).toBe(true);
         expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Nomade')).toBe(true);
+        expect(e.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
 
         const barbar = createEditor({ race: 'Barbar', culture: '' });
         barbar.handleRaceChange();
@@ -449,6 +451,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(barbar.isCultureSelectable('Landbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Stadtbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Nomade')).toBe(true);
+        expect(barbar.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
         expect(barbar.isCultureSelectable('Bunkermensch')).toBe(false);
     });
 
@@ -616,6 +620,101 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Beruf: Farmer')).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Wissenschaftler')).toBeUndefined();
     });
+
+    it('Nomade setzt Ueberleben und die Standard-Wahlboni', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Nomade' });
+        e.applyRaceBarbar();
+        e.applyCultureNomade();
+
+        expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Reiten).toEqual({ type: 'min', value: 1 });
+        expect(e.nomadeCombatSkill).toBe('Nahkampf');
+        expect(e.nomadeMovementSkill).toBe('Reiten');
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+    });
+
+    it('Nomade-Wahlboni ersetzen alte Optionen ohne Rassen-Grants zu entfernen', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Nomade' });
+        e.applyRaceBarbar();
+        e.applyCultureNomade();
+
+        e.setNomadeCombatSkill('Fernkampf');
+        e.setNomadeMovementSkill('Athletik');
+
+        expect(e.cultureGrants.Nahkampf).toBeUndefined();
+        expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Fernkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Reiten).toBeUndefined();
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Reiten')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+    });
+
+    it('Volk der 13 Inseln ist nur fuer Barbaren auswaehlbar', () => {
+        const barbar = createEditor({ race: 'Barbar' });
+        const guul = createEditor({ race: 'Guul' });
+
+        expect(barbar.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
+        expect(guul.isCultureSelectable('Volk der 13 Inseln')).toBe(false);
+        expect(guul.isCultureSelectable('Nomade')).toBe(true);
+
+        const invalid = createEditor({ race: 'Guul', culture: 'Volk der 13 Inseln', gender: 'weiblich' });
+        invalid.applyCultureVolkDer13Inseln();
+        invalid.handleRaceChange();
+
+        expect(invalid.culture).toBe('');
+        expect(invalid.cultureGrants).toEqual({});
+        expect(invalid.selectedAdvantages).not.toContain('Psychische Kraft');
+    });
+
+    it('Volk der 13 Inseln setzt Athletik, Ueberleben und Beruf-Wahlbonus', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Volk der 13 Inseln', gender: 'maennlich' });
+        e.applyRaceBarbar();
+        e.applyCultureVolkDer13Inseln();
+
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['Beruf: Bauer']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureLocked.advantages).toEqual([]);
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+
+        e.setVolkDer13InselnProfessionSkill('Beruf: Fischer');
+
+        expect(e.cultureGrants['Beruf: Bauer']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Bauer')).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Fischer']).toEqual({ type: 'min', value: 1 });
+    });
+
+    it('weibliches Volk der 13 Inseln erzwingt Psychische Kraft ohne freie Vorteile zu verbrauchen', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Volk der 13 Inseln', gender: 'weiblich' });
+        e.applyCultureVolkDer13Inseln();
+
+        expect(e.cultureLocked.advantages).toEqual(['Psychische Kraft']);
+        expect(e.selectedAdvantages).toContain('Psychische Kraft');
+        expect(e.chosenAdvantagesCount()).toBe(0);
+        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.selectedDisabledAdvantages()).toEqual(['Z\u00e4h', 'Psychische Kraft']);
+
+        e.gender = 'maennlich';
+        e.handleGenderChange();
+
+        expect(e.cultureLocked.advantages).toEqual([]);
+        expect(e.selectedAdvantages).not.toContain('Psychische Kraft');
+    });
+
+    it('Kultur-Pflichtvorteil erhaelt bereits frei gewaehlte Psychische Kraft', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Volk der 13 Inseln', gender: 'weiblich' });
+        e.selectedAdvantages = ['Z\u00e4h', 'Psychische Kraft'];
+        e.applyCultureVolkDer13Inseln();
+
+        e.gender = 'maennlich';
+        e.handleGenderChange();
+
+        expect(e.selectedAdvantages).toContain('Psychische Kraft');
+        expect(e.chosenAdvantagesCount()).toBe(1);
+        expect(e.freeAdvantagePoints()).toBe(1);
+    });
 });
 
 describe('charEditor – Vorteile/Nachteile', () => {
@@ -717,6 +816,7 @@ describe('charEditor – Computed Properties', () => {
         const e = createEditor({
             playerName: 'Test',
             characterName: 'Held',
+            gender: 'weiblich',
             race: 'Barbar',
             culture: 'Landbewohner',
         });
@@ -727,6 +827,17 @@ describe('charEditor – Computed Properties', () => {
         const e = createEditor({
             playerName: 'Test',
             characterName: '',
+            gender: 'weiblich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+        });
+        expect(e.basicsFilled()).toBeFalsy();
+    });
+
+    it('basicsFilled false ohne Geschlecht', () => {
+        const e = createEditor({
+            playerName: 'Test',
+            characterName: 'Held',
             race: 'Barbar',
             culture: 'Landbewohner',
         });

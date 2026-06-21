@@ -17,11 +17,14 @@ class RpgCharEditorController extends Controller
     private const CHARACTER_KEYS = [
         'player_name',
         'character_name',
+        'gender',
         'race',
         'culture',
         'description',
         'equipment',
     ];
+
+    private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
 
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
@@ -93,12 +96,20 @@ class RpgCharEditorController extends Controller
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
         ]);
 
+        $character = $this->characterPayload($request);
+        $attributes = $this->attributesPayload($request->input('attributes', []));
+        $skills = $this->skillsPayload($request->input('skills', []));
+        $advantages = $this->listPayload($request->input('advantages', []));
+        $disadvantages = $this->listPayload($request->input('disadvantages', []));
+
+        $this->validateCharacterRules($character, $advantages);
+
         return [
-            'character' => $this->characterPayload($request),
-            'attributes' => $this->attributesPayload($request->input('attributes', [])),
-            'skills' => $this->skillsPayload($request->input('skills', [])),
-            'advantages' => $this->listPayload($request->input('advantages', [])),
-            'disadvantages' => $this->listPayload($request->input('disadvantages', [])),
+            'character' => $character,
+            'attributes' => $attributes,
+            'skills' => $skills,
+            'advantages' => $advantages,
+            'disadvantages' => $disadvantages,
             'portrait' => $this->portraitPayload($request),
         ];
     }
@@ -188,15 +199,20 @@ class RpgCharEditorController extends Controller
             $character[$key] = $this->stringPayload($request->input($key, ''));
         }
 
-        $this->validateCharacterRules($character);
-
         return $character;
     }
 
-    private function validateCharacterRules(array $character): void
+    private function validateCharacterRules(array $character, array $advantages): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
+        $gender = $character['gender'] ?? '';
+
+        if (! in_array($gender, self::GENDER_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'gender' => 'Das Geschlecht muss gewählt werden und einem erlaubten Wert entsprechen.',
+            ]);
+        }
 
         if ($race === 'Hydrit' && $culture !== 'Meeresbewohner') {
             throw ValidationException::withMessages([
@@ -213,6 +229,20 @@ class RpgCharEditorController extends Controller
         if ($culture === 'Bunkermensch' && $race !== 'Techno') {
             throw ValidationException::withMessages([
                 'culture' => 'Die Kultur Bunkermensch ist laut Regelwerk nur für Technos zugelassen.',
+            ]);
+        }
+
+        if ($culture === 'Volk der 13 Inseln' && $race !== 'Barbar') {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur Volk der 13 Inseln ist laut Regelwerk nur für Barbaren zugelassen.',
+            ]);
+        }
+
+        if ($culture === 'Volk der 13 Inseln'
+            && $gender === 'weiblich'
+            && ! in_array('Psychische Kraft', $advantages, true)) {
+            throw ValidationException::withMessages([
+                'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln müssen Psychische Kraft wählen.',
             ]);
         }
     }

@@ -12,6 +12,15 @@
     </style>
 </head>
 <body>
+    @php
+        $genderLabels = [
+            'weiblich' => 'Weiblich',
+            'maennlich' => 'Männlich',
+            'divers' => 'Divers / keine Angabe',
+        ];
+        $gender = $character['gender'] ?? '';
+    @endphp
+
     <h1>Charakterbogen</h1>
     @if($portrait)
         <img class="portrait" src="{{ $portrait }}" alt="Portrait">
@@ -20,6 +29,7 @@
     <div class="section">
         <strong>Spieler:</strong> {{ $character['player_name'] ?? '' }}<br>
         <strong>Charakter:</strong> {{ $character['character_name'] ?? '' }}<br>
+        <strong>Geschlecht:</strong> {{ $genderLabels[$gender] ?? '' }}<br>
         <strong>Rasse:</strong> {{ $character['race'] ?? '' }}<br>
         <strong>Kultur:</strong> {{ $character['culture'] ?? '' }}
     </div>

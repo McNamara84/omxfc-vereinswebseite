@@ -9,7 +9,9 @@ const CULTURE_DESCRIPTIONS = {
     Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.',
     Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.',
     Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.',
-    Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.'
+    Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.',
+    Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, überleben in unwirtlicher Natur und werden von sesshaften Völkern oft misstrauisch betrachtet.',
+    'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Dänemark und Finnland. Es besteht vor allem aus Jägern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.'
 };
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
@@ -17,6 +19,12 @@ const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 const TECHNO_SKILLS = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const TECHNO_SKILL_POOL_POINTS = 12;
 const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
+const NOMADE_COMBAT_SKILLS = ['Nahkampf', 'Fernkampf'];
+const NOMADE_MOVEMENT_SKILLS = ['Reiten', 'Athletik'];
+const VOLK_DER_13_INSELN_CULTURE = 'Volk der 13 Inseln';
+const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
+const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
+const FEMALE_GENDER = 'weiblich';
 
 function hydrateExistingCharEditors() {
     if (!window.Alpine
@@ -54,6 +62,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     // Basic info
     playerName: '',
     characterName: '',
+    gender: '',
     race: '',
     culture: '',
     description: '',
@@ -73,6 +82,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     seaProfessionSkill: null,
     seaKnowledgeOrCombatSkill: null,
     bunkermenschBonusSkill: null,
+    nomadeCombatSkill: null,
+    nomadeMovementSkill: null,
+    volkDer13InselnProfessionSkill: null,
     technoSkillNames: TECHNO_SKILLS,
     technoSkillPoolPoints: TECHNO_SKILL_POOL_POINTS,
     technoSkillPoints: Object.fromEntries(TECHNO_SKILLS.map(name => [name, 2])),
@@ -85,12 +97,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     selectedAdvantages: ['Zäh'],
     selectedDisadvantages: [],
     raceLocked: { advantages: [], disadvantages: [] },
+    cultureLocked: { advantages: [], disadvantages: [] },
+    cultureAutoSelectedAdvantages: [],
 
     // UI state
     advancedUnlocked: false,
 
     basicsFilled() {
-        return this.playerName.trim() && this.characterName.trim() && this.race && this.culture;
+        return this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture;
     },
 
     attributeMax() {
@@ -135,8 +149,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.base.FP - this.fpUsed();
     },
 
+    lockedAdvantages() {
+        return [...new Set([...this.raceLocked.advantages, ...this.cultureLocked.advantages])];
+    },
+
     chosenAdvantagesCount() {
-        return this.selectedAdvantages.filter(a => a !== 'Zäh' && !this.raceLocked.advantages.includes(a)).length;
+        const lockedAdvantages = this.lockedAdvantages();
+
+        return this.selectedAdvantages.filter(a => a !== 'Zäh' && !lockedAdvantages.includes(a)).length;
     },
 
     freeAdvantagePoints() {
@@ -190,7 +210,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (race === 'Hydrit') return ['Meeresbewohner'];
         if (race === 'Techno') return ['Bunkermensch'];
 
-        return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch');
+        return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch'
+            && (race === 'Barbar' || culture !== VOLK_DER_13_INSELN_CULTURE));
     },
 
     isCultureSelectable(culture) {
@@ -213,6 +234,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     init() {
         this.$watch('race', () => this.handleRaceChange());
         this.$watch('culture', () => this.handleCultureChange());
+        this.$watch('gender', () => this.handleGenderChange());
         this.$watch('selectedAdvantages', () => this.enforceAdvantageLimit());
     },
 
@@ -246,6 +268,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     unlockAdvanced() {
         this.advancedUnlocked = true;
+    },
+
+    handleGenderChange() {
+        this.refreshCultureLockedAdvantages();
     },
 
     updateDescription() {
@@ -593,6 +619,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
         if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
         if (this.culture === 'Bunkermensch') this.applyCultureBunkermensch();
+        if (this.culture === 'Nomade') this.applyCultureNomade();
+        if (this.culture === VOLK_DER_13_INSELN_CULTURE) this.applyCultureVolkDer13Inseln();
         this.updateDescription();
     },
 
@@ -604,6 +632,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.seaProfessionSkill = null;
         this.seaKnowledgeOrCombatSkill = null;
         this.bunkermenschBonusSkill = null;
+        this.nomadeCombatSkill = null;
+        this.nomadeMovementSkill = null;
+        this.volkDer13InselnProfessionSkill = null;
+        this.setCultureLockedAdvantages([]);
         previousCultureSkills.forEach(name => this.refreshGrantedSkill(name));
     },
 
@@ -629,6 +661,19 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Bildung', 1, 'Kultur');
         this.setFreeMin('Nahkampf', 1, 'Kultur');
         this.setBunkermenschBonusSkill('Feuerwaffen');
+    },
+
+    applyCultureNomade() {
+        this.setFreeMin('\u00dcberleben', 1, 'Kultur');
+        this.setNomadeCombatSkill('Nahkampf');
+        this.setNomadeMovementSkill('Reiten');
+    },
+
+    applyCultureVolkDer13Inseln() {
+        this.setFreeMin('Athletik', 1, 'Kultur');
+        this.setFreeMin('\u00dcberleben', 1, 'Kultur');
+        this.setVolkDer13InselnProfessionSkill('Beruf: Bauer');
+        this.refreshCultureLockedAdvantages();
     },
 
     setCitySkill(skillName) {
@@ -673,6 +718,34 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.applyGrantToSkill(skill);
     },
 
+    setCultureChoiceSkill(skillName, optionNames, stateProperty, value = 1) {
+        if (!optionNames.includes(skillName)) return;
+
+        optionNames
+            .filter(name => name !== skillName && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                this.refreshGrantedSkill(name);
+            });
+
+        this[stateProperty] = skillName;
+        this.cultureGrants[skillName] = { type: 'min', value };
+        const skill = this.ensureSkill(skillName);
+        this.applyGrantToSkill(skill);
+    },
+
+    setNomadeCombatSkill(skillName) {
+        this.setCultureChoiceSkill(skillName, NOMADE_COMBAT_SKILLS, 'nomadeCombatSkill');
+    },
+
+    setNomadeMovementSkill(skillName) {
+        this.setCultureChoiceSkill(skillName, NOMADE_MOVEMENT_SKILLS, 'nomadeMovementSkill');
+    },
+
+    setVolkDer13InselnProfessionSkill(skillName) {
+        this.setCultureChoiceSkill(skillName, VOLK_DER_13_INSELN_PROFESSION_SKILLS, 'volkDer13InselnProfessionSkill');
+    },
+
     setBunkermenschBonusSkill(skillName) {
         if (!BUNKERMENSCH_BONUS_SKILLS.includes(skillName)) return;
 
@@ -702,11 +775,37 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.applyGrantToSkill(skill);
     },
 
+    setCultureLockedAdvantages(advantages) {
+        const nextAdvantages = [...new Set(advantages)];
+        const previousAutoSelected = [...this.cultureAutoSelectedAdvantages];
+        const autoSelectedToRemove = previousAutoSelected.filter(value => !nextAdvantages.includes(value));
+
+        this.selectedAdvantages = this.selectedAdvantages.filter(value => !autoSelectedToRemove.includes(value));
+
+        const newlyAutoSelected = nextAdvantages.filter(value => !this.selectedAdvantages.includes(value));
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, ...newlyAutoSelected])];
+        this.cultureLocked.advantages = nextAdvantages;
+        this.cultureAutoSelectedAdvantages = [
+            ...previousAutoSelected.filter(value => nextAdvantages.includes(value) && this.selectedAdvantages.includes(value)),
+            ...newlyAutoSelected,
+        ];
+        this.enforceAdvantageLimit();
+    },
+
+    refreshCultureLockedAdvantages() {
+        const advantages = this.culture === VOLK_DER_13_INSELN_CULTURE && this.gender === FEMALE_GENDER
+            ? [VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE]
+            : [];
+
+        this.setCultureLockedAdvantages(advantages);
+    },
+
     // --- Advantages ---
     enforceAdvantageLimit() {
         const max = this.base.freeAdvantages;
-        const locked = this.selectedAdvantages.filter(a => this.raceLocked.advantages.includes(a));
-        const chosen = this.selectedAdvantages.filter(a => a !== 'Zäh' && !this.raceLocked.advantages.includes(a));
+        const lockedAdvantages = this.lockedAdvantages();
+        const locked = this.selectedAdvantages.filter(a => lockedAdvantages.includes(a));
+        const chosen = this.selectedAdvantages.filter(a => a !== 'Zäh' && !lockedAdvantages.includes(a));
 
         if (chosen.length > max) {
             this.selectedAdvantages = [...new Set(['Zäh', ...locked, ...chosen.slice(0, max)])];
@@ -726,7 +825,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     isAdvantageDisabled(value) {
         if (value === 'Zäh') return true;
-        if (this.raceLocked.advantages.includes(value)) return true;
+        if (this.lockedAdvantages().includes(value)) return true;
         return !this.selectedAdvantages.includes(value) && this.chosenAdvantagesCount() >= this.base.freeAdvantages;
     },
 

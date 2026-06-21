@@ -8,12 +8,13 @@ const login = async (page, email, password = 'password') => {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
-const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohner' } = {}) => {
+const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohner', gender = 'maennlich' } = {}) => {
     await login(page, 'info@maddraxikon.com');
     await page.goto('/rpg/char-editor');
 
     await page.getByLabel('Spielername').fill('Playwright Spieler');
     await page.getByLabel('Charaktername').fill('Wudan');
+    await page.locator('#gender').selectOption(gender);
     await page.locator('#race').selectOption(race);
     await page.locator('#culture').selectOption(culture);
     await page.getByTestId('char-editor-continue-button').click();
@@ -77,6 +78,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await page.getByLabel('Spielername').fill('Playwright Spieler');
         await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
         await page.locator('#race').selectOption('Barbar');
         await page.locator('#culture').selectOption('Landbewohner');
 
@@ -137,6 +139,7 @@ test.describe('RPG Charakter-Editor', () => {
             return {
                 playerName: data.get('player_name'),
                 characterName: data.get('character_name'),
+                gender: data.get('gender'),
                 race: data.get('race'),
                 culture: data.get('culture'),
                 skills: Object.values(skillsByIndex),
@@ -145,6 +148,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         expect(payload.playerName).toBe('Playwright Spieler');
         expect(payload.characterName).toBe('Wudan');
+        expect(payload.gender).toBe('maennlich');
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Landbewohner');
         expect(payload.skills).toEqual(expect.arrayContaining([
@@ -215,6 +219,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await page.getByLabel('Spielername').fill('Playwright Spieler');
         await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
         await page.locator('#culture').selectOption('Landbewohner');
         await expect(page.locator('#culture')).toHaveValue('Landbewohner');
 
@@ -230,6 +235,8 @@ test.describe('RPG Charakter-Editor', () => {
             Landbewohner: true,
             Stadtbewohner: true,
             Meeresbewohner: false,
+            Nomade: true,
+            'Volk der 13 Inseln': true,
         });
 
         await page.getByTestId('char-editor-continue-button').click();
@@ -308,6 +315,108 @@ test.describe('RPG Charakter-Editor', () => {
         ]));
     });
 
+
+    test('erlaubt Volk der 13 Inseln nur fuer Barbaren und erzwingt Psychische Kraft fuer weiblich', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('weiblich');
+
+        await expect(page.locator('#culture option[value="Volk der 13 Inseln"]')).toBeDisabled();
+
+        await page.locator('#race').selectOption('Guul');
+        await expect(page.locator('#culture option[value="Volk der 13 Inseln"]')).toBeDisabled();
+
+        await page.locator('#race').selectOption('Barbar');
+        await expect(page.locator('#culture option[value="Volk der 13 Inseln"]')).not.toBeDisabled();
+        await page.locator('#culture').selectOption('Volk der 13 Inseln');
+        await page.getByTestId('char-editor-continue-button').click();
+
+        await expect(checkbox(page, 'advantages[]', 'Psychische Kraft')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Psychische Kraft')).toBeDisabled();
+        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                gender: data.get('gender'),
+                race: data.get('race'),
+                culture: data.get('culture'),
+                advantages: data.getAll('advantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.gender).toBe('weiblich');
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Volk der 13 Inseln');
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Z\u00e4h', 'Psychische Kraft']));
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Athletik', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+            expect.objectContaining({ name: 'Beruf: Bauer', value: '1' }),
+        ]));
+    });
+
+    test('setzt Nomade-Regeln inklusive Fernkampf-Mapping im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Barbar', culture: 'Nomade' });
+
+        await page.locator('#nomade-combat-select').selectOption('Fernkampf');
+        await page.locator('#nomade-movement-select').selectOption('Athletik');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Nomade');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Fernkampf', value: '1' }),
+            expect.objectContaining({ name: 'Athletik', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+        ]));
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Fernwaffen' }),
+            expect.objectContaining({ name: 'Reiten' }),
+        ]));
+    });
+
     test('erzwingt Bunkermensch als einzige Kultur fuer Techno', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');
@@ -316,6 +425,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await page.getByLabel('Spielername').fill('Playwright Spieler');
         await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
         await page.locator('#culture').selectOption('Landbewohner');
         await expect(page.locator('#culture')).toHaveValue('Landbewohner');
 
@@ -332,6 +442,8 @@ test.describe('RPG Charakter-Editor', () => {
             Stadtbewohner: true,
             Meeresbewohner: true,
             Bunkermensch: false,
+            Nomade: true,
+            'Volk der 13 Inseln': true,
         });
 
         await page.getByTestId('char-editor-continue-button').click();
