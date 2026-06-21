@@ -2,7 +2,8 @@ const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
     Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.',
     Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.',
-    Techno: 'Technos sind Nachfahren der Menschen, die den Kometeneinschlag in Bunkern überlebt und eine neue Zivilisation aufgebaut haben. Aufgrund ihres technologischen Fortschritts gelten sie vielen Barbaren als Götter oder Dämonen. Sie leiden jedoch an einer tödlichen Immunschwäche und können die Außenwelt nur mit Schutzanzug betreten.'
+    Techno: 'Technos sind Nachfahren der Menschen, die den Kometeneinschlag in Bunkern überlebt und eine neue Zivilisation aufgebaut haben. Aufgrund ihres technologischen Fortschritts gelten sie vielen Barbaren als Götter oder Dämonen. Sie leiden jedoch an einer tödlichen Immunschwäche und können die Außenwelt nur mit Schutzanzug betreten.',
+    Präkristofluu: 'Präkristofluu sind Menschen aus dem 21. Jahrhundert, die durch Gefrierkammern oder mysteriöse Zeitphänomene in das 26. Jahrhundert gelangt sind. Ihr technisches Wissen und ihre Kenntnisse der Vergangenheit gleichen ihre geringe Anpassungsfähigkeit aus.'
 };
 
 const CULTURE_DESCRIPTIONS = {
@@ -10,6 +11,7 @@ const CULTURE_DESCRIPTIONS = {
     Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.',
     Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.',
     Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.',
+    'Mensch des 21. Jahrhunderts': 'Diese Kultur muss von allen Präkristofluu ausgewählt werden. Menschen des 21. Jahrhunderts sind auf verworrenen Pfaden in das 26. Jahrhundert gelangt; ihre Bandbreite ist nahezu unerschöpflich.',
     Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, überleben in unwirtlicher Natur und werden von sesshaften Völkern oft misstrauisch betrachtet.',
     Ruinenbewohner: 'Ruinenbewohner leben in den Resten der Städte aus der Zeit vor Kristoflus als Banditen, Jäger und Sammler. Ihre Gesellschaften sind primitiv und von Brutalität und Not geprägt.',
     Untergrundbewohner: 'Untergrundbewohner leben in Höhlen und alten Stollen, um sich vor den Gefahren der Oberfläche zu schützen. Sie arbeiten überwiegend als Bergleute, Jäger und Sammler. Häufig haben sie seltsame Rituale und clanartige Strukturen von großer Starrheit entwickelt.',
@@ -18,9 +20,14 @@ const CULTURE_DESCRIPTIONS = {
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
+const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
 const TECHNO_SKILLS = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const TECHNO_SKILL_POOL_POINTS = 12;
 const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
+const PRAEKRISTOFLUU_SKILLS = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
+const PRAEKRISTOFLUU_SKILL_POOL_POINTS = 12;
+const MENSCH_21_BONUS_SKILLS = ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const NOMADE_COMBAT_SKILLS = ['Nahkampf', 'Fernkampf'];
 const NOMADE_MOVEMENT_SKILLS = ['Reiten', 'Athletik'];
 const RUINENBEWOHNER_BONUS_SKILLS = ['Nahkampf', 'Fernkampf', 'Athletik', 'Kunde'];
@@ -85,6 +92,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     seaProfessionSkill: null,
     seaKnowledgeOrCombatSkill: null,
     bunkermenschBonusSkill: null,
+    mensch21FirstBonusSkill: null,
+    mensch21SecondBonusSkill: null,
     nomadeCombatSkill: null,
     nomadeMovementSkill: null,
     ruinenbewohnerBonusSkill: null,
@@ -92,6 +101,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     technoSkillNames: TECHNO_SKILLS,
     technoSkillPoolPoints: TECHNO_SKILL_POOL_POINTS,
     technoSkillPoints: Object.fromEntries(TECHNO_SKILLS.map(name => [name, 2])),
+    praekristofluuSkillNames: PRAEKRISTOFLUU_SKILLS,
+    praekristofluuSkillPoolPoints: PRAEKRISTOFLUU_SKILL_POOL_POINTS,
+    praekristofluuSkillPoints: Object.fromEntries(PRAEKRISTOFLUU_SKILLS.map(name => [name, 2])),
     raceCache: {},
     raceAttributeModifiers: {},
     raceLockedByBunkermenschCulture: false,
@@ -176,6 +188,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
             && this.technoSkillPoolComplete()
+            && this.praekristofluuSkillPoolComplete()
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
     },
 
@@ -214,13 +227,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     allowedCulturesForRace(race = this.race) {
         if (race === 'Hydrit') return ['Meeresbewohner'];
         if (race === 'Techno') return ['Bunkermensch'];
+        if (race === PRAEKRISTOFLUU_RACE) return [MENSCH_21_CULTURE];
 
         return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch'
+            && culture !== MENSCH_21_CULTURE
             && (race === 'Barbar' || culture !== VOLK_DER_13_INSELN_CULTURE));
     },
 
     isCultureSelectable(culture) {
-        if (culture === 'Bunkermensch') return true;
+        if (culture === 'Bunkermensch') {
+            return this.race !== 'Hydrit' && this.race !== PRAEKRISTOFLUU_RACE;
+        }
 
         if (this.race === 'Techno' && this.raceLockedByBunkermenschCulture) {
             return this.allowedCulturesForRace('').includes(culture);
@@ -483,6 +500,50 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.refreshBunkermenschBonusGrant();
     },
 
+    resetPraekristofluuSkillPoints(defaultValue = 0) {
+        this.praekristofluuSkillPoints = Object.fromEntries(PRAEKRISTOFLUU_SKILLS.map(name => [name, defaultValue]));
+    },
+
+    praekristofluuPoolUsed() {
+        return PRAEKRISTOFLUU_SKILLS.reduce((sum, name) => sum + (Number(this.praekristofluuSkillPoints[name]) || 0), 0);
+    },
+
+    praekristofluuSkillPoolComplete() {
+        return this.race !== PRAEKRISTOFLUU_RACE || this.praekristofluuPoolUsed() === this.praekristofluuSkillPoolPoints;
+    },
+
+    setPraekristofluuSkillPoints(skillName, value) {
+        if (!PRAEKRISTOFLUU_SKILLS.includes(skillName)) return;
+
+        const parsedValue = Number.parseInt(value, 10);
+        const normalizedValue = Number.isFinite(parsedValue)
+            ? Math.max(0, Math.min(parsedValue, this.base.maxFW))
+            : 0;
+
+        this.praekristofluuSkillPoints[skillName] = normalizedValue;
+        this.applyPraekristofluuSkillGrant(skillName);
+        this.refreshAllMensch21BonusGrants();
+    },
+
+    applyPraekristofluuSkillGrant(skillName) {
+        const value = this.race === PRAEKRISTOFLUU_RACE ? (Number(this.praekristofluuSkillPoints[skillName]) || 0) : 0;
+
+        if (value > 0) {
+            this.raceGrants[skillName] = { type: 'min', value };
+            const skill = this.ensureSkill(skillName);
+            this.applyGrantToSkill(skill);
+            return;
+        }
+
+        delete this.raceGrants[skillName];
+        this.refreshGrantedSkill(skillName);
+    },
+
+    refreshAllPraekristofluuSkillGrants() {
+        PRAEKRISTOFLUU_SKILLS.forEach(name => this.applyPraekristofluuSkillGrant(name));
+        this.refreshAllMensch21BonusGrants();
+    },
+
     setRaceAttributeModifiers(modifiers) {
         this.raceAttributeModifiers = { ...modifiers };
 
@@ -529,6 +590,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Guul') this.applyRaceGuul();
         if (this.race === 'Hydrit') this.applyRaceHydrit();
         if (this.race === 'Techno') this.applyRaceTechno();
+        if (this.race === PRAEKRISTOFLUU_RACE) this.applyRacePraekristofluu();
         this.restoreRaceState(this.race);
         this.enforceCultureForRace();
         this._prevRace = this.race;
@@ -542,6 +604,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             skills: this.skills.filter(s => this.raceGrants[s.name]).map(s => ({ name: s.name, value: s.value })),
             barbarCombatSkill: this.barbarCombatSkill,
             technoSkillPoints: { ...this.technoSkillPoints },
+            praekristofluuSkillPoints: { ...this.praekristofluuSkillPoints },
         };
     },
 
@@ -564,6 +627,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             this.technoSkillPoints = { ...this.technoSkillPoints, ...cache.technoSkillPoints };
             this.refreshAllTechnoSkillGrants();
         }
+        if (raceName === PRAEKRISTOFLUU_RACE && cache.praekristofluuSkillPoints) {
+            this.praekristofluuSkillPoints = { ...this.praekristofluuSkillPoints, ...cache.praekristofluuSkillPoints };
+            this.refreshAllPraekristofluuSkillGrants();
+        }
     },
 
     clearRace() {
@@ -575,6 +642,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.raceGrants = {};
         this.barbarCombatSkill = null;
         this.resetTechnoSkillPoints(0);
+        this.resetPraekristofluuSkillPoints(0);
         this.clearRaceAttributeModifiers();
         previousRaceSkills.forEach(name => this.refreshGrantedSkill(name));
         this.selectedAdvantages = this.selectedAdvantages.filter(value => value === 'Zäh' || !previousLockedAdvantages.includes(value));
@@ -619,6 +687,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Tödliche Immunschwäche'])];
     },
 
+    applyRacePraekristofluu() {
+        this.setFreeMin('Beruf', 3, 'Rasse');
+        this.resetPraekristofluuSkillPoints(2);
+        this.refreshAllPraekristofluuSkillGrants();
+        this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'High-Tech-Ausrüstung'])];
+    },
+
     setBarbarCombatSkill(skillName) {
         ['Nahkampf', 'Fernkampf']
             .filter(name => name !== skillName && this.raceGrants[name])
@@ -651,6 +727,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
         if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
         if (this.culture === 'Bunkermensch') this.applyCultureBunkermensch();
+        if (this.culture === MENSCH_21_CULTURE) this.applyCultureMensch21();
         if (this.culture === 'Nomade') this.applyCultureNomade();
         if (this.culture === 'Ruinenbewohner') this.applyCultureRuinenbewohner();
         if (this.culture === 'Untergrundbewohner') this.applyCultureUntergrundbewohner();
@@ -684,6 +761,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.seaProfessionSkill = null;
         this.seaKnowledgeOrCombatSkill = null;
         this.bunkermenschBonusSkill = null;
+        this.mensch21FirstBonusSkill = null;
+        this.mensch21SecondBonusSkill = null;
         this.nomadeCombatSkill = null;
         this.nomadeMovementSkill = null;
         this.ruinenbewohnerBonusSkill = null;
@@ -714,6 +793,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Bildung', 1, 'Kultur');
         this.setFreeMin('Nahkampf', 1, 'Kultur');
         this.setBunkermenschBonusSkill('Feuerwaffen');
+    },
+
+    applyCultureMensch21() {
+        this.setFreeMin('Beruf', 1, 'Kultur');
+        this.setMensch21BonusSkills('Bildung', 'Pilot');
     },
 
     applyCultureNomade() {
@@ -841,6 +925,63 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const value = Math.min(this.base.maxFW, raceValue + 1);
         this.cultureGrants[this.bunkermenschBonusSkill] = { type: 'min', value };
         const skill = this.ensureSkill(this.bunkermenschBonusSkill);
+        this.applyGrantToSkill(skill);
+    },
+
+    setMensch21FirstBonusSkill(skillName) {
+        this.setMensch21BonusSkills(skillName, this.mensch21SecondBonusSkill);
+    },
+
+    setMensch21SecondBonusSkill(skillName) {
+        this.setMensch21BonusSkills(this.mensch21FirstBonusSkill, skillName);
+    },
+
+    setMensch21BonusSkills(firstSkill, secondSkill) {
+        const first = MENSCH_21_BONUS_SKILLS.includes(firstSkill)
+            ? firstSkill
+            : MENSCH_21_BONUS_SKILLS[0];
+        let second = MENSCH_21_BONUS_SKILLS.includes(secondSkill)
+            ? secondSkill
+            : MENSCH_21_BONUS_SKILLS.find(name => name !== first);
+
+        if (second === first) {
+            second = MENSCH_21_BONUS_SKILLS.find(name => name !== first);
+        }
+
+        const nextSkills = new Set([first, second].filter(Boolean));
+        MENSCH_21_BONUS_SKILLS
+            .filter(name => !nextSkills.has(name) && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                const grant = this.getGrant(name);
+                const skill = this.skills.find(s => s.name === name);
+                if (skill && grant && skill.value > grant.value) {
+                    skill.value = grant.value;
+                }
+                this.refreshGrantedSkill(name);
+            });
+
+        this.mensch21FirstBonusSkill = first;
+        this.mensch21SecondBonusSkill = second;
+        this.refreshAllMensch21BonusGrants();
+    },
+
+    refreshAllMensch21BonusGrants() {
+        if (this.culture !== MENSCH_21_CULTURE) return;
+
+        [...new Set([this.mensch21FirstBonusSkill, this.mensch21SecondBonusSkill].filter(Boolean))]
+            .forEach(name => this.refreshMensch21BonusGrant(name));
+    },
+
+    refreshMensch21BonusGrant(skillName) {
+        if (this.culture !== MENSCH_21_CULTURE || !MENSCH_21_BONUS_SKILLS.includes(skillName)) return;
+
+        const raceValue = this.race === PRAEKRISTOFLUU_RACE
+            ? (Number(this.praekristofluuSkillPoints[skillName]) || 0)
+            : 0;
+        const value = Math.min(this.base.maxFW, raceValue + 1);
+        this.cultureGrants[skillName] = { type: 'min', value };
+        const skill = this.ensureSkill(skillName);
         this.applyGrantToSkill(skill);
     },
 

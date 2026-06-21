@@ -365,6 +365,59 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceGrants.Heiler).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Heiler')).toBeUndefined();
     });
+
+    it('Präkristofluu erhält Beruf, High-Tech-Ausrüstung und 12 Rassen-Fertigkeitspunkte', () => {
+        const e = createEditor({ race: 'Präkristofluu' });
+        e.applyRacePraekristofluu();
+
+        expect(e.apRemaining()).toBe(2);
+        expect(e.praekristofluuPoolUsed()).toBe(12);
+        expect(e.praekristofluuSkillPoolComplete()).toBe(true);
+        expect(e.raceGrants.Beruf).toEqual({ type: 'min', value: 3 });
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Pilot).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Techniker).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Wissenschaftler).toEqual({ type: 'min', value: 2 });
+        expect(e.raceLocked.advantages).toEqual(['High-Tech-Ausrüstung']);
+        expect(e.raceLocked.disadvantages).toEqual([]);
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
+    });
+
+    it('Präkristofluu-Pool begrenzt Einzelwerte und verlangt exakt 12 verteilte Punkte', () => {
+        const e = createEditor({ race: 'Präkristofluu' });
+        e.applyRacePraekristofluu();
+
+        e.setPraekristofluuSkillPoints('Bildung', 9);
+
+        expect(e.praekristofluuSkillPoints.Bildung).toBe(4);
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 4 });
+        expect(e.praekristofluuPoolUsed()).toBe(14);
+        expect(e.praekristofluuSkillPoolComplete()).toBe(false);
+        expect(e.formValid()).toBe(false);
+
+        e.setPraekristofluuSkillPoints('Feuerwaffen', 0);
+
+        expect(e.praekristofluuPoolUsed()).toBe(12);
+        expect(e.praekristofluuSkillPoolComplete()).toBe(true);
+        expect(e.raceGrants.Feuerwaffen).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Feuerwaffen')).toBeUndefined();
+    });
+
+    it('Rassenwechsel entfernt Präkristofluu-Pflichtvorteil und Pool-Grants', () => {
+        const e = createEditor({ race: 'Präkristofluu' });
+        e.applyRacePraekristofluu();
+
+        e.clearRace();
+
+        expect(e.raceLocked.advantages).toEqual([]);
+        expect(e.selectedAdvantages).toEqual(['Zäh']);
+        expect(e.raceGrants).toEqual({});
+        expect(e.praekristofluuPoolUsed()).toBe(0);
+        expect(e.skills.find(s => s.name === 'Beruf')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Bildung')).toBeUndefined();
+    });
 });
 
 describe('charEditor – Kultur-Logik', () => {
@@ -497,6 +550,40 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+    });
+
+    it('Präkristofluu erlaubt nur Mensch des 21. Jahrhunderts als Kultur', () => {
+        const praekristofluu = createEditor({ race: 'Präkristofluu' });
+
+        expect(praekristofluu.allowedCulturesForRace()).toEqual(['Mensch des 21. Jahrhunderts']);
+        expect(praekristofluu.isCultureSelectable('Mensch des 21. Jahrhunderts')).toBe(true);
+        expect(praekristofluu.isCultureSelectable('Landbewohner')).toBe(false);
+        expect(praekristofluu.isCultureSelectable('Bunkermensch')).toBe(false);
+
+        const barbar = createEditor({ race: 'Barbar' });
+
+        expect(barbar.isCultureSelectable('Mensch des 21. Jahrhunderts')).toBe(false);
+        expect(barbar.allowedCulturesForRace()).not.toContain('Mensch des 21. Jahrhunderts');
+    });
+
+    it('Rassenwechsel zu Präkristofluu setzt Mensch des 21. Jahrhunderts und ersetzt alte Kultur-Grants', () => {
+        const e = createEditor({ race: 'Präkristofluu', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+
+        e.handleRaceChange();
+
+        expect(e.culture).toBe('Mensch des 21. Jahrhunderts');
+        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+
+        e.handleCultureChange();
+
+        expect(e.cultureGrants.Beruf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Beruf')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
 
     it('Kulturwechsel auf Bunkermensch setzt Techno automatisch und ersetzt alte Rassen-Grants', () => {
@@ -633,6 +720,45 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 4 });
         expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
         expect(e.skills.find(s => s.name === 'Pilot')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+    });
+
+    it('Mensch des 21. Jahrhunderts setzt Beruf und zwei unterschiedliche Zusatzboni', () => {
+        const e = createEditor({ race: 'Präkristofluu', culture: 'Mensch des 21. Jahrhunderts' });
+        e.applyRacePraekristofluu();
+        e.applyCultureMensch21();
+
+        expect(e.cultureGrants.Beruf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.mensch21FirstBonusSkill).toBe('Bildung');
+        expect(e.mensch21SecondBonusSkill).toBe('Pilot');
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+
+        e.setMensch21FirstBonusSkill('Techniker');
+
+        expect(e.cultureGrants.Bildung).toBeUndefined();
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 2 });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.cultureGrants.Techniker).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+
+        e.setMensch21SecondBonusSkill('Techniker');
+
+        expect(e.mensch21FirstBonusSkill).toBe('Techniker');
+        expect(e.mensch21SecondBonusSkill).toBe('Bildung');
+        expect(e.cultureGrants.Pilot).toBeUndefined();
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
+    });
+
+    it('Mensch-des-21-Jahrhunderts-Boni addieren auf Präkristofluu-Poolpunkte bis zum Maximum', () => {
+        const e = createEditor({ race: 'Präkristofluu', culture: 'Mensch des 21. Jahrhunderts' });
+        e.applyRacePraekristofluu();
+        e.applyCultureMensch21();
+
+        e.setPraekristofluuSkillPoints('Bildung', 4);
+
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 4 });
+        expect(e.getGrant('Bildung')).toEqual({ type: 'min', value: 4 });
     });
 
     it('Landbewohner erhält Viehzüchter und Landwirt als Exact-Grants', () => {

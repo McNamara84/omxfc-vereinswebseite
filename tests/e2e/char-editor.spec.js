@@ -317,6 +317,107 @@ test.describe('RPG Charakter-Editor', () => {
         ]));
     });
 
+    test('erzwingt Mensch des 21. Jahrhunderts als einzige Kultur fuer Praekristofluu', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await expect(page.locator('#culture option[value="Mensch des 21. Jahrhunderts"]')).toBeDisabled();
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+        await page.locator('#culture').selectOption('Landbewohner');
+        await expect(page.locator('#culture')).toHaveValue('Landbewohner');
+
+        await page.locator('#race').selectOption('Präkristofluu');
+
+        await expect(page.locator('#culture')).toHaveValue('Mensch des 21. Jahrhunderts');
+
+        const cultureOptions = await page.locator('#culture').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(cultureOptions).toMatchObject({
+            Landbewohner: true,
+            Stadtbewohner: true,
+            Meeresbewohner: true,
+            Bunkermensch: true,
+            'Mensch des 21. Jahrhunderts': false,
+            Nomade: true,
+            Ruinenbewohner: true,
+            Untergrundbewohner: true,
+            'Volk der 13 Inseln': true,
+        });
+
+        await page.getByTestId('char-editor-continue-button').click();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+            };
+        });
+
+        expect(payload).toEqual({
+            race: 'Präkristofluu',
+            culture: 'Mensch des 21. Jahrhunderts',
+        });
+    });
+
+    test('setzt Praekristofluu- und Mensch-21-Regeln inklusive Pool im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Präkristofluu', culture: 'Mensch des 21. Jahrhunderts' });
+
+        await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeDisabled();
+        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+        await expect(page.getByText('Verteilt: 12 / 12')).toBeVisible();
+
+        await page.getByTestId('praekristofluu-skill-points-input').first().fill('4');
+        await page.getByTestId('praekristofluu-skill-points-input').nth(2).fill('0');
+        await page.locator('#mensch-21-first-bonus-select').selectOption('Techniker');
+        await page.locator('#mensch-21-second-bonus-select').selectOption('Wissenschaftler');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                advantages: data.getAll('advantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Präkristofluu');
+        expect(payload.culture).toBe('Mensch des 21. Jahrhunderts');
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Beruf', value: '3' }),
+            expect.objectContaining({ name: 'Bildung', value: '4' }),
+            expect.objectContaining({ name: 'Fahren', value: '2' }),
+            expect.objectContaining({ name: 'Pilot', value: '2' }),
+            expect.objectContaining({ name: 'Techniker', value: '3' }),
+            expect.objectContaining({ name: 'Wissenschaftler', value: '3' }),
+        ]));
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Feuerwaffen' }),
+        ]));
+    });
 
     test('erlaubt Volk der 13 Inseln nur fuer Barbaren und erzwingt Psychische Kraft fuer weiblich', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');

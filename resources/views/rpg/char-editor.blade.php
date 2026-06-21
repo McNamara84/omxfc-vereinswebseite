@@ -85,6 +85,7 @@
                             <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
                             <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
                             <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
+                            <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>
                     </div>
 
@@ -96,6 +97,7 @@
                             <option value="Stadtbewohner" :disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
                             <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
                             <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
+                            <option value="Mensch des 21. Jahrhunderts" :disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
                             <option value="Nomade" :disabled="!isCultureSelectable('Nomade')">Nomade</option>
                             <option value="Ruinenbewohner" :disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
                             <option value="Untergrundbewohner" :disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
@@ -156,6 +158,20 @@
                                 </template>
                             </div>
                         </div>
+                        <div x-show="race === 'Präkristofluu'" class="mb-3 rounded-md border border-base-300 bg-base-200/40 p-3">
+                            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                                <h3 class="text-sm font-medium text-base-content">Präkristofluu-Rassenpunkte</h3>
+                                <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Verteilt: ' + praekristofluuPoolUsed() + ' / ' + praekristofluuSkillPoolPoints"></p>
+                            </div>
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                <template x-for="skillName in praekristofluuSkillNames" :key="'praekristofluu-skill-' + skillName">
+                                    <label class="flex min-h-12 items-center justify-between gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm">
+                                        <span class="min-w-0 flex-1" x-text="skillName"></span>
+                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-model.number="praekristofluuSkillPoints[skillName]" @input="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" @change="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" data-testid="praekristofluu-skill-points-input">
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
                         <div x-show="culture === 'Stadtbewohner'" class="mb-2">
                             <label for="city-skill-select" class="text-sm font-medium text-base-content mb-1">Stadtbewohner Bonus</label>
                             <select id="city-skill-select" class="select select-bordered w-full sm:w-auto" x-model="citySkill" @change="setCitySkill(citySkill)">
@@ -187,6 +203,26 @@
                                 <option value="Pilot">Pilot (+1)</option>
                                 <option value="Wissenschaftler">Wissenschaftler (+1)</option>
                             </select>
+                        </div>
+                        <div x-show="culture === 'Mensch des 21. Jahrhunderts'" class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div>
+                                <label for="mensch-21-first-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 1</label>
+                                <select id="mensch-21-first-bonus-select" class="select select-bordered w-full" x-model="mensch21FirstBonusSkill" @change="setMensch21FirstBonusSkill(mensch21FirstBonusSkill)">
+                                    <option value="Bildung" :disabled="mensch21SecondBonusSkill === 'Bildung'">Bildung (+1)</option>
+                                    <option value="Pilot" :disabled="mensch21SecondBonusSkill === 'Pilot'">Pilot (+1)</option>
+                                    <option value="Techniker" :disabled="mensch21SecondBonusSkill === 'Techniker'">Techniker (+1)</option>
+                                    <option value="Wissenschaftler" :disabled="mensch21SecondBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="mensch-21-second-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 2</label>
+                                <select id="mensch-21-second-bonus-select" class="select select-bordered w-full" x-model="mensch21SecondBonusSkill" @change="setMensch21SecondBonusSkill(mensch21SecondBonusSkill)">
+                                    <option value="Bildung" :disabled="mensch21FirstBonusSkill === 'Bildung'">Bildung (+1)</option>
+                                    <option value="Pilot" :disabled="mensch21FirstBonusSkill === 'Pilot'">Pilot (+1)</option>
+                                    <option value="Techniker" :disabled="mensch21FirstBonusSkill === 'Techniker'">Techniker (+1)</option>
+                                    <option value="Wissenschaftler" :disabled="mensch21FirstBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
+                                </select>
+                            </div>
                         </div>
                         <div x-show="culture === 'Nomade'" class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div>

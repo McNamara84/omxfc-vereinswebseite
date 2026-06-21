@@ -431,6 +431,58 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('culture');
     }
 
+    public function test_pdf_export_accepts_praekristofluu_with_mensch_des_21_jahrhunderts_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Präkristofluu'
+                && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Präkristofluu',
+            'culture' => 'Mensch des 21. Jahrhunderts',
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_praekristofluu_with_other_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Präkristofluu',
+            'culture' => 'Landbewohner',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
+    public function test_pdf_export_rejects_mensch_des_21_jahrhunderts_for_non_praekristofluu(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Barbar',
+            'culture' => 'Mensch des 21. Jahrhunderts',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
     public function test_pdf_export_accepts_nomade_culture(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
