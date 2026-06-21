@@ -1,8 +1,8 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 describe('bootstrap module', () => {
   beforeEach(() => {
-    jest.resetModules();
+    vi.resetModules();
     delete window.omxfcHttp;
   });
 

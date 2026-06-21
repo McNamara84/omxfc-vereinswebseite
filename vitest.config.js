@@ -12,8 +12,19 @@ export default defineConfig({
     },
     test: {
         environment: 'jsdom',
+        environmentOptions: {
+            jsdom: {
+                url: 'http://localhost/',
+            },
+        },
         globals: true,
+        setupFiles: ['tests/Vitest/setup.js'],
         dir: 'tests/Vitest',
         include: ['**/*.test.js'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['json-summary'],
+            reportsDirectory: 'coverage',
+        },
     },
 });

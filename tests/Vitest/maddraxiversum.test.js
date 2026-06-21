@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 function jsonResponse(data, { ok = true, status = 200, statusText = 'OK' } = {}) {
   return {
@@ -6,8 +6,8 @@ function jsonResponse(data, { ok = true, status = 200, statusText = 'OK' } = {})
     status,
     statusText,
     headers: { get: () => 'application/json' },
-    json: jest.fn().mockResolvedValue(data),
-    text: jest.fn().mockResolvedValue(JSON.stringify(data)),
+    json: vi.fn().mockResolvedValue(data),
+    text: vi.fn().mockResolvedValue(JSON.stringify(data)),
   };
 }
 
@@ -18,35 +18,35 @@ describe('maddraxiversum', () => {
   let mockLatLngBounds;
 
   beforeEach(async () => {
-    jest.resetModules();
+    vi.resetModules();
     mockMap = {
-      setView: jest.fn().mockReturnThis(),
-      addLayer: jest.fn(),
-      fitBounds: jest.fn(),
-      panTo: jest.fn(),
-      removeLayer: jest.fn(),
-      on: jest.fn(),
+      setView: vi.fn().mockReturnThis(),
+      addLayer: vi.fn(),
+      fitBounds: vi.fn(),
+      panTo: vi.fn(),
+      removeLayer: vi.fn(),
+      on: vi.fn(),
     };
     mockMarker = {
-      setLatLng: jest.fn(),
-      addTo: jest.fn().mockReturnThis(),
+      setLatLng: vi.fn(),
+      addTo: vi.fn().mockReturnThis(),
     };
-    mockLatLngBounds = jest.fn(() => ({}));
-    await jest.unstable_mockModule('leaflet', () => ({
+    mockLatLngBounds = vi.fn(() => ({}));
+    vi.doMock('leaflet', () => ({
       default: {
-        map: jest.fn(() => mockMap),
-        tileLayer: jest.fn(() => ({ addTo: jest.fn() })),
-        icon: jest.fn(),
-        markerClusterGroup: jest.fn(() => ({ addLayer: jest.fn() })),
-        marker: jest.fn(() => mockMarker),
-        divIcon: jest.fn(() => ({})),
+        map: vi.fn(() => mockMap),
+        tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
+        icon: vi.fn(),
+        markerClusterGroup: vi.fn(() => ({ addLayer: vi.fn() })),
+        marker: vi.fn(() => mockMarker),
+        divIcon: vi.fn(() => ({})),
         latLngBounds: mockLatLngBounds,
       },
     }));
 
-    await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
+    vi.doMock('leaflet.markercluster', () => ({}));
 
-    globalThis.fetch = jest.fn().mockImplementation((url) => {
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
       if (url === '/maddraxikon-staedte') {
         return Promise.resolve(jsonResponse({ query: { results: {} } }));
       }
@@ -65,10 +65,10 @@ describe('maddraxiversum', () => {
 
     // Polyfill: jsdom unterstützt keine native <dialog>-API
     const dialogEl = document.getElementById('mission-modal');
-    dialogEl.showModal = jest.fn(function () { this.open = true; });
-    dialogEl.close = jest.fn(function () { this.open = false; });
+    dialogEl.showModal = vi.fn(function () { this.open = true; });
+    dialogEl.close = vi.fn(function () { this.open = false; });
 
-    global.tileUrl = 'http://tiles.example';
+    globalThis.tileUrl = 'http://tiles.example';
 
     mod = await import('../../resources/js/maddraxiversum.js');
   });
@@ -104,19 +104,24 @@ describe('maddraxiversum', () => {
 
   test('animateGlider moves marker along path and cleans up', async () => {
     const { animateGlider, calculateBearing } = mod;
-    jest.useFakeTimers();
-    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
-    const promise = animateGlider([0, 0], [1, 1], 1);
-    expect(mockLatLngBounds).toHaveBeenCalledWith([[0, 0], [1, 1]]);
-    expect(mockMap.fitBounds).toHaveBeenCalled();
-    jest.runAllTimers();
-    await promise;
-    expect(logSpy).toHaveBeenCalledWith('Berechneter Kurs:', calculateBearing([0, 0], [1, 1]));
-    expect(mockMarker.setLatLng).toHaveBeenCalled();
-    expect(mockMap.panTo).toHaveBeenCalled();
-    expect(mockMap.removeLayer).toHaveBeenCalledWith(mockMarker);
-    expect(document.head.querySelector('style')).not.toBeNull();
-    logSpy.mockRestore();
+    vi.useFakeTimers();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    try {
+      const promise = animateGlider([0, 0], [1, 1], 1);
+      expect(mockLatLngBounds).toHaveBeenCalledWith([[0, 0], [1, 1]]);
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+      vi.runAllTimers();
+      await promise;
+      expect(logSpy).toHaveBeenCalledWith('Berechneter Kurs:', calculateBearing([0, 0], [1, 1]));
+      expect(mockMarker.setLatLng).toHaveBeenCalled();
+      expect(mockMap.panTo).toHaveBeenCalled();
+      expect(mockMap.removeLayer).toHaveBeenCalledWith(mockMarker);
+      expect(document.head.querySelector('style')).not.toBeNull();
+    } finally {
+      logSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -131,27 +136,27 @@ describe('maddraxiversum extended behaviour', () => {
   let addEventListenerSpy;
 
   async function setup({ cityResults = {}, statusResult = { data: { status: 'none' } } } = {}) {
-    jest.resetModules();
+    vi.resetModules();
     popupOpen = undefined;
     mockMap = {
-      setView: jest.fn().mockReturnThis(),
-      addLayer: jest.fn(),
-      fitBounds: jest.fn(),
-      panTo: jest.fn(),
-      removeLayer: jest.fn(),
-      on: jest.fn((evt, cb) => {
+      setView: vi.fn().mockReturnThis(),
+      addLayer: vi.fn(),
+      fitBounds: vi.fn(),
+      panTo: vi.fn(),
+      removeLayer: vi.fn(),
+      on: vi.fn((evt, cb) => {
         if (evt === 'popupopen') popupOpen = cb;
       }),
     };
     mockMarker = {
-      setLatLng: jest.fn(),
-      addTo: jest.fn().mockReturnThis(),
-      bindPopup: jest.fn().mockReturnThis(),
+      setLatLng: vi.fn(),
+      addTo: vi.fn().mockReturnThis(),
+      bindPopup: vi.fn().mockReturnThis(),
     };
-    mockCluster = { addLayer: jest.fn() };
-    mockLatLngBounds = jest.fn(() => ({}));
+    mockCluster = { addLayer: vi.fn() };
+    mockLatLngBounds = vi.fn(() => ({}));
     const originalAdd = document.addEventListener;
-    addEventListenerSpy = jest
+    addEventListenerSpy = vi
       .spyOn(document, 'addEventListener')
       .mockImplementation((evt, cb, opts) => {
         if (evt === 'DOMContentLoaded') {
@@ -161,19 +166,19 @@ describe('maddraxiversum extended behaviour', () => {
         return originalAdd.call(document, evt, cb, opts);
       });
 
-    await jest.unstable_mockModule('leaflet', () => ({
+    vi.doMock('leaflet', () => ({
       default: {
-        map: jest.fn(() => mockMap),
-        tileLayer: jest.fn(() => ({ addTo: jest.fn() })),
-        icon: jest.fn(() => ({})),
-        markerClusterGroup: jest.fn(() => mockCluster),
-        marker: jest.fn(() => mockMarker),
-        divIcon: jest.fn(() => ({})),
+        map: vi.fn(() => mockMap),
+        tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
+        icon: vi.fn(() => ({})),
+        markerClusterGroup: vi.fn(() => mockCluster),
+        marker: vi.fn(() => mockMarker),
+        divIcon: vi.fn(() => ({})),
         latLngBounds: mockLatLngBounds,
       },
     }));
-    await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
-    globalThis.fetch = jest.fn().mockImplementation((url) => {
+    vi.doMock('leaflet.markercluster', () => ({}));
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
       if (url === '/maddraxikon-staedte') {
         return Promise.resolve(jsonResponse({ query: { results: cityResults } }));
       }
@@ -197,11 +202,11 @@ describe('maddraxiversum extended behaviour', () => {
 
     // Polyfill: jsdom unterstützt keine native <dialog>-API
     const dialogEl = document.getElementById('mission-modal');
-    dialogEl.showModal = jest.fn(function () { this.open = true; });
-    dialogEl.close = jest.fn(function () { this.open = false; });
+    dialogEl.showModal = vi.fn(function () { this.open = true; });
+    dialogEl.close = vi.fn(function () { this.open = false; });
 
-    global.tileUrl = 'http://tiles.example';
-    global.csrfToken = 'TOKEN';
+    globalThis.tileUrl = 'http://tiles.example';
+    globalThis.csrfToken = 'TOKEN';
 
     mod = await import('../../resources/js/maddraxiversum.js');
   }
@@ -248,16 +253,20 @@ describe('maddraxiversum extended behaviour', () => {
       travel_duration: 1,
       mission_duration: 1,
     });
-    global.alert = jest.fn();
-    jest.useFakeTimers();
-    startBtn.click();
-    await jest.runAllTimersAsync();
-    const missionStartCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/starten');
-    expect(missionStartCall).toBeDefined();
-    expect(missionStartCall[1].method).toBe('POST');
-    expect(missionStartCall[1].headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
-    expect(mockMap.fitBounds).toHaveBeenCalled();
-    jest.useRealTimers();
+    globalThis.alert = vi.fn();
+    vi.useFakeTimers();
+
+    try {
+      startBtn.click();
+      await vi.runAllTimersAsync();
+      const missionStartCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/starten');
+      expect(missionStartCall).toBeDefined();
+      expect(missionStartCall[1].method).toBe('POST');
+      expect(missionStartCall[1].headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test('loadMissionStatus animates ongoing mission', async () => {
@@ -277,14 +286,18 @@ describe('maddraxiversum extended behaviour', () => {
         },
       },
     });
-    global.alert = jest.fn();
-    jest.useFakeTimers();
-    domReady();
-    await jest.runAllTimersAsync();
-    jest.useRealTimers();
-    const missionStatusCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/status');
-    expect(missionStatusCall).toBeDefined();
-    expect(mockMap.fitBounds).toHaveBeenCalled();
+    globalThis.alert = vi.fn();
+    vi.useFakeTimers();
+
+    try {
+      domReady();
+      await vi.runAllTimersAsync();
+      const missionStatusCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/status');
+      expect(missionStatusCall).toBeDefined();
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

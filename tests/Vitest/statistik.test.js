@@ -10,6 +10,13 @@ import { drawAuthorChart } from '@/statistik.js';
 import Chart from 'chart.js/auto';
 
 describe('drawAuthorChart', () => {
+  const originalGetContext = HTMLCanvasElement.prototype.getContext;
+
+  afterEach(() => {
+    HTMLCanvasElement.prototype.getContext = originalGetContext;
+    vi.restoreAllMocks();
+  });
+
   it('skips chart creation if canvas is missing', () => {
     drawAuthorChart('missing', ['A'], [1]);
     expect(Chart).not.toHaveBeenCalled();

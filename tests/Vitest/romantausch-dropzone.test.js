@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 import { RomantauschDropzone, initRomantauschDropzone } from '../../resources/js/romantausch-dropzone';
 
 describe('RomantauschDropzone', () => {
@@ -29,26 +29,26 @@ describe('RomantauschDropzone', () => {
     const createFile = (name) => new File(['content'], name, { type: 'image/jpeg' });
 
     beforeAll(() => {
-        if (!global.URL.createObjectURL) {
-            global.URL.createObjectURL = () => `blob:mock-${Math.random().toString(36).slice(2)}`;
+        if (!globalThis.URL.createObjectURL) {
+            globalThis.URL.createObjectURL = () => `blob:mock-${Math.random().toString(36).slice(2)}`;
         }
-        if (!global.URL.revokeObjectURL) {
-            global.URL.revokeObjectURL = () => {};
+        if (!globalThis.URL.revokeObjectURL) {
+            globalThis.URL.revokeObjectURL = () => {};
         }
     });
 
     beforeEach(() => {
         document.body.innerHTML = '';
         let urlCounter = 0;
-        jest.spyOn(global.URL, 'createObjectURL').mockImplementation(() => {
+        vi.spyOn(globalThis.URL, 'createObjectURL').mockImplementation(() => {
             urlCounter += 1;
             return `blob:mock-${urlCounter}`;
         });
-        jest.spyOn(global.URL, 'revokeObjectURL').mockImplementation(() => {});
+        vi.spyOn(globalThis.URL, 'revokeObjectURL').mockImplementation(() => {});
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     test('initialises dropzone and hides fallback while keeping accessible status region', () => {
@@ -115,7 +115,7 @@ describe('RomantauschDropzone', () => {
         const dropzone = new RomantauschDropzone(root);
         dropzone.init();
 
-        const clickSpy = jest.fn();
+        const clickSpy = vi.fn();
         dropzone.input.click = clickSpy;
 
         const label = document.querySelector('[data-dropzone-label]');
@@ -172,7 +172,7 @@ describe('RomantauschDropzone', () => {
 
         const status = root.querySelector('[data-dropzone-status]');
         expect(status.textContent).toBe('Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.');
-        expect(global.URL.createObjectURL).not.toHaveBeenCalled();
+        expect(globalThis.URL.createObjectURL).not.toHaveBeenCalled();
     });
 
     test('reuses existing object URLs across rerenders', () => {
@@ -183,11 +183,11 @@ describe('RomantauschDropzone', () => {
 
         dropzone.processFiles([createFile('one.jpg')]);
 
-        expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+        expect(globalThis.URL.createObjectURL).toHaveBeenCalledTimes(1);
 
         dropzone.renderPreviews();
 
-        expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+        expect(globalThis.URL.createObjectURL).toHaveBeenCalledTimes(1);
     });
 
     test('throws when attempting to override the fallback files list', () => {

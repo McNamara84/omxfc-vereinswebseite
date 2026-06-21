@@ -49,7 +49,7 @@ docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -
 
 # Tests
 docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan test
-docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test:vitest
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test
 npm run test:e2e:docker
 ```
 
@@ -125,7 +125,7 @@ public function __construct(
 |---------|---------|------|
 | Controller | `app/Http/Controllers/*` | `php artisan test --filter=ControllerName` |
 | Livewire | `app/Livewire/`, `resources/views/livewire/` | `php artisan test` |
-| Frontend/JS | `resources/js/`, Feature-spezifisch (z.B. `fantreffen.js`) | `npm run test:vitest && npm run build` |
+| Frontend/JS | `resources/js/`, Feature-spezifisch (z.B. `fantreffen.js`) | `npm run test && npm run build` |
 | Neue Route | `routes/web.php` | Feature-Test unter `tests/Feature/` |
 | Background-Job | `app/Jobs/` | Test mit `QUEUE_CONNECTION=sync` |
 
@@ -154,7 +154,7 @@ public function __construct(
 
 ```bash
 php artisan test              # ✓ PHPUnit
-npm run test:vitest           # ✓ JS (falls Frontend)
+npm run test                  # ✓ JS (falls Frontend)
 npm run build                 # ✓ Assets (falls geändert)
 ./vendor/bin/pint --test      # ✓ Code-Style
 ```
