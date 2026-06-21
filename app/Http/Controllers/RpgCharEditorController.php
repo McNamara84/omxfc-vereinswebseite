@@ -238,12 +238,6 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
-        if ($culture === 'Volk der 13 Inseln' && $gender === '') {
-            throw ValidationException::withMessages([
-                'gender' => 'Für die Kultur Volk der 13 Inseln muss ein gültiges Geschlecht gewählt werden.',
-            ]);
-        }
-
         if ($culture === 'Volk der 13 Inseln'
             && $gender === 'weiblich'
             && ! in_array('Psychische Kraft', $advantages, true)) {
