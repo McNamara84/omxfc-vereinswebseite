@@ -20,6 +20,7 @@
     <div class="section">
         <strong>Spieler:</strong> {{ $character['player_name'] ?? '' }}<br>
         <strong>Charakter:</strong> {{ $character['character_name'] ?? '' }}<br>
+        <strong>Geschlecht:</strong> {{ $character['gender'] ?? '' }}<br>
         <strong>Rasse:</strong> {{ $character['race'] ?? '' }}<br>
         <strong>Kultur:</strong> {{ $character['culture'] ?? '' }}
     </div>

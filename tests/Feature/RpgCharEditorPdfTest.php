@@ -37,6 +37,7 @@ class RpgCharEditorPdfTest extends TestCase
         return array_replace_recursive([
             'player_name' => 'Spieler Eins',
             'character_name' => 'Foo Bar',
+            'gender' => 'maennlich',
             'race' => 'Barbar',
             'culture' => 'Landbewohner',
             'description' => 'Ein erfahrener Charakter aus Wudan.',
@@ -250,6 +251,7 @@ class RpgCharEditorPdfTest extends TestCase
                 return $data['character'] === [
                     'player_name' => 'Holger',
                     'character_name' => 'Holli',
+                    'gender' => 'weiblich',
                     'race' => 'Barbar',
                     'culture' => 'Landbewohner',
                     'description' => 'Beschreibung aus dem Editor',
@@ -276,6 +278,7 @@ class RpgCharEditorPdfTest extends TestCase
             '_token' => 'ignored by payload whitelist',
             'player_name' => 'Holger',
             'character_name' => 'Holli',
+            'gender' => 'weiblich',
             'race' => 'Barbar',
             'culture' => 'Landbewohner',
             'description' => 'Beschreibung aus dem Editor',
@@ -389,6 +392,89 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('culture');
     }
 
+    public function test_pdf_export_accepts_nomade_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar'
+                && $data['character']['culture'] === 'Nomade'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Nomade',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Reiten', 'value' => 1],
+                ['name' => 'Ueberleben', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_volk_der_13_inseln_for_barbar_with_required_advantage(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar'
+                && $data['character']['culture'] === 'Volk der 13 Inseln'
+                && in_array('Psychische Kraft', $data['advantages'], true)))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'gender' => 'weiblich',
+            'culture' => 'Volk der 13 Inseln',
+            'advantages' => ['Zaeh', 'Psychische Kraft'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_volk_der_13_inseln_for_non_barbar(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Guul',
+            'culture' => 'Volk der 13 Inseln',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
+    public function test_pdf_export_rejects_female_volk_der_13_inseln_without_psychische_kraft(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'gender' => 'weiblich',
+            'culture' => 'Volk der 13 Inseln',
+            'advantages' => ['Zaeh'],
+        ]));
+
+        $response->assertSessionHasErrors('advantages');
+    }
+
     public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -463,6 +549,7 @@ class RpgCharEditorPdfTest extends TestCase
             ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === [
                 'player_name' => 'Holger',
                 'character_name' => '',
+                'gender' => 'weiblich',
                 'race' => '123',
                 'culture' => '',
                 'description' => '',
@@ -479,6 +566,7 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'player_name' => ' Holger ',
             'character_name' => ['manipuliert'],
+            'gender' => ' weiblich ',
             'race' => 123,
             'culture' => false,
             'description' => ['manipuliert'],
