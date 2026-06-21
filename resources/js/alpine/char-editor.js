@@ -504,11 +504,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Race handling ---
     handleRaceChange() {
+        const previousRace = this._prevRace || '';
+        if (this.race === previousRace) return;
+
         if (!this.isRaceSelectable(this.race)) {
             this.race = 'Techno';
         } else if (this.culture !== 'Bunkermensch' || this.race !== 'Techno') {
             this.raceLockedByBunkermenschCulture = false;
         }
+
+        if (this.race === previousRace) return;
 
         if (this.raceCache[this._prevRace]) {
             // Already cached by cacheRaceState below

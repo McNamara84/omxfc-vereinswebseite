@@ -533,14 +533,31 @@ describe('charEditor – Kultur-Logik', () => {
         e.applyRaceTechno();
         e.applyCultureBunkermensch();
         e._prevRace = 'Techno';
+        const clearRace = vi.spyOn(e, 'clearRace');
 
         e.race = 'Barbar';
         e.handleRaceChange();
 
         expect(e.race).toBe('Techno');
+        expect(clearRace).not.toHaveBeenCalled();
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.isRaceSelectable('Barbar')).toBe(false);
+    });
+
+    it('ignoriert doppelten Rassen-Handler-Lauf bei unveraenderter Rasse', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+        e._prevRace = 'Techno';
+        const clearRace = vi.spyOn(e, 'clearRace');
+
+        e.handleRaceChange();
+
+        expect(clearRace).not.toHaveBeenCalled();
+        expect(e.race).toBe('Techno');
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
     });
 
     it('Bunkermensch erhält Bildung, Nahkampf und den wählbaren Zusatzbonus', () => {
