@@ -225,7 +225,7 @@ class RpgCharEditorController extends Controller
 
         if ($culture === 'Volk der 13 Inseln' && $race !== 'Barbar') {
             throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Volk der 13 Inseln ist laut Regelwerk nur fuer Barbaren zugelassen.',
+                'culture' => 'Die Kultur Volk der 13 Inseln ist laut Regelwerk nur für Barbaren zugelassen.',
             ]);
         }
 
@@ -233,7 +233,7 @@ class RpgCharEditorController extends Controller
             && ($character['gender'] ?? '') === 'weiblich'
             && ! in_array('Psychische Kraft', $advantages, true)) {
             throw ValidationException::withMessages([
-                'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln muessen Psychische Kraft waehlen.',
+                'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln müssen Psychische Kraft wählen.',
             ]);
         }
     }

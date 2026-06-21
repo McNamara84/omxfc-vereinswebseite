@@ -70,7 +70,7 @@
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="gender" class="block text-sm font-medium text-base-content mb-1">Geschlecht</label>
                         <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" :disabled="advancedUnlocked">
-                            <option value="" disabled>Geschlecht waehlen</option>
+                            <option value="" disabled>Geschlecht wählen</option>
                             <option value="weiblich">Weiblich</option>
                             <option value="maennlich">Maennlich</option>
                             <option value="divers">Divers / keine Angabe</option>

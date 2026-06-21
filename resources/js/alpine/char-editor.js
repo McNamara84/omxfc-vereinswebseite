@@ -10,8 +10,8 @@ const CULTURE_DESCRIPTIONS = {
     Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.',
     Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.',
     Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.',
-    Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, ueberleben in unwirtlicher Natur und werden von sesshaften Voelkern oft misstrauisch betrachtet.',
-    'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Daenemark und Finnland. Es besteht vor allem aus Jaegern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.'
+    Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, überleben in unwirtlicher Natur und werden von sesshaften Völkern oft misstrauisch betrachtet.',
+    'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Dänemark und Finnland. Es besteht vor allem aus Jägern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.'
 };
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
