@@ -300,7 +300,8 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.attributes).toMatchObject({ st: -1, ro: -1, in: 1 });
         expect(e.apUsed()).toBe(0);
         expect(e.apRemaining()).toBe(2);
-        expect(e.getAttributeMin('in')).toBe(1);
+        expect(e.getAttributeMin('in')).toBe(0);
+        expect(e.getAttributeMax('in')).toBe(2);
         expect(e.technoPoolUsed()).toBe(12);
         expect(e.technoSkillPoolComplete()).toBe(true);
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
@@ -313,6 +314,37 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceLocked.disadvantages).toEqual(['Tödliche Immunschwäche']);
         expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
         expect(e.selectedDisadvantages).toContain('Tödliche Immunschwäche');
+    });
+
+    it('Techno rechnet bereits bezahlte Attribute beim Rassenwechsel in modifizierte Endwerte um', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.attributes.st = 1;
+        e.attributes.ro = 0;
+        e.attributes.in = 1;
+
+        e.applyRaceTechno();
+
+        expect(e.attributes.st).toBe(0);
+        expect(e.attributes.ro).toBe(-1);
+        expect(e.attributes.in).toBe(2);
+        expect(e.apUsed()).toBe(2);
+        expect(e.apRemaining()).toBe(0);
+        expect(e.getAttributeMax('st')).toBe(0);
+    });
+
+    it('Rassenwechsel weg von Techno rechnet modifizierte Attribute auf bezahlte Basiswerte zurück', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.applyRaceTechno();
+        e.attributes.st = 0;
+        e.attributes.ro = -1;
+        e.attributes.in = 2;
+
+        e.clearRace();
+
+        expect(e.attributes.st).toBe(1);
+        expect(e.attributes.ro).toBe(0);
+        expect(e.attributes.in).toBe(1);
+        expect(e.apUsed()).toBe(2);
     });
 
     it('Techno-Pool begrenzt Einzelwerte und verlangt exakt 12 verteilte Punkte', () => {

@@ -106,12 +106,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     getAttributeMin(id) {
-        const modifier = this.attributeModifier(id);
-        return modifier > 0 ? Math.min(modifier, this.attributeMax()) : -1;
+        return Math.max(-1, -1 + this.attributeModifier(id));
     },
 
-    getAttributeMax() {
-        return this.attributeMax();
+    getAttributeMax(id) {
+        return Math.max(this.getAttributeMin(id), this.attributeMax() + this.attributeModifier(id));
     },
 
     apUsed() {
@@ -448,8 +447,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         Object.entries(modifiers).forEach(([id, modifier]) => {
             if (!ATTRIBUTE_IDS.includes(id)) return;
-            const currentValue = this.attributes[id] === 0 ? modifier : this.attributes[id];
-            this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(currentValue, this.getAttributeMax(id)));
+            const paidValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : 0;
+            const modifiedValue = paidValue + modifier;
+            this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(modifiedValue, this.getAttributeMax(id)));
         });
     },
 
@@ -459,7 +459,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         Object.entries(previousModifiers).forEach(([id, modifier]) => {
             if (!ATTRIBUTE_IDS.includes(id)) return;
-            const paidValue = Math.max((Number(this.attributes[id]) || 0) - modifier, 0);
+            const modifiedValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : modifier;
+            const paidValue = modifiedValue - modifier;
             this.attributes[id] = Math.max(-1, Math.min(paidValue, this.attributeMax()));
         });
     },
