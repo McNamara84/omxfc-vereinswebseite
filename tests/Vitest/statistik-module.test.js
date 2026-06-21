@@ -1,4 +1,12 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
+
+function mockChartModule() {
+  const MockChart = vi.fn();
+  MockChart.getChart = vi.fn(() => null);
+  vi.doMock('chart.js/auto', () => ({ default: MockChart }));
+
+  return MockChart;
+}
 
 describe('statistik module', () => {
   let drawAuthorChart;
@@ -6,15 +14,13 @@ describe('statistik module', () => {
   let mockChart;
 
   beforeEach(async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     const mod = await import('../../resources/js/statistik.js');
     ({ drawAuthorChart, drawCycleChart } = mod);
 
-    HTMLCanvasElement.prototype.getContext = jest.fn(() => ({}));
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
   });
 
   test('drawAuthorChart renders bar chart with given labels and data', () => {
@@ -68,10 +74,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws hardcover chart', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="hardcoverChart"></canvas>';
     window.hardcoverChartLabels = ['1'];
@@ -86,10 +90,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws Mission Mars chart when data available', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="missionMarsChart"></canvas>';
     window.missionMarsChartLabels = ['1'];
@@ -104,10 +106,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws Mission Mars author chart', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="missionMarsAuthorChart"></canvas>';
     window.missionMarsAuthorChartLabels = ['Autor'];
@@ -122,10 +122,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws Das Volk der Tiefe chart when data available', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="volkDerTiefeChart"></canvas>';
     window.volkDerTiefeChartLabels = ['1'];
@@ -140,10 +138,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws Das Volk der Tiefe author chart', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="volkDerTiefeAuthorChart"></canvas>';
     window.volkDerTiefeAuthorChartLabels = ['Autor'];
@@ -158,10 +154,8 @@ describe('statistik module', () => {
   });
 
   test('DOMContentLoaded draws hardcover author chart', async () => {
-    jest.resetModules();
-    const chartModule = await import('chart.js/auto');
-    mockChart = chartModule.default;
-    mockChart.mockClear();
+    vi.resetModules();
+    mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="hardcoverAuthorChart"></canvas>';
     window.hardcoverAuthorChartLabels = ['A'];

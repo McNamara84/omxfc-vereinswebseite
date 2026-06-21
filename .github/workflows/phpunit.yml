@@ -286,7 +286,7 @@ jobs:
           cache: npm
       - name: Install Node dependencies
         run: npm ci
-      - name: Run Jest tests with coverage
+      - name: Run Vitest tests with coverage
         run: npm run test:coverage
       - name: Create JS coverage badge
         if: github.ref == 'refs/heads/main'

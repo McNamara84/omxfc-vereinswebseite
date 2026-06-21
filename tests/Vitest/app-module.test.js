@@ -1,8 +1,5 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
-// Using jest.unstable_mockModule because Jest's stable mock API currently
-// lacks full support for mocking ES modules loaded via dynamic import. This
-// lets us stub out side-effect-heavy dependencies when testing app.js.
 
 const originalMatchMedia = window.matchMedia;
 const originalL = window.L;
@@ -12,10 +9,11 @@ afterEach(() => {
   window.matchMedia = originalMatchMedia;
   window.L = originalL;
   window.Alpine = originalAlpine;
+  vi.restoreAllMocks();
 });
 
 async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
-  jest.resetModules();
+  vi.resetModules();
   window.localStorage.clear();
   document.body.innerHTML = bodyHtml;
   document.documentElement.className = '';
@@ -29,16 +27,16 @@ async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
   document.documentElement.dataset.theme = matches ? 'coffee' : 'caramellatte';
 
   let handler;
-  window.matchMedia = jest.fn().mockReturnValue({
+  window.matchMedia = vi.fn().mockReturnValue({
     matches,
     addEventListener: (event, cb) => {
       if (event === 'change') handler = cb;
     },
   });
-  await jest.unstable_mockModule('../../resources/js/bootstrap.js', () => ({}));
-  await jest.unstable_mockModule('../../resources/js/alpine/char-editor.js', () => ({}));
-  await jest.unstable_mockModule('../../resources/js/alpine/hoerbuch-role-repeater.js', () => ({}));
-  await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
+  vi.doMock('../../resources/js/bootstrap.js', () => ({}));
+  vi.doMock('../../resources/js/alpine/char-editor.js', () => ({}));
+  vi.doMock('../../resources/js/alpine/hoerbuch-role-repeater.js', () => ({}));
+  vi.doMock('leaflet', () => ({ default: {} }));
 
   const anchorPlugin = { name: 'anchor' };
   const focusPlugin = { name: 'focus' };
@@ -47,16 +45,16 @@ async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
 
   // Mock Alpine.js and its plugins
   const mockAlpine = {
-    plugin: jest.fn(),
-    start: jest.fn(),
+    plugin: vi.fn(),
+    start: vi.fn(),
     _x_dataStack: undefined,
     version: '3.15.4',
   };
-  await jest.unstable_mockModule('alpinejs', () => ({ default: mockAlpine }));
-  await jest.unstable_mockModule('@alpinejs/anchor', () => ({ default: anchorPlugin }));
-  await jest.unstable_mockModule('@alpinejs/focus', () => ({ default: focusPlugin }));
-  await jest.unstable_mockModule('@alpinejs/persist', () => ({ default: persistPlugin }));
-  await jest.unstable_mockModule('@alpinejs/collapse', () => ({ default: collapsePlugin }));
+  vi.doMock('alpinejs', () => ({ default: mockAlpine }));
+  vi.doMock('@alpinejs/anchor', () => ({ default: anchorPlugin }));
+  vi.doMock('@alpinejs/focus', () => ({ default: focusPlugin }));
+  vi.doMock('@alpinejs/persist', () => ({ default: persistPlugin }));
+  vi.doMock('@alpinejs/collapse', () => ({ default: collapsePlugin }));
 
   if (existingAlpine) {
     window.Alpine = existingAlpine;
@@ -177,9 +175,9 @@ describe('app module', () => {
 
   test('does not re-register Alpine plugins when Livewire Alpine already exists', async () => {
     const livewireAlpine = {
-      plugin: jest.fn(),
-      start: jest.fn(),
-      persist: jest.fn(),
+      plugin: vi.fn(),
+      start: vi.fn(),
+      persist: vi.fn(),
       version: '3.15.4-livewire',
     };
 

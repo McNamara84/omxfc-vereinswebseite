@@ -49,7 +49,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet.
-- **Testing:** PHPUnit 13, Jest 30, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
+- **Testing:** PHPUnit 13, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
 ## Voraussetzungen
@@ -192,13 +192,13 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 |------------------------------|--------|
 | PHPUnit-Tests                | `npm run docker:dev:test:php` |
 | Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
-| JavaScript-Tests (Jest)      | `npm run docker:dev:test:jest` |
-| Komponenten-Tests (Vitest)   | `npm run docker:dev:test:vitest` |
+| JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
+| Komponenten-Tests (Vitest, direkt) | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen lokal bewusst effizient: PHPUnit bleibt auf SQLite `:memory:`, Vitest und Jest laufen im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue.
+Die schnellen Standard-Checks laufen lokal bewusst effizient: PHPUnit bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
