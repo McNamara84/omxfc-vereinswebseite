@@ -1,17 +1,22 @@
 const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
     Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.',
-    Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.'
+    Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.',
+    Techno: 'Technos sind Nachfahren der Menschen, die den Kometeneinschlag in Bunkern überlebt und eine neue Zivilisation aufgebaut haben. Aufgrund ihres technologischen Fortschritts gelten sie vielen Barbaren als Götter oder Dämonen. Sie leiden jedoch an einer tödlichen Immunschwäche und können die Außenwelt nur mit Schutzanzug betreten.'
 };
 
 const CULTURE_DESCRIPTIONS = {
     Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.',
     Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.',
-    Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.'
+    Meeresbewohner: 'Meeresbewohner sind Hydriten aus großen, seit langem verborgenen Unterseestädten. Ihre Gesellschaft ist streng hierarchisch organisiert, technisch und biotechnologisch weit fortgeschritten und meidet den Kontakt zu Oberflächenbewohnern.',
+    Bunkermensch: 'Bunkermenschen sind Nachfahren jener Menschen, die die Katastrophe in Bunkern überlebten. Sie verfügen über Technik der alten Welt, leiden aber durch Isolation an einer fatalen Immunschwäche und begegnen der Oberfläche meist nur in Schutzanzügen.'
 };
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+const TECHNO_SKILLS = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
+const TECHNO_SKILL_POOL_POINTS = 12;
+const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
 
 function hydrateExistingCharEditors() {
     if (!window.Alpine
@@ -67,7 +72,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     citySkill: null,
     seaProfessionSkill: null,
     seaKnowledgeOrCombatSkill: null,
+    bunkermenschBonusSkill: null,
+    technoSkillNames: TECHNO_SKILLS,
+    technoSkillPoolPoints: TECHNO_SKILL_POOL_POINTS,
+    technoSkillPoints: Object.fromEntries(TECHNO_SKILLS.map(name => [name, 2])),
     raceCache: {},
+    raceAttributeModifiers: {},
 
     // Dynamic data
     attributes: { st: 0, ge: 0, ro: 0, wi: 0, wa: 0, in: 0, au: 0 },
@@ -87,8 +97,24 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.race === 'Barbar' ? 2 : 1;
     },
 
+    attributeModifier(id) {
+        return this.raceAttributeModifiers[id] || 0;
+    },
+
+    attributeCost(id, value = this.attributes[id]) {
+        return Math.max(value - this.attributeModifier(id), 0);
+    },
+
+    getAttributeMin(id) {
+        return Math.max(-1, -1 + this.attributeModifier(id));
+    },
+
+    getAttributeMax(id) {
+        return Math.max(this.getAttributeMin(id), this.attributeMax() + this.attributeModifier(id));
+    },
+
     apUsed() {
-        return ATTRIBUTE_IDS.reduce((sum, id) => sum + Math.max(this.attributes[id], 0), 0);
+        return ATTRIBUTE_IDS.reduce((sum, id) => sum + this.attributeCost(id), 0);
     },
 
     apRemaining() {
@@ -124,6 +150,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     formValid() {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
+            && this.technoSkillPoolComplete()
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
     },
 
@@ -161,8 +188,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     allowedCulturesForRace(race = this.race) {
         if (race === 'Hydrit') return ['Meeresbewohner'];
+        if (race === 'Techno') return ['Bunkermensch'];
 
-        return CULTURE_NAMES;
+        return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch');
     },
 
     isCultureSelectable(culture) {
@@ -172,9 +200,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     enforceCultureForRace() {
         const allowedCultures = this.allowedCulturesForRace();
         if (allowedCultures.includes(this.culture)) return false;
-        if (allowedCultures.length !== 1) return false;
+        if (!this.culture && allowedCultures.length !== 1) return false;
 
-        const [defaultCulture] = allowedCultures;
+        const [defaultCulture = ''] = allowedCultures.length === 1 ? allowedCultures : [''];
         this.clearCulture();
         this.culture = defaultCulture;
 
@@ -190,16 +218,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     clampAttribute(id) {
         let val = this.attributes[id];
-        if (typeof val !== 'number' || isNaN(val)) val = 0;
-        val = Math.max(-1, Math.min(val, this.attributeMax()));
+        if (typeof val !== 'number' || isNaN(val)) val = this.attributeModifier(id) || 0;
+        val = Math.max(this.getAttributeMin(id), Math.min(val, this.getAttributeMax(id)));
 
-        // Check AP budget
+        // Check AP budget against paid values after race modifiers.
         const othersUsed = ATTRIBUTE_IDS.reduce((sum, otherId) => {
             if (otherId === id) return sum;
-            return sum + Math.max(this.attributes[otherId], 0);
+            return sum + this.attributeCost(otherId);
         }, 0);
-        const maxForThis = Math.max(-1, Math.min(this.base.AP + this.raceAPBonus - othersUsed, this.attributeMax()));
-        val = Math.min(val, maxForThis);
+        const availableForThis = Math.max(0, this.base.AP + this.raceAPBonus - othersUsed);
+        const maxForThis = Math.min(this.getAttributeMax(id), this.attributeModifier(id) + availableForThis);
+        val = Math.min(val, Math.max(this.getAttributeMin(id), maxForThis));
 
         this.attributes[id] = val;
     },
@@ -369,6 +398,73 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.allUsedSkillNames().has(optionValue);
     },
 
+    resetTechnoSkillPoints(defaultValue = 0) {
+        this.technoSkillPoints = Object.fromEntries(TECHNO_SKILLS.map(name => [name, defaultValue]));
+    },
+
+    technoPoolUsed() {
+        return TECHNO_SKILLS.reduce((sum, name) => sum + (Number(this.technoSkillPoints[name]) || 0), 0);
+    },
+
+    technoSkillPoolComplete() {
+        return this.race !== 'Techno' || this.technoPoolUsed() === this.technoSkillPoolPoints;
+    },
+
+    setTechnoSkillPoints(skillName, value) {
+        if (!TECHNO_SKILLS.includes(skillName)) return;
+
+        const parsedValue = Number.parseInt(value, 10);
+        const normalizedValue = Number.isFinite(parsedValue)
+            ? Math.max(0, Math.min(parsedValue, this.base.maxFW))
+            : 0;
+
+        this.technoSkillPoints[skillName] = normalizedValue;
+        this.applyTechnoSkillGrant(skillName);
+        this.refreshBunkermenschBonusGrant();
+    },
+
+    applyTechnoSkillGrant(skillName) {
+        const value = this.race === 'Techno' ? (Number(this.technoSkillPoints[skillName]) || 0) : 0;
+
+        if (value > 0) {
+            this.raceGrants[skillName] = { type: 'min', value };
+            const skill = this.ensureSkill(skillName);
+            this.applyGrantToSkill(skill);
+            return;
+        }
+
+        delete this.raceGrants[skillName];
+        this.refreshGrantedSkill(skillName);
+    },
+
+    refreshAllTechnoSkillGrants() {
+        TECHNO_SKILLS.forEach(name => this.applyTechnoSkillGrant(name));
+        this.refreshBunkermenschBonusGrant();
+    },
+
+    setRaceAttributeModifiers(modifiers) {
+        this.raceAttributeModifiers = { ...modifiers };
+
+        Object.entries(modifiers).forEach(([id, modifier]) => {
+            if (!ATTRIBUTE_IDS.includes(id)) return;
+            const paidValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : 0;
+            const modifiedValue = paidValue + modifier;
+            this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(modifiedValue, this.getAttributeMax(id)));
+        });
+    },
+
+    clearRaceAttributeModifiers() {
+        const previousModifiers = { ...this.raceAttributeModifiers };
+        this.raceAttributeModifiers = {};
+
+        Object.entries(previousModifiers).forEach(([id, modifier]) => {
+            if (!ATTRIBUTE_IDS.includes(id)) return;
+            const modifiedValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : modifier;
+            const paidValue = modifiedValue - modifier;
+            this.attributes[id] = Math.max(-1, Math.min(paidValue, this.attributeMax()));
+        });
+    },
+
     // --- Race handling ---
     handleRaceChange() {
         if (this.raceCache[this._prevRace]) {
@@ -380,6 +476,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Barbar') this.applyRaceBarbar();
         if (this.race === 'Guul') this.applyRaceGuul();
         if (this.race === 'Hydrit') this.applyRaceHydrit();
+        if (this.race === 'Techno') this.applyRaceTechno();
         this.restoreRaceState(this.race);
         this.enforceCultureForRace();
         this._prevRace = this.race;
@@ -392,6 +489,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             attributes: { ...this.attributes },
             skills: this.skills.filter(s => this.raceGrants[s.name]).map(s => ({ name: s.name, value: s.value })),
             barbarCombatSkill: this.barbarCombatSkill,
+            technoSkillPoints: { ...this.technoSkillPoints },
         };
     },
 
@@ -400,7 +498,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (!cache) return;
         ATTRIBUTE_IDS.forEach(id => {
             if (cache.attributes[id] !== undefined) {
-                this.attributes[id] = Math.max(-1, Math.min(cache.attributes[id], this.attributeMax()));
+                this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(cache.attributes[id], this.getAttributeMax(id)));
             }
         });
         cache.skills.forEach(cached => {
@@ -409,6 +507,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         });
         if (raceName === 'Barbar' && cache.barbarCombatSkill) {
             this.setBarbarCombatSkill(cache.barbarCombatSkill);
+        }
+        if (raceName === 'Techno' && cache.technoSkillPoints) {
+            this.technoSkillPoints = { ...this.technoSkillPoints, ...cache.technoSkillPoints };
+            this.refreshAllTechnoSkillGrants();
         }
     },
 
@@ -420,6 +522,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.raceAPBonus = 0;
         this.raceGrants = {};
         this.barbarCombatSkill = null;
+        this.resetTechnoSkillPoints(0);
+        this.clearRaceAttributeModifiers();
         previousRaceSkills.forEach(name => this.refreshGrantedSkill(name));
         this.selectedAdvantages = this.selectedAdvantages.filter(value => value === 'Zäh' || !previousLockedAdvantages.includes(value));
         this.selectedDisadvantages = this.selectedDisadvantages.filter(value => !previousLockedDisadvantages.includes(value));
@@ -453,6 +557,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Anfälligkeit gegen Wahnsinn'])];
     },
 
+    applyRaceTechno() {
+        this.setRaceAttributeModifiers({ st: -1, ro: -1, in: 1 });
+        this.resetTechnoSkillPoints(2);
+        this.refreshAllTechnoSkillGrants();
+        this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
+        this.raceLocked.disadvantages = ['Tödliche Immunschwäche'];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'High-Tech-Ausrüstung'])];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Tödliche Immunschwäche'])];
+    },
+
     setBarbarCombatSkill(skillName) {
         ['Nahkampf', 'Fernkampf']
             .filter(name => name !== skillName && this.raceGrants[name])
@@ -478,6 +592,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Landbewohner') this.applyCultureLandbewohner();
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
         if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
+        if (this.culture === 'Bunkermensch') this.applyCultureBunkermensch();
         this.updateDescription();
     },
 
@@ -488,6 +603,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.citySkill = null;
         this.seaProfessionSkill = null;
         this.seaKnowledgeOrCombatSkill = null;
+        this.bunkermenschBonusSkill = null;
         previousCultureSkills.forEach(name => this.refreshGrantedSkill(name));
     },
 
@@ -507,6 +623,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Athletik', 1, 'Kultur');
         this.setSeaProfessionSkill('Beruf: Farmer');
         this.setSeaKnowledgeOrCombatSkill('Wissenschaftler');
+    },
+
+    applyCultureBunkermensch() {
+        this.setFreeMin('Bildung', 1, 'Kultur');
+        this.setFreeMin('Nahkampf', 1, 'Kultur');
+        this.setBunkermenschBonusSkill('Feuerwaffen');
     },
 
     setCitySkill(skillName) {
@@ -548,6 +670,35 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.seaKnowledgeOrCombatSkill = skillName;
         this.cultureGrants[skillName] = { type: 'min', value: 1 };
         const skill = this.ensureSkill(skillName);
+        this.applyGrantToSkill(skill);
+    },
+
+    setBunkermenschBonusSkill(skillName) {
+        if (!BUNKERMENSCH_BONUS_SKILLS.includes(skillName)) return;
+
+        BUNKERMENSCH_BONUS_SKILLS
+            .filter(name => name !== skillName && this.cultureGrants[name])
+            .forEach(name => {
+                delete this.cultureGrants[name];
+                const grant = this.getGrant(name);
+                const skill = this.skills.find(s => s.name === name);
+                if (skill && grant && skill.value > grant.value) {
+                    skill.value = grant.value;
+                }
+                this.refreshGrantedSkill(name);
+            });
+
+        this.bunkermenschBonusSkill = skillName;
+        this.refreshBunkermenschBonusGrant();
+    },
+
+    refreshBunkermenschBonusGrant() {
+        if (this.culture !== 'Bunkermensch' || !this.bunkermenschBonusSkill) return;
+
+        const raceValue = Number(this.technoSkillPoints[this.bunkermenschBonusSkill]) || 0;
+        const value = Math.min(this.base.maxFW, raceValue + 1);
+        this.cultureGrants[this.bunkermenschBonusSkill] = { type: 'min', value };
+        const skill = this.ensureSkill(this.bunkermenschBonusSkill);
         this.applyGrantToSkill(skill);
     },
 

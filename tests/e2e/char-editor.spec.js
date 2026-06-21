@@ -307,4 +307,106 @@ test.describe('RPG Charakter-Editor', () => {
             expect.objectContaining({ name: 'Wissenschaftler' }),
         ]));
     });
+
+    test('erzwingt Bunkermensch als einzige Kultur fuer Techno', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await expect(page.locator('#culture option[value="Bunkermensch"]')).toBeDisabled();
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#culture').selectOption('Landbewohner');
+        await expect(page.locator('#culture')).toHaveValue('Landbewohner');
+
+        await page.locator('#race').selectOption('Techno');
+
+        await expect(page.locator('#culture')).toHaveValue('Bunkermensch');
+
+        const cultureOptions = await page.locator('#culture').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(cultureOptions).toMatchObject({
+            Landbewohner: true,
+            Stadtbewohner: true,
+            Meeresbewohner: true,
+            Bunkermensch: false,
+        });
+
+        await page.getByTestId('char-editor-continue-button').click();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+            };
+        });
+
+        expect(payload).toEqual({
+            race: 'Techno',
+            culture: 'Bunkermensch',
+        });
+    });
+
+    test('setzt Techno- und Bunkermensch-Regeln inklusive Pool im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Techno', culture: 'Bunkermensch' });
+
+        await expect(page.locator('#st')).toHaveValue('-1');
+        await expect(page.locator('#ro')).toHaveValue('-1');
+        await expect(page.locator('#in')).toHaveValue('1');
+        await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Tödliche Immunschwäche')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Tödliche Immunschwäche')).toBeDisabled();
+        await expect(page.getByText('Verteilt: 12 / 12')).toBeVisible();
+
+        await page.getByTestId('techno-skill-points-input').first().fill('4');
+        await page.getByTestId('techno-skill-points-input').nth(2).fill('0');
+        await page.locator('#bunkermensch-bonus-select').selectOption('Pilot');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                advantages: data.getAll('advantages[]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Techno');
+        expect(payload.culture).toBe('Bunkermensch');
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
+        expect(payload.disadvantages).toContain('Tödliche Immunschwäche');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Fahren', value: '4' }),
+            expect.objectContaining({ name: 'Feuerwaffen', value: '2' }),
+            expect.objectContaining({ name: 'Pilot', value: '3' }),
+            expect.objectContaining({ name: 'Techniker', value: '2' }),
+            expect.objectContaining({ name: 'Wissenschaftler', value: '2' }),
+            expect.objectContaining({ name: 'Bildung', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+        ]));
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Heiler' }),
+        ]));
+    });
 });
