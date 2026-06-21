@@ -72,7 +72,7 @@
                         <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" :disabled="advancedUnlocked">
                             <option value="" disabled>Geschlecht wählen</option>
                             <option value="weiblich">Weiblich</option>
-                            <option value="maennlich">Maennlich</option>
+                            <option value="maennlich">Männlich</option>
                             <option value="divers">Divers / keine Angabe</option>
                         </select>
                     </div>
