@@ -208,9 +208,9 @@ class RpgCharEditorController extends Controller
         $culture = $character['culture'] ?? '';
         $gender = $character['gender'] ?? '';
 
-        if ($gender !== '' && ! in_array($gender, self::GENDER_VALUES, true)) {
+        if (! in_array($gender, self::GENDER_VALUES, true)) {
             throw ValidationException::withMessages([
-                'gender' => 'Das Geschlecht muss einem der erlaubten Werte entsprechen.',
+                'gender' => 'Das Geschlecht muss gewählt werden und einem erlaubten Wert entsprechen.',
             ]);
         }
 

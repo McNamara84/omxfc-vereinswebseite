@@ -325,42 +325,20 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_pdf_export_rejects_invalid_gender_for_all_cultures(): void
+    public function test_pdf_export_rejects_missing_or_invalid_gender_for_all_cultures(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
         Pdf::shouldReceive('view')->never();
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'gender' => 'unbekannt',
-            'culture' => 'Landbewohner',
-        ]));
+        $payloadWithoutGender = $this->validPdfPayload();
+        unset($payloadWithoutGender['gender']);
 
-        $response->assertSessionHasErrors('gender');
-    }
+        foreach ([$payloadWithoutGender, $this->validPdfPayload(['gender' => '']), $this->validPdfPayload(['gender' => 'unbekannt'])] as $payload) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-    public function test_pdf_export_allows_empty_gender_for_other_cultures(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['gender'] === ''
-                && $data['character']['culture'] === 'Landbewohner'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'gender' => '',
-            'culture' => 'Landbewohner',
-        ]));
-
-        $response->assertOk();
+            $response->assertSessionHasErrors('gender');
+        }
     }
 
     public function test_pdf_export_accepts_hydrit_with_meeresbewohner_culture(): void
@@ -612,6 +590,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Collection Payload',
+            'gender' => 'maennlich',
             'attributes' => [
                 'st' => ' 2 ',
                 'ge' => ['manipuliert'],
@@ -790,6 +769,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo/Bar',
+            'gender' => 'maennlich',
             'portrait' => UploadedFile::fake()->image('avatar.jpg'),
         ]);
 
@@ -836,6 +816,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo',
+            'gender' => 'maennlich',
         ]);
 
         $response->assertOk();
@@ -872,6 +853,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo',
+            'gender' => 'maennlich',
             'portrait' => UploadedFile::fake()->image('avatar.png'),
         ]);
 
