@@ -90,6 +90,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     technoSkillPoints: Object.fromEntries(TECHNO_SKILLS.map(name => [name, 2])),
     raceCache: {},
     raceAttributeModifiers: {},
+    raceLockedByBunkermenschCulture: false,
 
     // Dynamic data
     attributes: { st: 0, ge: 0, ro: 0, wi: 0, wa: 0, in: 0, au: 0 },
@@ -215,7 +216,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     isCultureSelectable(culture) {
+        if (culture === 'Bunkermensch') return true;
+
+        if (this.race === 'Techno' && this.raceLockedByBunkermenschCulture) {
+            return this.allowedCulturesForRace('').includes(culture);
+        }
+
         return this.allowedCulturesForRace().includes(culture);
+    },
+
+    isRaceSelectable(race) {
+        return this.culture !== 'Bunkermensch' || !this.raceLockedByBunkermenschCulture || race === 'Techno';
     },
 
     enforceCultureForRace() {
@@ -493,6 +504,17 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Race handling ---
     handleRaceChange() {
+        const previousRace = this._prevRace || '';
+        if (this.race === previousRace) return;
+
+        if (!this.isRaceSelectable(this.race)) {
+            this.race = 'Techno';
+        } else if (this.culture !== 'Bunkermensch' || this.race !== 'Techno') {
+            this.raceLockedByBunkermenschCulture = false;
+        }
+
+        if (this.race === previousRace) return;
+
         if (this.raceCache[this._prevRace]) {
             // Already cached by cacheRaceState below
         } else if (this._prevRace) {
@@ -614,6 +636,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             return;
         }
 
+        if (this.culture === 'Bunkermensch') {
+            this.ensureTechnoRaceForBunkermenschCulture();
+        } else {
+            this.releaseBunkermenschRaceLock();
+        }
+
         this.clearCulture();
         if (this.culture === 'Landbewohner') this.applyCultureLandbewohner();
         if (this.culture === 'Stadtbewohner') this.applyCultureStadtbewohner();
@@ -622,6 +650,24 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Nomade') this.applyCultureNomade();
         if (this.culture === VOLK_DER_13_INSELN_CULTURE) this.applyCultureVolkDer13Inseln();
         this.updateDescription();
+    },
+
+    ensureTechnoRaceForBunkermenschCulture() {
+        if (this.race === 'Techno') return;
+
+        this.raceLockedByBunkermenschCulture = true;
+        this.race = 'Techno';
+        this.handleRaceChange();
+    },
+
+    releaseBunkermenschRaceLock() {
+        if (!this.raceLockedByBunkermenschCulture) return;
+
+        this.raceLockedByBunkermenschCulture = false;
+        if (this.race !== 'Techno') return;
+
+        this.race = '';
+        this.handleRaceChange();
     },
 
     clearCulture() {

@@ -438,7 +438,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
     });
 
-    it('Techno erlaubt nur Bunkermensch und andere Rassen dürfen Bunkermensch nicht wählen', () => {
+    it('Techno erzwingt Bunkermensch und nur der Auto-Lock sperrt Rassen auf Techno', () => {
         const techno = createEditor({ race: 'Techno' });
 
         expect(techno.allowedCulturesForRace()).toEqual(['Bunkermensch']);
@@ -453,7 +453,24 @@ describe('charEditor – Kultur-Logik', () => {
         expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Nomade')).toBe(true);
         expect(barbar.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
-        expect(barbar.isCultureSelectable('Bunkermensch')).toBe(false);
+        expect(barbar.isCultureSelectable('Bunkermensch')).toBe(true);
+
+        const bunker = createEditor({ race: 'Techno', culture: 'Bunkermensch', raceLockedByBunkermenschCulture: true });
+
+        expect(bunker.isRaceSelectable('Barbar')).toBe(false);
+        expect(bunker.isRaceSelectable('Guul')).toBe(false);
+        expect(bunker.isRaceSelectable('Hydrit')).toBe(false);
+        expect(bunker.isRaceSelectable('Techno')).toBe(true);
+        expect(bunker.isCultureSelectable('Landbewohner')).toBe(true);
+        expect(bunker.isCultureSelectable('Volk der 13 Inseln')).toBe(false);
+
+        const manualTechno = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+
+        expect(manualTechno.isRaceSelectable('Barbar')).toBe(true);
+        expect(manualTechno.isRaceSelectable('Guul')).toBe(true);
+        expect(manualTechno.isRaceSelectable('Hydrit')).toBe(true);
+        expect(manualTechno.isRaceSelectable('Techno')).toBe(true);
+        expect(manualTechno.isCultureSelectable('Landbewohner')).toBe(false);
     });
 
     it('Rassenwechsel zu Techno setzt Kultur auf Bunkermensch und ersetzt alte Kultur-Grants', () => {
@@ -465,6 +482,7 @@ describe('charEditor – Kultur-Logik', () => {
         e.handleRaceChange();
 
         expect(e.culture).toBe('Bunkermensch');
+        expect(e.raceLockedByBunkermenschCulture).toBe(false);
         expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
 
@@ -475,15 +493,97 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
     });
 
-    it('direkter Kulturwechsel verhindert Bunkermensch für Nicht-Technos', () => {
+    it('Kulturwechsel auf Bunkermensch setzt Techno automatisch und ersetzt alte Rassen-Grants', () => {
         const e = createEditor({ race: 'Barbar', culture: 'Bunkermensch' });
-        e.applyCultureBunkermensch();
+        e.applyRaceBarbar();
+
+        expect(e.raceGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
 
         e.handleCultureChange();
 
+        expect(e.race).toBe('Techno');
+        expect(e.raceLockedByBunkermenschCulture).toBe(true);
+        expect(e.raceGrants['\u00dcberleben']).toBeUndefined();
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+        expect(e.isRaceSelectable('Barbar')).toBe(false);
+        expect(e.isRaceSelectable('Techno')).toBe(true);
+    });
+
+    it('Kulturwechsel weg von automatisch gesetztem Bunkermensch leert Techno und gibt Rassen frei', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Bunkermensch' });
+        e.applyRaceBarbar();
+        e.handleCultureChange();
+
+        expect(e.race).toBe('Techno');
+        expect(e.raceLockedByBunkermenschCulture).toBe(true);
+
+        e.culture = 'Landbewohner';
+        e.handleCultureChange();
+
+        expect(e.race).toBe('');
+        expect(e.raceLockedByBunkermenschCulture).toBe(false);
+        expect(e.raceGrants).toEqual({});
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+        expect(e.cultureGrants.Feuerwaffen).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Feuerwaffen')).toBeUndefined();
+        expect(e.isRaceSelectable('Barbar')).toBe(true);
+        expect(e.isRaceSelectable('Guul')).toBe(true);
+        expect(e.isRaceSelectable('Hydrit')).toBe(true);
+        expect(e.isRaceSelectable('Techno')).toBe(true);
+    });
+
+    it('direkter Rassenwechsel bleibt bei aktivem Bunkermensch-Auto-Lock auf Techno beschraenkt', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch', raceLockedByBunkermenschCulture: true });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+        e._prevRace = 'Techno';
+        const clearRace = vi.spyOn(e, 'clearRace');
+
+        e.race = 'Barbar';
+        e.handleRaceChange();
+
+        expect(e.race).toBe('Techno');
+        expect(clearRace).not.toHaveBeenCalled();
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.isRaceSelectable('Barbar')).toBe(false);
+    });
+
+    it('manuell gewaehlter Techno kann per Rassenwechsel aus Bunkermensch herauswechseln', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+        e._prevRace = 'Techno';
+
+        e.race = 'Barbar';
+        e.handleRaceChange();
+
+        expect(e.race).toBe('Barbar');
         expect(e.culture).toBe('');
+        expect(e.raceLockedByBunkermenschCulture).toBe(false);
+        expect(e.raceGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants.Fahren).toBeUndefined();
         expect(e.cultureGrants).toEqual({});
-        expect(e.skills.find(s => s.name === 'Bildung')).toBeUndefined();
+        expect(e.isRaceSelectable('Barbar')).toBe(true);
+    });
+
+    it('ignoriert doppelten Rassen-Handler-Lauf bei unveraenderter Rasse', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+        e._prevRace = 'Techno';
+        const clearRace = vi.spyOn(e, 'clearRace');
+
+        e.handleRaceChange();
+
+        expect(clearRace).not.toHaveBeenCalled();
+        expect(e.race).toBe('Techno');
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
     });
 
     it('Bunkermensch erhält Bildung, Nahkampf und den wählbaren Zusatzbonus', () => {
