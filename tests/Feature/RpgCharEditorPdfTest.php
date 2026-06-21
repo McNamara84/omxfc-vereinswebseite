@@ -337,6 +337,58 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('culture');
     }
 
+    public function test_pdf_export_accepts_techno_with_bunkermensch_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Techno'
+                && $data['character']['culture'] === 'Bunkermensch'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Techno',
+            'culture' => 'Bunkermensch',
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_techno_with_other_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Techno',
+            'culture' => 'Stadtbewohner',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
+    public function test_pdf_export_rejects_bunkermensch_for_non_techno(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Barbar',
+            'culture' => 'Bunkermensch',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
     public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

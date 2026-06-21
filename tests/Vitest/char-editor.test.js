@@ -292,6 +292,47 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.selectedDisadvantages).not.toContain('Anfälligkeit gegen Wahnsinn');
         expect(e.skills.find(s => s.name === 'Athletik')).toBeUndefined();
     });
+
+    it('Techno erhält kostenlose Attributsmodifikatoren, Pflichtmerkmale und 12 Rassen-Fertigkeitspunkte', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.applyRaceTechno();
+
+        expect(e.attributes).toMatchObject({ st: -1, ro: -1, in: 1 });
+        expect(e.apUsed()).toBe(0);
+        expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMin('in')).toBe(1);
+        expect(e.technoPoolUsed()).toBe(12);
+        expect(e.technoSkillPoolComplete()).toBe(true);
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Heiler).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Pilot).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Techniker).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Wissenschaftler).toEqual({ type: 'min', value: 2 });
+        expect(e.raceLocked.advantages).toEqual(['High-Tech-Ausrüstung']);
+        expect(e.raceLocked.disadvantages).toEqual(['Tödliche Immunschwäche']);
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
+        expect(e.selectedDisadvantages).toContain('Tödliche Immunschwäche');
+    });
+
+    it('Techno-Pool begrenzt Einzelwerte und verlangt exakt 12 verteilte Punkte', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.applyRaceTechno();
+
+        e.setTechnoSkillPoints('Fahren', 9);
+
+        expect(e.technoSkillPoints.Fahren).toBe(4);
+        expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 4 });
+        expect(e.technoPoolUsed()).toBe(14);
+        expect(e.technoSkillPoolComplete()).toBe(false);
+
+        e.setTechnoSkillPoints('Heiler', 0);
+
+        expect(e.technoPoolUsed()).toBe(12);
+        expect(e.technoSkillPoolComplete()).toBe(true);
+        expect(e.raceGrants.Heiler).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Heiler')).toBeUndefined();
+    });
 });
 
 describe('charEditor – Kultur-Logik', () => {
@@ -361,6 +402,95 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+    });
+
+    it('Techno erlaubt nur Bunkermensch und andere Rassen dürfen Bunkermensch nicht wählen', () => {
+        const techno = createEditor({ race: 'Techno' });
+
+        expect(techno.allowedCulturesForRace()).toEqual(['Bunkermensch']);
+        expect(techno.isCultureSelectable('Bunkermensch')).toBe(true);
+        expect(techno.isCultureSelectable('Landbewohner')).toBe(false);
+        expect(techno.isCultureSelectable('Meeresbewohner')).toBe(false);
+
+        const barbar = createEditor({ race: 'Barbar' });
+
+        expect(barbar.isCultureSelectable('Landbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Stadtbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Bunkermensch')).toBe(false);
+    });
+
+    it('Rassenwechsel zu Techno setzt Kultur auf Bunkermensch und ersetzt alte Kultur-Grants', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Landbewohner' });
+        e.applyCultureLandbewohner();
+
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+
+        e.handleRaceChange();
+
+        expect(e.culture).toBe('Bunkermensch');
+        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+
+        e.handleCultureChange();
+
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+    });
+
+    it('direkter Kulturwechsel verhindert Bunkermensch für Nicht-Technos', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Bunkermensch' });
+        e.applyCultureBunkermensch();
+
+        e.handleCultureChange();
+
+        expect(e.culture).toBe('');
+        expect(e.cultureGrants).toEqual({});
+        expect(e.skills.find(s => s.name === 'Bildung')).toBeUndefined();
+    });
+
+    it('Bunkermensch erhält Bildung, Nahkampf und den wählbaren Zusatzbonus', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+        expect(e.bunkermenschBonusSkill).toBe('Feuerwaffen');
+        expect(e.skills.find(s => s.name === 'Feuerwaffen')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+    });
+
+    it('Bunkermensch-Zusatzbonus senkt den alten Bonus wieder auf den Techno-Rassenwert', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+
+        expect(e.skills.find(s => s.name === 'Feuerwaffen')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+
+        e.setBunkermenschBonusSkill('Pilot');
+
+        expect(e.cultureGrants.Feuerwaffen).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Feuerwaffen')).toMatchObject({ value: 2, badge: 'Rasse' });
+    });
+
+    it('Bunkermensch-Zusatzbonus ersetzt alte Optionen und addiert auf Techno-Poolpunkte bis zum Maximum', () => {
+        const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
+        e.applyRaceTechno();
+        e.applyCultureBunkermensch();
+
+        e.setTechnoSkillPoints('Feuerwaffen', 4);
+
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 4 });
+        expect(e.getGrant('Feuerwaffen')).toEqual({ type: 'min', value: 4 });
+
+        e.setBunkermenschBonusSkill('Pilot');
+
+        expect(e.cultureGrants.Feuerwaffen).toBeUndefined();
+        expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 4 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Pilot')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
 
     it('Landbewohner erhält Viehzüchter und Landwirt als Exact-Grants', () => {

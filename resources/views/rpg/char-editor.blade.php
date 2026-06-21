@@ -32,6 +32,7 @@
         'Feind',
         'Primitiv',
         'Gejagt',
+        'Tödliche Immunschwäche',
     ];
 @endphp
 <x-app-layout>
@@ -72,6 +73,7 @@
                             <option value="Barbar">Barbar</option>
                             <option value="Guul">Guul</option>
                             <option value="Hydrit">Hydrit</option>
+                            <option value="Techno">Techno</option>
                         </select>
                     </div>
 
@@ -82,6 +84,7 @@
                             <option value="Landbewohner" :disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
                             <option value="Stadtbewohner" :disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
                             <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
+                            <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
                         </select>
                     </div>
 
@@ -108,7 +111,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
                             <div>
-                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" x-bind:max="attributeMax()" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
+                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" x-bind:min="getAttributeMin('{{ $attrId }}')" x-bind:max="getAttributeMax('{{ $attrId }}')" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
                             </div>
                             @endforeach
                         </div>
@@ -123,6 +126,20 @@
                                 <option value="Nahkampf">Nahkampf (+1)</option>
                                 <option value="Fernkampf">Fernkampf (+1)</option>
                             </select>
+                        </div>
+                        <div x-show="race === 'Techno'" class="mb-3 rounded-md border border-base-300 bg-base-200/40 p-3">
+                            <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                                <h3 class="text-sm font-medium text-base-content">Techno-Rassenpunkte</h3>
+                                <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Verteilt: ' + technoPoolUsed() + ' / ' + technoSkillPoolPoints"></p>
+                            </div>
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                <template x-for="skillName in technoSkillNames" :key="'techno-skill-' + skillName">
+                                    <label class="flex min-h-12 items-center justify-between gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm">
+                                        <span class="min-w-0 flex-1" x-text="skillName"></span>
+                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-model.number="technoSkillPoints[skillName]" @input="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" @change="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" data-testid="techno-skill-points-input">
+                                    </label>
+                                </template>
+                            </div>
                         </div>
                         <div x-show="culture === 'Stadtbewohner'" class="mb-2">
                             <label for="city-skill-select" class="text-sm font-medium text-base-content mb-1">Stadtbewohner Bonus</label>
@@ -147,6 +164,14 @@
                                     <option value="Nahkampf">Nahkampf (+1)</option>
                                 </select>
                             </div>
+                        </div>
+                        <div x-show="culture === 'Bunkermensch'" class="mb-2">
+                            <label for="bunkermensch-bonus-select" class="text-sm font-medium text-base-content mb-1">Bunkermensch Zusatzbonus</label>
+                            <select id="bunkermensch-bonus-select" class="select select-bordered w-full sm:w-auto" x-model="bunkermenschBonusSkill" @change="setBunkermenschBonusSkill(bunkermenschBonusSkill)">
+                                <option value="Feuerwaffen">Feuerwaffen (+1)</option>
+                                <option value="Pilot">Pilot (+1)</option>
+                                <option value="Wissenschaftler">Wissenschaftler (+1)</option>
+                            </select>
                         </div>
                         <div class="space-y-2">
                             <template x-for="(skill, index) in skills" :key="index">

@@ -195,13 +195,26 @@ class RpgCharEditorController extends Controller
 
     private function validateCharacterRules(array $character): void
     {
-        if (($character['race'] ?? '') !== 'Hydrit' || ($character['culture'] ?? '') === 'Meeresbewohner') {
-            return;
+        $race = $character['race'] ?? '';
+        $culture = $character['culture'] ?? '';
+
+        if ($race === 'Hydrit' && $culture !== 'Meeresbewohner') {
+            throw ValidationException::withMessages([
+                'culture' => 'Hydriten können laut Regelwerk nur die Kultur Meeresbewohner wählen.',
+            ]);
         }
 
-        throw ValidationException::withMessages([
-            'culture' => 'Hydriten können laut Regelwerk nur die Kultur Meeresbewohner wählen.',
-        ]);
+        if ($race === 'Techno' && $culture !== 'Bunkermensch') {
+            throw ValidationException::withMessages([
+                'culture' => 'Technos können laut Regelwerk nur die Kultur Bunkermensch wählen.',
+            ]);
+        }
+
+        if ($culture === 'Bunkermensch' && $race !== 'Techno') {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur Bunkermensch ist laut Regelwerk nur für Technos zugelassen.',
+            ]);
+        }
     }
 
     private function stringPayload(mixed $value): string
