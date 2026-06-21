@@ -523,9 +523,9 @@ test.describe('RPG Charakter-Editor', () => {
         ));
 
         expect(raceOptions).toMatchObject({
-            Barbar: true,
-            Guul: true,
-            Hydrit: true,
+            Barbar: false,
+            Guul: false,
+            Hydrit: false,
             Techno: false,
         });
 

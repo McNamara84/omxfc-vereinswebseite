@@ -226,7 +226,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     isRaceSelectable(race) {
-        return this.culture !== 'Bunkermensch' || race === 'Techno';
+        return this.culture !== 'Bunkermensch' || !this.raceLockedByBunkermenschCulture || race === 'Techno';
     },
 
     enforceCultureForRace() {
