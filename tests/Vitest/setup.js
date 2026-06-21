@@ -1,4 +1,4 @@
-﻿const jsdomWindow = globalThis.jsdom?.window;
+const jsdomWindow = globalThis.window?.jsdom?.window ?? globalThis.jsdom?.window ?? globalThis.window;
 
 if (jsdomWindow) {
     const browserStorage = {
@@ -13,7 +13,7 @@ if (jsdomWindow) {
             writable: false,
         });
 
-        Object.defineProperty(globalThis.window, name, {
+        Object.defineProperty(jsdomWindow, name, {
             configurable: true,
             value: storage,
             writable: false,

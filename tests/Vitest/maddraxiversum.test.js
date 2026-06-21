@@ -106,17 +106,22 @@ describe('maddraxiversum', () => {
     const { animateGlider, calculateBearing } = mod;
     vi.useFakeTimers();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const promise = animateGlider([0, 0], [1, 1], 1);
-    expect(mockLatLngBounds).toHaveBeenCalledWith([[0, 0], [1, 1]]);
-    expect(mockMap.fitBounds).toHaveBeenCalled();
-    vi.runAllTimers();
-    await promise;
-    expect(logSpy).toHaveBeenCalledWith('Berechneter Kurs:', calculateBearing([0, 0], [1, 1]));
-    expect(mockMarker.setLatLng).toHaveBeenCalled();
-    expect(mockMap.panTo).toHaveBeenCalled();
-    expect(mockMap.removeLayer).toHaveBeenCalledWith(mockMarker);
-    expect(document.head.querySelector('style')).not.toBeNull();
-    logSpy.mockRestore();
+
+    try {
+      const promise = animateGlider([0, 0], [1, 1], 1);
+      expect(mockLatLngBounds).toHaveBeenCalledWith([[0, 0], [1, 1]]);
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+      vi.runAllTimers();
+      await promise;
+      expect(logSpy).toHaveBeenCalledWith('Berechneter Kurs:', calculateBearing([0, 0], [1, 1]));
+      expect(mockMarker.setLatLng).toHaveBeenCalled();
+      expect(mockMap.panTo).toHaveBeenCalled();
+      expect(mockMap.removeLayer).toHaveBeenCalledWith(mockMarker);
+      expect(document.head.querySelector('style')).not.toBeNull();
+    } finally {
+      logSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -250,14 +255,18 @@ describe('maddraxiversum extended behaviour', () => {
     });
     globalThis.alert = vi.fn();
     vi.useFakeTimers();
-    startBtn.click();
-    await vi.runAllTimersAsync();
-    const missionStartCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/starten');
-    expect(missionStartCall).toBeDefined();
-    expect(missionStartCall[1].method).toBe('POST');
-    expect(missionStartCall[1].headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
-    expect(mockMap.fitBounds).toHaveBeenCalled();
-    vi.useRealTimers();
+
+    try {
+      startBtn.click();
+      await vi.runAllTimersAsync();
+      const missionStartCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/starten');
+      expect(missionStartCall).toBeDefined();
+      expect(missionStartCall[1].method).toBe('POST');
+      expect(missionStartCall[1].headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   test('loadMissionStatus animates ongoing mission', async () => {
@@ -279,12 +288,16 @@ describe('maddraxiversum extended behaviour', () => {
     });
     globalThis.alert = vi.fn();
     vi.useFakeTimers();
-    domReady();
-    await vi.runAllTimersAsync();
-    vi.useRealTimers();
-    const missionStatusCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/status');
-    expect(missionStatusCall).toBeDefined();
-    expect(mockMap.fitBounds).toHaveBeenCalled();
+
+    try {
+      domReady();
+      await vi.runAllTimersAsync();
+      const missionStatusCall = globalThis.fetch.mock.calls.find(([url]) => url === '/mission/status');
+      expect(missionStatusCall).toBeDefined();
+      expect(mockMap.fitBounds).toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
