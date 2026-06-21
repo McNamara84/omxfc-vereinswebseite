@@ -206,6 +206,13 @@ class RpgCharEditorController extends Controller
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
+        $gender = $character['gender'] ?? '';
+
+        if ($gender !== '' && ! in_array($gender, self::GENDER_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'gender' => 'Das Geschlecht muss einem der erlaubten Werte entsprechen.',
+            ]);
+        }
 
         if ($race === 'Hydrit' && $culture !== 'Meeresbewohner') {
             throw ValidationException::withMessages([
@@ -231,14 +238,14 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
-        if ($culture === 'Volk der 13 Inseln' && ! in_array($character['gender'] ?? '', self::GENDER_VALUES, true)) {
+        if ($culture === 'Volk der 13 Inseln' && $gender === '') {
             throw ValidationException::withMessages([
                 'gender' => 'Für die Kultur Volk der 13 Inseln muss ein gültiges Geschlecht gewählt werden.',
             ]);
         }
 
         if ($culture === 'Volk der 13 Inseln'
-            && ($character['gender'] ?? '') === 'weiblich'
+            && $gender === 'weiblich'
             && ! in_array('Psychische Kraft', $advantages, true)) {
             throw ValidationException::withMessages([
                 'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln müssen Psychische Kraft wählen.',

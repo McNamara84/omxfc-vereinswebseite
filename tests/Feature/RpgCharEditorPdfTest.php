@@ -325,6 +325,44 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_export_rejects_invalid_gender_for_all_cultures(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'gender' => 'unbekannt',
+            'culture' => 'Landbewohner',
+        ]));
+
+        $response->assertSessionHasErrors('gender');
+    }
+
+    public function test_pdf_export_allows_empty_gender_for_other_cultures(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['gender'] === ''
+                && $data['character']['culture'] === 'Landbewohner'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'gender' => '',
+            'culture' => 'Landbewohner',
+        ]));
+
+        $response->assertOk();
+    }
+
     public function test_pdf_export_accepts_hydrit_with_meeresbewohner_culture(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
