@@ -452,7 +452,80 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Reiten', 'value' => 1],
-                ['name' => 'Ueberleben', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_ruinenbewohner_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Barbar'
+                    && $data['character']['culture'] === 'Ruinenbewohner'
+                    && $skills->has('Diebeskunst')
+                    && $skills->has('Heimlichkeit')
+                    && $skills->has('Fernkampf')
+                    && ! $skills->has('Fernwaffen');
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Ruinenbewohner',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Diebeskunst', 'value' => 1],
+                ['name' => 'Heimlichkeit', 'value' => 1],
+                ['name' => 'Fernkampf', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_untergrundbewohner_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Barbar'
+                    && $data['character']['culture'] === 'Untergrundbewohner'
+                    && $skills->has('Athletik')
+                    && $skills->has('Beruf: Bergmann')
+                    && $skills->has('Überleben');
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Untergrundbewohner',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Beruf: Bergmann', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
             ],
         ]));
 

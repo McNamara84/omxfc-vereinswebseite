@@ -382,6 +382,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.isCultureSelectable('Stadtbewohner')).toBe(true);
         expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
         expect(e.isCultureSelectable('Nomade')).toBe(true);
+        expect(e.isCultureSelectable('Ruinenbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Untergrundbewohner')).toBe(true);
         expect(e.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
 
         const barbar = createEditor({ race: 'Barbar', culture: '' });
@@ -452,6 +454,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(barbar.isCultureSelectable('Stadtbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Nomade')).toBe(true);
+        expect(barbar.isCultureSelectable('Ruinenbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Untergrundbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
         expect(barbar.isCultureSelectable('Bunkermensch')).toBe(true);
 
@@ -462,6 +466,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(bunker.isRaceSelectable('Hydrit')).toBe(false);
         expect(bunker.isRaceSelectable('Techno')).toBe(true);
         expect(bunker.isCultureSelectable('Landbewohner')).toBe(true);
+        expect(bunker.isCultureSelectable('Ruinenbewohner')).toBe(true);
+        expect(bunker.isCultureSelectable('Untergrundbewohner')).toBe(true);
         expect(bunker.isCultureSelectable('Volk der 13 Inseln')).toBe(false);
 
         const manualTechno = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
@@ -751,6 +757,57 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
     });
 
+    it('Ruinenbewohner setzt Diebeskunst, Heimlichkeit und den Standard-Wahlbonus', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Ruinenbewohner' });
+        e.applyRaceBarbar();
+        e.applyCultureRuinenbewohner();
+
+        expect(e.cultureGrants.Diebeskunst).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Heimlichkeit).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.ruinenbewohnerBonusSkill).toBe('Nahkampf');
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Fernwaffen')).toBeUndefined();
+    });
+
+    it('Ruinenbewohner-Wahlbonus ersetzt alte Optionen ohne Rassen-Grants zu entfernen', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Ruinenbewohner' });
+        e.applyRaceBarbar();
+        e.applyCultureRuinenbewohner();
+
+        e.setRuinenbewohnerBonusSkill('Fernkampf');
+
+        expect(e.cultureGrants.Nahkampf).toBeUndefined();
+        expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.cultureGrants.Fernkampf).toEqual({ type: 'min', value: 1 });
+
+        e.setRuinenbewohnerBonusSkill('Athletik');
+
+        expect(e.cultureGrants.Fernkampf).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Fernkampf')).toBeUndefined();
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+
+        e.setRuinenbewohnerBonusSkill('Kunde');
+
+        expect(e.cultureGrants.Athletik).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Athletik')).toBeUndefined();
+        expect(e.cultureGrants.Kunde).toEqual({ type: 'min', value: 1 });
+        expect(e.ruinenbewohnerBonusSkill).toBe('Kunde');
+    });
+
+    it('Untergrundbewohner setzt Athletik, Bergmann und Ueberleben', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Untergrundbewohner' });
+        e.applyRaceBarbar();
+        e.applyCultureUntergrundbewohner();
+
+        expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['Beruf: Bergmann']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Beruf: Bergmann')).toMatchObject({ value: 1, badge: 'Kultur' });
+    });
+
     it('Volk der 13 Inseln ist nur fuer Barbaren auswaehlbar', () => {
         const barbar = createEditor({ race: 'Barbar' });
         const guul = createEditor({ race: 'Guul' });
@@ -758,6 +815,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(barbar.isCultureSelectable('Volk der 13 Inseln')).toBe(true);
         expect(guul.isCultureSelectable('Volk der 13 Inseln')).toBe(false);
         expect(guul.isCultureSelectable('Nomade')).toBe(true);
+        expect(guul.isCultureSelectable('Ruinenbewohner')).toBe(true);
+        expect(guul.isCultureSelectable('Untergrundbewohner')).toBe(true);
 
         const invalid = createEditor({ race: 'Guul', culture: 'Volk der 13 Inseln', gender: 'weiblich' });
         invalid.applyCultureVolkDer13Inseln();

@@ -236,6 +236,8 @@ test.describe('RPG Charakter-Editor', () => {
             Stadtbewohner: true,
             Meeresbewohner: false,
             Nomade: true,
+            Ruinenbewohner: true,
+            Untergrundbewohner: true,
             'Volk der 13 Inseln': true,
         });
 
@@ -417,6 +419,86 @@ test.describe('RPG Charakter-Editor', () => {
         ]));
     });
 
+    test('setzt Ruinenbewohner-Regeln inklusive Fernkampf-Mapping im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Barbar', culture: 'Ruinenbewohner' });
+
+        await page.locator('#ruinenbewohner-bonus-select').selectOption('Fernkampf');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Ruinenbewohner');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Diebeskunst', value: '1' }),
+            expect.objectContaining({ name: 'Heimlichkeit', value: '1' }),
+            expect.objectContaining({ name: 'Fernkampf', value: '1' }),
+        ]));
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Fernwaffen' }),
+            expect.objectContaining({ name: 'Athletik' }),
+            expect.objectContaining({ name: 'Kunde' }),
+        ]));
+    });
+
+    test('setzt Untergrundbewohner-Regeln im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Barbar', culture: 'Untergrundbewohner' });
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Untergrundbewohner');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Athletik', value: '1' }),
+            expect.objectContaining({ name: 'Beruf: Bergmann', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+        ]));
+        expect(payload.skills.filter((skill) => skill.name === '\u00dcberleben')).toHaveLength(1);
+    });
+
     test('setzt Techno automatisch wenn Bunkermensch zuerst gewaehlt wird', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');
@@ -452,6 +534,8 @@ test.describe('RPG Charakter-Editor', () => {
             Meeresbewohner: false,
             Bunkermensch: false,
             Nomade: false,
+            Ruinenbewohner: false,
+            Untergrundbewohner: false,
             'Volk der 13 Inseln': true,
         });
 
@@ -515,6 +599,8 @@ test.describe('RPG Charakter-Editor', () => {
             Meeresbewohner: true,
             Bunkermensch: false,
             Nomade: true,
+            Ruinenbewohner: true,
+            Untergrundbewohner: true,
             'Volk der 13 Inseln': true,
         });
 
