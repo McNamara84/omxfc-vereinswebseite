@@ -81,10 +81,10 @@
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
                         <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked">
                             <option value="" disabled>Rasse wählen</option>
-                            <option value="Barbar">Barbar</option>
-                            <option value="Guul">Guul</option>
-                            <option value="Hydrit">Hydrit</option>
-                            <option value="Techno">Techno</option>
+                            <option value="Barbar" :disabled="!isRaceSelectable('Barbar')">Barbar</option>
+                            <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
+                            <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
+                            <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
                         </select>
                     </div>
 

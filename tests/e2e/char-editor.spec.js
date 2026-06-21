@@ -417,11 +417,83 @@ test.describe('RPG Charakter-Editor', () => {
         ]));
     });
 
-    test('erzwingt Bunkermensch als einzige Kultur fuer Techno', async ({ page }) => {
+    test('setzt Techno automatisch wenn Bunkermensch zuerst gewaehlt wird', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');
 
-        await expect(page.locator('#culture option[value="Bunkermensch"]')).toBeDisabled();
+        await expect(page.locator('#culture option[value="Bunkermensch"]')).not.toBeDisabled();
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+        await page.locator('#culture').selectOption('Bunkermensch');
+
+        await expect(page.locator('#race')).toHaveValue('Techno');
+        await expect(page.locator('#culture')).toHaveValue('Bunkermensch');
+
+        const lockedRaceOptions = await page.locator('#race').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(lockedRaceOptions).toMatchObject({
+            Barbar: true,
+            Guul: true,
+            Hydrit: true,
+            Techno: false,
+        });
+
+        const unlockedCultureOptions = await page.locator('#culture').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(unlockedCultureOptions).toMatchObject({
+            Landbewohner: false,
+            Stadtbewohner: false,
+            Meeresbewohner: false,
+            Bunkermensch: false,
+            Nomade: false,
+            'Volk der 13 Inseln': true,
+        });
+
+        await page.locator('#culture').selectOption('Landbewohner');
+
+        await expect(page.locator('#culture')).toHaveValue('Landbewohner');
+        await expect(page.locator('#race')).toHaveValue('');
+
+        const releasedRaceOptions = await page.locator('#race').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(releasedRaceOptions).toMatchObject({
+            Barbar: false,
+            Guul: false,
+            Hydrit: false,
+            Techno: false,
+        });
+
+        await page.locator('#race').selectOption('Barbar');
+        await page.getByTestId('char-editor-continue-button').click();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+            };
+        });
+
+        expect(payload).toEqual({
+            race: 'Barbar',
+            culture: 'Landbewohner',
+        });
+    });
+
+    test('erzwingt Bunkermensch als einzige Kultur fuer manuell gewaehlt Techno', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await expect(page.locator('#culture option[value="Bunkermensch"]')).not.toBeDisabled();
 
         await page.getByLabel('Spielername').fill('Playwright Spieler');
         await page.getByLabel('Charaktername').fill('Wudan');
@@ -444,6 +516,17 @@ test.describe('RPG Charakter-Editor', () => {
             Bunkermensch: false,
             Nomade: true,
             'Volk der 13 Inseln': true,
+        });
+
+        const raceOptions = await page.locator('#race').evaluate((select) => Object.fromEntries(
+            Array.from(select.options).map((option) => [option.value || 'placeholder', option.disabled]),
+        ));
+
+        expect(raceOptions).toMatchObject({
+            Barbar: true,
+            Guul: true,
+            Hydrit: true,
+            Techno: false,
         });
 
         await page.getByTestId('char-editor-continue-button').click();
