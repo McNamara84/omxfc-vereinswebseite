@@ -193,7 +193,7 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | PHPUnit-Tests                | `npm run docker:dev:test:php` |
 | Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
-| Komponenten-Tests (Vitest, direkt) | `npm run docker:dev:test:vitest` |
+| Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
