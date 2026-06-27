@@ -157,6 +157,39 @@ test.describe('RPG Charakter-Editor', () => {
         await popup.close().catch(() => {});
     });
 
+    test('zeigt Attribut-Regelhilfe per Fokus und Hover', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        const strengthInput = page.locator('#st');
+        const helpButton = page.getByTestId('attribute-help-st');
+        const description = page.getByTestId('attribute-description-st');
+
+        await expect(strengthInput).toHaveAttribute('aria-describedby', 'attribute-description-st');
+        await expect(helpButton).toHaveAttribute('aria-controls', 'attribute-description-st');
+        await expect(description).toContainText('Muskelkraft');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.focus();
+
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'true');
+        await expect(description).not.toHaveClass(/sr-only/);
+        await expect(description).toContainText('2W6 + Attributswert x 3');
+        await expect(description).toContainText('Regelbereich aktuell: 0 bis 2');
+
+        await strengthInput.focus();
+
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.dispatchEvent('mouseenter');
+
+        await expect(description).not.toHaveClass(/sr-only/);
+
+        await helpButton.dispatchEvent('mouseleave');
+
+        await expect(description).toHaveClass(/sr-only/);
+    });
+
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
         await openAdvancedEditor(page);
 
@@ -188,6 +221,7 @@ test.describe('RPG Charakter-Editor', () => {
                 gender: data.get('gender'),
                 race: data.get('race'),
                 culture: data.get('culture'),
+                barbarAttributeBonus: data.get('barbar_attribute_bonus'),
                 skills: Object.values(skillsByIndex),
             };
         });
@@ -197,6 +231,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.gender).toBe('maennlich');
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Landbewohner');
+        expect(payload.barbarAttributeBonus).toBe('ge');
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
             expect.objectContaining({ name: 'Beruf: Viehzüchter', value: '2' }),

@@ -24,15 +24,106 @@ const CULTURE_DESCRIPTIONS = {
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
-const ATTRIBUTE_OPTIONS = [
-    { id: 'st', label: 'Stärke (ST)' },
-    { id: 'ge', label: 'Geschicklichkeit (GE)' },
-    { id: 'ro', label: 'Robustheit (RO)' },
-    { id: 'wi', label: 'Willenskraft (WI)' },
-    { id: 'wa', label: 'Wahrnehmung (WA)' },
-    { id: 'in', label: 'Intelligenz (IN)' },
-    { id: 'au', label: 'Auftreten (AU)' },
-];
+const ATTRIBUTE_RULE_METADATA = {
+    st: {
+        id: 'st',
+        label: 'St\u00e4rke (ST)',
+        short: 'ST',
+        name: 'St\u00e4rke',
+        description: 'St\u00e4rke beschreibt die rohe physische Muskelkraft einer Figur.',
+        valueLabels: {
+            '-2': 'greisenhaft',
+            '-1': 'kindlich',
+            0: 'durchschnittlich',
+            1: 'm\u00e4chtig',
+            2: 'titanisch',
+        },
+    },
+    ge: {
+        id: 'ge',
+        label: 'Geschicklichkeit (GE)',
+        short: 'GE',
+        name: 'Geschicklichkeit',
+        description: 'Geschicklichkeit beschreibt Schnellkraft, Beweglichkeit und Reflexe eines Charakters.',
+        valueLabels: {
+            '-2': 'verkr\u00fcppelt',
+            '-1': 'tollpatschig',
+            0: 'durchschnittlich',
+            1: 'katzenhaft',
+            2: 'blitzschnell',
+        },
+    },
+    ro: {
+        id: 'ro',
+        label: 'Robustheit (RO)',
+        short: 'RO',
+        name: 'Robustheit',
+        description: 'Robustheit steht f\u00fcr Gesundheit, Widerstandskraft, Ausdauer und Resistenz gegen Gifte und Krankheiten.',
+        valueLabels: {
+            '-2': 'desolat',
+            '-1': 'krank',
+            0: 'gesund',
+            1: 'z\u00e4h',
+            2: 'stahlhart',
+        },
+    },
+    wi: {
+        id: 'wi',
+        label: 'Willenskraft (WI)',
+        short: 'WI',
+        name: 'Willenskraft',
+        description: 'Willenskraft steht f\u00fcr mentale St\u00e4rke, geistige Belastbarkeit und Konzentrationsf\u00e4higkeit.',
+        valueLabels: {
+            '-2': 'gebrochen',
+            '-1': 'beeinflussbar',
+            0: 'durchschnittlich',
+            1: 'stur',
+            2: 'unbeugsam',
+        },
+    },
+    wa: {
+        id: 'wa',
+        label: 'Wahrnehmung (WA)',
+        short: 'WA',
+        name: 'Wahrnehmung',
+        description: 'Wahrnehmung repr\u00e4sentiert die f\u00fcnf Sinne sowie die allgemeine Aufgewecktheit.',
+        valueLabels: {
+            '-2': 'blind',
+            '-1': 'unvorsichtig',
+            0: 'durchschnittlich',
+            1: 'wachsam',
+            2: 'Adlerauge',
+        },
+    },
+    in: {
+        id: 'in',
+        label: 'Intelligenz (IN)',
+        short: 'IN',
+        name: 'Intelligenz',
+        description: 'Intelligenz umfasst das geistige Potenzial einer Figur, nicht ihre erlernte Bildung.',
+        valueLabels: {
+            '-2': 'idiotisch',
+            '-1': 'dumm',
+            0: 'normal',
+            1: 'klug',
+            2: 'brilliant',
+        },
+    },
+    au: {
+        id: 'au',
+        label: 'Auftreten (AU)',
+        short: 'AU',
+        name: 'Auftreten',
+        description: 'Auftreten repr\u00e4sentiert Ausstrahlung, Charisma und Aussehen einer Figur.',
+        valueLabels: {
+            '-2': 'grauenvoll',
+            '-1': 'h\u00e4sslich',
+            0: 'durchschnittlich',
+            1: 'aufregend',
+            2: 'atemberaubend',
+        },
+    },
+};
 const RACE_RULE_SUMMARIES = {
     Barbar: {
         name: 'Barbar',
@@ -160,6 +251,34 @@ const numericRuleCost = (value) => {
     return Number.isFinite(parsed) ? parsed : 1;
 };
 
+const defaultAttributeRuleConfig = () => ({
+    baseMin: -1,
+    baseMax: 1,
+    absoluteMin: -2,
+    absoluteMax: 2,
+    creationPoints: 2,
+    rollFormula: '2W6 + Attributswert x 3',
+    attributes: ATTRIBUTE_IDS.map(id => ({ ...ATTRIBUTE_RULE_METADATA[id] })),
+});
+
+const attributeRuleConfig = () => {
+    const config = objectFromSpecialRuleConfig('attributeRules');
+
+    return Array.isArray(config.attributes) ? config : defaultAttributeRuleConfig();
+};
+
+const numericAttributeConfig = (key, fallback) => {
+    const parsed = Number(attributeRuleConfig()[key]);
+
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const attributeRules = () => attributeRuleConfig().attributes;
+const attributeOptions = () => attributeRules().map(rule => ({ id: rule.id, label: rule.label }));
+const attributeRulesById = () => Object.fromEntries(attributeRules().map(rule => [rule.id, rule]));
+const attributeCreationPoints = () => numericAttributeConfig('creationPoints', 2);
+const attributeRollFormula = () => attributeRuleConfig().rollFormula || '2W6 + Attributswert x 3';
+
 const buildAdvantageRules = () => {
     const costs = objectFromSpecialRuleConfig('advantageCosts');
     const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
@@ -257,13 +376,13 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipment: '',
 
     // Game constants
-    base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 2 },
+    base: { AP: attributeCreationPoints(), FP: 20, maxFW: 4, freeAdvantages: 2 },
 
     // Race/culture state
     raceAPBonus: 0,
     raceGrants: {},
     cultureGrants: {},
-    attributeOptions: ATTRIBUTE_OPTIONS,
+    attributeOptions: attributeOptions(),
     barbarAttributeBonus: null,
     barbarCombatSkill: null,
     landbewohnerProfessionSkill: null,
@@ -308,8 +427,20 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
     },
 
-    attributeMax() {
-        return this.race === 'Barbar' ? 2 : 1;
+    attributeBaseMin() {
+        return numericAttributeConfig('baseMin', -1);
+    },
+
+    attributeBaseMax() {
+        return numericAttributeConfig('baseMax', 1);
+    },
+
+    attributeAbsoluteMin() {
+        return numericAttributeConfig('absoluteMin', -2);
+    },
+
+    attributeAbsoluteMax() {
+        return numericAttributeConfig('absoluteMax', 2);
     },
 
     attributeModifier(id) {
@@ -321,11 +452,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     getAttributeMin(id) {
-        return Math.max(-1, -1 + this.attributeModifier(id));
+        return Math.max(this.attributeAbsoluteMin(), this.attributeBaseMin() + this.attributeModifier(id));
     },
 
     getAttributeMax(id) {
-        return Math.max(this.getAttributeMin(id), this.attributeMax() + this.attributeModifier(id));
+        return Math.min(
+            this.attributeAbsoluteMax(),
+            Math.max(this.getAttributeMin(id), this.attributeBaseMax() + this.attributeModifier(id)),
+        );
     },
 
     apUsed() {
@@ -383,6 +517,32 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const rule = this.disadvantageRule(value);
         if (!rule) return '';
         return [`W66 ${rule.w66}`, rule.description].filter(Boolean).join(' · ');
+    },
+
+    attributeRule(id) {
+        return attributeRulesById()[id] || ATTRIBUTE_RULE_METADATA[id] || null;
+    },
+
+    attributeValueLabel(id, value = this.attributes[id]) {
+        const labels = this.attributeRule(id)?.valueLabels || {};
+
+        return labels[String(value)] || '';
+    },
+
+    attributeRangeLabel(id) {
+        return `${this.getAttributeMin(id)} bis ${this.getAttributeMax(id)}`;
+    },
+
+    attributeTooltip(id) {
+        const rule = this.attributeRule(id);
+        if (!rule) return '';
+
+        return [
+            rule.description,
+            `Probe: ${attributeRollFormula()}`,
+            `Regelbereich aktuell: ${this.attributeRangeLabel(id)}`,
+            this.attributeValueLabel(id) ? `Wertbedeutung: ${this.attributeValueLabel(id)}` : '',
+        ].filter(Boolean).join(' \u00b7 ');
     },
 
     advantageLockLabel(value) {
@@ -871,7 +1031,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             if (!ATTRIBUTE_IDS.includes(id)) return;
             const modifiedValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : modifier;
             const paidValue = modifiedValue - modifier;
-            this.attributes[id] = Math.max(-1, Math.min(paidValue, this.attributeMax()));
+            this.attributes[id] = Math.max(this.attributeBaseMin(), Math.min(paidValue, this.attributeBaseMax()));
         });
     },
 

@@ -12,6 +12,16 @@ use Spatie\LaravelPdf\Facades\Pdf;
 
 class RpgCharEditorController extends Controller
 {
+    private const ATTRIBUTE_CREATION_POINTS = 2;
+
+    private const ATTRIBUTE_BASE_MIN = -1;
+
+    private const ATTRIBUTE_BASE_MAX = 1;
+
+    private const ATTRIBUTE_ABSOLUTE_MIN = -2;
+
+    private const ATTRIBUTE_ABSOLUTE_MAX = 2;
+
     private const ATTRIBUTE_KEYS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
     private const ATTRIBUTE_LABELS = [
@@ -22,6 +32,108 @@ class RpgCharEditorController extends Controller
         'wa' => 'Wahrnehmung (WA)',
         'in' => 'Intelligenz (IN)',
         'au' => 'Auftreten (AU)',
+    ];
+
+    private const ATTRIBUTE_RULES = [
+        'st' => [
+            'label' => 'Stärke (ST)',
+            'short' => 'ST',
+            'name' => 'Stärke',
+            'description' => 'Stärke beschreibt die rohe physische Muskelkraft einer Figur.',
+            'valueLabels' => [
+                -2 => 'greisenhaft',
+                -1 => 'kindlich',
+                0 => 'durchschnittlich',
+                1 => 'mächtig',
+                2 => 'titanisch',
+            ],
+        ],
+        'ge' => [
+            'label' => 'Geschicklichkeit (GE)',
+            'short' => 'GE',
+            'name' => 'Geschicklichkeit',
+            'description' => 'Geschicklichkeit beschreibt Schnellkraft, Beweglichkeit und Reflexe eines Charakters.',
+            'valueLabels' => [
+                -2 => 'verkrüppelt',
+                -1 => 'tollpatschig',
+                0 => 'durchschnittlich',
+                1 => 'katzenhaft',
+                2 => 'blitzschnell',
+            ],
+        ],
+        'ro' => [
+            'label' => 'Robustheit (RO)',
+            'short' => 'RO',
+            'name' => 'Robustheit',
+            'description' => 'Robustheit steht für Gesundheit, Widerstandskraft, Ausdauer und Resistenz gegen Gifte und Krankheiten.',
+            'valueLabels' => [
+                -2 => 'desolat',
+                -1 => 'krank',
+                0 => 'gesund',
+                1 => 'zäh',
+                2 => 'stahlhart',
+            ],
+        ],
+        'wi' => [
+            'label' => 'Willenskraft (WI)',
+            'short' => 'WI',
+            'name' => 'Willenskraft',
+            'description' => 'Willenskraft steht für mentale Stärke, geistige Belastbarkeit und Konzentrationsfähigkeit.',
+            'valueLabels' => [
+                -2 => 'gebrochen',
+                -1 => 'beeinflussbar',
+                0 => 'durchschnittlich',
+                1 => 'stur',
+                2 => 'unbeugsam',
+            ],
+        ],
+        'wa' => [
+            'label' => 'Wahrnehmung (WA)',
+            'short' => 'WA',
+            'name' => 'Wahrnehmung',
+            'description' => 'Wahrnehmung repräsentiert die fünf Sinne sowie die allgemeine Aufgewecktheit.',
+            'valueLabels' => [
+                -2 => 'blind',
+                -1 => 'unvorsichtig',
+                0 => 'durchschnittlich',
+                1 => 'wachsam',
+                2 => 'Adlerauge',
+            ],
+        ],
+        'in' => [
+            'label' => 'Intelligenz (IN)',
+            'short' => 'IN',
+            'name' => 'Intelligenz',
+            'description' => 'Intelligenz umfasst das geistige Potenzial einer Figur, nicht ihre erlernte Bildung.',
+            'valueLabels' => [
+                -2 => 'idiotisch',
+                -1 => 'dumm',
+                0 => 'normal',
+                1 => 'klug',
+                2 => 'brilliant',
+            ],
+        ],
+        'au' => [
+            'label' => 'Auftreten (AU)',
+            'short' => 'AU',
+            'name' => 'Auftreten',
+            'description' => 'Auftreten repräsentiert Ausstrahlung, Charisma und Aussehen einer Figur.',
+            'valueLabels' => [
+                -2 => 'grauenvoll',
+                -1 => 'hässlich',
+                0 => 'durchschnittlich',
+                1 => 'aufregend',
+                2 => 'atemberaubend',
+            ],
+        ],
+    ];
+
+    private const RACE_ATTRIBUTE_MODIFIERS = [
+        'Guul' => ['au' => -1],
+        'Nosfera' => ['ge' => 1, 'au' => -1],
+        'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
+        'Wulfane' => ['ro' => 1, 'au' => -1],
+        'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
     ];
 
     private const CHARACTER_KEYS = [
@@ -155,9 +267,26 @@ class RpgCharEditorController extends Controller
 
     private const PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
 
+    public static function attributeRuleConfig(): array
+    {
+        return [
+            'baseMin' => self::ATTRIBUTE_BASE_MIN,
+            'baseMax' => self::ATTRIBUTE_BASE_MAX,
+            'absoluteMin' => self::ATTRIBUTE_ABSOLUTE_MIN,
+            'absoluteMax' => self::ATTRIBUTE_ABSOLUTE_MAX,
+            'creationPoints' => self::ATTRIBUTE_CREATION_POINTS,
+            'rollFormula' => '2W6 + Attributswert x 3',
+            'attributes' => array_map(
+                fn (string $key): array => ['id' => $key] + self::ATTRIBUTE_RULES[$key],
+                self::ATTRIBUTE_KEYS,
+            ),
+        ];
+    }
+
     public static function specialRuleConfig(): array
     {
         return [
+            'attributeRules' => self::attributeRuleConfig(),
             'advantages' => self::ADVANTAGE_VALUES,
             'disadvantages' => self::DISADVANTAGE_VALUES,
             'advantageCosts' => self::ADVANTAGE_COSTS,
@@ -241,6 +370,7 @@ class RpgCharEditorController extends Controller
         $advantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('advantage_details', [])), $advantages);
         $disadvantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('disadvantage_details', [])), $disadvantages);
         $advantageCounts = $this->advantageCountsPayload($request->input('advantage_counts', []));
+        $barbarAttributeBonus = $this->stringPayload($request->input('barbar_attribute_bonus', ''));
 
         $this->validateCharacterRules(
             $character,
@@ -251,6 +381,7 @@ class RpgCharEditorController extends Controller
             $advantageDetails,
             $disadvantageDetails,
             $advantageCounts,
+            $barbarAttributeBonus,
         );
 
         return [
@@ -354,7 +485,7 @@ class RpgCharEditorController extends Controller
         return $character;
     }
 
-    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = []): void
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = ''): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
@@ -442,6 +573,7 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
+        $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
         $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
         $this->validateCultureRequirements($culture, $skills);
         $this->validateSpecialBudgetAndDetails(
@@ -499,22 +631,6 @@ class RpgCharEditorController extends Controller
             }
         }
 
-        foreach ($requirements['attributeRanges'] ?? [] as $attributeName => [$minimumValue, $maximumValue]) {
-            $attributeValue = $this->attributeValue($attributes, $attributeName);
-            $attributeLabel = $this->attributeLabel($attributeName);
-
-            if ($attributeValue === null) {
-                throw ValidationException::withMessages([
-                    'attributes' => "Das Attribut {$attributeLabel} muss für die Rasse {$race} übermittelt werden.",
-                ]);
-            }
-
-            if ($attributeValue < $minimumValue || $attributeValue > $maximumValue) {
-                throw ValidationException::withMessages([
-                    'attributes' => "Das Attribut {$attributeLabel} passt nicht zu den Rassenmodifikatoren von {$race}.",
-                ]);
-            }
-        }
     }
 
     private function validateCultureRequirements(string $culture, array $skills): void
@@ -780,6 +896,104 @@ class RpgCharEditorController extends Controller
         return array_values(array_unique($this->raceRequirements($race)['disadvantages'] ?? []));
     }
 
+    private function validateAttributes(string $race, array $attributes, string $barbarAttributeBonus): void
+    {
+        if ($race === 'Barbar') {
+            $this->validateBarbarAttributes($attributes, $barbarAttributeBonus);
+
+            return;
+        }
+
+        $error = $this->attributeValidationError($race, $attributes, $this->raceAttributeModifiers($race));
+
+        if ($error !== null) {
+            throw ValidationException::withMessages(['attributes' => $error]);
+        }
+    }
+
+    private function validateBarbarAttributes(array $attributes, string $barbarAttributeBonus): void
+    {
+        if ($barbarAttributeBonus !== '' && ! in_array($barbarAttributeBonus, self::ATTRIBUTE_KEYS, true)) {
+            throw ValidationException::withMessages([
+                'attributes' => 'Der Attributbonus der Barbaren muss einem erlaubten Attribut entsprechen.',
+            ]);
+        }
+
+        $candidates = $barbarAttributeBonus !== '' ? [$barbarAttributeBonus] : self::ATTRIBUTE_KEYS;
+        $firstError = null;
+
+        foreach ($candidates as $candidate) {
+            $error = $this->attributeValidationError('Barbar', $attributes, [$candidate => 1]);
+
+            if ($error === null) {
+                return;
+            }
+
+            $firstError ??= $error;
+        }
+
+        throw ValidationException::withMessages(['attributes' => $firstError]);
+    }
+
+    private function attributeValidationError(string $race, array $attributes, array $modifiers): ?string
+    {
+        $spentPoints = 0;
+
+        foreach (self::ATTRIBUTE_KEYS as $attributeName) {
+            $modifier = (int) ($modifiers[$attributeName] ?? 0);
+            $attributeLabel = $this->attributeLabel($attributeName);
+
+            if (! array_key_exists($attributeName, $attributes) || $attributes[$attributeName] === '') {
+                if ($modifier !== 0) {
+                    return "Das Attribut {$attributeLabel} muss für die Rasse {$race} übermittelt werden.";
+                }
+
+                continue;
+            }
+
+            $rawValue = (string) $attributes[$attributeName];
+
+            if (! preg_match('/^-?\d+$/', $rawValue)) {
+                return "Das Attribut {$attributeLabel} muss als ganzer Zahlenwert übermittelt werden.";
+            }
+
+            $attributeValue = (int) $rawValue;
+            [$minimumValue, $maximumValue] = $this->attributeRange($modifier);
+
+            if ($attributeValue < $minimumValue || $attributeValue > $maximumValue) {
+                if ($modifier !== 0) {
+                    return "Das Attribut {$attributeLabel} passt nicht zu den Rassenmodifikatoren von {$race}.";
+                }
+
+                return "Das Attribut {$attributeLabel} muss im Bereich von {$minimumValue} bis {$maximumValue} liegen.";
+            }
+
+            $spentPoints += max($attributeValue - $modifier, 0);
+        }
+
+        if ($spentPoints > self::ATTRIBUTE_CREATION_POINTS) {
+            return 'Die gewählten Attribute überschreiten die verfügbaren Attributspunkte.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function attributeRange(int $modifier): array
+    {
+        return [
+            max(self::ATTRIBUTE_ABSOLUTE_MIN, self::ATTRIBUTE_BASE_MIN + $modifier),
+            min(self::ATTRIBUTE_ABSOLUTE_MAX, self::ATTRIBUTE_BASE_MAX + $modifier),
+        ];
+    }
+
+    private function raceAttributeModifiers(string $race): array
+    {
+        return self::RACE_ATTRIBUTE_MODIFIERS[$race] ?? [];
+    }
+
     private function attributeLabel(string $attributeName): string
     {
         return self::ATTRIBUTE_LABELS[$attributeName] ?? $attributeName;
@@ -800,7 +1014,6 @@ class RpgCharEditorController extends Controller
                 'skills' => ['Heimlichkeit' => 2, 'Intuition' => 1, 'Natürliche Waffen' => 1],
                 'advantages' => ['Natürliche Waffen'],
                 'disadvantages' => ['Primitiv', 'Gejagt'],
-                'attributeRanges' => ['au' => [-1, 0]],
             ],
             'Hydrit' => [
                 'skills' => ['Athletik' => 2, 'Bildung' => 1, 'Natürliche Waffen' => 1],
@@ -811,23 +1024,19 @@ class RpgCharEditorController extends Controller
                 'skills' => ['Intuition' => 2, 'Heimlichkeit' => 2],
                 'advantages' => ['Nachtsicht'],
                 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-                'attributeRanges' => ['ge' => [0, 2], 'au' => [-1, 0]],
             ],
             'Taratze' => [
                 'skills' => ['Intuition' => 2, 'Heimlichkeit' => 1, 'Überleben' => 1],
                 'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
-                'attributeRanges' => ['st' => [0, 2], 'wa' => [0, 2], 'in' => [-1, 0], 'au' => [-1, 0]],
             ],
             'Wulfane' => [
                 'skills' => ['Intuition' => 1, 'Nahkampf' => 1],
                 'disadvantages' => ['Ehrenkodex'],
-                'attributeRanges' => ['ro' => [0, 2], 'au' => [-1, 0]],
             ],
             'Techno' => [
                 'skills' => ['Bildung' => 3],
                 'advantages' => ['High-Tech-Ausrüstung'],
                 'disadvantages' => ['Tödliche Immunschwäche'],
-                'attributeRanges' => ['st' => [-1, 0], 'ro' => [-1, 0], 'in' => [0, 2]],
             ],
             'Präkristofluu' => [
                 'skills' => ['Beruf' => 3],
@@ -850,15 +1059,6 @@ class RpgCharEditorController extends Controller
         }
 
         return $value ?? PHP_INT_MIN;
-    }
-
-    private function attributeValue(array $attributes, string $attributeName): ?int
-    {
-        if (! array_key_exists($attributeName, $attributes) || ! is_numeric($attributes[$attributeName])) {
-            return null;
-        }
-
-        return (int) $attributes[$attributeName];
     }
 
     private function stringPayload(mixed $value): string

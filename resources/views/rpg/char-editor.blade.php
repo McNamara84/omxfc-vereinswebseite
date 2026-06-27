@@ -2,6 +2,7 @@
     $specialRules ??= \App\Http\Controllers\RpgCharEditorController::specialRuleConfig();
     $advantages = $specialRules['advantages'];
     $disadvantages = $specialRules['disadvantages'];
+    $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Http\Controllers\RpgCharEditorController::attributeRuleConfig()['attributes'];
 @endphp
 
 @push('scripts')
@@ -31,6 +32,7 @@
 
                 <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints()">
                 <input type="hidden" name="figurenstaerke" value="1">
+                <input type="hidden" name="barbar_attribute_bonus" :value="barbarAttributeBonus || ''" x-bind:disabled="race !== 'Barbar' || !advancedUnlocked">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div :class="{ 'opacity-50': advancedUnlocked }">
@@ -128,11 +130,55 @@
                                 </template>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                            @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
-                            <div>
-                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" x-bind:min="getAttributeMin('{{ $attrId }}')" x-bind:max="getAttributeMax('{{ $attrId }}')" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
-                            </div>
+                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            @foreach($attributeRules as $attribute)
+                                @php
+                                    $attrId = $attribute['id'];
+                                    $label = $attribute['label'];
+                                    $descriptionId = 'attribute-description-'.$attrId;
+                                @endphp
+                                <div x-data="{ attributeHelpOpen: false }" class="space-y-1">
+                                    <div class="flex items-center gap-1">
+                                        <label for="{{ $attrId }}" class="block text-sm font-medium text-base-content">{{ $label }}</label>
+                                        <button
+                                            type="button"
+                                            class="btn btn-circle btn-ghost btn-xs h-6 min-h-0 w-6"
+                                            aria-label="Regelhinweis zu {{ $label }}"
+                                            aria-controls="{{ $descriptionId }}"
+                                            x-bind:aria-expanded="attributeHelpOpen.toString()"
+                                            x-bind:title="attributeTooltip(@js($attrId))"
+                                            @mouseenter="attributeHelpOpen = true"
+                                            @mouseleave="attributeHelpOpen = false"
+                                            @focus="attributeHelpOpen = true"
+                                            @blur="attributeHelpOpen = false"
+                                            @click="attributeHelpOpen = !attributeHelpOpen"
+                                            data-testid="attribute-help-{{ $attrId }}"
+                                        >
+                                            <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="number"
+                                        name="attributes[{{ $attrId }}]"
+                                        id="{{ $attrId }}"
+                                        x-bind:min="getAttributeMin(@js($attrId))"
+                                        x-bind:max="getAttributeMax(@js($attrId))"
+                                        x-bind:title="attributeTooltip(@js($attrId))"
+                                        step="1"
+                                        x-model.number="attributes.{{ $attrId }}"
+                                        @change="clampAttribute(@js($attrId))"
+                                        aria-describedby="{{ $descriptionId }}"
+                                        class="input input-bordered w-full"
+                                    >
+                                    <p
+                                        id="{{ $descriptionId }}"
+                                        class="text-xs leading-5 text-base-content/70"
+                                        x-cloak
+                                        x-bind:class="{ 'sr-only': !attributeHelpOpen }"
+                                        x-text="attributeTooltip(@js($attrId))"
+                                        data-testid="attribute-description-{{ $attrId }}"
+                                    ></p>
+                                </div>
                             @endforeach
                         </div>
                     </div>

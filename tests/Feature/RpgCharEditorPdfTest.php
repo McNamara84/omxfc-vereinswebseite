@@ -45,6 +45,7 @@ class RpgCharEditorPdfTest extends TestCase
                 'st' => 2,
                 'ge' => 1,
             ],
+            'barbar_attribute_bonus' => 'st',
             'skills' => [
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Überleben', 'value' => 1],
@@ -58,13 +59,30 @@ class RpgCharEditorPdfTest extends TestCase
             'equipment' => 'Messer, Seil, Feldflasche',
         ], $overrides);
 
-        foreach (['skills', 'advantages', 'disadvantages'] as $listKey) {
+        if (! array_key_exists('attributes', $overrides)) {
+            $payload['attributes'] = $this->validAttributesForRace((string) ($payload['race'] ?? ''));
+        }
+
+        foreach (['attributes', 'skills', 'advantages', 'disadvantages'] as $listKey) {
             if (array_key_exists($listKey, $overrides)) {
                 $payload[$listKey] = $overrides[$listKey];
             }
         }
 
         return $payload;
+    }
+
+    private function validAttributesForRace(string $race): array
+    {
+        return match (trim($race)) {
+            'Barbar' => ['st' => 2, 'ge' => 1],
+            'Guul' => ['au' => -1],
+            'Nosfera' => ['ge' => 1, 'au' => -1],
+            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
+            'Wulfane' => ['ro' => 1, 'au' => -1],
+            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
+            default => [],
+        };
     }
 
     private function createMember(Role|string $role = Role::Mitglied): User
@@ -411,6 +429,100 @@ class RpgCharEditorPdfTest extends TestCase
         }
     }
 
+    public function test_pdf_export_accepts_negative_race_modifier_floor_from_rulebook(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '-2'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $payload = $this->validPdfPayload([
+            'race' => 'Guul',
+            'culture' => 'Stadtbewohner',
+            'attributes' => [
+                'au' => -2,
+            ],
+            'advantages' => ['Zäh', 'Natürliche Waffen'],
+            'disadvantages' => ['Primitiv', 'Gejagt'],
+        ]);
+        $payload['skills'] = [
+            ['name' => 'Heimlichkeit', 'value' => 2],
+            ['name' => 'Intuition', 'value' => 1],
+            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
+        ];
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_barbar_attribute_above_absolute_max(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'barbar_attribute_bonus' => 'st',
+            'attributes' => [
+                'st' => 3,
+                'ge' => 0,
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('attributes');
+    }
+
+    public function test_pdf_export_rejects_unmodified_attribute_above_base_max(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'barbar_attribute_bonus' => 'st',
+            'attributes' => [
+                'st' => 2,
+                'ge' => 2,
+            ],
+        ]));
+
+        $response->assertSessionHasErrors([
+            'attributes' => 'Das Attribut Geschicklichkeit (GE) muss im Bereich von -1 bis 1 liegen.',
+        ]);
+    }
+
+    public function test_pdf_export_rejects_attribute_point_budget_overflow(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'barbar_attribute_bonus' => 'st',
+            'attributes' => [
+                'st' => 2,
+                'ge' => 1,
+                'ro' => 1,
+            ],
+        ]));
+
+        $response->assertSessionHasErrors([
+            'attributes' => 'Die gewählten Attribute überschreiten die verfügbaren Attributspunkte.',
+        ]);
+    }
+
     public function test_pdf_export_accepts_guul_with_natural_weapons_requirement(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -497,6 +609,7 @@ class RpgCharEditorPdfTest extends TestCase
         $payload = $this->validPdfPayload([
             'race' => 'Guul',
             'culture' => 'Stadtbewohner',
+            'attributes' => [],
             'advantages' => ['Zäh', 'Natürliche Waffen'],
             'disadvantages' => ['Primitiv', 'Gejagt'],
         ]);
