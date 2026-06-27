@@ -178,6 +178,7 @@ describe('charEditor – Attribut-Clamping', () => {
 
     it('begrenzt Attribut auf attributeMax (Barbar)', () => {
         const e = createEditor({ race: 'Barbar' });
+        e.applyRaceBarbar();
         e.attributes.st = 5;
         e.clampAttribute('st');
         expect(e.attributes.st).toBe(2); // max für Barbar
@@ -188,6 +189,26 @@ describe('charEditor – Attribut-Clamping', () => {
         e.attributes.ge = -1;
         e.clampAttribute('ge');
         expect(e.attributes.ge).toBe(-1);
+    });
+
+    it('erlaubt Attributwert von -2 bei negativen Rassenmodifikatoren', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.applyRaceTechno();
+
+        e.attributes.st = -2;
+        e.clampAttribute('st');
+
+        expect(e.attributes.st).toBe(-2);
+        expect(e.getAttributeMin('st')).toBe(-2);
+        expect(e.getAttributeMax('st')).toBe(0);
+    });
+
+    it('liefert Regelhinweise für Attribut-Hilfetexte', () => {
+        const e = createEditor();
+
+        expect(e.attributeTooltip('st')).toContain('Muskelkraft');
+        expect(e.attributeTooltip('st')).toContain('2W6 + Attributswert x 3');
+        expect(e.attributeTooltip('st')).toContain('Regelbereich aktuell: -1 bis 1');
     });
 
     it('begrenzt Attributwert nicht unter -1 auch wenn AP-Budget überschritten', () => {
@@ -291,7 +312,7 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.attributes.st).toBe(1);
         expect(e.apUsed()).toBe(0);
         expect(e.apRemaining()).toBe(2);
-        expect(e.getAttributeMax('st')).toBe(3);
+        expect(e.getAttributeMax('st')).toBe(2);
     });
 
     it('Barbar-Attributbonus kann ohne AP-Kosten gewechselt werden', () => {
@@ -305,7 +326,7 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.attributes.st).toBe(0);
         expect(e.attributes.ge).toBe(1);
         expect(e.apUsed()).toBe(0);
-        expect(e.getAttributeMax('ge')).toBe(3);
+        expect(e.getAttributeMax('ge')).toBe(2);
     });
 
     it('Barbar erhält Überleben, Intuition und Nahkampf-Skills', () => {
@@ -323,6 +344,7 @@ describe('charEditor – Rassen-Logik', () => {
 
         expect(e.attributes.au).toBe(-1);
         expect(e.apUsed()).toBe(0);
+        expect(e.getAttributeMin('au')).toBe(-2);
         expect(e.getAttributeMax('au')).toBe(0);
 
         e.clearRace();
@@ -390,6 +412,7 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.apRemaining()).toBe(2);
         expect(e.getAttributeMin('ge')).toBe(0);
         expect(e.getAttributeMax('ge')).toBe(2);
+        expect(e.getAttributeMin('au')).toBe(-2);
         expect(e.getAttributeMax('au')).toBe(0);
         expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Heimlichkeit).toEqual({ type: 'min', value: 2 });
@@ -430,7 +453,9 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.apRemaining()).toBe(2);
         expect(e.getAttributeMax('st')).toBe(2);
         expect(e.getAttributeMax('wa')).toBe(2);
+        expect(e.getAttributeMin('in')).toBe(-2);
         expect(e.getAttributeMax('in')).toBe(0);
+        expect(e.getAttributeMin('au')).toBe(-2);
         expect(e.getAttributeMax('au')).toBe(0);
         expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Heimlichkeit).toEqual({ type: 'min', value: 1 });
@@ -467,6 +492,7 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.apUsed()).toBe(0);
         expect(e.apRemaining()).toBe(2);
         expect(e.getAttributeMax('ro')).toBe(2);
+        expect(e.getAttributeMin('au')).toBe(-2);
         expect(e.getAttributeMax('au')).toBe(0);
         expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 1 });
         expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
@@ -517,6 +543,10 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.attributes).toMatchObject({ st: -1, ro: -1, in: 1 });
         expect(e.apUsed()).toBe(0);
         expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMin('st')).toBe(-2);
+        expect(e.getAttributeMax('st')).toBe(0);
+        expect(e.getAttributeMin('ro')).toBe(-2);
+        expect(e.getAttributeMax('ro')).toBe(0);
         expect(e.getAttributeMin('in')).toBe(0);
         expect(e.getAttributeMax('in')).toBe(2);
         expect(e.technoPoolUsed()).toBe(12);
