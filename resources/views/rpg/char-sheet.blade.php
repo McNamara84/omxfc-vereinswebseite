@@ -19,6 +19,9 @@
             'divers' => 'Divers / keine Angabe',
         ];
         $gender = $character['gender'] ?? '';
+        $advantageDetails = $advantage_details ?? [];
+        $disadvantageDetails = $disadvantage_details ?? [];
+        $advantageCounts = $advantage_counts ?? [];
     @endphp
 
     <h1>Charakterbogen</h1>
@@ -76,13 +79,18 @@
         <strong>Vorteile</strong>
         <ul>
             @foreach($advantages ?? [] as $adv)
-                <li>{{ $adv }}</li>
+                @php
+                    $count = (int) ($advantageCounts[$adv] ?? 1);
+                    $detail = trim((string) ($advantageDetails[$adv] ?? ''));
+                @endphp
+                <li>{{ $adv }}@if($count > 1) ({{ $count }}x)@endif @if($detail !== '') - {{ $detail }}@endif</li>
             @endforeach
         </ul>
         <strong>Nachteile</strong>
         <ul>
             @foreach($disadvantages ?? [] as $dis)
-                <li>{{ $dis }}</li>
+                @php $detail = trim((string) ($disadvantageDetails[$dis] ?? '')); @endphp
+                <li>{{ $dis }}@if($detail !== '') - {{ $detail }}@endif</li>
             @endforeach
         </ul>
     </div>

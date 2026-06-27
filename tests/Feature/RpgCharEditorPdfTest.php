@@ -336,6 +336,7 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
             'disadvantages' => ['Aberglaeubisch', ''],
+            'disadvantage_details' => ['Aberglaeubisch' => 'Salz, Omen, dreimal klopfen'],
             'equipment' => 'Seil und Messer',
             'unexpected' => 'wird nicht an die PDF-View gereicht',
         ]);
@@ -1410,9 +1411,118 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
             'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
+            'disadvantage_details' => [' Aberglaeubisch ' => ' Salz, Omen, dreimal klopfen '],
         ]);
 
         $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_new_rulebook_disadvantages(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Taratzenfutter', $data['disadvantages'], true)))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'disadvantages' => ['Taratzenfutter'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_unknown_advantages_and_disadvantages(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'advantages' => ['Zäh', 'Laserblick'],
+            ]))
+            ->assertSessionHasErrors('advantages');
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'disadvantages' => ['Pechmagnet'],
+            ]))
+            ->assertSessionHasErrors('disadvantages');
+    }
+
+    public function test_pdf_export_applies_advantage_costs_and_repeatable_counts(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['advantage_counts']['Panzerung'] ?? null) === 2))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'Panzerung'],
+            'advantage_counts' => ['Panzerung' => 2],
+            'disadvantages' => ['Auffällig', 'Taratzenfutter'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_too_expensive_advantage_selection(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'Gestaltwandler'],
+            'disadvantages' => ['Auffällig', 'Taratzenfutter', 'Blutdurst'],
+        ]));
+
+        $response->assertSessionHasErrors('advantages');
+    }
+
+    public function test_pdf_export_rejects_missing_required_special_details(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'Anführer'],
+            'disadvantages' => ['Aberglaeubisch'],
+        ]));
+
+        $response->assertSessionHasErrors('disadvantage_details');
+    }
+
+    public function test_pdf_export_rejects_counts_for_non_repeatable_advantages(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'Anführer'],
+            'advantage_counts' => ['Anführer' => 2],
+            'disadvantages' => ['Auffällig'],
+        ]));
+
+        $response->assertSessionHasErrors('advantages');
     }
 
     public function test_portrait_data_url_payload_ignores_non_scalar_values(): void

@@ -28,12 +28,15 @@
         'Anfälligkeit gegen Wahnsinn',
         'Auffällig',
         'Blutdurst',
-        'Lichtscheu',
         'Ehrenkodex',
         'Feind',
-        'Primitiv',
         'Gejagt',
+        'Lichtscheu',
+        'Primitiv',
+        'Taratzenfutter',
         'Tödliche Immunschwäche',
+        'Verpflichtung',
+        'Verwundbarkeit',
     ];
 @endphp
 <x-app-layout>
@@ -369,6 +372,11 @@
 
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Besonderheiten</h2>
+                        <div class="mb-3 flex flex-wrap items-center gap-2">
+                            <x-button type="button" label="Vorteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('advantage')" data-testid="roll-advantage-button" />
+                            <x-button type="button" label="Nachteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('disadvantage')" data-testid="roll-disadvantage-button" />
+                            <p x-show="lastRoll" x-cloak class="text-xs text-base-content/70" aria-live="polite" data-testid="char-editor-roll-result" x-text="'W66 ' + lastRoll.value + ' (' + lastRoll.dice + '): ' + lastRoll.message"></p>
+                        </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
@@ -380,29 +388,60 @@
                                     <input type="hidden" name="advantages[]" :value="disabledAdvantage">
                                 </template>
 
-                                <div class="max-h-80 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="advantages-heading" data-testid="char-editor-advantages-list">
+                                <div class="max-h-96 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="advantages-heading" data-testid="char-editor-advantages-list">
                                     @foreach($advantages as $advantage)
-                                        <label
-                                            for="advantage-{{ $loop->index }}"
-                                            class="flex min-h-12 items-start gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm transition"
+                                        <div
+                                            class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedAdvantages.includes(@js($advantage)), 'opacity-60': isAdvantageDisabled(@js($advantage)), 'hover:border-primary/50': !isAdvantageDisabled(@js($advantage)) }"
+                                            :title="advantageTooltip(@js($advantage))"
                                         >
-                                            <input
-                                                type="checkbox"
-                                                id="advantage-{{ $loop->index }}"
-                                                name="advantages[]"
-                                                value="{{ $advantage }}"
-                                                class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
-                                                x-model="selectedAdvantages"
-                                                :disabled="isAdvantageDisabled(@js($advantage))"
-                                            >
-                                            <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
-                                            @if($advantage === 'Zäh')
-                                                <span class="badge badge-primary badge-outline shrink-0">Pflicht</span>
-                                            @else
-                                                <template x-if="raceLocked.advantages.includes(@js($advantage))"><span class="badge badge-primary badge-outline shrink-0">Pflicht</span></template>
-                                            @endif
-                                        </label>
+                                            <label for="advantage-{{ $loop->index }}" class="flex min-h-12 items-start gap-3 px-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="advantage-{{ $loop->index }}"
+                                                    name="advantages[]"
+                                                    value="{{ $advantage }}"
+                                                    class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
+                                                    x-model="selectedAdvantages"
+                                                    :disabled="isAdvantageDisabled(@js($advantage))"
+                                                >
+                                                <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
+                                                <span class="badge badge-ghost shrink-0" x-text="advantageRollLabel(@js($advantage))"></span>
+                                                <template x-if="advantageCost(@js($advantage)) > 1">
+                                                    <span class="badge badge-warning badge-outline shrink-0" x-text="'Kosten ' + advantageCost(@js($advantage))"></span>
+                                                </template>
+                                                <template x-if="advantageLockLabel(@js($advantage))">
+                                                    <span class="badge badge-primary badge-outline shrink-0" x-text="advantageLockLabel(@js($advantage))"></span>
+                                                </template>
+                                            </label>
+                                            <template x-if="isAdvantageSelected(@js($advantage)) && advantageIsRepeatable(@js($advantage))">
+                                                <div class="border-t border-base-300 px-3 py-2">
+                                                    <label for="advantage-count-{{ $loop->index }}" class="text-xs font-medium text-base-content/70">Anzahl</label>
+                                                    <input
+                                                        type="number"
+                                                        id="advantage-count-{{ $loop->index }}"
+                                                        name="advantage_counts[{{ $advantage }}]"
+                                                        min="1"
+                                                        step="1"
+                                                        class="input input-bordered input-sm mt-1 w-24"
+                                                        x-model.number="advantageCounts[@js($advantage)]"
+                                                        @input="setAdvantageCount(@js($advantage), advantageCounts[@js($advantage)])"
+                                                        @change="setAdvantageCount(@js($advantage), advantageCounts[@js($advantage)])"
+                                                    >
+                                                </div>
+                                            </template>
+                                            <template x-if="advantageRequiresDetail(@js($advantage))">
+                                                <div class="border-t border-base-300 px-3 py-2">
+                                                    <input
+                                                        type="text"
+                                                        name="advantage_details[{{ $advantage }}]"
+                                                        class="input input-bordered input-sm w-full"
+                                                        x-model="advantageDetails[@js($advantage)]"
+                                                        :placeholder="advantageDetailPlaceholder(@js($advantage))"
+                                                    >
+                                                </div>
+                                            </template>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -416,25 +455,41 @@
                                     <input type="hidden" name="disadvantages[]" :value="lockedDisadvantage">
                                 </template>
 
-                                <div class="max-h-80 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="disadvantages-heading" data-testid="char-editor-disadvantages-list">
+                                <div class="max-h-96 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="disadvantages-heading" data-testid="char-editor-disadvantages-list">
                                     @foreach($disadvantages as $disadvantage)
-                                        <label
-                                            for="disadvantage-{{ $loop->index }}"
-                                            class="flex min-h-12 items-start gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm transition"
+                                        <div
+                                            class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedDisadvantages.includes(@js($disadvantage)), 'opacity-60': isDisadvantageDisabled(@js($disadvantage)), 'hover:border-primary/50': !isDisadvantageDisabled(@js($disadvantage)) }"
+                                            :title="disadvantageTooltip(@js($disadvantage))"
                                         >
-                                            <input
-                                                type="checkbox"
-                                                id="disadvantage-{{ $loop->index }}"
-                                                name="disadvantages[]"
-                                                value="{{ $disadvantage }}"
-                                                class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
-                                                x-model="selectedDisadvantages"
-                                                :disabled="isDisadvantageDisabled(@js($disadvantage))"
-                                            >
-                                            <span class="min-w-0 flex-1 leading-5">{{ $disadvantage }}</span>
-                                            <template x-if="isDisadvantageDisabled(@js($disadvantage))"><span class="badge badge-primary badge-outline shrink-0">Pflicht</span></template>
-                                        </label>
+                                            <label for="disadvantage-{{ $loop->index }}" class="flex min-h-12 items-start gap-3 px-3 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="disadvantage-{{ $loop->index }}"
+                                                    name="disadvantages[]"
+                                                    value="{{ $disadvantage }}"
+                                                    class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
+                                                    x-model="selectedDisadvantages"
+                                                    :disabled="isDisadvantageDisabled(@js($disadvantage))"
+                                                >
+                                                <span class="min-w-0 flex-1 leading-5">{{ $disadvantage }}</span>
+                                                <span class="badge badge-ghost shrink-0" x-text="disadvantageRollLabel(@js($disadvantage))"></span>
+                                                <template x-if="disadvantageLockLabel(@js($disadvantage))">
+                                                    <span class="badge badge-primary badge-outline shrink-0" x-text="disadvantageLockLabel(@js($disadvantage))"></span>
+                                                </template>
+                                            </label>
+                                            <template x-if="disadvantageRequiresDetail(@js($disadvantage))">
+                                                <div class="border-t border-base-300 px-3 py-2">
+                                                    <input
+                                                        type="text"
+                                                        name="disadvantage_details[{{ $disadvantage }}]"
+                                                        class="input input-bordered input-sm w-full"
+                                                        x-model="disadvantageDetails[@js($disadvantage)]"
+                                                        :placeholder="disadvantageDetailPlaceholder(@js($disadvantage))"
+                                                    >
+                                                </div>
+                                            </template>
+                                        </div>
                                     @endforeach
                                 </div>
                             </div>

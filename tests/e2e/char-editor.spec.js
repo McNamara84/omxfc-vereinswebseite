@@ -209,6 +209,11 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(page.locator('select[name="advantages[]"]')).toHaveCount(0);
         await expect(page.locator('select[name="disadvantages[]"]')).toHaveCount(0);
+        await expect(page.getByTestId('roll-advantage-button')).toBeVisible();
+        await expect(page.getByTestId('roll-disadvantage-button')).toBeVisible();
+        await expect(page.getByTestId('char-editor-advantages-list')).toContainText('13');
+        await expect(page.getByTestId('char-editor-disadvantages-list')).toContainText('Taratzenfutter');
+        await expect(page.getByTestId('char-editor-disadvantages-list')).toContainText('54-63');
 
         const zaeh = checkbox(page, 'advantages[]', 'Zäh');
         await expect(zaeh).toBeChecked();
@@ -235,6 +240,16 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.advantages).toContain('Schnell');
         expect(payload.advantages).toContain('Kampfreflexe');
         expect(payload.disadvantages).toContain('Auffällig');
+
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+            const sequence = [6, 5];
+            state.rollD6 = () => sequence.shift();
+        });
+        await page.getByTestId('roll-disadvantage-button').click();
+
+        await expect(page.getByTestId('char-editor-roll-result')).toContainText('Verpflichtung wurde übernommen');
+        await expect(checkbox(page, 'disadvantages[]', 'Verpflichtung')).toBeChecked();
     });
 
     test('zeigt Guul-Pflichtmerkmale ausgewählt, gesperrt und submitbar', async ({ page }) => {

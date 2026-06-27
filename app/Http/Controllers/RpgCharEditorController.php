@@ -51,6 +51,85 @@ class RpgCharEditorController extends Controller
         'Disuuslachter (Nordmann)',
     ];
 
+    private const BASE_FREE_ADVANTAGES = 2;
+
+    private const ADVANTAGE_VALUES = [
+        'Anführer',
+        'Gestaltwandler',
+        'Gesteigertes Attribut',
+        'Gesteigerter Sinn',
+        'High-Tech-Ausrüstung',
+        'Kampfreflexe',
+        'Kaltblütig',
+        'Kiemen',
+        'Kind zweier Welten',
+        'Nachtsicht',
+        'Natürliche Waffen',
+        'Panzerung',
+        'Psychische Kraft',
+        'Psychisches Reservoir',
+        'Regeneration',
+        'Scharfschütze',
+        'Schnell',
+        'Sprachbegabt',
+        'Tiergefährte',
+        'Zäh',
+    ];
+
+    private const DISADVANTAGE_VALUES = [
+        'Abergläubisch',
+        'Abhängige',
+        'Anfälligkeit gegen Wahnsinn',
+        'Auffällig',
+        'Blutdurst',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Lichtscheu',
+        'Primitiv',
+        'Taratzenfutter',
+        'Tödliche Immunschwäche',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ];
+
+    private const SPECIAL_NAME_ALIASES = [
+        'Anfuehrer' => 'Anführer',
+        'High-Tech-Ausruestung' => 'High-Tech-Ausrüstung',
+        'Kaltbluetig' => 'Kaltblütig',
+        'Natuerliche Waffen' => 'Natürliche Waffen',
+        'Scharfschuetze' => 'Scharfschütze',
+        'Tiergefaehrte' => 'Tiergefährte',
+        'Zaeh' => 'Zäh',
+        'Aberglaeubisch' => 'Abergläubisch',
+        'Abhaengige' => 'Abhängige',
+        'Anfaelligkeit gegen Wahnsinn' => 'Anfälligkeit gegen Wahnsinn',
+        'Auffaellig' => 'Auffällig',
+        'Toedliche Immunschwaeche' => 'Tödliche Immunschwäche',
+    ];
+
+    private const ADVANTAGE_COSTS = [
+        'Gestaltwandler' => 3,
+        'Zäh' => 0,
+    ];
+
+    private const REPEATABLE_ADVANTAGES = ['Panzerung'];
+
+    private const ADVANTAGE_DETAIL_REQUIRED = [
+        'Gesteigertes Attribut',
+        'Gesteigerter Sinn',
+        'Tiergefährte',
+    ];
+
+    private const DISADVANTAGE_DETAIL_REQUIRED = [
+        'Abergläubisch',
+        'Abhängige',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ];
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
     private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
@@ -126,8 +205,20 @@ class RpgCharEditorController extends Controller
         $skills = $this->skillsPayload($request->input('skills', []));
         $advantages = $this->listPayload($request->input('advantages', []));
         $disadvantages = $this->listPayload($request->input('disadvantages', []));
+        $advantageDetails = $this->specialDetailsPayload($request->input('advantage_details', []));
+        $disadvantageDetails = $this->specialDetailsPayload($request->input('disadvantage_details', []));
+        $advantageCounts = $this->advantageCountsPayload($request->input('advantage_counts', []));
 
-        $this->validateCharacterRules($character, $attributes, $skills, $advantages, $disadvantages);
+        $this->validateCharacterRules(
+            $character,
+            $attributes,
+            $skills,
+            $advantages,
+            $disadvantages,
+            $advantageDetails,
+            $disadvantageDetails,
+            $advantageCounts,
+        );
 
         return [
             'character' => $character,
@@ -135,6 +226,9 @@ class RpgCharEditorController extends Controller
             'skills' => $skills,
             'advantages' => $advantages,
             'disadvantages' => $disadvantages,
+            'advantage_details' => $advantageDetails,
+            'disadvantage_details' => $disadvantageDetails,
+            'advantage_counts' => $advantageCounts,
             'portrait' => $this->portraitPayload($request),
         ];
     }
@@ -227,11 +321,19 @@ class RpgCharEditorController extends Controller
         return $character;
     }
 
-    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages): void
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = []): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
         $gender = $character['gender'] ?? '';
+        $canonicalAdvantages = $this->canonicalSpecialList($advantages);
+        $canonicalDisadvantages = $this->canonicalSpecialList($disadvantages);
+        $canonicalAdvantageDetails = $this->canonicalSpecialMap($advantageDetails);
+        $canonicalDisadvantageDetails = $this->canonicalSpecialMap($disadvantageDetails);
+        $canonicalAdvantageCounts = $this->canonicalSpecialMap($advantageCounts);
+
+        $this->validateSpecialLists($canonicalAdvantages, $canonicalDisadvantages);
+        $this->validateAdvantageCounts($canonicalAdvantages, $canonicalAdvantageCounts);
 
         if (! in_array($gender, self::GENDER_VALUES, true)) {
             throw ValidationException::withMessages([
@@ -301,14 +403,24 @@ class RpgCharEditorController extends Controller
 
         if ($culture === 'Volk der 13 Inseln'
             && $gender === 'weiblich'
-            && ! in_array('Psychische Kraft', $advantages, true)) {
+            && ! in_array('Psychische Kraft', $canonicalAdvantages, true)) {
             throw ValidationException::withMessages([
                 'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln müssen Psychische Kraft wählen.',
             ]);
         }
 
-        $this->validateRaceRequirements($race, $attributes, $skills, $advantages, $disadvantages);
+        $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
         $this->validateCultureRequirements($culture, $skills);
+        $this->validateSpecialBudgetAndDetails(
+            $race,
+            $culture,
+            $gender,
+            $canonicalAdvantages,
+            $canonicalDisadvantages,
+            $canonicalAdvantageDetails,
+            $canonicalDisadvantageDetails,
+            $canonicalAdvantageCounts,
+        );
     }
 
     private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages): void
@@ -504,6 +616,137 @@ class RpgCharEditorController extends Controller
         };
     }
 
+    private function validateSpecialLists(array $advantages, array $disadvantages): void
+    {
+        foreach ($advantages as $advantage) {
+            if (! in_array($advantage, self::ADVANTAGE_VALUES, true)) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Der Vorteil {$advantage} ist laut Regelwerk nicht erlaubt.",
+                ]);
+            }
+        }
+
+        foreach ($disadvantages as $disadvantage) {
+            if (! in_array($disadvantage, self::DISADVANTAGE_VALUES, true)) {
+                throw ValidationException::withMessages([
+                    'disadvantages' => "Der Nachteil {$disadvantage} ist laut Regelwerk nicht erlaubt.",
+                ]);
+            }
+        }
+    }
+
+    private function validateAdvantageCounts(array $advantages, array $advantageCounts): void
+    {
+        foreach ($advantageCounts as $advantage => $count) {
+            if (! in_array($advantage, self::ADVANTAGE_VALUES, true)) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Der Vorteil {$advantage} ist laut Regelwerk nicht erlaubt.",
+                ]);
+            }
+
+            if (! in_array($advantage, self::REPEATABLE_ADVANTAGES, true)) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Der Vorteil {$advantage} kann laut Regelwerk nicht mehrfach gewählt werden.",
+                ]);
+            }
+
+            if (! in_array($advantage, $advantages, true)) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Für {$advantage} wurde eine Anzahl übermittelt, ohne den Vorteil zu wählen.",
+                ]);
+            }
+
+            if (! is_int($count) || $count < 1) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Die Anzahl für {$advantage} muss mindestens 1 sein.",
+                ]);
+            }
+        }
+    }
+
+    private function validateSpecialBudgetAndDetails(
+        string $race,
+        string $culture,
+        string $gender,
+        array $advantages,
+        array $disadvantages,
+        array $advantageDetails,
+        array $disadvantageDetails,
+        array $advantageCounts,
+    ): void {
+        $lockedAdvantages = $this->lockedAdvantages($race, $culture, $gender);
+        $lockedDisadvantages = $this->lockedDisadvantages($race);
+        $cost = $this->chosenAdvantageCost($advantages, $lockedAdvantages, $advantageCounts);
+
+        if ($cost > self::BASE_FREE_ADVANTAGES) {
+            throw ValidationException::withMessages([
+                'advantages' => 'Die gewählten Vorteile überschreiten die verfügbaren Vorteilspunkte.',
+            ]);
+        }
+
+        if (count($disadvantages) < $cost) {
+            throw ValidationException::withMessages([
+                'disadvantages' => 'Für die gewählten Vorteile müssen ausreichend Nachteile gewählt werden.',
+            ]);
+        }
+
+        foreach (self::ADVANTAGE_DETAIL_REQUIRED as $advantage) {
+            if (in_array($advantage, $advantages, true)
+                && ! in_array($advantage, $lockedAdvantages, true)
+                && ($advantageDetails[$advantage] ?? '') === '') {
+                throw ValidationException::withMessages([
+                    'advantage_details' => "Für den Vorteil {$advantage} muss eine nähere Angabe gemacht werden.",
+                ]);
+            }
+        }
+
+        foreach (self::DISADVANTAGE_DETAIL_REQUIRED as $disadvantage) {
+            if (in_array($disadvantage, $disadvantages, true)
+                && ! in_array($disadvantage, $lockedDisadvantages, true)
+                && ($disadvantageDetails[$disadvantage] ?? '') === '') {
+                throw ValidationException::withMessages([
+                    'disadvantage_details' => "Für den Nachteil {$disadvantage} muss eine nähere Angabe gemacht werden.",
+                ]);
+            }
+        }
+    }
+
+    private function chosenAdvantageCost(array $advantages, array $lockedAdvantages, array $advantageCounts): int
+    {
+        $cost = 0;
+
+        foreach ($advantages as $advantage) {
+            if ($advantage === 'Zäh' || in_array($advantage, $lockedAdvantages, true)) {
+                continue;
+            }
+
+            $baseCost = self::ADVANTAGE_COSTS[$advantage] ?? 1;
+            $count = in_array($advantage, self::REPEATABLE_ADVANTAGES, true)
+                ? ($advantageCounts[$advantage] ?? 1)
+                : 1;
+
+            $cost += $baseCost * $count;
+        }
+
+        return $cost;
+    }
+
+    private function lockedAdvantages(string $race, string $culture, string $gender): array
+    {
+        $advantages = $this->raceRequirements($race)['advantages'] ?? [];
+
+        if ($culture === 'Volk der 13 Inseln' && $gender === 'weiblich') {
+            $advantages[] = 'Psychische Kraft';
+        }
+
+        return array_values(array_unique($advantages));
+    }
+
+    private function lockedDisadvantages(string $race): array
+    {
+        return array_values(array_unique($this->raceRequirements($race)['disadvantages'] ?? []));
+    }
+
     private function attributeLabel(string $attributeName): string
     {
         return self::ATTRIBUTE_LABELS[$attributeName] ?? $attributeName;
@@ -656,6 +899,72 @@ class RpgCharEditorController extends Controller
         }
 
         return array_values(array_unique($payload));
+    }
+
+    private function specialDetailsPayload(mixed $details): array
+    {
+        if (! is_array($details)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($details as $key => $value) {
+            $name = $this->stringPayload($key);
+            $detail = $this->stringPayload($value);
+
+            if ($name !== '' && $detail !== '') {
+                $payload[$name] = $detail;
+            }
+        }
+
+        return $payload;
+    }
+
+    private function advantageCountsPayload(mixed $counts): array
+    {
+        if (! is_array($counts)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($counts as $key => $value) {
+            $name = $this->stringPayload($key);
+            $rawValue = $this->stringPayload($value);
+
+            if ($name === '') {
+                continue;
+            }
+
+            $payload[$name] = is_numeric($rawValue) ? (int) $rawValue : 0;
+        }
+
+        return $payload;
+    }
+
+    private function canonicalSpecialList(array $values): array
+    {
+        return array_values(array_unique(array_map(
+            fn (string $value) => $this->canonicalSpecialName($value),
+            $values,
+        )));
+    }
+
+    private function canonicalSpecialMap(array $values): array
+    {
+        $payload = [];
+
+        foreach ($values as $key => $value) {
+            $payload[$this->canonicalSpecialName((string) $key)] = $value;
+        }
+
+        return $payload;
+    }
+
+    private function canonicalSpecialName(string $value): string
+    {
+        return self::SPECIAL_NAME_ALIASES[$value] ?? $value;
     }
 
     private function portraitPayload(Request $request): ?string
