@@ -40,7 +40,7 @@ const completeValidBarbarExport = async (page) => {
             ['Intuition', 4],
             ['Nahkampf', 4],
             ['Beruf: Viehzüchter', 2],
-            ['Kunde: Wetter', 1],
+            ['Kunde: Wetter', 4],
         ]);
 
         for (const skill of state.skills) {
