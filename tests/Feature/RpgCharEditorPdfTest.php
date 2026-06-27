@@ -538,6 +538,7 @@ class RpgCharEditorPdfTest extends TestCase
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(function ($data) {
                 $skills = collect($data['skills'])->keyBy('name');
+                $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
 
                 return $data['character']['race'] === 'Taratze'
                     && $data['character']['culture'] === 'Stadtbewohner'
@@ -545,9 +546,9 @@ class RpgCharEditorPdfTest extends TestCase
                     && ($data['attributes']['wa'] ?? null) === '1'
                     && ($data['attributes']['in'] ?? null) === '-1'
                     && ($data['attributes']['au'] ?? null) === '-1'
-                    && ($skills['Intuition']['value'] ?? null) === '2'
-                    && ($skills['Heimlichkeit']['value'] ?? null) === '1'
-                    && ($skills['Überleben']['value'] ?? null) === '1'
+                    && $skillValue('Intuition') === '2'
+                    && $skillValue('Heimlichkeit') === '1'
+                    && $skillValue('Überleben') === '1'
                     && in_array('Auffällig', $data['disadvantages'], true)
                     && in_array('Primitiv', $data['disadvantages'], true)
                     && in_array('Gejagt', $data['disadvantages'], true);
@@ -589,13 +590,14 @@ class RpgCharEditorPdfTest extends TestCase
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(function ($data) {
                 $skills = collect($data['skills'])->keyBy('name');
+                $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
 
                 return $data['character']['race'] === 'Wulfane'
                     && $data['character']['culture'] === 'Landbewohner'
                     && ($data['attributes']['ro'] ?? null) === '1'
                     && ($data['attributes']['au'] ?? null) === '-1'
-                    && ($skills['Intuition']['value'] ?? null) === '1'
-                    && ($skills['Nahkampf']['value'] ?? null) === '1'
+                    && $skillValue('Intuition') === '1'
+                    && $skillValue('Nahkampf') === '1'
                     && in_array('Ehrenkodex', $data['disadvantages'], true);
             }))
             ->andReturn(new class extends PdfBuilder
