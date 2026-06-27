@@ -202,6 +202,13 @@
                                 </template>
                             </div>
                         </div>
+                        <div x-show="culture === 'Landbewohner'" class="mb-2">
+                            <label for="landbewohner-profession-select" class="text-sm font-medium text-base-content mb-1">Landbewohner Beruf-Bonus</label>
+                            <select id="landbewohner-profession-select" class="select select-bordered w-full sm:w-auto" x-model="landbewohnerProfessionSkill" @change="setLandbewohnerProfessionSkill(landbewohnerProfessionSkill)">
+                                <option value="Beruf: Viehzüchter">Beruf: Viehzüchter (+2)</option>
+                                <option value="Beruf: Landwirt">Beruf: Landwirt (+2)</option>
+                            </select>
+                        </div>
                         <div x-show="culture === 'Stadtbewohner'" class="mb-2">
                             <label for="city-skill-select" class="text-sm font-medium text-base-content mb-1">Stadtbewohner Bonus</label>
                             <select id="city-skill-select" class="select select-bordered w-full sm:w-auto" x-model="citySkill" @change="setCitySkill(citySkill)">
@@ -331,10 +338,12 @@
                             <option value="Beruf"></option>
                             <option value="Beruf: Bauer"></option>
                             <option value="Beruf: Bergmann"></option>
+                            <option value="Beruf: Landwirt"></option>
                             <option value="Beruf: Seemann"></option>
                             <option value="Beruf: Fischer"></option>
                             <option value="Beruf: Farmer"></option>
                             <option value="Beruf: Künstler"></option>
+                            <option value="Beruf: Viehzüchter"></option>
                             <option value="Bildung"></option>
                             <option value="Diebeskunst"></option>
                             <option value="Fahren"></option>
@@ -345,6 +354,7 @@
                             <option value="Heimlichkeit"></option>
                             <option value="Intuition"></option>
                             <option value="Kunde"></option>
+                            <option value="Kunde: Wetter"></option>
                             <option value="Nahkampf"></option>
                             <option value="Natürliche Waffen"></option>
                             <option value="Pilot"></option>
