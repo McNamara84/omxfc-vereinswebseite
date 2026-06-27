@@ -14,6 +14,16 @@ class RpgCharEditorController extends Controller
 {
     private const ATTRIBUTE_KEYS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
+    private const ATTRIBUTE_LABELS = [
+        'st' => 'Stärke (ST)',
+        'ge' => 'Geschicklichkeit (GE)',
+        'ro' => 'Robustheit (RO)',
+        'wi' => 'Willenskraft (WI)',
+        'wa' => 'Wahrnehmung (WA)',
+        'in' => 'Intelligenz (IN)',
+        'au' => 'Auftreten (AU)',
+    ];
+
     private const CHARACTER_KEYS = [
         'player_name',
         'character_name',
@@ -25,6 +35,21 @@ class RpgCharEditorController extends Controller
     ];
 
     private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
+
+    private const RACE_VALUES = ['Barbar', 'Guul', 'Hydrit', 'Nosfera', 'Taratze', 'Wulfane', 'Techno', 'Präkristofluu'];
+
+    private const CULTURE_VALUES = [
+        'Landbewohner',
+        'Stadtbewohner',
+        'Meeresbewohner',
+        'Bunkermensch',
+        'Mensch des 21. Jahrhunderts',
+        'Nomade',
+        'Ruinenbewohner',
+        'Untergrundbewohner',
+        'Volk der 13 Inseln',
+        'Disuuslachter (Nordmann)',
+    ];
 
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
@@ -214,6 +239,18 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
+        if (! in_array($race, self::RACE_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'race' => 'Die Rasse muss gewählt werden und einem erlaubten Wert entsprechen.',
+            ]);
+        }
+
+        if (! in_array($culture, self::CULTURE_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur muss gewählt werden und einem erlaubten Wert entsprechen.',
+            ]);
+        }
+
         if ($race === 'Hydrit' && $culture !== 'Meeresbewohner') {
             throw ValidationException::withMessages([
                 'culture' => 'Hydriten können laut Regelwerk nur die Kultur Meeresbewohner wählen.',
@@ -312,19 +349,25 @@ class RpgCharEditorController extends Controller
 
         foreach ($requirements['attributeRanges'] ?? [] as $attributeName => [$minimumValue, $maximumValue]) {
             $attributeValue = $this->attributeValue($attributes, $attributeName);
+            $attributeLabel = $this->attributeLabel($attributeName);
 
             if ($attributeValue === null) {
                 throw ValidationException::withMessages([
-                    'attributes' => "Das Attribut {$attributeName} muss für die Rasse {$race} übermittelt werden.",
+                    'attributes' => "Das Attribut {$attributeLabel} muss für die Rasse {$race} übermittelt werden.",
                 ]);
             }
 
             if ($attributeValue < $minimumValue || $attributeValue > $maximumValue) {
                 throw ValidationException::withMessages([
-                    'attributes' => "Das Attribut {$attributeName} passt nicht zu den Rassenmodifikatoren von {$race}.",
+                    'attributes' => "Das Attribut {$attributeLabel} passt nicht zu den Rassenmodifikatoren von {$race}.",
                 ]);
             }
         }
+    }
+
+    private function attributeLabel(string $attributeName): string
+    {
+        return self::ATTRIBUTE_LABELS[$attributeName] ?? $attributeName;
     }
 
     private function raceRequirements(string $race): array

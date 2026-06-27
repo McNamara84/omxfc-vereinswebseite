@@ -355,6 +355,31 @@ class RpgCharEditorPdfTest extends TestCase
         }
     }
 
+    public function test_pdf_export_rejects_missing_or_invalid_race_and_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $payloadWithoutRace = $this->validPdfPayload();
+        unset($payloadWithoutRace['race']);
+
+        foreach ([$payloadWithoutRace, $this->validPdfPayload(['race' => '']), $this->validPdfPayload(['race' => 'Unbekannte Rasse'])] as $payload) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+            $response->assertSessionHasErrors('race');
+        }
+
+        $payloadWithoutCulture = $this->validPdfPayload();
+        unset($payloadWithoutCulture['culture']);
+
+        foreach ([$payloadWithoutCulture, $this->validPdfPayload(['culture' => '']), $this->validPdfPayload(['culture' => 'Atlantisbewohner'])] as $payload) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+            $response->assertSessionHasErrors('culture');
+        }
+    }
+
     public function test_pdf_export_accepts_guul_with_natural_weapons_requirement(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -446,7 +471,67 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors('attributes');
+        $response->assertSessionHasErrors([
+            'attributes' => 'Das Attribut Auftreten (AU) muss für die Rasse Guul übermittelt werden.',
+        ]);
+    }
+
+    public function test_pdf_export_rejects_guul_with_invalid_au_modifier_label(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $payload = $this->validPdfPayload([
+            'race' => 'Guul',
+            'culture' => 'Stadtbewohner',
+            'attributes' => [
+                'au' => 1,
+            ],
+            'advantages' => ['Zäh', 'Natürliche Waffen'],
+            'disadvantages' => ['Primitiv', 'Gejagt'],
+        ]);
+        $payload['skills'] = [
+            ['name' => 'Heimlichkeit', 'value' => 2],
+            ['name' => 'Intuition', 'value' => 1],
+            ['name' => 'Natürliche Waffen', 'value' => 1],
+        ];
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+        $response->assertSessionHasErrors([
+            'attributes' => 'Das Attribut Auftreten (AU) passt nicht zu den Rassenmodifikatoren von Guul.',
+        ]);
+    }
+
+    public function test_pdf_export_rejects_nosfera_without_ge_modifier_label(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $payload = $this->validPdfPayload([
+            'race' => 'Nosfera',
+            'culture' => 'Stadtbewohner',
+            'attributes' => [
+                'au' => -1,
+            ],
+            'advantages' => ['Zäh', 'Nachtsicht'],
+            'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
+        ]);
+        $payload['attributes'] = [
+            'au' => -1,
+        ];
+        $payload['skills'] = [
+            ['name' => 'Intuition', 'value' => 2],
+            ['name' => 'Heimlichkeit', 'value' => 2],
+        ];
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+        $response->assertSessionHasErrors([
+            'attributes' => 'Das Attribut Geschicklichkeit (GE) muss für die Rasse Nosfera übermittelt werden.',
+        ]);
     }
 
     public function test_pdf_export_rejects_nosfera_without_nachtsicht_advantage(): void
@@ -465,6 +550,7 @@ class RpgCharEditorPdfTest extends TestCase
             'advantages' => ['Zäh'],
             'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
         ]);
+
         $payload['skills'] = [
             ['name' => 'Intuition', 'value' => 2],
             ['name' => 'Heimlichkeit', 'value' => 2],
@@ -1095,6 +1181,9 @@ class RpgCharEditorPdfTest extends TestCase
                     'au' => '-1',
                 ]
                     && $data['skills'] === [
+                        ['name' => 'Nahkampf', 'value' => '1'],
+                        ['name' => 'Überleben', 'value' => '1'],
+                        ['name' => 'Intuition', 'value' => '1'],
                         ['name' => 'Fahren', 'value' => ''],
                         ['name' => 'Diebeskunst', 'value' => '4'],
                     ]
@@ -1112,6 +1201,8 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Collection Payload',
             'gender' => 'maennlich',
+            'race' => 'Barbar',
+            'culture' => 'Landbewohner',
             'attributes' => [
                 'st' => ' 2 ',
                 'ge' => ['manipuliert'],
@@ -1123,6 +1214,9 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'skills' => [
                 ['name' => ['manipuliert'], 'value' => '4'],
+                ['name' => ' Nahkampf ', 'value' => 1],
+                ['name' => ' Überleben ', 'value' => 1],
+                ['name' => ' Intuition ', 'value' => 1],
                 ['name' => ' Fahren ', 'value' => ['manipuliert']],
                 ['name' => ' Diebeskunst ', 'value' => 4],
                 ['name' => false, 'value' => '3'],
@@ -1154,8 +1248,8 @@ class RpgCharEditorPdfTest extends TestCase
                 'player_name' => 'Holger',
                 'character_name' => '',
                 'gender' => 'weiblich',
-                'race' => '123',
-                'culture' => '',
+                'race' => 'Barbar',
+                'culture' => 'Landbewohner',
                 'description' => '',
                 'equipment' => '',
             ]))
@@ -1167,15 +1261,15 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'player_name' => ' Holger ',
             'character_name' => ['manipuliert'],
             'gender' => ' weiblich ',
-            'race' => 123,
-            'culture' => false,
+            'race' => ' Barbar ',
+            'culture' => ' Landbewohner ',
             'description' => ['manipuliert'],
             'equipment' => null,
-        ]);
+        ]));
 
         $response->assertOk();
         $this->assertStringContainsString('charakter.pdf', $response->headers->get('content-disposition'));
@@ -1288,11 +1382,11 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'character_name' => 'Foo/Bar',
             'gender' => 'maennlich',
             'portrait' => UploadedFile::fake()->image('avatar.jpg'),
-        ]);
+        ]));
 
         $this->assertStringContainsString('foobar.pdf', $response->headers->get('content-disposition'));
     }
@@ -1335,10 +1429,10 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'character_name' => 'Foo',
             'gender' => 'maennlich',
-        ]);
+        ]));
 
         $response->assertOk();
     }
@@ -1372,11 +1466,11 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'character_name' => 'Foo',
             'gender' => 'maennlich',
             'portrait' => UploadedFile::fake()->image('avatar.png'),
-        ]);
+        ]));
 
         $response->assertOk();
     }

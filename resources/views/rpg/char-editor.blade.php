@@ -80,7 +80,7 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @blur="clearRaceInfoPreview()" @change="clearRaceInfoPreview()" aria-describedby="race-info-panel">
+                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @blur="clearRaceInfoPreview()" @change="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
                             <option value="" disabled>Rasse wählen</option>
                             <option value="Barbar" :disabled="!isRaceSelectable('Barbar')" @mouseenter="setRaceInfoPreview('Barbar')" @focus="setRaceInfoPreview('Barbar')">Barbar</option>
                             <option value="Guul" :disabled="!isRaceSelectable('Guul')" @mouseenter="setRaceInfoPreview('Guul')" @focus="setRaceInfoPreview('Guul')">Guul</option>

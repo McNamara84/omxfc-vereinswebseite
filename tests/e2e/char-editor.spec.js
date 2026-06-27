@@ -97,10 +97,15 @@ test.describe('RPG Charakter-Editor', () => {
         await page.getByLabel('Spielername').fill('Playwright Spieler');
         await page.getByLabel('Charaktername').fill('Wudan');
         await page.locator('#gender').selectOption('maennlich');
-        await page.locator('#race').selectOption('Techno');
+
+        const raceSelect = page.locator('#race');
+        await expect(raceSelect).not.toHaveAttribute('aria-describedby', 'race-info-panel');
+
+        await raceSelect.selectOption('Techno');
 
         const raceInfo = page.getByTestId('race-info-panel');
 
+        await expect(raceSelect).toHaveAttribute('aria-describedby', 'race-info-panel');
         await expect(raceInfo).toContainText('Techno');
         await expect(raceInfo).toContainText('ST -1, RO -1, IN +1');
         await expect(raceInfo).toContainText('Bildung +3');
