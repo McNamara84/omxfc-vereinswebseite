@@ -93,15 +93,9 @@ class RpgCharEditorRuleDriftTest extends TestCase
 
         preg_match('/const ATTRIBUTE_RULE_METADATA = \{(.*?)\};/s', $this->frontendSource(), $matches);
 
-        $ids = [];
+        preg_match_all('/\b([a-z]{2})\s*:\s*\{/', $matches[1], $idMatches);
 
-        foreach (preg_split('/\R/', $matches[1]) ?: [] as $line) {
-            if (preg_match('/^\s*([a-z]{2}):\s*\{/', $line, $idMatches)) {
-                $ids[] = $idMatches[1];
-            }
-        }
-
-        return $ids;
+        return $idMatches[1];
     }
 
     private function frontendSource(): string
