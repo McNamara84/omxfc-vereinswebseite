@@ -35,9 +35,17 @@ const completeValidBarbarExport = async (page) => {
         state.attributes.st = 2;
         state.attributes.ge = 1;
 
+        const validSkillValues = new Map([
+            ['Überleben', 4],
+            ['Intuition', 4],
+            ['Nahkampf', 4],
+            ['Beruf: Viehzüchter', 2],
+            ['Kunde: Wetter', 1],
+        ]);
+
         for (const skill of state.skills) {
-            if (!skill.valueDisabled) {
-                skill.value = 4;
+            if (!skill.valueDisabled && validSkillValues.has(skill.name)) {
+                skill.value = validSkillValues.get(skill.name);
             }
         }
 
@@ -190,7 +198,8 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.culture).toBe('Landbewohner');
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
-            expect.objectContaining({ name: 'Beruf: Landwirt', value: '2' }),
+            expect.objectContaining({ name: 'Beruf: Viehzüchter', value: '2' }),
+            expect.objectContaining({ name: 'Kunde: Wetter', value: '1' }),
         ]));
         expect(payload.skills.filter((skill) => skill.value && !skill.name)).toEqual([]);
     });
@@ -903,7 +912,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(unlockedCultureOptions).toMatchObject({
             Landbewohner: false,
             Stadtbewohner: false,
-            Meeresbewohner: false,
+            Meeresbewohner: true,
             Bunkermensch: false,
             Nomade: false,
             Ruinenbewohner: false,
