@@ -2,6 +2,7 @@ const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
     Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.',
     Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.',
+    Nosfera: 'Nosfera sind mumienartige Erscheinungen mit pergamentartiger Haut und einer knochig dürren Gestalt. Durch eine seltene Form der Sichelzellenanämie benötigen sie stetig frisches Blut und werden deshalb von den meisten Völkern gefürchtet und verhasst. Viele Nosfera verfügen über erstaunlich starke psychische Fähigkeiten.',
     Techno: 'Technos sind Nachfahren der Menschen, die den Kometeneinschlag in Bunkern überlebt und eine neue Zivilisation aufgebaut haben. Aufgrund ihres technologischen Fortschritts gelten sie vielen Barbaren als Götter oder Dämonen. Sie leiden jedoch an einer tödlichen Immunschwäche und können die Außenwelt nur mit Schutzanzug betreten.',
     Präkristofluu: 'Präkristofluu sind Menschen aus dem 21. Jahrhundert, die durch Gefrierkammern oder mysteriöse Zeitphänomene in das 26. Jahrhundert gelangt sind. Ihr technisches Wissen und ihre Kenntnisse der Vergangenheit gleichen ihre geringe Anpassungsfähigkeit aus.'
 };
@@ -15,12 +16,14 @@ const CULTURE_DESCRIPTIONS = {
     Nomade: 'Nomaden folgen den Routen ihrer Nutztiere durch die Jahreszeiten. Sie sind wehrhaft, überleben in unwirtlicher Natur und werden von sesshaften Völkern oft misstrauisch betrachtet.',
     Ruinenbewohner: 'Ruinenbewohner leben in den Resten der Städte aus der Zeit vor Kristoflus als Banditen, Jäger und Sammler. Ihre Gesellschaften sind primitiv und von Brutalität und Not geprägt.',
     Untergrundbewohner: 'Untergrundbewohner leben in Höhlen und alten Stollen, um sich vor den Gefahren der Oberfläche zu schützen. Sie arbeiten überwiegend als Bergleute, Jäger und Sammler. Häufig haben sie seltsame Rituale und clanartige Strukturen von großer Starrheit entwickelt.',
-    'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Dänemark und Finnland. Es besteht vor allem aus Jägern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.'
+    'Volk der 13 Inseln': 'Das Volk der 13 Inseln lebt in Schweden, Dänemark und Finnland. Es besteht vor allem aus Jägern, Bauern und Fischern. Frauen dieser Kultur besitzen die Gabe des Lauschens.',
+    'Disuuslachter (Nordmann)': 'Disuuslachter sind missgestaltete und grausame Nordmänner, die vom Weltrat im Rahmen des Viking-Projekts eingesetzt werden. Sie verfügen über dampfgetriebene Kriegsschiffe und Kanonen, opfern sich furchtlos im Kampf gegen Bunkerzivilisationen und verbergen ihre entstellten Gesichter unter Lederrüstungen.'
 };
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
+const NOSFERA_RACE = 'Nosfera';
 const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
 const TECHNO_SKILLS = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const TECHNO_SKILL_POOL_POINTS = 12;
@@ -32,6 +35,8 @@ const NOMADE_COMBAT_SKILLS = ['Nahkampf', 'Fernkampf'];
 const NOMADE_MOVEMENT_SKILLS = ['Reiten', 'Athletik'];
 const RUINENBEWOHNER_BONUS_SKILLS = ['Nahkampf', 'Fernkampf', 'Athletik', 'Kunde'];
 const VOLK_DER_13_INSELN_CULTURE = 'Volk der 13 Inseln';
+const DISUUSLACHTER_CULTURE = 'Disuuslachter (Nordmann)';
+const BARBAR_ONLY_CULTURES = [VOLK_DER_13_INSELN_CULTURE, DISUUSLACHTER_CULTURE];
 const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
 const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
 const FEMALE_GENDER = 'weiblich';
@@ -231,7 +236,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch'
             && culture !== MENSCH_21_CULTURE
-            && (race === 'Barbar' || culture !== VOLK_DER_13_INSELN_CULTURE));
+            && (race === 'Barbar' || !BARBAR_ONLY_CULTURES.includes(culture)));
     },
 
     isCultureSelectable(culture) {
@@ -589,6 +594,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Barbar') this.applyRaceBarbar();
         if (this.race === 'Guul') this.applyRaceGuul();
         if (this.race === 'Hydrit') this.applyRaceHydrit();
+        if (this.race === NOSFERA_RACE) this.applyRaceNosfera();
         if (this.race === 'Techno') this.applyRaceTechno();
         if (this.race === PRAEKRISTOFLUU_RACE) this.applyRacePraekristofluu();
         this.restoreRaceState(this.race);
@@ -677,6 +683,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Anfälligkeit gegen Wahnsinn'])];
     },
 
+    applyRaceNosfera() {
+        this.setRaceAttributeModifiers({ ge: 1, au: -1 });
+        this.setFreeMin('Intuition', 2, 'Rasse');
+        this.setFreeMin('Heimlichkeit', 2, 'Rasse');
+        this.raceLocked.advantages = ['Nachtsicht', 'Psychisches Reservoir'];
+        this.raceLocked.disadvantages = ['Blutdurst', 'Lichtscheu', 'Gejagt'];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Nachtsicht', 'Psychisches Reservoir'])];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Blutdurst', 'Lichtscheu', 'Gejagt'])];
+    },
+
     applyRaceTechno() {
         this.setRaceAttributeModifiers({ st: -1, ro: -1, in: 1 });
         this.resetTechnoSkillPoints(2);
@@ -732,6 +748,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Ruinenbewohner') this.applyCultureRuinenbewohner();
         if (this.culture === 'Untergrundbewohner') this.applyCultureUntergrundbewohner();
         if (this.culture === VOLK_DER_13_INSELN_CULTURE) this.applyCultureVolkDer13Inseln();
+        if (this.culture === DISUUSLACHTER_CULTURE) this.applyCultureDisuuslachter();
         this.updateDescription();
     },
 
@@ -823,6 +840,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('\u00dcberleben', 1, 'Kultur');
         this.setVolkDer13InselnProfessionSkill('Beruf: Bauer');
         this.refreshCultureLockedAdvantages();
+    },
+
+    applyCultureDisuuslachter() {
+        this.setFreeMin('Nahkampf', 1, 'Kultur');
+        this.setFreeMin('Überleben', 1, 'Kultur');
+        this.setFreeMin('Beruf: Seemann', 1, 'Kultur');
     },
 
     setCitySkill(skillName) {

@@ -483,6 +483,53 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('culture');
     }
 
+    public function test_pdf_export_accepts_nosfera_with_general_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Nosfera'
+                    && $data['character']['culture'] === 'Stadtbewohner'
+                    && ($data['attributes']['ge'] ?? null) === '1'
+                    && ($data['attributes']['au'] ?? null) === '-1'
+                    && $skills->has('Intuition')
+                    && $skills->has('Heimlichkeit')
+                    && in_array('Nachtsicht', $data['advantages'], true)
+                    && in_array('Psychisches Reservoir', $data['advantages'], true)
+                    && in_array('Blutdurst', $data['disadvantages'], true)
+                    && in_array('Lichtscheu', $data['disadvantages'], true)
+                    && in_array('Gejagt', $data['disadvantages'], true);
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Nosfera',
+            'culture' => 'Stadtbewohner',
+            'attributes' => [
+                'ge' => 1,
+                'au' => -1,
+            ],
+            'skills' => [
+                ['name' => 'Intuition', 'value' => 2],
+                ['name' => 'Heimlichkeit', 'value' => 2],
+            ],
+            'advantages' => ['Zäh', 'Nachtsicht', 'Psychisches Reservoir'],
+            'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
+        ]));
+
+        $response->assertOk();
+    }
+
     public function test_pdf_export_accepts_nomade_culture(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -582,6 +629,55 @@ class RpgCharEditorPdfTest extends TestCase
         ]));
 
         $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_disuuslachter_culture_for_barbar(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Barbar'
+                    && $data['character']['culture'] === 'Disuuslachter (Nordmann)'
+                    && $skills->has('Nahkampf')
+                    && $skills->has('Überleben')
+                    && $skills->has('Beruf: Seemann');
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Disuuslachter (Nordmann)',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Beruf: Seemann', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_disuuslachter_culture_for_non_barbar(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Nosfera',
+            'culture' => 'Disuuslachter (Nordmann)',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
     }
 
     public function test_pdf_export_accepts_volk_der_13_inseln_for_barbar_with_required_advantage(): void

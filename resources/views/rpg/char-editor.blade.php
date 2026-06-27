@@ -28,6 +28,7 @@
         'Anfälligkeit gegen Wahnsinn',
         'Auffällig',
         'Blutdurst',
+        'Lichtscheu',
         'Ehrenkodex',
         'Feind',
         'Primitiv',
@@ -84,6 +85,7 @@
                             <option value="Barbar" :disabled="!isRaceSelectable('Barbar')">Barbar</option>
                             <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
                             <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
+                            <option value="Nosfera" :disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
                             <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
                             <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>
@@ -99,6 +101,7 @@
                             <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
                             <option value="Mensch des 21. Jahrhunderts" :disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
                             <option value="Nomade" :disabled="!isCultureSelectable('Nomade')">Nomade</option>
+                            <option value="Disuuslachter (Nordmann)" :disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
                             <option value="Ruinenbewohner" :disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
                             <option value="Untergrundbewohner" :disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
                             <option value="Volk der 13 Inseln" :disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
@@ -301,6 +304,7 @@
                             <option value="Beruf"></option>
                             <option value="Beruf: Bauer"></option>
                             <option value="Beruf: Bergmann"></option>
+                            <option value="Beruf: Seemann"></option>
                             <option value="Beruf: Fischer"></option>
                             <option value="Beruf: Farmer"></option>
                             <option value="Beruf: Künstler"></option>
