@@ -169,6 +169,21 @@ describe('charEditor – Registrierung', () => {
 });
 
 describe('charEditor – Attribut-Clamping', () => {
+    it('liest AP aus der Attribut-Regelkonfiguration', async () => {
+        window.rpgCharEditorRules.attributeRules = {
+            creationPoints: 3,
+            attributes: [],
+        };
+
+        vi.resetModules();
+        await import('@/alpine/char-editor.js');
+
+        const e = createEditor();
+
+        expect(e.base.AP).toBe(3);
+        expect(e.apRemaining()).toBe(3);
+    });
+
     it('begrenzt Attribut auf attributeBaseMax (Nicht-Barbar)', () => {
         const e = createEditor();
         e.attributes.st = 5;

@@ -276,6 +276,7 @@ const numericAttributeConfig = (key, fallback) => {
 const attributeRules = () => attributeRuleConfig().attributes;
 const attributeOptions = () => attributeRules().map(rule => ({ id: rule.id, label: rule.label }));
 const attributeRulesById = () => Object.fromEntries(attributeRules().map(rule => [rule.id, rule]));
+const attributeCreationPoints = () => numericAttributeConfig('creationPoints', 2);
 const attributeRollFormula = () => attributeRuleConfig().rollFormula || '2W6 + Attributswert x 3';
 
 const buildAdvantageRules = () => {
@@ -375,7 +376,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipment: '',
 
     // Game constants
-    base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 2 },
+    base: { AP: attributeCreationPoints(), FP: 20, maxFW: 4, freeAdvantages: 2 },
 
     // Race/culture state
     raceAPBonus: 0,

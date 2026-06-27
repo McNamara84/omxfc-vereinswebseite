@@ -85,15 +85,18 @@ class RpgCharEditorRuleDriftTest extends TestCase
 
     private function frontendAttributeMetadataIds(): array
     {
+        $pattern = '/const\s+ATTRIBUTE_RULE_METADATA\s*=\s*\{(.*?)\}\s*;/s';
+        $source = $this->frontendSource();
+
         $this->assertMatchesRegularExpression(
-            '/const ATTRIBUTE_RULE_METADATA = \{(.*?)\};/s',
-            $this->frontendSource(),
+            $pattern,
+            $source,
             'Frontend attribute metadata constant is missing.',
         );
 
-        preg_match('/const ATTRIBUTE_RULE_METADATA = \{(.*?)\};/s', $this->frontendSource(), $matches);
+        preg_match($pattern, $source, $matches);
 
-        preg_match_all('/\b([a-z]{2})\s*:\s*\{/', $matches[1], $idMatches);
+        preg_match_all('/(?:^|,)\s*["\']?([a-z]{2})["\']?\s*:\s*\{/', $matches[1], $idMatches);
 
         return $idMatches[1];
     }
