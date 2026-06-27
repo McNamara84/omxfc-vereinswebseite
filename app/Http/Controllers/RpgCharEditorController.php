@@ -102,7 +102,7 @@ class RpgCharEditorController extends Controller
         $advantages = $this->listPayload($request->input('advantages', []));
         $disadvantages = $this->listPayload($request->input('disadvantages', []));
 
-        $this->validateCharacterRules($character, $advantages);
+        $this->validateCharacterRules($character, $attributes, $skills, $advantages, $disadvantages);
 
         return [
             'character' => $character,
@@ -202,7 +202,7 @@ class RpgCharEditorController extends Controller
         return $character;
     }
 
-    private function validateCharacterRules(array $character, array $advantages): void
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
@@ -263,6 +263,144 @@ class RpgCharEditorController extends Controller
                 'advantages' => 'Weibliche Charaktere aus dem Volk der 13 Inseln müssen Psychische Kraft wählen.',
             ]);
         }
+
+        $this->validateRaceRequirements($race, $attributes, $skills, $advantages, $disadvantages);
+    }
+
+    private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages): void
+    {
+        $requirements = $this->raceRequirements($race);
+
+        if ($requirements === []) {
+            return;
+        }
+
+        foreach ($requirements['advantages'] ?? [] as $advantage) {
+            if (! in_array($advantage, $advantages, true)) {
+                throw ValidationException::withMessages([
+                    'advantages' => "Die Rasse {$race} benötigt den Vorteil {$advantage}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['disadvantages'] ?? [] as $disadvantage) {
+            if (! in_array($disadvantage, $disadvantages, true)) {
+                throw ValidationException::withMessages([
+                    'disadvantages' => "Die Rasse {$race} benötigt den Nachteil {$disadvantage}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['skills'] ?? [] as $skillName => $minimumValue) {
+            if ($this->skillValue($skills, $skillName) < $minimumValue) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Rasse {$race} benötigt {$skillName} mindestens auf {$minimumValue}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['anySkills'] ?? [] as $choice) {
+            $hasChoice = collect($choice['names'])
+                ->contains(fn (string $skillName) => $this->skillValue($skills, $skillName) >= $choice['minimum']);
+
+            if (! $hasChoice) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Rasse {$race} benötigt {$choice['label']}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['attributeRanges'] ?? [] as $attributeName => [$minimumValue, $maximumValue]) {
+            $attributeValue = $this->attributeValue($attributes, $attributeName);
+
+            if ($attributeValue === null) {
+                throw ValidationException::withMessages([
+                    'attributes' => "Das Attribut {$attributeName} muss für die Rasse {$race} übermittelt werden.",
+                ]);
+            }
+
+            if ($attributeValue < $minimumValue || $attributeValue > $maximumValue) {
+                throw ValidationException::withMessages([
+                    'attributes' => "Das Attribut {$attributeName} passt nicht zu den Rassenmodifikatoren von {$race}.",
+                ]);
+            }
+        }
+    }
+
+    private function raceRequirements(string $race): array
+    {
+        return match ($race) {
+            'Barbar' => [
+                'skills' => ['Überleben' => 1, 'Intuition' => 1],
+                'anySkills' => [[
+                    'names' => ['Nahkampf', 'Fernkampf'],
+                    'minimum' => 1,
+                    'label' => 'Nahkampf oder Fernkampf mindestens auf 1',
+                ]],
+            ],
+            'Guul' => [
+                'skills' => ['Heimlichkeit' => 2, 'Intuition' => 1, 'Natürliche Waffen' => 1],
+                'advantages' => ['Natürliche Waffen'],
+                'disadvantages' => ['Primitiv', 'Gejagt'],
+                'attributeRanges' => ['au' => [-1, 0]],
+            ],
+            'Hydrit' => [
+                'skills' => ['Athletik' => 2, 'Bildung' => 1, 'Natürliche Waffen' => 1],
+                'advantages' => ['Kiemen', 'Natürliche Waffen'],
+                'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
+            ],
+            'Nosfera' => [
+                'skills' => ['Intuition' => 2, 'Heimlichkeit' => 2],
+                'advantages' => ['Nachtsicht'],
+                'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
+                'attributeRanges' => ['ge' => [0, 2], 'au' => [-1, 0]],
+            ],
+            'Taratze' => [
+                'skills' => ['Intuition' => 2, 'Heimlichkeit' => 1, 'Überleben' => 1],
+                'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
+                'attributeRanges' => ['st' => [0, 2], 'wa' => [0, 2], 'in' => [-1, 0], 'au' => [-1, 0]],
+            ],
+            'Wulfane' => [
+                'skills' => ['Intuition' => 1, 'Nahkampf' => 1],
+                'disadvantages' => ['Ehrenkodex'],
+                'attributeRanges' => ['ro' => [0, 2], 'au' => [-1, 0]],
+            ],
+            'Techno' => [
+                'skills' => ['Bildung' => 3],
+                'advantages' => ['High-Tech-Ausrüstung'],
+                'disadvantages' => ['Tödliche Immunschwäche'],
+                'attributeRanges' => ['st' => [-1, 0], 'ro' => [-1, 0], 'in' => [0, 2]],
+            ],
+            'Präkristofluu' => [
+                'skills' => ['Beruf' => 3],
+                'advantages' => ['High-Tech-Ausrüstung'],
+            ],
+            default => [],
+        };
+    }
+
+    private function skillValue(array $skills, string $skillName): int
+    {
+        $value = null;
+
+        foreach ($skills as $skill) {
+            if (($skill['name'] ?? null) !== $skillName || ! is_numeric($skill['value'] ?? null)) {
+                continue;
+            }
+
+            $value = max($value ?? PHP_INT_MIN, (int) $skill['value']);
+        }
+
+        return $value ?? PHP_INT_MIN;
+    }
+
+    private function attributeValue(array $attributes, string $attributeName): ?int
+    {
+        if (! array_key_exists($attributeName, $attributes) || ! is_numeric($attributes[$attributeName])) {
+            return null;
+        }
+
+        return (int) $attributes[$attributeName];
     }
 
     private function stringPayload(mixed $value): string

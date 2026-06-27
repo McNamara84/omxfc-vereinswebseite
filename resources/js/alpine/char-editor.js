@@ -24,6 +24,84 @@ const CULTURE_DESCRIPTIONS = {
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+const ATTRIBUTE_OPTIONS = [
+    { id: 'st', label: 'Stärke (ST)' },
+    { id: 'ge', label: 'Geschicklichkeit (GE)' },
+    { id: 'ro', label: 'Robustheit (RO)' },
+    { id: 'wi', label: 'Willenskraft (WI)' },
+    { id: 'wa', label: 'Wahrnehmung (WA)' },
+    { id: 'in', label: 'Intelligenz (IN)' },
+    { id: 'au', label: 'Auftreten (AU)' },
+];
+const RACE_RULE_SUMMARIES = {
+    Barbar: {
+        name: 'Barbar',
+        description: RACE_DESCRIPTIONS.Barbar,
+        attributes: 'Ein Attribut nach Wahl +1',
+        skills: 'Überleben +1, Intuition +1, Nahkampf oder Fernkampf +1',
+        advantages: 'Keine rassenbedingten Pflichtvorteile',
+        disadvantages: 'Keine rassenbedingten Pflichtnachteile',
+        note: 'Der Attributsbonus wird kostenlos vergeben und separat gewählt.',
+    },
+    Guul: {
+        name: 'Guul',
+        description: RACE_DESCRIPTIONS.Guul,
+        attributes: 'AU -1',
+        skills: 'Heimlichkeit +2, Intuition +1, Natürliche Waffen +1',
+        advantages: 'Natürliche Waffen',
+        disadvantages: 'Primitiv, Gejagt',
+        note: 'Natürliche Waffen steht für den Fersendorn.',
+    },
+    Hydrit: {
+        name: 'Hydrit',
+        description: RACE_DESCRIPTIONS.Hydrit,
+        attributes: 'Keine Attributsmodifikatoren',
+        skills: 'Athletik +2, Bildung +1, Natürliche Waffen +1',
+        advantages: 'Kiemen, Natürliche Waffen',
+        disadvantages: 'Anfälligkeit gegen Wahnsinn',
+        note: 'Natürliche Waffen steht für Klauen.',
+    },
+    Nosfera: {
+        name: 'Nosfera',
+        description: RACE_DESCRIPTIONS.Nosfera,
+        attributes: 'GE +1, AU -1',
+        skills: 'Intuition +2, Heimlichkeit +2',
+        advantages: 'Nachtsicht',
+        disadvantages: 'Blutdurst, Lichtscheu, Gejagt',
+    },
+    Taratze: {
+        name: 'Taratze',
+        description: RACE_DESCRIPTIONS.Taratze,
+        attributes: 'ST +1, WA +1, IN -1, AU -1',
+        skills: 'Intuition +2, Heimlichkeit +1, Überleben +1',
+        advantages: 'Keine rassenbedingten Pflichtvorteile',
+        disadvantages: 'Auffällig, Primitiv, Gejagt',
+    },
+    Wulfane: {
+        name: 'Wulfane',
+        description: RACE_DESCRIPTIONS.Wulfane,
+        attributes: 'RO +1, AU -1',
+        skills: 'Intuition +1, Nahkampf +1',
+        advantages: 'Keine rassenbedingten Pflichtvorteile',
+        disadvantages: 'Ehrenkodex',
+    },
+    Techno: {
+        name: 'Techno',
+        description: RACE_DESCRIPTIONS.Techno,
+        attributes: 'ST -1, RO -1, IN +1',
+        skills: 'Bildung +3 sowie 12 Punkte in Fahren, Feuerwaffen, Heiler, Pilot, Techniker, Wissenschaftler',
+        advantages: 'High-Tech-Ausrüstung',
+        disadvantages: 'Tödliche Immunschwäche',
+    },
+    Präkristofluu: {
+        name: 'Präkristofluu',
+        description: RACE_DESCRIPTIONS.Präkristofluu,
+        attributes: 'Keine Attributsmodifikatoren',
+        skills: 'Beruf +3 sowie 12 Punkte in Bildung, Fahren, Feuerwaffen, Pilot, Techniker, Wissenschaftler',
+        advantages: 'High-Tech-Ausrüstung',
+        disadvantages: 'Keine rassenbedingten Pflichtnachteile',
+    },
+};
 const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
 const NOSFERA_RACE = 'Nosfera';
 const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
@@ -94,6 +172,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     raceAPBonus: 0,
     raceGrants: {},
     cultureGrants: {},
+    attributeOptions: ATTRIBUTE_OPTIONS,
+    barbarAttributeBonus: null,
     barbarCombatSkill: null,
     citySkill: null,
     seaProfessionSkill: null,
@@ -114,6 +194,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     raceCache: {},
     raceAttributeModifiers: {},
     raceLockedByBunkermenschCulture: false,
+    raceInfoPreview: '',
 
     // Dynamic data
     attributes: { st: 0, ge: 0, ro: 0, wi: 0, wa: 0, in: 0, au: 0 },
@@ -320,6 +401,35 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             text += (text ? '\n\n' : '') + CULTURE_DESCRIPTIONS[this.culture];
         }
         this.description = text;
+    },
+
+    raceInfo() {
+        const raceName = this.raceInfoPreview || this.race;
+
+        return RACE_RULE_SUMMARIES[raceName] || null;
+    },
+
+    raceInfoRows() {
+        const info = this.raceInfo();
+        if (!info) return [];
+
+        return [
+            { label: 'Attribute', value: info.attributes },
+            { label: 'Fertigkeiten', value: info.skills },
+            { label: 'Vorteile', value: info.advantages },
+            { label: 'Nachteile', value: info.disadvantages },
+            { label: 'Hinweis', value: info.note },
+        ].filter(row => row.value);
+    },
+
+    setRaceInfoPreview(raceName) {
+        if (RACE_RULE_SUMMARIES[raceName]) {
+            this.raceInfoPreview = raceName;
+        }
+    },
+
+    clearRaceInfoPreview() {
+        this.raceInfoPreview = '';
     },
 
     // --- Skill management ---
@@ -612,6 +722,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.raceCache[raceName] = {
             attributes: { ...this.attributes },
             skills: this.skills.filter(s => this.raceGrants[s.name]).map(s => ({ name: s.name, value: s.value })),
+            barbarAttributeBonus: this.barbarAttributeBonus,
             barbarCombatSkill: this.barbarCombatSkill,
             technoSkillPoints: { ...this.technoSkillPoints },
             praekristofluuSkillPoints: { ...this.praekristofluuSkillPoints },
@@ -621,6 +732,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     restoreRaceState(raceName) {
         const cache = this.raceCache[raceName];
         if (!cache) return;
+        if (raceName === 'Barbar' && cache.barbarAttributeBonus) {
+            this.setBarbarAttributeBonus(cache.barbarAttributeBonus);
+        }
         ATTRIBUTE_IDS.forEach(id => {
             if (cache.attributes[id] !== undefined) {
                 this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(cache.attributes[id], this.getAttributeMax(id)));
@@ -650,6 +764,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         this.raceAPBonus = 0;
         this.raceGrants = {};
+        this.barbarAttributeBonus = null;
         this.barbarCombatSkill = null;
         this.resetTechnoSkillPoints(0);
         this.resetPraekristofluuSkillPoints(0);
@@ -662,18 +777,20 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyRaceBarbar() {
-        this.raceAPBonus = 1;
+        this.setBarbarAttributeBonus('st');
         this.setFreeMin('Überleben', 1, 'Rasse');
         this.setFreeMin('Intuition', 1, 'Rasse');
         this.setBarbarCombatSkill('Nahkampf');
     },
 
     applyRaceGuul() {
-        this.attributes.au = -1;
+        this.setRaceAttributeModifiers({ au: -1 });
         this.setFreeMin('Heimlichkeit', 2, 'Rasse');
         this.setFreeMin('Intuition', 1, 'Rasse');
         this.setFreeMin('Natürliche Waffen', 1, 'Rasse');
+        this.raceLocked.advantages = ['Natürliche Waffen'];
         this.raceLocked.disadvantages = ['Primitiv', 'Gejagt'];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Natürliche Waffen'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Primitiv', 'Gejagt'])];
     },
 
@@ -691,9 +808,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setRaceAttributeModifiers({ ge: 1, au: -1 });
         this.setFreeMin('Intuition', 2, 'Rasse');
         this.setFreeMin('Heimlichkeit', 2, 'Rasse');
-        this.raceLocked.advantages = ['Nachtsicht', 'Psychisches Reservoir'];
+        this.raceLocked.advantages = ['Nachtsicht'];
         this.raceLocked.disadvantages = ['Blutdurst', 'Lichtscheu', 'Gejagt'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Nachtsicht', 'Psychisches Reservoir'])];
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Nachtsicht'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Blutdurst', 'Lichtscheu', 'Gejagt'])];
     },
 
@@ -716,6 +833,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     applyRaceTechno() {
         this.setRaceAttributeModifiers({ st: -1, ro: -1, in: 1 });
+        this.setFreeMin('Bildung', 3, 'Rasse');
         this.resetTechnoSkillPoints(2);
         this.refreshAllTechnoSkillGrants();
         this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
@@ -730,6 +848,25 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.refreshAllPraekristofluuSkillGrants();
         this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
         this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'High-Tech-Ausrüstung'])];
+    },
+
+    setBarbarAttributeBonus(attributeId) {
+        if (!ATTRIBUTE_IDS.includes(attributeId)) return;
+
+        const currentBonusAttribute = Object.entries(this.raceAttributeModifiers)
+            .find(([, modifier]) => modifier === 1)?.[0] || null;
+
+        if (currentBonusAttribute === attributeId) {
+            this.barbarAttributeBonus = attributeId;
+            return;
+        }
+
+        if (currentBonusAttribute) {
+            this.clearRaceAttributeModifiers();
+        }
+
+        this.barbarAttributeBonus = attributeId;
+        this.setRaceAttributeModifiers({ [attributeId]: 1 });
     },
 
     setBarbarCombatSkill(skillName) {
