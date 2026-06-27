@@ -19,7 +19,11 @@ const retryableNavigationErrors = [
 ];
 
 const disableMotionForPlaywright = () => {
-    if (!window.__playwrightRafFallbackInstalled) {
+    const installRafFallback = () => {
+        if (window.__playwrightRafFallbackInstalled) {
+            return;
+        }
+
         let frameId = 0;
         const frameTimers = new Map();
 
@@ -47,7 +51,9 @@ const disableMotionForPlaywright = () => {
             window.clearTimeout(timer);
             frameTimers.delete(currentFrameId);
         };
-    }
+    };
+
+    installRafFallback();
 
     const styleId = 'playwright-disable-motion';
     const content = `
@@ -139,6 +145,130 @@ const receivesPointerAtCenter = async (locator) => locator.evaluate((element) =>
     return topElement === element || element.contains(topElement);
 });
 
+const normalizeSelectTargets = (values) => {
+    const targets = Array.isArray(values) ? values : [values];
+
+    return targets.map((target) => {
+        if (typeof target === 'string') {
+            return { value: target };
+        }
+
+        if (typeof target === 'number') {
+            return { index: target };
+        }
+
+        if (target && typeof target === 'object') {
+            return {
+                value: target.value,
+                label: target.label,
+                index: target.index,
+            };
+        }
+
+        return {};
+    });
+};
+
+const setSelectOptionsViaDom = async (locator, values) => {
+    await locator.waitFor({ state: 'visible', timeout: stableActionFallbackTimeout });
+
+    const elementHandle = await locator.elementHandle({ timeout: stableActionFallbackTimeout });
+
+    if (!elementHandle) {
+        throw new Error('locator.selectOption fallback failed: select element was not found');
+    }
+
+    let result;
+
+    try {
+        result = await elementHandle.evaluate((element, targets) => {
+            if (!(element instanceof HTMLSelectElement)) {
+                return { ok: false, reason: 'target is not a select element' };
+            }
+
+            if (element.disabled || element.matches(':disabled') || element.closest('[aria-disabled="true"]')) {
+                return { ok: false, reason: 'select element is disabled' };
+            }
+
+            if (targets.length > 1 && !element.multiple) {
+                return { ok: false, reason: 'multiple values require a multiple select' };
+            }
+
+            const options = [...element.options];
+            const selectedOptions = [];
+
+            for (const target of targets) {
+                const option = options.find((candidate, index) => {
+                    if (target.index !== undefined && target.index !== index) {
+                        return false;
+                    }
+
+                    if (target.value !== undefined && target.value !== candidate.value) {
+                        return false;
+                    }
+
+                    if (target.label !== undefined && target.label !== candidate.label) {
+                        return false;
+                    }
+
+                    return target.index !== undefined || target.value !== undefined || target.label !== undefined;
+                }) ?? null;
+
+                if (!option) {
+                    return { ok: false, reason: 'select option was not found' };
+                }
+
+                if (option.disabled || option.closest('optgroup[disabled]')) {
+                    return { ok: false, reason: 'select option is disabled' };
+                }
+
+                selectedOptions.push(option);
+            }
+
+            for (const option of options) {
+                option.selected = false;
+            }
+
+            for (const option of selectedOptions) {
+                option.selected = true;
+            }
+
+            const selectedValues = selectedOptions.map((option) => option.value);
+            const model = element.getAttribute('x-model') || element.getAttribute('x-model.number');
+            const root = element.closest('[x-data]');
+            const state = root && window.Alpine?.$data ? window.Alpine.$data(root) : null;
+
+            if (typeof element._x_model?.set === 'function') {
+                element._x_model.set(element.multiple ? selectedValues : element.value);
+            } else if (model && state) {
+                const path = model.split('.').filter(Boolean);
+                let target = state;
+
+                for (const segment of path.slice(0, -1)) {
+                    target = target?.[segment];
+                }
+
+                if (target && path.length > 0) {
+                    target[path.at(-1)] = element.multiple ? selectedValues : element.value;
+                }
+            }
+
+            element.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+
+            return { ok: true, values: selectedValues };
+        }, normalizeSelectTargets(values));
+    } finally {
+        await elementHandle.dispose();
+    }
+
+    if (!result.ok) {
+        throw new Error(`locator.selectOption fallback failed: ${result.reason}`);
+    }
+
+    return result.values;
+};
+
 const runWithStableActionFallback = async (locator, action, options = {}, { requirePointer = true } = {}) => {
     if (options.force || options.trial) {
         return action(options);
@@ -165,6 +295,14 @@ const runWithStableActionFallback = async (locator, action, options = {}, { requ
     }
 };
 
+const runSelectOptionWithStableActionFallback = async (locator, action, values, options = {}) => {
+    if (options.force) {
+        return action(values, options);
+    }
+
+    return setSelectOptionsViaDom(locator, values);
+};
+
 const patchLocatorStableActionFallback = (locator) => {
     const prototype = Object.getPrototypeOf(locator);
 
@@ -175,8 +313,9 @@ const patchLocatorStableActionFallback = (locator) => {
     const originalClick = prototype.click;
     const originalCheck = prototype.check;
     const originalUncheck = prototype.uncheck;
+    const originalSelectOption = prototype.selectOption;
 
-    if (![originalClick, originalCheck, originalUncheck].some((method) => typeof method === 'function')) {
+    if (![originalClick, originalCheck, originalUncheck, originalSelectOption].some((method) => typeof method === 'function')) {
         return;
     }
 
@@ -213,6 +352,17 @@ const patchLocatorStableActionFallback = (locator) => {
                 (actionOptions) => originalUncheck.call(this, actionOptions),
                 options,
                 { requirePointer: false },
+            );
+        };
+    }
+
+    if (typeof originalSelectOption === 'function') {
+        prototype.selectOption = function selectOption(values, options = {}) {
+            return runSelectOptionWithStableActionFallback(
+                this,
+                (actionValues, actionOptions) => originalSelectOption.call(this, actionValues, actionOptions),
+                values,
+                options,
             );
         };
     }

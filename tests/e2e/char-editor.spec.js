@@ -24,6 +24,7 @@ const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohn
 };
 
 const checkbox = (page, name, value) => page.locator(`input[type="checkbox"][name="${name}"][value="${value}"]`);
+
 const completeValidBarbarExport = async (page) => {
     await page.getByTestId('char-editor-form').evaluate((form) => {
         const state = window.Alpine?.$data(form);
@@ -121,7 +122,7 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(raceInfo).toContainText('Guul');
         await expect(raceInfo).toContainText('AU -1');
 
-        await raceSelect.selectOption('Techno');
+        await page.locator('#race').selectOption('Techno');
 
         await expect(raceInfo).toContainText('Techno');
         await expect(raceInfo).toContainText('ST -1, RO -1, IN +1');
@@ -209,6 +210,11 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(page.locator('select[name="advantages[]"]')).toHaveCount(0);
         await expect(page.locator('select[name="disadvantages[]"]')).toHaveCount(0);
+        await expect(page.getByTestId('roll-advantage-button')).toBeVisible();
+        await expect(page.getByTestId('roll-disadvantage-button')).toBeVisible();
+        await expect(page.getByTestId('char-editor-advantages-list')).toContainText('13');
+        await expect(page.getByTestId('char-editor-disadvantages-list')).toContainText('Taratzenfutter');
+        await expect(page.getByTestId('char-editor-disadvantages-list')).toContainText('54-63');
 
         const zaeh = checkbox(page, 'advantages[]', 'Zäh');
         await expect(zaeh).toBeChecked();
@@ -235,6 +241,16 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.advantages).toContain('Schnell');
         expect(payload.advantages).toContain('Kampfreflexe');
         expect(payload.disadvantages).toContain('Auffällig');
+
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+            const sequence = [6, 5];
+            state.rollD6 = () => sequence.shift();
+        });
+        await page.getByTestId('roll-disadvantage-button').click();
+
+        await expect(page.getByTestId('char-editor-roll-result')).toContainText('Verpflichtung wurde übernommen');
+        await expect(checkbox(page, 'disadvantages[]', 'Verpflichtung')).toBeChecked();
     });
 
     test('zeigt Guul-Pflichtmerkmale ausgewählt, gesperrt und submitbar', async ({ page }) => {
@@ -251,8 +267,19 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(primitiv).toBeDisabled();
         await expect(gejagt).toBeChecked();
         await expect(gejagt).toBeDisabled();
-        await expect(page.getByTestId('char-editor-advantages-list').getByText('Pflicht')).toHaveCount(2);
-        await expect(page.getByTestId('char-editor-disadvantages-list').getByText('Pflicht')).toHaveCount(2);
+        const advantageBadges = await page.getByTestId('char-editor-advantages-list').evaluate((list) => {
+            const labelTexts = [...list.querySelectorAll('label')].map((label) => label.textContent);
+
+            return {
+                pflicht: labelTexts.filter((text) => text.includes('Pflicht')).length,
+                rasse: labelTexts.filter((text) => text.includes('Rasse')).length,
+            };
+        });
+        const disadvantagePflichtBadges = await page.getByTestId('char-editor-disadvantages-list').evaluate((list) => [...list.querySelectorAll('label')]
+            .filter((label) => label.textContent.includes('Pflicht')).length);
+
+        expect(advantageBadges).toEqual({ pflicht: 1, rasse: 1 });
+        expect(disadvantagePflichtBadges).toBe(2);
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);

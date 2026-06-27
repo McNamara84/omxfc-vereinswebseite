@@ -7,7 +7,65 @@
 
 let editorFactory;
 
+const specialRuleConfig = {
+    advantages: [
+        'Anführer',
+        'Gestaltwandler',
+        'Gesteigertes Attribut',
+        'Gesteigerter Sinn',
+        'High-Tech-Ausrüstung',
+        'Kampfreflexe',
+        'Kaltblütig',
+        'Kiemen',
+        'Kind zweier Welten',
+        'Nachtsicht',
+        'Natürliche Waffen',
+        'Panzerung',
+        'Psychische Kraft',
+        'Psychisches Reservoir',
+        'Regeneration',
+        'Scharfschütze',
+        'Schnell',
+        'Sprachbegabt',
+        'Tiergefährte',
+        'Zäh',
+    ],
+    disadvantages: [
+        'Abergläubisch',
+        'Abhängige',
+        'Anfälligkeit gegen Wahnsinn',
+        'Auffällig',
+        'Blutdurst',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Lichtscheu',
+        'Primitiv',
+        'Taratzenfutter',
+        'Tödliche Immunschwäche',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ],
+    advantageCosts: {
+        Gestaltwandler: 3,
+        Zäh: 0,
+    },
+    repeatableAdvantages: ['Panzerung'],
+    advantageDetailRequired: ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Tiergefährte'],
+    disadvantageDetailRequired: [
+        'Abergläubisch',
+        'Abhängige',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ],
+};
+
 beforeEach(async () => {
+    window.rpgCharEditorRules = JSON.parse(JSON.stringify(specialRuleConfig));
+
     // Mock Alpine.data um die Registrierung abzufangen
     window.Alpine = {
         data: vi.fn((name, factory) => {
@@ -1259,6 +1317,23 @@ describe('charEditor – Vorteile/Nachteile', () => {
         expect(e.selectedAdvantages).toContain('Zäh');
     });
 
+    it('weist Vorteile bei identischem Ergebnis nicht erneut zu', () => {
+        const e = createEditor();
+        const selectedAdvantages = e.selectedAdvantages;
+
+        e.enforceAdvantageLimit();
+
+        expect(e.selectedAdvantages).toBe(selectedAdvantages);
+    });
+
+    it('weist Kulturvorteile bei leerer Änderung nicht erneut zu', () => {
+        const e = createEditor();
+        const selectedAdvantages = e.selectedAdvantages;
+
+        e.handleGenderChange();
+
+        expect(e.selectedAdvantages).toBe(selectedAdvantages);
+    });
     it('begrenzt frei wählbare Vorteile auf 2', () => {
         const e = createEditor();
         e.selectedAdvantages = ['Zäh', 'Schnell', 'Stark', 'Weise'];
@@ -1293,6 +1368,92 @@ describe('charEditor – Vorteile/Nachteile', () => {
         e.applyRaceGuul();
 
         expect(e.selectedLockedDisadvantages()).toEqual(['Primitiv', 'Gejagt']);
+    });
+});
+
+describe('charEditor – W66-Regeln', () => {
+    it('kennt W66-Bereiche und neue Nachteile', () => {
+        const e = createEditor();
+
+        expect(e.advantageRollLabel('Gestaltwandler')).toBe('13');
+        expect(e.advantageRollLabel('Panzerung')).toBe('46');
+        expect(e.disadvantageRollLabel('Taratzenfutter')).toBe('54-63');
+        expect(e.disadvantageRollLabel('Verpflichtung')).toBe('65');
+        expect(e.disadvantageRollLabel('Verwundbarkeit')).toBe('66');
+    });
+
+    it('berechnet Gestaltwandler als drei Vorteile und sperrt ihn bei nur zwei freien Punkten', () => {
+        const e = createEditor();
+
+        expect(e.advantageCost('Gestaltwandler')).toBe(3);
+        expect(e.isAdvantageDisabled('Gestaltwandler')).toBe(true);
+
+        e.selectedAdvantages = ['Zäh', 'Gestaltwandler'];
+        e.enforceAdvantageLimit();
+
+        expect(e.selectedAdvantages).toEqual(['Zäh']);
+    });
+
+    it('zaehlt Panzerung mehrfach und begrenzt die Kosten auf das Budget', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Panzerung'];
+
+        e.setAdvantageCount('Panzerung', 2);
+
+        expect(e.advantageCounts.Panzerung).toBe(2);
+        expect(e.chosenAdvantagesCount()).toBe(2);
+        expect(e.freeAdvantagePoints()).toBe(0);
+
+        e.setAdvantageCount('Panzerung', 3);
+
+        expect(e.advantageCounts.Panzerung).toBe(2);
+        expect(e.chosenAdvantagesCount()).toBe(2);
+    });
+
+    it('wuerfelt Vorteile nach W66 und uebernimmt eintragbare Ergebnisse', () => {
+        const e = createEditor();
+        e.rollD6 = vi.fn()
+            .mockReturnValueOnce(4)
+            .mockReturnValueOnce(6)
+            .mockReturnValueOnce(4)
+            .mockReturnValueOnce(6);
+
+        const first = e.rollSpecial('advantage');
+        const second = e.rollSpecial('advantage');
+
+        expect(first).toMatchObject({ value: 46, name: 'Panzerung', applied: true });
+        expect(second).toMatchObject({ value: 46, name: 'Panzerung', applied: true });
+        expect(e.selectedAdvantages).toContain('Panzerung');
+        expect(e.advantageCounts.Panzerung).toBe(2);
+        expect(e.lastRoll.name).toBe('Panzerung');
+    });
+
+    it('wuerfelt Nachteile nach W66 und uebernimmt neue Tabelleneintraege', () => {
+        const e = createEditor();
+        e.rollD6 = vi.fn().mockReturnValueOnce(6).mockReturnValueOnce(5);
+
+        const result = e.rollSpecial('disadvantage');
+
+        expect(result).toMatchObject({ value: 65, name: 'Verpflichtung', applied: true });
+        expect(e.selectedDisadvantages).toContain('Verpflichtung');
+    });
+
+    it('verlangt Detailangaben nur fuer frei gewaehlte detailpflichtige Eintraege', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Tiergefährte'];
+        e.selectedDisadvantages = ['Aberglaeubisch'];
+
+        expect(e.requiredSpecialDetailsFilled()).toBe(false);
+
+        e.advantageDetails.Tiergefährte = 'Schwarzer Januskater';
+        e.selectedDisadvantages = ['Abergläubisch'];
+        e.disadvantageDetails.Abergläubisch = 'Salz, Omen, dreimal klopfen';
+
+        expect(e.requiredSpecialDetailsFilled()).toBe(true);
+
+        e.applyRaceGuul();
+
+        expect(e.disadvantageRequiresDetail('Gejagt')).toBe(false);
     });
 });
 

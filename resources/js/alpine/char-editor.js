@@ -102,6 +102,96 @@ const RACE_RULE_SUMMARIES = {
         disadvantages: 'Keine rassenbedingten Pflichtnachteile',
     },
 };
+const specialRuleConfig = () => (typeof window === 'undefined' ? {} : (window.rpgCharEditorRules || {}));
+const ADVANTAGE_RULE_METADATA = {
+    "Anführer": { w66: "11-12", ranges: [[11, 12]], description: "Natürlicher Anführer; +2 auf Proben, um Leute zu befehligen oder zu überzeugen." },
+    "Gestaltwandler": { w66: "13", ranges: [[13, 13]], description: "Kann Gestalt und Stimme verändern; zählt bei der Erschaffung wie drei Vorteile." },
+    "Gesteigertes Attribut": { w66: "14-24", ranges: [[14, 24]], detailPlaceholder: "Attribut notieren", description: "+1 auf ein Attribut nach Wahl; ein bereits erhöhtes Attribut darf nur einmal gewählt werden." },
+    "Gesteigerter Sinn": { w66: "25-26", ranges: [[25, 26]], detailPlaceholder: "Sinn notieren", description: "+3 auf Wahrnehmungsproben mit einem gewählten Sinn." },
+    "High-Tech-Ausrüstung": { w66: "31-32", ranges: [[31, 32]], description: "Besitzt vier High-Tech-Gegenstände; SL-Zustimmung erforderlich." },
+    "Kampfreflexe": { w66: "33-34", ranges: [[33, 34]], description: "+2 Bonus auf alle Ausweichen-Proben." },
+    "Kaltblütig": { w66: "35-36", ranges: [[35, 36]], description: "+1 Bonus auf alle Verteidigungswürfe." },
+    "Kiemen": { w66: "41", ranges: [[41, 41]], description: "Kann beliebig lange unter Wasser atmen." },
+    "Kind zweier Welten": { w66: "42", ranges: [[42, 42]], description: "Kann sowohl Bildung als auch Intuition lernen." },
+    "Nachtsicht": { w66: "43-44", ranges: [[43, 44]], description: "Kann ohne Abzüge im Dunkeln sehen." },
+    "Natürliche Waffen": { w66: "45", ranges: [[45, 45]], description: "+1 auf Nahkampf durch natürliche Waffen." },
+    "Panzerung": { w66: "46", ranges: [[46, 46]], description: "Besitzt Schutzfaktor 1; mehrfach wählbar und additiv." },
+    "Psychische Kraft": { w66: "51", ranges: [[51, 51]], description: "Erhält eine besondere Kraft." },
+    "Psychisches Reservoir": { w66: "52", ranges: [[52, 52]], description: "Höchster psychischer FW zählt bei der PEP-Ermittlung doppelt." },
+    "Regeneration": { w66: "53", ranges: [[53, 53]], description: "Heilt mit zehnfacher Geschwindigkeit." },
+    "Scharfschütze": { w66: "54", ranges: [[54, 54]], description: "+1 auf Fernkampfangriffe und +1 Schaden in Kernschussreichweite." },
+    "Schnell": { w66: "55-56", ranges: [[55, 56]], description: "+2 auf Grundbewegungsweite und +1 auf Initiative." },
+    "Sprachbegabt": { w66: "61", ranges: [[61, 61]], description: "Kann Sprachen und Dialekte ohne Hilfe lernen und beherrscht bis zu drei pro Fertigkeitspunkt." },
+    "Tiergefährte": { w66: "62-64", ranges: [[62, 64]], detailPlaceholder: "Tier und Besonderheit notieren", description: "Erhält mit SL-Zustimmung ein Tier als dauerhaften Begleiter." },
+    "Zäh": { w66: "65-66", ranges: [[65, 66]], description: "Schutzfaktor +1 durch Zähigkeit und Heldentum; im Editor als kostenlose Pflichtregel aktiv." },
+};
+const DISADVANTAGE_RULE_METADATA = {
+    "Abergläubisch": { w66: "11-16", ranges: [[11, 16]], detailPlaceholder: "Mindestens drei Eigenarten notieren", description: "Muss mindestens drei Eigenarten wählen, die das tägliche Handeln beeinflussen." },
+    "Abhängige": { w66: "21", ranges: [[21, 21]], detailPlaceholder: "Person oder Familie notieren", description: "Muss ständig Verwandte oder Familie beschützen." },
+    "Anfälligkeit gegen Wahnsinn": { w66: "22", ranges: [[22, 22]], description: "Wahnsinn tritt bei bestimmten Bedingungen ein; die Dauer des Anfalls wird vom SL bestimmt." },
+    "Auffällig": { w66: "23-24", ranges: [[23, 24]], description: "Ist wegen ungewöhnlichen Aussehens oder Verhaltens leicht zu erkennen." },
+    "Blutdurst": { w66: "25", ranges: [[25, 25]], description: "Benötigt alle 24 Stunden frisches Blut oder erleidet kumulative Abzüge." },
+    "Ehrenkodex": { w66: "26-36", ranges: [[26, 36]], detailPlaceholder: "Kodex notieren", description: "Folgt einem definierenden Ehrenkodex, der das tägliche Handeln einschränkt." },
+    "Feind": { w66: "41-44", ranges: [[41, 44]], detailPlaceholder: "Volk, Gruppe oder Person notieren", description: "Ist mit einem Volk oder einer mächtigen Person verfeindet." },
+    "Gejagt": { w66: "45-46", ranges: [[45, 46]], detailPlaceholder: "Verfolger notieren", description: "Wird von fast allen Völkern gehasst und gejagt." },
+    "Lichtscheu": { w66: "51", ranges: [[51, 51]], description: "Erleidet bei ungeschützter Haut unter Licht Abzüge auf alle Proben." },
+    "Primitiv": { w66: "52-53", ranges: [[52, 53]], description: "Kann niemals Bildung lernen und keine technischen Gerätschaften benutzen." },
+    "Taratzenfutter": { w66: "54-63", ranges: [[54, 63]], description: "Alle Schadenswürfe werden um 1 erhöht." },
+    "Tödliche Immunschwäche": { w66: "64", ranges: [[64, 64]], description: "Ohne Schutzanzug treten nach Oberflächenkontakt regelmäßig schwere Symptome ein." },
+    "Verpflichtung": { w66: "65", ranges: [[65, 65]], detailPlaceholder: "Organisation, Gruppe oder Person notieren", description: "Ist einer Organisation, Gruppe oder Person verpflichtet, die den Charakter beansprucht." },
+    "Verwundbarkeit": { w66: "66", ranges: [[66, 66]], detailPlaceholder: "Mittel oder Quelle notieren", description: "Wird durch ein bestimmtes Mittel besonders schwer verwundet; Robustheit zählt nicht gegen Schaden." },
+};
+
+const listFromSpecialRuleConfig = (key, fallback = []) => {
+    const config = specialRuleConfig();
+
+    return Array.isArray(config[key]) ? config[key] : fallback;
+};
+
+const objectFromSpecialRuleConfig = (key) => {
+    const value = specialRuleConfig()[key];
+
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+
+const numericRuleCost = (value) => {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : 1;
+};
+
+const buildAdvantageRules = () => {
+    const costs = objectFromSpecialRuleConfig('advantageCosts');
+    const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
+    const detailRequiredAdvantages = new Set(listFromSpecialRuleConfig('advantageDetailRequired'));
+
+    return listFromSpecialRuleConfig('advantages', Object.keys(ADVANTAGE_RULE_METADATA))
+        .map((name) => ({
+            name,
+            ...(ADVANTAGE_RULE_METADATA[name] || {}),
+            cost: numericRuleCost(costs[name]),
+            repeatable: repeatableAdvantages.has(name),
+            requiresDetail: detailRequiredAdvantages.has(name),
+        }))
+        .filter((rule) => Array.isArray(rule.ranges));
+};
+
+const buildDisadvantageRules = () => {
+    const detailRequiredDisadvantages = new Set(listFromSpecialRuleConfig('disadvantageDetailRequired'));
+
+    return listFromSpecialRuleConfig('disadvantages', Object.keys(DISADVANTAGE_RULE_METADATA))
+        .map((name) => ({
+            name,
+            ...(DISADVANTAGE_RULE_METADATA[name] || {}),
+            requiresDetail: detailRequiredDisadvantages.has(name),
+        }))
+        .filter((rule) => Array.isArray(rule.ranges));
+};
+
+const advantageRules = () => buildAdvantageRules();
+const disadvantageRules = () => buildDisadvantageRules();
+const advantageRulesByName = () => Object.fromEntries(advantageRules().map(rule => [rule.name, rule]));
+const disadvantageRulesByName = () => Object.fromEntries(disadvantageRules().map(rule => [rule.name, rule]));
 const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
 const NOSFERA_RACE = 'Nosfera';
 const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
@@ -206,12 +296,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     raceLocked: { advantages: [], disadvantages: [] },
     cultureLocked: { advantages: [], disadvantages: [] },
     cultureAutoSelectedAdvantages: [],
+    advantageDetails: {},
+    disadvantageDetails: {},
+    advantageCounts: { Panzerung: 1 },
+    lastRoll: null,
 
     // UI state
     advancedUnlocked: false,
 
     basicsFilled() {
-        return this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture;
+        return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
     },
 
     attributeMax() {
@@ -260,10 +354,70 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return [...new Set([...this.raceLocked.advantages, ...this.cultureLocked.advantages])];
     },
 
-    chosenAdvantagesCount() {
-        const lockedAdvantages = this.lockedAdvantages();
+    advantageRule(value) {
+        return advantageRulesByName()[value] || null;
+    },
 
-        return this.selectedAdvantages.filter(a => a !== 'Zäh' && !lockedAdvantages.includes(a)).length;
+    disadvantageRule(value) {
+        return disadvantageRulesByName()[value] || null;
+    },
+
+    advantageRollLabel(value) {
+        return this.advantageRule(value)?.w66 || '';
+    },
+
+    disadvantageRollLabel(value) {
+        return this.disadvantageRule(value)?.w66 || '';
+    },
+
+    advantageTooltip(value) {
+        const rule = this.advantageRule(value);
+        if (!rule) return '';
+        const parts = [`W66 ${rule.w66}`, rule.description];
+        if (rule.cost > 1) parts.push(`Kosten: ${rule.cost} Vorteile`);
+        if (rule.repeatable) parts.push('Mehrfach wählbar.');
+        return parts.filter(Boolean).join(' · ');
+    },
+
+    disadvantageTooltip(value) {
+        const rule = this.disadvantageRule(value);
+        if (!rule) return '';
+        return [`W66 ${rule.w66}`, rule.description].filter(Boolean).join(' · ');
+    },
+
+    advantageLockLabel(value) {
+        if (value === 'Zäh') return 'Pflicht';
+        if (this.raceLocked.advantages.includes(value)) return 'Rasse';
+        if (this.cultureLocked.advantages.includes(value)) return 'Kultur';
+        return '';
+    },
+
+    disadvantageLockLabel(value) {
+        return this.raceLocked.disadvantages.includes(value) ? 'Pflicht' : '';
+    },
+
+    advantageCount(value) {
+        const rule = this.advantageRule(value);
+        if (!rule?.repeatable) return 1;
+
+        const parsed = Number.parseInt(this.advantageCounts[value], 10);
+        return Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
+    },
+
+    advantageIsRepeatable(value) {
+        return Boolean(this.advantageRule(value)?.repeatable);
+    },
+
+    advantageCost(value) {
+        if (!value || value === 'Zäh' || this.lockedAdvantages().includes(value)) return 0;
+
+        const rule = this.advantageRule(value);
+        const baseCost = rule?.cost ?? 1;
+        return rule?.repeatable ? baseCost * this.advantageCount(value) : baseCost;
+    },
+
+    chosenAdvantagesCount() {
+        return this.selectedAdvantages.reduce((sum, value) => sum + this.advantageCost(value), 0);
     },
 
     freeAdvantagePoints() {
@@ -274,12 +428,48 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.selectedAdvantages.includes('Kind zweier Welten');
     },
 
+    isAdvantageSelected(value) {
+        return this.selectedAdvantages.includes(value);
+    },
+
+    isDisadvantageSelected(value) {
+        return this.selectedDisadvantages.includes(value);
+    },
+
+    advantageRequiresDetail(value) {
+        const rule = this.advantageRule(value);
+        return this.isAdvantageSelected(value) && Boolean(rule?.requiresDetail) && !this.lockedAdvantages().includes(value);
+    },
+
+    disadvantageRequiresDetail(value) {
+        const rule = this.disadvantageRule(value);
+        return this.isDisadvantageSelected(value) && Boolean(rule?.requiresDetail) && !this.raceLocked.disadvantages.includes(value);
+    },
+
+    advantageDetailPlaceholder(value) {
+        return this.advantageRule(value)?.detailPlaceholder || 'Details notieren';
+    },
+
+    disadvantageDetailPlaceholder(value) {
+        return this.disadvantageRule(value)?.detailPlaceholder || 'Details notieren';
+    },
+
+    requiredSpecialDetailsFilled() {
+        const missingAdvantageDetail = this.selectedAdvantages.some(value => this.advantageRequiresDetail(value)
+            && !String(this.advantageDetails[value] || '').trim());
+        const missingDisadvantageDetail = this.selectedDisadvantages.some(value => this.disadvantageRequiresDetail(value)
+            && !String(this.disadvantageDetails[value] || '').trim());
+
+        return !missingAdvantageDetail && !missingDisadvantageDetail;
+    },
+
     formValid() {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
-            && this.selectedDisadvantages.length >= this.chosenAdvantagesCount();
+            && this.selectedDisadvantages.length >= this.chosenAdvantagesCount()
+            && this.requiredSpecialDetailsFilled();
     },
 
     shouldMirrorBaseFields() {
@@ -1175,11 +1365,27 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const nextAdvantages = [...new Set(advantages)];
         const previousAutoSelected = [...this.cultureAutoSelectedAdvantages];
         const autoSelectedToRemove = previousAutoSelected.filter(value => !nextAdvantages.includes(value));
+        const lockedChanged = nextAdvantages.length !== this.cultureLocked.advantages.length
+            || nextAdvantages.some((value, index) => value !== this.cultureLocked.advantages[index]);
+        const missingAutoSelected = nextAdvantages.some(value => !this.selectedAdvantages.includes(value));
 
-        this.selectedAdvantages = this.selectedAdvantages.filter(value => !autoSelectedToRemove.includes(value));
+        if (!lockedChanged && !missingAutoSelected && autoSelectedToRemove.length === 0) {
+            return;
+        }
+
+        const setSelectedAdvantages = (nextSelectedAdvantages) => {
+            const changed = nextSelectedAdvantages.length !== this.selectedAdvantages.length
+                || nextSelectedAdvantages.some((value, index) => value !== this.selectedAdvantages[index]);
+
+            if (changed) {
+                this.selectedAdvantages = nextSelectedAdvantages;
+            }
+        };
+
+        setSelectedAdvantages(this.selectedAdvantages.filter(value => !autoSelectedToRemove.includes(value)));
 
         const newlyAutoSelected = nextAdvantages.filter(value => !this.selectedAdvantages.includes(value));
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, ...newlyAutoSelected])];
+        setSelectedAdvantages([...new Set([...this.selectedAdvantages, ...newlyAutoSelected])]);
         this.cultureLocked.advantages = nextAdvantages;
         this.cultureAutoSelectedAdvantages = [
             ...previousAutoSelected.filter(value => nextAdvantages.includes(value) && this.selectedAdvantages.includes(value)),
@@ -1196,18 +1402,58 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setCultureLockedAdvantages(advantages);
     },
 
-    // --- Advantages ---
+    // --- Advantages / disadvantages ---
     enforceAdvantageLimit() {
         const max = this.base.freeAdvantages;
         const lockedAdvantages = this.lockedAdvantages();
-        const locked = this.selectedAdvantages.filter(a => lockedAdvantages.includes(a));
-        const chosen = this.selectedAdvantages.filter(a => a !== 'Zäh' && !lockedAdvantages.includes(a));
+        const locked = this.selectedAdvantages.filter(value => lockedAdvantages.includes(value));
+        const chosen = this.selectedAdvantages.filter(value => value !== 'Zäh' && !lockedAdvantages.includes(value));
+        const kept = [];
+        let used = 0;
 
-        if (chosen.length > max) {
-            this.selectedAdvantages = [...new Set(['Zäh', ...locked, ...chosen.slice(0, max)])];
+        chosen.forEach((value) => {
+            const cost = this.advantageCost(value);
+            if (used + cost <= max) {
+                kept.push(value);
+                used += cost;
+            }
+        });
+
+        const nextSelectedAdvantages = [...new Set(['Zäh', ...locked, ...kept])];
+        const changed = nextSelectedAdvantages.length !== this.selectedAdvantages.length
+            || nextSelectedAdvantages.some((value, index) => value !== this.selectedAdvantages[index]);
+
+        if (changed) {
+            this.selectedAdvantages = nextSelectedAdvantages;
         }
-        if (!this.selectedAdvantages.includes('Zäh')) {
-            this.selectedAdvantages = ['Zäh', ...this.selectedAdvantages];
+
+        this.clampRepeatableAdvantageCounts();
+    },
+
+    clampRepeatableAdvantageCounts() {
+        Object.entries(advantageRulesByName())
+            .filter(([, rule]) => rule.repeatable)
+            .forEach(([value]) => this.setAdvantageCount(value, this.advantageCount(value)));
+    },
+
+    setAdvantageCount(value, count) {
+        const rule = this.advantageRule(value);
+        if (!rule?.repeatable) return;
+
+        const parsed = Number.parseInt(count, 10);
+        const normalized = Number.isFinite(parsed) ? Math.max(1, parsed) : 1;
+        const previous = this.advantageCount(value);
+        this.advantageCounts[value] = normalized;
+
+        if (!this.selectedAdvantages.includes(value)) return;
+
+        const selectedWithoutThis = this.selectedAdvantages.filter(selected => selected !== value);
+        const usedWithoutThis = selectedWithoutThis.reduce((sum, selected) => sum + this.advantageCost(selected), 0);
+        const affordable = Math.max(1, this.base.freeAdvantages - usedWithoutThis);
+        this.advantageCounts[value] = Math.min(normalized, affordable);
+
+        if (this.advantageCounts[value] !== previous) {
+            this.enforceAdvantageLimit();
         }
     },
 
@@ -1222,11 +1468,82 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     isAdvantageDisabled(value) {
         if (value === 'Zäh') return true;
         if (this.lockedAdvantages().includes(value)) return true;
-        return !this.selectedAdvantages.includes(value) && this.chosenAdvantagesCount() >= this.base.freeAdvantages;
+        if (this.selectedAdvantages.includes(value)) return false;
+
+        const rule = this.advantageRule(value);
+        const cost = rule?.cost ?? 1;
+        return this.chosenAdvantagesCount() + cost > this.base.freeAdvantages;
     },
 
     isDisadvantageDisabled(value) {
         return this.raceLocked.disadvantages.includes(value);
+    },
+
+    rollD6() {
+        return Math.floor(Math.random() * 6) + 1;
+    },
+
+    rollW66() {
+        const tens = this.rollD6();
+        const ones = this.rollD6();
+
+        return { tens, ones, value: tens * 10 + ones };
+    },
+
+    ruleForRoll(rules, value) {
+        return rules.find(rule => rule.ranges.some(([start, end]) => value >= start && value <= end)) || null;
+    },
+
+    rollSpecial(type) {
+        const roll = this.rollW66();
+        const isAdvantage = type === 'advantage';
+        const rule = this.ruleForRoll(isAdvantage ? advantageRules() : disadvantageRules(), roll.value);
+        const result = {
+            type,
+            value: roll.value,
+            dice: `${roll.tens}/${roll.ones}`,
+            name: rule?.name || '',
+            applied: false,
+            message: '',
+        };
+
+        if (!rule) {
+            result.message = 'Kein Tabelleneintrag gefunden.';
+            this.lastRoll = result;
+            return result;
+        }
+
+        result.applied = isAdvantage
+            ? this.applyRolledAdvantage(rule)
+            : this.applyRolledDisadvantage(rule);
+        result.message = result.applied
+            ? `${rule.name} wurde übernommen.`
+            : `${rule.name} konnte nicht automatisch übernommen werden.`;
+        this.lastRoll = result;
+        return result;
+    },
+
+    applyRolledAdvantage(rule) {
+        if (this.lockedAdvantages().includes(rule.name) || rule.name === 'Zäh') return false;
+
+        if (rule.repeatable && this.selectedAdvantages.includes(rule.name)) {
+            const previous = this.advantageCount(rule.name);
+            this.setAdvantageCount(rule.name, previous + 1);
+            return this.advantageCount(rule.name) > previous;
+        }
+
+        if (this.isAdvantageDisabled(rule.name)) return false;
+
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, rule.name])];
+        this.enforceAdvantageLimit();
+        return this.selectedAdvantages.includes(rule.name);
+    },
+
+    applyRolledDisadvantage(rule) {
+        if (this.selectedDisadvantages.includes(rule.name)) return false;
+
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, rule.name])];
+        return true;
     },
 }));
 
