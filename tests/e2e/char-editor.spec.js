@@ -213,6 +213,112 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload).toContain('Gejagt');
     });
 
+    test('setzt Nosfera-Regeln inklusive Pflichtmerkmalen im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Nosfera', culture: 'Stadtbewohner' });
+
+        await expect(page.locator('#ge')).toHaveValue('1');
+        await expect(page.locator('#au')).toHaveValue('-1');
+        await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeDisabled();
+        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Blutdurst')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Blutdurst')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Lichtscheu')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Lichtscheu')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeDisabled();
+        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                ge: data.get('attributes[ge]'),
+                au: data.get('attributes[au]'),
+                advantages: data.getAll('advantages[]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Nosfera');
+        expect(payload.culture).toBe('Stadtbewohner');
+        expect(payload.ge).toBe('1');
+        expect(payload.au).toBe('-1');
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']));
+        expect(payload.disadvantages).toEqual(expect.arrayContaining(['Blutdurst', 'Lichtscheu', 'Gejagt']));
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Intuition', value: '2' }),
+            expect.objectContaining({ name: 'Heimlichkeit', value: '2' }),
+        ]));
+    });
+
+    test('erlaubt Disuuslachter nur fuer Barbaren und sendet die Kulturboni', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+
+        await expect(page.locator('#culture option[value="Disuuslachter (Nordmann)"]')).toBeDisabled();
+
+        await page.locator('#race').selectOption('Nosfera');
+        await expect(page.locator('#culture option[value="Disuuslachter (Nordmann)"]')).toBeDisabled();
+
+        await page.locator('#race').selectOption('Barbar');
+        await expect(page.locator('#culture option[value="Disuuslachter (Nordmann)"]')).not.toBeDisabled();
+        await page.locator('#culture').selectOption('Disuuslachter (Nordmann)');
+        await page.getByTestId('char-editor-continue-button').click();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Barbar');
+        expect(payload.culture).toBe('Disuuslachter (Nordmann)');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Überleben', value: '1' }),
+            expect.objectContaining({ name: 'Beruf: Seemann', value: '1' }),
+        ]));
+    });
+
     test('erzwingt Meeresbewohner als einzige Kultur fuer Hydrit', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');

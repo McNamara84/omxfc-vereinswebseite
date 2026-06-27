@@ -250,6 +250,12 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
+        if ($culture === 'Disuuslachter (Nordmann)' && $race !== 'Barbar') {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur Disuuslachter (Nordmann) ist laut Regelwerk nur für Barbaren zugelassen.',
+            ]);
+        }
+
         if ($culture === 'Volk der 13 Inseln'
             && $gender === 'weiblich'
             && ! in_array('Psychische Kraft', $advantages, true)) {

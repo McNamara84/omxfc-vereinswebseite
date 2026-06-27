@@ -293,6 +293,45 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.skills.find(s => s.name === 'Athletik')).toBeUndefined();
     });
 
+    it('Nosfera erhält kostenlose Attributsmodifikatoren, Fertigkeiten und Pflichtmerkmale', () => {
+        const e = createEditor({ race: 'Nosfera' });
+        e.applyRaceNosfera();
+
+        expect(e.attributes).toMatchObject({ ge: 1, au: -1 });
+        expect(e.apUsed()).toBe(0);
+        expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMin('ge')).toBe(0);
+        expect(e.getAttributeMax('ge')).toBe(2);
+        expect(e.getAttributeMax('au')).toBe(0);
+        expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Heimlichkeit).toEqual({ type: 'min', value: 2 });
+        expect(e.skills.find(s => s.name === 'Intuition')).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Heimlichkeit')).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.raceLocked.advantages).toEqual(['Nachtsicht', 'Psychisches Reservoir']);
+        expect(e.raceLocked.disadvantages).toEqual(['Blutdurst', 'Lichtscheu', 'Gejagt']);
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']));
+        expect(e.selectedDisadvantages).toEqual(expect.arrayContaining(['Blutdurst', 'Lichtscheu', 'Gejagt']));
+        expect(e.chosenAdvantagesCount()).toBe(0);
+        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']);
+        expect(e.selectedLockedDisadvantages()).toEqual(['Blutdurst', 'Lichtscheu', 'Gejagt']);
+    });
+
+    it('Rassenwechsel entfernt Nosfera-Pflichtmerkmale, Fertigkeiten und Attributsmodifikatoren', () => {
+        const e = createEditor({ race: 'Nosfera' });
+        e.applyRaceNosfera();
+        e.clearRace();
+
+        expect(e.attributes.ge).toBe(0);
+        expect(e.attributes.au).toBe(0);
+        expect(e.raceLocked.advantages).toEqual([]);
+        expect(e.raceLocked.disadvantages).toEqual([]);
+        expect(e.selectedAdvantages).toEqual(['Zäh']);
+        expect(e.selectedDisadvantages).toEqual([]);
+        expect(e.skills.find(s => s.name === 'Intuition')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Heimlichkeit')).toBeUndefined();
+    });
+
     it('Techno erhält kostenlose Attributsmodifikatoren, Pflichtmerkmale und 12 Rassen-Fertigkeitspunkte', () => {
         const e = createEditor({ race: 'Techno' });
         e.applyRaceTechno();
@@ -932,6 +971,49 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
         expect(e.skills.find(s => s.name === 'Beruf: Bergmann')).toMatchObject({ value: 1, badge: 'Kultur' });
+    });
+
+    it('Disuuslachter (Nordmann) ist nur fuer Barbaren auswaehlbar', () => {
+        const barbar = createEditor({ race: 'Barbar' });
+        const guul = createEditor({ race: 'Guul' });
+        const nosfera = createEditor({ race: 'Nosfera' });
+
+        expect(barbar.isCultureSelectable('Disuuslachter (Nordmann)')).toBe(true);
+        expect(guul.isCultureSelectable('Disuuslachter (Nordmann)')).toBe(false);
+        expect(nosfera.isCultureSelectable('Disuuslachter (Nordmann)')).toBe(false);
+        expect(nosfera.isCultureSelectable('Nomade')).toBe(true);
+
+        const invalid = createEditor({ race: 'Nosfera', culture: 'Disuuslachter (Nordmann)' });
+        invalid.applyCultureDisuuslachter();
+        invalid.handleRaceChange();
+
+        expect(invalid.culture).toBe('');
+        expect(invalid.cultureGrants).toEqual({});
+        expect(invalid.skills.find(s => s.name === 'Beruf: Seemann')).toBeUndefined();
+    });
+
+    it('Disuuslachter setzt Nahkampf, Ueberleben und Seemann ohne Rassenboni zu verdoppeln', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Disuuslachter (Nordmann)' });
+        e.applyRaceBarbar();
+        e.applyCultureDisuuslachter();
+
+        expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants['Beruf: Seemann']).toEqual({ type: 'min', value: 1 });
+        expect(e.getGrant('Nahkampf')).toEqual({ type: 'min', value: 1 });
+        expect(e.getGrant('\u00dcberleben')).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Beruf: Seemann')).toMatchObject({ value: 1, badge: 'Kultur' });
+        expect(e.fpUsed()).toBe(0);
+
+        e.clearCulture();
+
+        expect(e.cultureGrants).toEqual({});
+        expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Beruf: Seemann')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
     });
 
     it('Volk der 13 Inseln ist nur fuer Barbaren auswaehlbar', () => {
