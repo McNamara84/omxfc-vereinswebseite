@@ -423,9 +423,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     setRaceInfoPreview(raceName) {
-        if (RACE_RULE_SUMMARIES[raceName]) {
-            this.raceInfoPreview = raceName;
-        }
+        this.raceInfoPreview = RACE_RULE_SUMMARIES[raceName] ? raceName : '';
     },
 
     clearRaceInfoPreview() {

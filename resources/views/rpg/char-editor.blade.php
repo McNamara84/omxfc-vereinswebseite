@@ -80,16 +80,16 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @blur="clearRaceInfoPreview()" @change="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
+                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
                             <option value="" disabled>Rasse wählen</option>
-                            <option value="Barbar" :disabled="!isRaceSelectable('Barbar')" @mouseenter="setRaceInfoPreview('Barbar')" @focus="setRaceInfoPreview('Barbar')">Barbar</option>
-                            <option value="Guul" :disabled="!isRaceSelectable('Guul')" @mouseenter="setRaceInfoPreview('Guul')" @focus="setRaceInfoPreview('Guul')">Guul</option>
-                            <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')" @mouseenter="setRaceInfoPreview('Hydrit')" @focus="setRaceInfoPreview('Hydrit')">Hydrit</option>
-                            <option value="Nosfera" :disabled="!isRaceSelectable('Nosfera')" @mouseenter="setRaceInfoPreview('Nosfera')" @focus="setRaceInfoPreview('Nosfera')">Nosfera</option>
-                            <option value="Taratze" :disabled="!isRaceSelectable('Taratze')" @mouseenter="setRaceInfoPreview('Taratze')" @focus="setRaceInfoPreview('Taratze')">Taratze</option>
-                            <option value="Wulfane" :disabled="!isRaceSelectable('Wulfane')" @mouseenter="setRaceInfoPreview('Wulfane')" @focus="setRaceInfoPreview('Wulfane')">Wulfane</option>
-                            <option value="Techno" :disabled="!isRaceSelectable('Techno')" @mouseenter="setRaceInfoPreview('Techno')" @focus="setRaceInfoPreview('Techno')">Techno</option>
-                            <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')" @mouseenter="setRaceInfoPreview('Präkristofluu')" @focus="setRaceInfoPreview('Präkristofluu')">Präkristofluu</option>
+                            <option value="Barbar" :disabled="!isRaceSelectable('Barbar')">Barbar</option>
+                            <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
+                            <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
+                            <option value="Nosfera" :disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
+                            <option value="Taratze" :disabled="!isRaceSelectable('Taratze')">Taratze</option>
+                            <option value="Wulfane" :disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
+                            <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
+                            <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>
                         <template x-if="raceInfo()">
                             <div id="race-info-panel" class="mt-3 rounded-md border border-base-300 bg-base-200/40 p-3 text-sm" data-testid="race-info-panel" aria-live="polite">

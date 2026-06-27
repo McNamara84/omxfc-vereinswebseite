@@ -540,6 +540,11 @@ describe('charEditor – Rassen-Logik', () => {
         e.setRaceInfoPreview('Techno');
 
         expect(e.raceInfo().skills).toContain('Bildung +3');
+
+        e.setRaceInfoPreview('');
+
+        expect(e.raceInfoPreview).toBe('');
+        expect(e.raceInfo()).toBeNull();
     });
 
     it('Präkristofluu erhält Beruf, High-Tech-Ausrüstung und 12 Rassen-Fertigkeitspunkte', () => {
