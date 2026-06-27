@@ -80,7 +80,7 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked">
+                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
                             <option value="" disabled>Rasse wählen</option>
                             <option value="Barbar" :disabled="!isRaceSelectable('Barbar')">Barbar</option>
                             <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
@@ -91,6 +91,23 @@
                             <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
                             <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>
+                        <template x-if="raceInfo()">
+                            <div id="race-info-panel" class="mt-3 rounded-md border border-base-300 bg-base-200/40 p-3 text-sm" data-testid="race-info-panel" aria-live="polite">
+                                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                    <h3 class="font-semibold text-base-content" x-text="raceInfo().name"></h3>
+                                    <span class="text-xs text-base-content/70" x-text="raceInfo().attributes"></span>
+                                </div>
+                                <p class="mt-2 leading-5 text-base-content/80" x-text="raceInfo().description"></p>
+                                <dl class="mt-3 grid grid-cols-1 gap-2">
+                                    <template x-for="row in raceInfoRows()" :key="row.label">
+                                        <div class="grid grid-cols-1 gap-1 sm:grid-cols-[8rem_1fr]">
+                                            <dt class="font-medium text-base-content" x-text="row.label"></dt>
+                                            <dd class="text-base-content/80" x-text="row.value"></dd>
+                                        </div>
+                                    </template>
+                                </dl>
+                            </div>
+                        </template>
                     </div>
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
@@ -130,6 +147,14 @@
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Attribute</h2>
                         <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining()"></p>
+                        <div x-show="race === 'Barbar'" class="mb-3">
+                            <label for="barbar-attribute-select" class="text-sm font-medium text-base-content mb-1">Barbar Attributbonus</label>
+                            <select id="barbar-attribute-select" class="select select-bordered w-full sm:w-auto" x-model="barbarAttributeBonus" @change="setBarbarAttributeBonus(barbarAttributeBonus)">
+                                <template x-for="attributeOption in attributeOptions" :key="'barbar-attribute-' + attributeOption.id">
+                                    <option :value="attributeOption.id" x-text="attributeOption.label + ' (+1)'"></option>
+                                </template>
+                            </select>
+                        </div>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
                             <div>

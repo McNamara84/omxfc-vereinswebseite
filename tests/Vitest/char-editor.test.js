@@ -160,11 +160,12 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.attributes.ro).toBe(0);
     });
 
-    it('respektiert AP-Budget von 3 für Barbar (Bonus)', () => {
-        const e = createEditor({ race: 'Barbar', raceAPBonus: 1 });
+    it('respektiert AP-Budget von 2 neben einem kostenlosen Barbar-Attributbonus', () => {
+        const e = createEditor({ race: 'Barbar' });
+        e.applyRaceBarbar();
         e.attributes.st = 2;
         e.attributes.ge = 1;
-        // 3 AP verbraucht, kein Budget mehr
+        // 2 bezahlte AP sind verbraucht: ST kostet wegen Rassenbonus nur 1, GE kostet 1.
         e.attributes.ro = 1;
         e.clampAttribute('ro');
         expect(e.attributes.ro).toBe(0);
@@ -223,11 +224,30 @@ describe('charEditor – Skill-Clamping', () => {
 });
 
 describe('charEditor – Rassen-Logik', () => {
-    it('Barbar erhält +1 AP-Bonus', () => {
-        const e = createEditor();
-        e.init();
+    it('Barbar erhält einen kostenlosen Attributbonus statt zusätzlicher AP', () => {
+        const e = createEditor({ race: 'Barbar' });
         e.applyRaceBarbar();
-        expect(e.raceAPBonus).toBe(1);
+
+        expect(e.raceAPBonus).toBe(0);
+        expect(e.barbarAttributeBonus).toBe('st');
+        expect(e.attributes.st).toBe(1);
+        expect(e.apUsed()).toBe(0);
+        expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMax('st')).toBe(3);
+    });
+
+    it('Barbar-Attributbonus kann ohne AP-Kosten gewechselt werden', () => {
+        const e = createEditor({ race: 'Barbar' });
+        e.applyRaceBarbar();
+
+        e.barbarAttributeBonus = 'ge';
+        e.setBarbarAttributeBonus(e.barbarAttributeBonus);
+
+        expect(e.barbarAttributeBonus).toBe('ge');
+        expect(e.attributes.st).toBe(0);
+        expect(e.attributes.ge).toBe(1);
+        expect(e.apUsed()).toBe(0);
+        expect(e.getAttributeMax('ge')).toBe(3);
     });
 
     it('Barbar erhält Überleben, Intuition und Nahkampf-Skills', () => {
@@ -239,15 +259,25 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.skills.find(s => s.name === 'Überleben')).toBeDefined();
     });
 
-    it('Guul setzt AU auf -1', () => {
-        const e = createEditor();
+    it('Guul setzt AU als kostenlosen Rassenmodifikator auf -1', () => {
+        const e = createEditor({ race: 'Guul' });
         e.applyRaceGuul();
+
         expect(e.attributes.au).toBe(-1);
+        expect(e.apUsed()).toBe(0);
+        expect(e.getAttributeMax('au')).toBe(0);
+
+        e.clearRace();
+
+        expect(e.attributes.au).toBe(0);
     });
 
-    it('Guul erzwingt Nachteile Primitiv und Gejagt', () => {
+    it('Guul erzwingt Natürliche Waffen sowie Nachteile Primitiv und Gejagt', () => {
         const e = createEditor();
         e.applyRaceGuul();
+        expect(e.raceLocked.advantages).toEqual(['Natürliche Waffen']);
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'Natürliche Waffen']));
+        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Natürliche Waffen']);
         expect(e.raceLocked.disadvantages).toContain('Primitiv');
         expect(e.raceLocked.disadvantages).toContain('Gejagt');
         expect(e.selectedDisadvantages).toContain('Primitiv');
@@ -307,13 +337,14 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceGrants.Heimlichkeit).toEqual({ type: 'min', value: 2 });
         expect(e.skills.find(s => s.name === 'Intuition')).toMatchObject({ value: 2, badge: 'Rasse' });
         expect(e.skills.find(s => s.name === 'Heimlichkeit')).toMatchObject({ value: 2, badge: 'Rasse' });
-        expect(e.raceLocked.advantages).toEqual(['Nachtsicht', 'Psychisches Reservoir']);
+        expect(e.raceLocked.advantages).toEqual(['Nachtsicht']);
         expect(e.raceLocked.disadvantages).toEqual(['Blutdurst', 'Lichtscheu', 'Gejagt']);
-        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']));
+        expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht']));
+        expect(e.selectedAdvantages).not.toContain('Psychisches Reservoir');
         expect(e.selectedDisadvantages).toEqual(expect.arrayContaining(['Blutdurst', 'Lichtscheu', 'Gejagt']));
         expect(e.chosenAdvantagesCount()).toBe(0);
         expect(e.freeAdvantagePoints()).toBe(2);
-        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']);
+        expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Nachtsicht']);
         expect(e.selectedLockedDisadvantages()).toEqual(['Blutdurst', 'Lichtscheu', 'Gejagt']);
     });
 
@@ -432,6 +463,8 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.getAttributeMax('in')).toBe(2);
         expect(e.technoPoolUsed()).toBe(12);
         expect(e.technoSkillPoolComplete()).toBe(true);
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Heiler).toEqual({ type: 'min', value: 2 });
@@ -492,6 +525,26 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.technoSkillPoolComplete()).toBe(true);
         expect(e.raceGrants.Heiler).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Heiler')).toBeUndefined();
+    });
+
+    it('stellt Rassen-Info-Zusammenfassungen für alle auswählbaren Rassen bereit', () => {
+        const e = createEditor();
+
+        ['Barbar', 'Guul', 'Hydrit', 'Nosfera', 'Taratze', 'Wulfane', 'Techno', 'Präkristofluu'].forEach((raceName) => {
+            e.setRaceInfoPreview(raceName);
+
+            expect(e.raceInfo()).toMatchObject({ name: raceName });
+            expect(e.raceInfoRows().length).toBeGreaterThanOrEqual(4);
+        });
+
+        e.setRaceInfoPreview('Techno');
+
+        expect(e.raceInfo().skills).toContain('Bildung +3');
+
+        e.setRaceInfoPreview('');
+
+        expect(e.raceInfoPreview).toBe('');
+        expect(e.raceInfo()).toBeNull();
     });
 
     it('Präkristofluu erhält Beruf, High-Tech-Ausrüstung und 12 Rassen-Fertigkeitspunkte', () => {
@@ -725,6 +778,8 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.race).toBe('Techno');
         expect(e.raceLockedByBunkermenschCulture).toBe(true);
         expect(e.raceGrants['\u00dcberleben']).toBeUndefined();
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
@@ -769,6 +824,8 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.race).toBe('Techno');
         expect(clearRace).not.toHaveBeenCalled();
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.isRaceSelectable('Barbar')).toBe(false);
@@ -803,6 +860,8 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(clearRace).not.toHaveBeenCalled();
         expect(e.race).toBe('Techno');
+        expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
     });

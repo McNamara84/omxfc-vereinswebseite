@@ -90,6 +90,37 @@ test.describe('RPG Charakter-Editor', () => {
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
     });
 
+    test('zeigt Rassen-Regelinfos direkt an der Auswahl', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+
+        await page.getByLabel('Spielername').fill('Playwright Spieler');
+        await page.getByLabel('Charaktername').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+
+        const raceSelect = page.locator('#race');
+        await expect(raceSelect).not.toHaveAttribute('aria-describedby', 'race-info-panel');
+
+        await raceSelect.focus();
+        await raceSelect.evaluate((select) => {
+            select.value = 'Guul';
+            select.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+
+        const raceInfo = page.getByTestId('race-info-panel');
+
+        await expect(raceSelect).toHaveAttribute('aria-describedby', 'race-info-panel');
+        await expect(raceInfo).toContainText('Guul');
+        await expect(raceInfo).toContainText('AU -1');
+
+        await raceSelect.selectOption('Techno');
+
+        await expect(raceInfo).toContainText('Techno');
+        await expect(raceInfo).toContainText('ST -1, RO -1, IN +1');
+        await expect(raceInfo).toContainText('Bildung +3');
+        await expect(raceInfo).toContainText('Tödliche Immunschwäche');
+    });
+
     test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }) => {
         await openAdvancedEditor(page);
         await completeValidBarbarExport(page);
@@ -119,6 +150,12 @@ test.describe('RPG Charakter-Editor', () => {
 
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
         await openAdvancedEditor(page);
+
+        await expect(page.locator('#barbar-attribute-select')).toHaveValue('st');
+        await expect(page.locator('#st')).toHaveValue('1');
+        await page.locator('#barbar-attribute-select').selectOption('ge');
+        await expect(page.locator('#st')).toHaveValue('0');
+        await expect(page.locator('#ge')).toHaveValue('1');
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
@@ -191,26 +228,52 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.disadvantages).toContain('Auffällig');
     });
 
-    test('zeigt Guul-Pflichtnachteile ausgewählt, gesperrt und submitbar', async ({ page }) => {
+    test('zeigt Guul-Pflichtmerkmale ausgewählt, gesperrt und submitbar', async ({ page }) => {
         await openAdvancedEditor(page, { race: 'Guul', culture: 'Stadtbewohner' });
 
+        const natuerlicheWaffen = checkbox(page, 'advantages[]', 'Natürliche Waffen');
         const primitiv = checkbox(page, 'disadvantages[]', 'Primitiv');
         const gejagt = checkbox(page, 'disadvantages[]', 'Gejagt');
 
+        await expect(page.locator('#au')).toHaveValue('-1');
+        await expect(natuerlicheWaffen).toBeChecked();
+        await expect(natuerlicheWaffen).toBeDisabled();
         await expect(primitiv).toBeChecked();
         await expect(primitiv).toBeDisabled();
         await expect(gejagt).toBeChecked();
         await expect(gejagt).toBeDisabled();
+        await expect(page.getByTestId('char-editor-advantages-list').getByText('Pflicht')).toHaveCount(2);
         await expect(page.getByTestId('char-editor-disadvantages-list').getByText('Pflicht')).toHaveCount(2);
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
+            const skillsByIndex = {};
 
-            return data.getAll('disadvantages[]');
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                advantages: data.getAll('advantages[]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
         });
 
-        expect(payload).toContain('Primitiv');
-        expect(payload).toContain('Gejagt');
+        expect(payload.advantages).toContain('Natürliche Waffen');
+        expect(payload.disadvantages).toContain('Primitiv');
+        expect(payload.disadvantages).toContain('Gejagt');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Natürliche Waffen', value: '1' }),
+        ]));
     });
 
     test('setzt Taratze-Regeln inklusive Pflichtnachteilen im Formularpayload um', async ({ page }) => {
@@ -321,8 +384,8 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(page.locator('#au')).toHaveValue('-1');
         await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeChecked();
         await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeDisabled();
-        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).toBeChecked();
-        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).toBeDisabled();
+        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).not.toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Psychisches Reservoir')).toBeEnabled();
         await expect(checkbox(page, 'disadvantages[]', 'Blutdurst')).toBeChecked();
         await expect(checkbox(page, 'disadvantages[]', 'Blutdurst')).toBeDisabled();
         await expect(checkbox(page, 'disadvantages[]', 'Lichtscheu')).toBeChecked();
@@ -362,7 +425,8 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.culture).toBe('Stadtbewohner');
         expect(payload.ge).toBe('1');
         expect(payload.au).toBe('-1');
-        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht', 'Psychisches Reservoir']));
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Nachtsicht']));
+        expect(payload.advantages).not.toContain('Psychisches Reservoir');
         expect(payload.disadvantages).toEqual(expect.arrayContaining(['Blutdurst', 'Lichtscheu', 'Gejagt']));
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Intuition', value: '2' }),
@@ -991,7 +1055,7 @@ test.describe('RPG Charakter-Editor', () => {
             expect.objectContaining({ name: 'Pilot', value: '3' }),
             expect.objectContaining({ name: 'Techniker', value: '2' }),
             expect.objectContaining({ name: 'Wissenschaftler', value: '2' }),
-            expect.objectContaining({ name: 'Bildung', value: '1' }),
+            expect.objectContaining({ name: 'Bildung', value: '3' }),
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
         ]));
         expect(payload.skills).not.toEqual(expect.arrayContaining([
