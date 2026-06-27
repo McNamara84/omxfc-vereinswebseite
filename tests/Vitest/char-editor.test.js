@@ -1259,6 +1259,23 @@ describe('charEditor – Vorteile/Nachteile', () => {
         expect(e.selectedAdvantages).toContain('Zäh');
     });
 
+    it('weist Vorteile bei identischem Ergebnis nicht erneut zu', () => {
+        const e = createEditor();
+        const selectedAdvantages = e.selectedAdvantages;
+
+        e.enforceAdvantageLimit();
+
+        expect(e.selectedAdvantages).toBe(selectedAdvantages);
+    });
+
+    it('weist Kulturvorteile bei leerer Änderung nicht erneut zu', () => {
+        const e = createEditor();
+        const selectedAdvantages = e.selectedAdvantages;
+
+        e.handleGenderChange();
+
+        expect(e.selectedAdvantages).toBe(selectedAdvantages);
+    });
     it('begrenzt frei wählbare Vorteile auf 2', () => {
         const e = createEditor();
         e.selectedAdvantages = ['Zäh', 'Schnell', 'Stark', 'Weise'];

@@ -255,7 +255,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     advancedUnlocked: false,
 
     basicsFilled() {
-        return this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture;
+        return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
     },
 
     attributeMax() {
@@ -1315,11 +1315,27 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const nextAdvantages = [...new Set(advantages)];
         const previousAutoSelected = [...this.cultureAutoSelectedAdvantages];
         const autoSelectedToRemove = previousAutoSelected.filter(value => !nextAdvantages.includes(value));
+        const lockedChanged = nextAdvantages.length !== this.cultureLocked.advantages.length
+            || nextAdvantages.some((value, index) => value !== this.cultureLocked.advantages[index]);
+        const missingAutoSelected = nextAdvantages.some(value => !this.selectedAdvantages.includes(value));
 
-        this.selectedAdvantages = this.selectedAdvantages.filter(value => !autoSelectedToRemove.includes(value));
+        if (!lockedChanged && !missingAutoSelected && autoSelectedToRemove.length === 0) {
+            return;
+        }
+
+        const setSelectedAdvantages = (nextSelectedAdvantages) => {
+            const changed = nextSelectedAdvantages.length !== this.selectedAdvantages.length
+                || nextSelectedAdvantages.some((value, index) => value !== this.selectedAdvantages[index]);
+
+            if (changed) {
+                this.selectedAdvantages = nextSelectedAdvantages;
+            }
+        };
+
+        setSelectedAdvantages(this.selectedAdvantages.filter(value => !autoSelectedToRemove.includes(value)));
 
         const newlyAutoSelected = nextAdvantages.filter(value => !this.selectedAdvantages.includes(value));
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, ...newlyAutoSelected])];
+        setSelectedAdvantages([...new Set([...this.selectedAdvantages, ...newlyAutoSelected])]);
         this.cultureLocked.advantages = nextAdvantages;
         this.cultureAutoSelectedAdvantages = [
             ...previousAutoSelected.filter(value => nextAdvantages.includes(value) && this.selectedAdvantages.includes(value)),
@@ -1353,7 +1369,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             }
         });
 
-        this.selectedAdvantages = [...new Set(['Zäh', ...locked, ...kept])];
+        const nextSelectedAdvantages = [...new Set(['Zäh', ...locked, ...kept])];
+        const changed = nextSelectedAdvantages.length !== this.selectedAdvantages.length
+            || nextSelectedAdvantages.some((value, index) => value !== this.selectedAdvantages[index]);
+
+        if (changed) {
+            this.selectedAdvantages = nextSelectedAdvantages;
+        }
+
         this.clampRepeatableAdvantageCounts();
     },
 

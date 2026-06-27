@@ -52,12 +52,12 @@
             <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" data-testid="char-editor-form">
                 @csrf
 
-                <input type="hidden" name="player_name" :value="playerName" :disabled="!shouldMirrorBaseFields()">
-                <input type="hidden" name="character_name" :value="characterName" :disabled="!shouldMirrorBaseFields()">
-                <input type="hidden" name="gender" :value="gender" :disabled="!shouldMirrorBaseFields()">
-                <input type="hidden" name="race" :value="race" :disabled="!shouldMirrorBaseFields()">
-                <input type="hidden" name="culture" :value="culture" :disabled="!shouldMirrorBaseFields()">
-                <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" :disabled="!shouldSubmitPortraitPreview()">
+                <input type="hidden" name="player_name" :value="playerName" x-bind:disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="character_name" :value="characterName" x-bind:disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="gender" :value="gender" x-bind:disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="race" :value="race" x-bind:disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="culture" :value="culture" x-bind:disabled="!shouldMirrorBaseFields()">
+                <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" x-bind:disabled="!shouldSubmitPortraitPreview()">
 
                 <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints()">
                 <input type="hidden" name="figurenstaerke" value="1">
@@ -73,7 +73,7 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="gender" class="block text-sm font-medium text-base-content mb-1">Geschlecht</label>
-                        <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" :disabled="advancedUnlocked">
+                        <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" x-bind:disabled="advancedUnlocked">
                             <option value="" disabled>Geschlecht wählen</option>
                             <option value="weiblich">Weiblich</option>
                             <option value="maennlich">Männlich</option>
@@ -83,16 +83,16 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
+                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" x-bind:disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
                             <option value="" disabled>Rasse wählen</option>
-                            <option value="Barbar" :disabled="!isRaceSelectable('Barbar')">Barbar</option>
-                            <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
-                            <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
-                            <option value="Nosfera" :disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
-                            <option value="Taratze" :disabled="!isRaceSelectable('Taratze')">Taratze</option>
-                            <option value="Wulfane" :disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
-                            <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
-                            <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
+                            <option value="Barbar" x-bind:disabled="!isRaceSelectable('Barbar')">Barbar</option>
+                            <option value="Guul" x-bind:disabled="!isRaceSelectable('Guul')">Guul</option>
+                            <option value="Hydrit" x-bind:disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
+                            <option value="Nosfera" x-bind:disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
+                            <option value="Taratze" x-bind:disabled="!isRaceSelectable('Taratze')">Taratze</option>
+                            <option value="Wulfane" x-bind:disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
+                            <option value="Techno" x-bind:disabled="!isRaceSelectable('Techno')">Techno</option>
+                            <option value="Präkristofluu" x-bind:disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>
                         <template x-if="raceInfo()">
                             <div id="race-info-panel" class="mt-3 rounded-md border border-base-300 bg-base-200/40 p-3 text-sm" data-testid="race-info-panel" aria-live="polite">
@@ -115,24 +115,24 @@
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
-                        <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" :disabled="advancedUnlocked">
+                        <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" x-bind:disabled="advancedUnlocked">
                             <option value="" disabled>Kultur wählen</option>
-                            <option value="Landbewohner" :disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
-                            <option value="Stadtbewohner" :disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
-                            <option value="Meeresbewohner" :disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
-                            <option value="Bunkermensch" :disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
-                            <option value="Mensch des 21. Jahrhunderts" :disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
-                            <option value="Nomade" :disabled="!isCultureSelectable('Nomade')">Nomade</option>
-                            <option value="Disuuslachter (Nordmann)" :disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
-                            <option value="Ruinenbewohner" :disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
-                            <option value="Untergrundbewohner" :disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
-                            <option value="Volk der 13 Inseln" :disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
+                            <option value="Landbewohner" x-bind:disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
+                            <option value="Stadtbewohner" x-bind:disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
+                            <option value="Meeresbewohner" x-bind:disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
+                            <option value="Bunkermensch" x-bind:disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
+                            <option value="Mensch des 21. Jahrhunderts" x-bind:disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
+                            <option value="Nomade" x-bind:disabled="!isCultureSelectable('Nomade')">Nomade</option>
+                            <option value="Disuuslachter (Nordmann)" x-bind:disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
+                            <option value="Ruinenbewohner" x-bind:disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
+                            <option value="Untergrundbewohner" x-bind:disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
+                            <option value="Volk der 13 Inseln" x-bind:disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
                         </select>
                     </div>
 
                     <div class="md:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
-                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" :disabled="advancedUnlocked">
+                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" x-bind:disabled="advancedUnlocked">
                         <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
                     </div>
 
@@ -146,7 +146,7 @@
                     <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
                 </div>
 
-                <fieldset :disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
+                <fieldset x-bind:disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Attribute</h2>
                         <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining()"></p>
@@ -248,19 +248,19 @@
                             <div>
                                 <label for="mensch-21-first-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 1</label>
                                 <select id="mensch-21-first-bonus-select" class="select select-bordered w-full" x-model="mensch21FirstBonusSkill" @change="setMensch21FirstBonusSkill(mensch21FirstBonusSkill)">
-                                    <option value="Bildung" :disabled="mensch21SecondBonusSkill === 'Bildung'">Bildung (+1)</option>
-                                    <option value="Pilot" :disabled="mensch21SecondBonusSkill === 'Pilot'">Pilot (+1)</option>
-                                    <option value="Techniker" :disabled="mensch21SecondBonusSkill === 'Techniker'">Techniker (+1)</option>
-                                    <option value="Wissenschaftler" :disabled="mensch21SecondBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
+                                    <option value="Bildung" x-bind:disabled="mensch21SecondBonusSkill === 'Bildung'">Bildung (+1)</option>
+                                    <option value="Pilot" x-bind:disabled="mensch21SecondBonusSkill === 'Pilot'">Pilot (+1)</option>
+                                    <option value="Techniker" x-bind:disabled="mensch21SecondBonusSkill === 'Techniker'">Techniker (+1)</option>
+                                    <option value="Wissenschaftler" x-bind:disabled="mensch21SecondBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
                                 </select>
                             </div>
                             <div>
                                 <label for="mensch-21-second-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 2</label>
                                 <select id="mensch-21-second-bonus-select" class="select select-bordered w-full" x-model="mensch21SecondBonusSkill" @change="setMensch21SecondBonusSkill(mensch21SecondBonusSkill)">
-                                    <option value="Bildung" :disabled="mensch21FirstBonusSkill === 'Bildung'">Bildung (+1)</option>
-                                    <option value="Pilot" :disabled="mensch21FirstBonusSkill === 'Pilot'">Pilot (+1)</option>
-                                    <option value="Techniker" :disabled="mensch21FirstBonusSkill === 'Techniker'">Techniker (+1)</option>
-                                    <option value="Wissenschaftler" :disabled="mensch21FirstBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
+                                    <option value="Bildung" x-bind:disabled="mensch21FirstBonusSkill === 'Bildung'">Bildung (+1)</option>
+                                    <option value="Pilot" x-bind:disabled="mensch21FirstBonusSkill === 'Pilot'">Pilot (+1)</option>
+                                    <option value="Techniker" x-bind:disabled="mensch21FirstBonusSkill === 'Techniker'">Techniker (+1)</option>
+                                    <option value="Wissenschaftler" x-bind:disabled="mensch21FirstBonusSkill === 'Wissenschaftler'">Wissenschaftler (+1)</option>
                                 </select>
                             </div>
                         </div>
@@ -302,19 +302,19 @@
                                     <input type="hidden"
                                         :name="'skills[' + index + '][name]'"
                                         :value="skill.name"
-                                        :disabled="!shouldMirrorSkillName(skill)"
+                                        x-bind:disabled="!shouldMirrorSkillName(skill)"
                                     >
                                     <input type="hidden"
                                         :name="'skills[' + index + '][value]'"
                                         :value="skill.value"
-                                        :disabled="!shouldMirrorSkillValue(skill)"
+                                        x-bind:disabled="!shouldMirrorSkillValue(skill)"
                                     >
                                     <input type="text" list="skills-list"
                                         :name="'skills[' + index + '][name]'"
                                         class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
                                         placeholder="Fertigkeit"
                                         x-model="skill.name"
-                                        :disabled="skill.nameDisabled"
+                                        x-bind:disabled="skill.nameDisabled"
                                     >
                                     <input type="number"
                                         :name="'skills[' + index + '][value]'"
@@ -323,7 +323,7 @@
                                         x-model.number="skill.value"
                                         :min="getSkillMin(skill.name)"
                                         :max="getSkillMax(skill.name)"
-                                        :disabled="isSkillDisabled(skill)"
+                                        x-bind:disabled="isSkillDisabled(skill)"
                                         @change="clampSkillValue(skill)"
                                     >
                                     <template x-if="!skill.locked">
@@ -375,7 +375,7 @@
                         <div class="mb-3 flex flex-wrap items-center gap-2">
                             <x-button type="button" label="Vorteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('advantage')" data-testid="roll-advantage-button" />
                             <x-button type="button" label="Nachteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('disadvantage')" data-testid="roll-disadvantage-button" />
-                            <p x-show="lastRoll" x-cloak class="text-xs text-base-content/70" aria-live="polite" data-testid="char-editor-roll-result" x-text="'W66 ' + lastRoll.value + ' (' + lastRoll.dice + '): ' + lastRoll.message"></p>
+                            <p x-show="lastRoll" x-cloak class="text-xs text-base-content/70" aria-live="polite" data-testid="char-editor-roll-result" x-text="lastRoll ? 'W66 ' + lastRoll.value + ' (' + lastRoll.dice + '): ' + lastRoll.message : ''"></p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -403,7 +403,7 @@
                                                     value="{{ $advantage }}"
                                                     class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
                                                     x-model="selectedAdvantages"
-                                                    :disabled="isAdvantageDisabled(@js($advantage))"
+                                                    x-bind:disabled="isAdvantageDisabled(@js($advantage))"
                                                 >
                                                 <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
                                                 <span class="badge badge-ghost shrink-0" x-text="advantageRollLabel(@js($advantage))"></span>
@@ -470,7 +470,7 @@
                                                     value="{{ $disadvantage }}"
                                                     class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
                                                     x-model="selectedDisadvantages"
-                                                    :disabled="isDisadvantageDisabled(@js($disadvantage))"
+                                                    x-bind:disabled="isDisadvantageDisabled(@js($disadvantage))"
                                                 >
                                                 <span class="min-w-0 flex-1 leading-5">{{ $disadvantage }}</span>
                                                 <span class="badge badge-ghost shrink-0" x-text="disadvantageRollLabel(@js($disadvantage))"></span>
