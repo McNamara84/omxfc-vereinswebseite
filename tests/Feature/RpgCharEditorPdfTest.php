@@ -530,6 +530,100 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_export_accepts_taratze_with_general_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Taratze'
+                    && $data['character']['culture'] === 'Stadtbewohner'
+                    && ($data['attributes']['st'] ?? null) === '1'
+                    && ($data['attributes']['wa'] ?? null) === '1'
+                    && ($data['attributes']['in'] ?? null) === '-1'
+                    && ($data['attributes']['au'] ?? null) === '-1'
+                    && ($skills['Intuition']['value'] ?? null) === '2'
+                    && ($skills['Heimlichkeit']['value'] ?? null) === '1'
+                    && ($skills['Überleben']['value'] ?? null) === '1'
+                    && in_array('Auffällig', $data['disadvantages'], true)
+                    && in_array('Primitiv', $data['disadvantages'], true)
+                    && in_array('Gejagt', $data['disadvantages'], true);
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Taratze',
+            'culture' => 'Stadtbewohner',
+            'attributes' => [
+                'st' => 1,
+                'wa' => 1,
+                'in' => -1,
+                'au' => -1,
+            ],
+            'skills' => [
+                ['name' => 'Intuition', 'value' => 2],
+                ['name' => 'Heimlichkeit', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+            ],
+            'advantages' => ['Zäh'],
+            'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_accepts_wulfane_with_general_culture(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Wulfane'
+                    && $data['character']['culture'] === 'Landbewohner'
+                    && ($data['attributes']['ro'] ?? null) === '1'
+                    && ($data['attributes']['au'] ?? null) === '-1'
+                    && ($skills['Intuition']['value'] ?? null) === '1'
+                    && ($skills['Nahkampf']['value'] ?? null) === '1'
+                    && in_array('Ehrenkodex', $data['disadvantages'], true);
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Wulfane',
+            'culture' => 'Landbewohner',
+            'attributes' => [
+                'ro' => 1,
+                'au' => -1,
+            ],
+            'skills' => [
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Nahkampf', 'value' => 1],
+            ],
+            'advantages' => ['Zäh'],
+            'disadvantages' => ['Ehrenkodex'],
+        ]));
+
+        $response->assertOk();
+    }
+
     public function test_pdf_export_accepts_nomade_culture(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

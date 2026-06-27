@@ -332,6 +332,95 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.skills.find(s => s.name === 'Heimlichkeit')).toBeUndefined();
     });
 
+    it('Taratze erhält kostenlose Attributsmodifikatoren, Fertigkeiten und Pflichtnachteile', () => {
+        const e = createEditor({ race: 'Taratze' });
+        e.applyRaceTaratze();
+
+        expect(e.attributes).toMatchObject({ st: 1, wa: 1, in: -1, au: -1 });
+        expect(e.apUsed()).toBe(0);
+        expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMax('st')).toBe(2);
+        expect(e.getAttributeMax('wa')).toBe(2);
+        expect(e.getAttributeMax('in')).toBe(0);
+        expect(e.getAttributeMax('au')).toBe(0);
+        expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 2 });
+        expect(e.raceGrants.Heimlichkeit).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants['Überleben']).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Intuition')).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Heimlichkeit')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Überleben')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.raceLocked.advantages).toEqual([]);
+        expect(e.raceLocked.disadvantages).toEqual(['Auffällig', 'Primitiv', 'Gejagt']);
+        expect(e.selectedDisadvantages).toEqual(expect.arrayContaining(['Auffällig', 'Primitiv', 'Gejagt']));
+        expect(e.chosenAdvantagesCount()).toBe(0);
+        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.selectedLockedDisadvantages()).toEqual(['Auffällig', 'Primitiv', 'Gejagt']);
+    });
+
+    it('Rassenwechsel entfernt Taratze-Pflichtnachteile, Fertigkeiten und Attributsmodifikatoren', () => {
+        const e = createEditor({ race: 'Taratze' });
+        e.applyRaceTaratze();
+        e.clearRace();
+
+        expect(e.attributes).toMatchObject({ st: 0, wa: 0, in: 0, au: 0 });
+        expect(e.raceLocked.disadvantages).toEqual([]);
+        expect(e.selectedDisadvantages).toEqual([]);
+        expect(e.skills.find(s => s.name === 'Intuition')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Heimlichkeit')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Überleben')).toBeUndefined();
+    });
+
+    it('Wulfane erhält kostenlose Attributsmodifikatoren, Fertigkeiten und Ehrenkodex', () => {
+        const e = createEditor({ race: 'Wulfane' });
+        e.applyRaceWulfane();
+
+        expect(e.attributes).toMatchObject({ ro: 1, au: -1 });
+        expect(e.apUsed()).toBe(0);
+        expect(e.apRemaining()).toBe(2);
+        expect(e.getAttributeMax('ro')).toBe(2);
+        expect(e.getAttributeMax('au')).toBe(0);
+        expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Intuition')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.raceLocked.advantages).toEqual([]);
+        expect(e.raceLocked.disadvantages).toEqual(['Ehrenkodex']);
+        expect(e.selectedDisadvantages).toContain('Ehrenkodex');
+        expect(e.selectedLockedDisadvantages()).toEqual(['Ehrenkodex']);
+    });
+
+    it('Rassenwechsel entfernt Wulfane-Pflichtnachteil, Fertigkeiten und Attributsmodifikatoren', () => {
+        const e = createEditor({ race: 'Wulfane' });
+        e.applyRaceWulfane();
+        e.clearRace();
+
+        expect(e.attributes.ro).toBe(0);
+        expect(e.attributes.au).toBe(0);
+        expect(e.raceLocked.disadvantages).toEqual([]);
+        expect(e.selectedDisadvantages).toEqual([]);
+        expect(e.skills.find(s => s.name === 'Intuition')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toBeUndefined();
+    });
+
+    it('Rassenwechsel zu Taratze und Wulfane wendet die neuen Rassenregeln im Editorfluss an', () => {
+        const e = createEditor({ race: 'Taratze', culture: 'Stadtbewohner' });
+        e.handleRaceChange();
+
+        expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 2 });
+        expect(e.raceLocked.disadvantages).toEqual(['Auffällig', 'Primitiv', 'Gejagt']);
+        expect(e.culture).toBe('Stadtbewohner');
+
+        e.race = 'Wulfane';
+        e.handleRaceChange();
+
+        expect(e.raceGrants.Intuition).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants.Heimlichkeit).toBeUndefined();
+        expect(e.raceLocked.disadvantages).toEqual(['Ehrenkodex']);
+        expect(e.selectedDisadvantages).toEqual(['Ehrenkodex']);
+        expect(e.culture).toBe('Stadtbewohner');
+    });
+
     it('Techno erhält kostenlose Attributsmodifikatoren, Pflichtmerkmale und 12 Rassen-Fertigkeitspunkte', () => {
         const e = createEditor({ race: 'Techno' });
         e.applyRaceTechno();

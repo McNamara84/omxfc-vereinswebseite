@@ -86,6 +86,8 @@
                             <option value="Guul" :disabled="!isRaceSelectable('Guul')">Guul</option>
                             <option value="Hydrit" :disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
                             <option value="Nosfera" :disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
+                            <option value="Taratze" :disabled="!isRaceSelectable('Taratze')">Taratze</option>
+                            <option value="Wulfane" :disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
                             <option value="Techno" :disabled="!isRaceSelectable('Techno')">Techno</option>
                             <option value="Präkristofluu" :disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
                         </select>

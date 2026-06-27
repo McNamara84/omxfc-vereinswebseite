@@ -3,6 +3,8 @@ const RACE_DESCRIPTIONS = {
     Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.',
     Hydrit: 'Hydriten, von den Menschen oft Fischmenschen genannt, sind ein friedliebendes und altes Volk. Sie leben in geheimen Unterseestädten, sind amphibisch, kultiviert und verfügen über fortgeschrittene biogenetische Technologien. Der Genuss von Fleisch verwandelt Hydriten in gefährliche Bestien, weshalb sie sich meist vegetarisch ernähren.',
     Nosfera: 'Nosfera sind mumienartige Erscheinungen mit pergamentartiger Haut und einer knochig dürren Gestalt. Durch eine seltene Form der Sichelzellenanämie benötigen sie stetig frisches Blut und werden deshalb von den meisten Völkern gefürchtet und verhasst. Viele Nosfera verfügen über erstaunlich starke psychische Fähigkeiten.',
+    Taratze: 'Taratzen sind mutierte, auf über zwei Meter angewachsene Ratten zwischen tierischer und menschlicher Intelligenz. Sie haben ein drahtiges Fell, spitze Ohren, rote Farbschattierungen und gelten durch ihre raubtierhaften Sinne, ihre Robustheit und ihre Tarnfähigkeit als gefürchtete Gegner. Nur wenige haben die friedlichen Kontaktversuche anderer Rassen gesucht.',
+    Wulfane: 'Wulfanen sind von langen, überwiegend dunklen Körperhaaren bedeckt und haben wolfsähnliche Züge. Ihr Gesicht wird durch Hasenscharte und spitze, lange Zähne geprägt. Sie sind durchschnittlich intelligent, verfügen über einen ausgeprägten Geruchssinn und leben nach einem strengen Ehrenkodex bevorzugt in alten Ruinenstädten.',
     Techno: 'Technos sind Nachfahren der Menschen, die den Kometeneinschlag in Bunkern überlebt und eine neue Zivilisation aufgebaut haben. Aufgrund ihres technologischen Fortschritts gelten sie vielen Barbaren als Götter oder Dämonen. Sie leiden jedoch an einer tödlichen Immunschwäche und können die Außenwelt nur mit Schutzanzug betreten.',
     Präkristofluu: 'Präkristofluu sind Menschen aus dem 21. Jahrhundert, die durch Gefrierkammern oder mysteriöse Zeitphänomene in das 26. Jahrhundert gelangt sind. Ihr technisches Wissen und ihre Kenntnisse der Vergangenheit gleichen ihre geringe Anpassungsfähigkeit aus.'
 };
@@ -595,6 +597,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Guul') this.applyRaceGuul();
         if (this.race === 'Hydrit') this.applyRaceHydrit();
         if (this.race === NOSFERA_RACE) this.applyRaceNosfera();
+        if (this.race === 'Taratze') this.applyRaceTaratze();
+        if (this.race === 'Wulfane') this.applyRaceWulfane();
         if (this.race === 'Techno') this.applyRaceTechno();
         if (this.race === PRAEKRISTOFLUU_RACE) this.applyRacePraekristofluu();
         this.restoreRaceState(this.race);
@@ -691,6 +695,23 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.raceLocked.disadvantages = ['Blutdurst', 'Lichtscheu', 'Gejagt'];
         this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Nachtsicht', 'Psychisches Reservoir'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Blutdurst', 'Lichtscheu', 'Gejagt'])];
+    },
+
+    applyRaceTaratze() {
+        this.setRaceAttributeModifiers({ st: 1, wa: 1, in: -1, au: -1 });
+        this.setFreeMin('Intuition', 2, 'Rasse');
+        this.setFreeMin('Heimlichkeit', 1, 'Rasse');
+        this.setFreeMin('Überleben', 1, 'Rasse');
+        this.raceLocked.disadvantages = ['Auffällig', 'Primitiv', 'Gejagt'];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Auffällig', 'Primitiv', 'Gejagt'])];
+    },
+
+    applyRaceWulfane() {
+        this.setRaceAttributeModifiers({ ro: 1, au: -1 });
+        this.setFreeMin('Intuition', 1, 'Rasse');
+        this.setFreeMin('Nahkampf', 1, 'Rasse');
+        this.raceLocked.disadvantages = ['Ehrenkodex'];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Ehrenkodex'])];
     },
 
     applyRaceTechno() {
