@@ -257,6 +257,12 @@ class RpgCharEditorController extends Controller
             ]);
         }
 
+        if ($culture === 'Meeresbewohner' && $race !== 'Hydrit') {
+            throw ValidationException::withMessages([
+                'culture' => 'Die Kultur Meeresbewohner ist laut Regelwerk nur für Hydriten zugelassen.',
+            ]);
+        }
+
         if ($race === 'Techno' && $culture !== 'Bunkermensch') {
             throw ValidationException::withMessages([
                 'culture' => 'Technos können laut Regelwerk nur die Kultur Bunkermensch wählen.',
@@ -302,6 +308,7 @@ class RpgCharEditorController extends Controller
         }
 
         $this->validateRaceRequirements($race, $attributes, $skills, $advantages, $disadvantages);
+        $this->validateCultureRequirements($culture, $skills);
     }
 
     private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages): void
@@ -363,6 +370,138 @@ class RpgCharEditorController extends Controller
                 ]);
             }
         }
+    }
+
+    private function validateCultureRequirements(string $culture, array $skills): void
+    {
+        $requirements = $this->cultureRequirements($culture);
+
+        if ($requirements === []) {
+            return;
+        }
+
+        foreach ($requirements['skills'] ?? [] as $skillName => $minimumValue) {
+            if ($this->skillValue($skills, $skillName) < $minimumValue) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Kultur {$culture} benötigt {$skillName} mindestens auf {$minimumValue}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['anySkills'] ?? [] as $choice) {
+            $hasChoice = collect($choice['names'])
+                ->contains(fn (string $skillName) => $this->skillValue($skills, $skillName) >= $choice['minimum']);
+
+            if (! $hasChoice) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Kultur {$culture} benötigt {$choice['label']}.",
+                ]);
+            }
+        }
+
+        foreach ($requirements['countSkills'] ?? [] as $choice) {
+            $matchingSkills = collect($choice['names'])
+                ->filter(fn (string $skillName) => $this->skillValue($skills, $skillName) >= $choice['minimum'])
+                ->count();
+
+            if ($matchingSkills < $choice['count']) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Kultur {$culture} benötigt {$choice['label']}.",
+                ]);
+            }
+        }
+    }
+
+    private function cultureRequirements(string $culture): array
+    {
+        return match ($culture) {
+            'Landbewohner' => [
+                'skills' => ['Kunde: Wetter' => 1],
+                'anySkills' => [[
+                    'names' => ['Beruf: Viehzüchter', 'Beruf: Landwirt'],
+                    'minimum' => 2,
+                    'label' => 'Beruf: Viehzüchter oder Beruf: Landwirt mindestens auf 2',
+                ]],
+            ],
+            'Stadtbewohner' => [
+                'skills' => ['Beruf' => 1, 'Kunde' => 1],
+                'anySkills' => [[
+                    'names' => ['Unterhalten', 'Sprachen'],
+                    'minimum' => 1,
+                    'label' => 'Unterhalten oder Sprachen mindestens auf 1',
+                ]],
+            ],
+            'Meeresbewohner' => [
+                'skills' => ['Athletik' => 1],
+                'anySkills' => [
+                    [
+                        'names' => ['Beruf: Farmer', 'Beruf: Künstler'],
+                        'minimum' => 1,
+                        'label' => 'Beruf: Farmer oder Beruf: Künstler mindestens auf 1',
+                    ],
+                    [
+                        'names' => ['Wissenschaftler', 'Techniker', 'Nahkampf'],
+                        'minimum' => 1,
+                        'label' => 'Wissenschaftler, Techniker oder Nahkampf mindestens auf 1',
+                    ],
+                ],
+            ],
+            'Bunkermensch' => [
+                'skills' => ['Bildung' => 1, 'Nahkampf' => 1],
+                'anySkills' => [[
+                    'names' => ['Feuerwaffen', 'Pilot', 'Wissenschaftler'],
+                    'minimum' => 1,
+                    'label' => 'Feuerwaffen, Pilot oder Wissenschaftler mindestens auf 1',
+                ]],
+            ],
+            'Mensch des 21. Jahrhunderts' => [
+                'skills' => ['Beruf' => 1],
+                'countSkills' => [[
+                    'names' => ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'],
+                    'minimum' => 1,
+                    'count' => 2,
+                    'label' => 'zwei verschiedene Fertigkeiten aus Bildung, Pilot, Techniker oder Wissenschaftler mindestens auf 1',
+                ]],
+            ],
+            'Nomade' => [
+                'skills' => ['Überleben' => 1],
+                'anySkills' => [
+                    [
+                        'names' => ['Nahkampf', 'Fernkampf'],
+                        'minimum' => 1,
+                        'label' => 'Nahkampf oder Fernkampf mindestens auf 1',
+                    ],
+                    [
+                        'names' => ['Reiten', 'Athletik'],
+                        'minimum' => 1,
+                        'label' => 'Reiten oder Athletik mindestens auf 1',
+                    ],
+                ],
+            ],
+            'Ruinenbewohner' => [
+                'skills' => ['Diebeskunst' => 1, 'Heimlichkeit' => 1],
+                'anySkills' => [[
+                    'names' => ['Nahkampf', 'Fernkampf', 'Athletik', 'Kunde'],
+                    'minimum' => 1,
+                    'label' => 'Nahkampf, Fernkampf, Athletik oder Kunde mindestens auf 1',
+                ]],
+            ],
+            'Untergrundbewohner' => [
+                'skills' => ['Athletik' => 1, 'Beruf: Bergmann' => 1, 'Überleben' => 1],
+            ],
+            'Volk der 13 Inseln' => [
+                'skills' => ['Athletik' => 1, 'Überleben' => 1],
+                'anySkills' => [[
+                    'names' => ['Beruf: Bauer', 'Beruf: Fischer'],
+                    'minimum' => 1,
+                    'label' => 'Beruf: Bauer oder Beruf: Fischer mindestens auf 1',
+                ]],
+            ],
+            'Disuuslachter (Nordmann)' => [
+                'skills' => ['Nahkampf' => 1, 'Überleben' => 1, 'Beruf: Seemann' => 1],
+            ],
+            default => [],
+        };
     }
 
     private function attributeLabel(string $attributeName): string

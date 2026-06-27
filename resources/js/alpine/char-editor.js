@@ -111,6 +111,7 @@ const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
 const PRAEKRISTOFLUU_SKILLS = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const PRAEKRISTOFLUU_SKILL_POOL_POINTS = 12;
 const MENSCH_21_BONUS_SKILLS = ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'];
+const LANDBEWOHNER_PROFESSION_SKILLS = ['Beruf: Viehzüchter', 'Beruf: Landwirt'];
 const NOMADE_COMBAT_SKILLS = ['Nahkampf', 'Fernkampf'];
 const NOMADE_MOVEMENT_SKILLS = ['Reiten', 'Athletik'];
 const RUINENBEWOHNER_BONUS_SKILLS = ['Nahkampf', 'Fernkampf', 'Athletik', 'Kunde'];
@@ -175,6 +176,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     attributeOptions: ATTRIBUTE_OPTIONS,
     barbarAttributeBonus: null,
     barbarCombatSkill: null,
+    landbewohnerProfessionSkill: null,
     citySkill: null,
     seaProfessionSkill: null,
     seaKnowledgeOrCombatSkill: null,
@@ -318,6 +320,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (race === PRAEKRISTOFLUU_RACE) return [MENSCH_21_CULTURE];
 
         return CULTURE_NAMES.filter(culture => culture !== 'Bunkermensch'
+            && culture !== 'Meeresbewohner'
             && culture !== MENSCH_21_CULTURE
             && (race === 'Barbar' || !BARBAR_ONLY_CULTURES.includes(culture)));
     },
@@ -930,6 +933,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const previousCultureSkills = Object.keys(this.cultureGrants);
 
         this.cultureGrants = {};
+        this.landbewohnerProfessionSkill = null;
         this.citySkill = null;
         this.seaProfessionSkill = null;
         this.seaKnowledgeOrCombatSkill = null;
@@ -945,8 +949,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyCultureLandbewohner() {
-        this.setFreeExact('Beruf: Viehzüchter', 2, 'Kultur');
-        this.setFreeExact('Beruf: Landwirt', 2, 'Kultur');
+        this.setLandbewohnerProfessionSkill('Beruf: Viehzüchter');
         this.setFreeMin('Kunde: Wetter', 1, 'Kultur');
     },
 
@@ -1002,6 +1005,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Nahkampf', 1, 'Kultur');
         this.setFreeMin('Überleben', 1, 'Kultur');
         this.setFreeMin('Beruf: Seemann', 1, 'Kultur');
+    },
+
+    setLandbewohnerProfessionSkill(skillName) {
+        this.setCultureChoiceSkill(skillName, LANDBEWOHNER_PROFESSION_SKILLS, 'landbewohnerProfessionSkill', 2);
     },
 
     setCitySkill(skillName) {

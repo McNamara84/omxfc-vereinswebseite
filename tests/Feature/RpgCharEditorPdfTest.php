@@ -50,6 +50,8 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Überleben', 'value' => 1],
                 ['name' => 'Athletik', 'value' => 1],
                 ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                ['name' => 'Kunde: Wetter', 'value' => 1],
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Auffällig'],
@@ -296,6 +298,7 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Überleben', 'value' => '1'],
                         ['name' => 'Intuition', 'value' => '1'],
                         ['name' => 'Beruf: Landwirt', 'value' => '2'],
+                        ['name' => 'Kunde: Wetter', 'value' => '1'],
                     ]
                     && $data['advantages'] === ['Zaeh', 'Anfuehrer']
                     && $data['disadvantages'] === ['Aberglaeubisch']
@@ -328,6 +331,7 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Überleben', 'value' => '1'],
                 ['name' => 'Intuition', 'value' => '1'],
                 ['name' => 'Beruf: Landwirt', 'value' => '2'],
+                ['name' => 'Kunde: Wetter', 'value' => '1'],
                 ['name' => '', 'value' => '4'],
             ],
             'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
@@ -418,6 +422,9 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
             ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -444,6 +451,9 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
             ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -467,6 +477,9 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
             ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -495,6 +508,9 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
             ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -525,6 +541,9 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Intuition', 'value' => 2],
             ['name' => 'Heimlichkeit', 'value' => 2],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -554,6 +573,9 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Intuition', 'value' => 2],
             ['name' => 'Heimlichkeit', 'value' => 2],
+            ['name' => 'Beruf', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 1],
+            ['name' => 'Unterhalten', 'value' => 1],
         ];
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
@@ -580,6 +602,7 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
         $payload['skills'] = [
             ['name' => 'Bildung', 'value' => 2],
+            ['name' => 'Nahkampf', 'value' => 1],
             ['name' => 'Fahren', 'value' => 2],
             ['name' => 'Feuerwaffen', 'value' => 2],
             ['name' => 'Heiler', 'value' => 2],
@@ -616,6 +639,8 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Athletik', 'value' => 2],
                 ['name' => 'Bildung', 'value' => 1],
                 ['name' => 'Natürliche Waffen', 'value' => 1],
+                ['name' => 'Beruf: Farmer', 'value' => 1],
+                ['name' => 'Wissenschaftler', 'value' => 1],
             ],
             'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'],
             'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
@@ -636,6 +661,141 @@ class RpgCharEditorPdfTest extends TestCase
         ]));
 
         $response->assertSessionHasErrors('culture');
+    }
+
+    public function test_pdf_export_rejects_meeresbewohner_for_non_hydrit(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Barbar',
+            'culture' => 'Meeresbewohner',
+        ]));
+
+        $response->assertSessionHasErrors('culture');
+    }
+
+    public function test_pdf_export_rejects_missing_culture_skill_requirements(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $cases = [
+            'Landbewohner ohne Wetterkunde' => $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                ],
+            ]),
+            'Stadtbewohner ohne Wahlbonus' => $this->validPdfPayload([
+                'culture' => 'Stadtbewohner',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf', 'value' => 1],
+                    ['name' => 'Kunde', 'value' => 1],
+                ],
+            ]),
+            'Meeresbewohner ohne Berufsbonus' => $this->validPdfPayload([
+                'race' => 'Hydrit',
+                'culture' => 'Meeresbewohner',
+                'skills' => [
+                    ['name' => 'Athletik', 'value' => 2],
+                    ['name' => 'Bildung', 'value' => 1],
+                    ['name' => 'Natürliche Waffen', 'value' => 1],
+                    ['name' => 'Wissenschaftler', 'value' => 1],
+                ],
+                'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'],
+                'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
+            ]),
+            'Bunkermensch ohne Nahkampf' => $this->validPdfPayload([
+                'race' => 'Techno',
+                'culture' => 'Bunkermensch',
+                'attributes' => [
+                    'st' => -1,
+                    'ro' => -1,
+                    'in' => 1,
+                ],
+                'skills' => [
+                    ['name' => 'Bildung', 'value' => 3],
+                    ['name' => 'Fahren', 'value' => 2],
+                    ['name' => 'Feuerwaffen', 'value' => 2],
+                    ['name' => 'Heiler', 'value' => 2],
+                    ['name' => 'Pilot', 'value' => 2],
+                    ['name' => 'Techniker', 'value' => 2],
+                    ['name' => 'Wissenschaftler', 'value' => 2],
+                ],
+                'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
+                'disadvantages' => ['Tödliche Immunschwäche'],
+            ]),
+            'Mensch des 21. Jahrhunderts ohne zweiten Wissensbonus' => $this->validPdfPayload([
+                'race' => 'Präkristofluu',
+                'culture' => 'Mensch des 21. Jahrhunderts',
+                'skills' => [
+                    ['name' => 'Beruf', 'value' => 3],
+                    ['name' => 'Bildung', 'value' => 1],
+                    ['name' => 'Fahren', 'value' => 2],
+                    ['name' => 'Feuerwaffen', 'value' => 2],
+                ],
+                'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
+            ]),
+            'Nomade ohne Bewegungsbonus' => $this->validPdfPayload([
+                'culture' => 'Nomade',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                ],
+            ]),
+            'Ruinenbewohner ohne Diebeskunst' => $this->validPdfPayload([
+                'culture' => 'Ruinenbewohner',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Heimlichkeit', 'value' => 1],
+                    ['name' => 'Fernkampf', 'value' => 1],
+                ],
+            ]),
+            'Untergrundbewohner ohne Bergmann' => $this->validPdfPayload([
+                'culture' => 'Untergrundbewohner',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Athletik', 'value' => 1],
+                ],
+            ]),
+            'Volk der 13 Inseln ohne Beruf' => $this->validPdfPayload([
+                'culture' => 'Volk der 13 Inseln',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Athletik', 'value' => 1],
+                ],
+            ]),
+            'Disuuslachter ohne Seemann' => $this->validPdfPayload([
+                'culture' => 'Disuuslachter (Nordmann)',
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                ],
+            ]),
+        ];
+
+        foreach ($cases as $payload) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+
+            $response->assertSessionHasErrors('skills');
+        }
     }
 
     public function test_pdf_export_accepts_techno_with_bunkermensch_culture(): void
@@ -664,6 +824,7 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'skills' => [
                 ['name' => 'Bildung', 'value' => 3],
+                ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Fahren', 'value' => 2],
                 ['name' => 'Feuerwaffen', 'value' => 2],
                 ['name' => 'Heiler', 'value' => 2],
@@ -807,6 +968,9 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Intuition', 'value' => 2],
                 ['name' => 'Heimlichkeit', 'value' => 2],
+                ['name' => 'Beruf', 'value' => 1],
+                ['name' => 'Kunde', 'value' => 1],
+                ['name' => 'Unterhalten', 'value' => 1],
             ],
             'advantages' => ['Zäh', 'Nachtsicht'],
             'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
@@ -859,6 +1023,9 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Intuition', 'value' => 2],
                 ['name' => 'Heimlichkeit', 'value' => 1],
                 ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Beruf', 'value' => 1],
+                ['name' => 'Kunde', 'value' => 1],
+                ['name' => 'Unterhalten', 'value' => 1],
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
@@ -903,6 +1070,8 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Intuition', 'value' => 1],
                 ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Beruf: Landwirt', 'value' => 2],
+                ['name' => 'Kunde: Wetter', 'value' => 1],
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Ehrenkodex'],
@@ -1086,6 +1255,13 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'gender' => 'weiblich',
             'culture' => 'Volk der 13 Inseln',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Beruf: Bauer', 'value' => 1],
+            ],
             'advantages' => ['Zaeh', 'Psychische Kraft'],
         ]));
 
@@ -1112,6 +1288,13 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'gender' => 'maennlich',
             'culture' => 'Volk der 13 Inseln',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Beruf: Fischer', 'value' => 1],
+            ],
             'advantages' => ['Zaeh'],
         ]));
 
@@ -1184,6 +1367,8 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Nahkampf', 'value' => '1'],
                         ['name' => 'Überleben', 'value' => '1'],
                         ['name' => 'Intuition', 'value' => '1'],
+                        ['name' => 'Beruf: Viehzüchter', 'value' => '2'],
+                        ['name' => 'Kunde: Wetter', 'value' => '1'],
                         ['name' => 'Fahren', 'value' => ''],
                         ['name' => 'Diebeskunst', 'value' => '4'],
                     ]
@@ -1217,6 +1402,8 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => ' Nahkampf ', 'value' => 1],
                 ['name' => ' Überleben ', 'value' => 1],
                 ['name' => ' Intuition ', 'value' => 1],
+                ['name' => ' Beruf: Viehzüchter ', 'value' => 2],
+                ['name' => ' Kunde: Wetter ', 'value' => 1],
                 ['name' => ' Fahren ', 'value' => ['manipuliert']],
                 ['name' => ' Diebeskunst ', 'value' => 4],
                 ['name' => false, 'value' => '3'],

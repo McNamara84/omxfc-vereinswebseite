@@ -614,7 +614,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.isCultureSelectable('Landbewohner')).toBe(true);
         expect(e.isCultureSelectable('Stadtbewohner')).toBe(true);
-        expect(e.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(e.isCultureSelectable('Meeresbewohner')).toBe(false);
         expect(e.isCultureSelectable('Nomade')).toBe(true);
         expect(e.isCultureSelectable('Ruinenbewohner')).toBe(true);
         expect(e.isCultureSelectable('Untergrundbewohner')).toBe(true);
@@ -636,21 +636,21 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.culture).toBe('Meeresbewohner');
         expect(handleCultureChange).not.toHaveBeenCalled();
         expect(e.cultureGrants).toEqual({});
-        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Viehzüchter')).toBeUndefined();
     });
 
     it('Rassenwechsel zu Hydrit setzt Kultur auf Meeresbewohner und ersetzt alte Kultur-Grants', () => {
         const e = createEditor({ race: 'Hydrit', culture: 'Landbewohner' });
         e.applyCultureLandbewohner();
 
-        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'min', value: 2 });
 
         e.handleRaceChange();
 
         expect(e.culture).toBe('Meeresbewohner');
-        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toBeUndefined();
         expect(e.cultureGrants['Beruf: Farmer']).toBeUndefined();
-        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Viehzüchter')).toBeUndefined();
 
         e.handleCultureChange();
 
@@ -686,7 +686,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(barbar.isCultureSelectable('Landbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Stadtbewohner')).toBe(true);
-        expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(true);
+        expect(barbar.isCultureSelectable('Meeresbewohner')).toBe(false);
         expect(barbar.isCultureSelectable('Nomade')).toBe(true);
         expect(barbar.isCultureSelectable('Ruinenbewohner')).toBe(true);
         expect(barbar.isCultureSelectable('Untergrundbewohner')).toBe(true);
@@ -717,14 +717,14 @@ describe('charEditor – Kultur-Logik', () => {
         const e = createEditor({ race: 'Techno', culture: 'Landbewohner' });
         e.applyCultureLandbewohner();
 
-        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'min', value: 2 });
 
         e.handleRaceChange();
 
         expect(e.culture).toBe('Bunkermensch');
         expect(e.raceLockedByBunkermenschCulture).toBe(false);
-        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
-        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Viehzüchter')).toBeUndefined();
 
         e.handleCultureChange();
 
@@ -751,13 +751,13 @@ describe('charEditor – Kultur-Logik', () => {
         const e = createEditor({ race: 'Präkristofluu', culture: 'Landbewohner' });
         e.applyCultureLandbewohner();
 
-        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'min', value: 2 });
 
         e.handleRaceChange();
 
         expect(e.culture).toBe('Mensch des 21. Jahrhunderts');
-        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
-        expect(e.skills.find(s => s.name === 'Beruf: Landwirt')).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Viehzüchter')).toBeUndefined();
 
         e.handleCultureChange();
 
@@ -803,7 +803,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.race).toBe('');
         expect(e.raceLockedByBunkermenschCulture).toBe(false);
         expect(e.raceGrants).toEqual({});
-        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Feuerwaffen).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Feuerwaffen')).toBeUndefined();
         expect(e.isRaceSelectable('Barbar')).toBe(true);
@@ -948,11 +948,30 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.getGrant('Bildung')).toEqual({ type: 'min', value: 4 });
     });
 
-    it('Landbewohner erhält Viehzüchter und Landwirt als Exact-Grants', () => {
+    it('Landbewohner erhält einen steigerbaren Beruf-Wahlbonus und Kunde Wetter', () => {
         const e = createEditor();
         e.applyCultureLandbewohner();
-        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'exact', value: 2 });
-        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'exact', value: 2 });
+
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants['Beruf: Landwirt']).toBeUndefined();
+        expect(e.cultureGrants['Kunde: Wetter']).toEqual({ type: 'min', value: 1 });
+        expect(e.landbewohnerProfessionSkill).toBe('Beruf: Viehzüchter');
+
+        const profession = e.skills.find(s => s.name === 'Beruf: Viehzüchter');
+        expect(profession).toMatchObject({ value: 2, badge: 'Kultur', valueDisabled: false });
+    });
+
+    it('Landbewohner-Wahlbonus ersetzt die vorherige Berufsoption', () => {
+        const e = createEditor();
+        e.applyCultureLandbewohner();
+
+        e.setLandbewohnerProfessionSkill('Beruf: Landwirt');
+
+        expect(e.cultureGrants['Beruf: Viehzüchter']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Beruf: Viehzüchter')).toBeUndefined();
+        expect(e.cultureGrants['Beruf: Landwirt']).toEqual({ type: 'min', value: 2 });
+        expect(e.cultureGrants['Kunde: Wetter']).toEqual({ type: 'min', value: 1 });
+        expect(e.landbewohnerProfessionSkill).toBe('Beruf: Landwirt');
     });
 
     it('Stadtbewohner erhält Unterhaltungs-Skill und Beruf/Kunde', () => {
