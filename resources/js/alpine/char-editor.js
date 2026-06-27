@@ -430,7 +430,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return numericAttributeConfig('baseMin', -1);
     },
 
-    attributeMax() {
+    attributeBaseMax() {
         return numericAttributeConfig('baseMax', 1);
     },
 
@@ -457,7 +457,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     getAttributeMax(id) {
         return Math.min(
             this.attributeAbsoluteMax(),
-            Math.max(this.getAttributeMin(id), this.attributeMax() + this.attributeModifier(id)),
+            Math.max(this.getAttributeMin(id), this.attributeBaseMax() + this.attributeModifier(id)),
         );
     },
 
@@ -1030,7 +1030,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             if (!ATTRIBUTE_IDS.includes(id)) return;
             const modifiedValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : modifier;
             const paidValue = modifiedValue - modifier;
-            this.attributes[id] = Math.max(this.attributeBaseMin(), Math.min(paidValue, this.attributeMax()));
+            this.attributes[id] = Math.max(this.attributeBaseMin(), Math.min(paidValue, this.attributeBaseMax()));
         });
     },
 

@@ -2,6 +2,7 @@ import { expect, test as base } from '@playwright/test';
 import { waitForUrl, withNavigationDefaults } from './utils/navigation.js';
 
 const defaultStableActionFallbackTimeout = 1500;
+const defaultNavigationRetryAttemptTimeout = 8000;
 const parseTimeout = (value, fallback = defaultStableActionFallbackTimeout) => {
     const parsedValue = Number(value);
 
@@ -11,11 +12,16 @@ const stableActionFallbackTimeout = parseTimeout(
     process.env.PLAYWRIGHT_STABLE_ACTION_FALLBACK_TIMEOUT
         ?? process.env.PLAYWRIGHT_STABLE_CLICK_FALLBACK_TIMEOUT,
 );
+const navigationRetryAttemptTimeout = parseTimeout(
+    process.env.PLAYWRIGHT_GOTO_RETRY_ATTEMPT_TIMEOUT,
+    defaultNavigationRetryAttemptTimeout,
+);
 const locatorStableActionPatchSymbol = Symbol.for('omxfc.playwright.locatorStableActionFallback');
 const retryableNavigationErrors = [
     'net::ERR_EMPTY_RESPONSE',
     'net::ERR_CONNECTION_RESET',
     'net::ERR_CONNECTION_REFUSED',
+    'Timeout',
 ];
 
 const disableMotionForPlaywright = () => {
@@ -99,6 +105,9 @@ const shouldRetryNavigationError = (error) => retryableNavigationErrors
 const gotoWithRetry = async (goto, url, options = {}) => {
     const navigationOptions = withNavigationDefaults(options);
     const retryDelays = [0, 250, 750];
+    const attemptOptions = navigationOptions.timeout === undefined
+        ? { ...navigationOptions, timeout: navigationRetryAttemptTimeout }
+        : navigationOptions;
 
     for (let attempt = 0; attempt < retryDelays.length; attempt += 1) {
         if (retryDelays[attempt] > 0) {
@@ -106,7 +115,7 @@ const gotoWithRetry = async (goto, url, options = {}) => {
         }
 
         try {
-            return await goto(url, navigationOptions);
+            return await goto(url, attemptOptions);
         } catch (error) {
             const isLastAttempt = attempt === retryDelays.length - 1;
 

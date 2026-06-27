@@ -169,14 +169,14 @@ describe('charEditor – Registrierung', () => {
 });
 
 describe('charEditor – Attribut-Clamping', () => {
-    it('begrenzt Attribut auf attributeMax (Nicht-Barbar)', () => {
+    it('begrenzt Attribut auf attributeBaseMax (Nicht-Barbar)', () => {
         const e = createEditor();
         e.attributes.st = 5;
         e.clampAttribute('st');
         expect(e.attributes.st).toBe(1); // max für Nicht-Barbar
     });
 
-    it('begrenzt Attribut auf attributeMax (Barbar)', () => {
+    it('begrenzt Attribut auf attributeBaseMax (Barbar)', () => {
         const e = createEditor({ race: 'Barbar' });
         e.applyRaceBarbar();
         e.attributes.st = 5;
