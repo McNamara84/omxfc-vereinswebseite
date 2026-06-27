@@ -83,7 +83,7 @@
                     $count = (int) ($advantageCounts[$adv] ?? 1);
                     $detail = trim((string) ($advantageDetails[$adv] ?? ''));
                 @endphp
-                <li>{{ $adv }}@if($count > 1) ({{ $count }}x)@endif @if($detail !== '') - {{ $detail }}@endif</li>
+                <li>{{ $adv }}@if($count > 1) ({{ $count }}x)@endif@if($detail !== '') - {{ $detail }}@endif</li>
             @endforeach
         </ul>
         <strong>Nachteile</strong>

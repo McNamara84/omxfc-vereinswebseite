@@ -7,7 +7,65 @@
 
 let editorFactory;
 
+const specialRuleConfig = {
+    advantages: [
+        'Anführer',
+        'Gestaltwandler',
+        'Gesteigertes Attribut',
+        'Gesteigerter Sinn',
+        'High-Tech-Ausrüstung',
+        'Kampfreflexe',
+        'Kaltblütig',
+        'Kiemen',
+        'Kind zweier Welten',
+        'Nachtsicht',
+        'Natürliche Waffen',
+        'Panzerung',
+        'Psychische Kraft',
+        'Psychisches Reservoir',
+        'Regeneration',
+        'Scharfschütze',
+        'Schnell',
+        'Sprachbegabt',
+        'Tiergefährte',
+        'Zäh',
+    ],
+    disadvantages: [
+        'Abergläubisch',
+        'Abhängige',
+        'Anfälligkeit gegen Wahnsinn',
+        'Auffällig',
+        'Blutdurst',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Lichtscheu',
+        'Primitiv',
+        'Taratzenfutter',
+        'Tödliche Immunschwäche',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ],
+    advantageCosts: {
+        Gestaltwandler: 3,
+        Zäh: 0,
+    },
+    repeatableAdvantages: ['Panzerung'],
+    advantageDetailRequired: ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Tiergefährte'],
+    disadvantageDetailRequired: [
+        'Abergläubisch',
+        'Abhängige',
+        'Ehrenkodex',
+        'Feind',
+        'Gejagt',
+        'Verpflichtung',
+        'Verwundbarkeit',
+    ],
+};
+
 beforeEach(async () => {
+    window.rpgCharEditorRules = JSON.parse(JSON.stringify(specialRuleConfig));
+
     // Mock Alpine.data um die Registrierung abzufangen
     window.Alpine = {
         data: vi.fn((name, factory) => {

@@ -131,6 +131,14 @@ class RpgCharEditorController extends Controller
         'Verwundbarkeit',
     ];
 
+    private const SPECIAL_DETAIL_MAX_ITEMS = 32;
+
+    private const SPECIAL_DETAIL_MAX_CHARS = 255;
+
+    private const ADVANTAGE_COUNT_MAX_ITEMS = 20;
+
+    private const ADVANTAGE_COUNT_MAX_VALUE = 20;
+
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
     private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
@@ -147,12 +155,30 @@ class RpgCharEditorController extends Controller
 
     private const PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
 
+    public static function specialRuleConfig(): array
+    {
+        return [
+            'advantages' => self::ADVANTAGE_VALUES,
+            'disadvantages' => self::DISADVANTAGE_VALUES,
+            'advantageCosts' => self::ADVANTAGE_COSTS,
+            'repeatableAdvantages' => self::REPEATABLE_ADVANTAGES,
+            'advantageDetailRequired' => self::ADVANTAGE_DETAIL_REQUIRED,
+            'disadvantageDetailRequired' => self::DISADVANTAGE_DETAIL_REQUIRED,
+        ];
+    }
+
     /**
      * Show the character editor form.
      */
     public function index()
     {
-        return view('rpg.char-editor');
+        $specialRules = self::specialRuleConfig();
+
+        return view('rpg.char-editor', [
+            'specialRules' => $specialRules,
+            'advantages' => $specialRules['advantages'],
+            'disadvantages' => $specialRules['disadvantages'],
+        ]);
     }
 
     /**
@@ -199,15 +225,21 @@ class RpgCharEditorController extends Controller
         $request->validate([
             'portrait' => 'nullable|image|max:2048',
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
+            'advantage_details' => 'nullable|array|max:'.self::SPECIAL_DETAIL_MAX_ITEMS,
+            'advantage_details.*' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
+            'disadvantage_details' => 'nullable|array|max:'.self::SPECIAL_DETAIL_MAX_ITEMS,
+            'disadvantage_details.*' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
+            'advantage_counts' => 'nullable|array|max:'.self::ADVANTAGE_COUNT_MAX_ITEMS,
+            'advantage_counts.*' => 'nullable|integer|min:1|max:'.self::ADVANTAGE_COUNT_MAX_VALUE,
         ]);
 
         $character = $this->characterPayload($request);
         $attributes = $this->attributesPayload($request->input('attributes', []));
         $skills = $this->skillsPayload($request->input('skills', []));
-        $advantages = $this->listPayload($request->input('advantages', []));
-        $disadvantages = $this->listPayload($request->input('disadvantages', []));
-        $advantageDetails = $this->specialDetailsPayload($request->input('advantage_details', []));
-        $disadvantageDetails = $this->specialDetailsPayload($request->input('disadvantage_details', []));
+        $advantages = $this->canonicalSpecialList($this->listPayload($request->input('advantages', [])));
+        $disadvantages = $this->canonicalSpecialList($this->listPayload($request->input('disadvantages', [])));
+        $advantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('advantage_details', [])), $advantages);
+        $disadvantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('disadvantage_details', [])), $disadvantages);
         $advantageCounts = $this->advantageCountsPayload($request->input('advantage_counts', []));
 
         $this->validateCharacterRules(
@@ -961,6 +993,11 @@ class RpgCharEditorController extends Controller
         }
 
         return $payload;
+    }
+
+    private function filterSpecialMapByNames(array $values, array $names): array
+    {
+        return array_intersect_key($values, array_flip($names));
     }
 
     private function canonicalSpecialName(string $value): string

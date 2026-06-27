@@ -1,0 +1,86 @@
+<?php
+
+namespace Tests\Unit;
+
+use App\Http\Controllers\RpgCharEditorController;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+
+class RpgCharEditorRuleDriftTest extends TestCase
+{
+    public function test_special_rule_config_is_the_backend_source_for_editor_rules(): void
+    {
+        $config = RpgCharEditorController::specialRuleConfig();
+
+        $this->assertSame([
+            'advantages',
+            'disadvantages',
+            'advantageCosts',
+            'repeatableAdvantages',
+            'advantageDetailRequired',
+            'disadvantageDetailRequired',
+        ], array_keys($config));
+        $this->assertSame($this->controllerConstant('ADVANTAGE_VALUES'), $config['advantages']);
+        $this->assertSame($this->controllerConstant('DISADVANTAGE_VALUES'), $config['disadvantages']);
+        $this->assertSame($this->controllerConstant('ADVANTAGE_COSTS'), $config['advantageCosts']);
+        $this->assertSame($this->controllerConstant('REPEATABLE_ADVANTAGES'), $config['repeatableAdvantages']);
+        $this->assertSame($this->controllerConstant('ADVANTAGE_DETAIL_REQUIRED'), $config['advantageDetailRequired']);
+        $this->assertSame($this->controllerConstant('DISADVANTAGE_DETAIL_REQUIRED'), $config['disadvantageDetailRequired']);
+    }
+
+    public function test_frontend_rule_metadata_covers_backend_special_rules(): void
+    {
+        $source = $this->frontendSource();
+        $config = RpgCharEditorController::specialRuleConfig();
+
+        $this->assertStringContainsString('window.rpgCharEditorRules', $source);
+        $this->assertStringContainsString("listFromSpecialRuleConfig('advantages'", $source);
+        $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantages'", $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('advantageCosts'", $source);
+        $this->assertStringContainsString("listFromSpecialRuleConfig('repeatableAdvantages'", $source);
+        $this->assertStringContainsString("listFromSpecialRuleConfig('advantageDetailRequired'", $source);
+        $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantageDetailRequired'", $source);
+
+        $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
+        $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
+    }
+
+    private function controllerConstant(string $name): array
+    {
+        $constant = (new ReflectionClass(RpgCharEditorController::class))->getReflectionConstant($name);
+
+        $this->assertNotNull($constant, "Controller constant {$name} is missing.");
+
+        return $constant->getValue();
+    }
+
+    private function frontendMetadataNames(string $constantName): array
+    {
+        $this->assertMatchesRegularExpression(
+            '/const '.preg_quote($constantName, '/').' = \{(.*?)\};/s',
+            $this->frontendSource(),
+            "Frontend metadata constant {$constantName} is missing.",
+        );
+
+        preg_match('/const '.preg_quote($constantName, '/').' = \{(.*?)\};/s', $this->frontendSource(), $matches);
+
+        $names = [];
+
+        foreach (preg_split('/\R/', $matches[1]) ?: [] as $line) {
+            if (preg_match('/^\s*["\']([^"\']+)["\']:\s*\{/', $line, $nameMatches)) {
+                $names[] = stripcslashes($nameMatches[1]);
+            }
+        }
+
+        return $names;
+    }
+
+    private function frontendSource(): string
+    {
+        $source = file_get_contents(dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'resources/js/alpine/char-editor.js');
+
+        $this->assertIsString($source);
+
+        return $source;
+    }
+}

@@ -72,6 +72,22 @@ class RpgCharEditorAccessTest extends TestCase
             ->assertSee('Charakter-Editor');
     }
 
+    public function test_editor_exposes_special_rule_descriptions_to_assistive_technology(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $this->actingAs($member)
+            ->get('/rpg/char-editor')
+            ->assertOk()
+            ->assertSee('window.rpgCharEditorRules', false)
+            ->assertSee('aria-describedby="advantage-description-0"', false)
+            ->assertSee('id="advantage-description-0"', false)
+            ->assertSee('x-text="advantageTooltip(', false)
+            ->assertSee('aria-describedby="disadvantage-description-0"', false)
+            ->assertSee('id="disadvantage-description-0"', false)
+            ->assertSee('x-text="disadvantageTooltip(', false);
+    }
+
     public function test_global_admin_can_access_editor_with_different_current_team(): void
     {
         $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);

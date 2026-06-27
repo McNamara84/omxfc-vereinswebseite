@@ -140,6 +140,32 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertStringNotContainsString('maennlich', $html);
     }
 
+    public function test_char_sheet_does_not_render_trailing_spaces_for_plain_advantages(): void
+    {
+        $html = view('rpg.char-sheet', [
+            'character' => [
+                'player_name' => '',
+                'character_name' => '',
+                'gender' => 'maennlich',
+                'race' => 'Barbar',
+                'culture' => 'Landbewohner',
+                'description' => '',
+                'equipment' => '',
+            ],
+            'attributes' => [],
+            'skills' => [],
+            'advantages' => ['Zäh'],
+            'disadvantages' => [],
+            'advantage_details' => [],
+            'disadvantage_details' => [],
+            'advantage_counts' => [],
+            'portrait' => null,
+        ])->render();
+
+        $this->assertStringContainsString('<li>Zäh</li>', $html);
+        $this->assertStringNotContainsString('<li>Zäh </li>', $html);
+    }
+
     public function test_pdf_export_post_redirects_to_get_viewer_url(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -300,8 +326,8 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Beruf: Landwirt', 'value' => '2'],
                         ['name' => 'Kunde: Wetter', 'value' => '1'],
                     ]
-                    && $data['advantages'] === ['Zaeh', 'Anfuehrer']
-                    && $data['disadvantages'] === ['Aberglaeubisch']
+                    && $data['advantages'] === ['Zäh', 'Anführer']
+                    && $data['disadvantages'] === ['Abergläubisch']
                     && $data['portrait'] === null;
             }))
             ->andReturn(new class extends PdfBuilder
@@ -1373,8 +1399,8 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Fahren', 'value' => ''],
                         ['name' => 'Diebeskunst', 'value' => '4'],
                     ]
-                    && $data['advantages'] === ['Zaeh', 'Anfuehrer']
-                    && $data['disadvantages'] === ['Aberglaeubisch'];
+                    && $data['advantages'] === ['Zäh', 'Anführer']
+                    && $data['disadvantages'] === ['Abergläubisch'];
             }))
             ->andReturn(new class extends PdfBuilder
             {
@@ -1488,8 +1514,10 @@ class RpgCharEditorPdfTest extends TestCase
 
         Pdf::shouldReceive('view')
             ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['advantage_details']['Gesteigertes Attribut'] ?? null) === 'ST +1'
-                && ! array_key_exists('Gesteigertes_Attribut', $data['advantage_details'])))
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantages'] === ['Zäh', 'Gesteigertes Attribut']
+                && $data['disadvantages'] === ['Auffällig']
+                && $data['advantage_details'] === ['Gesteigertes Attribut' => 'ST +1']
+                && $data['disadvantage_details'] === []))
             ->andReturn(new class extends PdfBuilder
             {
                 public function toResponse($request): Response
@@ -1500,8 +1528,12 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'advantages' => ['Zäh', 'Gesteigertes Attribut'],
-            'advantage_details' => ['Gesteigertes_Attribut' => 'ST +1'],
+            'advantage_details' => [
+                'Gesteigertes_Attribut' => 'ST +1',
+                'Tiergefaehrte' => 'Rabe',
+            ],
             'disadvantages' => ['Auffaellig'],
+            'disadvantage_details' => ['Feind' => 'Rivalin'],
         ]));
 
         $response->assertOk();
@@ -1533,6 +1565,25 @@ class RpgCharEditorPdfTest extends TestCase
         ]));
 
         $response->assertSessionHasErrors('disadvantage_details');
+    }
+
+    public function test_pdf_export_validates_special_detail_and_count_payload_limits(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantage_details' => ['Gesteigertes_Attribut' => str_repeat('x', 256)],
+            'disadvantage_details' => ['Feind' => str_repeat('x', 256)],
+            'advantage_counts' => ['Panzerung' => 21],
+        ]));
+
+        $response->assertSessionHasErrors([
+            'advantage_details.Gesteigertes_Attribut',
+            'disadvantage_details.Feind',
+            'advantage_counts.Panzerung',
+        ]);
     }
 
     public function test_pdf_export_rejects_counts_for_non_repeatable_advantages(): void

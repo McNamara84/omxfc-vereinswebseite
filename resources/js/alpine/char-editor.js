@@ -102,46 +102,96 @@ const RACE_RULE_SUMMARIES = {
         disadvantages: 'Keine rassenbedingten Pflichtnachteile',
     },
 };
-const ADVANTAGE_RULES = [
-    { name: 'Anführer', w66: '11-12', ranges: [[11, 12]], cost: 1, description: 'Natürlicher Anführer; +2 auf Proben, um Leute zu befehligen oder zu überzeugen.' },
-    { name: 'Gestaltwandler', w66: '13', ranges: [[13, 13]], cost: 3, description: 'Kann Gestalt und Stimme verändern; zählt bei der Erschaffung wie drei Vorteile.' },
-    { name: 'Gesteigertes Attribut', w66: '14-24', ranges: [[14, 24]], cost: 1, requiresDetail: true, detailPlaceholder: 'Attribut notieren', description: '+1 auf ein Attribut nach Wahl; ein bereits erhöhtes Attribut darf nur einmal gewählt werden.' },
-    { name: 'Gesteigerter Sinn', w66: '25-26', ranges: [[25, 26]], cost: 1, requiresDetail: true, detailPlaceholder: 'Sinn notieren', description: '+3 auf Wahrnehmungsproben mit einem gewählten Sinn.' },
-    { name: 'High-Tech-Ausrüstung', w66: '31-32', ranges: [[31, 32]], cost: 1, description: 'Besitzt vier High-Tech-Gegenstände; SL-Zustimmung erforderlich.' },
-    { name: 'Kampfreflexe', w66: '33-34', ranges: [[33, 34]], cost: 1, description: '+2 Bonus auf alle Ausweichen-Proben.' },
-    { name: 'Kaltblütig', w66: '35-36', ranges: [[35, 36]], cost: 1, description: '+1 Bonus auf alle Verteidigungswürfe.' },
-    { name: 'Kiemen', w66: '41', ranges: [[41, 41]], cost: 1, description: 'Kann beliebig lange unter Wasser atmen.' },
-    { name: 'Kind zweier Welten', w66: '42', ranges: [[42, 42]], cost: 1, description: 'Kann sowohl Bildung als auch Intuition lernen.' },
-    { name: 'Nachtsicht', w66: '43-44', ranges: [[43, 44]], cost: 1, description: 'Kann ohne Abzüge im Dunkeln sehen.' },
-    { name: 'Natürliche Waffen', w66: '45', ranges: [[45, 45]], cost: 1, description: '+1 auf Nahkampf durch natürliche Waffen.' },
-    { name: 'Panzerung', w66: '46', ranges: [[46, 46]], cost: 1, repeatable: true, description: 'Besitzt Schutzfaktor 1; mehrfach wählbar und additiv.' },
-    { name: 'Psychische Kraft', w66: '51', ranges: [[51, 51]], cost: 1, description: 'Erhält eine besondere Kraft.' },
-    { name: 'Psychisches Reservoir', w66: '52', ranges: [[52, 52]], cost: 1, description: 'Höchster psychischer FW zählt bei der PEP-Ermittlung doppelt.' },
-    { name: 'Regeneration', w66: '53', ranges: [[53, 53]], cost: 1, description: 'Heilt mit zehnfacher Geschwindigkeit.' },
-    { name: 'Scharfschütze', w66: '54', ranges: [[54, 54]], cost: 1, description: '+1 auf Fernkampfangriffe und +1 Schaden in Kernschussreichweite.' },
-    { name: 'Schnell', w66: '55-56', ranges: [[55, 56]], cost: 1, description: '+2 auf Grundbewegungsweite und +1 auf Initiative.' },
-    { name: 'Sprachbegabt', w66: '61', ranges: [[61, 61]], cost: 1, description: 'Kann Sprachen und Dialekte ohne Hilfe lernen und beherrscht bis zu drei pro Fertigkeitspunkt.' },
-    { name: 'Tiergefährte', w66: '62-64', ranges: [[62, 64]], cost: 1, requiresDetail: true, detailPlaceholder: 'Tier und Besonderheit notieren', description: 'Erhält mit SL-Zustimmung ein Tier als dauerhaften Begleiter.' },
-    { name: 'Zäh', w66: '65-66', ranges: [[65, 66]], cost: 0, description: 'Schutzfaktor +1 durch Zähigkeit und Heldentum; im Editor als kostenlose Pflichtregel aktiv.' },
-];
-const DISADVANTAGE_RULES = [
-    { name: 'Abergläubisch', w66: '11-16', ranges: [[11, 16]], requiresDetail: true, detailPlaceholder: 'Mindestens drei Eigenarten notieren', description: 'Muss mindestens drei Eigenarten wählen, die das tägliche Handeln beeinflussen.' },
-    { name: 'Abhängige', w66: '21', ranges: [[21, 21]], requiresDetail: true, detailPlaceholder: 'Person oder Familie notieren', description: 'Muss ständig Verwandte oder Familie beschützen.' },
-    { name: 'Anfälligkeit gegen Wahnsinn', w66: '22', ranges: [[22, 22]], description: 'Wahnsinn tritt bei bestimmten Bedingungen ein; die Dauer des Anfalls wird vom SL bestimmt.' },
-    { name: 'Auffällig', w66: '23-24', ranges: [[23, 24]], description: 'Ist wegen ungewöhnlichen Aussehens oder Verhaltens leicht zu erkennen.' },
-    { name: 'Blutdurst', w66: '25', ranges: [[25, 25]], description: 'Benötigt alle 24 Stunden frisches Blut oder erleidet kumulative Abzüge.' },
-    { name: 'Ehrenkodex', w66: '26-36', ranges: [[26, 36]], requiresDetail: true, detailPlaceholder: 'Kodex notieren', description: 'Folgt einem definierenden Ehrenkodex, der das tägliche Handeln einschränkt.' },
-    { name: 'Feind', w66: '41-44', ranges: [[41, 44]], requiresDetail: true, detailPlaceholder: 'Volk, Gruppe oder Person notieren', description: 'Ist mit einem Volk oder einer mächtigen Person verfeindet.' },
-    { name: 'Gejagt', w66: '45-46', ranges: [[45, 46]], requiresDetail: true, detailPlaceholder: 'Verfolger notieren', description: 'Wird von fast allen Völkern gehasst und gejagt.' },
-    { name: 'Lichtscheu', w66: '51', ranges: [[51, 51]], description: 'Erleidet bei ungeschützter Haut unter Licht Abzüge auf alle Proben.' },
-    { name: 'Primitiv', w66: '52-53', ranges: [[52, 53]], description: 'Kann niemals Bildung lernen und keine technischen Gerätschaften benutzen.' },
-    { name: 'Taratzenfutter', w66: '54-63', ranges: [[54, 63]], description: 'Alle Schadenswürfe werden um 1 erhöht.' },
-    { name: 'Tödliche Immunschwäche', w66: '64', ranges: [[64, 64]], description: 'Ohne Schutzanzug treten nach Oberflächenkontakt regelmäßig schwere Symptome ein.' },
-    { name: 'Verpflichtung', w66: '65', ranges: [[65, 65]], requiresDetail: true, detailPlaceholder: 'Organisation, Gruppe oder Person notieren', description: 'Ist einer Organisation, Gruppe oder Person verpflichtet, die den Charakter beansprucht.' },
-    { name: 'Verwundbarkeit', w66: '66', ranges: [[66, 66]], requiresDetail: true, detailPlaceholder: 'Mittel oder Quelle notieren', description: 'Wird durch ein bestimmtes Mittel besonders schwer verwundet; Robustheit zählt nicht gegen Schaden.' },
-];
-const ADVANTAGE_RULES_BY_NAME = Object.fromEntries(ADVANTAGE_RULES.map(rule => [rule.name, rule]));
-const DISADVANTAGE_RULES_BY_NAME = Object.fromEntries(DISADVANTAGE_RULES.map(rule => [rule.name, rule]));
+const specialRuleConfig = () => (typeof window === 'undefined' ? {} : (window.rpgCharEditorRules || {}));
+const ADVANTAGE_RULE_METADATA = {
+    "Anführer": { w66: "11-12", ranges: [[11, 12]], description: "Natürlicher Anführer; +2 auf Proben, um Leute zu befehligen oder zu überzeugen." },
+    "Gestaltwandler": { w66: "13", ranges: [[13, 13]], description: "Kann Gestalt und Stimme verändern; zählt bei der Erschaffung wie drei Vorteile." },
+    "Gesteigertes Attribut": { w66: "14-24", ranges: [[14, 24]], detailPlaceholder: "Attribut notieren", description: "+1 auf ein Attribut nach Wahl; ein bereits erhöhtes Attribut darf nur einmal gewählt werden." },
+    "Gesteigerter Sinn": { w66: "25-26", ranges: [[25, 26]], detailPlaceholder: "Sinn notieren", description: "+3 auf Wahrnehmungsproben mit einem gewählten Sinn." },
+    "High-Tech-Ausrüstung": { w66: "31-32", ranges: [[31, 32]], description: "Besitzt vier High-Tech-Gegenstände; SL-Zustimmung erforderlich." },
+    "Kampfreflexe": { w66: "33-34", ranges: [[33, 34]], description: "+2 Bonus auf alle Ausweichen-Proben." },
+    "Kaltblütig": { w66: "35-36", ranges: [[35, 36]], description: "+1 Bonus auf alle Verteidigungswürfe." },
+    "Kiemen": { w66: "41", ranges: [[41, 41]], description: "Kann beliebig lange unter Wasser atmen." },
+    "Kind zweier Welten": { w66: "42", ranges: [[42, 42]], description: "Kann sowohl Bildung als auch Intuition lernen." },
+    "Nachtsicht": { w66: "43-44", ranges: [[43, 44]], description: "Kann ohne Abzüge im Dunkeln sehen." },
+    "Natürliche Waffen": { w66: "45", ranges: [[45, 45]], description: "+1 auf Nahkampf durch natürliche Waffen." },
+    "Panzerung": { w66: "46", ranges: [[46, 46]], description: "Besitzt Schutzfaktor 1; mehrfach wählbar und additiv." },
+    "Psychische Kraft": { w66: "51", ranges: [[51, 51]], description: "Erhält eine besondere Kraft." },
+    "Psychisches Reservoir": { w66: "52", ranges: [[52, 52]], description: "Höchster psychischer FW zählt bei der PEP-Ermittlung doppelt." },
+    "Regeneration": { w66: "53", ranges: [[53, 53]], description: "Heilt mit zehnfacher Geschwindigkeit." },
+    "Scharfschütze": { w66: "54", ranges: [[54, 54]], description: "+1 auf Fernkampfangriffe und +1 Schaden in Kernschussreichweite." },
+    "Schnell": { w66: "55-56", ranges: [[55, 56]], description: "+2 auf Grundbewegungsweite und +1 auf Initiative." },
+    "Sprachbegabt": { w66: "61", ranges: [[61, 61]], description: "Kann Sprachen und Dialekte ohne Hilfe lernen und beherrscht bis zu drei pro Fertigkeitspunkt." },
+    "Tiergefährte": { w66: "62-64", ranges: [[62, 64]], detailPlaceholder: "Tier und Besonderheit notieren", description: "Erhält mit SL-Zustimmung ein Tier als dauerhaften Begleiter." },
+    "Zäh": { w66: "65-66", ranges: [[65, 66]], description: "Schutzfaktor +1 durch Zähigkeit und Heldentum; im Editor als kostenlose Pflichtregel aktiv." },
+};
+const DISADVANTAGE_RULE_METADATA = {
+    "Abergläubisch": { w66: "11-16", ranges: [[11, 16]], detailPlaceholder: "Mindestens drei Eigenarten notieren", description: "Muss mindestens drei Eigenarten wählen, die das tägliche Handeln beeinflussen." },
+    "Abhängige": { w66: "21", ranges: [[21, 21]], detailPlaceholder: "Person oder Familie notieren", description: "Muss ständig Verwandte oder Familie beschützen." },
+    "Anfälligkeit gegen Wahnsinn": { w66: "22", ranges: [[22, 22]], description: "Wahnsinn tritt bei bestimmten Bedingungen ein; die Dauer des Anfalls wird vom SL bestimmt." },
+    "Auffällig": { w66: "23-24", ranges: [[23, 24]], description: "Ist wegen ungewöhnlichen Aussehens oder Verhaltens leicht zu erkennen." },
+    "Blutdurst": { w66: "25", ranges: [[25, 25]], description: "Benötigt alle 24 Stunden frisches Blut oder erleidet kumulative Abzüge." },
+    "Ehrenkodex": { w66: "26-36", ranges: [[26, 36]], detailPlaceholder: "Kodex notieren", description: "Folgt einem definierenden Ehrenkodex, der das tägliche Handeln einschränkt." },
+    "Feind": { w66: "41-44", ranges: [[41, 44]], detailPlaceholder: "Volk, Gruppe oder Person notieren", description: "Ist mit einem Volk oder einer mächtigen Person verfeindet." },
+    "Gejagt": { w66: "45-46", ranges: [[45, 46]], detailPlaceholder: "Verfolger notieren", description: "Wird von fast allen Völkern gehasst und gejagt." },
+    "Lichtscheu": { w66: "51", ranges: [[51, 51]], description: "Erleidet bei ungeschützter Haut unter Licht Abzüge auf alle Proben." },
+    "Primitiv": { w66: "52-53", ranges: [[52, 53]], description: "Kann niemals Bildung lernen und keine technischen Gerätschaften benutzen." },
+    "Taratzenfutter": { w66: "54-63", ranges: [[54, 63]], description: "Alle Schadenswürfe werden um 1 erhöht." },
+    "Tödliche Immunschwäche": { w66: "64", ranges: [[64, 64]], description: "Ohne Schutzanzug treten nach Oberflächenkontakt regelmäßig schwere Symptome ein." },
+    "Verpflichtung": { w66: "65", ranges: [[65, 65]], detailPlaceholder: "Organisation, Gruppe oder Person notieren", description: "Ist einer Organisation, Gruppe oder Person verpflichtet, die den Charakter beansprucht." },
+    "Verwundbarkeit": { w66: "66", ranges: [[66, 66]], detailPlaceholder: "Mittel oder Quelle notieren", description: "Wird durch ein bestimmtes Mittel besonders schwer verwundet; Robustheit zählt nicht gegen Schaden." },
+};
+
+const listFromSpecialRuleConfig = (key, fallback = []) => {
+    const config = specialRuleConfig();
+
+    return Array.isArray(config[key]) ? config[key] : fallback;
+};
+
+const objectFromSpecialRuleConfig = (key) => {
+    const value = specialRuleConfig()[key];
+
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+
+const numericRuleCost = (value) => {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : 1;
+};
+
+const buildAdvantageRules = () => {
+    const costs = objectFromSpecialRuleConfig('advantageCosts');
+    const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
+    const detailRequiredAdvantages = new Set(listFromSpecialRuleConfig('advantageDetailRequired'));
+
+    return listFromSpecialRuleConfig('advantages', Object.keys(ADVANTAGE_RULE_METADATA))
+        .map((name) => ({
+            name,
+            ...(ADVANTAGE_RULE_METADATA[name] || {}),
+            cost: numericRuleCost(costs[name]),
+            repeatable: repeatableAdvantages.has(name),
+            requiresDetail: detailRequiredAdvantages.has(name),
+        }))
+        .filter((rule) => Array.isArray(rule.ranges));
+};
+
+const buildDisadvantageRules = () => {
+    const detailRequiredDisadvantages = new Set(listFromSpecialRuleConfig('disadvantageDetailRequired'));
+
+    return listFromSpecialRuleConfig('disadvantages', Object.keys(DISADVANTAGE_RULE_METADATA))
+        .map((name) => ({
+            name,
+            ...(DISADVANTAGE_RULE_METADATA[name] || {}),
+            requiresDetail: detailRequiredDisadvantages.has(name),
+        }))
+        .filter((rule) => Array.isArray(rule.ranges));
+};
+
+const advantageRules = () => buildAdvantageRules();
+const disadvantageRules = () => buildDisadvantageRules();
+const advantageRulesByName = () => Object.fromEntries(advantageRules().map(rule => [rule.name, rule]));
+const disadvantageRulesByName = () => Object.fromEntries(disadvantageRules().map(rule => [rule.name, rule]));
 const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
 const NOSFERA_RACE = 'Nosfera';
 const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
@@ -305,11 +355,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     advantageRule(value) {
-        return ADVANTAGE_RULES_BY_NAME[value] || null;
+        return advantageRulesByName()[value] || null;
     },
 
     disadvantageRule(value) {
-        return DISADVANTAGE_RULES_BY_NAME[value] || null;
+        return disadvantageRulesByName()[value] || null;
     },
 
     advantageRollLabel(value) {
@@ -1381,7 +1431,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     clampRepeatableAdvantageCounts() {
-        Object.entries(ADVANTAGE_RULES_BY_NAME)
+        Object.entries(advantageRulesByName())
             .filter(([, rule]) => rule.repeatable)
             .forEach(([value]) => this.setAdvantageCount(value, this.advantageCount(value)));
     },
@@ -1447,7 +1497,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     rollSpecial(type) {
         const roll = this.rollW66();
         const isAdvantage = type === 'advantage';
-        const rule = this.ruleForRoll(isAdvantage ? ADVANTAGE_RULES : DISADVANTAGE_RULES, roll.value);
+        const rule = this.ruleForRoll(isAdvantage ? advantageRules() : disadvantageRules(), roll.value);
         const result = {
             type,
             value: roll.value,

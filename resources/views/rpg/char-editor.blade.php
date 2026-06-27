@@ -1,44 +1,14 @@
 @php
-    $advantages = [
-        'Anführer',
-        'Gestaltwandler',
-        'Gesteigertes Attribut',
-        'Gesteigerter Sinn',
-        'High-Tech-Ausrüstung',
-        'Kampfreflexe',
-        'Kaltblütig',
-        'Kiemen',
-        'Kind zweier Welten',
-        'Nachtsicht',
-        'Natürliche Waffen',
-        'Panzerung',
-        'Psychische Kraft',
-        'Psychisches Reservoir',
-        'Regeneration',
-        'Scharfschütze',
-        'Schnell',
-        'Sprachbegabt',
-        'Tiergefährte',
-        'Zäh',
-    ];
-
-    $disadvantages = [
-        'Abergläubisch',
-        'Abhängige',
-        'Anfälligkeit gegen Wahnsinn',
-        'Auffällig',
-        'Blutdurst',
-        'Ehrenkodex',
-        'Feind',
-        'Gejagt',
-        'Lichtscheu',
-        'Primitiv',
-        'Taratzenfutter',
-        'Tödliche Immunschwäche',
-        'Verpflichtung',
-        'Verwundbarkeit',
-    ];
+    $specialRules ??= \App\Http\Controllers\RpgCharEditorController::specialRuleConfig();
+    $advantages = $specialRules['advantages'];
+    $disadvantages = $specialRules['disadvantages'];
 @endphp
+
+@push('scripts')
+    <script>
+        window.rpgCharEditorRules = @js($specialRules);
+    </script>
+@endpush
 <x-app-layout>
     <x-member-page class="max-w-4xl">
         <x-ui.page-header
@@ -390,6 +360,7 @@
 
                                 <div class="max-h-96 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="advantages-heading" data-testid="char-editor-advantages-list">
                                     @foreach($advantages as $advantage)
+                                        @php($advantageDescriptionId = 'advantage-description-'.$loop->index)
                                         <div
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedAdvantages.includes(@js($advantage)), 'opacity-60': isAdvantageDisabled(@js($advantage)), 'hover:border-primary/50': !isAdvantageDisabled(@js($advantage)) }"
@@ -404,6 +375,7 @@
                                                     class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
                                                     x-model="selectedAdvantages"
                                                     x-bind:disabled="isAdvantageDisabled(@js($advantage))"
+                                                    aria-describedby="{{ $advantageDescriptionId }}"
                                                 >
                                                 <span class="min-w-0 flex-1 leading-5">{{ $advantage }}</span>
                                                 <span class="badge badge-ghost shrink-0" x-text="advantageRollLabel(@js($advantage))"></span>
@@ -414,6 +386,7 @@
                                                     <span class="badge badge-primary badge-outline shrink-0" x-text="advantageLockLabel(@js($advantage))"></span>
                                                 </template>
                                             </label>
+                                            <span id="{{ $advantageDescriptionId }}" class="sr-only" x-text="advantageTooltip(@js($advantage))"></span>
                                             <template x-if="isAdvantageSelected(@js($advantage)) && advantageIsRepeatable(@js($advantage))">
                                                 <div class="border-t border-base-300 px-3 py-2">
                                                     <label for="advantage-count-{{ $loop->index }}" class="text-xs font-medium text-base-content/70">Anzahl</label>
@@ -457,6 +430,7 @@
 
                                 <div class="max-h-96 space-y-2 overflow-y-auto rounded-md border border-base-300 bg-base-200/40 p-2" role="group" aria-labelledby="disadvantages-heading" data-testid="char-editor-disadvantages-list">
                                     @foreach($disadvantages as $disadvantage)
+                                        @php($disadvantageDescriptionId = 'disadvantage-description-'.$loop->index)
                                         <div
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedDisadvantages.includes(@js($disadvantage)), 'opacity-60': isDisadvantageDisabled(@js($disadvantage)), 'hover:border-primary/50': !isDisadvantageDisabled(@js($disadvantage)) }"
@@ -471,6 +445,7 @@
                                                     class="checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0"
                                                     x-model="selectedDisadvantages"
                                                     x-bind:disabled="isDisadvantageDisabled(@js($disadvantage))"
+                                                    aria-describedby="{{ $disadvantageDescriptionId }}"
                                                 >
                                                 <span class="min-w-0 flex-1 leading-5">{{ $disadvantage }}</span>
                                                 <span class="badge badge-ghost shrink-0" x-text="disadvantageRollLabel(@js($disadvantage))"></span>
@@ -478,6 +453,7 @@
                                                     <span class="badge badge-primary badge-outline shrink-0" x-text="disadvantageLockLabel(@js($disadvantage))"></span>
                                                 </template>
                                             </label>
+                                            <span id="{{ $disadvantageDescriptionId }}" class="sr-only" x-text="disadvantageTooltip(@js($disadvantage))"></span>
                                             <template x-if="disadvantageRequiresDetail(@js($disadvantage))">
                                                 <div class="border-t border-base-300 px-3 py-2">
                                                     <input
