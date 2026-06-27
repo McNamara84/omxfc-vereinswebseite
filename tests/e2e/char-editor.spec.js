@@ -213,6 +213,107 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload).toContain('Gejagt');
     });
 
+    test('setzt Taratze-Regeln inklusive Pflichtnachteilen im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Taratze', culture: 'Stadtbewohner' });
+
+        await expect(page.locator('#st')).toHaveValue('1');
+        await expect(page.locator('#wa')).toHaveValue('1');
+        await expect(page.locator('#in')).toHaveValue('-1');
+        await expect(page.locator('#au')).toHaveValue('-1');
+        await expect(checkbox(page, 'disadvantages[]', 'Auffällig')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Auffällig')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Primitiv')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Primitiv')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeDisabled();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                st: data.get('attributes[st]'),
+                wa: data.get('attributes[wa]'),
+                in: data.get('attributes[in]'),
+                au: data.get('attributes[au]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Taratze');
+        expect(payload.culture).toBe('Stadtbewohner');
+        expect(payload.st).toBe('1');
+        expect(payload.wa).toBe('1');
+        expect(payload.in).toBe('-1');
+        expect(payload.au).toBe('-1');
+        expect(payload.disadvantages).toEqual(expect.arrayContaining(['Auffällig', 'Primitiv', 'Gejagt']));
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Intuition', value: '2' }),
+            expect.objectContaining({ name: 'Heimlichkeit', value: '1' }),
+            expect.objectContaining({ name: 'Überleben', value: '1' }),
+        ]));
+    });
+
+    test('setzt Wulfane-Regeln inklusive Ehrenkodex im Formularpayload um', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Wulfane', culture: 'Landbewohner' });
+
+        await expect(page.locator('#ro')).toHaveValue('1');
+        await expect(page.locator('#au')).toHaveValue('-1');
+        await expect(checkbox(page, 'disadvantages[]', 'Ehrenkodex')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Ehrenkodex')).toBeDisabled();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const skillsByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                skillsByIndex[index] ??= {};
+                skillsByIndex[index][field] = value;
+            }
+
+            return {
+                race: data.get('race'),
+                culture: data.get('culture'),
+                ro: data.get('attributes[ro]'),
+                au: data.get('attributes[au]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                skills: Object.values(skillsByIndex),
+            };
+        });
+
+        expect(payload.race).toBe('Wulfane');
+        expect(payload.culture).toBe('Landbewohner');
+        expect(payload.ro).toBe('1');
+        expect(payload.au).toBe('-1');
+        expect(payload.disadvantages).toContain('Ehrenkodex');
+        expect(payload.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Intuition', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+        ]));
+    });
+
     test('setzt Nosfera-Regeln inklusive Pflichtmerkmalen im Formularpayload um', async ({ page }) => {
         await openAdvancedEditor(page, { race: 'Nosfera', culture: 'Stadtbewohner' });
 
