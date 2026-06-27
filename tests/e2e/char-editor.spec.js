@@ -181,9 +181,13 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
         await expect(description).toHaveClass(/sr-only/);
 
-        await helpButton.hover();
+        await helpButton.dispatchEvent('mouseenter');
 
         await expect(description).not.toHaveClass(/sr-only/);
+
+        await helpButton.dispatchEvent('mouseleave');
+
+        await expect(description).toHaveClass(/sr-only/);
     });
 
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
