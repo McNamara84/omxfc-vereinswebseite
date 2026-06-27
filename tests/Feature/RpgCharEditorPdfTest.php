@@ -1482,6 +1482,31 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_export_accepts_required_special_details_with_form_normalized_keys(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['advantage_details']['Gesteigertes Attribut'] ?? null) === 'ST +1'
+                && ! array_key_exists('Gesteigertes_Attribut', $data['advantage_details'])))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'Gesteigertes Attribut'],
+            'advantage_details' => ['Gesteigertes_Attribut' => 'ST +1'],
+            'disadvantages' => ['Auffaellig'],
+        ]));
+
+        $response->assertOk();
+    }
+
     public function test_pdf_export_rejects_too_expensive_advantage_selection(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

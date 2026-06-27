@@ -130,6 +130,7 @@ class RpgCharEditorController extends Controller
         'Verpflichtung',
         'Verwundbarkeit',
     ];
+
     private const PORTRAIT_MAX_BYTES = 2_097_152;
 
     private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
@@ -914,7 +915,7 @@ class RpgCharEditorController extends Controller
             $detail = $this->stringPayload($value);
 
             if ($name !== '' && $detail !== '') {
-                $payload[$name] = $detail;
+                $payload[$this->canonicalSpecialName($name)] = $detail;
             }
         }
 
@@ -937,7 +938,7 @@ class RpgCharEditorController extends Controller
                 continue;
             }
 
-            $payload[$name] = is_numeric($rawValue) ? (int) $rawValue : 0;
+            $payload[$this->canonicalSpecialName($name)] = is_numeric($rawValue) ? (int) $rawValue : 0;
         }
 
         return $payload;
@@ -964,7 +965,9 @@ class RpgCharEditorController extends Controller
 
     private function canonicalSpecialName(string $value): string
     {
-        return self::SPECIAL_NAME_ALIASES[$value] ?? $value;
+        $normalized = str_replace('_', ' ', $value);
+
+        return self::SPECIAL_NAME_ALIASES[$normalized] ?? $normalized;
     }
 
     private function portraitPayload(Request $request): ?string
