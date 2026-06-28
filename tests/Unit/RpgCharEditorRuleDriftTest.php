@@ -107,6 +107,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
     {
         $method = (new ReflectionClass(RpgCharEditorController::class))->getMethod($methodName);
 
+        // PHP 8.1+ allows invoking non-public methods; PHP 8.5 deprecates setAccessible().
         if (PHP_VERSION_ID < 80100) {
             $method->setAccessible(true);
         }
