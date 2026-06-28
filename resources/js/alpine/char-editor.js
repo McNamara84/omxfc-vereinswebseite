@@ -332,7 +332,23 @@ const specialSkillRules = () => Array.isArray(skillRuleConfig().specialSkills) ?
 const skillRulesByName = () => Object.fromEntries([...skillRules(), ...specialSkillRules()].map(rule => [rule.name, rule]));
 const skillCreationPoints = () => numericSkillConfig('creationPoints', 20);
 const skillMaxValue = () => numericSkillConfig('baseMax', 4);
-const skillBaseName = (name) => String(name || '').split(':')[0].trim();
+const SKILL_NAME_ALIASES = {
+    Ueberleben: 'Überleben',
+    'Natuerliche Waffen': 'Natürliche Waffen',
+    'Beruf: Kuenstler': 'Beruf: Künstler',
+    'Beruf: Viehzuechter': 'Beruf: Viehzüchter',
+    'Kunde: Kraeuter': 'Kunde: Kräuter',
+};
+const normalizeSkillName = (value) => {
+    const normalized = String(value || '')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\s*:\s*/g, ': ');
+
+    return SKILL_NAME_ALIASES[normalized] || normalized;
+};
+const skillBaseName = (name) => normalizeSkillName(name).split(':')[0].trim();
 const skillSuggestions = () => Array.isArray(skillRuleConfig().suggestions) ? skillRuleConfig().suggestions : DEFAULT_SKILL_SUGGESTIONS;
 
 const buildAdvantageRules = () => {
@@ -576,10 +592,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     skillRule(value) {
-        const name = String(value || '').trim();
+        const name = normalizeSkillName(value);
         if (!name) return null;
 
-        return skillRulesByName()[name] || skillRulesByName()[skillBaseName(name)] || null;
+        const rules = skillRulesByName();
+
+        return rules[name] || rules[skillBaseName(name)] || null;
     },
 
     skillTooltip(value) {

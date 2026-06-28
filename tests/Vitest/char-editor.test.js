@@ -232,6 +232,8 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.skillTooltip('Athletik')).toContain('Attribute: ST, GE, RO');
         expect(e.skillTooltip('Athletik')).toContain('Klettern');
         expect(e.skillTooltip('Beruf: Bauer')).toContain('Spezialisierung');
+        expect(e.skillTooltip('  Beruf:Künstler  ')).toContain('Spezialisierung');
+        expect(e.skillTooltip('Natuerliche_Waffen')).toContain('Rassenbedingte Sonderregel');
         expect(e.skillTooltip('Bildung')).toContain('Kind zweier Welten');
         expect(e.skillTooltip('Natürliche Waffen')).toContain('Rassenbedingte Sonderregel');
     });
