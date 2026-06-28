@@ -246,6 +246,19 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.skillSuggestions()).not.toContain('Natürliche Waffen');
     });
 
+    it('vergibt stabile eindeutige Keys für Fertigkeitszeilen', () => {
+        const e = createEditor();
+
+        e.addSkill();
+        const firstUid = e.skills[0].uid;
+        e.ensureSkill('Nahkampf');
+        e.removeSkill(0);
+        e.addSkill();
+
+        expect(firstUid).toBe('skill-1');
+        expect(e.skills.map(skill => skill.uid)).toEqual(['skill-2', 'skill-3']);
+    });
+
     it('begrenzt Attributwert nicht unter -1 auch wenn AP-Budget überschritten', () => {
         const e = createEditor();
         // Alle 2 AP schon von st und ge verbraucht

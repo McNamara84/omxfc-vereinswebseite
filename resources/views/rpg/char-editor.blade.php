@@ -314,7 +314,7 @@
                             </select>
                         </div>
                         <div class="space-y-2">
-                            <template x-for="(skill, index) in skills" :key="index">
+                            <template x-for="(skill, index) in skills" :key="skill.uid">
                                 <div x-data="{ skillHelpOpen: false }" class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_6rem_auto_auto] items-start">
                                     <input type="hidden"
                                         :name="'skills[' + index + '][name]'"
@@ -361,7 +361,7 @@
                                         @mouseleave="skillHelpOpen = false"
                                         @focus="skillHelpOpen = true"
                                         @blur="skillHelpOpen = false"
-                                        @click="skillHelpOpen = !skillHelpOpen"
+                                        @click.stop="skillHelpOpen = true"
                                         data-testid="skill-help-button"
                                     >
                                         <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />

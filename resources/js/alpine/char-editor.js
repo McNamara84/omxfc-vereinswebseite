@@ -482,6 +482,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     // Dynamic data
     attributes: { st: 0, ge: 0, ro: 0, wi: 0, wa: 0, in: 0, au: 0 },
     skills: [],
+    skillUid: 0,
     selectedAdvantages: ['Zäh'],
     selectedDisadvantages: [],
     raceLocked: { advantages: [], disadvantages: [] },
@@ -883,9 +884,25 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     // --- Skill management ---
+    createSkill(name = '', value = 0, overrides = {}) {
+        this.skillUid += 1;
+
+        return {
+            uid: `skill-${this.skillUid}`,
+            name,
+            value,
+            source: null,
+            locked: false,
+            nameDisabled: false,
+            valueDisabled: false,
+            badge: null,
+            ...overrides,
+        };
+    },
+
     addSkill() {
         if (this.fpRemaining() <= 0) return;
-        this.skills.push({ name: '', value: 0, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+        this.skills.push(this.createSkill());
     },
 
     removeSkill(index) {
@@ -895,7 +912,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     ensureSkill(name) {
         const existing = this.skills.find(s => s.name === name);
         if (existing) return existing;
-        const skill = { name, value: 0, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null };
+        const skill = this.createSkill(name);
         this.skills.push(skill);
         return skill;
     },

@@ -65,6 +65,16 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
     }
 
+    public function test_skill_help_rows_use_stable_keys_and_non_toggle_clicks(): void
+    {
+        $source = $this->charEditorViewSource();
+
+        $this->assertStringContainsString(':key="skill.uid"', $source);
+        $this->assertStringNotContainsString(':key="index"', $source);
+        $this->assertStringContainsString('@click.stop="skillHelpOpen = true"', $source);
+        $this->assertStringNotContainsString('@click="skillHelpOpen = !skillHelpOpen"', $source);
+    }
+
     private function controllerConstant(string $name): array
     {
         $constant = (new ReflectionClass(RpgCharEditorController::class))->getReflectionConstant($name);
@@ -138,6 +148,15 @@ class RpgCharEditorRuleDriftTest extends TestCase
     private function frontendSource(): string
     {
         $source = file_get_contents(dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'resources/js/alpine/char-editor.js');
+
+        $this->assertIsString($source);
+
+        return $source;
+    }
+
+    private function charEditorViewSource(): string
+    {
+        $source = file_get_contents(dirname(__DIR__, 2).DIRECTORY_SEPARATOR.'resources/views/rpg/char-editor.blade.php');
 
         $this->assertIsString($source);
 
