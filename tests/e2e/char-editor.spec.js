@@ -93,7 +93,22 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(continueButton).toBeHidden();
         await expect(portraitPreview).toBeHidden();
 
+        const attributesNavLink = page.getByTestId('char-editor-section-nav').getByRole('link', { name: 'Attribute' });
+        await expect(attributesNavLink).toHaveAttribute('aria-disabled', 'true');
+        await expect(attributesNavLink).toHaveAttribute('tabindex', '-1');
+
+        const blockedNavigation = await attributesNavLink.evaluate((link) => {
+            window.location.hash = '';
+            link.focus();
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+            const enterDefaultPrevented = !link.dispatchEvent(enterEvent);
+            link.click();
+
+            return { enterDefaultPrevented, hash: window.location.hash };
+        });
+        expect(blockedNavigation).toEqual({ enterDefaultPrevented: true, hash: '' });
         await page.getByLabel('Spielername').fill('Playwright Spieler');
+
         await page.getByLabel('Charaktername').fill('Wudan');
         await page.locator('#gender').selectOption('maennlich');
         await page.locator('#race').selectOption('Barbar');
@@ -102,6 +117,10 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(continueButton).toBeVisible();
         await expect(continueButton).toBeEnabled();
         await expect(portraitPreview).toBeHidden();
+        await continueButton.click();
+        await expect(attributesNavLink).not.toHaveAttribute('aria-disabled', 'true');
+        await expect(attributesNavLink).not.toHaveAttribute('tabindex', '-1');
+
 
         expect(pageErrors).toEqual([]);
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
@@ -128,8 +147,8 @@ test.describe('RPG Charakter-Editor', () => {
         }
 
         await expect(addFunkgeraet).toBeDisabled();
-        await expect(page.getByText('High-Tech 4 / 4')).toBeVisible();
-        await expect(page.getByText('Items 4 / 6 \u00b7 High-Tech 4 / 4', { exact: true })).toBeVisible();
+        await expect(page.getByText('High-Tech: 4 / 4')).toBeVisible();
+        await expect(page.getByText('Gegenstände: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);

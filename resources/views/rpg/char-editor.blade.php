@@ -37,11 +37,11 @@
 
                 <nav class="mb-6 flex flex-wrap gap-2 text-sm" aria-label="Editorbereiche" data-testid="char-editor-section-nav">
                     <a href="#char-editor-basics" class="btn btn-ghost btn-sm">Charakterdaten</a>
-                    <a href="#char-editor-attributes" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Attribute</a>
-                    <a href="#char-editor-skills" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Fertigkeiten</a>
-                    <a href="#char-editor-specials" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Besonderheiten</a>
-                    <a href="#char-editor-equipment" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Ausrüstung</a>
-                    <a href="#char-editor-export" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Export</a>
+                    <a href="#char-editor-attributes" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Attribute</a>
+                    <a href="#char-editor-skills" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Fertigkeiten</a>
+                    <a href="#char-editor-specials" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Besonderheiten</a>
+                    <a href="#char-editor-equipment" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Ausrüstung</a>
+                    <a href="#char-editor-export" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Export</a>
                 </nav>
 
                 <section id="char-editor-basics" class="space-y-5" data-testid="char-editor-basics-section">
@@ -618,7 +618,7 @@
                                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
                                 <h2 id="equipment-heading" class="mt-1 text-xl font-semibold text-primary">Ausrüstung</h2>
                             </div>
-                            <span class="badge badge-outline" aria-live="polite" x-text="'Items ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></span>
+                            <span class="badge badge-outline" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></span>
                         </div>
 
                         <input type="hidden" name="clothing" :value="clothing">
