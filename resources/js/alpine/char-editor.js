@@ -279,6 +279,62 @@ const attributeRulesById = () => Object.fromEntries(attributeRules().map(rule =>
 const attributeCreationPoints = () => numericAttributeConfig('creationPoints', 2);
 const attributeRollFormula = () => attributeRuleConfig().rollFormula || '2W6 + Attributswert x 3';
 
+const SKILL_RULE_METADATA = {
+    Athletik: { attributes: ['ST', 'GE', 'RO'], description: 'Klettern, Schwimmen, Laufen, Fitness und das Vermeiden von Angriffen.' },
+    Beruf: { attributes: ['GE', 'IN', 'AU'], description: 'Pro Fertigkeitspunkt beherrscht der Charakter einen Beruf.', specializable: true, specializationLabel: 'Beruf notieren' },
+    Bildung: { attributes: ['IN', 'WA'], description: 'Zivilisierte Ausbildung und Umgang mit technischen Gegenständen.', exclusiveWith: 'Intuition' },
+    Diebeskunst: { attributes: ['GE', 'WA'], description: 'Taschendiebstahl, Schlösser, Diebesgut einschätzen und ähnliche Talente.' },
+    Fahren: { attributes: ['GE', 'WA'], description: 'Tierisch oder technisch betriebene Fahrzeuge, technische Nutzung bildungsabhängig.' },
+    Fernkampf: { attributes: ['GE', 'WA'], description: 'Muskelkraftbasierte Fernwaffen wie Speere, Schleudern, Bögen oder Armbrüste.' },
+    Feuerwaffen: { attributes: ['GE', 'WA'], description: 'Schießpulverwaffen und Energiewaffen aller Art, abhängig vom Bildungswert.' },
+    Handeln: { attributes: ['AU', 'IN'], description: 'Feilschen, Warenwerte, Geldwerte, Handelsrouten und ähnliche Kenntnisse.' },
+    Heiler: { attributes: ['IN'], description: 'Verletzungen behandeln und Lebewesen vor dem Tod bewahren.' },
+    Heimlichkeit: { attributes: ['GE'], description: 'Schleichen und Sich-Verbergen.' },
+    Intuition: { attributes: ['WA'], description: 'Sechster Sinn der Barbaren, um Gefahren, Unheil und Hinterhalte zu erspüren.', exclusiveWith: 'Bildung' },
+    Kunde: { attributes: ['IN', 'WA'], description: 'Nichtwissenschaftliche Fachkenntnisse in einem Gebiet.', specializable: true, specializationLabel: 'Gebiet notieren' },
+    Nahkampf: { attributes: ['ST', 'GE'], description: 'Unbewaffneter Kampf und Nahkampfwaffen.' },
+    Pilot: { attributes: ['GE', 'WA'], description: 'Umgang mit Fluggeräten, je nach Bildung vom Segelflieger bis zum Kampfjet.' },
+    Reiten: { attributes: ['GE'], description: 'Gezähmte Reittiere steuern und wilde Reittiere zureiten.' },
+    Sprachen: { attributes: ['IN'], description: 'Pro Fertigkeitspunkt eine Sprache oder einen Dialekt.', specializable: true, specializationLabel: 'Sprache oder Dialekt notieren' },
+    Techniker: { attributes: ['IN', 'GE'], description: 'Technische Geräte bedienen, warten und reparieren.' },
+    Unterhalten: { attributes: ['AU', 'IN', 'GE'], description: 'Erzählen, Tanzen, Singen, Musizieren, Gaukeln und ähnliche Gebiete.', specializable: true, specializationLabel: 'Unterhaltungsgebiet notieren' },
+    Überleben: { attributes: ['RO', 'WA'], description: 'Orientierung und Versorgung in der Wildnis.' },
+    Wissenschaftler: { attributes: ['IN'], description: 'Pro Fertigkeitspunkt eine Wissenschaft; der FW darf den Bildungswert nicht übersteigen.', specializable: true, specializationLabel: 'Wissenschaft notieren' },
+};
+const SPECIAL_SKILL_RULE_METADATA = {
+    'Natürliche Waffen': { attributes: ['ST', 'GE'], description: 'Rassenbedingte Sonderregel für natürliche Angriffe; nicht frei als normale Fertigkeit wählbar.', restricted: true },
+};
+const DEFAULT_SKILL_SUGGESTIONS = [
+    'Athletik', 'Beruf', 'Beruf: Bauer', 'Beruf: Bergmann', 'Beruf: Farmer', 'Beruf: Fischer', 'Beruf: Künstler', 'Beruf: Landwirt', 'Beruf: Seemann', 'Beruf: Viehzüchter',
+    'Bildung', 'Diebeskunst', 'Fahren', 'Fernkampf', 'Feuerwaffen', 'Handeln', 'Heiler', 'Heimlichkeit', 'Intuition', 'Kunde', 'Kunde: Wetter', 'Nahkampf',
+    'Pilot', 'Reiten', 'Sprachen', 'Techniker', 'Unterhalten', 'Überleben', 'Wissenschaftler',
+];
+const defaultSkillRuleConfig = () => ({
+    baseMin: 0,
+    baseMax: 4,
+    creationPoints: 20,
+    skills: Object.entries(SKILL_RULE_METADATA).map(([name, rule]) => ({ name, ...rule })),
+    suggestions: DEFAULT_SKILL_SUGGESTIONS,
+    specialSkills: Object.entries(SPECIAL_SKILL_RULE_METADATA).map(([name, rule]) => ({ name, ...rule })),
+});
+const skillRuleConfig = () => {
+    const config = objectFromSpecialRuleConfig('skillRules');
+
+    return Array.isArray(config.skills) ? config : defaultSkillRuleConfig();
+};
+const numericSkillConfig = (key, fallback) => {
+    const parsed = Number(skillRuleConfig()[key]);
+
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
+const skillRules = () => skillRuleConfig().skills;
+const specialSkillRules = () => Array.isArray(skillRuleConfig().specialSkills) ? skillRuleConfig().specialSkills : [];
+const skillRulesByName = () => Object.fromEntries([...skillRules(), ...specialSkillRules()].map(rule => [rule.name, rule]));
+const skillCreationPoints = () => numericSkillConfig('creationPoints', 20);
+const skillMaxValue = () => numericSkillConfig('baseMax', 4);
+const skillBaseName = (name) => String(name || '').split(':')[0].trim();
+const skillSuggestions = () => Array.isArray(skillRuleConfig().suggestions) ? skillRuleConfig().suggestions : DEFAULT_SKILL_SUGGESTIONS;
+
 const buildAdvantageRules = () => {
     const costs = objectFromSpecialRuleConfig('advantageCosts');
     const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
@@ -376,7 +432,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipment: '',
 
     // Game constants
-    base: { AP: attributeCreationPoints(), FP: 20, maxFW: 4, freeAdvantages: 2 },
+    base: { AP: attributeCreationPoints(), FP: skillCreationPoints(), maxFW: skillMaxValue(), freeAdvantages: 2 },
 
     // Race/culture state
     raceAPBonus: 0,
@@ -519,6 +575,31 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return [`W66 ${rule.w66}`, rule.description].filter(Boolean).join(' · ');
     },
 
+    skillRule(value) {
+        const name = String(value || '').trim();
+        if (!name) return null;
+
+        return skillRulesByName()[name] || skillRulesByName()[skillBaseName(name)] || null;
+    },
+
+    skillTooltip(value) {
+        const rule = this.skillRule(value);
+        if (!rule) return '';
+
+        const parts = [
+            Array.isArray(rule.attributes) && rule.attributes.length ? `Attribute: ${rule.attributes.join(', ')}` : '',
+            rule.description,
+            rule.specializable ? `Spezialisierung: ${rule.specializationLabel || 'Details notieren'}` : '',
+            rule.exclusiveWith ? `Nicht gemeinsam mit ${rule.exclusiveWith} über 0, außer mit Kind zweier Welten.` : '',
+            rule.restricted ? 'Rassenbedingte Sonderregel; nicht frei wählbar.' : '',
+        ];
+
+        return parts.filter(Boolean).join(' · ');
+    },
+
+    skillSuggestions() {
+        return skillSuggestions();
+    },
     attributeRule(id) {
         return attributeRulesById()[id] || ATTRIBUTE_RULE_METADATA[id] || null;
     },

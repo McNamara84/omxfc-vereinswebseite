@@ -1509,7 +1509,6 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Intuition', 'value' => '1'],
                         ['name' => 'Beruf: Viehzüchter', 'value' => '2'],
                         ['name' => 'Kunde: Wetter', 'value' => '1'],
-                        ['name' => 'Fahren', 'value' => ''],
                         ['name' => 'Diebeskunst', 'value' => '4'],
                     ]
                     && $data['advantages'] === ['Zäh', 'Anführer']
@@ -1544,7 +1543,6 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => ' Intuition ', 'value' => 1],
                 ['name' => ' Beruf: Viehzüchter ', 'value' => 2],
                 ['name' => ' Kunde: Wetter ', 'value' => 1],
-                ['name' => ' Fahren ', 'value' => ['manipuliert']],
                 ['name' => ' Diebeskunst ', 'value' => 4],
                 ['name' => false, 'value' => '3'],
             ],
@@ -1595,6 +1593,191 @@ class RpgCharEditorPdfTest extends TestCase
                 'disadvantages' => ['Pechmagnet'],
             ]))
             ->assertSessionHasErrors('disadvantages');
+    }
+
+    public function test_pdf_export_rejects_unknown_and_restricted_skills(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                    ['name' => 'Fernwaffen', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                    ['name' => 'Natürliche Waffen', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+    }
+
+    public function test_pdf_export_rejects_invalid_skill_values_and_duplicates(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 5],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Nahkampf', 'value' => 2],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+    }
+
+    public function test_pdf_export_rejects_skill_point_budget_overflow(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                ['name' => 'Kunde: Wetter', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 4],
+                ['name' => 'Diebeskunst', 'value' => 4],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Fernkampf', 'value' => 4],
+                ['name' => 'Feuerwaffen', 'value' => 4],
+                ['name' => 'Handeln', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('skills');
+    }
+
+    public function test_pdf_export_applies_base_skill_grant_to_only_one_specialization(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Stadtbewohner',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Kunde', 'value' => 1],
+                ['name' => 'Unterhalten', 'value' => 1],
+                ['name' => 'Beruf: Künstler', 'value' => 4],
+                ['name' => 'Beruf: Seemann', 'value' => 4],
+                ['name' => 'Athletik', 'value' => 4],
+                ['name' => 'Diebeskunst', 'value' => 4],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Fernkampf', 'value' => 2],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('skills');
+    }
+
+    public function test_pdf_export_enforces_skill_cross_rules(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Bildung', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'skills' => [
+                    ['name' => 'Nahkampf', 'value' => 1],
+                    ['name' => 'Überleben', 'value' => 1],
+                    ['name' => 'Intuition', 'value' => 1],
+                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                    ['name' => 'Kunde: Wetter', 'value' => 1],
+                    ['name' => 'Wissenschaftler', 'value' => 1],
+                ],
+            ]))
+            ->assertSessionHasErrors('skills');
+    }
+
+    public function test_pdf_export_accepts_skill_aliases_and_specializations(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $skills->has('Überleben')
+                    && $skills->has('Beruf: Künstler')
+                    && (($skills['Beruf: Künstler'] ?? [])['value'] ?? null) === '2';
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'culture' => 'Stadtbewohner',
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Ueberleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1],
+                ['name' => 'Beruf: Kuenstler', 'value' => 2],
+                ['name' => 'Kunde', 'value' => 1],
+                ['name' => 'Unterhalten', 'value' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
     }
 
     public function test_pdf_export_applies_advantage_costs_and_repeatable_counts(): void

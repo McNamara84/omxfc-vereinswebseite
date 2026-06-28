@@ -3,6 +3,7 @@
     $advantages = $specialRules['advantages'];
     $disadvantages = $specialRules['disadvantages'];
     $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Http\Controllers\RpgCharEditorController::attributeRuleConfig()['attributes'];
+    $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Http\Controllers\RpgCharEditorController::skillRuleConfig()['suggestions'];
 @endphp
 
 @push('scripts')
@@ -314,7 +315,7 @@
                         </div>
                         <div class="space-y-2">
                             <template x-for="(skill, index) in skills" :key="index">
-                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                                <div x-data="{ skillHelpOpen: false }" class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_6rem_auto_auto] items-start">
                                     <input type="hidden"
                                         :name="'skills[' + index + '][name]'"
                                         :value="skill.name"
@@ -327,10 +328,13 @@
                                     >
                                     <input type="text" list="skills-list"
                                         :name="'skills[' + index + '][name]'"
-                                        class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
+                                        class="skill-name w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
                                         placeholder="Fertigkeit"
                                         x-model="skill.name"
                                         x-bind:disabled="skill.nameDisabled"
+                                        x-bind:title="skillTooltip(skill.name)"
+                                        x-bind:aria-describedby="skillTooltip(skill.name) ? 'skill-description-' + index : null"
+                                        @change="clampSkillValue(skill)"
                                     >
                                     <input type="number"
                                         :name="'skills[' + index + '][value]'"
@@ -340,49 +344,50 @@
                                         :min="getSkillMin(skill.name)"
                                         :max="getSkillMax(skill.name)"
                                         x-bind:disabled="isSkillDisabled(skill)"
+                                        x-bind:title="skillTooltip(skill.name)"
+                                        x-bind:aria-describedby="skillTooltip(skill.name) ? 'skill-description-' + index : null"
                                         @change="clampSkillValue(skill)"
                                     >
+                                    <button
+                                        type="button"
+                                        class="btn btn-circle btn-ghost btn-sm h-9 min-h-0 w-9"
+                                        x-bind:class="{ 'opacity-40': !skillTooltip(skill.name) }"
+                                        x-bind:disabled="!skillTooltip(skill.name)"
+                                        x-bind:title="skillTooltip(skill.name)"
+                                        x-bind:aria-controls="'skill-description-' + index"
+                                        x-bind:aria-expanded="skillHelpOpen.toString()"
+                                        aria-label="Regelhinweis zur Fertigkeit"
+                                        @mouseenter="skillHelpOpen = true"
+                                        @mouseleave="skillHelpOpen = false"
+                                        @focus="skillHelpOpen = true"
+                                        @blur="skillHelpOpen = false"
+                                        @click="skillHelpOpen = !skillHelpOpen"
+                                        data-testid="skill-help-button"
+                                    >
+                                        <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
+                                    </button>
                                     <template x-if="!skill.locked">
                                         <button type="button" class="px-2 py-1 bg-red-500 text-white rounded-md" @click="removeSkill(index)">-</button>
                                     </template>
                                     <template x-if="skill.badge">
                                         <span class="text-xs px-2 py-0.5 rounded bg-blue-200 dark:bg-blue-700 text-blue-800 dark:text-blue-200" x-text="skill.badge"></span>
                                     </template>
+                                    <p
+                                        x-bind:id="'skill-description-' + index"
+                                        class="text-xs leading-5 text-base-content/70 sm:col-span-4"
+                                        x-cloak
+                                        x-bind:class="{ 'sr-only': !skillHelpOpen }"
+                                        x-text="skillTooltip(skill.name)"
+                                        data-testid="skill-description"
+                                    ></p>
                                 </div>
                             </template>
                         </div>
                         <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining() <= 0" />
                         <datalist id="skills-list">
-                            <option value="Athletik"></option>
-                            <option value="Beruf"></option>
-                            <option value="Beruf: Bauer"></option>
-                            <option value="Beruf: Bergmann"></option>
-                            <option value="Beruf: Landwirt"></option>
-                            <option value="Beruf: Seemann"></option>
-                            <option value="Beruf: Fischer"></option>
-                            <option value="Beruf: Farmer"></option>
-                            <option value="Beruf: Künstler"></option>
-                            <option value="Beruf: Viehzüchter"></option>
-                            <option value="Bildung"></option>
-                            <option value="Diebeskunst"></option>
-                            <option value="Fahren"></option>
-                            <option value="Fernkampf"></option>
-                            <option value="Feuerwaffen"></option>
-                            <option value="Handeln"></option>
-                            <option value="Heiler"></option>
-                            <option value="Heimlichkeit"></option>
-                            <option value="Intuition"></option>
-                            <option value="Kunde"></option>
-                            <option value="Kunde: Wetter"></option>
-                            <option value="Nahkampf"></option>
-                            <option value="Natürliche Waffen"></option>
-                            <option value="Pilot"></option>
-                            <option value="Reiten"></option>
-                            <option value="Sprachen"></option>
-                            <option value="Techniker"></option>
-                            <option value="Unterhalten"></option>
-                            <option value="Überleben"></option>
-                            <option value="Wissenschaftler"></option>
+                            @foreach($skillSuggestions as $skillSuggestion)
+                                <option value="{{ $skillSuggestion }}"></option>
+                            @endforeach
                         </datalist>
                     </div>
 

@@ -226,6 +226,24 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.attributeTooltip('st')).toContain('Regelbereich aktuell: -1 bis 1');
     });
 
+    it('liefert Regelhinweise für Fertigkeiten und Spezialisierungen', () => {
+        const e = createEditor();
+
+        expect(e.skillTooltip('Athletik')).toContain('Attribute: ST, GE, RO');
+        expect(e.skillTooltip('Athletik')).toContain('Klettern');
+        expect(e.skillTooltip('Beruf: Bauer')).toContain('Spezialisierung');
+        expect(e.skillTooltip('Bildung')).toContain('Kind zweier Welten');
+        expect(e.skillTooltip('Natürliche Waffen')).toContain('Rassenbedingte Sonderregel');
+    });
+
+    it('schlägt nur frei wählbare Fertigkeiten in der Datalist vor', () => {
+        const e = createEditor();
+
+        expect(e.skillSuggestions()).toContain('Athletik');
+        expect(e.skillSuggestions()).toContain('Beruf: Viehzüchter');
+        expect(e.skillSuggestions()).not.toContain('Natürliche Waffen');
+    });
+
     it('begrenzt Attributwert nicht unter -1 auch wenn AP-Budget überschritten', () => {
         const e = createEditor();
         // Alle 2 AP schon von st und ge verbraucht

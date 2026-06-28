@@ -163,6 +163,180 @@ class RpgCharEditorController extends Controller
         'Disuuslachter (Nordmann)',
     ];
 
+    private const BASE_SKILL_POINTS = 20;
+
+    private const SKILL_BASE_MIN = 0;
+
+    private const SKILL_BASE_MAX = 4;
+
+    private const SKILL_VALUES = [
+        'Athletik',
+        'Beruf',
+        'Bildung',
+        'Diebeskunst',
+        'Fahren',
+        'Fernkampf',
+        'Feuerwaffen',
+        'Handeln',
+        'Heiler',
+        'Heimlichkeit',
+        'Intuition',
+        'Kunde',
+        'Nahkampf',
+        'Pilot',
+        'Reiten',
+        'Sprachen',
+        'Techniker',
+        'Unterhalten',
+        'Überleben',
+        'Wissenschaftler',
+    ];
+
+    private const SPECIAL_SKILL_VALUES = ['Natürliche Waffen'];
+
+    private const SKILL_SUGGESTIONS = [
+        'Athletik',
+        'Beruf',
+        'Beruf: Bauer',
+        'Beruf: Bergmann',
+        'Beruf: Farmer',
+        'Beruf: Fischer',
+        'Beruf: Künstler',
+        'Beruf: Landwirt',
+        'Beruf: Seemann',
+        'Beruf: Viehzüchter',
+        'Bildung',
+        'Diebeskunst',
+        'Fahren',
+        'Fernkampf',
+        'Feuerwaffen',
+        'Handeln',
+        'Heiler',
+        'Heimlichkeit',
+        'Intuition',
+        'Kunde',
+        'Kunde: Wetter',
+        'Nahkampf',
+        'Pilot',
+        'Reiten',
+        'Sprachen',
+        'Techniker',
+        'Unterhalten',
+        'Überleben',
+        'Wissenschaftler',
+    ];
+
+    private const SKILL_RULES = [
+        'Athletik' => [
+            'attributes' => ['ST', 'GE', 'RO'],
+            'description' => 'Athletik umfasst Klettern, Schwimmen, Laufen und allgemeine körperliche Fitness; ein hoher Wert hilft auch, Angriffen auszuweichen.',
+        ],
+        'Beruf' => [
+            'attributes' => ['GE', 'IN', 'AU'],
+            'description' => 'Pro Fertigkeitspunkt beherrscht der Charakter einen Beruf; Erstberuf nutzt den vollen FW, weitere Berufe abgestuft.',
+            'specializable' => true,
+            'specializationLabel' => 'Beruf notieren',
+        ],
+        'Bildung' => [
+            'attributes' => ['IN', 'WA'],
+            'description' => 'Bildung beschreibt zivilisierte Ausbildung und den Umgang mit technischen Gegenständen mit Mindestbildungswert.',
+            'exclusiveWith' => 'Intuition',
+        ],
+        'Diebeskunst' => [
+            'attributes' => ['GE', 'WA'],
+            'description' => 'Diebeskunst umfasst Taschendiebstahl, Schlösser, das Schätzen von Diebesgut und ähnliche Talente.',
+        ],
+        'Fahren' => [
+            'attributes' => ['GE', 'WA'],
+            'description' => 'Fahren gilt für tierisch oder technisch betriebene Fahrzeuge; technische Fahrzeuge sind bildungsabhängig.',
+        ],
+        'Fernkampf' => [
+            'attributes' => ['GE', 'WA'],
+            'description' => 'Fernkampf deckt Waffen ab, die durch Muskelkraft wirken, etwa Speere, Steine, Schleudern, Bögen oder Armbrüste.',
+        ],
+        'Feuerwaffen' => [
+            'attributes' => ['GE', 'WA'],
+            'description' => 'Feuerwaffen gilt für Schießpulverwaffen und Energiewaffen aller Art, abhängig vom Bildungswert.',
+        ],
+        'Handeln' => [
+            'attributes' => ['AU', 'IN'],
+            'description' => 'Handeln umfasst Feilschen, Warenwerte, Geldwerte, Handelsrouten und ähnliche Kenntnisse.',
+        ],
+        'Heiler' => [
+            'attributes' => ['IN'],
+            'description' => 'Heiler behandeln Verletzungen und können Lebewesen vor dem Tod bewahren.',
+        ],
+        'Heimlichkeit' => [
+            'attributes' => ['GE'],
+            'description' => 'Heimlichkeit beschreibt Schleichen und Sich-Verbergen.',
+        ],
+        'Intuition' => [
+            'attributes' => ['WA'],
+            'description' => 'Intuition ist der sechste Sinn der barbarischen Bewohner des 26. Jahrhunderts und hilft, Gefahren zu erspüren.',
+            'exclusiveWith' => 'Bildung',
+        ],
+        'Kunde' => [
+            'attributes' => ['IN', 'WA'],
+            'description' => 'Pro Fertigkeitspunkt besitzt der Charakter nichtwissenschaftliche Fachkenntnisse in einem Gebiet.',
+            'specializable' => true,
+            'specializationLabel' => 'Gebiet notieren',
+        ],
+        'Nahkampf' => [
+            'attributes' => ['ST', 'GE'],
+            'description' => 'Nahkampf umfasst unbewaffneten Kampf und Nahkampfwaffen.',
+        ],
+        'Pilot' => [
+            'attributes' => ['GE', 'WA'],
+            'description' => 'Pilot umfasst den Umgang mit Fluggeräten, je nach Bildung vom Segelflieger bis zum Kampfjet.',
+        ],
+        'Reiten' => [
+            'attributes' => ['GE'],
+            'description' => 'Reiten beschreibt das Steuern gezähmter Reittiere und das Zureiten wilder Reittiere.',
+        ],
+        'Sprachen' => [
+            'attributes' => ['IN'],
+            'description' => 'Pro Fertigkeitspunkt spricht der Charakter eine Sprache oder einen Dialekt.',
+            'specializable' => true,
+            'specializationLabel' => 'Sprache oder Dialekt notieren',
+        ],
+        'Techniker' => [
+            'attributes' => ['IN', 'GE'],
+            'description' => 'Techniker umfasst das Bedienen, Warten und Reparieren technischer Geräte.',
+        ],
+        'Unterhalten' => [
+            'attributes' => ['AU', 'IN', 'GE'],
+            'description' => 'Unterhalten umfasst Erzählen, Tanzen, Singen, Musizieren, Gaukeln und ähnliche Gebiete.',
+            'specializable' => true,
+            'specializationLabel' => 'Unterhaltungsgebiet notieren',
+        ],
+        'Überleben' => [
+            'attributes' => ['RO', 'WA'],
+            'description' => 'Überleben beschreibt Orientierung und Versorgung in der Wildnis.',
+        ],
+        'Wissenschaftler' => [
+            'attributes' => ['IN'],
+            'description' => 'Pro Fertigkeitspunkt beherrscht der Charakter eine Wissenschaft; der FW darf den Bildungswert nicht übersteigen.',
+            'specializable' => true,
+            'specializationLabel' => 'Wissenschaft notieren',
+        ],
+    ];
+
+    private const SPECIAL_SKILL_RULES = [
+        'Natürliche Waffen' => [
+            'attributes' => ['ST', 'GE'],
+            'description' => 'Rassenbedingte Sonderregel für natürliche Angriffe; nicht frei als normale Fertigkeit wählbar.',
+            'restricted' => true,
+        ],
+    ];
+
+    private const SKILL_NAME_ALIASES = [
+        'Ueberleben' => 'Überleben',
+        'Natuerliche Waffen' => 'Natürliche Waffen',
+        'Beruf: Kuenstler' => 'Beruf: Künstler',
+        'Beruf: Viehzuechter' => 'Beruf: Viehzüchter',
+        'Kunde: Kraeuter' => 'Kunde: Kräuter',
+    ];
+
     private const BASE_FREE_ADVANTAGES = 2;
 
     private const ADVANTAGE_VALUES = [
@@ -283,10 +457,29 @@ class RpgCharEditorController extends Controller
         ];
     }
 
+    public static function skillRuleConfig(): array
+    {
+        return [
+            'baseMin' => self::SKILL_BASE_MIN,
+            'baseMax' => self::SKILL_BASE_MAX,
+            'creationPoints' => self::BASE_SKILL_POINTS,
+            'skills' => array_map(
+                fn (string $name): array => ['name' => $name] + self::SKILL_RULES[$name],
+                self::SKILL_VALUES,
+            ),
+            'suggestions' => self::SKILL_SUGGESTIONS,
+            'specialSkills' => array_map(
+                fn (string $name): array => ['name' => $name] + self::SPECIAL_SKILL_RULES[$name],
+                self::SPECIAL_SKILL_VALUES,
+            ),
+        ];
+    }
+
     public static function specialRuleConfig(): array
     {
         return [
             'attributeRules' => self::attributeRuleConfig(),
+            'skillRules' => self::skillRuleConfig(),
             'advantages' => self::ADVANTAGE_VALUES,
             'disadvantages' => self::DISADVANTAGE_VALUES,
             'advantageCosts' => self::ADVANTAGE_COSTS,
@@ -574,6 +767,7 @@ class RpgCharEditorController extends Controller
         }
 
         $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
+        $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages);
         $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
         $this->validateCultureRequirements($culture, $skills);
         $this->validateSpecialBudgetAndDetails(
@@ -586,6 +780,201 @@ class RpgCharEditorController extends Controller
             $canonicalDisadvantageDetails,
             $canonicalAdvantageCounts,
         );
+    }
+
+    private function validateSkillRules(string $race, string $culture, array $skills, array $advantages): void
+    {
+        $seen = [];
+        $grants = $this->freeSkillGrants($race, $culture, $skills);
+
+        foreach ($skills as $skill) {
+            $name = (string) ($skill['name'] ?? '');
+            $value = (string) ($skill['value'] ?? '');
+
+            if (! $this->isAllowedSkillName($name, $race)) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Fertigkeit {$name} ist laut Regelwerk nicht erlaubt.",
+                ]);
+            }
+
+            if (isset($seen[$name])) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Fertigkeit {$name} wurde mehrfach eingetragen.",
+                ]);
+            }
+
+            $seen[$name] = true;
+
+            if (! preg_match('/^-?\d+$/', $value)) {
+                throw ValidationException::withMessages([
+                    'skills' => "Der Fertigkeitswert für {$name} muss als ganze Zahl übermittelt werden.",
+                ]);
+            }
+
+            $skillValue = (int) $value;
+
+            if ($skillValue < self::SKILL_BASE_MIN || $skillValue > self::SKILL_BASE_MAX) {
+                throw ValidationException::withMessages([
+                    'skills' => "Der Fertigkeitswert für {$name} muss im Bereich von ".self::SKILL_BASE_MIN.' bis '.self::SKILL_BASE_MAX.' liegen.',
+                ]);
+            }
+
+            if (in_array($name, self::SPECIAL_SKILL_VALUES, true)) {
+                $grantValue = $this->skillGrantValue($grants, $name);
+
+                if ($grantValue === null || $skillValue !== $grantValue) {
+                    throw ValidationException::withMessages([
+                        'skills' => "Die Fertigkeit {$name} ist nur als rassenbedingte Sonderregel erlaubt.",
+                    ]);
+                }
+            }
+        }
+
+        if (! in_array('Kind zweier Welten', $advantages, true)
+            && $this->skillValue($skills, 'Bildung') > 0
+            && $this->skillValue($skills, 'Intuition') > 0) {
+            throw ValidationException::withMessages([
+                'skills' => 'Ohne den Vorteil Kind zweier Welten darf nur Bildung oder Intuition größer 0 sein.',
+            ]);
+        }
+
+        $wissenschaftler = $this->skillValue($skills, 'Wissenschaftler');
+        $bildung = max(0, $this->skillValue($skills, 'Bildung'));
+
+        if ($wissenschaftler > $bildung) {
+            throw ValidationException::withMessages([
+                'skills' => 'Der Fertigkeitswert Wissenschaftler darf den Bildungswert nicht übersteigen.',
+            ]);
+        }
+
+        if ($this->skillPointsUsed($skills, $grants) > self::BASE_SKILL_POINTS) {
+            throw ValidationException::withMessages([
+                'skills' => 'Die gewählten Fertigkeiten überschreiten die verfügbaren Fertigkeitspunkte.',
+            ]);
+        }
+    }
+
+    private function isAllowedSkillName(string $name, string $race): bool
+    {
+        if (in_array($name, self::SKILL_VALUES, true)) {
+            return true;
+        }
+
+        if (in_array($name, self::SPECIAL_SKILL_VALUES, true)) {
+            return array_key_exists($name, $this->raceRequirements($race)['skills'] ?? []);
+        }
+
+        $baseName = $this->skillBaseName($name);
+        $detail = $this->skillSpecialization($name);
+
+        return $detail !== null
+            && $detail !== ''
+            && in_array($baseName, self::SKILL_VALUES, true)
+            && (bool) (self::SKILL_RULES[$baseName]['specializable'] ?? false);
+    }
+
+    private function freeSkillGrants(string $race, string $culture, array $skills): array
+    {
+        $grants = [];
+        $this->addRequirementSkillGrants($grants, $this->raceRequirements($race), $skills);
+        $this->addRequirementSkillGrants($grants, $this->cultureRequirements($culture), $skills);
+
+        return $grants;
+    }
+
+    private function addRequirementSkillGrants(array &$grants, array $requirements, array $skills): void
+    {
+        foreach ($requirements['skills'] ?? [] as $skillName => $minimumValue) {
+            $grantName = $this->grantableSkillName($skills, $skillName, (int) $minimumValue)
+                ?? $this->canonicalSkillName($skillName);
+
+            $this->setSkillGrant($grants, $grantName, (int) $minimumValue);
+        }
+
+        foreach ($requirements['anySkills'] ?? [] as $choice) {
+            foreach ($choice['names'] as $skillName) {
+                $grantName = $this->grantableSkillName($skills, $skillName, (int) $choice['minimum']);
+
+                if ($grantName !== null) {
+                    $this->setSkillGrant($grants, $grantName, (int) $choice['minimum']);
+                    break;
+                }
+            }
+        }
+
+        foreach ($requirements['countSkills'] ?? [] as $choice) {
+            $remaining = (int) $choice['count'];
+
+            foreach ($choice['names'] as $skillName) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $grantName = $this->grantableSkillName($skills, $skillName, (int) $choice['minimum']);
+
+                if ($grantName !== null) {
+                    $this->setSkillGrant($grants, $grantName, (int) $choice['minimum']);
+                    $remaining--;
+                }
+            }
+        }
+    }
+
+    private function grantableSkillName(array $skills, string $skillName, int $minimumValue): ?string
+    {
+        $canonicalSkillName = $this->canonicalSkillName($skillName);
+        $matchesSpecializationBase = $canonicalSkillName === $this->skillBaseName($canonicalSkillName)
+            && (bool) (self::SKILL_RULES[$canonicalSkillName]['specializable'] ?? false);
+
+        foreach ($skills as $skill) {
+            $name = $this->canonicalSkillName((string) ($skill['name'] ?? ''));
+
+            if ($name !== $canonicalSkillName
+                && (! $matchesSpecializationBase || $this->skillBaseName($name) !== $canonicalSkillName)
+            ) {
+                continue;
+            }
+
+            if (is_numeric($skill['value'] ?? null) && (int) $skill['value'] >= $minimumValue) {
+                return $name;
+            }
+        }
+
+        return null;
+    }
+
+    private function setSkillGrant(array &$grants, string $skillName, int $value): void
+    {
+        $canonicalName = $this->canonicalSkillName($skillName);
+        $grants[$canonicalName] = max($grants[$canonicalName] ?? self::SKILL_BASE_MIN, $value);
+    }
+
+    private function skillPointsUsed(array $skills, array $grants): int
+    {
+        $used = 0;
+
+        foreach ($skills as $skill) {
+            $name = (string) ($skill['name'] ?? '');
+            $rawValue = (string) ($skill['value'] ?? '');
+
+            if (! preg_match('/^-?\d+$/', $rawValue)) {
+                continue;
+            }
+
+            $grantValue = $this->skillGrantValue($grants, $name) ?? self::SKILL_BASE_MIN;
+            $used += max((int) $rawValue - $grantValue, 0);
+        }
+
+        return $used;
+    }
+
+    private function skillGrantValue(array $grants, string $skillName): ?int
+    {
+        $canonicalSkillName = $this->canonicalSkillName($skillName);
+
+        return array_key_exists($canonicalSkillName, $grants)
+            ? $grants[$canonicalSkillName]
+            : null;
     }
 
     private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages): void
@@ -1049,9 +1438,20 @@ class RpgCharEditorController extends Controller
     private function skillValue(array $skills, string $skillName): int
     {
         $value = null;
+        $canonicalSkillName = $this->canonicalSkillName($skillName);
+        $matchesSpecializationBase = $canonicalSkillName === $this->skillBaseName($canonicalSkillName)
+            && (bool) (self::SKILL_RULES[$canonicalSkillName]['specializable'] ?? false);
 
         foreach ($skills as $skill) {
-            if (($skill['name'] ?? null) !== $skillName || ! is_numeric($skill['value'] ?? null)) {
+            $name = $this->canonicalSkillName((string) ($skill['name'] ?? ''));
+
+            if ($name !== $canonicalSkillName
+                && (! $matchesSpecializationBase || $this->skillBaseName($name) !== $canonicalSkillName)
+            ) {
+                continue;
+            }
+
+            if (! is_numeric($skill['value'] ?? null)) {
                 continue;
             }
 
@@ -1100,7 +1500,7 @@ class RpgCharEditorController extends Controller
                 continue;
             }
 
-            $name = $this->stringPayload($skill['name'] ?? '');
+            $name = $this->canonicalSkillName($this->stringPayload($skill['name'] ?? ''));
 
             if ($name === '') {
                 continue;
@@ -1113,6 +1513,40 @@ class RpgCharEditorController extends Controller
         }
 
         return $payload;
+    }
+
+    private function canonicalSkillName(string $value): string
+    {
+        $normalized = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', $value)) ?? '');
+        $normalized = preg_replace('/\s*:\s*/', ': ', $normalized) ?? $normalized;
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        return self::SKILL_NAME_ALIASES[$normalized] ?? $normalized;
+    }
+
+    private function skillBaseName(string $skillName): string
+    {
+        $canonicalName = $this->canonicalSkillName($skillName);
+
+        if (! str_contains($canonicalName, ':')) {
+            return $canonicalName;
+        }
+
+        return $this->canonicalSkillName(Str::before($canonicalName, ':'));
+    }
+
+    private function skillSpecialization(string $skillName): ?string
+    {
+        $canonicalName = $this->canonicalSkillName($skillName);
+
+        if (! str_contains($canonicalName, ':')) {
+            return null;
+        }
+
+        return trim(Str::after($canonicalName, ':'));
     }
 
     private function listPayload(mixed $values): array

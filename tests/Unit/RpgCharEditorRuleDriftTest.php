@@ -14,6 +14,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
 
         $this->assertSame([
             'attributeRules',
+            'skillRules',
             'advantages',
             'disadvantages',
             'advantageCosts',
@@ -22,6 +23,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'disadvantageDetailRequired',
         ], array_keys($config));
         $this->assertSame(RpgCharEditorController::attributeRuleConfig(), $config['attributeRules']);
+        $this->assertSame(RpgCharEditorController::skillRuleConfig(), $config['skillRules']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_VALUES'), $config['advantages']);
         $this->assertSame($this->controllerConstant('DISADVANTAGE_VALUES'), $config['disadvantages']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_COSTS'), $config['advantageCosts']);
@@ -38,6 +40,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString('window.rpgCharEditorRules', $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('attributeRules'", $source);
         $this->assertStringContainsString('attributeTooltip(id)', $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('skillRules'", $source);
+        $this->assertStringContainsString('skillTooltip(value)', $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('advantages'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantages'", $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('advantageCosts'", $source);
@@ -48,6 +52,14 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame(
             array_column($config['attributeRules']['attributes'], 'id'),
             $this->frontendAttributeMetadataIds(),
+        );
+        $this->assertSame(
+            array_column($config['skillRules']['skills'], 'name'),
+            $this->frontendSkillMetadataNames(),
+        );
+        $this->assertSame(
+            array_column($config['skillRules']['specialSkills'], 'name'),
+            $this->frontendMetadataNames('SPECIAL_SKILL_RULE_METADATA'),
         );
         $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
@@ -81,6 +93,28 @@ class RpgCharEditorRuleDriftTest extends TestCase
         }
 
         return $names;
+    }
+
+    private function frontendSkillMetadataNames(): array
+    {
+        $pattern = '/const\s+SKILL_RULE_METADATA\s*=\s*\{(.*?)\}\s*;/s';
+        $source = $this->frontendSource();
+
+        $this->assertMatchesRegularExpression(
+            $pattern,
+            $source,
+            'Frontend skill metadata constant is missing.',
+        );
+
+        preg_match($pattern, $source, $matches);
+
+        preg_match_all('/^\s*(?:["\']([^"\']+)["\']|([^\s:]+))\s*:\s*\{/mu', $matches[1], $nameMatches);
+
+        return array_values(array_filter(array_map(
+            fn (?string $quoted, ?string $unquoted): string => $quoted !== '' ? (string) $quoted : (string) $unquoted,
+            $nameMatches[1],
+            $nameMatches[2],
+        )));
     }
 
     private function frontendAttributeMetadataIds(): array
