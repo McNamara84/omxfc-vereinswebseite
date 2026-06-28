@@ -64,7 +64,7 @@
 
                                         <td>
                                             <div class="flex justify-end gap-2">
-                                                <a href="{{ route('rpg.characters.pdf', $character) }}" target="_blank" class="btn btn-ghost btn-sm" data-testid="rpg-character-pdf-button">
+                                                <a href="{{ route('rpg.characters.pdf', $character) }}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-testid="rpg-character-pdf-button">
                                                     <x-icon name="o-document-text" class="h-4 w-4" />
                                                     PDF
                                                 </a>

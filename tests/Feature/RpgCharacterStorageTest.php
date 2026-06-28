@@ -8,6 +8,7 @@ use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\RpgCharacterSlotService;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
@@ -170,7 +171,9 @@ class RpgCharacterStorageTest extends TestCase
         $this->get(route('rpg.characters.index'))
             ->assertOk()
             ->assertSee('Eigener Held')
-            ->assertDontSee('Fremder Held');
+            ->assertDontSee('Fremder Held')
+            ->assertSee('target="_blank"', false)
+            ->assertSee('rel="noopener noreferrer"', false);
     }
 
     public function test_second_character_without_free_slot_is_rejected(): void
@@ -181,10 +184,16 @@ class RpgCharacterStorageTest extends TestCase
             'character_name' => 'Erster Held',
         ]))->assertRedirect(route('rpg.characters.index'));
 
+        config(['rewards.rpg_character_slot_cost_baxx' => 7]);
+
         $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
             'character_name' => 'Zweiter Held',
         ]))->assertSessionHasErrors('slot');
 
+        $slotError = session('errors')->first('slot');
+
+        $this->assertStringContainsString('7 Baxx', $slotError);
+        $this->assertStringNotContainsString('5 Baxx', $slotError);
         $this->assertSame(1, RpgCharacter::query()->count());
     }
 
@@ -233,6 +242,33 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame(2, RpgCharacter::query()->count());
         $this->assertSame(1, RewardPurchase::query()->count());
         $this->assertSame(0, $member->fresh()->getAvailableBaxx());
+    }
+
+    public function test_failed_portrait_storage_rejects_character_without_persisting_path(): void
+    {
+        $this->actingAgMember();
+        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+
+        $disk = \Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('put')
+            ->once()
+            ->with(
+                \Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')),
+                \Mockery::type('string'),
+            )
+            ->andReturn(false);
+
+        Storage::shouldReceive('disk')
+            ->with('private')
+            ->once()
+            ->andReturn($disk);
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'portrait_data_url' => $dataUrl,
+        ]))->assertSessionHasErrors('portrait_data_url');
+
+        $this->assertSame(0, RpgCharacter::query()->count());
     }
 
     public function test_deleting_character_frees_slot_and_removes_portrait_file(): void

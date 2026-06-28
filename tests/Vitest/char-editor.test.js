@@ -1841,7 +1841,7 @@ describe('charEditor - Speicher-Slots', () => {
 
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(true);
-        expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('5 Baxx'));
+        expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Fuer 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
         expect(event.preventDefault).not.toHaveBeenCalled();
         confirmSpy.mockRestore();
     });

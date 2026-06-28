@@ -122,8 +122,10 @@ class RpgCharacterSlotService
         }
 
         if (! $purchaseIfNeeded) {
+            $slotCost = $this->slotCostBaxx();
+
             throw ValidationException::withMessages([
-                'slot' => 'Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot fuer 5 Baxx, um diesen Charakter zu speichern.',
+                'slot' => "Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot fuer {$slotCost} Baxx, um diesen Charakter zu speichern.",
             ]);
         }
 

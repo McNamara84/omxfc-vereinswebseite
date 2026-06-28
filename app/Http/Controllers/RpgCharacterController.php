@@ -135,7 +135,18 @@ class RpgCharacterController extends Controller
         $mime = $matches[1];
         $path = 'rpg-characters/'.$user->id.'/'.Str::uuid().'.'.$this->extensionForMime($mime);
 
-        Storage::disk('private')->put($path, $binary);
+        try {
+            $portraitStored = Storage::disk('private')->put($path, $binary);
+        } catch (Throwable $exception) {
+            report($exception);
+            $portraitStored = false;
+        }
+
+        if (! $portraitStored) {
+            throw ValidationException::withMessages([
+                'portrait_data_url' => 'Das Portrait konnte nicht gespeichert werden.',
+            ]);
+        }
 
         return [
             'path' => $path,
