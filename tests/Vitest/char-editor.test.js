@@ -705,6 +705,58 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceInfo()).toBeNull();
     });
 
+    it('stellt Kultur-Zusammenfassungen aus bestehenden Kulturboni bereit', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Landbewohner' });
+
+        e.applyCultureLandbewohner();
+
+        expect(e.cultureInfo()).toMatchObject({ name: 'Landbewohner' });
+        expect(e.cultureShortDescription()).toContain('Landbewohner');
+        expect(e.cultureInfoRows()).toEqual(expect.arrayContaining([
+            expect.objectContaining({ label: 'Fertigkeiten', value: expect.stringContaining('Beruf: Viehzüchter +2') }),
+            expect.objectContaining({ label: 'Vorteile', value: 'Keine kulturbedingten Pflichtvorteile' }),
+        ]));
+        expect(e.selectionInfoAvailable()).toBe(true);
+    });
+
+    it('meldet offene Exportpunkte als kompakte Abschlussliste', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Landbewohner' });
+
+        expect(e.completionIssues()).toEqual(expect.arrayContaining([
+            expect.stringContaining('Attribute: 2 Punkte offen'),
+            expect.stringContaining('Fertigkeiten: 20 Punkte offen'),
+            'Startausrüstung unvollständig',
+        ]));
+
+        e.attributes.st = 1;
+        e.attributes.ge = 1;
+        e.skills = [{ name: 'Athletik', value: 20 }];
+        e.clothing = 'kleidung-einfach';
+        e.setEquipmentQuantity('messer-dolch', 1);
+        e.setEquipmentQuantity('seil', 1);
+        e.setEquipmentQuantity('rucksack', 1);
+        e.setEquipmentQuantity('wasserschlauch', 1);
+        e.setEquipmentQuantity('wochenration', 1);
+        e.setEquipmentQuantity('bogen', 1);
+
+        expect(e.completionIssues()).toEqual([]);
+    });
+
+    it('ueberschreibt manuell bearbeitete Beschreibung nicht durch Auswahlwechsel', () => {
+        const e = createEditor({ race: 'Barbar', culture: 'Landbewohner' });
+
+        e.updateDescription();
+        expect(e.description).toContain('Barbaren');
+
+        e.description = 'Eigener Text';
+        e.descriptionUserEdited = true;
+        e.race = 'Guul';
+        e.culture = 'Stadtbewohner';
+        e.updateDescription();
+
+        expect(e.description).toBe('Eigener Text');
+    });
+
     it('Präkristofluu erhält Beruf, High-Tech-Ausrüstung und 12 Rassen-Fertigkeitspunkte', () => {
         const e = createEditor({ race: 'Präkristofluu' });
         e.applyRacePraekristofluu();

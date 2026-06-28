@@ -23,6 +23,17 @@ const CULTURE_DESCRIPTIONS = {
 };
 
 const CULTURE_NAMES = Object.keys(CULTURE_DESCRIPTIONS);
+const shortDescription = (value, maxLength = 180) => {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (!text) return '';
+
+    const firstSentence = text.match(/^.*?[.!?](\s|$)/)?.[0]?.trim();
+    const candidate = firstSentence && firstSentence.length <= maxLength ? firstSentence : text;
+
+    return candidate.length <= maxLength
+        ? candidate
+        : `${candidate.slice(0, maxLength - 3).trim()}...`;
+};
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 const ATTRIBUTE_RULE_METADATA = {
     st: {
@@ -827,6 +838,83 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             && this.equipmentCount() === this.equipmentLimit()
             && this.highTechEquipmentCount() <= this.highTechEquipmentLimit()
             && (this.hasHighTechAdvantage() || this.highTechEquipmentCount() === 0);
+    },
+
+    formatGrantList(grants) {
+        return Object.entries(grants || {})
+            .sort(([left], [right]) => left.localeCompare(right, 'de'))
+            .map(([name, grant]) => `${name} ${grant.type === 'exact' ? '=' : '+'}${grant.value}`)
+            .join(', ');
+    },
+
+    raceShortDescription() {
+        return shortDescription(this.raceInfo()?.description);
+    },
+
+    cultureInfo() {
+        if (!this.culture || !CULTURE_DESCRIPTIONS[this.culture]) return null;
+
+        return {
+            name: this.culture,
+            description: CULTURE_DESCRIPTIONS[this.culture],
+        };
+    },
+
+    cultureShortDescription() {
+        return shortDescription(this.cultureInfo()?.description);
+    },
+
+    cultureInfoRows() {
+        const info = this.cultureInfo();
+        if (!info) return [];
+
+        const grants = this.formatGrantList(this.cultureGrants);
+        const advantages = this.cultureLocked.advantages.length
+            ? this.cultureLocked.advantages.join(', ')
+            : 'Keine kulturbedingten Pflichtvorteile';
+
+        return [
+            { label: 'Fertigkeiten', value: grants || 'Keine automatischen Kulturfertigkeiten' },
+            { label: 'Vorteile', value: advantages },
+        ];
+    },
+
+    selectionInfoAvailable() {
+        return Boolean(this.raceInfo() || this.cultureInfo());
+    },
+
+    completionIssues() {
+        const issues = [];
+
+        if (this.apRemaining() !== 0) {
+            issues.push(`Attribute: ${Math.abs(this.apRemaining())} Punkt${Math.abs(this.apRemaining()) === 1 ? '' : 'e'} ${this.apRemaining() > 0 ? 'offen' : 'zu viel'}`);
+        }
+
+        if (this.fpRemaining() !== 0) {
+            issues.push(`Fertigkeiten: ${Math.abs(this.fpRemaining())} Punkt${Math.abs(this.fpRemaining()) === 1 ? '' : 'e'} ${this.fpRemaining() > 0 ? 'offen' : 'zu viel'}`);
+        }
+
+        if (!this.technoSkillPoolComplete()) {
+            issues.push(`Techno-Rassenpunkte: ${this.technoPoolUsed()} / ${this.technoSkillPoolPoints}`);
+        }
+
+        if (!this.praekristofluuSkillPoolComplete()) {
+            issues.push(`Präkristofluu-Rassenpunkte: ${this.praekristofluuPoolUsed()} / ${this.praekristofluuSkillPoolPoints}`);
+        }
+
+        if (this.selectedDisadvantages.length < this.chosenAdvantagesCount()) {
+            issues.push(`Nachteile: ${this.selectedDisadvantages.length} / ${this.chosenAdvantagesCount()} gewählt`);
+        }
+
+        if (!this.requiredSpecialDetailsFilled()) {
+            issues.push('Details für Besonderheiten fehlen');
+        }
+
+        if (!this.equipmentComplete()) {
+            issues.push('Startausrüstung unvollständig');
+        }
+
+        return issues;
     },
     attributeRule(id) {
         return attributeRulesById()[id] || ATTRIBUTE_RULE_METADATA[id] || null;

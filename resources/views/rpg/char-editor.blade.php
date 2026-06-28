@@ -12,7 +12,7 @@
     </script>
 @endpush
 <x-app-layout>
-    <x-member-page class="max-w-4xl">
+    <x-member-page class="max-w-6xl">
         <x-ui.page-header
             eyebrow="Adminbereich"
             title="Charakter-Editor"
@@ -20,7 +20,7 @@
             data-testid="page-header"
         />
 
-        <x-ui.panel title="Charakterdaten" description="Alle Pflichtfelder, Freischaltungen und Exportaktionen bleiben in einem einzigen Editorfluss gebündelt.">
+        <x-ui.panel title="Editorfluss" description="Basisdaten, Regeln, Ausrüstung und Export bleiben in einem zusammenhängenden Arbeitsbereich gebündelt.">
             <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" data-testid="char-editor-form">
                 @csrf
 
@@ -35,94 +35,167 @@
                 <input type="hidden" name="figurenstaerke" value="1">
                 <input type="hidden" name="barbar_attribute_bonus" :value="barbarAttributeBonus || ''" x-bind:disabled="race !== 'Barbar' || !advancedUnlocked">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <x-input label="Spielername" name="player_name" x-model="playerName" x-bind:disabled="advancedUnlocked" />
+                <nav class="mb-6 flex flex-wrap gap-2 text-sm" aria-label="Editorbereiche" data-testid="char-editor-section-nav">
+                    <a href="#char-editor-basics" class="btn btn-ghost btn-sm">Charakterdaten</a>
+                    <a href="#char-editor-attributes" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Attribute</a>
+                    <a href="#char-editor-skills" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Fertigkeiten</a>
+                    <a href="#char-editor-specials" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Besonderheiten</a>
+                    <a href="#char-editor-equipment" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Ausrüstung</a>
+                    <a href="#char-editor-export" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }">Export</a>
+                </nav>
+
+                <section id="char-editor-basics" class="space-y-5" data-testid="char-editor-basics-section">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 1</p>
+                            <h2 class="mt-1 text-xl font-semibold text-primary">Charakterdaten</h2>
+                        </div>
+                        <span class="badge badge-outline" x-text="basicsFilled() ? 'Bereit für den nächsten Schritt' : 'Pflichtfelder offen'"></span>
                     </div>
 
-                    <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
-                    </div>
-
-                    <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <label for="gender" class="block text-sm font-medium text-base-content mb-1">Geschlecht</label>
-                        <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" x-bind:disabled="advancedUnlocked">
-                            <option value="" disabled>Geschlecht wählen</option>
-                            <option value="weiblich">Weiblich</option>
-                            <option value="maennlich">Männlich</option>
-                            <option value="divers">Divers / keine Angabe</option>
-                        </select>
-                    </div>
-
-                    <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" x-bind:disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="raceInfo() ? 'race-info-panel' : null">
-                            <option value="" disabled>Rasse wählen</option>
-                            <option value="Barbar" x-bind:disabled="!isRaceSelectable('Barbar')">Barbar</option>
-                            <option value="Guul" x-bind:disabled="!isRaceSelectable('Guul')">Guul</option>
-                            <option value="Hydrit" x-bind:disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
-                            <option value="Nosfera" x-bind:disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
-                            <option value="Taratze" x-bind:disabled="!isRaceSelectable('Taratze')">Taratze</option>
-                            <option value="Wulfane" x-bind:disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
-                            <option value="Techno" x-bind:disabled="!isRaceSelectable('Techno')">Techno</option>
-                            <option value="Präkristofluu" x-bind:disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
-                        </select>
-                        <template x-if="raceInfo()">
-                            <div id="race-info-panel" class="mt-3 rounded-md border border-base-300 bg-base-200/40 p-3 text-sm" data-testid="race-info-panel" aria-live="polite">
-                                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                                    <h3 class="font-semibold text-base-content" x-text="raceInfo().name"></h3>
-                                    <span class="text-xs text-base-content/70" x-text="raceInfo().attributes"></span>
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
+                        <div class="min-w-0">
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div :class="{ 'opacity-50': advancedUnlocked }">
+                                    <x-input label="Spielername" name="player_name" x-model="playerName" x-bind:disabled="advancedUnlocked" />
                                 </div>
-                                <p class="mt-2 leading-5 text-base-content/80" x-text="raceInfo().description"></p>
-                                <dl class="mt-3 grid grid-cols-1 gap-2">
-                                    <template x-for="row in raceInfoRows()" :key="row.label">
-                                        <div class="grid grid-cols-1 gap-1 sm:grid-cols-[8rem_1fr]">
-                                            <dt class="font-medium text-base-content" x-text="row.label"></dt>
-                                            <dd class="text-base-content/80" x-text="row.value"></dd>
+
+                                <div :class="{ 'opacity-50': advancedUnlocked }">
+                                    <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
+                                </div>
+
+                                <div :class="{ 'opacity-50': advancedUnlocked }">
+                                    <label for="gender" class="block text-sm font-medium text-base-content mb-1">Geschlecht</label>
+                                    <select name="gender" id="gender" class="select select-bordered w-full" x-model="gender" x-bind:disabled="advancedUnlocked">
+                                        <option value="" disabled>Geschlecht wählen</option>
+                                        <option value="weiblich">Weiblich</option>
+                                        <option value="maennlich">Männlich</option>
+                                        <option value="divers">Divers / keine Angabe</option>
+                                    </select>
+                                </div>
+
+                                <div :class="{ 'opacity-50': advancedUnlocked }">
+                                    <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
+                                    <select name="race" id="race" class="select select-bordered w-full" x-model="race" x-bind:disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="selectionInfoAvailable() ? 'race-info-panel' : null">
+                                        <option value="" disabled>Rasse wählen</option>
+                                        <option value="Barbar" x-bind:disabled="!isRaceSelectable('Barbar')">Barbar</option>
+                                        <option value="Guul" x-bind:disabled="!isRaceSelectable('Guul')">Guul</option>
+                                        <option value="Hydrit" x-bind:disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
+                                        <option value="Nosfera" x-bind:disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
+                                        <option value="Taratze" x-bind:disabled="!isRaceSelectable('Taratze')">Taratze</option>
+                                        <option value="Wulfane" x-bind:disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
+                                        <option value="Techno" x-bind:disabled="!isRaceSelectable('Techno')">Techno</option>
+                                        <option value="Präkristofluu" x-bind:disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
+                                    </select>
+                                </div>
+
+                                <div :class="{ 'opacity-50': advancedUnlocked }">
+                                    <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
+                                    <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" x-bind:disabled="advancedUnlocked" x-bind:aria-describedby="selectionInfoAvailable() ? 'race-info-panel' : null">
+                                        <option value="" disabled>Kultur wählen</option>
+                                        <option value="Landbewohner" x-bind:disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
+                                        <option value="Stadtbewohner" x-bind:disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
+                                        <option value="Meeresbewohner" x-bind:disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
+                                        <option value="Bunkermensch" x-bind:disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
+                                        <option value="Mensch des 21. Jahrhunderts" x-bind:disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
+                                        <option value="Nomade" x-bind:disabled="!isCultureSelectable('Nomade')">Nomade</option>
+                                        <option value="Disuuslachter (Nordmann)" x-bind:disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
+                                        <option value="Ruinenbewohner" x-bind:disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
+                                        <option value="Untergrundbewohner" x-bind:disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
+                                        <option value="Volk der 13 Inseln" x-bind:disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
+                                    </select>
+                                </div>
+
+                                <div class="sm:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
+                                    <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6rem] sm:items-start">
+                                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" x-bind:disabled="advancedUnlocked">
+                                        <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-base-content/20 bg-base-200/50 text-xs text-base-content/60">
+                                            <span x-show="!portraitPreview">Vorschau</span>
+                                            <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="h-full w-full object-cover" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
                                         </div>
-                                    </template>
-                                </dl>
+                                    </div>
+                                </div>
                             </div>
-                        </template>
+
+                            <div class="mt-5">
+                                <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                                    <h3 class="text-lg font-semibold text-primary">Beschreibung</h3>
+                                    <span class="badge badge-ghost" x-text="descriptionUserEdited ? 'Manuell bearbeitet' : 'Automatisch aus Auswahl'"></span>
+                                </div>
+                                <x-textarea name="description" id="description" rows="5" x-model="description" @input="descriptionUserEdited = true" data-testid="char-editor-description" />
+                            </div>
+                        </div>
+
+                        <aside id="race-info-panel" class="rounded-md border border-base-300 bg-base-200/40 p-4 text-sm lg:sticky lg:top-24" data-testid="race-info-panel" aria-live="polite">
+                            <div class="mb-3 flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Auswahlwirkung</p>
+                                    <h3 class="mt-1 font-semibold text-base-content">Rasse und Kultur</h3>
+                                </div>
+                                <span class="badge badge-outline" x-show="selectionInfoAvailable()" x-cloak>aktiv</span>
+                            </div>
+
+                            <template x-if="!selectionInfoAvailable()">
+                                <p class="text-base-content/70">Wähle Rasse und Kultur, um Regelboni und Beschreibungsvorschläge zu sehen.</p>
+                            </template>
+
+                            <template x-if="raceInfo()">
+                                <div class="border-t border-base-300 pt-3 first:border-t-0 first:pt-0" data-testid="race-summary">
+                                    <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                        <h4 class="font-semibold text-base-content" x-text="raceInfo().name"></h4>
+                                        <span class="text-xs text-base-content/70" x-text="raceInfo().attributes"></span>
+                                    </div>
+                                    <p class="mt-2 leading-5 text-base-content/80" x-text="raceShortDescription()"></p>
+                                    <dl class="mt-3 grid grid-cols-1 gap-2">
+                                        <template x-for="row in raceInfoRows()" :key="row.label">
+                                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[7rem_1fr]">
+                                                <dt class="font-medium text-base-content" x-text="row.label"></dt>
+                                                <dd class="text-base-content/80" x-text="row.value"></dd>
+                                            </div>
+                                        </template>
+                                    </dl>
+                                    <details class="mt-3">
+                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/60">Rassentext anzeigen</summary>
+                                        <p class="mt-2 leading-5 text-base-content/75" x-text="raceInfo().description"></p>
+                                    </details>
+                                </div>
+                            </template>
+
+                            <template x-if="cultureInfo()">
+                                <div class="mt-4 border-t border-base-300 pt-3" data-testid="culture-summary">
+                                    <h4 class="font-semibold text-base-content" x-text="cultureInfo().name"></h4>
+                                    <p class="mt-2 leading-5 text-base-content/80" x-text="cultureShortDescription()"></p>
+                                    <dl class="mt-3 grid grid-cols-1 gap-2">
+                                        <template x-for="row in cultureInfoRows()" :key="row.label">
+                                            <div class="grid grid-cols-1 gap-1 sm:grid-cols-[7rem_1fr]">
+                                                <dt class="font-medium text-base-content" x-text="row.label"></dt>
+                                                <dd class="text-base-content/80" x-text="row.value"></dd>
+                                            </div>
+                                        </template>
+                                    </dl>
+                                    <details class="mt-3">
+                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/60">Kulturtext anzeigen</summary>
+                                        <p class="mt-2 leading-5 text-base-content/75" x-text="cultureInfo().description"></p>
+                                    </details>
+                                </div>
+                            </template>
+                        </aside>
                     </div>
 
-                    <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
-                        <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" x-bind:disabled="advancedUnlocked">
-                            <option value="" disabled>Kultur wählen</option>
-                            <option value="Landbewohner" x-bind:disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
-                            <option value="Stadtbewohner" x-bind:disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
-                            <option value="Meeresbewohner" x-bind:disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
-                            <option value="Bunkermensch" x-bind:disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
-                            <option value="Mensch des 21. Jahrhunderts" x-bind:disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
-                            <option value="Nomade" x-bind:disabled="!isCultureSelectable('Nomade')">Nomade</option>
-                            <option value="Disuuslachter (Nordmann)" x-bind:disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
-                            <option value="Ruinenbewohner" x-bind:disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
-                            <option value="Untergrundbewohner" x-bind:disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
-                            <option value="Volk der 13 Inseln" x-bind:disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
-                        </select>
+                    <div class="flex justify-end" x-show="basicsFilled() && !advancedUnlocked" x-cloak>
+                        <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
                     </div>
-
-                    <div class="md:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
-                        <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
-                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" x-bind:disabled="advancedUnlocked">
-                        <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <h2 class="text-xl font-semibold text-primary mb-2">Beschreibung</h2>
-                        <x-textarea name="description" id="description" rows="4" x-model="description" @input="descriptionUserEdited = true" />
-                    </div>
-                </div>
-
-                <div class="flex justify-end mb-6" x-show="basicsFilled() && !advancedUnlocked" x-cloak>
-                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
-                </div>
-
-                <fieldset x-bind:disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
-                    <div class="mb-6">
-                        <h2 class="text-xl font-semibold text-primary mb-2">Attribute</h2>
-                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining()"></p>
+                </section>
+                <fieldset class="mt-8 space-y-8" x-bind:disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
+                    <section id="char-editor-attributes" class="border-t border-base-300/70 pt-6" data-testid="char-editor-attributes-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 2</p>
+                                <h2 class="mt-1 text-xl font-semibold text-primary">Attribute</h2>
+                            </div>
+                            <span class="badge badge-outline" aria-live="polite" x-text="'AP: ' + apRemaining()"></span>
+                        </div>
                         <div x-show="race === 'Barbar'" class="mb-3">
                             <label for="barbar-attribute-select" class="text-sm font-medium text-base-content mb-1">Barbar Attributbonus</label>
                             <select id="barbar-attribute-select" class="select select-bordered w-full sm:w-auto" x-model="barbarAttributeBonus" @change="setBarbarAttributeBonus(barbarAttributeBonus)">
@@ -131,14 +204,14 @@
                                 </template>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             @foreach($attributeRules as $attribute)
                                 @php
                                     $attrId = $attribute['id'];
                                     $label = $attribute['label'];
                                     $descriptionId = 'attribute-description-'.$attrId;
                                 @endphp
-                                <div x-data="{ attributeHelpOpen: false }" class="space-y-1">
+                                <div x-data="{ attributeHelpOpen: false }" class="space-y-2 rounded-md border border-base-300 bg-base-100 p-3">
                                     <div class="flex items-center gap-1">
                                         <label for="{{ $attrId }}" class="block text-sm font-medium text-base-content">{{ $label }}</label>
                                         <button
@@ -171,6 +244,10 @@
                                         aria-describedby="{{ $descriptionId }}"
                                         class="input input-bordered w-full"
                                     >
+                                    <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/60">
+                                        <span x-text="'Bereich ' + attributeRangeLabel(@js($attrId))"></span>
+                                        <span x-show="attributeModifier(@js($attrId)) !== 0" x-cloak class="badge badge-primary badge-outline" x-text="'Rasse ' + (attributeModifier(@js($attrId)) > 0 ? '+' : '') + attributeModifier(@js($attrId))"></span>
+                                    </div>
                                     <p
                                         id="{{ $descriptionId }}"
                                         class="text-xs leading-5 text-base-content/70"
@@ -182,12 +259,18 @@
                                 </div>
                             @endforeach
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="mb-6">
-                        <h2 class="text-xl font-semibold text-primary mb-2">Fertigkeiten</h2>
-                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Fertigkeitspunkte: ' + fpRemaining()"></p>
-                        <div x-show="race === 'Barbar'" class="mb-2">
+                    <section id="char-editor-skills" class="border-t border-base-300/70 pt-6" data-testid="char-editor-skills-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 3</p>
+                                <h2 class="mt-1 text-xl font-semibold text-primary">Fertigkeiten</h2>
+                            </div>
+                            <span class="badge badge-outline" aria-live="polite" x-text="'FP: ' + fpRemaining()"></span>
+                        </div>
+                        <div class="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-2" data-testid="char-editor-bonus-controls">
+                            <div x-show="race === 'Barbar'" class="rounded-md border border-base-300 bg-base-100 p-3">
                             <label for="barbar-combat-select" class="text-sm font-medium text-base-content mb-1">Barbar Kampfbonus</label>
                             <select id="barbar-combat-select" class="select select-bordered w-full sm:w-auto" x-model="barbarCombatSkill" @change="setBarbarCombatSkill(barbarCombatSkill)">
                                 <option value="Nahkampf">Nahkampf (+1)</option>
@@ -313,9 +396,10 @@
                                 <option value="Beruf: Fischer">Beruf: Fischer (+1)</option>
                             </select>
                         </div>
-                        <div class="space-y-2">
+                        </div>
+                        <div class="space-y-2 rounded-md border border-base-300 bg-base-200/40 p-2">
                             <template x-for="(skill, index) in skills" :key="skill.uid">
-                                <div x-data="{ skillHelpOpen: false }" class="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_6rem_auto_auto] items-start">
+                                <div x-data="{ skillHelpOpen: false }" class="grid grid-cols-1 items-start gap-2 rounded-md border border-base-300 bg-base-100 p-3 sm:grid-cols-[minmax(0,2fr)_6rem_auto_auto]">
                                     <input type="hidden"
                                         :name="'skills[' + index + '][name]'"
                                         :value="skill.name"
@@ -328,7 +412,7 @@
                                     >
                                     <input type="text" list="skills-list"
                                         :name="'skills[' + index + '][name]'"
-                                        class="skill-name w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
+                                        class="input input-bordered w-full"
                                         placeholder="Fertigkeit"
                                         x-model="skill.name"
                                         x-bind:disabled="skill.nameDisabled"
@@ -338,7 +422,7 @@
                                     >
                                     <input type="number"
                                         :name="'skills[' + index + '][value]'"
-                                        class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
+                                        class="input input-bordered w-full"
                                         placeholder="FW" step="1"
                                         x-model.number="skill.value"
                                         :min="getSkillMin(skill.name)"
@@ -367,7 +451,7 @@
                                         <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
                                     </button>
                                     <template x-if="!skill.locked">
-                                        <button type="button" class="px-2 py-1 bg-red-500 text-white rounded-md" @click="removeSkill(index)">-</button>
+                                        <button type="button" class="btn btn-circle btn-error btn-sm h-9 min-h-0 w-9" aria-label="Fertigkeit entfernen" @click="removeSkill(index)">-</button>
                                     </template>
                                     <template x-if="skill.badge">
                                         <span class="text-xs px-2 py-0.5 rounded bg-blue-200 dark:bg-blue-700 text-blue-800 dark:text-blue-200" x-text="skill.badge"></span>
@@ -383,17 +467,23 @@
                                 </div>
                             </template>
                         </div>
-                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining() <= 0" />
+                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-3" @click="addSkill()" x-bind:disabled="fpRemaining() <= 0" />
                         <datalist id="skills-list">
                             @foreach($skillSuggestions as $skillSuggestion)
                                 <option value="{{ $skillSuggestion }}"></option>
                             @endforeach
                         </datalist>
-                    </div>
+                    </section>
 
-                    <div class="mb-6">
-                        <h2 class="text-xl font-semibold text-primary mb-2">Besonderheiten</h2>
-                        <div class="mb-3 flex flex-wrap items-center gap-2">
+                    <section id="char-editor-specials" class="border-t border-base-300/70 pt-6" data-testid="char-editor-specials-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 4</p>
+                                <h2 class="mt-1 text-xl font-semibold text-primary">Besonderheiten</h2>
+                            </div>
+                            <span class="badge badge-outline" aria-live="polite" x-text="selectedDisadvantages.length + ' / ' + chosenAdvantagesCount() + ' Nachteile'"></span>
+                        </div>
+                        <div class="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-base-300 bg-base-200/40 p-3">
                             <x-button type="button" label="Vorteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('advantage')" data-testid="roll-advantage-button" />
                             <x-button type="button" label="Nachteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('disadvantage')" data-testid="roll-disadvantage-button" />
                             <p x-show="lastRoll" x-cloak class="text-xs text-base-content/70" aria-live="polite" data-testid="char-editor-roll-result" x-text="lastRoll ? 'W66 ' + lastRoll.value + ' (' + lastRoll.dice + '): ' + lastRoll.message : ''"></p>
@@ -521,11 +611,14 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-6" data-testid="char-editor-equipment-section">
-                        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                            <h2 id="equipment-heading" class="text-xl font-semibold text-primary">Ausrüstung</h2>
-                            <p class="text-sm text-base-content/70" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></p>
+                    </section>
+                    <section id="char-editor-equipment" class="border-t border-base-300/70 pt-6" data-testid="char-editor-equipment-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
+                                <h2 id="equipment-heading" class="mt-1 text-xl font-semibold text-primary">Ausrüstung</h2>
+                            </div>
+                            <span class="badge badge-outline" aria-live="polite" x-text="'Items ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></span>
                         </div>
 
                         <input type="hidden" name="clothing" :value="clothing">
@@ -619,12 +712,28 @@
                             <label for="equipment" class="block text-sm font-medium text-base-content mb-1">Notizen zur Ausrüstung</label>
                             <x-textarea name="equipment" id="equipment" rows="3" x-model="equipment" aria-labelledby="equipment-heading" />
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="flex justify-end space-x-2">
-                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid()" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
-                        <x-button id="submit-button" type="submit" x-bind:disabled="!formValid()" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
-                    </div>
+                    <section id="char-editor-export" class="border-t border-base-300/70 pt-6" data-testid="char-editor-export-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 6</p>
+                                <h2 class="mt-1 text-xl font-semibold text-primary">Export</h2>
+                            </div>
+                            <span class="badge" :class="formValid() ? 'badge-success' : 'badge-outline'" aria-live="polite" x-text="formValid() ? 'Bereit' : completionIssues().length + ' offen'"></span>
+                        </div>
+                        <template x-if="!formValid()">
+                            <ul class="mb-4 grid grid-cols-1 gap-2 text-sm text-base-content/75 sm:grid-cols-2" data-testid="char-editor-completion-issues">
+                                <template x-for="issue in completionIssues()" :key="issue">
+                                    <li class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2" x-text="issue"></li>
+                                </template>
+                            </ul>
+                        </template>
+                        <div class="flex flex-wrap justify-end gap-2">
+                            <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid()" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
+                            <x-button id="submit-button" type="submit" x-bind:disabled="!formValid()" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
+                        </div>
+                    </section>
                 </fieldset>
             </form>
         </x-ui.panel>

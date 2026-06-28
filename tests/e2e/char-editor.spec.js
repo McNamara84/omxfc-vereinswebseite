@@ -128,8 +128,8 @@ test.describe('RPG Charakter-Editor', () => {
         }
 
         await expect(addFunkgeraet).toBeDisabled();
-        await expect(page.getByText('High-Tech: 4 / 4')).toBeVisible();
-        await expect(page.getByText('Gegenst\u00e4nde: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
+        await expect(page.getByText('High-Tech 4 / 4')).toBeVisible();
+        await expect(page.getByText('Items 4 / 6 \u00b7 High-Tech 4 / 4', { exact: true })).toBeVisible();
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
@@ -183,6 +183,17 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(raceInfo).toContainText('ST -1, RO -1, IN +1');
         await expect(raceInfo).toContainText('Bildung +3');
         await expect(raceInfo).toContainText('Tödliche Immunschwäche');
+        await expect(page.getByTestId('culture-summary')).toContainText('Bunkermensch');
+        await expect(page.getByTestId('culture-summary')).toContainText('Bildung +1');
+        await expect(page.getByText('Kulturtext anzeigen')).toBeVisible();
+
+        const description = page.getByTestId('char-editor-description');
+        await description.fill('Eigener Text');
+        await page.locator('#race').selectOption('Barbar');
+        await page.locator('#culture').selectOption('Landbewohner');
+
+        await expect(description).toHaveValue('Eigener Text');
+        await expect(page.getByText('Manuell bearbeitet')).toBeVisible();
     });
 
     test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }) => {
