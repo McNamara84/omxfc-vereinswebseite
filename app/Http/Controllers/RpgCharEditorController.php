@@ -822,7 +822,7 @@ class RpgCharEditorController extends Controller
             if (in_array($name, self::SPECIAL_SKILL_VALUES, true)) {
                 $grantValue = $this->skillGrantValue($grants, $name);
 
-                if ($grantValue === null || $skillValue !== $grantValue) {
+                if ($grantValue === null || $skillValue < $grantValue) {
                     throw ValidationException::withMessages([
                         'skills' => "Die Fertigkeit {$name} ist nur als rassenbedingte Sonderregel erlaubt.",
                     ]);

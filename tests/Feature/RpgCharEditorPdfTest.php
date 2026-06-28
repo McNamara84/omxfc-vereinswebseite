@@ -535,7 +535,7 @@ class RpgCharEditorPdfTest extends TestCase
                 return $data['character']['race'] === 'Guul'
                     && $data['character']['culture'] === 'Stadtbewohner'
                     && ($data['attributes']['au'] ?? null) === '-1'
-                    && (($skills['Natürliche Waffen'] ?? [])['value'] ?? null) === '1'
+                    && (($skills['Natürliche Waffen'] ?? [])['value'] ?? null) === '2'
                     && in_array('Natürliche Waffen', $data['advantages'], true)
                     && in_array('Primitiv', $data['disadvantages'], true)
                     && in_array('Gejagt', $data['disadvantages'], true);
@@ -560,7 +560,7 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Natürliche Waffen', 'value' => 2],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
