@@ -53,7 +53,11 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantageDetailRequired'", $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('equipmentRules'", $source);
         $this->assertStringContainsString('equipmentComplete()', $source);
-
+        $viewSource = $this->charEditorViewSource();
+        $this->assertStringContainsString('equipmentLimit()', $viewSource);
+        $this->assertStringContainsString('highTechEquipmentLimit()', $viewSource);
+        $this->assertStringNotContainsString("equipmentCount() + ' / 6", $viewSource);
+        $this->assertStringNotContainsString("highTechEquipmentCount() + ' / 4", $viewSource);
         $this->assertSame(
             array_column($config['attributeRules']['attributes'], 'id'),
             $this->frontendAttributeMetadataIds(),

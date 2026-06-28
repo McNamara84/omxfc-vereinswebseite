@@ -714,8 +714,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         ), 0);
     },
 
+    equipmentLimit() {
+        return equipmentLimit();
+    },
+
     equipmentRemaining() {
-        return equipmentLimit() - this.equipmentCount();
+        return this.equipmentLimit() - this.equipmentCount();
     },
 
     highTechEquipmentCount() {
@@ -724,8 +728,12 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         ), 0);
     },
 
+    highTechEquipmentLimit() {
+        return highTechEquipmentLimit();
+    },
+
     highTechEquipmentRemaining() {
-        return highTechEquipmentLimit() - this.highTechEquipmentCount();
+        return this.highTechEquipmentLimit() - this.highTechEquipmentCount();
     },
 
     maxEquipmentQuantity(item) {
@@ -736,10 +744,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         const countedCurrent = this.equipmentCountsTowardLimit(item) ? current : 0;
         const highTechCurrent = this.equipmentRequiresHighTechAdvantage(item) ? current : 0;
         const totalRoom = this.equipmentCountsTowardLimit(item)
-            ? equipmentLimit() - (this.equipmentCount() - countedCurrent)
+            ? this.equipmentLimit() - (this.equipmentCount() - countedCurrent)
             : equipmentQuantityMax();
         const highTechRoom = this.equipmentRequiresHighTechAdvantage(item)
-            ? highTechEquipmentLimit() - (this.highTechEquipmentCount() - highTechCurrent)
+            ? this.highTechEquipmentLimit() - (this.highTechEquipmentCount() - highTechCurrent)
             : equipmentQuantityMax();
 
         return Math.max(0, Math.min(equipmentQuantityMax(), totalRoom, highTechRoom));
@@ -816,8 +824,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     equipmentComplete() {
         return Boolean(this.selectedClothing())
-            && this.equipmentCount() === equipmentLimit()
-            && this.highTechEquipmentCount() <= highTechEquipmentLimit()
+            && this.equipmentCount() === this.equipmentLimit()
+            && this.highTechEquipmentCount() <= this.highTechEquipmentLimit()
             && (this.hasHighTechAdvantage() || this.highTechEquipmentCount() === 0);
     },
     attributeRule(id) {

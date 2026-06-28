@@ -782,6 +782,28 @@ describe('charEditor - Ausruestung', () => {
         expect(e.equipmentComplete()).toBe(true);
     });
 
+    it('liest Start- und High-Tech-Limits aus der Rule-Config', () => {
+        window.rpgCharEditorRules.equipmentRules.limits.items = 7;
+        window.rpgCharEditorRules.equipmentRules.limits.highTechItems = 2;
+
+        const highTechAdvantage = window.rpgCharEditorRules.advantages.find(value => value.startsWith('High-Tech'));
+        const e = createEditor({ clothing: 'kleidung-einfach', selectedAdvantages: [highTechAdvantage] });
+
+        expect(e.equipmentLimit()).toBe(7);
+        expect(e.highTechEquipmentLimit()).toBe(2);
+
+        e.setEquipmentQuantity('funkgeraet', 3);
+        e.setEquipmentQuantity('bogen', 2);
+        e.setEquipmentQuantity('seil', 3);
+
+        expect(e.equipmentQuantity('funkgeraet')).toBe(2);
+        expect(e.equipmentCount()).toBe(7);
+        expect(e.equipmentRemaining()).toBe(0);
+        expect(e.highTechEquipmentCount()).toBe(2);
+        expect(e.highTechEquipmentRemaining()).toBe(0);
+        expect(e.equipmentComplete()).toBe(true);
+    });
+
     it('rechnet Mengen gegen das Startlimit und leitet Munition ab', () => {
         const e = createEditor({ clothing: 'kleidung-wanderer' });
 
