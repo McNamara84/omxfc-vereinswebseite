@@ -351,6 +351,25 @@ const normalizeSkillName = (value) => {
 const skillBaseName = (name) => normalizeSkillName(name).split(':')[0].trim();
 const skillSuggestions = () => Array.isArray(skillRuleConfig().suggestions) ? skillRuleConfig().suggestions : DEFAULT_SKILL_SUGGESTIONS;
 
+const defaultEquipmentRuleConfig = () => ({
+    limits: { items: 6, highTechItems: 4, maxQuantity: 20 },
+    categories: {},
+    clothing: [],
+    items: [],
+});
+const equipmentRuleConfig = () => {
+    const config = objectFromSpecialRuleConfig('equipmentRules');
+
+    return Array.isArray(config.items) ? config : defaultEquipmentRuleConfig();
+};
+const equipmentItems = () => equipmentRuleConfig().items || [];
+const equipmentItemsById = () => Object.fromEntries(equipmentItems().map(item => [item.id, item]));
+const equipmentClothingOptions = () => equipmentRuleConfig().clothing || [];
+const equipmentClothingById = () => Object.fromEntries(equipmentClothingOptions().map(item => [item.id, item]));
+const equipmentCategoryLabels = () => equipmentRuleConfig().categories || {};
+const equipmentLimit = () => Number(equipmentRuleConfig().limits?.items) || 6;
+const highTechEquipmentLimit = () => Number(equipmentRuleConfig().limits?.highTechItems) || 4;
+const equipmentQuantityMax = () => Number(equipmentRuleConfig().limits?.maxQuantity) || 20;
 const buildAdvantageRules = () => {
     const costs = objectFromSpecialRuleConfig('advantageCosts');
     const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
@@ -446,6 +465,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     descriptionUserEdited: false,
     portraitPreview: null,
     equipment: '',
+    clothing: '',
+    selectedEquipment: {},
+    equipmentSearch: '',
+    equipmentCategoryFilter: 'all',
 
     // Game constants
     base: { AP: attributeCreationPoints(), FP: skillCreationPoints(), maxFW: skillMaxValue(), freeAdvantages: 2 },
@@ -619,6 +642,184 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     skillSuggestions() {
         return skillSuggestions();
     },
+    equipmentRules() {
+        return equipmentRuleConfig();
+    },
+
+    equipmentItems() {
+        return equipmentItems();
+    },
+
+    equipmentCategoryOptions() {
+        return Object.entries(equipmentCategoryLabels()).map(([id, label]) => ({ id, label }));
+    },
+
+    equipmentCategoryLabel(value) {
+        const key = typeof value === 'string' ? value : value?.category;
+        return equipmentCategoryLabels()[key] || key || '';
+    },
+
+    clothingOptions() {
+        return equipmentClothingOptions();
+    },
+
+    selectedClothing() {
+        return equipmentClothingById()[this.clothing] || null;
+    },
+
+    equipmentItem(id) {
+        return equipmentItemsById()[id] || null;
+    },
+
+    filteredEquipmentItems() {
+        const search = String(this.equipmentSearch || '').trim().toLowerCase();
+
+        return this.equipmentItems().filter((item) => {
+            const categoryMatches = this.equipmentCategoryFilter === 'all' || item.category === this.equipmentCategoryFilter;
+            const haystack = [item.name, item.summary, this.equipmentCategoryLabel(item)]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+
+            return categoryMatches && (!search || haystack.includes(search));
+        });
+    },
+
+    equipmentQuantity(id) {
+        const parsed = Number.parseInt(this.selectedEquipment[id], 10);
+        return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    },
+
+    selectedEquipmentEntries() {
+        return Object.entries(this.selectedEquipment)
+            .map(([id, quantity]) => ({ id, quantity: Number.parseInt(quantity, 10) || 0, item: this.equipmentItem(id) }))
+            .filter(entry => entry.item && entry.quantity > 0);
+    },
+
+    equipmentCountsTowardLimit(item) {
+        return item?.countsTowardLimit !== false;
+    },
+
+    equipmentRequiresHighTechAdvantage(item) {
+        return Boolean(item?.requiresHighTechAdvantage || item?.category === 'high_tech');
+    },
+
+    hasHighTechAdvantage() {
+        return this.selectedAdvantages.includes('High-Tech-Ausrüstung');
+    },
+
+    equipmentCount() {
+        return this.selectedEquipmentEntries().reduce((sum, entry) => (
+            this.equipmentCountsTowardLimit(entry.item) ? sum + entry.quantity : sum
+        ), 0);
+    },
+
+    equipmentRemaining() {
+        return equipmentLimit() - this.equipmentCount();
+    },
+
+    highTechEquipmentCount() {
+        return this.selectedEquipmentEntries().reduce((sum, entry) => (
+            this.equipmentRequiresHighTechAdvantage(entry.item) ? sum + entry.quantity : sum
+        ), 0);
+    },
+
+    highTechEquipmentRemaining() {
+        return highTechEquipmentLimit() - this.highTechEquipmentCount();
+    },
+
+    maxEquipmentQuantity(item) {
+        if (!item) return 0;
+        if (this.equipmentRequiresHighTechAdvantage(item) && !this.hasHighTechAdvantage()) return 0;
+
+        const current = this.equipmentQuantity(item.id);
+        const countedCurrent = this.equipmentCountsTowardLimit(item) ? current : 0;
+        const highTechCurrent = this.equipmentRequiresHighTechAdvantage(item) ? current : 0;
+        const totalRoom = this.equipmentCountsTowardLimit(item)
+            ? equipmentLimit() - (this.equipmentCount() - countedCurrent)
+            : equipmentQuantityMax();
+        const highTechRoom = this.equipmentRequiresHighTechAdvantage(item)
+            ? highTechEquipmentLimit() - (this.highTechEquipmentCount() - highTechCurrent)
+            : equipmentQuantityMax();
+
+        return Math.max(0, Math.min(equipmentQuantityMax(), totalRoom, highTechRoom));
+    },
+
+    canIncrementEquipment(item) {
+        return this.equipmentQuantity(item?.id) < this.maxEquipmentQuantity(item);
+    },
+
+    equipmentDisabledReason(item) {
+        if (!item) return '';
+        if (this.equipmentRequiresHighTechAdvantage(item) && !this.hasHighTechAdvantage()) {
+            return 'Benötigt High-Tech-Ausrüstung';
+        }
+        if (!this.canIncrementEquipment(item)) {
+            return 'Limit erreicht';
+        }
+        return '';
+    },
+
+    setEquipmentQuantity(id, value) {
+        const item = this.equipmentItem(id);
+        if (!item) return;
+
+        const parsed = Number.parseInt(value, 10);
+        const requested = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+        const quantity = Math.min(requested, this.maxEquipmentQuantity(item));
+        const next = { ...this.selectedEquipment };
+
+        if (quantity > 0) {
+            next[id] = quantity;
+        } else {
+            delete next[id];
+        }
+
+        this.selectedEquipment = next;
+    },
+
+    incrementEquipment(id) {
+        const item = this.equipmentItem(id);
+        if (!item || !this.canIncrementEquipment(item)) return;
+
+        this.setEquipmentQuantity(id, this.equipmentQuantity(id) + 1);
+    },
+
+    decrementEquipment(id) {
+        this.setEquipmentQuantity(id, this.equipmentQuantity(id) - 1);
+    },
+
+    enforceEquipmentLimits() {
+        this.selectedEquipmentEntries().forEach((entry) => {
+            this.setEquipmentQuantity(entry.id, entry.quantity);
+        });
+    },
+
+    includedAmmunition() {
+        return this.selectedEquipmentEntries()
+            .filter(entry => entry.item?.ammunition)
+            .map((entry) => ({
+                source: entry.item.name,
+                quantity: entry.quantity * (Number(entry.item.ammunition.amount) || 0),
+                unit: entry.item.ammunition.unit || '',
+            }))
+            .filter(entry => entry.quantity > 0 && entry.unit);
+    },
+
+    equipmentRuleLine(item) {
+        if (!item) return '';
+        const parts = [item.summary || ''];
+        if (item.tw) parts.push(`TW ${item.tw}`);
+        if (item.bucks) parts.push(`B ${item.bucks}`);
+        return parts.filter(Boolean).join(' · ');
+    },
+
+    equipmentComplete() {
+        return Boolean(this.selectedClothing())
+            && this.equipmentCount() === equipmentLimit()
+            && this.highTechEquipmentCount() <= highTechEquipmentLimit()
+            && (this.hasHighTechAdvantage() || this.highTechEquipmentCount() === 0);
+    },
     attributeRule(id) {
         return attributeRulesById()[id] || ATTRIBUTE_RULE_METADATA[id] || null;
     },
@@ -729,7 +930,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount()
-            && this.requiredSpecialDetailsFilled();
+            && this.requiredSpecialDetailsFilled()
+            && this.equipmentComplete();
     },
 
     shouldMirrorBaseFields() {
@@ -808,7 +1010,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.$watch('race', () => this.handleRaceChange());
         this.$watch('culture', () => this.handleCultureChange());
         this.$watch('gender', () => this.handleGenderChange());
-        this.$watch('selectedAdvantages', () => this.enforceAdvantageLimit());
+        this.$watch('selectedAdvantages', () => {
+            this.enforceAdvantageLimit();
+            this.enforceEquipmentLimits();
+        });
     },
 
     clampAttribute(id) {

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\RpgCharEditorController;
+use App\Support\RpgCharEditorEquipment;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -21,6 +22,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'repeatableAdvantages',
             'advantageDetailRequired',
             'disadvantageDetailRequired',
+            'equipmentRules',
         ], array_keys($config));
         $this->assertSame(RpgCharEditorController::attributeRuleConfig(), $config['attributeRules']);
         $this->assertSame(RpgCharEditorController::skillRuleConfig(), $config['skillRules']);
@@ -30,6 +32,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame($this->controllerConstant('REPEATABLE_ADVANTAGES'), $config['repeatableAdvantages']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_DETAIL_REQUIRED'), $config['advantageDetailRequired']);
         $this->assertSame($this->controllerConstant('DISADVANTAGE_DETAIL_REQUIRED'), $config['disadvantageDetailRequired']);
+        $this->assertSame(RpgCharEditorEquipment::ruleConfig(), $config['equipmentRules']);
     }
 
     public function test_frontend_rule_metadata_covers_backend_special_rules(): void
@@ -48,6 +51,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString("listFromSpecialRuleConfig('repeatableAdvantages'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('advantageDetailRequired'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantageDetailRequired'", $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('equipmentRules'", $source);
+        $this->assertStringContainsString('equipmentComplete()', $source);
 
         $this->assertSame(
             array_column($config['attributeRules']['attributes'], 'id'),
@@ -63,6 +68,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         );
         $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
+        $this->assertNotEmpty($config['equipmentRules']['items']);
+        $this->assertSame(6, $config['equipmentRules']['limits']['items']);
     }
 
     public function test_skill_help_rows_use_stable_keys_and_non_toggle_clicks(): void
@@ -112,7 +119,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
             $method->setAccessible(true);
         }
 
-        return $method->invokeArgs(new RpgCharEditorController(), $arguments);
+        return $method->invokeArgs(new RpgCharEditorController, $arguments);
     }
 
     private function frontendMetadataNames(string $constantName): array

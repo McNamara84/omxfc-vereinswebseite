@@ -56,6 +56,15 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Auffällig'],
+            'clothing' => 'kleidung-einfach',
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+                ['id' => 'bogen', 'quantity' => 1],
+            ],
             'equipment' => 'Messer, Seil, Feldflasche',
         ], $overrides);
 
@@ -63,7 +72,7 @@ class RpgCharEditorPdfTest extends TestCase
             $payload['attributes'] = $this->validAttributesForRace((string) ($payload['race'] ?? ''));
         }
 
-        foreach (['attributes', 'skills', 'advantages', 'disadvantages'] as $listKey) {
+        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'equipment_items'] as $listKey) {
             if (array_key_exists($listKey, $overrides)) {
                 $payload[$listKey] = $overrides[$listKey];
             }
@@ -199,6 +208,129 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertMatchesRegularExpression('#^/rpg/char-editor/pdf/[0-9a-f-]{36}$#', $path);
     }
 
+
+    public function test_pdf_export_includes_structured_equipment_and_server_ammunition(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['equipment']['clothing']['id'] ?? null) === 'kleidung-wanderer'
+                && collect($data['equipment']['items'])->contains(fn ($item) => $item['id'] === 'bogen' && $item['quantity'] === 2)
+                && collect($data['equipment']['ammunition'])->contains(fn ($ammo) => $ammo['source'] === 'Bogen' && $ammo['quantity'] === 60 && $ammo['unit'] === 'Pfeile')
+                && ($data['equipment']['notes'] ?? null) === 'Bogen gewachst'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'clothing' => 'kleidung-wanderer',
+            'equipment_items' => [
+                ['id' => 'bogen', 'quantity' => 2],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+            ],
+            'equipment' => 'Bogen gewachst',
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_requires_valid_clothing_from_equipment_rules(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'clothing' => 'smoking',
+        ]));
+
+        $response->assertSessionHasErrors('clothing');
+    }
+
+    public function test_pdf_export_requires_exactly_six_counted_equipment_items(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('equipment_items');
+    }
+
+    public function test_pdf_export_rejects_unknown_equipment_ids(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+                ['id' => 'laserdrache', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('equipment_items');
+    }
+
+    public function test_pdf_export_rejects_high_tech_equipment_without_advantage(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'equipment_items' => [
+                ['id' => 'funkgeraet', 'quantity' => 1],
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('equipment_items');
+    }
+
+    public function test_pdf_export_limits_high_tech_equipment_to_four_with_advantage(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
+            'disadvantages' => ['Auffällig'],
+            'equipment_items' => [
+                ['id' => 'funkgeraet', 'quantity' => 5],
+                ['id' => 'seil', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('equipment_items');
+    }
     public function test_pdf_export_get_route_can_be_opened_repeatedly_by_pdf_viewers(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -381,10 +513,20 @@ class RpgCharEditorPdfTest extends TestCase
             'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
             'disadvantages' => ['Aberglaeubisch', ''],
             'disadvantage_details' => ['Aberglaeubisch' => 'Salz, Omen, dreimal klopfen'],
+            'clothing' => 'kleidung-einfach',
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+                ['id' => 'bogen', 'quantity' => 1],
+            ],
             'equipment' => 'Seil und Messer',
             'unexpected' => 'wird nicht an die PDF-View gereicht',
         ]);
 
+        $response->assertSessionHasNoErrors();
         $response->assertOk();
     }
 
@@ -1549,6 +1691,15 @@ class RpgCharEditorPdfTest extends TestCase
             'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
             'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
             'disadvantage_details' => [' Aberglaeubisch ' => ' Salz, Omen, dreimal klopfen '],
+            'clothing' => 'kleidung-einfach',
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+                ['id' => 'bogen', 'quantity' => 1],
+            ],
         ]);
 
         $response->assertOk();
