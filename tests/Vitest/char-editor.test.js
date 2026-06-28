@@ -226,6 +226,39 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.attributeTooltip('st')).toContain('Regelbereich aktuell: -1 bis 1');
     });
 
+    it('liefert Regelhinweise für Fertigkeiten und Spezialisierungen', () => {
+        const e = createEditor();
+
+        expect(e.skillTooltip('Athletik')).toContain('Attribute: ST, GE, RO');
+        expect(e.skillTooltip('Athletik')).toContain('Klettern');
+        expect(e.skillTooltip('Beruf: Bauer')).toContain('Spezialisierung');
+        expect(e.skillTooltip('  Beruf:Künstler  ')).toContain('Spezialisierung');
+        expect(e.skillTooltip('Natuerliche_Waffen')).toContain('Rassenbedingte Sonderregel');
+        expect(e.skillTooltip('Bildung')).toContain('Kind zweier Welten');
+        expect(e.skillTooltip('Natürliche Waffen')).toContain('Rassenbedingte Sonderregel');
+    });
+
+    it('schlägt nur frei wählbare Fertigkeiten in der Datalist vor', () => {
+        const e = createEditor();
+
+        expect(e.skillSuggestions()).toContain('Athletik');
+        expect(e.skillSuggestions()).toContain('Beruf: Viehzüchter');
+        expect(e.skillSuggestions()).not.toContain('Natürliche Waffen');
+    });
+
+    it('vergibt stabile eindeutige Keys für Fertigkeitszeilen', () => {
+        const e = createEditor();
+
+        e.addSkill();
+        const firstUid = e.skills[0].uid;
+        e.ensureSkill('Nahkampf');
+        e.removeSkill(0);
+        e.addSkill();
+
+        expect(firstUid).toBe('skill-1');
+        expect(e.skills.map(skill => skill.uid)).toEqual(['skill-2', 'skill-3']);
+    });
+
     it('begrenzt Attributwert nicht unter -1 auch wenn AP-Budget überschritten', () => {
         const e = createEditor();
         // Alle 2 AP schon von st und ge verbraucht
