@@ -529,7 +529,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // UI state
     advancedUnlocked: false,
-
+    purchaseSlotIfNeeded: false,
+    characterSlotSummary: typeof window === 'undefined' ? null : (window.rpgCharacterSlots || null),
     basicsFilled() {
         return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
     },
@@ -1036,6 +1037,47 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     shouldSubmitPortraitPreview() {
         return this.advancedUnlocked && Boolean(this.portraitPreview);
+    },
+
+    hasFreeCharacterSlot() {
+        const freeSlots = Number(this.characterSlotSummary?.free_slots);
+
+        return !Number.isFinite(freeSlots) || freeSlots > 0;
+    },
+
+    characterSlotPurchaseMessage() {
+        const cost = Number(this.characterSlotSummary?.slot_cost_baxx) || 5;
+
+        return `Kein freier Speicher-Slot frei. Fuer ${cost} Baxx einen weiteren Slot kaufen und diesen Charakter speichern?`;
+    },
+
+    handleFormSubmit(event) {
+        const submitter = event?.submitter || null;
+
+        if (submitter?.id !== 'submit-button') {
+            this.purchaseSlotIfNeeded = false;
+            return true;
+        }
+
+        if (!this.formValid()) {
+            event.preventDefault();
+            this.purchaseSlotIfNeeded = false;
+            return false;
+        }
+
+        if (this.hasFreeCharacterSlot()) {
+            this.purchaseSlotIfNeeded = false;
+            return true;
+        }
+
+        if (window.confirm(this.characterSlotPurchaseMessage())) {
+            this.purchaseSlotIfNeeded = true;
+            return true;
+        }
+
+        event.preventDefault();
+        this.purchaseSlotIfNeeded = false;
+        return false;
     },
 
     shouldMirrorSkillName(skill) {

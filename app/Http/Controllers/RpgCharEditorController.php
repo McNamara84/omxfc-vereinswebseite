@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\RpgCharacterSlotService;
 use App\Support\RpgCharEditorEquipment;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
@@ -494,7 +495,7 @@ class RpgCharEditorController extends Controller
     /**
      * Show the character editor form.
      */
-    public function index()
+    public function index(Request $request, RpgCharacterSlotService $slotService)
     {
         $specialRules = self::specialRuleConfig();
 
@@ -502,6 +503,7 @@ class RpgCharEditorController extends Controller
             'specialRules' => $specialRules,
             'advantages' => $specialRules['advantages'],
             'disadvantages' => $specialRules['disadvantages'],
+            'slotSummary' => $slotService->summary($request->user()),
         ]);
     }
 
@@ -510,7 +512,7 @@ class RpgCharEditorController extends Controller
      */
     public function storePdfExport(Request $request)
     {
-        $data = $this->pdfPayload($request);
+        $data = $this->validatedPdfPayload($request);
         $token = (string) Str::uuid();
 
         $this->forgetPreviousPdfExport($request);
@@ -541,10 +543,10 @@ class RpgCharEditorController extends Controller
             abort(404);
         }
 
-        return $this->pdfResponse($export['data']);
+        return $this->characterSheetPdfResponse($export['data']);
     }
 
-    private function pdfPayload(Request $request): array
+    public function validatedPdfPayload(Request $request): array
     {
         $request->validate([
             'portrait' => 'nullable|image|max:2048',
@@ -600,7 +602,7 @@ class RpgCharEditorController extends Controller
         ];
     }
 
-    private function pdfResponse(array $data)
+    public function characterSheetPdfResponse(array $data)
     {
         $name = Str::slug($data['character']['character_name'] ?: 'charakter') ?: 'charakter';
 

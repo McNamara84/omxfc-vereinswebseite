@@ -1808,3 +1808,53 @@ describe('charEditor – Computed Properties', () => {
         expect(e.fpUsed()).toBe(2);
     });
 });
+
+describe('charEditor - Speicher-Slots', () => {
+    it('fragt beim PDF-Submit nicht nach einem Slotkauf', () => {
+        const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
+        e.formValid = vi.fn(() => true);
+        const event = { submitter: { id: 'pdf-button' }, preventDefault: vi.fn() };
+
+        expect(e.handleFormSubmit(event)).toBe(true);
+        expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(event.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('speichert bei freiem Slot ohne Kaufbestaetigung', () => {
+        const confirmSpy = vi.spyOn(window, 'confirm');
+        const e = createEditor({ characterSlotSummary: { free_slots: 1, slot_cost_baxx: 5 } });
+        e.formValid = vi.fn(() => true);
+        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+
+        expect(e.handleFormSubmit(event)).toBe(true);
+        expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(confirmSpy).not.toHaveBeenCalled();
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        confirmSpy.mockRestore();
+    });
+
+    it('setzt das Kauf-Flag wenn ein voller Speicher bestaetigt wird', () => {
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+        const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
+        e.formValid = vi.fn(() => true);
+        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+
+        expect(e.handleFormSubmit(event)).toBe(true);
+        expect(e.purchaseSlotIfNeeded).toBe(true);
+        expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('5 Baxx'));
+        expect(event.preventDefault).not.toHaveBeenCalled();
+        confirmSpy.mockRestore();
+    });
+
+    it('bricht Speichern ab wenn ein voller Speicher nicht bestaetigt wird', () => {
+        const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+        const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
+        e.formValid = vi.fn(() => true);
+        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+
+        expect(e.handleFormSubmit(event)).toBe(false);
+        expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(event.preventDefault).toHaveBeenCalledTimes(1);
+        confirmSpy.mockRestore();
+    });
+});

@@ -4,11 +4,13 @@
     $disadvantages = $specialRules['disadvantages'];
     $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Http\Controllers\RpgCharEditorController::attributeRuleConfig()['attributes'];
     $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Http\Controllers\RpgCharEditorController::skillRuleConfig()['suggestions'];
+    $slotSummary ??= null;
 @endphp
 
 @push('scripts')
     <script>
         window.rpgCharEditorRules = @js($specialRules);
+        window.rpgCharacterSlots = @js($slotSummary);
     </script>
 @endpush
 <x-app-layout>
@@ -20,10 +22,17 @@
             data-testid="page-header"
         />
 
+        <div class="mt-4 flex justify-end">
+            <a href="{{ route('rpg.characters.index') }}" class="btn btn-ghost btn-sm" data-testid="rpg-characters-link">
+                <x-icon name="o-document-text" class="h-4 w-4" />
+                Meine Charaktere
+            </a>
+        </div>
         <x-ui.panel title="Editorfluss" description="Basisdaten, Regeln, Ausrüstung und Export bleiben in einem zusammenhängenden Arbeitsbereich gebündelt.">
-            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" data-testid="char-editor-form">
+            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
                 @csrf
 
+                <input type="hidden" name="purchase_slot_if_needed" :value="purchaseSlotIfNeeded ? '1' : '0'">
                 <input type="hidden" name="player_name" :value="playerName" x-bind:disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="character_name" :value="characterName" x-bind:disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="gender" :value="gender" x-bind:disabled="!shouldMirrorBaseFields()">
@@ -729,9 +738,21 @@
                                 </template>
                             </ul>
                         </template>
+                        @if($slotSummary)
+                            <div class="mb-4 rounded-md border border-base-300 bg-base-200/40 p-3 text-sm" data-testid="char-editor-slot-status">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <p class="font-medium text-base-content">Speicher: {{ $slotSummary['used_slots'] }} / {{ $slotSummary['total_slots'] }} Slots belegt</p>
+                                    <p class="text-base-content/70">Freie Slots: {{ $slotSummary['free_slots'] }} - Slotkauf: {{ $slotSummary['slot_cost_baxx'] }} Baxx</p>
+                                </div>
+                                @if($slotSummary['wallet_warning'])
+                                    <p class="mt-2 text-warning">{{ $slotSummary['wallet_warning'] }}</p>
+                                @endif
+                            </div>
+                        @endif
+
                         <div class="flex flex-wrap justify-end gap-2">
                             <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid()" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
-                            <x-button id="submit-button" type="submit" x-bind:disabled="!formValid()" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
+                            <x-button id="submit-button" type="submit" formaction="{{ route('rpg.characters.store') }}" x-bind:disabled="!formValid()" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
                         </div>
                     </section>
                 </fieldset>
