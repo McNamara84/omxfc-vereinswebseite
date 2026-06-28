@@ -522,9 +522,103 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mb-6">
-                        <h2 id="equipment-heading" class="text-xl font-semibold text-primary mb-2">Ausrüstung</h2>
-                        <x-textarea name="equipment" id="equipment" rows="4" x-model="equipment" aria-labelledby="equipment-heading" />
+                    <div class="mb-6" data-testid="char-editor-equipment-section">
+                        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+                            <h2 id="equipment-heading" class="text-xl font-semibold text-primary">Ausrüstung</h2>
+                            <p class="text-sm text-base-content/70" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></p>
+                        </div>
+
+                        <input type="hidden" name="clothing" :value="clothing">
+                        <template x-for="(entry, index) in selectedEquipmentEntries()" :key="'equipment-hidden-' + entry.id">
+                            <span>
+                                <input type="hidden" :name="'equipment_items[' + index + '][id]'" :value="entry.id">
+                                <input type="hidden" :name="'equipment_items[' + index + '][quantity]'" :value="entry.quantity">
+                            </span>
+                        </template>
+
+                        <div class="mb-4 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_14rem]">
+                            <div>
+                                <label for="clothing" class="block text-sm font-medium text-base-content mb-1">Kleidung</label>
+                                <select id="clothing" class="select select-bordered w-full" x-model="clothing" data-testid="equipment-clothing-select">
+                                    <option value="">Kleidung wählen</option>
+                                    <template x-for="item in clothingOptions()" :key="item.id">
+                                        <option :value="item.id" x-text="item.name + ' · TW ' + item.tw + ' · B ' + item.bucks"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm">
+                                <p class="font-medium text-base-content">Startausrüstung</p>
+                                <p class="text-base-content/70" x-text="equipmentRemaining() === 0 ? 'Auswahl vollständig' : Math.abs(equipmentRemaining()) + (equipmentRemaining() > 0 ? ' Gegenstände fehlen' : ' zu viel gewählt')"></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1fr)_14rem]">
+                            <label class="sr-only" for="equipment-search">Ausrüstung suchen</label>
+                            <input id="equipment-search" type="search" class="input input-bordered w-full" placeholder="Ausrüstung suchen" x-model.debounce.150ms="equipmentSearch" data-testid="equipment-search">
+                            <label class="sr-only" for="equipment-category-filter">Kategorie filtern</label>
+                            <select id="equipment-category-filter" class="select select-bordered w-full" x-model="equipmentCategoryFilter" data-testid="equipment-category-filter">
+                                <option value="all">Alle Kategorien</option>
+                                <template x-for="category in equipmentCategoryOptions()" :key="category.id">
+                                    <option :value="category.id" x-text="category.label"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div class="max-h-[32rem] overflow-y-auto rounded-md border border-base-300 bg-base-200/40" role="group" aria-labelledby="equipment-heading" data-testid="equipment-list">
+                            <template x-for="item in filteredEquipmentItems()" :key="item.id">
+                                <div class="grid grid-cols-1 gap-3 border-b border-base-300 bg-base-100 px-3 py-3 last:border-b-0 md:grid-cols-[minmax(0,1fr)_9rem]">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h3 class="font-medium leading-5 text-base-content" x-text="item.name"></h3>
+                                            <span class="badge badge-ghost" x-text="equipmentCategoryLabel(item)"></span>
+                                            <template x-if="equipmentRequiresHighTechAdvantage(item)">
+                                                <span class="badge badge-warning badge-outline">High-Tech</span>
+                                            </template>
+                                        </div>
+                                        <p class="mt-1 text-sm leading-5 text-base-content/75" x-text="equipmentRuleLine(item)"></p>
+                                        <p class="mt-1 text-xs text-warning" x-show="equipmentDisabledReason(item)" x-cloak x-text="equipmentDisabledReason(item)"></p>
+                                    </div>
+                                    <div class="flex items-center justify-start gap-2 md:justify-end">
+                                        <button type="button" class="btn btn-circle btn-ghost btn-sm h-9 min-h-0 w-9" :disabled="equipmentQuantity(item.id) <= 0" :aria-label="item.name + ' entfernen'" @click="decrementEquipment(item.id)">-</button>
+                                        <input type="number" min="0" x-bind:max="maxEquipmentQuantity(item)" step="1" class="input input-bordered input-sm w-16 text-center" :value="equipmentQuantity(item.id)" :aria-label="'Anzahl ' + item.name" @input="setEquipmentQuantity(item.id, $event.target.value)" @change="setEquipmentQuantity(item.id, $event.target.value)">
+                                        <button type="button" class="btn btn-circle btn-primary btn-sm h-9 min-h-0 w-9" :disabled="!canIncrementEquipment(item)" :aria-label="item.name + ' hinzufügen'" @click="incrementEquipment(item.id)">+</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div class="rounded-md border border-base-300 bg-base-200/40 p-3 text-sm">
+                                <h3 class="font-medium text-base-content">Gewählte Ausrüstung</h3>
+                                <template x-if="selectedEquipmentEntries().length === 0">
+                                    <p class="mt-2 text-base-content/70">Noch keine Gegenstände gewählt.</p>
+                                </template>
+                                <ul class="mt-2 space-y-1">
+                                    <template x-for="entry in selectedEquipmentEntries()" :key="'equipment-summary-' + entry.id">
+                                        <li class="flex items-start justify-between gap-3">
+                                            <span x-text="entry.quantity + 'x ' + entry.item.name"></span>
+                                            <span class="text-xs text-base-content/60" x-text="equipmentCategoryLabel(entry.item)"></span>
+                                        </li>
+                                    </template>
+                                </ul>
+                            </div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 p-3 text-sm">
+                                <h3 class="font-medium text-base-content">Automatische Munition</h3>
+                                <template x-if="includedAmmunition().length === 0">
+                                    <p class="mt-2 text-base-content/70">Keine Munitionszugaben.</p>
+                                </template>
+                                <ul class="mt-2 space-y-1">
+                                    <template x-for="entry in includedAmmunition()" :key="'ammo-' + entry.source">
+                                        <li x-text="entry.source + ': ' + entry.quantity + ' ' + entry.unit"></li>
+                                    </template>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label for="equipment" class="block text-sm font-medium text-base-content mb-1">Notizen zur Ausrüstung</label>
+                            <x-textarea name="equipment" id="equipment" rows="3" x-model="equipment" aria-labelledby="equipment-heading" />
+                        </div>
                     </div>
 
                     <div class="flex justify-end space-x-2">

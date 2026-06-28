@@ -97,7 +97,39 @@
 
     <div class="section">
         <strong>Ausrüstung</strong>
-        <p>{{ $character['equipment'] ?? '' }}</p>
+        @php $equipmentPayload = $equipment ?? []; @endphp
+        @if(is_array($equipmentPayload) && ($equipmentPayload['clothing'] ?? null))
+            <p><strong>Kleidung:</strong> {{ $equipmentPayload['clothing']['name'] ?? '' }}</p>
+            <table>
+                <tr><th>Anzahl</th><th>Gegenstand</th><th>Kategorie</th><th>Regelwerte</th></tr>
+                @foreach($equipmentPayload['items'] ?? [] as $item)
+                    <tr>
+                        <td>{{ $item['quantity'] ?? 1 }}x</td>
+                        <td>{{ $item['name'] ?? '' }}</td>
+                        <td>{{ $item['category'] ?? '' }}</td>
+                        <td>
+                            {{ $item['summary'] ?? '' }}
+                            @if(($item['tw'] ?? '') !== '') TW {{ $item['tw'] }}@endif
+                            @if(($item['bucks'] ?? '') !== '') B {{ $item['bucks'] }}@endif
+                            @if($item['requires_high_tech_advantage'] ?? false) High-Tech/Techno @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </table>
+            @if(! empty($equipmentPayload['ammunition']))
+                <p><strong>Munition:</strong></p>
+                <ul>
+                    @foreach($equipmentPayload['ammunition'] as $ammunition)
+                        <li>{{ $ammunition['source'] ?? '' }}: {{ $ammunition['quantity'] ?? '' }} {{ $ammunition['unit'] ?? '' }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            @if(trim((string) ($equipmentPayload['notes'] ?? '')) !== '')
+                <p><strong>Notizen:</strong> {{ $equipmentPayload['notes'] }}</p>
+            @endif
+        @else
+            <p>{{ $character['equipment'] ?? '' }}</p>
+        @endif
     </div>
 </body>
 </html>

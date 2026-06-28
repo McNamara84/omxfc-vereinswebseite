@@ -61,6 +61,28 @@ const specialRuleConfig = {
         'Verpflichtung',
         'Verwundbarkeit',
     ],
+    equipmentRules: {
+        limits: { items: 6, highTechItems: 4, maxQuantity: 20 },
+        categories: {
+            melee_weapons: 'Nahkampfwaffen',
+            ranged_weapons: 'Fernkampfwaffen',
+            low_tech: 'Low-Tech-Gegenstände',
+            high_tech: 'High-Tech-Gegenstände',
+        },
+        clothing: [
+            { id: 'kleidung-einfach', name: 'Kleidung, einfach', tw: '4', bucks: '10' },
+            { id: 'kleidung-wanderer', name: 'Kleidung, Wanderer', tw: '8', bucks: '40' },
+        ],
+        items: [
+            { id: 'messer-dolch', name: 'Messer / Dolch', category: 'melee_weapons', summary: 'GE, S +0', tw: '2', bucks: '2' },
+            { id: 'seil', name: 'Seil', category: 'low_tech', summary: '20 Meter Hanfseil', tw: '2', bucks: '6' },
+            { id: 'rucksack', name: 'Rucksack', category: 'low_tech', summary: '10 Kilogramm Inhalt', tw: '3', bucks: '10' },
+            { id: 'wasserschlauch', name: 'Wasserschlauch', category: 'low_tech', summary: '8 Liter Wasser', tw: '2', bucks: '2' },
+            { id: 'wochenration', name: 'Wochenration', category: 'low_tech', summary: '7 Tage Lebensmittel', tw: '4', bucks: '15' },
+            { id: 'bogen', name: 'Bogen', category: 'ranged_weapons', summary: 'P +1', tw: '12', bucks: '30', ammunition: { amount: 30, unit: 'Pfeile' } },
+            { id: 'funkgeraet', name: 'Funkgerät', category: 'high_tech', summary: 'Reichweite 200m', tw: '35', bucks: '600', requiresHighTechAdvantage: true },
+        ],
+    },
 };
 
 beforeEach(async () => {
@@ -734,6 +756,107 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.praekristofluuPoolUsed()).toBe(0);
         expect(e.skills.find(s => s.name === 'Beruf')).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Bildung')).toBeUndefined();
+    });
+});
+
+
+describe('charEditor - Ausruestung', () => {
+    it('verlangt Kleidung und exakt sechs Ausruestungsgegenstaende', () => {
+        const e = createEditor();
+
+        expect(e.equipmentComplete()).toBe(false);
+
+        e.clothing = 'kleidung-einfach';
+        e.setEquipmentQuantity('messer-dolch', 1);
+        e.setEquipmentQuantity('seil', 1);
+        e.setEquipmentQuantity('rucksack', 1);
+        e.setEquipmentQuantity('wasserschlauch', 1);
+        e.setEquipmentQuantity('wochenration', 1);
+
+        expect(e.equipmentCount()).toBe(5);
+        expect(e.equipmentComplete()).toBe(false);
+
+        e.setEquipmentQuantity('bogen', 1);
+
+        expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentComplete()).toBe(true);
+    });
+
+    it('liest Start- und High-Tech-Limits aus der Rule-Config', () => {
+        window.rpgCharEditorRules.equipmentRules.limits.items = 7;
+        window.rpgCharEditorRules.equipmentRules.limits.highTechItems = 2;
+
+        const highTechAdvantage = window.rpgCharEditorRules.advantages.find(value => value.startsWith('High-Tech'));
+        const e = createEditor({ clothing: 'kleidung-einfach', selectedAdvantages: [highTechAdvantage] });
+
+        expect(e.equipmentLimit()).toBe(7);
+        expect(e.highTechEquipmentLimit()).toBe(2);
+
+        e.setEquipmentQuantity('funkgeraet', 3);
+        e.setEquipmentQuantity('bogen', 2);
+        e.setEquipmentQuantity('seil', 3);
+
+        expect(e.equipmentQuantity('funkgeraet')).toBe(2);
+        expect(e.equipmentCount()).toBe(7);
+        expect(e.equipmentRemaining()).toBe(0);
+        expect(e.highTechEquipmentCount()).toBe(2);
+        expect(e.highTechEquipmentRemaining()).toBe(0);
+        expect(e.equipmentComplete()).toBe(true);
+    });
+
+    it('rechnet Mengen gegen das Startlimit und leitet Munition ab', () => {
+        const e = createEditor({ clothing: 'kleidung-wanderer' });
+
+        e.setEquipmentQuantity('bogen', 2);
+        e.setEquipmentQuantity('seil', 4);
+
+        expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentQuantity('seil')).toBe(4);
+        expect(e.includedAmmunition()).toEqual([
+            { source: 'Bogen', quantity: 60, unit: 'Pfeile' },
+        ]);
+
+        e.setEquipmentQuantity('messer-dolch', 1);
+
+        expect(e.equipmentQuantity('messer-dolch')).toBe(0);
+        expect(e.equipmentCount()).toBe(6);
+    });
+
+    it('sperrt High-Tech-Gegenstaende ohne Vorteil', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach' });
+
+        e.setEquipmentQuantity('funkgeraet', 1);
+
+        expect(e.equipmentQuantity('funkgeraet')).toBe(0);
+        expect(e.equipmentDisabledReason(e.equipmentItem('funkgeraet'))).toContain('High-Tech');
+
+        e.selectedAdvantages = ['Zäh', 'High-Tech-Ausrüstung'];
+        e.setEquipmentQuantity('funkgeraet', 1);
+
+        expect(e.equipmentQuantity('funkgeraet')).toBe(1);
+    });
+
+    it('begrenzt High-Tech-Gegenstaende mit Vorteil auf vier', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach', selectedAdvantages: ['Zäh', 'High-Tech-Ausrüstung'] });
+
+        e.setEquipmentQuantity('funkgeraet', 5);
+        e.setEquipmentQuantity('seil', 2);
+
+        expect(e.highTechEquipmentCount()).toBe(4);
+        expect(e.equipmentQuantity('funkgeraet')).toBe(4);
+        expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentComplete()).toBe(true);
+    });
+
+    it('entfernt High-Tech-Auswahl wieder, wenn der Vorteil verloren geht', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach', selectedAdvantages: ['Zäh', 'High-Tech-Ausrüstung'] });
+
+        e.setEquipmentQuantity('funkgeraet', 2);
+        e.selectedAdvantages = ['Zäh'];
+        e.enforceEquipmentLimits();
+
+        expect(e.equipmentQuantity('funkgeraet')).toBe(0);
+        expect(e.highTechEquipmentCount()).toBe(0);
     });
 });
 

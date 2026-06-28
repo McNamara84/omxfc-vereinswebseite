@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\RpgCharEditorEquipment;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -486,6 +487,7 @@ class RpgCharEditorController extends Controller
             'repeatableAdvantages' => self::REPEATABLE_ADVANTAGES,
             'advantageDetailRequired' => self::ADVANTAGE_DETAIL_REQUIRED,
             'disadvantageDetailRequired' => self::DISADVANTAGE_DETAIL_REQUIRED,
+            'equipmentRules' => RpgCharEditorEquipment::ruleConfig(),
         ];
     }
 
@@ -553,6 +555,10 @@ class RpgCharEditorController extends Controller
             'disadvantage_details.*' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
             'advantage_counts' => 'nullable|array|max:'.self::ADVANTAGE_COUNT_MAX_ITEMS,
             'advantage_counts.*' => 'nullable|integer|min:1|max:'.self::ADVANTAGE_COUNT_MAX_VALUE,
+            'clothing' => 'required|string',
+            'equipment_items' => 'required|array|max:'.RpgCharEditorEquipment::MAX_ITEMS,
+            'equipment_items.*.id' => 'required|string',
+            'equipment_items.*.quantity' => 'required|integer|min:1|max:'.RpgCharEditorEquipment::QUANTITY_MAX,
         ]);
 
         $character = $this->characterPayload($request);
@@ -564,6 +570,8 @@ class RpgCharEditorController extends Controller
         $disadvantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('disadvantage_details', [])), $disadvantages);
         $advantageCounts = $this->advantageCountsPayload($request->input('advantage_counts', []));
         $barbarAttributeBonus = $this->stringPayload($request->input('barbar_attribute_bonus', ''));
+        $clothing = $this->stringPayload($request->input('clothing', ''));
+        $equipmentItems = $this->equipmentItemsPayload($request->input('equipment_items', []));
 
         $this->validateCharacterRules(
             $character,
@@ -576,6 +584,7 @@ class RpgCharEditorController extends Controller
             $advantageCounts,
             $barbarAttributeBonus,
         );
+        $this->validateEquipmentRules($clothing, $equipmentItems, $advantages);
 
         return [
             'character' => $character,
@@ -586,6 +595,7 @@ class RpgCharEditorController extends Controller
             'advantage_details' => $advantageDetails,
             'disadvantage_details' => $disadvantageDetails,
             'advantage_counts' => $advantageCounts,
+            'equipment' => $this->equipmentExportPayload($clothing, $equipmentItems, $character['equipment']),
             'portrait' => $this->portraitPayload($request),
         ];
     }
@@ -1652,6 +1662,168 @@ class RpgCharEditorController extends Controller
         $normalized = str_replace('_', ' ', $value);
 
         return self::SPECIAL_NAME_ALIASES[$normalized] ?? $normalized;
+    }
+
+    private function equipmentItemsPayload(mixed $items): array
+    {
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $id = $this->stringPayload($item['id'] ?? '');
+            $rawQuantity = $this->stringPayload($item['quantity'] ?? '');
+
+            if ($id === '' || ! preg_match('/^\d+$/', $rawQuantity)) {
+                continue;
+            }
+
+            $payload[$id] = ($payload[$id] ?? 0) + max(0, (int) $rawQuantity);
+        }
+
+        return array_values(array_map(
+            fn (string $id, int $quantity): array => ['id' => $id, 'quantity' => $quantity],
+            array_keys($payload),
+            $payload,
+        ));
+    }
+
+    private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages): void
+    {
+        $clothingMap = RpgCharEditorEquipment::clothingMap();
+        $itemMap = RpgCharEditorEquipment::itemMap();
+
+        if (! array_key_exists($clothing, $clothingMap)) {
+            throw ValidationException::withMessages([
+                'clothing' => 'Die Kleidung muss aus dem Ausrüstungskapitel gewählt werden.',
+            ]);
+        }
+
+        $total = 0;
+        $highTechTotal = 0;
+        $hasHighTechAdvantage = in_array(RpgCharEditorEquipment::HIGH_TECH_ADVANTAGE, $advantages, true);
+
+        foreach ($equipmentItems as $equipmentItem) {
+            $id = (string) ($equipmentItem['id'] ?? '');
+            $quantity = (int) ($equipmentItem['quantity'] ?? 0);
+
+            if (! array_key_exists($id, $itemMap)) {
+                throw ValidationException::withMessages([
+                    'equipment_items' => 'Die Ausrüstung enthält einen Gegenstand, der laut Regelwerk nicht erlaubt ist.',
+                ]);
+            }
+
+            if ($quantity < 1) {
+                throw ValidationException::withMessages([
+                    'equipment_items' => 'Die Anzahl jedes Ausrüstungsgegenstands muss mindestens 1 sein.',
+                ]);
+            }
+
+            $item = $itemMap[$id];
+            $total += $quantity;
+
+            if (! RpgCharEditorEquipment::requiresHighTechAdvantage($item)) {
+                continue;
+            }
+
+            if (! $hasHighTechAdvantage) {
+                throw ValidationException::withMessages([
+                    'equipment_items' => 'High-Tech- oder Techno-Gegenstände dürfen nur mit dem Vorteil High-Tech-Ausrüstung gewählt werden.',
+                ]);
+            }
+
+            $highTechTotal += $quantity;
+        }
+
+        if ($total !== RpgCharEditorEquipment::ITEM_LIMIT) {
+            throw ValidationException::withMessages([
+                'equipment_items' => 'Zu Beginn müssen genau '.RpgCharEditorEquipment::ITEM_LIMIT.' Ausrüstungsgegenstände gewählt werden.',
+            ]);
+        }
+
+        if ($highTechTotal > RpgCharEditorEquipment::HIGH_TECH_ITEM_LIMIT) {
+            throw ValidationException::withMessages([
+                'equipment_items' => 'Mit High-Tech-Ausrüstung dürfen höchstens '.RpgCharEditorEquipment::HIGH_TECH_ITEM_LIMIT.' High-Tech- oder Techno-Gegenstände gewählt werden.',
+            ]);
+        }
+    }
+
+    private function equipmentExportPayload(string $clothing, array $equipmentItems, string $notes): array
+    {
+        $clothingMap = RpgCharEditorEquipment::clothingMap();
+        $itemMap = RpgCharEditorEquipment::itemMap();
+        $categories = RpgCharEditorEquipment::categories();
+        $exportItems = [];
+
+        foreach ($equipmentItems as $equipmentItem) {
+            $id = (string) ($equipmentItem['id'] ?? '');
+
+            if (! array_key_exists($id, $itemMap)) {
+                continue;
+            }
+
+            $item = $itemMap[$id];
+            $exportItems[] = [
+                'id' => $id,
+                'quantity' => (int) $equipmentItem['quantity'],
+                'name' => $item['name'],
+                'category' => $categories[$item['category']] ?? $item['category'],
+                'summary' => $item['summary'] ?? '',
+                'tw' => $item['tw'] ?? '',
+                'bucks' => $item['bucks'] ?? '',
+                'requires_high_tech_advantage' => RpgCharEditorEquipment::requiresHighTechAdvantage($item),
+            ];
+        }
+
+        return [
+            'clothing' => $clothingMap[$clothing] ?? null,
+            'items' => $exportItems,
+            'ammunition' => $this->equipmentAmmunitionPayload($equipmentItems),
+            'notes' => $notes,
+        ];
+    }
+
+    private function equipmentAmmunitionPayload(array $equipmentItems): array
+    {
+        $itemMap = RpgCharEditorEquipment::itemMap();
+        $payload = [];
+
+        foreach ($equipmentItems as $equipmentItem) {
+            $id = (string) ($equipmentItem['id'] ?? '');
+
+            if (! array_key_exists($id, $itemMap)) {
+                continue;
+            }
+
+            $item = $itemMap[$id];
+            $ammunition = $item['ammunition'] ?? null;
+
+            if (! is_array($ammunition)) {
+                continue;
+            }
+
+            $quantity = (int) ($equipmentItem['quantity'] ?? 0);
+            $amount = (int) ($ammunition['amount'] ?? 0);
+            $unit = $this->stringPayload($ammunition['unit'] ?? '');
+
+            if ($quantity < 1 || $amount < 1 || $unit === '') {
+                continue;
+            }
+
+            $payload[] = [
+                'source' => $item['name'],
+                'quantity' => $quantity * $amount,
+                'unit' => $unit,
+            ];
+        }
+
+        return $payload;
     }
 
     private function portraitPayload(Request $request): ?string

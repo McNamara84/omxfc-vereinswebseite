@@ -52,6 +52,14 @@ const completeValidBarbarExport = async (page) => {
 
         state.skills.push({ name: 'Fahren', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
         state.skills.push({ name: 'Handeln', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+
+        state.clothing = 'kleidung-einfach';
+        state.setEquipmentQuantity('messer-dolch', 1);
+        state.setEquipmentQuantity('seil', 1);
+        state.setEquipmentQuantity('rucksack', 1);
+        state.setEquipmentQuantity('wasserschlauch', 1);
+        state.setEquipmentQuantity('wochenration', 1);
+        state.setEquipmentQuantity('bogen', 1);
     });
 
     await expect(page.getByTestId('pdf-button')).toBeEnabled();
@@ -99,6 +107,53 @@ test.describe('RPG Charakter-Editor', () => {
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
     });
 
+
+    test('sperrt High-Tech-Ausruestung im Editor ohne passenden Vorteil', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        await expect(page.getByTestId('char-editor-equipment-section')).toBeVisible();
+        await page.getByTestId('equipment-clothing-select').selectOption('kleidung-einfach');
+        await page.getByTestId('equipment-category-filter').selectOption('high_tech');
+
+        const addFunkgeraet = page.getByRole('button', { name: 'Funkgerät hinzufügen', exact: true });
+
+        await expect(addFunkgeraet).toBeDisabled();
+        await expect(page.getByText('Benötigt High-Tech-Ausrüstung').first()).toBeVisible();
+
+        await checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung').check();
+        await expect(addFunkgeraet).toBeEnabled();
+
+        for (let i = 0; i < 4; i += 1) {
+            await addFunkgeraet.click();
+        }
+
+        await expect(addFunkgeraet).toBeDisabled();
+        await expect(page.getByText('High-Tech: 4 / 4')).toBeVisible();
+        await expect(page.getByText('Gegenst\u00e4nde: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+            const equipmentByIndex = {};
+
+            for (const [key, value] of data.entries()) {
+                const match = key.match(/^equipment_items\[(\d+)]\[(id|quantity)]$/);
+
+                if (!match) {
+                    continue;
+                }
+
+                const [, index, field] = match;
+                equipmentByIndex[index] ??= {};
+                equipmentByIndex[index][field] = value;
+            }
+
+            return Object.values(equipmentByIndex);
+        });
+
+        expect(payload).toEqual([
+            { id: 'funkgeraet', quantity: '4' },
+        ]);
+    });
     test('zeigt Rassen-Regelinfos direkt an der Auswahl', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/rpg/char-editor');
