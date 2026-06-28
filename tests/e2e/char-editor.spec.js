@@ -93,7 +93,22 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(continueButton).toBeHidden();
         await expect(portraitPreview).toBeHidden();
 
+        const attributesNavLink = page.getByTestId('char-editor-section-nav').getByRole('link', { name: 'Attribute' });
+        await expect(attributesNavLink).toHaveAttribute('aria-disabled', 'true');
+        await expect(attributesNavLink).toHaveAttribute('tabindex', '-1');
+
+        const blockedNavigation = await attributesNavLink.evaluate((link) => {
+            window.location.hash = '';
+            link.focus();
+            const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+            const enterDefaultPrevented = !link.dispatchEvent(enterEvent);
+            link.click();
+
+            return { enterDefaultPrevented, hash: window.location.hash };
+        });
+        expect(blockedNavigation).toEqual({ enterDefaultPrevented: true, hash: '' });
         await page.getByLabel('Spielername').fill('Playwright Spieler');
+
         await page.getByLabel('Charaktername').fill('Wudan');
         await page.locator('#gender').selectOption('maennlich');
         await page.locator('#race').selectOption('Barbar');
@@ -102,6 +117,10 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(continueButton).toBeVisible();
         await expect(continueButton).toBeEnabled();
         await expect(portraitPreview).toBeHidden();
+        await continueButton.click();
+        await expect(attributesNavLink).not.toHaveAttribute('aria-disabled', 'true');
+        await expect(attributesNavLink).not.toHaveAttribute('tabindex', '-1');
+
 
         expect(pageErrors).toEqual([]);
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
@@ -129,7 +148,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(addFunkgeraet).toBeDisabled();
         await expect(page.getByText('High-Tech: 4 / 4')).toBeVisible();
-        await expect(page.getByText('Gegenst\u00e4nde: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
+        await expect(page.getByText('Gegenstände: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
@@ -183,6 +202,17 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(raceInfo).toContainText('ST -1, RO -1, IN +1');
         await expect(raceInfo).toContainText('Bildung +3');
         await expect(raceInfo).toContainText('Tödliche Immunschwäche');
+        await expect(page.getByTestId('culture-summary')).toContainText('Bunkermensch');
+        await expect(page.getByTestId('culture-summary')).toContainText('Bildung +1');
+        await expect(page.getByText('Kulturtext anzeigen')).toBeVisible();
+
+        const description = page.getByTestId('char-editor-description');
+        await description.fill('Eigener Text');
+        await page.locator('#race').selectOption('Barbar');
+        await page.locator('#culture').selectOption('Landbewohner');
+
+        await expect(description).toHaveValue('Eigener Text');
+        await expect(page.getByText('Manuell bearbeitet')).toBeVisible();
     });
 
     test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }) => {
