@@ -1810,13 +1810,27 @@ describe('charEditor – Computed Properties', () => {
 });
 
 describe('charEditor - Speicher-Slots', () => {
+    const submitEvent = (submitterId = 'submit-button') => {
+        const hiddenInput = { value: '0' };
+        const form = {
+            elements: { purchase_slot_if_needed: hiddenInput },
+            querySelector: vi.fn(() => hiddenInput),
+        };
+
+        return {
+            event: { submitter: { id: submitterId }, preventDefault: vi.fn(), currentTarget: form },
+            hiddenInput,
+        };
+    };
+
     it('fragt beim PDF-Submit nicht nach einem Slotkauf', () => {
         const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
         e.formValid = vi.fn(() => true);
-        const event = { submitter: { id: 'pdf-button' }, preventDefault: vi.fn() };
+        const { event, hiddenInput } = submitEvent('pdf-button');
 
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(hiddenInput.value).toBe('0');
         expect(event.preventDefault).not.toHaveBeenCalled();
     });
 
@@ -1824,23 +1838,25 @@ describe('charEditor - Speicher-Slots', () => {
         const confirmSpy = vi.spyOn(window, 'confirm');
         const e = createEditor({ characterSlotSummary: { free_slots: 1, slot_cost_baxx: 5 } });
         e.formValid = vi.fn(() => true);
-        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+        const { event, hiddenInput } = submitEvent();
 
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(hiddenInput.value).toBe('0');
         expect(confirmSpy).not.toHaveBeenCalled();
         expect(event.preventDefault).not.toHaveBeenCalled();
         confirmSpy.mockRestore();
     });
 
-    it('setzt das Kauf-Flag wenn ein voller Speicher bestaetigt wird', () => {
+    it('setzt das Kauf-Flag synchron im Hidden Input wenn ein voller Speicher bestaetigt wird', () => {
         const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
         const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
         e.formValid = vi.fn(() => true);
-        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+        const { event, hiddenInput } = submitEvent();
 
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(true);
+        expect(hiddenInput.value).toBe('1');
         expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Fuer 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
         expect(event.preventDefault).not.toHaveBeenCalled();
         confirmSpy.mockRestore();
@@ -1850,10 +1866,11 @@ describe('charEditor - Speicher-Slots', () => {
         const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
         const e = createEditor({ characterSlotSummary: { free_slots: 0, slot_cost_baxx: 5 } });
         e.formValid = vi.fn(() => true);
-        const event = { submitter: { id: 'submit-button' }, preventDefault: vi.fn() };
+        const { event, hiddenInput } = submitEvent();
 
         expect(e.handleFormSubmit(event)).toBe(false);
         expect(e.purchaseSlotIfNeeded).toBe(false);
+        expect(hiddenInput.value).toBe('0');
         expect(event.preventDefault).toHaveBeenCalledTimes(1);
         confirmSpy.mockRestore();
     });

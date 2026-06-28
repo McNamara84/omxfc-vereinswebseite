@@ -1051,32 +1051,44 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return `Kein Speicher-Slot frei. Fuer ${cost} Baxx einen weiteren Slot kaufen und diesen Charakter speichern?`;
     },
 
+    setPurchaseSlotIfNeeded(event, value) {
+        this.purchaseSlotIfNeeded = Boolean(value);
+
+        const form = event?.currentTarget || event?.target || null;
+        const input = form?.elements?.purchase_slot_if_needed
+            || form?.querySelector?.('[name="purchase_slot_if_needed"]');
+
+        if (input) {
+            input.value = this.purchaseSlotIfNeeded ? '1' : '0';
+        }
+    },
+
     handleFormSubmit(event) {
         const submitter = event?.submitter || null;
 
         if (submitter?.id !== 'submit-button') {
-            this.purchaseSlotIfNeeded = false;
+            this.setPurchaseSlotIfNeeded(event, false);
             return true;
         }
 
         if (!this.formValid()) {
             event.preventDefault();
-            this.purchaseSlotIfNeeded = false;
+            this.setPurchaseSlotIfNeeded(event, false);
             return false;
         }
 
         if (this.hasFreeCharacterSlot()) {
-            this.purchaseSlotIfNeeded = false;
+            this.setPurchaseSlotIfNeeded(event, false);
             return true;
         }
 
         if (window.confirm(this.characterSlotPurchaseMessage())) {
-            this.purchaseSlotIfNeeded = true;
+            this.setPurchaseSlotIfNeeded(event, true);
             return true;
         }
 
         event.preventDefault();
-        this.purchaseSlotIfNeeded = false;
+        this.setPurchaseSlotIfNeeded(event, false);
         return false;
     },
 
