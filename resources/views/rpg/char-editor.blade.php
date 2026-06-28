@@ -525,7 +525,7 @@
                     <div class="mb-6" data-testid="char-editor-equipment-section">
                         <div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                             <h2 id="equipment-heading" class="text-xl font-semibold text-primary">Ausrüstung</h2>
-                            <p class="text-sm text-base-content/70" aria-live="polite" x-text="'Gegenst&auml;nde: ' + equipmentCount() + ' / ' + equipmentLimit() + ' &middot; High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></p>
+                            <p class="text-sm text-base-content/70" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></p>
                         </div>
 
                         <input type="hidden" name="clothing" :value="clothing">

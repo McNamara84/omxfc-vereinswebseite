@@ -58,6 +58,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString('highTechEquipmentLimit()', $viewSource);
         $this->assertStringNotContainsString("equipmentCount() + ' / 6", $viewSource);
         $this->assertStringNotContainsString("highTechEquipmentCount() + ' / 4", $viewSource);
+        $this->assertStringNotContainsString('&auml;', $viewSource);
+        $this->assertStringNotContainsString('&middot;', $viewSource);
         $this->assertSame(
             array_column($config['attributeRules']['attributes'], 'id'),
             $this->frontendAttributeMetadataIds(),

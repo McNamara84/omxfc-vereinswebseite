@@ -129,6 +129,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(addFunkgeraet).toBeDisabled();
         await expect(page.getByText('High-Tech: 4 / 4')).toBeVisible();
+        await expect(page.getByText('Gegenst\u00e4nde: 4 / 6 \u00b7 High-Tech: 4 / 4', { exact: true })).toBeVisible();
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
