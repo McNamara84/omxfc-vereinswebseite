@@ -75,6 +75,25 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringNotContainsString('@click="skillHelpOpen = !skillHelpOpen"', $source);
     }
 
+    public function test_special_skill_value_helpers_handle_skills_without_base_rule(): void
+    {
+        $skills = [
+            ['name' => 'Natürliche Waffen', 'value' => '1'],
+            ['name' => 'Beruf: Bauer', 'value' => '2'],
+        ];
+
+        $this->assertSame(
+            1,
+            $this->invokeControllerMethod('skillValue', [$skills, 'Natürliche Waffen']),
+        );
+        $this->assertSame(
+            'Natürliche Waffen',
+            $this->invokeControllerMethod('grantableSkillName', [$skills, 'Natürliche Waffen', 1]),
+        );
+        $this->assertFalse($this->invokeControllerMethod('isSpecializableBaseSkill', ['Natürliche Waffen']));
+        $this->assertTrue($this->invokeControllerMethod('isSpecializableBaseSkill', ['Beruf']));
+    }
+
     private function controllerConstant(string $name): array
     {
         $constant = (new ReflectionClass(RpgCharEditorController::class))->getReflectionConstant($name);
@@ -82,6 +101,13 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertNotNull($constant, "Controller constant {$name} is missing.");
 
         return $constant->getValue();
+    }
+
+    private function invokeControllerMethod(string $methodName, array $arguments): mixed
+    {
+        $method = (new ReflectionClass(RpgCharEditorController::class))->getMethod($methodName);
+
+        return $method->invokeArgs(new RpgCharEditorController(), $arguments);
     }
 
     private function frontendMetadataNames(string $constantName): array

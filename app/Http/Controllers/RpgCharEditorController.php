@@ -923,8 +923,7 @@ class RpgCharEditorController extends Controller
     private function grantableSkillName(array $skills, string $skillName, int $minimumValue): ?string
     {
         $canonicalSkillName = $this->canonicalSkillName($skillName);
-        $matchesSpecializationBase = $canonicalSkillName === $this->skillBaseName($canonicalSkillName)
-            && (bool) (self::SKILL_RULES[$canonicalSkillName]['specializable'] ?? false);
+        $matchesSpecializationBase = $this->isSpecializableBaseSkill($canonicalSkillName);
 
         foreach ($skills as $skill) {
             $name = $this->canonicalSkillName((string) ($skill['name'] ?? ''));
@@ -941,6 +940,21 @@ class RpgCharEditorController extends Controller
         }
 
         return null;
+    }
+
+    private function isSpecializableBaseSkill(string $skillName): bool
+    {
+        $canonicalSkillName = $this->canonicalSkillName($skillName);
+
+        if ($canonicalSkillName !== $this->skillBaseName($canonicalSkillName)) {
+            return false;
+        }
+
+        if (! array_key_exists($canonicalSkillName, self::SKILL_RULES)) {
+            return false;
+        }
+
+        return (bool) (self::SKILL_RULES[$canonicalSkillName]['specializable'] ?? false);
     }
 
     private function setSkillGrant(array &$grants, string $skillName, int $value): void
@@ -1439,8 +1453,7 @@ class RpgCharEditorController extends Controller
     {
         $value = null;
         $canonicalSkillName = $this->canonicalSkillName($skillName);
-        $matchesSpecializationBase = $canonicalSkillName === $this->skillBaseName($canonicalSkillName)
-            && (bool) (self::SKILL_RULES[$canonicalSkillName]['specializable'] ?? false);
+        $matchesSpecializationBase = $this->isSpecializableBaseSkill($canonicalSkillName);
 
         foreach ($skills as $skill) {
             $name = $this->canonicalSkillName((string) ($skill['name'] ?? ''));
