@@ -176,6 +176,20 @@ class RpgCharacterStorageTest extends TestCase
             ->assertSee('rel="noopener noreferrer"', false);
     }
 
+    public function test_empty_character_name_fallback_is_persisted_to_payload(): void
+    {
+        $this->actingAgMember();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => '   ',
+        ]))->assertRedirect(route('rpg.characters.index'));
+
+        $character = RpgCharacter::query()->firstOrFail();
+
+        $this->assertSame('Charakter', $character->character_name);
+        $this->assertSame('Charakter', $character->payload['character']['character_name']);
+    }
+
     public function test_character_name_above_database_column_length_is_rejected(): void
     {
         $this->actingAgMember();

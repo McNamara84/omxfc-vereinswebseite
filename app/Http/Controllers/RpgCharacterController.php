@@ -45,11 +45,13 @@ class RpgCharacterController extends Controller
         $pdfPayload = $this->characterSheetService->validatedPdfPayload($request);
         $payload = $pdfPayload;
         unset($payload['portrait']);
+        $characterName = $payload['character']['character_name'] ?: 'Charakter';
+        $payload['character']['character_name'] = $characterName;
 
         $storedPortrait = ['path' => null, 'mime' => null, 'original_name' => null];
 
         try {
-            DB::transaction(function () use ($request, $user, $payload, $pdfPayload, &$storedPortrait): void {
+            DB::transaction(function () use ($request, $user, $payload, $pdfPayload, $characterName, &$storedPortrait): void {
                 $this->slotService->ensureFreeSlotForStore(
                     $user,
                     $request->boolean('purchase_slot_if_needed'),
@@ -59,7 +61,7 @@ class RpgCharacterController extends Controller
 
                 RpgCharacter::query()->create([
                     'user_id' => $user->id,
-                    'character_name' => $payload['character']['character_name'] ?: 'Charakter',
+                    'character_name' => $characterName,
                     'payload' => $payload,
                     'portrait_path' => $storedPortrait['path'],
                     'portrait_mime' => $storedPortrait['mime'],
