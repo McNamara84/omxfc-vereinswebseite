@@ -1063,10 +1063,27 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
     },
 
-    handleFormSubmit(event) {
-        const submitter = event?.submitter || null;
+    formSubmitter(event) {
+        if (event?.submitter) {
+            return event.submitter;
+        }
 
-        if (submitter?.id !== 'submit-button') {
+        const form = event?.currentTarget || event?.target || null;
+        const activeElement = document.activeElement;
+
+        if (!form?.contains?.(activeElement)) {
+            return null;
+        }
+
+        return activeElement?.matches?.('button[type="submit"], input[type="submit"], [type="submit"]')
+            ? activeElement
+            : null;
+    },
+
+    handleFormSubmit(event) {
+        const submitter = this.formSubmitter(event);
+
+        if (submitter?.id === 'pdf-button') {
             this.setPurchaseSlotIfNeeded(event, false);
             return true;
         }
