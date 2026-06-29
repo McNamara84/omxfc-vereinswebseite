@@ -115,21 +115,23 @@ class RpgCharacterSlotService
 
     public function ensureFreeSlotForStore(User $user, bool $purchaseIfNeeded = false): ?RewardPurchase
     {
-        $this->lockUserSlotState($user);
+        return DB::transaction(function () use ($user, $purchaseIfNeeded): ?RewardPurchase {
+            $this->lockUserSlotState($user);
 
-        if ($this->freeSlots($user) > 0) {
-            return null;
-        }
+            if ($this->freeSlots($user) > 0) {
+                return null;
+            }
 
-        if (! $purchaseIfNeeded) {
-            $slotCost = $this->slotCostBaxx();
+            if (! $purchaseIfNeeded) {
+                $slotCost = $this->slotCostBaxx();
 
-            throw ValidationException::withMessages([
-                'slot' => "Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot fuer {$slotCost} Baxx, um diesen Charakter zu speichern.",
-            ]);
-        }
+                throw ValidationException::withMessages([
+                    'slot' => "Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot fuer {$slotCost} Baxx, um diesen Charakter zu speichern.",
+                ]);
+            }
 
-        return $this->createSlotPurchase($user);
+            return $this->createSlotPurchase($user);
+        });
     }
 
     public function resolveSlotReward(): Reward

@@ -17,6 +17,8 @@ use Throwable;
 
 class RpgCharacterController extends Controller
 {
+    private const PORTRAIT_STORAGE_ERROR_MESSAGE = 'Das Portrait konnte nicht gespeichert werden.';
+
     public function __construct(
         private readonly RpgCharacterSlotService $slotService,
         private readonly RpgCharacterSheetService $characterSheetService,
@@ -123,17 +125,13 @@ class RpgCharacterController extends Controller
         }
 
         if (! preg_match('/^data:(image\/(?:png|jpeg|gif|webp|bmp));base64,([A-Za-z0-9+\/=]+)$/', $dataUrl, $matches)) {
-            throw ValidationException::withMessages([
-                'portrait_data_url' => 'Das Portrait konnte nicht gespeichert werden.',
-            ]);
+            throw $this->portraitStorageValidationException($request);
         }
 
         $binary = base64_decode($matches[2], true);
 
         if ($binary === false) {
-            throw ValidationException::withMessages([
-                'portrait_data_url' => 'Das Portrait konnte nicht gespeichert werden.',
-            ]);
+            throw $this->portraitStorageValidationException($request);
         }
 
         $mime = $matches[1];
@@ -147,9 +145,7 @@ class RpgCharacterController extends Controller
         }
 
         if (! $portraitStored) {
-            throw ValidationException::withMessages([
-                'portrait_data_url' => 'Das Portrait konnte nicht gespeichert werden.',
-            ]);
+            throw $this->portraitStorageValidationException($request);
         }
 
         return [
@@ -157,6 +153,15 @@ class RpgCharacterController extends Controller
             'mime' => $mime,
             'original_name' => $this->portraitOriginalName($request),
         ];
+    }
+
+    private function portraitStorageValidationException(Request $request): ValidationException
+    {
+        $field = $request->hasFile('portrait') ? 'portrait' : 'portrait_data_url';
+
+        return ValidationException::withMessages([
+            $field => self::PORTRAIT_STORAGE_ERROR_MESSAGE,
+        ]);
     }
 
     private function portraitDataUrl(RpgCharacter $rpgCharacter): ?string

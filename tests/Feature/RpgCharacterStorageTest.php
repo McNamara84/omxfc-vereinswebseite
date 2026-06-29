@@ -303,6 +303,32 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame(0, RpgCharacter::query()->count());
     }
 
+    public function test_failed_uploaded_portrait_storage_attaches_error_to_upload_field(): void
+    {
+        $this->actingAgMember();
+
+        $disk = \Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('put')
+            ->once()
+            ->with(
+                \Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')),
+                \Mockery::type('string'),
+            )
+            ->andReturn(false);
+
+        Storage::shouldReceive('disk')
+            ->with('private')
+            ->once()
+            ->andReturn($disk);
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'portrait' => UploadedFile::fake()->image('avatar.png', 1, 1),
+        ]))->assertSessionHasErrors('portrait');
+
+        $this->assertFalse(session('errors')->has('portrait_data_url'));
+        $this->assertSame(0, RpgCharacter::query()->count());
+    }
+
     public function test_deleting_character_frees_slot_and_removes_portrait_file(): void
     {
         Storage::fake('private');
