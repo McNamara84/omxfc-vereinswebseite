@@ -3,7 +3,7 @@
         <x-ui.page-header
             eyebrow="RPG"
             title="Meine Charaktere"
-            description="Verwalte deine gespeicherten RPG-Charaktere und oeffne sie jederzeit wieder als PDF-Charakterbogen."
+            description="Verwalte deine gespeicherten RPG-Charaktere und öffne sie jederzeit wieder als PDF-Charakterbogen."
             data-testid="rpg-characters-header"
         >
             <x-slot:actions>
@@ -31,11 +31,11 @@
         @endif
 
         <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <x-ui.panel title="Gespeicherte Charaktere" description="Der erste Speicherplatz ist kostenlos. Geloeschte Charaktere geben ihren belegten Slot wieder frei.">
+            <x-ui.panel title="Gespeicherte Charaktere" description="Der erste Speicherplatz ist kostenlos. Gelöschte Charaktere geben ihren belegten Slot wieder frei.">
                 @if($characters->isEmpty())
                     <x-ui.empty-state
                         title="Noch keine Charaktere gespeichert"
-                        description="Erstelle im Charakter-Editor deinen ersten Charakter und speichere ihn anschliessend hier ab."
+                        description="Erstelle im Charakter-Editor deinen ersten Charakter und speichere ihn anschließend hier ab."
                         icon="o-document-text"
                     />
                 @else
@@ -68,12 +68,12 @@
                                                     <x-icon name="o-document-text" class="h-4 w-4" />
                                                     PDF
                                                 </a>
-                                                <form method="POST" action="{{ route('rpg.characters.destroy', $character) }}" onsubmit="return confirm('Diesen Charakter wirklich loeschen?');">
+                                                <form method="POST" action="{{ route('rpg.characters.destroy', $character) }}" onsubmit="return confirm('Diesen Charakter wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-ghost btn-sm text-error" data-testid="rpg-character-delete-button">
                                                         <x-icon name="o-trash" class="h-4 w-4" />
-                                                        Loeschen
+                                                        Löschen
                                                     </button>
                                                 </form>
                                             </div>
@@ -87,7 +87,7 @@
             </x-ui.panel>
 
             <aside class="space-y-4">
-                <x-ui.panel title="Speicher-Slots" description="Zusaetzliche Slots kosten jeweils {{ $slotSummary['slot_cost_baxx'] }} Baxx.">
+                <x-ui.panel title="Speicher-Slots" description="Zusätzliche Slots kosten jeweils {{ $slotSummary['slot_cost_baxx'] }} Baxx.">
                     <dl class="space-y-3 text-sm" data-testid="rpg-character-slot-summary">
                         <div class="flex items-center justify-between gap-3">
                             <dt class="text-base-content/70">Belegt</dt>
@@ -102,7 +102,7 @@
                             <dd class="font-semibold">{{ $slotSummary['purchased_slots'] }}</dd>
                         </div>
                         <div class="flex items-center justify-between gap-3">
-                            <dt class="text-base-content/70">Verfuegbare Baxx</dt>
+                            <dt class="text-base-content/70">Verfügbare Baxx</dt>
                             <dd class="font-semibold">{{ $slotSummary['available_baxx'] ?? '-' }}</dd>
                         </div>
                     </dl>
@@ -119,7 +119,7 @@
                             type="submit"
                             class="btn btn-primary w-full"
                             @disabled(! $slotSummary['can_purchase_slot'])
-                            onclick="return confirm('Einen weiteren Speicher-Slot fuer {{ $slotSummary['slot_cost_baxx'] }} Baxx kaufen?');"
+                            onclick="return confirm('Einen weiteren Speicher-Slot für {{ $slotSummary['slot_cost_baxx'] }} Baxx kaufen?');"
                             data-testid="rpg-character-buy-slot-button"
                         >
                             <x-icon name="o-circle-stack" class="h-4 w-4" />

@@ -17,7 +17,7 @@ use Throwable;
 
 class RpgCharacterController extends Controller
 {
-    private const PORTRAIT_STORAGE_ERROR_MESSAGE = 'Das Portrait konnte nicht gespeichert werden.';
+    private const PORTRAIT_STORAGE_ERROR_MESSAGE = 'Das Porträt konnte nicht gespeichert werden.';
 
     public function __construct(
         private readonly RpgCharacterSlotService $slotService,
@@ -45,7 +45,7 @@ class RpgCharacterController extends Controller
         $pdfPayload = $this->characterSheetService->validatedPdfPayload($request);
         $payload = $pdfPayload;
         unset($payload['portrait']);
-        $characterName = $payload['character']['character_name'] ?: 'Charakter';
+        $characterName = $payload['character']['character_name'] === '' ? 'Charakter' : $payload['character']['character_name'];
         $payload['character']['character_name'] = $characterName;
 
         $storedPortrait = ['path' => null, 'mime' => null, 'original_name' => null];
@@ -99,7 +99,7 @@ class RpgCharacterController extends Controller
 
         return redirect()
             ->route('rpg.characters.index')
-            ->with('success', 'Charakter wurde geloescht.');
+            ->with('success', 'Charakter wurde gelöscht.');
     }
 
     public function purchaseSlot(Request $request): RedirectResponse
@@ -109,7 +109,7 @@ class RpgCharacterController extends Controller
 
             return redirect()
                 ->route('rpg.characters.index')
-                ->with('success', "Ein weiterer Speicher-Slot wurde fuer {$purchase->cost_baxx} Baxx freigeschaltet.");
+                ->with('success', "Ein weiterer Speicher-Slot wurde für {$purchase->cost_baxx} Baxx freigeschaltet.");
         } catch (ValidationException $exception) {
             return redirect()
                 ->route('rpg.characters.index')

@@ -190,6 +190,20 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame('Charakter', $character->payload['character']['character_name']);
     }
 
+    public function test_zero_character_name_is_persisted_without_fallback(): void
+    {
+        $this->actingAgMember();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => '0',
+        ]))->assertRedirect(route('rpg.characters.index'));
+
+        $character = RpgCharacter::query()->firstOrFail();
+
+        $this->assertSame('0', $character->character_name);
+        $this->assertSame('0', $character->payload['character']['character_name']);
+    }
+
     public function test_character_name_above_database_column_length_is_rejected(): void
     {
         $this->actingAgMember();

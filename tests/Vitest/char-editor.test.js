@@ -1451,7 +1451,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Beruf: Bergmann')).toMatchObject({ value: 1, badge: 'Kultur' });
     });
 
-    it('Disuuslachter (Nordmann) ist nur fuer Barbaren auswaehlbar', () => {
+    it('Disuuslachter (Nordmann) ist nur für Barbaren auswählbar', () => {
         const barbar = createEditor({ race: 'Barbar' });
         const guul = createEditor({ race: 'Guul' });
         const nosfera = createEditor({ race: 'Nosfera' });
@@ -1494,7 +1494,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
     });
 
-    it('Volk der 13 Inseln ist nur fuer Barbaren auswaehlbar', () => {
+    it('Volk der 13 Inseln ist nur für Barbaren auswählbar', () => {
         const barbar = createEditor({ race: 'Barbar' });
         const guul = createEditor({ race: 'Guul' });
 
@@ -1691,7 +1691,7 @@ describe('charEditor – W66-Regeln', () => {
         expect(e.selectedDisadvantages).toContain('Verpflichtung');
     });
 
-    it('verlangt Detailangaben nur fuer frei gewaehlte detailpflichtige Eintraege', () => {
+    it('verlangt Detailangaben nur für frei gewählte detailpflichtige Einträge', () => {
         const e = createEditor();
         e.selectedAdvantages = ['Zäh', 'Tiergefährte'];
         e.selectedDisadvantages = ['Aberglaeubisch'];
@@ -1875,7 +1875,7 @@ describe('charEditor - Speicher-Slots', () => {
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(true);
         expect(hiddenInput.value).toBe('1');
-        expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Fuer 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
+        expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Für 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
         expect(event.preventDefault).not.toHaveBeenCalled();
         confirmSpy.mockRestore();
     });
@@ -1889,7 +1889,7 @@ describe('charEditor - Speicher-Slots', () => {
         expect(e.handleFormSubmit(event)).toBe(true);
         expect(e.purchaseSlotIfNeeded).toBe(true);
         expect(hiddenInput.value).toBe('1');
-        expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Fuer 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
+        expect(confirmSpy).toHaveBeenCalledWith('Kein Speicher-Slot frei. Für 5 Baxx einen weiteren Slot kaufen und diesen Charakter speichern?');
         expect(event.preventDefault).not.toHaveBeenCalled();
         confirmSpy.mockRestore();
     });

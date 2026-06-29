@@ -121,7 +121,7 @@
                                         <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" x-bind:disabled="advancedUnlocked">
                                         <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-base-content/20 bg-base-200/50 text-xs text-base-content/60">
                                             <span x-show="!portraitPreview">Vorschau</span>
-                                            <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="h-full w-full object-cover" alt="Portrait Vorschau" data-testid="char-editor-portrait-preview">
+                                            <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="h-full w-full object-cover" alt="Porträt Vorschau" data-testid="char-editor-portrait-preview">
                                         </div>
                                     </div>
                                 </div>

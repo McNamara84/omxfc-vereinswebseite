@@ -1048,7 +1048,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     characterSlotPurchaseMessage() {
         const cost = Number(this.characterSlotSummary?.slot_cost_baxx) || 5;
 
-        return `Kein Speicher-Slot frei. Fuer ${cost} Baxx einen weiteren Slot kaufen und diesen Charakter speichern?`;
+        return `Kein Speicher-Slot frei. Für ${cost} Baxx einen weiteren Slot kaufen und diesen Charakter speichern?`;
     },
 
     setPurchaseSlotIfNeeded(event, value) {

@@ -126,7 +126,7 @@ class RpgCharacterSlotService
                 $slotCost = $this->slotCostBaxx();
 
                 throw ValidationException::withMessages([
-                    'slot' => "Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot fuer {$slotCost} Baxx, um diesen Charakter zu speichern.",
+                    'slot' => "Du hast keinen freien Speicher-Slot. Kaufe einen weiteren Slot für {$slotCost} Baxx, um diesen Charakter zu speichern.",
                 ]);
             }
 
@@ -138,7 +138,7 @@ class RpgCharacterSlotService
     {
         $defaults = [
             'title' => self::SLOT_REWARD_TITLE,
-            'description' => 'System-Buchung fuer zusaetzliche RPG-Charakter-Speicherplaetze.',
+            'description' => 'System-Buchung für zusätzliche RPG-Charakter-Speicherplätze.',
             'category' => 'System',
             'slug' => self::SLOT_REWARD_SLUG,
             'cost_baxx' => $this->slotCostBaxx(),
@@ -202,7 +202,7 @@ class RpgCharacterSlotService
 
         if (! $walletTeam) {
             throw ValidationException::withMessages([
-                'slot' => 'Das Mitglieder-Team ist derzeit nicht verfuegbar. Speicher-Slots koennen aktuell nicht gekauft werden.',
+                'slot' => 'Das Mitglieder-Team ist derzeit nicht verfügbar. Speicher-Slots können aktuell nicht gekauft werden.',
             ]);
         }
 
@@ -212,13 +212,13 @@ class RpgCharacterSlotService
 
         if (! is_int($availableBaxx)) {
             throw ValidationException::withMessages([
-                'slot' => $walletState['warning'] ?? 'Das Baxx-Guthaben ist aktuell nicht verfuegbar.',
+                'slot' => $walletState['warning'] ?? 'Das Baxx-Guthaben ist aktuell nicht verfügbar.',
             ]);
         }
 
         if ($availableBaxx < $slotCost) {
             throw ValidationException::withMessages([
-                'slot' => "Du benoetigst {$slotCost} Baxx, hast aber nur {$availableBaxx} verfuegbar.",
+                'slot' => "Du benötigst {$slotCost} Baxx, hast aber nur {$availableBaxx} verfügbar.",
             ]);
         }
 
