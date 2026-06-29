@@ -2058,6 +2058,19 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertNull($method->invoke($sheetService, (object) ['manipuliert' => true]));
     }
 
+    public function test_pdf_export_rejects_character_name_above_database_column_length(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'character_name' => str_repeat('A', 256),
+            ]))
+            ->assertSessionHasErrors('character_name');
+    }
+
     public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

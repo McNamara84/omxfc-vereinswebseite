@@ -176,6 +176,17 @@ class RpgCharacterStorageTest extends TestCase
             ->assertSee('rel="noopener noreferrer"', false);
     }
 
+    public function test_character_name_above_database_column_length_is_rejected(): void
+    {
+        $this->actingAgMember();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => str_repeat('A', 256),
+        ]))->assertSessionHasErrors('character_name');
+
+        $this->assertSame(0, RpgCharacter::query()->count());
+    }
+
     public function test_second_character_without_free_slot_is_rejected(): void
     {
         $this->actingAgMember();

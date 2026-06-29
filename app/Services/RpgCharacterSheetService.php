@@ -144,6 +144,8 @@ class RpgCharacterSheetService
         'equipment',
     ];
 
+    private const CHARACTER_NAME_MAX_CHARS = 255;
+
     private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
 
     private const RACE_VALUES = ['Barbar', 'Guul', 'Hydrit', 'Nosfera', 'Taratze', 'Wulfane', 'Techno', 'Präkristofluu'];
@@ -498,6 +500,7 @@ class RpgCharacterSheetService
         ]);
 
         $character = $this->characterPayload($request);
+        $this->validateCharacterPayload($character);
         $attributes = $this->attributesPayload($request->input('attributes', []));
         $skills = $this->skillsPayload($request->input('skills', []));
         $advantages = $this->canonicalSpecialList($this->listPayload($request->input('advantages', [])));
@@ -556,6 +559,15 @@ class RpgCharacterSheetService
         }
 
         return $character;
+    }
+
+    private function validateCharacterPayload(array $character): void
+    {
+        if (Str::length($character['character_name'] ?? '') > self::CHARACTER_NAME_MAX_CHARS) {
+            throw ValidationException::withMessages([
+                'character_name' => 'Der Charaktername darf maximal '.self::CHARACTER_NAME_MAX_CHARS.' Zeichen lang sein.',
+            ]);
+        }
     }
 
     private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = ''): void
