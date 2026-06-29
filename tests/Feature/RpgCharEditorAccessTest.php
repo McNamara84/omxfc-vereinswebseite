@@ -69,7 +69,10 @@ class RpgCharEditorAccessTest extends TestCase
         $this->actingAs($member)
             ->get('/rpg/char-editor')
             ->assertOk()
-            ->assertSee('Charakter-Editor');
+            ->assertSee('Charakter-Editor')
+            ->assertSee('data-testid="char-editor-form"', false)
+            ->assertSee('action="'.route('rpg.characters.store').'"', false)
+            ->assertSee('formaction="'.route('rpg.char-editor.pdf').'"', false);
     }
 
     public function test_editor_exposes_special_rule_descriptions_to_assistive_technology(): void

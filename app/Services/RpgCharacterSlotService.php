@@ -178,6 +178,11 @@ class RpgCharacterSlotService
 
     private function lockUserSlotState(User $user): void
     {
+        User::query()
+            ->whereKey($user->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
         RewardPurchase::query()
             ->where('user_id', $user->id)
             ->lockForUpdate()

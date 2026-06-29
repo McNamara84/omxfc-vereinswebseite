@@ -29,7 +29,7 @@
             </a>
         </div>
         <x-ui.panel title="Editorfluss" description="Basisdaten, Regeln, Ausrüstung und Export bleiben in einem zusammenhängenden Arbeitsbereich gebündelt.">
-            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
+            <form action="{{ route('rpg.characters.store') }}" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
                 @csrf
 
                 <input type="hidden" name="purchase_slot_if_needed" :value="purchaseSlotIfNeeded ? '1' : '0'">
