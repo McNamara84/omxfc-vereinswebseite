@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RpgCharacter;
 use App\Models\User;
+use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ class RpgCharacterController extends Controller
 {
     public function __construct(
         private readonly RpgCharacterSlotService $slotService,
-        private readonly RpgCharEditorController $charEditorController,
+        private readonly RpgCharacterSheetService $characterSheetService,
     ) {}
 
     public function index(Request $request): View
@@ -39,17 +40,20 @@ class RpgCharacterController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $pdfPayload = $this->charEditorController->validatedPdfPayload($request);
-        $storedPortrait = $this->storePortraitFromPayload($pdfPayload['portrait'] ?? null, $request, $user);
+        $pdfPayload = $this->characterSheetService->validatedPdfPayload($request);
         $payload = $pdfPayload;
         unset($payload['portrait']);
 
+        $storedPortrait = ['path' => null, 'mime' => null, 'original_name' => null];
+
         try {
-            DB::transaction(function () use ($request, $user, $payload, $storedPortrait): void {
+            DB::transaction(function () use ($request, $user, $payload, $pdfPayload, &$storedPortrait): void {
                 $this->slotService->ensureFreeSlotForStore(
                     $user,
                     $request->boolean('purchase_slot_if_needed'),
                 );
+
+                $storedPortrait = $this->storePortraitFromPayload($pdfPayload['portrait'] ?? null, $request, $user);
 
                 RpgCharacter::query()->create([
                     'user_id' => $user->id,
@@ -78,7 +82,7 @@ class RpgCharacterController extends Controller
         $payload = $rpgCharacter->payload;
         $payload['portrait'] = $this->portraitDataUrl($rpgCharacter);
 
-        return $this->charEditorController->characterSheetPdfResponse($payload);
+        return $this->characterSheetService->characterSheetPdfResponse($payload);
     }
 
     public function destroy(RpgCharacter $rpgCharacter): RedirectResponse

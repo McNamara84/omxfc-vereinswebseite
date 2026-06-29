@@ -1,9 +1,9 @@
 @php
-    $specialRules ??= \App\Http\Controllers\RpgCharEditorController::specialRuleConfig();
+    $specialRules ??= \App\Services\RpgCharacterSheetService::specialRuleConfig();
     $advantages = $specialRules['advantages'];
     $disadvantages = $specialRules['disadvantages'];
-    $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Http\Controllers\RpgCharEditorController::attributeRuleConfig()['attributes'];
-    $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Http\Controllers\RpgCharEditorController::skillRuleConfig()['suggestions'];
+    $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Services\RpgCharacterSheetService::attributeRuleConfig()['attributes'];
+    $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Services\RpgCharacterSheetService::skillRuleConfig()['suggestions'];
     $slotSummary ??= null;
 @endphp
 

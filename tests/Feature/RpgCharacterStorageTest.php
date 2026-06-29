@@ -197,6 +197,27 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame(1, RpgCharacter::query()->count());
     }
 
+    public function test_rejected_store_without_free_slot_does_not_write_portrait(): void
+    {
+        $this->actingAgMember();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => 'Erster Held',
+        ]))->assertRedirect(route('rpg.characters.index'));
+
+        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+
+        Storage::shouldReceive('disk')->never();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => 'Zweiter Held',
+            'portrait_data_url' => $dataUrl,
+        ]))->assertSessionHasErrors('slot');
+
+        $this->assertSame(1, RpgCharacter::query()->count());
+    }
+
     public function test_slot_purchase_costs_five_baxx_and_is_repeatable(): void
     {
         $member = $this->actingAgMember(15);

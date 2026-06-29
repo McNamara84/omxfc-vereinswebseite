@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Http\Controllers\RpgCharEditorController;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\RpgCharacterSheetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
@@ -208,7 +208,6 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertMatchesRegularExpression('#^/rpg/char-editor/pdf/[0-9a-f-]{36}$#', $path);
     }
 
-
     public function test_pdf_export_includes_structured_equipment_and_server_ammunition(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -331,6 +330,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response->assertSessionHasErrors('equipment_items');
     }
+
     public function test_pdf_export_get_route_can_be_opened_repeatedly_by_pdf_viewers(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
@@ -2050,12 +2050,12 @@ class RpgCharEditorPdfTest extends TestCase
 
     public function test_portrait_data_url_payload_ignores_non_scalar_values(): void
     {
-        $controller = app(RpgCharEditorController::class);
-        $method = new \ReflectionMethod($controller, 'portraitDataUrlPayload');
+        $sheetService = app(RpgCharacterSheetService::class);
+        $method = new \ReflectionMethod($sheetService, 'portraitDataUrlPayload');
         $method->setAccessible(true);
 
-        $this->assertNull($method->invoke($controller, ['manipuliert']));
-        $this->assertNull($method->invoke($controller, (object) ['manipuliert' => true]));
+        $this->assertNull($method->invoke($sheetService, ['manipuliert']));
+        $this->assertNull($method->invoke($sheetService, (object) ['manipuliert' => true]));
     }
 
     public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
@@ -2124,7 +2124,7 @@ class RpgCharEditorPdfTest extends TestCase
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        $maxChars = (new \ReflectionClass(RpgCharEditorController::class))
+        $maxChars = (new \ReflectionClass(RpgCharacterSheetService::class))
             ->getReflectionConstant('PORTRAIT_DATA_URL_MAX_CHARS')
             ->getValue();
 
