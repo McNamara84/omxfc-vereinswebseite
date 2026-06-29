@@ -204,6 +204,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the user's saved RPG characters.
+     */
+    public function rpgCharacters(): HasMany
+    {
+        return $this->hasMany(RpgCharacter::class);
+    }
+
+    /**
      * Get the tour assignments for the user.
      */
     public function tourAssignments(): HasMany

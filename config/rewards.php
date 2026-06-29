@@ -28,6 +28,8 @@ return [
     // Standard-Baxx-Kosten für den Kompendium-Zugang
     'kompendium_default_cost_baxx' => env('KOMPENDIUM_DEFAULT_COST_BAXX', 100),
 
+    'rpg_character_slot_cost_baxx' => env('RPG_CHARACTER_SLOT_COST_BAXX', 5),
+
     /** @deprecated Nur als Referenz für RewardSeeder – nicht zur Laufzeit verwenden. */
     'legacy' => [
         [

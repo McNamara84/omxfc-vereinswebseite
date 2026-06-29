@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Http\Controllers\RpgCharEditorController;
+use App\Services\RpgCharacterSheetService;
 use App\Support\RpgCharEditorEquipment;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -11,7 +11,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
 {
     public function test_special_rule_config_is_the_backend_source_for_editor_rules(): void
     {
-        $config = RpgCharEditorController::specialRuleConfig();
+        $config = RpgCharacterSheetService::specialRuleConfig();
 
         $this->assertSame([
             'attributeRules',
@@ -24,8 +24,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'disadvantageDetailRequired',
             'equipmentRules',
         ], array_keys($config));
-        $this->assertSame(RpgCharEditorController::attributeRuleConfig(), $config['attributeRules']);
-        $this->assertSame(RpgCharEditorController::skillRuleConfig(), $config['skillRules']);
+        $this->assertSame(RpgCharacterSheetService::attributeRuleConfig(), $config['attributeRules']);
+        $this->assertSame(RpgCharacterSheetService::skillRuleConfig(), $config['skillRules']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_VALUES'), $config['advantages']);
         $this->assertSame($this->controllerConstant('DISADVANTAGE_VALUES'), $config['disadvantages']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_COSTS'), $config['advantageCosts']);
@@ -38,7 +38,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
     public function test_frontend_rule_metadata_covers_backend_special_rules(): void
     {
         $source = $this->frontendSource();
-        $config = RpgCharEditorController::specialRuleConfig();
+        $config = RpgCharacterSheetService::specialRuleConfig();
 
         $this->assertStringContainsString('window.rpgCharEditorRules', $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('attributeRules'", $source);
@@ -109,7 +109,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
 
     private function controllerConstant(string $name): array
     {
-        $constant = (new ReflectionClass(RpgCharEditorController::class))->getReflectionConstant($name);
+        $constant = (new ReflectionClass(RpgCharacterSheetService::class))->getReflectionConstant($name);
 
         $this->assertNotNull($constant, "Controller constant {$name} is missing.");
 
@@ -118,14 +118,14 @@ class RpgCharEditorRuleDriftTest extends TestCase
 
     private function invokeControllerMethod(string $methodName, array $arguments): mixed
     {
-        $method = (new ReflectionClass(RpgCharEditorController::class))->getMethod($methodName);
+        $method = (new ReflectionClass(RpgCharacterSheetService::class))->getMethod($methodName);
 
         // PHP 8.1+ allows invoking non-public methods; PHP 8.5 deprecates setAccessible().
         if (PHP_VERSION_ID < 80100) {
             $method->setAccessible(true);
         }
 
-        return $method->invokeArgs(new RpgCharEditorController, $arguments);
+        return $method->invokeArgs(new RpgCharacterSheetService, $arguments);
     }
 
     private function frontendMetadataNames(string $constantName): array
