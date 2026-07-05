@@ -26,7 +26,7 @@
 
     <h1>Charakterbogen</h1>
     @if($portrait)
-        <img class="portrait" src="{{ $portrait }}" alt="Portrait">
+        <img class="portrait" src="{{ $portrait }}" alt="Porträt">
     @endif
 
     <div class="section">

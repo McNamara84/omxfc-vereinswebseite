@@ -529,7 +529,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // UI state
     advancedUnlocked: false,
-
+    purchaseSlotIfNeeded: false,
+    characterSlotSummary: typeof window === 'undefined' ? null : (window.rpgCharacterSlots || null),
     basicsFilled() {
         return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
     },
@@ -1036,6 +1037,76 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     shouldSubmitPortraitPreview() {
         return this.advancedUnlocked && Boolean(this.portraitPreview);
+    },
+
+    hasFreeCharacterSlot() {
+        const freeSlots = Number(this.characterSlotSummary?.free_slots);
+
+        return !Number.isFinite(freeSlots) || freeSlots > 0;
+    },
+
+    characterSlotPurchaseMessage() {
+        const cost = Number(this.characterSlotSummary?.slot_cost_baxx) || 5;
+
+        return `Kein Speicher-Slot frei. Für ${cost} Baxx einen weiteren Slot kaufen und diesen Charakter speichern?`;
+    },
+
+    setPurchaseSlotIfNeeded(event, value) {
+        this.purchaseSlotIfNeeded = Boolean(value);
+
+        const form = event?.currentTarget || event?.target || null;
+        const input = form?.elements?.purchase_slot_if_needed
+            || form?.querySelector?.('[name="purchase_slot_if_needed"]');
+
+        if (input) {
+            input.value = this.purchaseSlotIfNeeded ? '1' : '0';
+        }
+    },
+
+    formSubmitter(event) {
+        if (event?.submitter) {
+            return event.submitter;
+        }
+
+        const form = event?.currentTarget || event?.target || null;
+        const activeElement = document.activeElement;
+
+        if (!form?.contains?.(activeElement)) {
+            return null;
+        }
+
+        return activeElement?.matches?.('button[type="submit"], input[type="submit"], [type="submit"]')
+            ? activeElement
+            : null;
+    },
+
+    handleFormSubmit(event) {
+        const submitter = this.formSubmitter(event);
+
+        if (submitter?.id === 'pdf-button') {
+            this.setPurchaseSlotIfNeeded(event, false);
+            return true;
+        }
+
+        if (!this.formValid()) {
+            event.preventDefault();
+            this.setPurchaseSlotIfNeeded(event, false);
+            return false;
+        }
+
+        if (this.hasFreeCharacterSlot()) {
+            this.setPurchaseSlotIfNeeded(event, false);
+            return true;
+        }
+
+        if (window.confirm(this.characterSlotPurchaseMessage())) {
+            this.setPurchaseSlotIfNeeded(event, true);
+            return true;
+        }
+
+        event.preventDefault();
+        this.setPurchaseSlotIfNeeded(event, false);
+        return false;
     },
 
     shouldMirrorSkillName(skill) {

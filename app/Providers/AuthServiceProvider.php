@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Enums\Role;
 use App\Models\Auktion;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Poll;
+use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\ThreeDModel;
 use App\Models\Todo;
@@ -17,6 +19,7 @@ use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
 use App\Policies\KassenbuchEntryPolicy;
 use App\Policies\PollPolicy;
+use App\Policies\RpgCharacterPolicy;
 use App\Policies\TeamPolicy;
 use App\Policies\ThreeDModelPolicy;
 use App\Policies\TodoPolicy;
@@ -43,6 +46,7 @@ class AuthServiceProvider extends ServiceProvider
         Poll::class => PollPolicy::class,
         ThreeDModel::class => ThreeDModelPolicy::class,
         Veranstaltung::class => VeranstaltungPolicy::class,
+        RpgCharacter::class => RpgCharacterPolicy::class,
     ];
 
     /**
@@ -57,7 +61,7 @@ class AuthServiceProvider extends ServiceProvider
         });
 
         Gate::define('access-rpg-char-editor', function (User $user) {
-            return $user->hasAnyMitgliederTeamRole(\App\Enums\Role::Admin)
+            return $user->hasAnyMitgliederTeamRole(Role::Admin)
                 || $user->isMemberOfTeam('AG Rollenspiel');
         });
     }

@@ -29,6 +29,7 @@ use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\RpgCharEditorController;
+use App\Http\Controllers\RpgCharacterController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TourAdminController;
@@ -342,6 +343,18 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor.pdf.show')
         ->middleware('can:access-rpg-char-editor')
         ->whereUuid('token');
+
+    Route::prefix('rpg/charaktere')
+        ->name('rpg.characters.')
+        ->controller(RpgCharacterController::class)
+        ->middleware('can:access-rpg-char-editor')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::post('/slots', 'purchaseSlot')->name('slots.purchase');
+            Route::get('/{rpgCharacter}/pdf', 'pdf')->name('pdf');
+            Route::delete('/{rpgCharacter}', 'destroy')->name('destroy');
+        });
 
     Route::prefix('romantauschboerse')->name('romantausch.')->group(function () {
         Route::livewire('/', RomantauschIndex::class)->name('index');
