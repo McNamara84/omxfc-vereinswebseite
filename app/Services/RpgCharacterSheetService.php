@@ -1628,7 +1628,7 @@ class RpgCharacterSheetService
 
         if ($total !== RpgCharEditorEquipment::ITEM_LIMIT) {
             throw ValidationException::withMessages([
-                'equipment_items' => 'Zu Beginn müssen genau '.RpgCharEditorEquipment::ITEM_LIMIT.' Ausrüstungsgegenstände gewählt werden.',
+                'equipment_items' => 'Zu Beginn müssen genau '.RpgCharEditorEquipment::ITEM_LIMIT.' gezählte Ausrüstungsgegenstände gewählt werden.',
             ]);
         }
 

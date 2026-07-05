@@ -270,7 +270,9 @@ class RpgCharEditorPdfTest extends TestCase
             ],
         ]));
 
-        $response->assertSessionHasErrors('equipment_items');
+        $response->assertSessionHasErrors([
+            'equipment_items' => 'Zu Beginn müssen genau 6 gezählte Ausrüstungsgegenstände gewählt werden.',
+        ]);
     }
 
     public function test_pdf_export_accepts_unarmed_attack_without_counting_it_as_starting_item(): void
