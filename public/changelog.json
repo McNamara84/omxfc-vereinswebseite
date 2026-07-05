@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.13.0",
+    "pub_date": "2026-07-05",
+    "notes": [
+      "[New] Charaktere aus dem Rollenspiel-Editor können jetzt gespeichert, verwaltet und später weiterbearbeitet werden",
+      "[New] Charakterbögen lassen sich als PDF erzeugen und für den Ausdruck sauber darstellen",
+      "[New] Der Charakter-Editor unterstützt weitere Spezies, Kulturen und Regeloptionen wie Hydrit, Techno, Präkristofluu, Nosfera, Taratze, Wulfane, Bunkermensch, Meeresbewohner und Volk der 13 Inseln",
+      "[New] Ausrüstung, Geschlecht und zusätzliche Spezialregeln wurden im Charakter-Editor ergänzt",
+      "[New] Mitglieder können öffentliche Kontaktfelder pflegen und Änderungen werden per Benachrichtigung begleitet",
+      "[New] Das Dashboard zeigt mehr Aktivitäten und Baxx-Meilensteine der Vereinsmitglieder",
+      "[Improved] Kompendium-Suche unterstützt OR- und NOT-Abfragen, sortiert Ergebnisse gezielter und berücksichtigt Veröffentlichungsdaten",
+      "[Improved] Rollenspiel-Regeln werden im Charakter-Editor konsequenter geprüft, inklusive Attributen, Fertigkeiten, Spezies- und Kulturvorgaben",
+      "[Improved] Romantausch-Formulare und Tauschabgleich wurden stabiler und verständlicher gemacht",
+      "[Fixed] PDF-Erstellung, Faustschlag-Berechnung und Druckansicht im Charakter-Editor funktionieren wieder zuverlässig",
+      "[Fixed] Vorteile und Nachteile im Charakter-Editor werden korrekt angezeigt und ausgewertet",
+      "[Fixed] Formularprobleme im Charakter-Editor und mehrere Regelabweichungen bei Kulturen und Spezies behoben"
+    ]
+  },
+  {
     "version": "1.12.0",
     "pub_date": "2026-05-24",
     "notes": [
