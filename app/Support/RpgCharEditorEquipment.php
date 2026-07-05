@@ -67,10 +67,15 @@ final class RpgCharEditorEquipment
             || ($item['category'] ?? null) === 'high_tech';
     }
 
+    public static function countsTowardLimit(array $item): bool
+    {
+        return ($item['countsTowardLimit'] ?? true) !== false;
+    }
+
     public static function items(): array
     {
         return [
-            ['id' => 'faustschlag-tritt', 'name' => 'Faustschlag / Tritt', 'category' => 'melee_weapons', 'summary' => 'ST, P 0, S -1', 'tw' => '-', 'bucks' => '-'],
+            ['id' => 'faustschlag-tritt', 'name' => 'Faustschlag / Tritt', 'category' => 'melee_weapons', 'summary' => 'ST, P 0, S -1', 'tw' => '-', 'bucks' => '-', 'countsTowardLimit' => false],
             ['id' => 'schlagring-stein', 'name' => 'Schlagring / Stein', 'category' => 'melee_weapons', 'summary' => 'ST, P 0, S +0', 'tw' => '-', 'bucks' => '-'],
             ['id' => 'messer-dolch', 'name' => 'Messer / Dolch', 'category' => 'melee_weapons', 'summary' => 'GE, P 0, S +0, Wurf E, RI 2m, MR 10m', 'tw' => '2', 'bucks' => '2'],
             ['id' => 'kurzschwert', 'name' => 'Kurzschwert', 'category' => 'melee_weapons', 'summary' => 'GE, P 0, S +0', 'tw' => '3', 'bucks' => '10'],

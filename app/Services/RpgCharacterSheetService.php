@@ -1608,7 +1608,10 @@ class RpgCharacterSheetService
             }
 
             $item = $itemMap[$id];
-            $total += $quantity;
+
+            if (RpgCharEditorEquipment::countsTowardLimit($item)) {
+                $total += $quantity;
+            }
 
             if (! RpgCharEditorEquipment::requiresHighTechAdvantage($item)) {
                 continue;
@@ -1625,7 +1628,7 @@ class RpgCharacterSheetService
 
         if ($total !== RpgCharEditorEquipment::ITEM_LIMIT) {
             throw ValidationException::withMessages([
-                'equipment_items' => 'Zu Beginn müssen genau '.RpgCharEditorEquipment::ITEM_LIMIT.' Ausrüstungsgegenstände gewählt werden.',
+                'equipment_items' => 'Zu Beginn müssen genau '.RpgCharEditorEquipment::ITEM_LIMIT.' gezählte Ausrüstungsgegenstände gewählt werden.',
             ]);
         }
 
@@ -1660,6 +1663,7 @@ class RpgCharacterSheetService
                 'tw' => $item['tw'] ?? '',
                 'bucks' => $item['bucks'] ?? '',
                 'requires_high_tech_advantage' => RpgCharEditorEquipment::requiresHighTechAdvantage($item),
+                'counts_toward_limit' => RpgCharEditorEquipment::countsTowardLimit($item),
             ];
         }
 
