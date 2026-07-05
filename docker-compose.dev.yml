@@ -85,7 +85,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.30.3-alpine
+    image: nginx:stable-alpine
     depends_on:
       app:
         condition: service_started
@@ -99,7 +99,7 @@ services:
       - omxfc-dev-network
 
   vite:
-    image: node:26.4.0-alpine3.24
+    image: node:26-alpine
     init: true
     working_dir: /workspace
     command: ['sh', '/workspace/docker/dev/start-vite.sh']
@@ -115,7 +115,7 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:11.8.8
+    image: mariadb:11
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}

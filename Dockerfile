@@ -1,5 +1,5 @@
 # Build Stage für Node/Vite
-FROM node:26.4.0-alpine3.24 AS node-builder
+FROM node:26-alpine as node-builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.7-fpm AS php-base
+FROM php:8.5-fpm as php-base
 
 # Install required system packages
 RUN apt-get update && apt-get install -y \
@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
-COPY --from=composer:latest@sha256:7725eb4545c438629ae8bde3ef0bb9a5038ef566126ad878442a69007242d267 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
@@ -42,7 +42,7 @@ RUN sed -i 's/^user = .*/user = www-data/' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/^group = .*/group = www-data/' /usr/local/etc/php-fpm.d/www.conf
 
 # PHP Production Stage
-FROM php-base AS production
+FROM php-base as production
 
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
@@ -90,7 +90,7 @@ RUN mkdir -p storage/app/public \
 EXPOSE 9000
 
 # PHP Development Stage
-FROM php-base AS development
+FROM php-base as development
 
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
