@@ -273,6 +273,64 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertSessionHasErrors('equipment_items');
     }
 
+    public function test_pdf_export_accepts_unarmed_attack_without_counting_it_as_starting_item(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function (array $data): bool {
+                $items = collect($data['equipment']['items'] ?? []);
+
+                return $items->contains(fn ($item) => $item['id'] === 'faustschlag-tritt'
+                    && $item['quantity'] === 1
+                    && $item['counts_toward_limit'] === false)
+                    && $items->contains(fn ($item) => $item['id'] === 'schlagring-stein'
+                        && $item['counts_toward_limit'] === true);
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'equipment_items' => [
+                ['id' => 'faustschlag-tritt', 'quantity' => 1],
+                ['id' => 'schlagring-stein', 'quantity' => 1],
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_does_not_count_unarmed_attack_toward_required_item_total(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'equipment_items' => [
+                ['id' => 'faustschlag-tritt', 'quantity' => 1],
+                ['id' => 'messer-dolch', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+                ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1],
+            ],
+        ]));
+
+        $response->assertSessionHasErrors('equipment_items');
+    }
+
     public function test_pdf_export_rejects_unknown_equipment_ids(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());

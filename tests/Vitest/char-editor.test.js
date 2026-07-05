@@ -74,6 +74,7 @@ const specialRuleConfig = {
             { id: 'kleidung-wanderer', name: 'Kleidung, Wanderer', tw: '8', bucks: '40' },
         ],
         items: [
+            { id: 'faustschlag-tritt', name: 'Faustschlag / Tritt', category: 'melee_weapons', summary: 'ST, S -1', tw: '-', bucks: '-', countsTowardLimit: false },
             { id: 'messer-dolch', name: 'Messer / Dolch', category: 'melee_weapons', summary: 'GE, S +0', tw: '2', bucks: '2' },
             { id: 'seil', name: 'Seil', category: 'low_tech', summary: '20 Meter Hanfseil', tw: '2', bucks: '6' },
             { id: 'rucksack', name: 'Rucksack', category: 'low_tech', summary: '10 Kilogramm Inhalt', tw: '3', bucks: '10' },
@@ -831,6 +832,45 @@ describe('charEditor - Ausruestung', () => {
         e.setEquipmentQuantity('bogen', 1);
 
         expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentComplete()).toBe(true);
+    });
+
+    it('zaehlt Faustschlag / Tritt nicht gegen das Startlimit', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach' });
+
+        e.setEquipmentQuantity('faustschlag-tritt', 1);
+        e.setEquipmentQuantity('messer-dolch', 1);
+        e.setEquipmentQuantity('seil', 1);
+        e.setEquipmentQuantity('rucksack', 1);
+        e.setEquipmentQuantity('wasserschlauch', 1);
+        e.setEquipmentQuantity('wochenration', 1);
+
+        expect(e.equipmentQuantity('faustschlag-tritt')).toBe(1);
+        expect(e.equipmentCount()).toBe(5);
+        expect(e.equipmentRemaining()).toBe(1);
+        expect(e.equipmentComplete()).toBe(false);
+
+        e.setEquipmentQuantity('bogen', 1);
+
+        expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentRemaining()).toBe(0);
+        expect(e.equipmentComplete()).toBe(true);
+        expect(e.selectedEquipmentEntries().map(entry => entry.id)).toContain('faustschlag-tritt');
+    });
+
+    it('erlaubt nicht gezaehlte Ausruestung auch bei vollem Startlimit', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach' });
+
+        e.setEquipmentQuantity('messer-dolch', 1);
+        e.setEquipmentQuantity('seil', 1);
+        e.setEquipmentQuantity('rucksack', 1);
+        e.setEquipmentQuantity('wasserschlauch', 1);
+        e.setEquipmentQuantity('wochenration', 1);
+        e.setEquipmentQuantity('bogen', 1);
+        e.setEquipmentQuantity('faustschlag-tritt', 1);
+
+        expect(e.equipmentCount()).toBe(6);
+        expect(e.equipmentQuantity('faustschlag-tritt')).toBe(1);
         expect(e.equipmentComplete()).toBe(true);
     });
 
