@@ -1851,8 +1851,10 @@ describe('charEditor – Computed Properties', () => {
 });
 
 describe('charEditor - Laravel Old Input', () => {
+    const tinyPngDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
+
     it('stellt einen serverseitig abgelehnten Editor-Submit wieder her', () => {
-        const portraitDataUrl = 'data:image/png;base64,bm90LWltYWdl';
+        const portraitDataUrl = tinyPngDataUrl;
         window.rpgCharEditorOldInput = {
             player_name: 'Playwright Spieler',
             character_name: 'Wudan Reload',
@@ -1902,6 +1904,33 @@ describe('charEditor - Laravel Old Input', () => {
         e.init();
 
         expect(e.playerName).toBe('Nachbearbeitet');
+    });
+
+    it('ignoriert Old-Input-Portraits, die die Backend-Regel nicht erfuellen', () => {
+        const invalidPortraits = [
+            'data:image/svg+xml;base64,PHN2Zy8+',
+            'data:image/png,abc',
+            'data:image/png;base64,@@@',
+            'data:image/png;base64,bm90LWltYWdl',
+            tinyPngDataUrl.replace('image/png', 'image/jpeg'),
+        ];
+
+        invalidPortraits.forEach((portraitDataUrl) => {
+            window.rpgCharEditorOldInput = {
+                player_name: '',
+                character_name: '',
+                gender: '',
+                race: '',
+                culture: '',
+                portrait_data_url: portraitDataUrl,
+            };
+
+            const e = createEditor();
+            e.init();
+
+            expect(e.portraitPreview).toBeNull();
+            expect(e.advancedUnlocked).toBe(false);
+        });
     });
 
     it('laesst automatisch generierte Old-Beschreibung weiter automatisch', () => {

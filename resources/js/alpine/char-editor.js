@@ -432,6 +432,7 @@ const BARBAR_ONLY_CULTURES = [VOLK_DER_13_INSELN_CULTURE, DISUUSLACHTER_CULTURE]
 const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
 const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
 const FEMALE_GENDER = 'weiblich';
+const PORTRAIT_DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|gif|webp|bmp));base64,([A-Za-z0-9+/=]+)$/;
 
 function hydrateExistingCharEditors() {
     if (!window.Alpine
@@ -475,6 +476,48 @@ function consumeEditorOldInput(input) {
     }
 }
 
+function bytesStartWith(bytes, signature) {
+    if (!bytes || bytes.length < signature.length) return false;
+
+    return signature.every((byte, index) => bytes[index] === byte);
+}
+
+function decodeBase64Bytes(value) {
+    try {
+        const binary = globalThis.atob(String(value));
+
+        return Uint8Array.from(binary, character => character.charCodeAt(0));
+    } catch {
+        return null;
+    }
+}
+
+function isSupportedPortraitDataUrl(value) {
+    const matches = oldString(value).match(PORTRAIT_DATA_URL_PATTERN);
+
+    if (!matches) return false;
+
+    const [, mime, base64] = matches;
+    const bytes = decodeBase64Bytes(base64);
+
+    if (!bytes || bytes.length === 0) return false;
+
+    if (mime === 'image/png') return bytesStartWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    if (mime === 'image/jpeg') return bytesStartWith(bytes, [0xff, 0xd8, 0xff]);
+    if (mime === 'image/gif') return bytesStartWith(bytes, [0x47, 0x49, 0x46, 0x38])
+        && (bytes[4] === 0x37 || bytes[4] === 0x39)
+        && bytes[5] === 0x61;
+    if (mime === 'image/webp') return bytesStartWith(bytes, [0x52, 0x49, 0x46, 0x46])
+        && bytes.length >= 12
+        && bytes[8] === 0x57
+        && bytes[9] === 0x45
+        && bytes[10] === 0x42
+        && bytes[11] === 0x50;
+    if (mime === 'image/bmp') return bytesStartWith(bytes, [0x42, 0x4d]);
+
+    return false;
+}
+
 function oldRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
@@ -514,6 +557,7 @@ function oldHasAdvancedPayload(input) {
     ].some((key) => {
         const value = input[key];
 
+        if (key === 'portrait_data_url') return isSupportedPortraitDataUrl(value);
         if (Array.isArray(value)) return value.length > 0;
         if (value && typeof value === 'object') return Object.keys(value).length > 0;
 
@@ -1243,7 +1287,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.culture = oldString(oldInput.culture);
 
         const portraitPreview = oldString(oldInput.portrait_data_url);
-        this.portraitPreview = portraitPreview.startsWith('data:image/') ? portraitPreview : null;
+        this.portraitPreview = isSupportedPortraitDataUrl(portraitPreview) ? portraitPreview : null;
         this.advancedUnlocked = this.basicsFilled() || oldHasAdvancedPayload(oldInput);
 
         this.description = '';
