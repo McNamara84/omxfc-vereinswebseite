@@ -11,11 +11,17 @@ const login = async (page, email, password = 'password') => {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
-const createRpgEditorUser = (testInfo) => {
-    const slug = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}-${randomUUID()}`
+const buildRpgEditorUserEmail = (testInfo) => {
+    const randomToken = randomUUID().replaceAll('-', '').slice(0, 16);
+    const slug = `${testInfo.project.name}-${testInfo.workerIndex}-${randomToken}`
         .replace(/[^a-z0-9-]/gi, '-')
         .toLowerCase();
-    const email = `char-editor-${slug}@example.test`;
+
+    return `char-editor-${slug}@example.test`;
+};
+
+const createRpgEditorUser = (testInfo) => {
+    const email = buildRpgEditorUserEmail(testInfo);
     const phpProcess = createPhpProcess(['tests/e2e/create-rpg-editor-user.php', email], { env: process.env });
     const result = spawnSync(phpProcess.command, phpProcess.args, {
         env: process.env,
@@ -99,6 +105,15 @@ const completeValidBarbarExport = async (page) => {
 };
 
 test.describe('RPG Charakter-Editor', () => {
+    test('erzeugt gueltige kurze Testuser-Mailadressen fuer CI', async ({}, testInfo) => {
+        const email = buildRpgEditorUserEmail(testInfo);
+        const [localPart, domain] = email.split('@');
+
+        expect(domain).toBe('example.test');
+        expect(localPart.length).toBeLessThanOrEqual(64);
+        expect(email).toMatch(/^char-editor-[a-z0-9-]+@example\.test$/);
+    });
+
     test('lädt ohne Persist-Fehler und sperrt den Formularfluss initial korrekt', async ({ page }) => {
         test.setTimeout(60_000);
 
