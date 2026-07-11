@@ -25,6 +25,14 @@
         'equipment_items',
         'equipment',
     ]);
+
+    $sessionErrors = session('errors');
+    $hasPortraitValidationError = (isset($errors) && ($errors->has('portrait_data_url') || $errors->has('portrait')))
+        || ($sessionErrors instanceof \Illuminate\Support\ViewErrorBag && ($sessionErrors->has('portrait_data_url') || $sessionErrors->has('portrait')));
+
+    if ($hasPortraitValidationError) {
+        unset($editorOldInput['portrait_data_url']);
+    }
 @endphp
 
 @push('scripts')
