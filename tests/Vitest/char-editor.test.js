@@ -1896,6 +1896,59 @@ describe('charEditor - Laravel Old Input', () => {
             expect.objectContaining({ name: 'Fahren', value: 2 }),
         ]));
         expect(e.$watch).toHaveBeenCalledWith('race', expect.any(Function));
+        expect(window.rpgCharEditorOldInput).toBeUndefined();
+
+        e.playerName = 'Nachbearbeitet';
+        e.init();
+
+        expect(e.playerName).toBe('Nachbearbeitet');
+    });
+
+    it('laesst automatisch generierte Old-Beschreibung weiter automatisch', () => {
+        const generated = createEditor({ race: 'Barbar', culture: 'Landbewohner' });
+        generated.updateDescription();
+        window.rpgCharEditorOldInput = {
+            player_name: 'Playwright Spieler',
+            character_name: 'Wudan Auto',
+            gender: 'maennlich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+            description: generated.description,
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.description).toBe(generated.description);
+        expect(e.descriptionUserEdited).toBe(false);
+
+        e.race = 'Guul';
+        e.handleRaceChange();
+
+        expect(e.description).toContain('Guule');
+        expect(e.description).not.toBe(generated.description);
+    });
+
+    it('bewahrt absichtlich geleerte Old-Beschreibung als manuell', () => {
+        window.rpgCharEditorOldInput = {
+            player_name: 'Playwright Spieler',
+            character_name: 'Wudan Leer',
+            gender: 'maennlich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+            description: '',
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.description).toBe('');
+        expect(e.descriptionUserEdited).toBe(true);
+
+        e.race = 'Guul';
+        e.handleRaceChange();
+
+        expect(e.description).toBe('');
     });
 });
 

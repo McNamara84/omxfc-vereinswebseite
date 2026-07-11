@@ -468,6 +468,13 @@ function editorOldInput() {
     return input && typeof input === 'object' && !Array.isArray(input) ? input : null;
 }
 
+function consumeEditorOldInput(input) {
+    if (typeof window === 'undefined') return;
+    if (window.rpgCharEditorOldInput === input) {
+        delete window.rpgCharEditorOldInput;
+    }
+}
+
 function oldRecord(value) {
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
 }
@@ -1234,16 +1241,26 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.gender = oldString(oldInput.gender);
         this.race = oldString(oldInput.race);
         this.culture = oldString(oldInput.culture);
-        this.description = oldString(oldInput.description);
-        this.descriptionUserEdited = this.description.trim() !== '';
 
         const portraitPreview = oldString(oldInput.portrait_data_url);
         this.portraitPreview = portraitPreview.startsWith('data:image/') ? portraitPreview : null;
         this.advancedUnlocked = this.basicsFilled() || oldHasAdvancedPayload(oldInput);
 
+        this.description = '';
+        this.descriptionUserEdited = false;
         this.handleRaceChange();
         this.handleCultureChange();
         this.handleGenderChange();
+
+        if (Object.prototype.hasOwnProperty.call(oldInput, 'description')) {
+            const oldDescription = oldString(oldInput.description);
+            const generatedDescription = this.description;
+
+            if (oldDescription !== generatedDescription) {
+                this.description = oldDescription;
+                this.descriptionUserEdited = true;
+            }
+        }
 
         const barbarAttributeBonus = oldString(oldInput.barbar_attribute_bonus);
         if (this.race === 'Barbar' && ATTRIBUTE_IDS.includes(barbarAttributeBonus)) {
@@ -1256,6 +1273,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.applyOldEquipmentInput(oldInput);
         this.enforceAdvantageLimit();
         this.enforceEquipmentLimits();
+        consumeEditorOldInput(oldInput);
 
         return true;
     },
