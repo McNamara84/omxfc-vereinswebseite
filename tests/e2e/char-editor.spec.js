@@ -20,6 +20,18 @@ const buildRpgEditorUserEmail = (testInfo) => {
     return `char-editor-${slug}@example.test`;
 };
 
+const formatProcessCommand = (phpProcess) => [phpProcess.command, ...phpProcess.args].join(' ');
+
+const formatProcessFailure = (result) => [
+    result.error ? `Startfehler: ${result.error.message}` : '',
+    result.status === null ? 'Exit-Status: <null>' : `Exit-Status: ${result.status}`,
+    result.signal ? `Signal: ${result.signal}` : '',
+    result.stderr ? `stderr: ${result.stderr.trim()}` : '',
+    result.stdout ? `stdout: ${result.stdout.trim()}` : '',
+]
+    .filter(Boolean)
+    .join('\n');
+
 const createRpgEditorUser = (testInfo) => {
     const email = buildRpgEditorUserEmail(testInfo);
     const phpProcess = createPhpProcess(['tests/e2e/create-rpg-editor-user.php', email], { env: process.env });
@@ -30,8 +42,10 @@ const createRpgEditorUser = (testInfo) => {
         windowsHide: process.platform === 'win32',
     });
 
-    if (result.status !== 0) {
-        throw new Error(`RPG-Testuser konnte nicht angelegt werden: ${result.stderr || result.stdout}`);
+    if (result.error || result.status !== 0) {
+        throw new Error(
+            `RPG-Testuser konnte nicht angelegt werden (${formatProcessCommand(phpProcess)}):\n${formatProcessFailure(result)}`,
+        );
     }
 
     return email;

@@ -95,6 +95,27 @@ class RpgCharEditorAccessTest extends TestCase
             ->assertSee('x-text="disadvantageTooltip(', false);
     }
 
+    public function test_editor_only_exposes_whitelisted_old_input_to_javascript(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $this->withSession([
+            '_old_input' => [
+                'player_name' => 'Geretteter Spieler',
+                'attributes' => ['st' => 2],
+                'email' => 'privat@example.test',
+                'password' => 'super-secret-old-input',
+            ],
+        ])
+            ->actingAs($member)
+            ->get('/rpg/char-editor')
+            ->assertOk()
+            ->assertSee('window.rpgCharEditorOldInput', false)
+            ->assertSee('Geretteter Spieler')
+            ->assertDontSee('privat@example.test')
+            ->assertDontSee('super-secret-old-input');
+    }
+
     public function test_global_admin_can_access_editor_with_different_current_team(): void
     {
         $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);

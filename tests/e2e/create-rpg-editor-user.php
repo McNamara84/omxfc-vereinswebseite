@@ -11,6 +11,14 @@ require __DIR__.'/../../vendor/autoload.php';
 $app = require __DIR__.'/../../bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
 
+if (! $app->environment('testing')) {
+    fwrite(STDERR, sprintf(
+        "Refusing to create RPG editor test user outside APP_ENV=testing (current: %s).\n",
+        $app->environment(),
+    ));
+    exit(1);
+}
+
 $email = $argv[1] ?? '';
 
 if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {

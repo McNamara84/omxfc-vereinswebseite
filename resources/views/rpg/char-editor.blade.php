@@ -5,13 +5,33 @@
     $attributeRules = $specialRules['attributeRules']['attributes'] ?? \App\Services\RpgCharacterSheetService::attributeRuleConfig()['attributes'];
     $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Services\RpgCharacterSheetService::skillRuleConfig()['suggestions'];
     $slotSummary ??= null;
+    $editorOldInput = \Illuminate\Support\Arr::only(session()->getOldInput(), [
+        'player_name',
+        'character_name',
+        'gender',
+        'race',
+        'culture',
+        'description',
+        'portrait_data_url',
+        'attributes',
+        'skills',
+        'advantages',
+        'disadvantages',
+        'advantage_details',
+        'disadvantage_details',
+        'advantage_counts',
+        'barbar_attribute_bonus',
+        'clothing',
+        'equipment_items',
+        'equipment',
+    ]);
 @endphp
 
 @push('scripts')
     <script>
         window.rpgCharEditorRules = @js($specialRules);
         window.rpgCharacterSlots = @js($slotSummary);
-        window.rpgCharEditorOldInput = @js(session()->getOldInput());
+        window.rpgCharEditorOldInput = @js($editorOldInput);
     </script>
 @endpush
 <x-app-layout>
