@@ -460,6 +460,60 @@ function hydrateExistingCharEditors() {
     });
 }
 
+function editorOldInput() {
+    if (typeof window === 'undefined') return null;
+
+    const input = window.rpgCharEditorOldInput;
+
+    return input && typeof input === 'object' && !Array.isArray(input) ? input : null;
+}
+
+function oldRecord(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function oldArray(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') return Object.values(value);
+    if (value === undefined || value === null || value === '') return [];
+
+    return [value];
+}
+
+function oldString(value) {
+    if (value === undefined || value === null) return '';
+
+    return String(value);
+}
+
+function oldInteger(value, fallback = 0) {
+    const parsed = Number.parseInt(value, 10);
+
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function oldHasAdvancedPayload(input) {
+    if (!input) return false;
+
+    return [
+        'attributes',
+        'skills',
+        'advantages',
+        'disadvantages',
+        'clothing',
+        'equipment_items',
+        'portrait_data_url',
+        'barbar_attribute_bonus',
+    ].some((key) => {
+        const value = input[key];
+
+        if (Array.isArray(value)) return value.length > 0;
+        if (value && typeof value === 'object') return Object.keys(value).length > 0;
+
+        return oldString(value).trim() !== '';
+    });
+}
+
 function registerCharEditor({ hydrateExisting = false } = {}) {
     if (!window.Alpine || typeof window.Alpine.data !== 'function') {
         return;
@@ -1172,8 +1226,118 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return true;
     },
 
+    hydrateFromOldInput(oldInput = editorOldInput()) {
+        if (!oldInput) return false;
+
+        this.playerName = oldString(oldInput.player_name);
+        this.characterName = oldString(oldInput.character_name);
+        this.gender = oldString(oldInput.gender);
+        this.race = oldString(oldInput.race);
+        this.culture = oldString(oldInput.culture);
+        this.description = oldString(oldInput.description);
+        this.descriptionUserEdited = this.description.trim() !== '';
+
+        const portraitPreview = oldString(oldInput.portrait_data_url);
+        this.portraitPreview = portraitPreview.startsWith('data:image/') ? portraitPreview : null;
+        this.advancedUnlocked = this.basicsFilled() || oldHasAdvancedPayload(oldInput);
+
+        this.handleRaceChange();
+        this.handleCultureChange();
+        this.handleGenderChange();
+
+        const barbarAttributeBonus = oldString(oldInput.barbar_attribute_bonus);
+        if (this.race === 'Barbar' && ATTRIBUTE_IDS.includes(barbarAttributeBonus)) {
+            this.setBarbarAttributeBonus(barbarAttributeBonus);
+        }
+
+        this.applyOldAttributeInput(oldInput.attributes);
+        this.applyOldSkillInput(oldInput.skills);
+        this.applyOldSpecialInput(oldInput);
+        this.applyOldEquipmentInput(oldInput);
+        this.enforceAdvantageLimit();
+        this.enforceEquipmentLimits();
+
+        return true;
+    },
+
+    applyOldAttributeInput(input) {
+        const attributes = oldRecord(input);
+
+        ATTRIBUTE_IDS.forEach((id) => {
+            if (!Object.prototype.hasOwnProperty.call(attributes, id)) return;
+
+            this.attributes[id] = oldInteger(attributes[id], this.attributes[id]);
+            this.clampAttribute(id);
+        });
+    },
+
+    applyOldSkillInput(input) {
+        oldArray(input).forEach((entry) => {
+            const skillInput = oldRecord(entry);
+            const name = oldString(skillInput.name).trim();
+
+            if (!name) return;
+
+            const skill = this.ensureSkill(name);
+            skill.value = oldInteger(skillInput.value, skill.value);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+        });
+    },
+
+    applyOldSpecialInput(input) {
+        const advantages = oldArray(input.advantages).map(value => oldString(value).trim()).filter(Boolean);
+        const disadvantages = oldArray(input.disadvantages).map(value => oldString(value).trim()).filter(Boolean);
+        const advantageDetails = oldRecord(input.advantage_details);
+        const disadvantageDetails = oldRecord(input.disadvantage_details);
+        const advantageCounts = oldRecord(input.advantage_counts);
+
+        if (advantages.length) {
+            const lockedAdvantages = this.selectedAdvantages.filter(value => this.advantageCost(value) === 0 || this.lockedAdvantages().includes(value));
+            this.selectedAdvantages = [...new Set([...lockedAdvantages, ...advantages])];
+        }
+
+        if (disadvantages.length) {
+            const lockedDisadvantages = this.selectedDisadvantages.filter(value => this.raceLocked.disadvantages.includes(value));
+            this.selectedDisadvantages = [...new Set([...lockedDisadvantages, ...disadvantages])];
+        }
+
+        this.advantageDetails = Object.fromEntries(
+            Object.entries({ ...this.advantageDetails, ...advantageDetails })
+                .map(([key, value]) => [key, oldString(value)]),
+        );
+        this.disadvantageDetails = Object.fromEntries(
+            Object.entries({ ...this.disadvantageDetails, ...disadvantageDetails })
+                .map(([key, value]) => [key, oldString(value)]),
+        );
+        this.advantageCounts = Object.fromEntries(
+            Object.entries({ ...this.advantageCounts, ...advantageCounts })
+                .map(([key, value]) => [key, oldInteger(value, 1)]),
+        );
+    },
+
+    applyOldEquipmentInput(input) {
+        const selectedEquipment = {};
+
+        this.clothing = oldString(input.clothing);
+        this.equipment = oldString(input.equipment);
+
+        oldArray(input.equipment_items).forEach((entry) => {
+            const equipmentInput = oldRecord(entry);
+            const id = oldString(equipmentInput.id).trim();
+            const quantity = oldInteger(equipmentInput.quantity, 0);
+
+            if (id && quantity > 0) {
+                selectedEquipment[id] = quantity;
+            }
+        });
+
+        this.selectedEquipment = selectedEquipment;
+    },
+
     // --- Methods ---
     init() {
+        this.hydrateFromOldInput();
         this.$watch('race', () => this.handleRaceChange());
         this.$watch('culture', () => this.handleCultureChange());
         this.$watch('gender', () => this.handleGenderChange());

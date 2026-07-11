@@ -32,7 +32,7 @@ export function shouldUseDockerPhp() {
 }
 
 export function resolvePhpBinary() {
-    return process.env.PHP_BINARY ?? 'php';
+    return process.env.PLAYWRIGHT_PHP_BINARY ?? process.env.PHP_BINARY ?? 'php';
 }
 
 export function toPhpRuntimePath(filePath) {

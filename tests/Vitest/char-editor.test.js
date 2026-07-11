@@ -88,6 +88,7 @@ const specialRuleConfig = {
 
 beforeEach(async () => {
     window.rpgCharEditorRules = JSON.parse(JSON.stringify(specialRuleConfig));
+    delete window.rpgCharEditorOldInput;
 
     // Mock Alpine.data um die Registrierung abzufangen
     window.Alpine = {
@@ -1846,6 +1847,55 @@ describe('charEditor – Computed Properties', () => {
             { name: 'Frei', value: 2 },
         ];
         expect(e.fpUsed()).toBe(2);
+    });
+});
+
+describe('charEditor - Laravel Old Input', () => {
+    it('stellt einen serverseitig abgelehnten Editor-Submit wieder her', () => {
+        const portraitDataUrl = 'data:image/png;base64,bm90LWltYWdl';
+        window.rpgCharEditorOldInput = {
+            player_name: 'Playwright Spieler',
+            character_name: 'Wudan Reload',
+            gender: 'maennlich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+            description: 'Bleibt erhalten',
+            portrait_data_url: portraitDataUrl,
+            attributes: { st: '2', ge: '1' },
+            barbar_attribute_bonus: 'st',
+            skills: [
+                { name: 'Nahkampf', value: '1' },
+                { name: 'Intuition', value: '1' },
+                { name: 'Fahren', value: '2' },
+            ],
+            disadvantages: ['Taratzenfutter'],
+            clothing: 'kleidung-einfach',
+            equipment_items: {
+                0: { id: 'messer-dolch', quantity: '1' },
+                1: { id: 'seil', quantity: '1' },
+            },
+            equipment: 'Notiz bleibt erhalten',
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.advancedUnlocked).toBe(true);
+        expect(e.playerName).toBe('Playwright Spieler');
+        expect(e.characterName).toBe('Wudan Reload');
+        expect(e.race).toBe('Barbar');
+        expect(e.culture).toBe('Landbewohner');
+        expect(e.description).toBe('Bleibt erhalten');
+        expect(e.descriptionUserEdited).toBe(true);
+        expect(e.portraitPreview).toBe(portraitDataUrl);
+        expect(e.clothing).toBe('kleidung-einfach');
+        expect(e.selectedEquipment).toEqual({ 'messer-dolch': 1, seil: 1 });
+        expect(e.equipment).toBe('Notiz bleibt erhalten');
+        expect(e.selectedDisadvantages).toContain('Taratzenfutter');
+        expect(e.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Fahren', value: 2 }),
+        ]));
+        expect(e.$watch).toHaveBeenCalledWith('race', expect.any(Function));
     });
 });
 

@@ -11,6 +11,7 @@
     <script>
         window.rpgCharEditorRules = @js($specialRules);
         window.rpgCharacterSlots = @js($slotSummary);
+        window.rpgCharEditorOldInput = @js(session()->getOldInput());
     </script>
 @endpush
 <x-app-layout>
@@ -29,6 +30,16 @@
             </a>
         </div>
         <x-ui.panel title="Editorfluss" description="Basisdaten, Regeln, Ausrüstung und Export bleiben in einem zusammenhängenden Arbeitsbereich gebündelt.">
+            @if($errors->any())
+                <div class="mb-4 rounded-md border border-error/40 bg-error/10 p-4 text-sm text-error" role="alert" data-testid="char-editor-errors">
+                    <p class="font-semibold">Der Charakter konnte nicht verarbeitet werden.</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <form action="{{ route('rpg.characters.store') }}" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
                 @csrf
 
@@ -115,10 +126,10 @@
                                     </select>
                                 </div>
 
-                                <div class="sm:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
+                                <div class="sm:col-span-2">
                                     <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6rem] sm:items-start">
-                                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" x-bind:disabled="advancedUnlocked">
+                                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)">
                                         <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-base-content/20 bg-base-200/50 text-xs text-base-content/60">
                                             <span x-show="!portraitPreview">Vorschau</span>
                                             <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="h-full w-full object-cover" alt="Porträt Vorschau" data-testid="char-editor-portrait-preview">
@@ -644,7 +655,7 @@
                                 <select id="clothing" class="select select-bordered w-full" x-model="clothing" data-testid="equipment-clothing-select">
                                     <option value="">Kleidung wählen</option>
                                     <template x-for="item in clothingOptions()" :key="item.id">
-                                        <option :value="item.id" x-text="item.name + ' · TW ' + item.tw + ' · B ' + item.bucks"></option>
+                                        <option :value="item.id" x-bind:selected="clothing === item.id" x-text="item.name + ' · TW ' + item.tw + ' · B ' + item.bucks"></option>
                                     </template>
                                 </select>
                             </div>

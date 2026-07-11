@@ -193,6 +193,26 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertStringNotContainsString('<li>Zäh </li>', $html);
     }
 
+    public function test_failed_pdf_prepare_redirect_keeps_editor_input_for_recovery(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        $response = $this
+            ->from(route('rpg.char-editor'))
+            ->actingAs($member)
+            ->post(route('rpg.char-editor.pdf'), $this->validPdfPayload([
+                'character_name' => 'Kept PDF Character',
+                'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
+            ]));
+
+        $response
+            ->assertRedirect(route('rpg.char-editor'))
+            ->assertSessionHasErrors('portrait_data_url')
+            ->assertSessionHasInput('character_name', 'Kept PDF Character')
+            ->assertSessionHasInput('race', 'Barbar')
+            ->assertSessionHasInput('clothing', 'kleidung-einfach');
+    }
+
     public function test_pdf_export_post_redirects_to_get_viewer_url(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
