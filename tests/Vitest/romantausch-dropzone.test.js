@@ -29,8 +29,14 @@ describe('RomantauschDropzone', () => {
     const createFile = (name) => new File(['content'], name, { type: 'image/jpeg' });
 
     beforeAll(() => {
+        let fallbackObjectUrlCounter = 0;
+
         if (!globalThis.URL.createObjectURL) {
-            globalThis.URL.createObjectURL = () => `blob:mock-${Math.random().toString(36).slice(2)}`;
+            globalThis.URL.createObjectURL = () => {
+                fallbackObjectUrlCounter += 1;
+
+                return `blob:mock-${fallbackObjectUrlCounter}`;
+            };
         }
         if (!globalThis.URL.revokeObjectURL) {
             globalThis.URL.revokeObjectURL = () => {};

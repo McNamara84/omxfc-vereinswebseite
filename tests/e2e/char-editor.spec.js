@@ -1,5 +1,6 @@
 import { expect, test } from './test-support.js';
 import { spawnSync } from 'child_process';
+import { randomUUID } from 'node:crypto';
 import { createPhpProcess } from './utils/php.js';
 
 const login = async (page, email, password = 'password') => {
@@ -11,7 +12,7 @@ const login = async (page, email, password = 'password') => {
 };
 
 const createRpgEditorUser = (testInfo) => {
-    const slug = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const slug = `${testInfo.project.name}-${testInfo.workerIndex}-${Date.now()}-${randomUUID()}`
         .replace(/[^a-z0-9-]/gi, '-')
         .toLowerCase();
     const email = `char-editor-${slug}@example.test`;
