@@ -228,7 +228,9 @@ class DatabaseMaintenanceControllerTest extends TestCase
                 'dump' => UploadedFile::fake()->createWithContent('dump.sql', 'select 1;'),
                 'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
             ])
-            ->assertSessionHasErrors('dump');
+            ->assertSessionHasErrors([
+                'dump' => 'Die aktuell ermittelte Upload-Grenze liegt unter 1 KB. Der Restore ist deshalb blockiert. Bitte passe PHP-, Proxy- oder App-Limits an.',
+            ]);
     }
 
     public function test_restore_rejects_upload_when_effective_limit_is_below_one_kilobyte(): void
@@ -254,7 +256,9 @@ class DatabaseMaintenanceControllerTest extends TestCase
                 'dump' => UploadedFile::fake()->createWithContent('dump.sql', 'x'),
                 'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
             ])
-            ->assertSessionHasErrors('dump');
+            ->assertSessionHasErrors([
+                'dump' => 'Die aktuell ermittelte Upload-Grenze liegt unter 1 KB. Der Restore ist deshalb blockiert. Bitte passe PHP-, Proxy- oder App-Limits an.',
+            ]);
     }
 
     public function test_restore_falls_back_to_configured_upload_limit_when_effective_limit_is_unknown(): void

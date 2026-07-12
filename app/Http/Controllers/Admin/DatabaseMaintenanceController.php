@@ -54,6 +54,7 @@ class DatabaseMaintenanceController extends Controller
 
         $limits = $limitService->limits();
         $maxKilobytes = $this->maxUploadKilobytes($limits);
+        $this->abortIfUploadLimitBlocksRestore($maxKilobytes);
         $confirmationText = (string) config('database-maintenance.restore_confirmation_text');
 
         $validated = $request->validate([
@@ -94,6 +95,17 @@ class DatabaseMaintenanceController extends Controller
     private function abortIfDisabled(): void
     {
         abort_unless((bool) config('database-maintenance.enabled', false), 404);
+    }
+
+    private function abortIfUploadLimitBlocksRestore(int $maxKilobytes): void
+    {
+        if ($maxKilobytes >= 1) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'dump' => 'Die aktuell ermittelte Upload-Grenze liegt unter 1 KB. Der Restore ist deshalb blockiert. Bitte passe PHP-, Proxy- oder App-Limits an.',
+        ]);
     }
 
     /**
