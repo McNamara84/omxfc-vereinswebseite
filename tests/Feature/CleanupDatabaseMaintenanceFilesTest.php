@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\CleanupDatabaseMaintenanceFiles;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -39,6 +40,19 @@ class CleanupDatabaseMaintenanceFilesTest extends TestCase
             $this->assertSame(Command::FAILURE, $exitCode);
             $this->assertStringContainsString('storage_root ist ungueltig', Artisan::output());
         }
+    }
+
+    public function test_cleanup_path_prefix_check_is_case_sensitive_on_case_sensitive_filesystems(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $this->markTestSkipped('Windows path checks are intentionally case-insensitive.');
+        }
+
+        $command = new CleanupDatabaseMaintenanceFiles;
+        $method = new \ReflectionMethod($command, 'isPathInside');
+        $method->setAccessible(true);
+
+        $this->assertFalse($method->invoke($command, '/tmp/Storage/app/private', '/tmp/storage'));
     }
 
     public function test_cleanup_rejects_storage_root_symlink_that_resolves_outside_storage_path(): void

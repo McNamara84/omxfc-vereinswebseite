@@ -68,6 +68,20 @@ class DatabaseRestoreServiceTest extends TestCase
         }
     }
 
+    public function test_prepare_sql_file_fails_closed_when_plain_sql_size_cannot_be_read(): void
+    {
+        config(['database-maintenance.max_uncompressed_mb' => 10]);
+
+        $service = app(DatabaseRestoreService::class);
+        $method = new \ReflectionMethod($service, 'prepareSqlFile');
+        $method->setAccessible(true);
+
+        $this->expectException(DatabaseMaintenanceException::class);
+        $this->expectExceptionMessage('groessenvalidiert');
+
+        $method->invoke($service, $this->storageRoot.DIRECTORY_SEPARATOR.'missing.sql');
+    }
+
     public function test_restore_deletes_unpacked_temp_file_when_gzip_exceeds_uncompressed_limit(): void
     {
         $this->mockPreRestoreDump();

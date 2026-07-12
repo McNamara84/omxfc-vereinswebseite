@@ -115,8 +115,13 @@ class CleanupDatabaseMaintenanceFiles extends Command
 
     private function isPathInside(string $path, string $parent): bool
     {
-        $comparisonPath = strtolower($path);
-        $comparisonParent = strtolower($parent);
+        $comparisonPath = $path;
+        $comparisonParent = $parent;
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            $comparisonPath = strtolower($comparisonPath);
+            $comparisonParent = strtolower($comparisonParent);
+        }
 
         return str_starts_with($comparisonPath.DIRECTORY_SEPARATOR, $comparisonParent.DIRECTORY_SEPARATOR);
     }

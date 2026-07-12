@@ -91,10 +91,17 @@ class DatabaseRestoreService
         }
 
         $maxUncompressedBytes = $this->maxUncompressedBytes();
-        $size = filesize($path);
 
-        if ($maxUncompressedBytes > 0 && $size !== false && $size > $maxUncompressedBytes) {
-            throw new DatabaseMaintenanceException('Die SQL-Datei ist groesser als die erlaubte entpackte Maximalgroesse.');
+        if ($maxUncompressedBytes > 0) {
+            $size = @filesize($path);
+
+            if ($size === false) {
+                throw new DatabaseMaintenanceException('Die SQL-Datei konnte nicht groessenvalidiert werden.');
+            }
+
+            if ($size > $maxUncompressedBytes) {
+                throw new DatabaseMaintenanceException('Die SQL-Datei ist groesser als die erlaubte entpackte Maximalgroesse.');
+            }
         }
 
         $this->assertOmxfcMarkerIfRequired($path);

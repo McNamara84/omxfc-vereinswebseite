@@ -112,7 +112,7 @@ class DatabaseMaintenanceController extends Controller
             return 0;
         }
 
-        return max(1, (int) floor($bytes / 1024));
+        return (int) floor($bytes / 1024);
     }
 
     private function lastPreRestoreDump(): ?array

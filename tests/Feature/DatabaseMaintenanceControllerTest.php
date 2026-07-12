@@ -231,6 +231,32 @@ class DatabaseMaintenanceControllerTest extends TestCase
             ->assertSessionHasErrors('dump');
     }
 
+    public function test_restore_rejects_upload_when_effective_limit_is_below_one_kilobyte(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $this->mock(DatabaseMaintenanceLimitService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('limits')
+                ->once()
+                ->andReturn([
+                    'effective_upload_bytes' => 1023,
+                    'configured_max_upload_bytes' => 10 * 1024 * 1024,
+                ]);
+        });
+
+        $this->mock(DatabaseRestoreService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('restore')->never();
+        });
+
+        $this->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('admin.datenbank.restore'), [
+                'dump' => UploadedFile::fake()->createWithContent('dump.sql', 'x'),
+                'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
+            ])
+            ->assertSessionHasErrors('dump');
+    }
+
     public function test_restore_falls_back_to_configured_upload_limit_when_effective_limit_is_unknown(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);

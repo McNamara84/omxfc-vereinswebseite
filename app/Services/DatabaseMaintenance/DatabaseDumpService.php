@@ -65,6 +65,7 @@ class DatabaseDumpService
 
         $process = null;
         $stderr = '';
+        $dumpException = null;
 
         try {
             $this->writeHeader($gzip, $user, $connection);
@@ -73,7 +74,7 @@ class DatabaseDumpService
             $process->setTimeout((int) config('database-maintenance.process_timeout_seconds', 300));
             $process->run(function (string $type, string $buffer) use ($gzip, &$stderr): void {
                 if ($type === Process::OUT) {
-                    gzwrite($gzip, $buffer);
+                    $this->writeGzip($gzip, $buffer);
 
                     return;
                 }
@@ -81,10 +82,16 @@ class DatabaseDumpService
                 $stderr = $this->appendLimited($stderr, $buffer);
             });
         } catch (\Throwable $exception) {
-            throw new DatabaseMaintenanceException('Der Datenbank-Dump konnte nicht erzeugt werden.', 0, $exception);
+            $dumpException = $exception;
         } finally {
             gzclose($gzip);
             $optionsFile->delete();
+        }
+
+        if ($dumpException instanceof \Throwable) {
+            File::delete($path);
+
+            throw new DatabaseMaintenanceException('Der Datenbank-Dump konnte nicht erzeugt werden.', 0, $dumpException);
         }
 
         if (! $process instanceof Process || ! $process->isSuccessful()) {
@@ -134,7 +141,23 @@ class DatabaseDumpService
             '',
         ];
 
-        gzwrite($gzip, implode(PHP_EOL, $lines).PHP_EOL);
+        $this->writeGzip($gzip, implode(PHP_EOL, $lines).PHP_EOL);
+    }
+
+    /**
+     * @param  resource  $gzip
+     */
+    private function writeGzip($gzip, string $contents): void
+    {
+        if ($contents === '') {
+            return;
+        }
+
+        $writtenBytes = @gzwrite($gzip, $contents);
+
+        if ($writtenBytes === false || $writtenBytes < strlen($contents)) {
+            throw new DatabaseMaintenanceException('Die Dump-Datei konnte nicht geschrieben werden.');
+        }
     }
 
     private function path(string $section, string $filename): string
