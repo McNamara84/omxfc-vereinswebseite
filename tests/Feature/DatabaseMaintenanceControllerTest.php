@@ -69,7 +69,10 @@ class DatabaseMaintenanceControllerTest extends TestCase
             ->assertOk()
             ->assertSeeText('Datenbank')
             ->assertSeeText('Dump herunterladen')
-            ->assertSeeText('Effektive Upload-Grenze');
+            ->assertSeeText('Effektive Upload-Grenze')
+            ->assertSee('accept=".sql,.sql.gz"', false)
+            ->assertDontSee('accept=".sql,.gz,.sql.gz"', false)
+            ->assertSee('<dl class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">', false);
     }
 
     public function test_admin_navigation_contains_database_link(): void

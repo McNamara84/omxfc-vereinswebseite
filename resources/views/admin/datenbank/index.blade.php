@@ -66,7 +66,7 @@
                             id="dump"
                             name="dump"
                             type="file"
-                            accept=".sql,.gz,.sql.gz"
+                            accept=".sql,.sql.gz"
                             required
                             class="file-input file-input-bordered w-full"
                         />
@@ -102,7 +102,7 @@
         </div>
 
         <x-ui.panel title="Aktuelle Limits" description="Die harte Grenze ergibt sich aus PHP, App-Konfiguration, bekanntem Proxy-Limit und freiem privaten Storage.">
-            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <dl class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 <div class="rounded-lg bg-base-200/70 p-4">
                     <dt class="text-sm font-semibold text-base-content/70">Effektiver Upload</dt>
                     <dd class="mt-1 text-lg font-semibold">{{ $formatBytes($effectiveUploadBytes) }}</dd>
@@ -127,7 +127,7 @@
                     <dt class="text-sm font-semibold text-base-content/70">Max. entpackte SQL-Datei</dt>
                     <dd class="mt-1 text-lg font-semibold">{{ $formatBytes($limits['max_uncompressed_bytes'] ?? null) }}</dd>
                 </div>
-            </div>
+            </dl>
 
             <div class="mt-6 overflow-x-auto">
                 <table class="table table-sm">

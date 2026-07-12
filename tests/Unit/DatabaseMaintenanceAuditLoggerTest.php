@@ -44,6 +44,23 @@ class DatabaseMaintenanceAuditLoggerTest extends TestCase
         app(DatabaseMaintenanceAuditLogger::class)->log('restore_failed');
     }
 
+    public function test_log_warns_when_payload_cannot_be_json_encoded(): void
+    {
+        Log::shouldReceive('warning')
+            ->once()
+            ->with('Database maintenance audit entry could not be encoded.',
+                \Mockery::on(fn (array $context): bool => $context['event'] === 'restore_requested'
+                    && ($context['json_error'] ?? '') !== '')
+            );
+        Log::shouldReceive('info')->never();
+
+        app(DatabaseMaintenanceAuditLogger::class)->log('restore_requested', [
+            'original_name' => "\xB1\x31",
+        ]);
+
+        $this->assertFileDoesNotExist($this->storageRoot.DIRECTORY_SEPARATOR.'audit.jsonl');
+    }
+
     public function test_log_writes_jsonl_outside_database_and_redacts_sensitive_context(): void
     {
         $logger = app(DatabaseMaintenanceAuditLogger::class);

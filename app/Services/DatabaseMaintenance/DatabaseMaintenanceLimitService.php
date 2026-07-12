@@ -33,7 +33,7 @@ class DatabaseMaintenanceLimitService
         ];
 
         $effectiveUploadBytes = collect($candidates)
-            ->filter(fn (?int $bytes): bool => $bytes !== null && $bytes > 0)
+            ->filter(fn (?int $bytes): bool => $bytes !== null)
             ->min();
 
         return [

@@ -63,6 +63,21 @@ class DatabaseMaintenanceLimitServiceTest extends TestCase
         $this->assertArrayHasKey('app_max_upload', $limits['candidates']);
     }
 
+    public function test_zero_byte_payload_candidate_can_be_effective_upload_size(): void
+    {
+        config([
+            'database-maintenance.max_upload_mb' => 10,
+            'database-maintenance.proxy_limit_mb' => 10,
+            'database-maintenance.multipart_overhead_mb' => 999999,
+        ]);
+
+        $limits = app(DatabaseMaintenanceLimitService::class)->limits();
+
+        $this->assertSame(0, $limits['php_post_payload_bytes']);
+        $this->assertSame(0, $limits['candidates']['php_post_max_size']);
+        $this->assertSame(0, $limits['effective_upload_bytes']);
+    }
+
     public function test_format_bytes_returns_german_readable_values(): void
     {
         $this->assertSame('unbekannt', DatabaseMaintenanceLimitService::formatBytes(null));

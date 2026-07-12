@@ -22,10 +22,22 @@ class DatabaseMaintenanceAuditLogger
         ];
 
         $path = $this->path();
+        $jsonPayload = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        if ($jsonPayload === false) {
+            Log::warning('Database maintenance audit entry could not be encoded.', [
+                'event' => $event,
+                'user_id' => $payload['user_id'],
+                'json_error' => json_last_error_msg(),
+            ]);
+
+            return;
+        }
+
         File::ensureDirectoryExists(dirname($path), 0775);
         $writtenBytes = @file_put_contents(
             $path,
-            json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL,
+            $jsonPayload.PHP_EOL,
             FILE_APPEND | LOCK_EX,
         );
 
