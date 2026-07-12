@@ -31,13 +31,53 @@ class CleanupDatabaseMaintenanceFilesTest extends TestCase
 
     public function test_cleanup_rejects_unsafe_storage_roots(): void
     {
-        foreach (['', '/', base_path()] as $unsafeRoot) {
+        foreach (['', '/', base_path(), storage_path('framework/testing/../../..')] as $unsafeRoot) {
             config(['database-maintenance.storage_root' => $unsafeRoot]);
 
             $exitCode = Artisan::call('database-maintenance:cleanup');
 
             $this->assertSame(Command::FAILURE, $exitCode);
             $this->assertStringContainsString('storage_root ist ungueltig', Artisan::output());
+        }
+    }
+
+    public function test_cleanup_rejects_storage_root_symlink_that_resolves_outside_storage_path(): void
+    {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $this->markTestSkipped('Directory symlinks require elevated privileges on many Windows setups.');
+        }
+
+        $outsideRoot = base_path('database-maintenance-outside-cleanup-test');
+        $linkRoot = storage_path('framework/testing/database-maintenance-cleanup-link');
+
+        File::deleteDirectory($outsideRoot);
+        if (is_link($linkRoot)) {
+            @unlink($linkRoot);
+        }
+        File::deleteDirectory($linkRoot);
+        File::ensureDirectoryExists($outsideRoot.DIRECTORY_SEPARATOR.'downloads');
+
+        if (@symlink($outsideRoot, $linkRoot) === false) {
+            File::deleteDirectory($outsideRoot);
+            $this->markTestSkipped('Directory symlink could not be created in this environment.');
+        }
+
+        $oldFile = $outsideRoot.DIRECTORY_SEPARATOR.'downloads'.DIRECTORY_SEPARATOR.'old.sql.gz';
+        File::put($oldFile, 'old');
+        touch($oldFile, now()->subDays(2)->getTimestamp());
+
+        try {
+            config(['database-maintenance.storage_root' => $linkRoot]);
+
+            $exitCode = Artisan::call('database-maintenance:cleanup');
+
+            $this->assertSame(Command::FAILURE, $exitCode);
+            $this->assertFileExists($oldFile);
+        } finally {
+            if (is_link($linkRoot)) {
+                @unlink($linkRoot);
+            }
+            File::deleteDirectory($outsideRoot);
         }
     }
 

@@ -57,24 +57,71 @@ class CleanupDatabaseMaintenanceFiles extends Command
 
     private function safeStorageRoot(): ?string
     {
-        $root = $this->canonicalPath((string) config('database-maintenance.storage_root'));
-        $storagePath = $this->canonicalPath(storage_path());
+        $root = $this->normalizePath((string) config('database-maintenance.storage_root'));
+        $storagePath = $this->normalizePath((string) realpath(storage_path()));
 
-        if ($root === '' || $root === DIRECTORY_SEPARATOR || $root === $storagePath) {
+        if ($root === '' || $root === DIRECTORY_SEPARATOR || $storagePath === '' || $root === $storagePath) {
             return null;
         }
 
-        $comparisonRoot = strtolower($root);
-        $comparisonStoragePath = strtolower($storagePath);
+        $resolvedRoot = $this->resolvePathForSafety($root);
 
-        if (! str_starts_with($comparisonRoot.DIRECTORY_SEPARATOR, $comparisonStoragePath.DIRECTORY_SEPARATOR)) {
+        if ($resolvedRoot === null || $resolvedRoot === $storagePath) {
             return null;
         }
 
-        return $root;
+        if (! $this->isPathInside($resolvedRoot, $storagePath)) {
+            return null;
+        }
+
+        return $resolvedRoot;
     }
 
-    private function canonicalPath(string $path): string
+    private function resolvePathForSafety(string $path): ?string
+    {
+        $realPath = realpath($path);
+
+        if ($realPath !== false) {
+            return $this->normalizePath($realPath);
+        }
+
+        $suffix = [];
+        $candidate = $path;
+
+        while ($candidate !== '' && $candidate !== DIRECTORY_SEPARATOR) {
+            $realPath = realpath($candidate);
+
+            if ($realPath !== false) {
+                $resolvedParent = $this->normalizePath($realPath);
+                $resolvedSuffix = implode(DIRECTORY_SEPARATOR, $suffix);
+
+                return $resolvedSuffix === ''
+                    ? $resolvedParent
+                    : $resolvedParent.DIRECTORY_SEPARATOR.$resolvedSuffix;
+            }
+
+            $parent = dirname($candidate);
+
+            if ($parent === $candidate) {
+                break;
+            }
+
+            array_unshift($suffix, basename($candidate));
+            $candidate = $parent;
+        }
+
+        return null;
+    }
+
+    private function isPathInside(string $path, string $parent): bool
+    {
+        $comparisonPath = strtolower($path);
+        $comparisonParent = strtolower($parent);
+
+        return str_starts_with($comparisonPath.DIRECTORY_SEPARATOR, $comparisonParent.DIRECTORY_SEPARATOR);
+    }
+
+    private function normalizePath(string $path): string
     {
         $path = trim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path));
 
@@ -97,7 +144,9 @@ class CleanupDatabaseMaintenanceFiles extends Command
             }
 
             if ($segment === '..') {
-                array_pop($segments);
+                if ($segments !== []) {
+                    array_pop($segments);
+                }
 
                 continue;
             }

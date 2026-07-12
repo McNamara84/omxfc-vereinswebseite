@@ -71,7 +71,7 @@ class DatabaseRestoreService
     private function stageUpload(UploadedFile $uploadedFile): string
     {
         $directory = $this->path('uploads');
-        File::ensureDirectoryExists($directory, 0775);
+        File::ensureDirectoryExists($directory, 0700);
 
         $extension = $this->isGzipSql($uploadedFile->getClientOriginalName()) ? 'sql.gz' : 'sql';
         $filename = 'restore-'.now()->format('Y-m-d-His').'-'.Str::random(12).'.'.$extension;
@@ -231,7 +231,7 @@ class DatabaseRestoreService
         $path = rtrim((string) config('database-maintenance.storage_root'), DIRECTORY_SEPARATOR)
             .DIRECTORY_SEPARATOR.$section;
 
-        File::ensureDirectoryExists($path, 0775);
+        File::ensureDirectoryExists($path, 0700);
 
         return $path;
     }

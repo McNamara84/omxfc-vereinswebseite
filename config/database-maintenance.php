@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'enabled' => env('DATABASE_MAINTENANCE_ENABLED', true),
+    'enabled' => env('DATABASE_MAINTENANCE_ENABLED', false),
 
     'dump_binary' => env('DATABASE_DUMP_BINARY', 'mariadb-dump'),
     'client_binary' => env('DATABASE_CLIENT_BINARY', 'mariadb'),

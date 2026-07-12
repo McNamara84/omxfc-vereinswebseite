@@ -86,6 +86,15 @@ class DatabaseMaintenanceControllerTest extends TestCase
             ->assertSee(route('admin.datenbank.index'));
     }
 
+    public function test_database_admin_page_requires_explicit_opt_in(): void
+    {
+        config(['database-maintenance.enabled' => null]);
+
+        $this->actingAs($this->createUserWithRole(Role::Admin))
+            ->get(route('admin.datenbank.index'))
+            ->assertNotFound();
+    }
+
     public function test_database_admin_page_can_be_disabled(): void
     {
         config(['database-maintenance.enabled' => false]);
@@ -194,6 +203,32 @@ class DatabaseMaintenanceControllerTest extends TestCase
                 'confirmation' => 'FALSCH',
             ])
             ->assertSessionHasErrors('confirmation');
+    }
+
+    public function test_restore_rejects_upload_when_effective_limit_is_zero_bytes(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $this->mock(DatabaseMaintenanceLimitService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('limits')
+                ->once()
+                ->andReturn([
+                    'effective_upload_bytes' => 0,
+                    'configured_max_upload_bytes' => 10 * 1024 * 1024,
+                ]);
+        });
+
+        $this->mock(DatabaseRestoreService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('restore')->never();
+        });
+
+        $this->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('admin.datenbank.restore'), [
+                'dump' => UploadedFile::fake()->createWithContent('dump.sql', 'select 1;'),
+                'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
+            ])
+            ->assertSessionHasErrors('dump');
     }
 
     public function test_restore_falls_back_to_configured_upload_limit_when_effective_limit_is_unknown(): void

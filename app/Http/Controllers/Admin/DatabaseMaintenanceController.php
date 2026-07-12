@@ -93,7 +93,7 @@ class DatabaseMaintenanceController extends Controller
 
     private function abortIfDisabled(): void
     {
-        abort_unless((bool) config('database-maintenance.enabled', true), 404);
+        abort_unless((bool) config('database-maintenance.enabled', false), 404);
     }
 
     /**
@@ -106,7 +106,13 @@ class DatabaseMaintenanceController extends Controller
             ?? DatabaseMaintenanceLimitService::megabytesToBytes(config('database-maintenance.max_upload_mb'))
             ?? 1024 * 1024;
 
-        return max(1, (int) floor(((int) $bytes) / 1024));
+        $bytes = (int) $bytes;
+
+        if ($bytes <= 0) {
+            return 0;
+        }
+
+        return max(1, (int) floor($bytes / 1024));
     }
 
     private function lastPreRestoreDump(): ?array

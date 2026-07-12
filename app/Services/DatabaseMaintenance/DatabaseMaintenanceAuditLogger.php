@@ -34,7 +34,7 @@ class DatabaseMaintenanceAuditLogger
             return;
         }
 
-        File::ensureDirectoryExists(dirname($path), 0775);
+        File::ensureDirectoryExists(dirname($path), 0700);
         $writtenBytes = @file_put_contents(
             $path,
             $jsonPayload.PHP_EOL,

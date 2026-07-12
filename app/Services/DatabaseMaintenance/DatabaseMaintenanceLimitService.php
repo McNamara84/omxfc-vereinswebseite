@@ -12,7 +12,7 @@ class DatabaseMaintenanceLimitService
     public function limits(): array
     {
         $storageRoot = (string) config('database-maintenance.storage_root');
-        File::ensureDirectoryExists($storageRoot, 0775);
+        File::ensureDirectoryExists($storageRoot, 0700);
 
         $multipartOverheadBytes = self::megabytesToBytes(config('database-maintenance.multipart_overhead_mb')) ?? 0;
         $uploadMaxBytes = self::parseIniBytes(ini_get('upload_max_filesize'));

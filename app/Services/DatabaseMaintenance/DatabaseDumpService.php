@@ -140,7 +140,7 @@ class DatabaseDumpService
     private function path(string $section, string $filename): string
     {
         $directory = $this->storagePath($section);
-        File::ensureDirectoryExists($directory, 0775);
+        File::ensureDirectoryExists($directory, 0700);
 
         return $directory.DIRECTORY_SEPARATOR.Str::of($filename)->replace(['/', '\\'], '-');
     }
