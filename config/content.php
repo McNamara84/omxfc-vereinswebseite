@@ -73,7 +73,7 @@ return [
             'items' => [
                 'Austausch über die aktuellen Romane mit anderen Fans',
                 'Rezensionsbereich mit über 250 Rezensionen der Mitglieder',
-                'Zugriff auf die Rommantauschbörse mit Gesuchen und Angeboten',
+                'Zugriff auf die Romantauschbörse mit Gesuchen und Angeboten',
                 'Kostenlose Teilnahme an den jährlichen Fantreffen',
                 'Kontakt zu Maddrax-Autor:innen',
                 'Aktive Mitgestaltung des Vereinslebens',
@@ -81,7 +81,7 @@ return [
                 'Zugang zu exklusiven Sprecherrollen in den Fanhörbüchern',
                 'Belohnungssystem für aktive Mitglieder',
                 'Freischaltbares Kompendium mit Volltextsuche über alle Romane',
-                'Freischakltbare interaktive Karte des Maddraxiversums',
+                'Freischaltbare interaktive Karte des Maddraxiversums',
             ],
         ],
         'reviews' => [
