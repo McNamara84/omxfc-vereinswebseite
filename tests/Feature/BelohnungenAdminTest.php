@@ -11,6 +11,7 @@ use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\RomantauschBaxxSpecialOffer;
+use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Blade;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Mary\View\Components\Badge;
+use RuntimeException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -105,6 +107,25 @@ class BelohnungenAdminTest extends TestCase
 
         $this->assertSame(100, $component->instance()->purchases()->count());
         $this->assertSame(101, $component->instance()->tabBadges()['purchases']);
+    }
+
+    public function test_tab_badges_do_not_load_admin_statistics(): void
+    {
+        $this->actingAdmin();
+
+        app()->instance(RewardService::class, new class
+        {
+            public function getAdminStatistics(): array
+            {
+                throw new RuntimeException('tabBadges() should use direct count queries.');
+            }
+        });
+
+        Reward::factory()->count(2)->create();
+
+        $component = app(BelohnungenAdmin::class);
+
+        $this->assertSame(Reward::count(), $component->tabBadges()['statistics']);
     }
 
     public function test_mary_tab_badges_render_with_project_alias(): void

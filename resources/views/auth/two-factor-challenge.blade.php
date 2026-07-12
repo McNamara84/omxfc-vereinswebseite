@@ -29,8 +29,11 @@
 
                     <div x-show="! recovery">
                         <div class="space-y-2">
-                            <span id="two-factor-code-label" class="fieldset-label text-sm font-medium text-base-content">Code</span>
-                            <label class="otp otp-joined otp-primary otp-sm sm:otp-md" aria-label="Sechsstelligen Authentifizierungscode eingeben" data-testid="two-factor-code-otp">
+                            <span id="two-factor-code-label" class="fieldset-label text-sm font-medium text-base-content">
+                                Code
+                                <span class="sr-only"> - Sechsstelligen Authentifizierungscode eingeben</span>
+                            </span>
+                            <label class="otp otp-joined otp-primary otp-sm sm:otp-md" data-testid="two-factor-code-otp">
                                 <span aria-hidden="true"></span>
                                 <span aria-hidden="true"></span>
                                 <span aria-hidden="true"></span>

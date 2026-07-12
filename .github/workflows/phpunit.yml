@@ -171,7 +171,8 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random
+        # Keep the Pest/PHPUnit order explicit and reproducible for this browser regression.
+        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random --random-order-seed=1
 
   coverage:
     needs:

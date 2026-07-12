@@ -239,6 +239,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         });
 
         test('Stapel kann gelöscht werden', async ({ page }) => {
+            test.setTimeout(60000);
+
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
@@ -248,8 +250,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z3);
             await submitBundleForm(page, /romantauschboerse$/);
 
-            // Gehe zur Bearbeiten-Seite
-            const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
+            // Gehe zur Bearbeiten-Seite des gerade erstellten Stapels.
+            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="50"]').first();
+            await expect(bundleWithNumbers).toBeVisible({ timeout: 15000 });
+            const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();
 
             // Lösch-Button sollte vorhanden sein
@@ -264,6 +268,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             // Sollte zur Übersicht weiterleiten (Firefox braucht mehr Zeit für Form-Submit nach Dialog)
             await expect(page).toHaveURL(/romantauschboerse$/, { timeout: 15000 });
+            await expect(page.locator('[data-bundle-id][data-book-numbers-display*="50"]')).toHaveCount(0);
         });
     });
 

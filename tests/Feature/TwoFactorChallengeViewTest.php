@@ -23,7 +23,13 @@ class TwoFactorChallengeViewTest extends TestCase
         $this->assertStringContainsString('otp', $otp->attr('class') ?? '');
         $this->assertStringContainsString('otp-joined', $otp->attr('class') ?? '');
         $this->assertStringContainsString('otp-primary', $otp->attr('class') ?? '');
+        $this->assertNull($otp->attr('aria-label'));
         $this->assertCount(6, $otp->filter('span[aria-hidden="true"]'));
+
+        $codeLabel = $crawler->filter('#two-factor-code-label');
+        $this->assertCount(1, $codeLabel);
+        $this->assertStringContainsString('Code', $codeLabel->text());
+        $this->assertSame('- Sechsstelligen Authentifizierungscode eingeben', $codeLabel->filter('.sr-only')->text());
 
         $codeInput = $otp->filter('input#code[name="code"][data-testid="two-factor-code"]');
 

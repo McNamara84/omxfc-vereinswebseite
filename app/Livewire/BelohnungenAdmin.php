@@ -314,16 +314,17 @@ class BelohnungenAdmin extends Component
      */
     public function tabBadges(): array
     {
-        $specialOffersCount = $this->reviewSpecialOffers->count()
-            + $this->maddraxiversumSpecialOffers->count()
-            + $this->romantauschSpecialOffers->count();
+        $rewardsCount = Reward::query()->count();
+        $specialOffersCount = ReviewBaxxSpecialOffer::query()->count()
+            + MaddraxiversumBaxxSpecialOffer::query()->count()
+            + RomantauschBaxxSpecialOffer::query()->count();
 
         return [
-            'rewards' => $this->rewards->count(),
-            'rules' => $this->earningRules->count() + $specialOffersCount,
+            'rewards' => $rewardsCount,
+            'rules' => BaxxEarningRule::query()->count() + $specialOffersCount,
             'purchases' => $this->purchasesCount,
-            'statistics' => $this->statistics['rewards_stats']->count(),
-            'downloads' => $this->downloads->count(),
+            'statistics' => $rewardsCount,
+            'downloads' => Download::query()->count(),
         ];
     }
 
