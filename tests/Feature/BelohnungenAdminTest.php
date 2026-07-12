@@ -7,15 +7,17 @@ use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
-use App\Models\RomantauschBaxxSpecialOffer;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\RomantauschBaxxSpecialOffer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use Mary\View\Components\Badge;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -41,6 +43,70 @@ class BelohnungenAdminTest extends TestCase
         $this->get('/belohnungen/admin')
             ->assertOk()
             ->assertSee('Belohnungen - Admin');
+    }
+
+    public function test_tab_badges_summarize_admin_sections(): void
+    {
+        $this->actingAdmin();
+
+        Reward::factory()->count(2)->create();
+        $download = Download::factory()->create();
+        $rewardWithDownload = Reward::factory()->create(['download_id' => $download->id]);
+        RewardPurchase::factory()->count(2)->create(['reward_id' => $rewardWithDownload->id]);
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+        MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 3,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_offer',
+            'points' => 4,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $component = Livewire::test(BelohnungenAdmin::class);
+
+        $expectedRulesBadge = BaxxEarningRule::count()
+            + ReviewBaxxSpecialOffer::count()
+            + MaddraxiversumBaxxSpecialOffer::count()
+            + RomantauschBaxxSpecialOffer::count();
+
+        $this->assertSame([
+            'rewards' => Reward::count(),
+            'rules' => $expectedRulesBadge,
+            'purchases' => RewardPurchase::count(),
+            'statistics' => Reward::count(),
+            'downloads' => Download::count(),
+        ], $component->instance()->tabBadges());
+    }
+
+    public function test_mary_tab_badges_render_with_project_alias(): void
+    {
+        $this->assertSame(
+            Badge::class,
+            app('blade.compiler')->getClassComponentAliases()['mary-badge'] ?? null,
+        );
+
+        $html = Blade::render(<<<'BLADE'
+<x-tab name="rewards" label="Belohnungen" badge="3" badge-class="badge-primary">
+    Inhalt
+</x-tab>
+BLADE);
+
+        $this->assertStringContainsString('Belohnungen', $html);
+        $this->assertStringContainsString('badge-primary', $html);
+        $this->assertStringContainsString('badge-sm', $html);
+        $this->assertMatchesRegularExpression('/badge-primary[^>]*>.*3.*<\\/div>/s', $html);
     }
 
     public function test_admin_page_forbidden_for_regular_member(): void

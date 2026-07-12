@@ -2,18 +2,18 @@
 
 namespace App\Livewire;
 
-use Carbon\Carbon;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
-use App\Models\RomantauschBaxxSpecialOffer;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Services\MaddraxiversumBaxxService;
-use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
+use App\Services\Romantausch\RomantauschBaxxService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -289,6 +289,24 @@ class BelohnungenAdmin extends Component
         })
             ->orderBy('title')
             ->get(['id', 'title', 'category']);
+    }
+
+    /**
+     * @return array{rewards: int, rules: int, purchases: int, statistics: int, downloads: int}
+     */
+    public function tabBadges(): array
+    {
+        $specialOffersCount = $this->reviewSpecialOffers->count()
+            + $this->maddraxiversumSpecialOffers->count()
+            + $this->romantauschSpecialOffers->count();
+
+        return [
+            'rewards' => $this->rewards->count(),
+            'rules' => $this->earningRules->count() + $specialOffersCount,
+            'purchases' => $this->purchases->count(),
+            'statistics' => $this->statistics['rewards_stats']->count(),
+            'downloads' => $this->downloads->count(),
+        ];
     }
 
     // =====================================================
