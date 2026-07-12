@@ -1,4 +1,7 @@
 import { expect, test } from './test-support.js';
+import { spawnSync } from 'child_process';
+import { randomUUID } from 'node:crypto';
+import { createPhpProcess } from './utils/php.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -8,12 +11,58 @@ const login = async (page, email, password = 'password') => {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
-const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohner', gender = 'maennlich' } = {}) => {
-    await login(page, 'info@maddraxikon.com');
+const buildRpgEditorUserEmail = (testInfo) => {
+    const randomToken = randomUUID().replaceAll('-', '').slice(0, 16);
+    const slug = `${testInfo.project.name}-${testInfo.workerIndex}-${randomToken}`
+        .replace(/[^a-z0-9-]/gi, '-')
+        .toLowerCase();
+
+    return `char-editor-${slug}@example.test`;
+};
+
+const formatProcessCommand = (phpProcess) => [phpProcess.command, ...phpProcess.args].join(' ');
+
+const formatProcessFailure = (result) => [
+    result.error ? `Startfehler: ${result.error.message}` : '',
+    result.status === null ? 'Exit-Status: <null>' : `Exit-Status: ${result.status}`,
+    result.signal ? `Signal: ${result.signal}` : '',
+    result.stderr ? `stderr: ${result.stderr.trim()}` : '',
+    result.stdout ? `stdout: ${result.stdout.trim()}` : '',
+]
+    .filter(Boolean)
+    .join('\n');
+
+const createRpgEditorUser = (testInfo) => {
+    const email = buildRpgEditorUserEmail(testInfo);
+    const phpProcess = createPhpProcess(['tests/e2e/create-rpg-editor-user.php', email], { env: process.env });
+    const result = spawnSync(phpProcess.command, phpProcess.args, {
+        env: process.env,
+        shell: phpProcess.shell,
+        encoding: 'utf8',
+        windowsHide: process.platform === 'win32',
+    });
+
+    if (result.error || result.status !== 0) {
+        throw new Error(
+            `RPG-Testuser konnte nicht angelegt werden (${formatProcessCommand(phpProcess)}):\n${formatProcessFailure(result)}`,
+        );
+    }
+
+    return email;
+};
+
+const openAdvancedEditor = async (page, {
+    email = 'info@maddraxikon.com',
+    race = 'Barbar',
+    culture = 'Landbewohner',
+    gender = 'maennlich',
+    characterName = 'Wudan',
+} = {}) => {
+    await login(page, email);
     await page.goto('/rpg/char-editor');
 
     await page.getByLabel('Spielername').fill('Playwright Spieler');
-    await page.getByLabel('Charaktername').fill('Wudan');
+    await page.getByLabel('Charaktername').fill(characterName);
     await page.locator('#gender').selectOption(gender);
     await page.locator('#race').selectOption(race);
     await page.locator('#culture').selectOption(culture);
@@ -24,6 +73,10 @@ const openAdvancedEditor = async (page, { race = 'Barbar', culture = 'Landbewohn
 };
 
 const checkbox = (page, name, value) => page.locator(`input[type="checkbox"][name="${name}"][value="${value}"]`);
+const tinyPngBuffer = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
+    'base64',
+);
 
 const completeValidBarbarExport = async (page) => {
     await page.getByTestId('char-editor-form').evaluate((form) => {
@@ -66,6 +119,15 @@ const completeValidBarbarExport = async (page) => {
 };
 
 test.describe('RPG Charakter-Editor', () => {
+    test('erzeugt gueltige kurze Testuser-Mailadressen fuer CI', async ({}, testInfo) => {
+        const email = buildRpgEditorUserEmail(testInfo);
+        const [localPart, domain] = email.split('@');
+
+        expect(domain).toBe('example.test');
+        expect(localPart.length).toBeLessThanOrEqual(64);
+        expect(email).toMatch(/^char-editor-[a-z0-9-]+@example\.test$/);
+    });
+
     test('lädt ohne Persist-Fehler und sperrt den Formularfluss initial korrekt', async ({ page }) => {
         test.setTimeout(60_000);
 
@@ -240,6 +302,154 @@ test.describe('RPG Charakter-Editor', () => {
         expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname !== '/rpg/char-editor/pdf')).toHaveLength(0);
 
         await popup.close().catch(() => {});
+    });
+
+    test('speichert einen fertig ausgefuellten Charakter ohne Datenverlust', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+        const characterName = `Wudan Save ${testInfo.project.name}`;
+        const storeRequests = [];
+
+        page.on('request', (request) => {
+            const url = new URL(request.url());
+
+            if (url.pathname.startsWith('/rpg/charaktere')) {
+                storeRequests.push({ method: request.method(), pathname: url.pathname });
+            }
+        });
+
+        await openAdvancedEditor(page, { email, characterName });
+        await completeValidBarbarExport(page);
+
+        await Promise.all([
+            page.waitForURL((url) => url.pathname === '/rpg/charaktere'),
+            page.getByTestId('submit-button').click(),
+        ]);
+
+        expect(storeRequests).toContainEqual({ method: 'POST', pathname: '/rpg/charaktere' });
+        await expect(page.getByTestId('rpg-character-success')).toContainText('Charakter wurde gespeichert.');
+        await expect(page.getByTestId('rpg-character-row')).toContainText(characterName);
+        await expect(page.getByTestId('rpg-character-errors')).toHaveCount(0);
+    });
+
+    test('PDF-Popup zeigt keinen leeren Editor und der Ursprungstab bleibt danach speicherbar', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+        const characterName = `Wudan PDF ${testInfo.project.name}`;
+        const pdfViewerPath = /^\/rpg\/char-editor\/pdf\/[0-9a-f-]{36}$/;
+        const pdfRequests = [];
+        const editorReloadsAfterPdfClick = [];
+
+        await openAdvancedEditor(page, { email, characterName });
+        await completeValidBarbarExport(page);
+
+        page.context().on('request', (request) => {
+            const url = new URL(request.url());
+
+            if (url.pathname.startsWith('/rpg/char-editor/pdf')) {
+                pdfRequests.push({ method: request.method(), pathname: url.pathname });
+            }
+
+            if (request.method() === 'GET' && url.pathname === '/rpg/char-editor') {
+                editorReloadsAfterPdfClick.push(url.pathname);
+            }
+        });
+
+        const [popup] = await Promise.all([
+            page.waitForEvent('popup', { timeout: 5000 }),
+            page.getByTestId('pdf-button').click(),
+        ]);
+
+        await expect.poll(() => pdfRequests.some((request) => request.method === 'GET' && pdfViewerPath.test(request.pathname))).toBe(true);
+        expect(pdfRequests.filter((request) => request.method === 'POST' && request.pathname === '/rpg/char-editor/pdf')).toHaveLength(1);
+        expect(editorReloadsAfterPdfClick).toEqual([]);
+        await expect.poll(() => new URL(page.url()).pathname).toBe('/rpg/char-editor');
+        await expect(page.getByLabel('Charaktername')).toHaveValue(characterName);
+        await expect(page.getByTestId('char-editor-advantages-list')).toBeVisible();
+
+        await popup.close().catch(() => {});
+
+        await Promise.all([
+            page.waitForURL((url) => url.pathname === '/rpg/charaktere'),
+            page.getByTestId('submit-button').click(),
+        ]);
+
+        await expect(page.getByTestId('rpg-character-success')).toContainText('Charakter wurde gespeichert.');
+        await expect(page.getByTestId('rpg-character-row')).toContainText(characterName);
+        await expect(page.getByTestId('rpg-character-errors')).toHaveCount(0);
+    });
+
+    test('zeigt Speicher-Validierungsfehler ohne Eingabeverlust', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+        const characterName = `Wudan Invalid Save ${testInfo.project.name}`;
+
+        await openAdvancedEditor(page, { email, characterName });
+        await completeValidBarbarExport(page);
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+
+            if (!state) {
+                throw new Error('Charakter-Editor-State konnte nicht gefunden werden.');
+            }
+
+            state.portraitPreview = 'data:image/png;base64,bm90LWltYWdl';
+        });
+
+        await Promise.all([
+            page.waitForURL((url) => url.pathname === '/rpg/char-editor'),
+            page.getByTestId('submit-button').click(),
+        ]);
+
+        await expect(page.getByTestId('char-editor-errors')).toBeVisible();
+        await expect(page.getByLabel('Charaktername')).toHaveValue(characterName);
+        await expect(page.getByTestId('char-editor-advantages-list')).toBeVisible();
+        await expect(page.getByTestId('equipment-clothing-select')).toHaveValue('kleidung-einfach');
+    });
+
+    test('PDF-Validierungsfehler zeigen im Popup den ausgefuellten Editor', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+        const characterName = `Wudan Invalid PDF ${testInfo.project.name}`;
+
+        await openAdvancedEditor(page, { email, characterName });
+        await completeValidBarbarExport(page);
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+
+            if (!state) {
+                throw new Error('Charakter-Editor-State konnte nicht gefunden werden.');
+            }
+
+            state.portraitPreview = 'data:image/png;base64,bm90LWltYWdl';
+        });
+
+        const [popup] = await Promise.all([
+            page.waitForEvent('popup', { timeout: 5000 }),
+            page.getByTestId('pdf-button').click(),
+        ]);
+
+        await popup.waitForURL((url) => url.pathname === '/rpg/char-editor');
+        await expect(popup.getByTestId('char-editor-errors')).toBeVisible();
+        await expect(popup.getByLabel('Charaktername')).toHaveValue(characterName);
+        await expect(popup.getByTestId('char-editor-advantages-list')).toBeVisible();
+        await expect(popup.getByTestId('equipment-clothing-select')).toHaveValue('kleidung-einfach');
+        await expect(page.getByLabel('Charaktername')).toHaveValue(characterName);
+
+        await popup.close().catch(() => {});
+    });
+
+    test('erlaubt Portrait-Upload auch nach dem Freischalten der Regelsektionen', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+
+        await openAdvancedEditor(page, { email, characterName: `Wudan Portrait ${testInfo.project.name}` });
+
+        const portraitInput = page.locator('#portrait');
+
+        await expect(portraitInput).toBeEnabled();
+        await portraitInput.setInputFiles({
+            name: 'portrait.png',
+            mimeType: 'image/png',
+            buffer: tinyPngBuffer,
+        });
+
+        await expect(page.getByTestId('char-editor-portrait-preview')).toBeVisible();
     });
 
     test('zeigt Attribut-Regelhilfe per Fokus und Hover', async ({ page }) => {

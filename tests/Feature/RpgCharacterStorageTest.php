@@ -304,6 +304,54 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame(0, $member->fresh()->getAvailableBaxx());
     }
 
+    public function test_failed_store_redirect_keeps_editor_input_for_recovery(): void
+    {
+        $this->actingAgMember();
+
+        $response = $this
+            ->from(route('rpg.char-editor'))
+            ->post(route('rpg.characters.store'), $this->validCharacterPayload([
+                'character_name' => 'Kept Store Character',
+                'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
+            ]));
+
+        $response
+            ->assertRedirect(route('rpg.char-editor'))
+            ->assertSessionHasErrors('portrait_data_url')
+            ->assertSessionHasInput('character_name', 'Kept Store Character')
+            ->assertSessionHasInput('race', 'Barbar')
+            ->assertSessionHasInput('clothing', 'kleidung-einfach');
+
+        $this->assertSame(0, RpgCharacter::query()->count());
+    }
+
+    public function test_failed_portrait_validation_does_not_expose_old_portrait_payload_to_editor(): void
+    {
+        $this->actingAgMember();
+
+        foreach (['portrait_data_url', 'portrait'] as $errorField) {
+            $payloadMarker = 'OVERSIZEDPORTRAITPAYLOAD'.strtoupper($errorField);
+            $overrides = [
+                'character_name' => 'Kept Portrait Character',
+                'portrait_data_url' => 'data:image/png;base64,'.$payloadMarker,
+            ];
+
+            if ($errorField === 'portrait') {
+                $overrides['portrait'] = UploadedFile::fake()->create('avatar.txt', 1, 'text/plain');
+            }
+
+            $response = $this
+                ->followingRedirects()
+                ->from(route('rpg.char-editor'))
+                ->post(route('rpg.characters.store'), $this->validCharacterPayload($overrides));
+
+            $response
+                ->assertOk()
+                ->assertSee('Kept Portrait Character')
+                ->assertDontSee($payloadMarker);
+        }
+    }
+
     public function test_failed_portrait_storage_rejects_character_without_persisting_path(): void
     {
         $this->actingAgMember();

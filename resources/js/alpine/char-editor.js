@@ -432,6 +432,8 @@ const BARBAR_ONLY_CULTURES = [VOLK_DER_13_INSELN_CULTURE, DISUUSLACHTER_CULTURE]
 const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
 const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
 const FEMALE_GENDER = 'weiblich';
+const PORTRAIT_DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|gif|webp|bmp));base64,([A-Za-z0-9+/=]+)$/;
+const PORTRAIT_SIGNATURE_BYTE_COUNT = 12;
 
 function hydrateExistingCharEditors() {
     if (!window.Alpine
@@ -457,6 +459,111 @@ function hydrateExistingCharEditors() {
         }
 
         window.Alpine.initTree(element);
+    });
+}
+
+function editorOldInput() {
+    if (typeof window === 'undefined') return null;
+
+    const input = window.rpgCharEditorOldInput;
+
+    return input && typeof input === 'object' && !Array.isArray(input) ? input : null;
+}
+
+function consumeEditorOldInput(input) {
+    if (typeof window === 'undefined') return;
+    if (window.rpgCharEditorOldInput === input) {
+        delete window.rpgCharEditorOldInput;
+    }
+}
+
+function bytesStartWith(bytes, signature) {
+    if (!bytes || bytes.length < signature.length) return false;
+
+    return signature.every((byte, index) => bytes[index] === byte);
+}
+
+function decodeBase64HeaderBytes(value, byteCount = PORTRAIT_SIGNATURE_BYTE_COUNT) {
+    try {
+        const headerLength = Math.ceil(byteCount / 3) * 4;
+        const binary = globalThis.atob(String(value).slice(0, headerLength));
+
+        return Uint8Array.from(binary.slice(0, byteCount), character => character.charCodeAt(0));
+    } catch {
+        return null;
+    }
+}
+
+function isSupportedPortraitDataUrl(value) {
+    const matches = oldString(value).match(PORTRAIT_DATA_URL_PATTERN);
+
+    if (!matches) return false;
+
+    const [, mime, base64] = matches;
+    const bytes = decodeBase64HeaderBytes(base64);
+
+    if (!bytes || bytes.length === 0) return false;
+
+    if (mime === 'image/png') return bytesStartWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    if (mime === 'image/jpeg') return bytesStartWith(bytes, [0xff, 0xd8, 0xff]);
+    if (mime === 'image/gif') return bytesStartWith(bytes, [0x47, 0x49, 0x46, 0x38])
+        && (bytes[4] === 0x37 || bytes[4] === 0x39)
+        && bytes[5] === 0x61;
+    if (mime === 'image/webp') return bytesStartWith(bytes, [0x52, 0x49, 0x46, 0x46])
+        && bytes.length >= 12
+        && bytes[8] === 0x57
+        && bytes[9] === 0x45
+        && bytes[10] === 0x42
+        && bytes[11] === 0x50;
+    if (mime === 'image/bmp') return bytesStartWith(bytes, [0x42, 0x4d]);
+
+    return false;
+}
+
+function oldRecord(value) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function oldArray(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') return Object.values(value);
+    if (value === undefined || value === null || value === '') return [];
+
+    return [value];
+}
+
+function oldString(value) {
+    if (value === undefined || value === null) return '';
+
+    return String(value);
+}
+
+function oldInteger(value, fallback = 0) {
+    const parsed = Number.parseInt(value, 10);
+
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function oldHasAdvancedPayload(input) {
+    if (!input) return false;
+
+    return [
+        'attributes',
+        'skills',
+        'advantages',
+        'disadvantages',
+        'clothing',
+        'equipment_items',
+        'portrait_data_url',
+        'barbar_attribute_bonus',
+    ].some((key) => {
+        const value = input[key];
+
+        if (key === 'portrait_data_url') return isSupportedPortraitDataUrl(value);
+        if (Array.isArray(value)) return value.length > 0;
+        if (value && typeof value === 'object') return Object.keys(value).length > 0;
+
+        return oldString(value).trim() !== '';
     });
 }
 
@@ -1172,8 +1279,129 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return true;
     },
 
+    hydrateFromOldInput(oldInput = editorOldInput()) {
+        if (!oldInput) return false;
+
+        this.playerName = oldString(oldInput.player_name);
+        this.characterName = oldString(oldInput.character_name);
+        this.gender = oldString(oldInput.gender);
+        this.race = oldString(oldInput.race);
+        this.culture = oldString(oldInput.culture);
+
+        const portraitPreview = oldString(oldInput.portrait_data_url);
+        this.portraitPreview = isSupportedPortraitDataUrl(portraitPreview) ? portraitPreview : null;
+        this.advancedUnlocked = this.basicsFilled() || oldHasAdvancedPayload(oldInput);
+
+        this.description = '';
+        this.descriptionUserEdited = false;
+        this.handleRaceChange();
+        this.handleCultureChange();
+        this.handleGenderChange();
+
+        if (Object.prototype.hasOwnProperty.call(oldInput, 'description')) {
+            const oldDescription = oldString(oldInput.description);
+            const generatedDescription = this.description;
+
+            if (oldDescription !== generatedDescription) {
+                this.description = oldDescription;
+                this.descriptionUserEdited = true;
+            }
+        }
+
+        const barbarAttributeBonus = oldString(oldInput.barbar_attribute_bonus);
+        if (this.race === 'Barbar' && ATTRIBUTE_IDS.includes(barbarAttributeBonus)) {
+            this.setBarbarAttributeBonus(barbarAttributeBonus);
+        }
+
+        this.applyOldAttributeInput(oldInput.attributes);
+        this.applyOldSkillInput(oldInput.skills);
+        this.applyOldSpecialInput(oldInput);
+        this.applyOldEquipmentInput(oldInput);
+        this.enforceAdvantageLimit();
+        this.enforceEquipmentLimits();
+        consumeEditorOldInput(oldInput);
+
+        return true;
+    },
+
+    applyOldAttributeInput(input) {
+        const attributes = oldRecord(input);
+
+        ATTRIBUTE_IDS.forEach((id) => {
+            if (!Object.prototype.hasOwnProperty.call(attributes, id)) return;
+
+            this.attributes[id] = oldInteger(attributes[id], this.attributes[id]);
+            this.clampAttribute(id);
+        });
+    },
+
+    applyOldSkillInput(input) {
+        oldArray(input).forEach((entry) => {
+            const skillInput = oldRecord(entry);
+            const name = oldString(skillInput.name).trim();
+
+            if (!name) return;
+
+            const skill = this.ensureSkill(name);
+            skill.value = oldInteger(skillInput.value, skill.value);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+        });
+    },
+
+    applyOldSpecialInput(input) {
+        const advantages = oldArray(input.advantages).map(value => oldString(value).trim()).filter(Boolean);
+        const disadvantages = oldArray(input.disadvantages).map(value => oldString(value).trim()).filter(Boolean);
+        const advantageDetails = oldRecord(input.advantage_details);
+        const disadvantageDetails = oldRecord(input.disadvantage_details);
+        const advantageCounts = oldRecord(input.advantage_counts);
+
+        if (advantages.length) {
+            const lockedAdvantages = this.selectedAdvantages.filter(value => this.advantageCost(value) === 0 || this.lockedAdvantages().includes(value));
+            this.selectedAdvantages = [...new Set([...lockedAdvantages, ...advantages])];
+        }
+
+        if (disadvantages.length) {
+            const lockedDisadvantages = this.selectedDisadvantages.filter(value => this.raceLocked.disadvantages.includes(value));
+            this.selectedDisadvantages = [...new Set([...lockedDisadvantages, ...disadvantages])];
+        }
+
+        this.advantageDetails = Object.fromEntries(
+            Object.entries({ ...this.advantageDetails, ...advantageDetails })
+                .map(([key, value]) => [key, oldString(value)]),
+        );
+        this.disadvantageDetails = Object.fromEntries(
+            Object.entries({ ...this.disadvantageDetails, ...disadvantageDetails })
+                .map(([key, value]) => [key, oldString(value)]),
+        );
+        this.advantageCounts = Object.fromEntries(
+            Object.entries({ ...this.advantageCounts, ...advantageCounts })
+                .map(([key, value]) => [key, oldInteger(value, 1)]),
+        );
+    },
+
+    applyOldEquipmentInput(input) {
+        const selectedEquipment = {};
+
+        this.clothing = oldString(input.clothing);
+        this.equipment = oldString(input.equipment);
+
+        oldArray(input.equipment_items).forEach((entry) => {
+            const equipmentInput = oldRecord(entry);
+            const id = oldString(equipmentInput.id).trim();
+            const quantity = oldInteger(equipmentInput.quantity, 0);
+
+            if (id && quantity > 0) {
+                selectedEquipment[id] = quantity;
+            }
+        });
+
+        this.selectedEquipment = selectedEquipment;
+    },
+
     // --- Methods ---
     init() {
+        this.hydrateFromOldInput();
         this.$watch('race', () => this.handleRaceChange());
         this.$watch('culture', () => this.handleCultureChange());
         this.$watch('gender', () => this.handleGenderChange());
