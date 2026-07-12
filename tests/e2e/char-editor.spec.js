@@ -118,6 +118,47 @@ const completeValidBarbarExport = async (page) => {
     await expect(page.getByTestId('pdf-button')).toBeEnabled();
 };
 
+const completeValidTechnoExport = async (page) => {
+    await page.getByTestId('char-editor-form').evaluate((form) => {
+        const state = window.Alpine?.$data(form);
+
+        if (!state) {
+            throw new Error('Charakter-Editor-State konnte nicht gefunden werden.');
+        }
+
+        state.attributes.ge = 1;
+        state.attributes.wa = 1;
+        state.setTechnoSkillPoints('Fahren', 4);
+        state.setTechnoSkillPoints('Heiler', 0);
+        state.setBunkermenschBonusSkill('Pilot');
+
+        const paidSkillValues = new Map([
+            ['Athletik', 4],
+            ['Diebeskunst', 4],
+            ['Fernkampf', 4],
+            ['Handeln', 4],
+            ['Reiten', 4],
+        ]);
+
+        for (const [name, value] of paidSkillValues) {
+            const skill = state.ensureSkill(name);
+            skill.value = value;
+        }
+
+        state.clothing = 'kleidung-einfach';
+        state.setEquipmentQuantity('messer-dolch', 1);
+        state.setEquipmentQuantity('seil', 1);
+        state.setEquipmentQuantity('rucksack', 1);
+        state.setEquipmentQuantity('wasserschlauch', 1);
+        state.setEquipmentQuantity('wochenration', 1);
+        state.setEquipmentQuantity('bogen', 1);
+    });
+
+    await expect(page.getByText('Verteilt: 12 / 12')).toBeVisible();
+    await expect(page.getByText('FP: 0')).toBeVisible();
+    await expect(page.getByTestId('submit-button')).toBeEnabled();
+};
+
 test.describe('RPG Charakter-Editor', () => {
     test('erzeugt gueltige kurze Testuser-Mailadressen fuer CI', async ({}, testInfo) => {
         const email = buildRpgEditorUserEmail(testInfo);
@@ -326,6 +367,28 @@ test.describe('RPG Charakter-Editor', () => {
         ]);
 
         expect(storeRequests).toContainEqual({ method: 'POST', pathname: '/rpg/charaktere' });
+        await expect(page.getByTestId('rpg-character-success')).toContainText('Charakter wurde gespeichert.');
+        await expect(page.getByTestId('rpg-character-row')).toContainText(characterName);
+        await expect(page.getByTestId('rpg-character-errors')).toHaveCount(0);
+    });
+
+    test('speichert Techno mit vollem FP-Budget und Rassenpunkten ohne Validierungsschleife', async ({ page }, testInfo) => {
+        const email = createRpgEditorUser(testInfo);
+        const characterName = `Techno Save ${testInfo.project.name}`;
+
+        await openAdvancedEditor(page, {
+            email,
+            race: 'Techno',
+            culture: 'Bunkermensch',
+            characterName,
+        });
+        await completeValidTechnoExport(page);
+
+        await Promise.all([
+            page.waitForURL((url) => url.pathname === '/rpg/charaktere'),
+            page.getByTestId('submit-button').click(),
+        ]);
+
         await expect(page.getByTestId('rpg-character-success')).toContainText('Charakter wurde gespeichert.');
         await expect(page.getByTestId('rpg-character-row')).toContainText(characterName);
         await expect(page.getByTestId('rpg-character-errors')).toHaveCount(0);

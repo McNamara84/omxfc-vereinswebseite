@@ -556,6 +556,11 @@ function oldHasAdvancedPayload(input) {
         'equipment_items',
         'portrait_data_url',
         'barbar_attribute_bonus',
+        'techno_skill_points',
+        'praekristofluu_skill_points',
+        'bunkermensch_bonus_skill',
+        'mensch_21_first_bonus_skill',
+        'mensch_21_second_bonus_skill',
     ].some((key) => {
         const value = input[key];
 
@@ -1314,6 +1319,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
 
         this.applyOldAttributeInput(oldInput.attributes);
+        this.applyOldSkillPoolInput(oldInput);
+        this.applyOldCultureChoiceInput(oldInput);
         this.applyOldSkillInput(oldInput.skills);
         this.applyOldSpecialInput(oldInput);
         this.applyOldEquipmentInput(oldInput);
@@ -1333,6 +1340,43 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             this.attributes[id] = oldInteger(attributes[id], this.attributes[id]);
             this.clampAttribute(id);
         });
+    },
+
+    applyOldSkillPoolInput(input) {
+        const technoSkillPoints = oldRecord(input.techno_skill_points);
+        const praekristofluuSkillPoints = oldRecord(input.praekristofluu_skill_points);
+
+        if (this.race === 'Techno' && Object.keys(technoSkillPoints).length) {
+            TECHNO_SKILLS.forEach((name) => {
+                if (Object.prototype.hasOwnProperty.call(technoSkillPoints, name)) {
+                    this.setTechnoSkillPoints(name, oldInteger(technoSkillPoints[name], this.technoSkillPoints[name]));
+                }
+            });
+        }
+
+        if (this.race === PRAEKRISTOFLUU_RACE && Object.keys(praekristofluuSkillPoints).length) {
+            PRAEKRISTOFLUU_SKILLS.forEach((name) => {
+                if (Object.prototype.hasOwnProperty.call(praekristofluuSkillPoints, name)) {
+                    this.setPraekristofluuSkillPoints(name, oldInteger(praekristofluuSkillPoints[name], this.praekristofluuSkillPoints[name]));
+                }
+            });
+        }
+    },
+
+    applyOldCultureChoiceInput(input) {
+        const bunkermenschBonusSkill = oldString(input.bunkermensch_bonus_skill);
+        const mensch21FirstBonusSkill = oldString(input.mensch_21_first_bonus_skill);
+        const mensch21SecondBonusSkill = oldString(input.mensch_21_second_bonus_skill);
+
+        if (this.culture === 'Bunkermensch' && BUNKERMENSCH_BONUS_SKILLS.includes(bunkermenschBonusSkill)) {
+            this.setBunkermenschBonusSkill(bunkermenschBonusSkill);
+        }
+
+        if (this.culture === MENSCH_21_CULTURE
+            && (MENSCH_21_BONUS_SKILLS.includes(mensch21FirstBonusSkill)
+                || MENSCH_21_BONUS_SKILLS.includes(mensch21SecondBonusSkill))) {
+            this.setMensch21BonusSkills(mensch21FirstBonusSkill, mensch21SecondBonusSkill);
+        }
     },
 
     applyOldSkillInput(input) {

@@ -15,6 +15,11 @@
         'portrait_data_url',
         'attributes',
         'skills',
+        'techno_skill_points',
+        'praekristofluu_skill_points',
+        'bunkermensch_bonus_skill',
+        'mensch_21_first_bonus_skill',
+        'mensch_21_second_bonus_skill',
         'advantages',
         'disadvantages',
         'advantage_details',
@@ -334,7 +339,7 @@
                                 <template x-for="skillName in technoSkillNames" :key="'techno-skill-' + skillName">
                                     <label class="flex min-h-12 items-center justify-between gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm">
                                         <span class="min-w-0 flex-1" x-text="skillName"></span>
-                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-model.number="technoSkillPoints[skillName]" @input="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" @change="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" data-testid="techno-skill-points-input">
+                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-bind:name="'techno_skill_points[' + skillName + ']'" x-bind:disabled="race !== 'Techno' || !advancedUnlocked" x-model.number="technoSkillPoints[skillName]" @input="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" @change="setTechnoSkillPoints(skillName, technoSkillPoints[skillName])" data-testid="techno-skill-points-input">
                                     </label>
                                 </template>
                             </div>
@@ -348,7 +353,7 @@
                                 <template x-for="skillName in praekristofluuSkillNames" :key="'praekristofluu-skill-' + skillName">
                                     <label class="flex min-h-12 items-center justify-between gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm">
                                         <span class="min-w-0 flex-1" x-text="skillName"></span>
-                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-model.number="praekristofluuSkillPoints[skillName]" @input="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" @change="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" data-testid="praekristofluu-skill-points-input">
+                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-bind:name="'praekristofluu_skill_points[' + skillName + ']'" x-bind:disabled="race !== 'Präkristofluu' || !advancedUnlocked" x-model.number="praekristofluuSkillPoints[skillName]" @input="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" @change="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" data-testid="praekristofluu-skill-points-input">
                                     </label>
                                 </template>
                             </div>
@@ -386,7 +391,7 @@
                         </div>
                         <div x-show="culture === 'Bunkermensch'" class="mb-2">
                             <label for="bunkermensch-bonus-select" class="text-sm font-medium text-base-content mb-1">Bunkermensch Zusatzbonus</label>
-                            <select id="bunkermensch-bonus-select" class="select select-bordered w-full sm:w-auto" x-model="bunkermenschBonusSkill" @change="setBunkermenschBonusSkill(bunkermenschBonusSkill)">
+                            <select id="bunkermensch-bonus-select" name="bunkermensch_bonus_skill" class="select select-bordered w-full sm:w-auto" x-bind:disabled="culture !== 'Bunkermensch' || !advancedUnlocked" x-model="bunkermenschBonusSkill" @change="setBunkermenschBonusSkill(bunkermenschBonusSkill)">
                                 <option value="Feuerwaffen">Feuerwaffen (+1)</option>
                                 <option value="Pilot">Pilot (+1)</option>
                                 <option value="Wissenschaftler">Wissenschaftler (+1)</option>
@@ -395,7 +400,7 @@
                         <div x-show="culture === 'Mensch des 21. Jahrhunderts'" class="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div>
                                 <label for="mensch-21-first-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 1</label>
-                                <select id="mensch-21-first-bonus-select" class="select select-bordered w-full" x-model="mensch21FirstBonusSkill" @change="setMensch21FirstBonusSkill(mensch21FirstBonusSkill)">
+                                <select id="mensch-21-first-bonus-select" name="mensch_21_first_bonus_skill" class="select select-bordered w-full" x-bind:disabled="culture !== 'Mensch des 21. Jahrhunderts' || !advancedUnlocked" x-model="mensch21FirstBonusSkill" @change="setMensch21FirstBonusSkill(mensch21FirstBonusSkill)">
                                     <option value="Bildung" x-bind:disabled="mensch21SecondBonusSkill === 'Bildung'">Bildung (+1)</option>
                                     <option value="Pilot" x-bind:disabled="mensch21SecondBonusSkill === 'Pilot'">Pilot (+1)</option>
                                     <option value="Techniker" x-bind:disabled="mensch21SecondBonusSkill === 'Techniker'">Techniker (+1)</option>
@@ -404,7 +409,7 @@
                             </div>
                             <div>
                                 <label for="mensch-21-second-bonus-select" class="text-sm font-medium text-base-content mb-1">21. Jahrhundert Bonus 2</label>
-                                <select id="mensch-21-second-bonus-select" class="select select-bordered w-full" x-model="mensch21SecondBonusSkill" @change="setMensch21SecondBonusSkill(mensch21SecondBonusSkill)">
+                                <select id="mensch-21-second-bonus-select" name="mensch_21_second_bonus_skill" class="select select-bordered w-full" x-bind:disabled="culture !== 'Mensch des 21. Jahrhunderts' || !advancedUnlocked" x-model="mensch21SecondBonusSkill" @change="setMensch21SecondBonusSkill(mensch21SecondBonusSkill)">
                                     <option value="Bildung" x-bind:disabled="mensch21FirstBonusSkill === 'Bildung'">Bildung (+1)</option>
                                     <option value="Pilot" x-bind:disabled="mensch21FirstBonusSkill === 'Pilot'">Pilot (+1)</option>
                                     <option value="Techniker" x-bind:disabled="mensch21FirstBonusSkill === 'Techniker'">Techniker (+1)</option>
