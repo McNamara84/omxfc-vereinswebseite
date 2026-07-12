@@ -80,6 +80,14 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(5)->by($request->ip());
         });
 
+        RateLimiter::for('database-dump', function ($request) {
+            return Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
+        });
+
+        RateLimiter::for('database-restore', function ($request) {
+            return Limit::perHour(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
+        });
+
         $version = Config::get('app.version');
 
         if ($version === null || $version === '0.0.0') {

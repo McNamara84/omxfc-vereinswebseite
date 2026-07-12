@@ -164,6 +164,7 @@ return [
                 ['title' => 'Kurznachrichten', 'route' => 'admin.messages.index', 'tour_key' => 'admin-messages'],
                 ['title' => 'Arbeitsgruppen', 'route' => 'arbeitsgruppen.index', 'tour_key' => 'admin-working-groups'],
                 ['title' => 'Belohnungen', 'route' => 'rewards.admin', 'tour_key' => 'admin-rewards'],
+                ['title' => 'Datenbank', 'route' => 'admin.datenbank.index', 'tour_key' => 'admin-database'],
             ],
         ],
     ],
