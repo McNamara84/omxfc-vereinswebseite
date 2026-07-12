@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.13.1",
+    "pub_date": "2026-07-12",
+    "notes": [
+      "[Improved] Zwei-Faktor-Codes werden beim Login und in den Profileinstellungen jetzt übersichtlicher als sechsstellige Eingabe dargestellt.",
+      "[Improved] UI-Komponenten wurden aktualisiert, damit Formulare und Sicherheitsdialoge stabiler und moderner dargestellt werden.",
+      "[Fixed] Speichern und Drucken von Rollenspiel-Charakterbögen in diversen Browsern verbessert."
+    ]
+  },
+  {
     "version": "1.13.0",
     "pub_date": "2026-07-05",
     "notes": [
