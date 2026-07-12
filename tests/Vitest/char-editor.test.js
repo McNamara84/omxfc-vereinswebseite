@@ -1933,6 +1933,28 @@ describe('charEditor - Laravel Old Input', () => {
         });
     });
 
+    it('decodiert fuer Portrait-Signaturen nur den Base64-Header', () => {
+        const largePortraitDataUrl = `${tinyPngDataUrl}${'A'.repeat(50_000)}`;
+        const atobSpy = vi.spyOn(globalThis, 'atob');
+        window.rpgCharEditorOldInput = {
+            player_name: '',
+            character_name: '',
+            gender: '',
+            race: '',
+            culture: '',
+            portrait_data_url: largePortraitDataUrl,
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.portraitPreview).toBe(largePortraitDataUrl);
+        expect(atobSpy).toHaveBeenCalled();
+        expect(atobSpy.mock.calls.every(([value]) => String(value).length <= 16)).toBe(true);
+
+        atobSpy.mockRestore();
+    });
+
     it('laesst automatisch generierte Old-Beschreibung weiter automatisch', () => {
         const generated = createEditor({ race: 'Barbar', culture: 'Landbewohner' });
         generated.updateDescription();

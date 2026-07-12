@@ -433,6 +433,7 @@ const VOLK_DER_13_INSELN_PROFESSION_SKILLS = ['Beruf: Bauer', 'Beruf: Fischer'];
 const VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE = 'Psychische Kraft';
 const FEMALE_GENDER = 'weiblich';
 const PORTRAIT_DATA_URL_PATTERN = /^data:(image\/(?:png|jpeg|gif|webp|bmp));base64,([A-Za-z0-9+/=]+)$/;
+const PORTRAIT_SIGNATURE_BYTE_COUNT = 12;
 
 function hydrateExistingCharEditors() {
     if (!window.Alpine
@@ -482,11 +483,12 @@ function bytesStartWith(bytes, signature) {
     return signature.every((byte, index) => bytes[index] === byte);
 }
 
-function decodeBase64Bytes(value) {
+function decodeBase64HeaderBytes(value, byteCount = PORTRAIT_SIGNATURE_BYTE_COUNT) {
     try {
-        const binary = globalThis.atob(String(value));
+        const headerLength = Math.ceil(byteCount / 3) * 4;
+        const binary = globalThis.atob(String(value).slice(0, headerLength));
 
-        return Uint8Array.from(binary, character => character.charCodeAt(0));
+        return Uint8Array.from(binary.slice(0, byteCount), character => character.charCodeAt(0));
     } catch {
         return null;
     }
@@ -498,7 +500,7 @@ function isSupportedPortraitDataUrl(value) {
     if (!matches) return false;
 
     const [, mime, base64] = matches;
-    const bytes = decodeBase64Bytes(base64);
+    const bytes = decodeBase64HeaderBytes(base64);
 
     if (!bytes || bytes.length === 0) return false;
 
