@@ -171,7 +171,7 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php artisan test --without-tty tests/Browser/ModalBackdropPreviewTest.php --order-by=random
+        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random
 
   coverage:
     needs:

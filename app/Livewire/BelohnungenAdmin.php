@@ -14,6 +14,7 @@ use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use App\Services\Romantausch\RomantauschBaxxService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -219,8 +220,25 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function purchases(): Collection
     {
-        $query = RewardPurchase::with(['user', 'reward', 'refundedByUser'])
-            ->latest('purchased_at');
+        return $this->purchaseQuery()
+            ->with(['user', 'reward', 'refundedByUser'])
+            ->latest('purchased_at')
+            ->limit(100)
+            ->get();
+    }
+
+    #[Computed]
+    public function purchasesCount(): int
+    {
+        return $this->purchaseQuery()->count();
+    }
+
+    /**
+     * @return Builder<RewardPurchase>
+     */
+    private function purchaseQuery(): Builder
+    {
+        $query = RewardPurchase::query();
 
         if ($this->purchaseSearch !== '') {
             $search = $this->purchaseSearch;
@@ -233,7 +251,7 @@ class BelohnungenAdmin extends Component
             $query->where('reward_id', $this->purchaseRewardFilter);
         }
 
-        return $query->limit(100)->get();
+        return $query;
     }
 
     #[Computed]
@@ -303,7 +321,7 @@ class BelohnungenAdmin extends Component
         return [
             'rewards' => $this->rewards->count(),
             'rules' => $this->earningRules->count() + $specialOffersCount,
-            'purchases' => $this->purchases->count(),
+            'purchases' => $this->purchasesCount,
             'statistics' => $this->statistics['rewards_stats']->count(),
             'downloads' => $this->downloads->count(),
         ];
@@ -871,17 +889,17 @@ class BelohnungenAdmin extends Component
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
         }
 
-        unset($this->purchases, $this->statistics, $this->rewards);
+        unset($this->purchases, $this->purchasesCount, $this->statistics, $this->rewards);
     }
 
     public function updatedPurchaseSearch(): void
     {
-        unset($this->purchases);
+        unset($this->purchases, $this->purchasesCount);
     }
 
     public function updatedPurchaseRewardFilter(): void
     {
-        unset($this->purchases);
+        unset($this->purchases, $this->purchasesCount);
     }
 
     // =====================================================

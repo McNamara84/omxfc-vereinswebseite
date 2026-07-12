@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ViewErrorBag;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
@@ -16,9 +15,7 @@ class TwoFactorChallengeViewTest extends TestCase
     {
         $this->withoutVite();
 
-        View::share('errors', new ViewErrorBag);
-
-        $html = view('auth.two-factor-challenge')->render();
+        $html = view('auth.two-factor-challenge', ['errors' => new ViewErrorBag])->render();
         $crawler = new Crawler($html);
         $otp = $crawler->filter('[data-testid="two-factor-code-otp"]');
 

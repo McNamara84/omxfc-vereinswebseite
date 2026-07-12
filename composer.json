@@ -56,7 +56,7 @@
         "pestphp/pest-plugin-laravel": "5.x-dev",
         "pestphp/pest-plugin-mutate": "5.x-dev",
         "pestphp/pest-plugin-profanity": "5.x-dev",
-        "phpunit/phpunit": "^13.2.3",
+        "phpunit/phpunit": "13.2.3",
         "symfony/process": "^8.1"
     },
     "autoload": {

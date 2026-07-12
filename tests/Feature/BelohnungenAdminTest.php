@@ -90,6 +90,23 @@ class BelohnungenAdminTest extends TestCase
         ], $component->instance()->tabBadges());
     }
 
+    public function test_purchase_tab_badge_counts_all_filtered_purchases_beyond_table_limit(): void
+    {
+        $this->actingAdmin();
+
+        $reward = Reward::factory()->create(['slug' => 'badge-counted-reward']);
+        $otherReward = Reward::factory()->create(['slug' => 'badge-filtered-out-reward']);
+
+        RewardPurchase::factory()->count(101)->create(['reward_id' => $reward->id]);
+        RewardPurchase::factory()->count(3)->create(['reward_id' => $otherReward->id]);
+
+        $component = Livewire::test(BelohnungenAdmin::class)
+            ->set('purchaseRewardFilter', (string) $reward->id);
+
+        $this->assertSame(100, $component->instance()->purchases()->count());
+        $this->assertSame(101, $component->instance()->tabBadges()['purchases']);
+    }
+
     public function test_mary_tab_badges_render_with_project_alias(): void
     {
         $this->assertSame(
