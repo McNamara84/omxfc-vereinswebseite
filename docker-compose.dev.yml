@@ -115,12 +115,13 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:11
+    image: mariadb:12.3
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}
       MYSQL_PASSWORD: ${DOCKER_DEV_DB_PASSWORD:-omxfc}
       MYSQL_ROOT_PASSWORD: ${DOCKER_DEV_MYSQL_ROOT_PASSWORD:-omxfc-root}
+      MARIADB_AUTO_UPGRADE: ${DOCKER_DEV_MARIADB_AUTO_UPGRADE:-1}
     ports:
       - '${DOCKER_DEV_DB_FORWARD_PORT:-3307}:3306'
     volumes:

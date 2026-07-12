@@ -72,15 +72,24 @@ jobs:
             echo "Checking container status:"
             docker ps -a
             
-            echo "Waiting for database to be ready..."
-            for i in {1..30}; do
-              if docker exec maddrax-db mariadb -u root -pNochSicherer456 -e "SELECT 1" >/dev/null 2>&1; then
+            echo "Waiting for database to be ready (MariaDB upgrade may take a few minutes)..."
+            DB_READY=0
+            for i in {1..60}; do
+              if docker exec maddrax-db sh -lc 'mariadb-admin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent' >/dev/null 2>&1; then
                 echo "Database is ready!"
+                docker exec maddrax-db sh -lc 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT VERSION();"'
+                DB_READY=1
                 break
               fi
-              echo "Waiting for database... ($i/30)"
-              sleep 2
+              echo "Waiting for database... ($i/60)"
+              sleep 5
             done
+
+            if [ "$DB_READY" != "1" ]; then
+              echo "Database did not become ready in time. Last database logs:"
+              docker logs maddrax-db
+              exit 1
+            fi
             
             echo "Running Laravel setup commands..."
             

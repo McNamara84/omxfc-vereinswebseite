@@ -28,6 +28,7 @@ yarn-error.log
 /.zed
 .index
 /.vite
+/.tmp/
 /coverage
 /performance-results
 /playwright-performance
