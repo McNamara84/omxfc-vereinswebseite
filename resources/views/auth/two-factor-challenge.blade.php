@@ -28,16 +28,34 @@
                     @csrf
 
                     <div x-show="! recovery">
-                        <x-input
-                            label="Code"
-                            id="code"
-                            name="code"
-                            type="text"
-                            inputmode="numeric"
-                            autofocus
-                            autocomplete="one-time-code"
-                            data-testid="two-factor-code"
-                        />
+                        <div class="space-y-2">
+                            <span id="two-factor-code-label" class="fieldset-label text-sm font-medium text-base-content">
+                                Code
+                                <span class="sr-only"> - Sechsstelligen Authentifizierungscode eingeben</span>
+                            </span>
+                            <label class="otp otp-joined otp-primary otp-sm sm:otp-md" data-testid="two-factor-code-otp">
+                                <span aria-hidden="true"></span>
+                                <span aria-hidden="true"></span>
+                                <span aria-hidden="true"></span>
+                                <span aria-hidden="true"></span>
+                                <span aria-hidden="true"></span>
+                                <span aria-hidden="true"></span>
+                                <input
+                                    id="code"
+                                    name="code"
+                                    type="text"
+                                    inputmode="numeric"
+                                    pattern="[0-9]*"
+                                    minlength="6"
+                                    maxlength="6"
+                                    autofocus
+                                    autocomplete="one-time-code"
+                                    enterkeyhint="done"
+                                    aria-labelledby="two-factor-code-label"
+                                    data-testid="two-factor-code"
+                                />
+                            </label>
+                        </div>
                     </div>
 
                     <div x-cloak x-show="recovery">

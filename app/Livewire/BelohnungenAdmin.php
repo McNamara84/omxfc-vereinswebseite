@@ -2,18 +2,19 @@
 
 namespace App\Livewire;
 
-use Carbon\Carbon;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
-use App\Models\RomantauschBaxxSpecialOffer;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Services\MaddraxiversumBaxxService;
-use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
+use App\Services\Romantausch\RomantauschBaxxService;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -219,8 +220,25 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function purchases(): Collection
     {
-        $query = RewardPurchase::with(['user', 'reward', 'refundedByUser'])
-            ->latest('purchased_at');
+        return $this->purchaseQuery()
+            ->with(['user', 'reward', 'refundedByUser'])
+            ->latest('purchased_at')
+            ->limit(100)
+            ->get();
+    }
+
+    #[Computed]
+    public function purchasesCount(): int
+    {
+        return $this->purchaseQuery()->count();
+    }
+
+    /**
+     * @return Builder<RewardPurchase>
+     */
+    private function purchaseQuery(): Builder
+    {
+        $query = RewardPurchase::query();
 
         if ($this->purchaseSearch !== '') {
             $search = $this->purchaseSearch;
@@ -233,7 +251,7 @@ class BelohnungenAdmin extends Component
             $query->where('reward_id', $this->purchaseRewardFilter);
         }
 
-        return $query->limit(100)->get();
+        return $query;
     }
 
     #[Computed]
@@ -289,6 +307,25 @@ class BelohnungenAdmin extends Component
         })
             ->orderBy('title')
             ->get(['id', 'title', 'category']);
+    }
+
+    /**
+     * @return array{rewards: int, rules: int, purchases: int, statistics: int, downloads: int}
+     */
+    public function tabBadges(): array
+    {
+        $rewardsCount = Reward::query()->count();
+        $specialOffersCount = ReviewBaxxSpecialOffer::query()->count()
+            + MaddraxiversumBaxxSpecialOffer::query()->count()
+            + RomantauschBaxxSpecialOffer::query()->count();
+
+        return [
+            'rewards' => $rewardsCount,
+            'rules' => BaxxEarningRule::query()->count() + $specialOffersCount,
+            'purchases' => $this->purchasesCount,
+            'statistics' => $rewardsCount,
+            'downloads' => Download::query()->count(),
+        ];
     }
 
     // =====================================================
@@ -853,17 +890,17 @@ class BelohnungenAdmin extends Component
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
         }
 
-        unset($this->purchases, $this->statistics, $this->rewards);
+        unset($this->purchases, $this->purchasesCount, $this->statistics, $this->rewards);
     }
 
     public function updatedPurchaseSearch(): void
     {
-        unset($this->purchases);
+        unset($this->purchases, $this->purchasesCount);
     }
 
     public function updatedPurchaseRewardFilter(): void
     {
-        unset($this->purchases);
+        unset($this->purchases, $this->purchasesCount);
     }
 
     // =====================================================

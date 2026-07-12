@@ -5,11 +5,12 @@ namespace App\Providers;
 use App\Enums\PollVisibility;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
-use App\Support\TestingBladeComponentRegistry;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Polls\ActivePollResolver;
+use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
+use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Mary\View\Components\Badge as MaryBadge;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -159,7 +161,7 @@ class AppServiceProvider extends ServiceProvider
             $tourOverview = collect();
 
             if (Auth::check() && Schema::hasTable('tour_assignments')) {
-                $tourOverview = app(\App\Services\TourAssignmentService::class)
+                $tourOverview = app(TourAssignmentService::class)
                     ->selfServiceOverviewForUser(Auth::user());
             }
 
@@ -178,6 +180,9 @@ class AppServiceProvider extends ServiceProvider
         // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
         // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
+
+        // maryUI 2.9 Tab-Badges rendern intern diesen Alias.
+        Blade::component('mary-badge', MaryBadge::class);
 
         // Override Jetstream Livewire components with maryUI Toast support
         Livewire::component('profile.update-password-form', UpdatePasswordForm::class);

@@ -40,19 +40,32 @@
                 </div>
 
                 @if ($showingConfirmation)
-                    <div class="mt-4">
-                        <x-input
-                            id="code"
-                            label="{{ __('Code') }}"
-                            type="text"
-                            name="code"
-                            class="block mt-1 w-1/2"
-                            inputmode="numeric"
-                            autofocus
-                            autocomplete="one-time-code"
-                            wire:model="code"
-                            wire:keydown.enter="confirmTwoFactorAuthentication"
-                        />
+                    <div class="mt-4 space-y-2">
+                        <span id="two-factor-confirmation-code-label" class="fieldset-label text-sm font-medium text-base-content">{{ __('Code') }}</span>
+                        <label class="otp otp-joined otp-primary otp-sm sm:otp-md" aria-label="{{ __('Sechsstelligen OTP-Code eingeben') }}" data-testid="two-factor-confirmation-code-otp">
+                            <span aria-hidden="true"></span>
+                            <span aria-hidden="true"></span>
+                            <span aria-hidden="true"></span>
+                            <span aria-hidden="true"></span>
+                            <span aria-hidden="true"></span>
+                            <span aria-hidden="true"></span>
+                            <input
+                                id="code"
+                                type="text"
+                                name="code"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                minlength="6"
+                                maxlength="6"
+                                autofocus
+                                autocomplete="one-time-code"
+                                enterkeyhint="done"
+                                aria-labelledby="two-factor-confirmation-code-label"
+                                data-testid="two-factor-confirmation-code"
+                                wire:model="code"
+                                wire:keydown.enter="confirmTwoFactorAuthentication"
+                            />
+                        </label>
                         @error('code', 'confirmTwoFactorAuthentication')
                             <p class="text-sm text-error mt-2">{{ $message }}</p>
                         @enderror

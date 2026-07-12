@@ -7,8 +7,10 @@
         />
 
         {{-- Tabs --}}
+        @php($tabBadges = $this->tabBadges())
+
         <x-tabs wire:model="activeTab">
-            <x-tab name="rewards" label="Belohnungen" icon="o-gift">
+            <x-tab name="rewards" label="Belohnungen" icon="o-gift" :badge="$tabBadges['rewards']" badge-class="badge-primary">
 
                 <x-ui.panel class="mb-6 border border-primary/15 bg-base-100">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -87,7 +89,7 @@
 
             </x-tab>
 
-            <x-tab name="rules" label="Vergaberegeln" icon="o-cog-6-tooth">
+            <x-tab name="rules" label="Vergaberegeln" icon="o-cog-6-tooth" :badge="$tabBadges['rules']" badge-class="badge-secondary">
 
                 <x-alert icon="o-information-circle" class="mb-4 alert-info">
                     Hier kannst du festlegen, wie viele Baxx Mitglieder für bestimmte Aktionen erhalten.
@@ -364,7 +366,7 @@
 
             </x-tab>
 
-            <x-tab name="purchases" label="Freischaltungen" icon="o-shopping-cart">
+            <x-tab name="purchases" label="Freischaltungen" icon="o-shopping-cart" :badge="$tabBadges['purchases']" badge-class="badge-info">
 
                 {{-- Filter --}}
                 <div class="flex flex-wrap gap-4 mb-4">
@@ -433,7 +435,7 @@
 
             </x-tab>
 
-            <x-tab name="statistics" label="Statistiken" icon="o-chart-bar">
+            <x-tab name="statistics" label="Statistiken" icon="o-chart-bar" :badge="$tabBadges['statistics']" badge-class="badge-accent">
 
                 {{-- Gesamtstatistiken --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -497,7 +499,7 @@
 
             </x-tab>
 
-            <x-tab name="downloads" label="Downloads" icon="o-arrow-down-tray">
+            <x-tab name="downloads" label="Downloads" icon="o-arrow-down-tray" :badge="$tabBadges['downloads']" badge-class="badge-warning">
 
                 <div class="flex justify-end mb-4">
                     <x-button label="Neuer Download" icon="o-plus" class="btn-primary" wire:click="openCreateDownload" />

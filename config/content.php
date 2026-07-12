@@ -72,12 +72,16 @@ return [
             'description' => 'Warum sich der Schritt vom stillen Mitlesen zur aktiven Mitgliedschaft lohnt.',
             'items' => [
                 'Austausch über die aktuellen Romane mit anderen Fans',
+                'Rezensionsbereich mit über 250 Rezensionen der Mitglieder',
+                'Zugriff auf die Romantauschbörse mit Gesuchen und Angeboten',
                 'Kostenlose Teilnahme an den jährlichen Fantreffen',
                 'Kontakt zu Maddrax-Autor:innen',
                 'Aktive Mitgestaltung des Vereinslebens',
                 'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
-                'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
                 'Zugang zu exklusiven Sprecherrollen in den Fanhörbüchern',
+                'Belohnungssystem für aktive Mitglieder',
+                'Freischaltbares Kompendium mit Volltextsuche über alle Romane',
+                'Freischaltbare interaktive Karte des Maddraxiversums',
             ],
         ],
         'reviews' => [
