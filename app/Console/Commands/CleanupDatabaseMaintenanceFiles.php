@@ -9,7 +9,7 @@ class CleanupDatabaseMaintenanceFiles extends Command
 {
     protected $signature = 'database-maintenance:cleanup';
 
-    protected $description = 'Remove old database maintenance dumps and temporary files';
+    protected $description = 'Loescht alte Datenbank-Wartungsdumps und temporaere Dateien.';
 
     public function handle(): int
     {

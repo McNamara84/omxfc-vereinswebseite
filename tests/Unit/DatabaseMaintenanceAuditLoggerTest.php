@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Services\DatabaseMaintenance\DatabaseMaintenanceAuditLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Tests\TestCase;
 
 class DatabaseMaintenanceAuditLoggerTest extends TestCase
@@ -27,6 +28,20 @@ class DatabaseMaintenanceAuditLoggerTest extends TestCase
         File::deleteDirectory($this->storageRoot);
 
         parent::tearDown();
+    }
+
+    public function test_log_warns_when_jsonl_file_cannot_be_written(): void
+    {
+        File::ensureDirectoryExists($this->storageRoot.DIRECTORY_SEPARATOR.'audit.jsonl');
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->with('Database maintenance audit entry could not be written.',
+                \Mockery::on(fn (array $context): bool => $context['event'] === 'restore_failed')
+            );
+        Log::shouldReceive('info')->never();
+
+        app(DatabaseMaintenanceAuditLogger::class)->log('restore_failed');
     }
 
     public function test_log_writes_jsonl_outside_database_and_redacts_sensitive_context(): void

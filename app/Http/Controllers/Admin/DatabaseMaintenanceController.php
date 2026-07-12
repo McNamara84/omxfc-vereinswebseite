@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -52,8 +53,7 @@ class DatabaseMaintenanceController extends Controller
         $this->abortIfDisabled();
 
         $limits = $limitService->limits();
-        $effectiveUploadBytes = $limits['effective_upload_bytes'] ?? null;
-        $maxKilobytes = max(1, (int) floor(((int) $effectiveUploadBytes) / 1024));
+        $maxKilobytes = $this->maxUploadKilobytes($limits);
         $confirmationText = (string) config('database-maintenance.restore_confirmation_text');
 
         $validated = $request->validate([
@@ -75,7 +75,7 @@ class DatabaseMaintenanceController extends Controller
                     }
                 },
             ],
-            'confirmation' => ['required', 'string', 'in:'.$confirmationText],
+            'confirmation' => ['required', 'string', Rule::in([$confirmationText])],
         ]);
 
         try {
@@ -94,6 +94,19 @@ class DatabaseMaintenanceController extends Controller
     private function abortIfDisabled(): void
     {
         abort_unless((bool) config('database-maintenance.enabled', true), 404);
+    }
+
+    /**
+     * @param  array<string, mixed>  $limits
+     */
+    private function maxUploadKilobytes(array $limits): int
+    {
+        $bytes = $limits['effective_upload_bytes']
+            ?? $limits['configured_max_upload_bytes']
+            ?? DatabaseMaintenanceLimitService::megabytesToBytes(config('database-maintenance.max_upload_mb'))
+            ?? 1024 * 1024;
+
+        return max(1, (int) floor(((int) $bytes) / 1024));
     }
 
     private function lastPreRestoreDump(): ?array

@@ -23,12 +23,21 @@ class DatabaseMaintenanceAuditLogger
 
         $path = $this->path();
         File::ensureDirectoryExists(dirname($path), 0775);
-
-        file_put_contents(
+        $writtenBytes = @file_put_contents(
             $path,
             json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE).PHP_EOL,
             FILE_APPEND | LOCK_EX,
         );
+
+        if ($writtenBytes === false) {
+            Log::warning('Database maintenance audit entry could not be written.', [
+                'path' => $path,
+                'event' => $event,
+                'user_id' => $payload['user_id'],
+            ]);
+
+            return;
+        }
 
         Log::info('Database maintenance: '.$event, $payload);
     }

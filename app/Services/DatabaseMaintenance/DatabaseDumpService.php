@@ -17,7 +17,7 @@ class DatabaseDumpService
 
     public function createDownloadDump(User $user): DatabaseDumpFile
     {
-        $downloadName = 'omxfc-datenbank-'.now()->format('Y-m-d-His').'.sql.gz';
+        $downloadName = 'omxfc-datenbank-'.now()->format('Y-m-d-His').'-'.Str::lower(Str::random(8)).'.sql.gz';
         $path = $this->path('downloads', $downloadName);
 
         $this->writeDump($path, $user);
@@ -32,7 +32,7 @@ class DatabaseDumpService
 
     public function createPreRestoreDump(User $user): DatabaseDumpFile
     {
-        $downloadName = 'pre-restore-'.now()->format('Y-m-d-His').'-user-'.$user->id.'.sql.gz';
+        $downloadName = 'pre-restore-'.now()->format('Y-m-d-His').'-user-'.$user->id.'-'.Str::lower(Str::random(8)).'.sql.gz';
         $path = $this->path('pre-restore', $downloadName);
 
         $this->writeDump($path, $user);

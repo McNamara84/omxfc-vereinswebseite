@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Services\DatabaseMaintenance\DatabaseDumpFile;
 use App\Services\DatabaseMaintenance\DatabaseDumpService;
 use App\Services\DatabaseMaintenance\DatabaseMaintenanceException;
+use App\Services\DatabaseMaintenance\DatabaseMaintenanceLimitService;
 use App\Services\DatabaseMaintenance\DatabaseRestoreResult;
 use App\Services\DatabaseMaintenance\DatabaseRestoreService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -171,6 +172,57 @@ class DatabaseMaintenanceControllerTest extends TestCase
                 'confirmation' => 'FALSCH',
             ])
             ->assertSessionHasErrors('confirmation');
+    }
+
+    public function test_restore_falls_back_to_configured_upload_limit_when_effective_limit_is_unknown(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $preRestorePath = $this->storageRoot.DIRECTORY_SEPARATOR.'pre-restore.sql.gz';
+
+        $this->mock(DatabaseMaintenanceLimitService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('limits')
+                ->once()
+                ->andReturn([
+                    'effective_upload_bytes' => null,
+                    'configured_max_upload_bytes' => 5 * 1024,
+                ]);
+        });
+
+        $this->mock(DatabaseRestoreService::class, function (MockInterface $mock) use ($preRestorePath): void {
+            $mock->shouldReceive('restore')
+                ->once()
+                ->andReturn(new DatabaseRestoreResult($preRestorePath));
+        });
+
+        $this->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('admin.datenbank.restore'), [
+                'dump' => UploadedFile::fake()->createWithContent('dump.sql', str_repeat('x', 2048)),
+                'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
+            ])
+            ->assertRedirect(route('admin.datenbank.index'));
+    }
+
+    public function test_restore_confirmation_text_may_contain_comma(): void
+    {
+        config(['database-maintenance.restore_confirmation_text' => 'DATENBANK, WIEDERHERSTELLEN']);
+
+        $admin = $this->createUserWithRole(Role::Admin);
+        $preRestorePath = $this->storageRoot.DIRECTORY_SEPARATOR.'pre-restore.sql.gz';
+
+        $this->mock(DatabaseRestoreService::class, function (MockInterface $mock) use ($preRestorePath): void {
+            $mock->shouldReceive('restore')
+                ->once()
+                ->andReturn(new DatabaseRestoreResult($preRestorePath));
+        });
+
+        $this->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('admin.datenbank.restore'), [
+                'dump' => UploadedFile::fake()->createWithContent('dump.sql', 'select 1;'),
+                'confirmation' => 'DATENBANK, WIEDERHERSTELLEN',
+            ])
+            ->assertRedirect(route('admin.datenbank.index'));
     }
 
     public function test_restore_surfaces_service_failures_as_validation_error(): void
