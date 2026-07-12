@@ -1263,6 +1263,105 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_pdf_export_accepts_praekristofluu_request_pool_with_mensch_21_bonus_choices(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
+                $skills = collect($data['skills'])->keyBy('name');
+
+                return $data['character']['race'] === 'Präkristofluu'
+                    && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts'
+                    && (int) ($skills->get('Bildung')['value'] ?? 0) === 3
+                    && (int) ($skills->get('Techniker')['value'] ?? 0) === 3
+                    && (int) ($skills->get('Wissenschaftler')['value'] ?? 0) === 3;
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'race' => 'Präkristofluu',
+            'culture' => 'Mensch des 21. Jahrhunderts',
+            'skills' => [
+                ['name' => 'Beruf', 'value' => 3],
+                ['name' => 'Bildung', 'value' => 3],
+                ['name' => 'Fahren', 'value' => 2],
+                ['name' => 'Feuerwaffen', 'value' => 2],
+                ['name' => 'Pilot', 'value' => 2],
+                ['name' => 'Techniker', 'value' => 3],
+                ['name' => 'Wissenschaftler', 'value' => 3],
+            ],
+            'praekristofluu_skill_points' => [
+                'Bildung' => 2,
+                'Fahren' => 2,
+                'Feuerwaffen' => 2,
+                'Pilot' => 2,
+                'Techniker' => 2,
+                'Wissenschaftler' => 2,
+            ],
+            'mensch_21_first_bonus_skill' => 'Techniker',
+            'mensch_21_second_bonus_skill' => 'Wissenschaftler',
+            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_invalid_mensch_21_bonus_choice_inputs(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        Pdf::shouldReceive('view')->never();
+
+        $validPraekristofluuPayload = [
+            'race' => 'Präkristofluu',
+            'culture' => 'Mensch des 21. Jahrhunderts',
+            'skills' => [
+                ['name' => 'Beruf', 'value' => 3],
+                ['name' => 'Bildung', 'value' => 3],
+                ['name' => 'Fahren', 'value' => 2],
+                ['name' => 'Feuerwaffen', 'value' => 2],
+                ['name' => 'Pilot', 'value' => 2],
+                ['name' => 'Techniker', 'value' => 3],
+                ['name' => 'Wissenschaftler', 'value' => 3],
+            ],
+            'praekristofluu_skill_points' => [
+                'Bildung' => 2,
+                'Fahren' => 2,
+                'Feuerwaffen' => 2,
+                'Pilot' => 2,
+                'Techniker' => 2,
+                'Wissenschaftler' => 2,
+            ],
+            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
+        ];
+
+        foreach ([
+            'duplicate bonus choices' => [
+                'mensch_21_first_bonus_skill' => 'Techniker',
+                'mensch_21_second_bonus_skill' => 'Techniker',
+            ],
+            'unsupported bonus choice' => [
+                'mensch_21_first_bonus_skill' => 'Heiler',
+                'mensch_21_second_bonus_skill' => 'Wissenschaftler',
+            ],
+        ] as $overrides) {
+            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(array_replace(
+                $validPraekristofluuPayload,
+                $overrides,
+            )));
+
+            $response->assertSessionHasErrors('skills');
+        }
+    }
+
     public function test_pdf_export_rejects_praekristofluu_with_other_culture(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
