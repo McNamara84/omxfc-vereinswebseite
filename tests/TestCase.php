@@ -3,14 +3,15 @@
 namespace Tests;
 
 use Illuminate\Console\Application as ArtisanApplication;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Testing\TestResponse;
-use Illuminate\Testing\TestView;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\TestResponse;
+use Illuminate\Testing\TestView;
 use Livewire\Component;
+use PHPUnit\Framework\Assert;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -93,8 +94,7 @@ abstract class TestCase extends BaseTestCase
 
                 $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 
-                
-                \PHPUnit\Framework\Assert::assertStringContainsString(
+                Assert::assertStringContainsString(
                     $escapedComponentName,
                     $this->getContent(),
                     'Cannot find Livewire component ['.$component.'] rendered on page.'
@@ -112,7 +112,7 @@ abstract class TestCase extends BaseTestCase
 
                 $escapedComponentName = trim(htmlspecialchars(json_encode(['name' => $component])), '{}');
 
-                \PHPUnit\Framework\Assert::assertStringContainsString(
+                Assert::assertStringContainsString(
                     $escapedComponentName,
                     $this->rendered,
                     'Cannot find Livewire component ['.$component.'] rendered on page.'

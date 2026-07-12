@@ -11,14 +11,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\TestWith;
-use Tests\Concerns\CreatesUserWithRole;
 use Tests\Concerns\CreatesFantreffenFormToken;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class VeranstaltungAnmeldungTest extends TestCase
 {
-    use CreatesUserWithRole;
     use CreatesFantreffenFormToken;
+    use CreatesUserWithRole;
     use RefreshDatabase;
 
     private function createManagementUserWithDifferentCurrentTeam(Role $role): User

@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\KompendiumRoman;
-use App\Services\KompendiumSearchService;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;

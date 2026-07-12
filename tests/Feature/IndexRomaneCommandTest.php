@@ -69,8 +69,7 @@ class IndexRomaneCommandTest extends TestCase
         $this->assertSame(['maddrax', null, 'Glossar'], $result);
         Log::shouldHaveReceived('warning')
             ->once()
-            ->withArgs(fn (string $message, array $context): bool =>
-                str_contains($message, "Dateiname 'Glossar' entspricht nicht dem erwarteten Format")
+            ->withArgs(fn (string $message, array $context): bool => str_contains($message, "Dateiname 'Glossar' entspricht nicht dem erwarteten Format")
                 && ($context['path'] ?? null) === 'romane/maddrax/Glossar.txt'
             );
     }
