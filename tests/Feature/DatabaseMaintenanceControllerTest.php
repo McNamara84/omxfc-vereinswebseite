@@ -143,6 +143,25 @@ class DatabaseMaintenanceControllerTest extends TestCase
             ->assertSessionHas('status');
     }
 
+    public function test_restore_invalid_upload_message_uses_german_umlaut(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $this->mock(DatabaseRestoreService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('restore')->never();
+        });
+
+        $this->actingAs($admin)
+            ->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('admin.datenbank.restore'), [
+                'dump' => 'not-a-file',
+                'confirmation' => 'DATENBANK WIEDERHERSTELLEN',
+            ])
+            ->assertSessionHasErrors('dump');
+
+        $this->assertContains('Bitte lade eine gültige Datei hoch.', session('errors')->get('dump'));
+    }
+
     public function test_restore_rejects_invalid_file_extension(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);

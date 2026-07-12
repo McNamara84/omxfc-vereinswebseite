@@ -67,4 +67,59 @@ class DatabaseRestoreServiceTest extends TestCase
             $this->assertCount(0, File::files($this->storageRoot.DIRECTORY_SEPARATOR.'uploads'));
         }
     }
+
+    public function test_restore_deletes_unpacked_temp_file_when_gzip_exceeds_uncompressed_limit(): void
+    {
+        $this->mockPreRestoreDump();
+
+        $file = UploadedFile::fake()->createWithContent('dump.sql.gz', gzencode('select 1;') ?: '');
+
+        try {
+            app(DatabaseRestoreService::class)->restore($file, User::factory()->make(['id' => 123]));
+            $this->fail('Restore should have failed because the unpacked SQL file exceeds the uncompressed limit.');
+        } catch (DatabaseMaintenanceException $exception) {
+            $this->assertStringContainsString('entpackte SQL-Datei', $exception->getMessage());
+            $this->assertDirectoryHasNoFiles('temp');
+            $this->assertDirectoryHasNoFiles('uploads');
+        }
+    }
+
+    public function test_restore_deletes_unpacked_temp_file_when_required_dump_marker_is_missing(): void
+    {
+        config([
+            'database-maintenance.max_uncompressed_mb' => 10,
+            'database-maintenance.require_omxfc_dump_marker' => true,
+        ]);
+        $this->mockPreRestoreDump();
+
+        $file = UploadedFile::fake()->createWithContent('dump.sql.gz', gzencode('select 1;') ?: '');
+
+        try {
+            app(DatabaseRestoreService::class)->restore($file, User::factory()->make(['id' => 123]));
+            $this->fail('Restore should have failed because the SQL dump marker is missing.');
+        } catch (DatabaseMaintenanceException $exception) {
+            $this->assertStringContainsString('Dump-Marker', $exception->getMessage());
+            $this->assertDirectoryHasNoFiles('temp');
+            $this->assertDirectoryHasNoFiles('uploads');
+        }
+    }
+
+    private function mockPreRestoreDump(): void
+    {
+        $preRestorePath = $this->storageRoot.DIRECTORY_SEPARATOR.'pre.sql.gz';
+        File::put($preRestorePath, 'backup');
+
+        $this->mock(DatabaseDumpService::class, function (MockInterface $mock) use ($preRestorePath): void {
+            $mock->shouldReceive('createPreRestoreDump')
+                ->once()
+                ->andReturn(new DatabaseDumpFile($preRestorePath, basename($preRestorePath)));
+        });
+    }
+
+    private function assertDirectoryHasNoFiles(string $section): void
+    {
+        $directory = $this->storageRoot.DIRECTORY_SEPARATOR.$section;
+
+        $this->assertCount(0, is_dir($directory) ? File::files($directory) : []);
+    }
 }

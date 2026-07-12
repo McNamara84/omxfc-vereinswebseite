@@ -63,7 +63,7 @@ class DatabaseMaintenanceController extends Controller
                 'max:'.$maxKilobytes,
                 function (string $attribute, mixed $value, \Closure $fail): void {
                     if (! $value instanceof UploadedFile) {
-                        $fail('Bitte lade eine gueltige Datei hoch.');
+                        $fail('Bitte lade eine gültige Datei hoch.');
 
                         return;
                     }

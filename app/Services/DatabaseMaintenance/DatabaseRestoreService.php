@@ -121,30 +121,36 @@ class DatabaseRestoreService
         $writtenBytes = 0;
 
         try {
-            while (! gzeof($read)) {
-                $buffer = gzread($read, 1024 * 1024);
+            try {
+                while (! gzeof($read)) {
+                    $buffer = gzread($read, 1024 * 1024);
 
-                if ($buffer === false) {
-                    throw new DatabaseMaintenanceException('Die gzip-Datei konnte nicht entpackt werden.');
-                }
+                    if ($buffer === false) {
+                        throw new DatabaseMaintenanceException('Die gzip-Datei konnte nicht entpackt werden.');
+                    }
 
-                $writtenBytes += strlen($buffer);
-                if ($maxUncompressedBytes > 0 && $writtenBytes > $maxUncompressedBytes) {
-                    throw new DatabaseMaintenanceException('Die entpackte SQL-Datei ist groesser als erlaubt.');
-                }
+                    $writtenBytes += strlen($buffer);
+                    if ($maxUncompressedBytes > 0 && $writtenBytes > $maxUncompressedBytes) {
+                        throw new DatabaseMaintenanceException('Die entpackte SQL-Datei ist groesser als erlaubt.');
+                    }
 
-                if (fwrite($write, $buffer) === false) {
-                    throw new DatabaseMaintenanceException('Die temporaere SQL-Datei konnte nicht geschrieben werden.');
+                    if (fwrite($write, $buffer) === false) {
+                        throw new DatabaseMaintenanceException('Die temporaere SQL-Datei konnte nicht geschrieben werden.');
+                    }
                 }
+            } finally {
+                gzclose($read);
+                fclose($write);
             }
-        } finally {
-            gzclose($read);
-            fclose($write);
+
+            $this->assertOmxfcMarkerIfRequired($target);
+
+            return $target;
+        } catch (\Throwable $exception) {
+            File::delete($target);
+
+            throw $exception;
         }
-
-        $this->assertOmxfcMarkerIfRequired($target);
-
-        return $target;
     }
 
     private function runRestore(string $sqlPath): void
