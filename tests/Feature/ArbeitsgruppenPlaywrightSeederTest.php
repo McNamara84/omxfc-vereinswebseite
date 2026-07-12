@@ -39,7 +39,7 @@ class ArbeitsgruppenPlaywrightSeederTest extends TestCase
             ->once()
             ->with('Team "Mitglieder" not found. Run TodoPlaywrightSeeder first.');
 
-        $seeder = new ArbeitsgruppenPlaywrightSeeder();
+        $seeder = new ArbeitsgruppenPlaywrightSeeder;
         $seeder->setCommand($command);
         $seeder->run();
 
@@ -52,7 +52,7 @@ class ArbeitsgruppenPlaywrightSeederTest extends TestCase
     {
         Storage::fake('public');
 
-        $seeder = new ArbeitsgruppenPlaywrightSeeder();
+        $seeder = new ArbeitsgruppenPlaywrightSeeder;
         $seeder->run();
 
         $this->assertDatabaseHas('teams', [

@@ -15,7 +15,9 @@ class AppServiceProviderTest extends TestCase
     use RefreshDatabase;
 
     private const TEST_VITE_BUILD_DIRECTORY = 'build-app-service-provider-test';
+
     private const TEST_VITE_ASSET = 'assets/app-service-provider-test.css';
+
     private const TEST_VITE_SCRIPT_ASSET = 'assets/app-service-provider-test.js';
 
     public function test_password_reset_does_not_change_existing_verified_timestamp(): void

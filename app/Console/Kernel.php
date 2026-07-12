@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Console\Commands\ArchiveEndedPolls;
+use App\Console\Commands\CleanupDatabaseMaintenanceFiles;
 use App\Console\Commands\RepairLegacyRewardWallets;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -16,6 +17,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         ArchiveEndedPolls::class,
+        CleanupDatabaseMaintenanceFiles::class,
         RepairLegacyRewardWallets::class,
     ];
 
@@ -23,5 +25,6 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('member-map:refresh')->hourly();
         $schedule->command('polls:archive-ended')->hourly();
+        $schedule->command('database-maintenance:cleanup')->daily();
     }
 }

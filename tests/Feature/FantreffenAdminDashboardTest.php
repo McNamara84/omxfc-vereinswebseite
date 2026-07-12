@@ -685,7 +685,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $this->assertStringContainsString("'+4912345", $csv);
         $this->assertStringContainsString("'@paypal", $csv);
         $this->assertStringContainsString('Beutel ""Deluxe""', $csv);
-        $this->assertStringContainsString("Spezial", $csv);
+        $this->assertStringContainsString('Spezial', $csv);
     }
 
     #[Test]

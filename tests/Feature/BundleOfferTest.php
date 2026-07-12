@@ -17,8 +17,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use LogicException;
 use Livewire\Livewire;
+use LogicException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 

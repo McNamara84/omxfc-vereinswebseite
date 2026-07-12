@@ -10,7 +10,6 @@ use App\Models\TourAssignment;
 use App\Models\User;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class TourAssignmentServiceTest extends TestCase

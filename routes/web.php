@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DatabaseMaintenanceController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\ArbeitsgruppenController;
@@ -28,8 +29,8 @@ use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
-use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\RpgCharacterController;
+use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TourAdminController;
@@ -127,6 +128,12 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
+
+    Route::prefix('admin/datenbank')->name('admin.datenbank.')->middleware('admin')->controller(DatabaseMaintenanceController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/dump', 'dump')->middleware('throttle:database-dump')->name('dump');
+        Route::post('/restore', 'restore')->middleware(['password.confirm', 'throttle:database-restore'])->name('restore');
+    });
 
     // Umfragen verwalten (nur Admin/Vorstand)
     Route::livewire('/admin/umfragen', UmfrageVerwaltung::class)

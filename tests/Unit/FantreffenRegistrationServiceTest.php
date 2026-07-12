@@ -191,6 +191,6 @@ class FantreffenRegistrationServiceTest extends TestCase
 
     public function test_cannot_order_merch_with_empty_preloaded_collection(): void
     {
-        $this->assertFalse($this->service->canOrderMerch(orderableArtikel: new Collection()));
+        $this->assertFalse($this->service->canOrderMerch(orderableArtikel: new Collection));
     }
 }

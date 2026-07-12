@@ -49,7 +49,7 @@ class RomanExcerptTest extends TestCase
             'cycle' => 'maddrax',
             'roman_nr' => 2,
             'title' => 'Test',
-            'body' => "Und Matthew reist, weil die Zukunft anders ist.",
+            'body' => 'Und Matthew reist, weil die Zukunft anders ist.',
         ]);
 
         $payload = $excerpt->toSearchableArray();

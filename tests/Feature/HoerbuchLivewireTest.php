@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\HoerbuchForm;
-use App\Livewire\HoerbuchIndex;
 use App\Livewire\HoerbuchShow;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
