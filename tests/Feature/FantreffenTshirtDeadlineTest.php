@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Veranstaltung;
-use App\Models\VeranstaltungsMerchartikel;
 use App\Services\FantreffenDeadlineService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
