@@ -75,6 +75,22 @@ class DatabaseMaintenanceControllerTest extends TestCase
             ->assertSee('<dl class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">', false);
     }
 
+    public function test_database_dump_button_bypasses_livewire_navigation(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $downloadUrl = route('admin.datenbank.dump');
+
+        $html = $this->actingAs($admin)
+            ->get(route('admin.datenbank.index'))
+            ->assertOk()
+            ->getContent();
+
+        $matched = preg_match('/<a\b(?=[^>]*href="'.preg_quote($downloadUrl, '/').'\")[^>]*>/', $html, $matches);
+
+        $this->assertSame(1, $matched, 'The database dump link should be rendered as an anchor.');
+        $this->assertStringNotContainsString('wire:navigate', $matches[0]);
+    }
+
     public function test_admin_navigation_contains_database_link(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -116,10 +132,15 @@ class DatabaseMaintenanceControllerTest extends TestCase
                 ->andReturn(new DatabaseDumpFile($dumpPath, 'download.sql.gz'));
         });
 
-        $this->actingAs($admin)
+        $response = $this->actingAs($admin)
             ->get(route('admin.datenbank.dump'))
             ->assertOk()
             ->assertHeader('content-type', 'application/gzip');
+
+        $contentDisposition = $response->headers->get('content-disposition') ?? '';
+
+        $this->assertStringContainsString('attachment', strtolower($contentDisposition));
+        $this->assertStringContainsString('download.sql.gz', $contentDisposition);
     }
 
     public function test_restore_requires_recent_password_confirmation(): void

@@ -33,6 +33,7 @@
                         label="Dump herunterladen"
                         link="{{ route('admin.datenbank.dump') }}"
                         icon="o-arrow-down-tray"
+                        no-wire-navigate
                         class="btn-primary"
                     />
                 </x-slot:actions>
