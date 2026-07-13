@@ -129,6 +129,59 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame(0, RewardPurchase::query()->count());
     }
 
+    public function test_ag_rollenspiel_member_can_store_techno_with_full_fp_budget(): void
+    {
+        $member = $this->actingAgMember();
+
+        $response = $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'character_name' => 'Techno Vollbudget',
+            'race' => 'Techno',
+            'culture' => 'Bunkermensch',
+            'attributes' => [
+                'st' => -1,
+                'ro' => -1,
+                'in' => 1,
+                'ge' => 1,
+                'wa' => 1,
+            ],
+            'skills' => [
+                ['name' => 'Bildung', 'value' => 3],
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Feuerwaffen', 'value' => 2],
+                ['name' => 'Pilot', 'value' => 3],
+                ['name' => 'Techniker', 'value' => 2],
+                ['name' => 'Wissenschaftler', 'value' => 2],
+                ['name' => 'Athletik', 'value' => 4],
+                ['name' => 'Diebeskunst', 'value' => 4],
+                ['name' => 'Fernkampf', 'value' => 4],
+                ['name' => 'Handeln', 'value' => 4],
+                ['name' => 'Reiten', 'value' => 4],
+            ],
+            'techno_skill_points' => [
+                'Fahren' => 4,
+                'Feuerwaffen' => 2,
+                'Heiler' => 0,
+                'Pilot' => 2,
+                'Techniker' => 2,
+                'Wissenschaftler' => 2,
+            ],
+            'bunkermensch_bonus_skill' => 'Pilot',
+            'advantages' => ['Zaeh', 'High-Tech-Ausruestung'],
+            'disadvantages' => ['Toedliche Immunschwaeche'],
+        ]));
+
+        $response
+            ->assertRedirect(route('rpg.characters.index'))
+            ->assertSessionHas('success');
+
+        $character = RpgCharacter::query()->firstOrFail();
+
+        $this->assertSame($member->id, $character->user_id);
+        $this->assertSame('Techno Vollbudget', $character->character_name);
+        $this->assertSame('Techno', $character->payload['character']['race']);
+    }
+
     public function test_non_editor_member_cannot_use_character_storage_routes(): void
     {
         $owner = $this->actingAgMember();

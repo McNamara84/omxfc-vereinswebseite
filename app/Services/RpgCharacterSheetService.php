@@ -194,6 +194,18 @@ class RpgCharacterSheetService
 
     private const SPECIAL_SKILL_VALUES = ['Natürliche Waffen'];
 
+    private const TECHNO_SKILL_POOL_VALUES = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
+
+    private const TECHNO_SKILL_POOL_POINTS = 12;
+
+    private const PRAEKRISTOFLUU_SKILL_POOL_VALUES = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
+
+    private const PRAEKRISTOFLUU_SKILL_POOL_POINTS = 12;
+
+    private const BUNKERMENSCH_BONUS_SKILL_VALUES = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
+
+    private const MENSCH_21_BONUS_SKILL_VALUES = ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'];
+
     private const SKILL_SUGGESTIONS = [
         'Athletik',
         'Beruf',
@@ -503,6 +515,15 @@ class RpgCharacterSheetService
         $this->validateCharacterPayload($character);
         $attributes = $this->attributesPayload($request->input('attributes', []));
         $skills = $this->skillsPayload($request->input('skills', []));
+        $skillPools = [
+            'techno' => $this->skillPoolPayload($request->input('techno_skill_points', []), self::TECHNO_SKILL_POOL_VALUES),
+            'praekristofluu' => $this->skillPoolPayload($request->input('praekristofluu_skill_points', []), self::PRAEKRISTOFLUU_SKILL_POOL_VALUES),
+        ];
+        $cultureChoices = [
+            'bunkermensch_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('bunkermensch_bonus_skill', ''))),
+            'mensch_21_first_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('mensch_21_first_bonus_skill', ''))),
+            'mensch_21_second_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('mensch_21_second_bonus_skill', ''))),
+        ];
         $advantages = $this->canonicalSpecialList($this->listPayload($request->input('advantages', [])));
         $disadvantages = $this->canonicalSpecialList($this->listPayload($request->input('disadvantages', [])));
         $advantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('advantage_details', [])), $advantages);
@@ -522,6 +543,8 @@ class RpgCharacterSheetService
             $disadvantageDetails,
             $advantageCounts,
             $barbarAttributeBonus,
+            $skillPools,
+            $cultureChoices,
         );
         $this->validateEquipmentRules($clothing, $equipmentItems, $advantages);
 
@@ -570,7 +593,7 @@ class RpgCharacterSheetService
         }
     }
 
-    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = ''): void
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = '', array $skillPools = [], array $cultureChoices = []): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
@@ -659,7 +682,7 @@ class RpgCharacterSheetService
         }
 
         $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
-        $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages);
+        $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages, $skillPools, $cultureChoices);
         $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
         $this->validateCultureRequirements($culture, $skills);
         $this->validateSpecialBudgetAndDetails(
@@ -674,10 +697,11 @@ class RpgCharacterSheetService
         );
     }
 
-    private function validateSkillRules(string $race, string $culture, array $skills, array $advantages): void
+    private function validateSkillRules(string $race, string $culture, array $skills, array $advantages, array $skillPools = [], array $cultureChoices = []): void
     {
         $seen = [];
-        $grants = $this->freeSkillGrants($race, $culture, $skills);
+        $this->validateCultureChoiceInputs($culture, $cultureChoices);
+        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices);
 
         foreach ($skills as $skill) {
             $name = (string) ($skill['name'] ?? '');
@@ -765,13 +789,214 @@ class RpgCharacterSheetService
             && (bool) (self::SKILL_RULES[$baseName]['specializable'] ?? false);
     }
 
-    private function freeSkillGrants(string $race, string $culture, array $skills): array
+    private function freeSkillGrants(string $race, string $culture, array $skills, array $skillPools = [], array $cultureChoices = []): array
     {
         $grants = [];
+        $raceSkillPool = $this->skillPoolForRace($race, $skills, $skillPools);
+
+        $this->validateRaceSkillPool($race, $skills, $raceSkillPool);
         $this->addRequirementSkillGrants($grants, $this->raceRequirements($race), $skills);
-        $this->addRequirementSkillGrants($grants, $this->cultureRequirements($culture), $skills);
+        $this->addSkillPoolGrants($grants, $raceSkillPool);
+        $this->addRequirementSkillGrants($grants, $this->cultureRequirementsForGrants($culture, $cultureChoices), $skills);
+        $this->addCultureChoiceSkillGrants($grants, $culture, $cultureChoices);
 
         return $grants;
+    }
+
+    private function skillPoolForRace(string $race, array $skills, array $skillPools): array
+    {
+        return match ($race) {
+            'Techno' => $this->normalizedSkillPool(
+                $skillPools['techno'] ?? [],
+                self::TECHNO_SKILL_POOL_VALUES,
+                self::TECHNO_SKILL_POOL_POINTS,
+                $skills,
+            ),
+            'Präkristofluu' => $this->normalizedSkillPool(
+                $skillPools['praekristofluu'] ?? [],
+                self::PRAEKRISTOFLUU_SKILL_POOL_VALUES,
+                self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
+                $skills,
+            ),
+            default => [],
+        };
+    }
+
+    private function normalizedSkillPool(array $submittedPool, array $skillNames, int $poolPoints, array $skills): array
+    {
+        if ($submittedPool === []) {
+            return $this->inferSkillPoolFromSkills($skills, $skillNames, $poolPoints);
+        }
+
+        $pool = [];
+
+        foreach ($skillNames as $skillName) {
+            $pool[$skillName] = $submittedPool[$skillName] ?? 0;
+        }
+
+        return $pool;
+    }
+
+    private function inferSkillPoolFromSkills(array $skills, array $skillNames, int $poolPoints): array
+    {
+        $pool = array_fill_keys($skillNames, 0);
+        $remaining = $poolPoints;
+
+        foreach ($skillNames as $skillName) {
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $skillValue = min(max($this->skillValue($skills, $skillName), 0), self::SKILL_BASE_MAX);
+            $grantValue = min($skillValue, $remaining);
+            $pool[$skillName] = $grantValue;
+            $remaining -= $grantValue;
+        }
+
+        return $pool;
+    }
+
+    private function validateRaceSkillPool(string $race, array $skills, array $skillPool): void
+    {
+        $expectedPoolPoints = match ($race) {
+            'Techno' => self::TECHNO_SKILL_POOL_POINTS,
+            'Präkristofluu' => self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
+            default => null,
+        };
+
+        if ($expectedPoolPoints === null) {
+            return;
+        }
+
+        $sum = 0;
+
+        foreach ($skillPool as $skillName => $value) {
+            if (! is_int($value)) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Rassenpunkte für {$skillName} müssen als ganze Zahl übermittelt werden.",
+                ]);
+            }
+
+            if ($value < self::SKILL_BASE_MIN || $value > self::SKILL_BASE_MAX) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Rassenpunkte für {$skillName} müssen im Bereich von ".self::SKILL_BASE_MIN.' bis '.self::SKILL_BASE_MAX.' liegen.',
+                ]);
+            }
+
+            if ($value > 0 && $this->skillValue($skills, (string) $skillName) < $value) {
+                throw ValidationException::withMessages([
+                    'skills' => "Die Rassenpunkte für {$skillName} dürfen den Fertigkeitswert nicht überschreiten.",
+                ]);
+            }
+
+            $sum += $value;
+        }
+
+        if ($sum !== $expectedPoolPoints) {
+            $label = $race === 'Techno' ? 'Techno-Rassenpunkte' : 'Präkristofluu-Rassenpunkte';
+
+            throw ValidationException::withMessages([
+                'skills' => "Die {$label} müssen genau {$expectedPoolPoints} Punkte ergeben.",
+            ]);
+        }
+    }
+
+    private function addSkillPoolGrants(array &$grants, array $skillPool): void
+    {
+        foreach ($skillPool as $skillName => $value) {
+            if (is_int($value) && $value > 0) {
+                $this->setSkillGrant($grants, (string) $skillName, $value);
+            }
+        }
+    }
+
+    private function cultureRequirementsForGrants(string $culture, array $cultureChoices): array
+    {
+        $requirements = $this->cultureRequirements($culture);
+
+        if ($culture === 'Bunkermensch'
+            && $this->selectedCultureChoice($cultureChoices, 'bunkermensch_bonus_skill', self::BUNKERMENSCH_BONUS_SKILL_VALUES) !== null) {
+            unset($requirements['anySkills']);
+        }
+
+        if ($culture === 'Mensch des 21. Jahrhunderts'
+            && ($this->selectedCultureChoice($cultureChoices, 'mensch_21_first_bonus_skill', self::MENSCH_21_BONUS_SKILL_VALUES) !== null
+                || $this->selectedCultureChoice($cultureChoices, 'mensch_21_second_bonus_skill', self::MENSCH_21_BONUS_SKILL_VALUES) !== null)) {
+            unset($requirements['countSkills']);
+        }
+
+        return $requirements;
+    }
+
+    private function addCultureChoiceSkillGrants(array &$grants, string $culture, array $cultureChoices): void
+    {
+        if ($culture === 'Bunkermensch') {
+            $skillName = $this->selectedCultureChoice($cultureChoices, 'bunkermensch_bonus_skill', self::BUNKERMENSCH_BONUS_SKILL_VALUES);
+
+            if ($skillName !== null) {
+                $this->setAdditiveChoiceGrant($grants, $skillName);
+            }
+        }
+
+        if ($culture !== 'Mensch des 21. Jahrhunderts') {
+            return;
+        }
+
+        $skillNames = array_values(array_unique(array_filter([
+            $this->selectedCultureChoice($cultureChoices, 'mensch_21_first_bonus_skill', self::MENSCH_21_BONUS_SKILL_VALUES),
+            $this->selectedCultureChoice($cultureChoices, 'mensch_21_second_bonus_skill', self::MENSCH_21_BONUS_SKILL_VALUES),
+        ])));
+
+        foreach ($skillNames as $skillName) {
+            $this->setAdditiveChoiceGrant($grants, $skillName);
+        }
+    }
+
+    private function setAdditiveChoiceGrant(array &$grants, string $skillName): void
+    {
+        $currentGrant = $this->skillGrantValue($grants, $skillName) ?? self::SKILL_BASE_MIN;
+        $this->setSkillGrant($grants, $skillName, min(self::SKILL_BASE_MAX, $currentGrant + 1));
+    }
+
+    private function selectedCultureChoice(array $cultureChoices, string $key, array $allowedSkills): ?string
+    {
+        $skillName = $this->canonicalSkillName((string) ($cultureChoices[$key] ?? ''));
+
+        return in_array($skillName, $allowedSkills, true) ? $skillName : null;
+    }
+
+    private function validateCultureChoiceInputs(string $culture, array $cultureChoices): void
+    {
+        $bunkermenschBonusSkill = $this->canonicalSkillName((string) ($cultureChoices['bunkermensch_bonus_skill'] ?? ''));
+
+        if ($culture === 'Bunkermensch'
+            && $bunkermenschBonusSkill !== ''
+            && ! in_array($bunkermenschBonusSkill, self::BUNKERMENSCH_BONUS_SKILL_VALUES, true)) {
+            throw ValidationException::withMessages([
+                'skills' => 'Der Bunkermensch-Zusatzbonus muss eine erlaubte Fertigkeit verwenden.',
+            ]);
+        }
+
+        if ($culture !== 'Mensch des 21. Jahrhunderts') {
+            return;
+        }
+
+        $first = $this->canonicalSkillName((string) ($cultureChoices['mensch_21_first_bonus_skill'] ?? ''));
+        $second = $this->canonicalSkillName((string) ($cultureChoices['mensch_21_second_bonus_skill'] ?? ''));
+
+        foreach ([$first, $second] as $skillName) {
+            if ($skillName !== '' && ! in_array($skillName, self::MENSCH_21_BONUS_SKILL_VALUES, true)) {
+                throw ValidationException::withMessages([
+                    'skills' => 'Die Boni für Mensch des 21. Jahrhunderts müssen erlaubte Fertigkeiten verwenden.',
+                ]);
+            }
+        }
+
+        if ($first !== '' && $first === $second) {
+            throw ValidationException::withMessages([
+                'skills' => 'Die Boni für Mensch des 21. Jahrhunderts müssen zwei verschiedene Fertigkeiten verwenden.',
+            ]);
+        }
     }
 
     private function addRequirementSkillGrants(array &$grants, array $requirements, array $skills): void
@@ -1415,6 +1640,28 @@ class RpgCharacterSheetService
                 'name' => $name,
                 'value' => $this->stringPayload($skill['value'] ?? ''),
             ];
+        }
+
+        return $payload;
+    }
+
+    private function skillPoolPayload(mixed $skillPoints, array $allowedSkills): array
+    {
+        if (! is_array($skillPoints)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($skillPoints as $key => $value) {
+            $skillName = $this->canonicalSkillName($this->stringPayload($key));
+
+            if (! in_array($skillName, $allowedSkills, true)) {
+                continue;
+            }
+
+            $rawValue = $this->stringPayload($value);
+            $payload[$skillName] = preg_match('/^-?\d+$/', $rawValue) ? (int) $rawValue : $rawValue;
         }
 
         return $payload;
