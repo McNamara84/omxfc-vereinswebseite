@@ -15,7 +15,7 @@ describe('buildMembersTableSummary', () => {
         expect(summary).toContain('3 Mitglieder');
     });
 
-    it('falls back to Nachname and ignores invalid totals', () => {
+    it('falls back to Nickname/Name and ignores invalid totals', () => {
         const summary = buildMembersTableSummary({
             sortBy: 'unbekannt',
             sortDir: 'asc',
@@ -23,7 +23,7 @@ describe('buildMembersTableSummary', () => {
             totalMembers: 'abc',
         });
 
-        expect(summary).toContain('Nachname');
+        expect(summary).toContain('Nickname/Name');
         expect(summary).toContain('aufsteigender');
         expect(summary).not.toContain('Mitglieder sichtbar. Insgesamt sind sichtbar.');
     });
@@ -54,7 +54,7 @@ describe('enhanceMembersTable', () => {
         const thead = document.createElement('thead');
         const row = document.createElement('tr');
         headerName = document.createElement('th');
-        headerName.dataset.membersSortColumn = 'nachname';
+        headerName.dataset.membersSortColumn = 'name';
         headerRole = document.createElement('th');
         headerRole.dataset.membersSortColumn = 'role';
 
@@ -88,7 +88,7 @@ describe('setupMitgliederAccessibility', () => {
                 <thead>
                     <tr>
                         <th data-members-sort-column="mitglied_seit"></th>
-                        <th data-members-sort-column="nachname"></th>
+                        <th data-members-sort-column="name"></th>
                     </tr>
                 </thead>
             </table>

@@ -82,6 +82,43 @@ class MemberMapCacheServiceTest extends TestCase
         $this->assertEquals((float) self::DEFAULT_LON, $data['centerLon']);
     }
 
+    public function test_map_data_uses_nickname_with_name_fallback(): void
+    {
+        Cache::flush();
+
+        $team = Team::factory()->create();
+        $team->users()->detach();
+
+        $withNickname = User::factory()->create([
+            'name' => 'Klara Klarname',
+            'alias' => 'Kiki',
+            'plz' => '11111',
+            'stadt' => 'Nickname City',
+            'lat' => 10.0,
+            'lon' => 20.0,
+            'current_team_id' => $team->id,
+        ]);
+        $withoutNickname = User::factory()->create([
+            'name' => 'Name Ohne Alias',
+            'alias' => null,
+            'plz' => '22222',
+            'stadt' => 'Fallback City',
+            'lat' => 20.0,
+            'lon' => 30.0,
+            'current_team_id' => $team->id,
+        ]);
+
+        $team->users()->attach($withNickname, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($withoutNickname, ['role' => Role::Mitglied->value]);
+
+        $data = (new MemberMapCacheService)->getMemberMapData($team);
+        $names = array_column($data['memberData'], 'name');
+
+        $this->assertContains('Kiki', $names);
+        $this->assertContains('Name Ohne Alias', $names);
+        $this->assertNotContains('Klara Klarname', $names);
+    }
+
     public function test_members_without_plz_or_with_anwaerter_role_are_excluded(): void
     {
         Cache::flush();

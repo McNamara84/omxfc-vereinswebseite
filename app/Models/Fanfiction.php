@@ -110,6 +110,15 @@ class Fanfiction extends Model
         return $this->author_name ?? 'Unbekannt';
     }
 
+    public function memberAuthorDisplayName(): string
+    {
+        if ($this->author) {
+            return $this->author->nicknameOrName();
+        }
+
+        return $this->author_name ?? 'Unbekannt';
+    }
+
     /**
      * Comments belonging to this fanfiction.
      */

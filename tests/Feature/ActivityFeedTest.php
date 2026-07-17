@@ -125,6 +125,7 @@ class ActivityFeedTest extends TestCase
         $book = Book::first();
 
         $user = $this->actingMember();
+        $user->update(['alias' => 'ReviewNick']);
         $this->actingAs($user);
 
         $review = Review::create([
@@ -149,7 +150,7 @@ class ActivityFeedTest extends TestCase
 
         $dashboard = $this->get('/dashboard');
         $dashboard->assertOk();
-        $dashboard->assertSeeTextInOrder(['Kommentar zu', 'Meine Rezension', 'von', $user->name]);
+        $dashboard->assertSeeTextInOrder(['Kommentar zu', 'Meine Rezension', 'von', 'ReviewNick']);
         $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" wire:navigate class="text-info hover:underline">Meine Rezension</a>', false);
         $dashboard->assertSee('<a href="'.route('profile.view', $user->id).'" wire:navigate', false);
         $dashboard->assertSeeText('Tolles Buch!');
@@ -316,6 +317,7 @@ class ActivityFeedTest extends TestCase
     public function test_activity_created_and_displayed_for_reward_unlock(): void
     {
         $user = $this->actingMember();
+        $user->update(['alias' => 'RewardNick']);
         $this->actingAs($user);
 
         UserPoint::create([
@@ -343,7 +345,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText($user->name);
+        $response->assertSeeText('RewardNick');
         $response->assertSeeText('Mitgliederkarte');
         $response->assertSeeText('freigeschaltet');
     }
@@ -440,6 +442,7 @@ class ActivityFeedTest extends TestCase
     public function test_dashboard_shows_fanfiction_comment_activity(): void
     {
         $user = $this->actingMember();
+        $user->update(['alias' => 'FanfictionNick']);
         $this->actingAs($user);
 
         $fanfiction = Fanfiction::factory()->published()->create([
@@ -465,7 +468,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeTextInOrder(['Kommentar zu', $fanfiction->title, 'von', $user->name]);
+        $response->assertSeeTextInOrder(['Kommentar zu', $fanfiction->title, 'von', 'FanfictionNick']);
         $response->assertSeeText(PreviewText::make($comment->content, 140));
     }
 
@@ -503,6 +506,8 @@ class ActivityFeedTest extends TestCase
     {
         $offerUser = $this->actingMember();
         $requestUser = $this->actingMember();
+        $offerUser->update(['alias' => 'AngebotNick']);
+        $requestUser->update(['alias' => 'GesuchNick']);
         $this->actingAs($offerUser);
 
         $offer = BookOffer::create([
@@ -543,8 +548,8 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Tausch erfolgreich abgeschlossen');
-        $response->assertSeeText($offerUser->name);
-        $response->assertSeeText($requestUser->name);
+        $response->assertSeeText('AngebotNick');
+        $response->assertSeeText('GesuchNick');
         $response->assertSeeText('haben ihren Romantausch bestätigt.');
         $response->assertSeeText('Maddrax 21');
         $response->assertDontSeeText('Unbekannter Nutzer');
@@ -584,6 +589,7 @@ class ActivityFeedTest extends TestCase
     public function test_dashboard_shows_baxx_milestone_activity(): void
     {
         $user = $this->actingMember();
+        $user->update(['alias' => 'MeilensteinNick']);
         $this->actingAs($user);
 
         UserPoint::create([
@@ -596,7 +602,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText($user->name);
+        $response->assertSeeText('MeilensteinNick');
         $response->assertSeeText('100 Baxx erreicht');
         $response->assertSeeText('Meilenstein');
     }
@@ -654,6 +660,7 @@ class ActivityFeedTest extends TestCase
     public function test_dashboard_displays_fantreffen_registration_activity_without_profile_link(): void
     {
         $user = $this->actingMember();
+        $user->update(['alias' => 'FantreffenNick']);
         $this->actingAs($user);
 
         $anmeldung = FantreffenAnmeldung::create([
@@ -679,7 +686,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText('Alex hat sich zum Fantreffen in Coellen angemeldet');
+        $response->assertSeeText('FantreffenNick hat sich zum Fantreffen in Coellen angemeldet');
         $response->assertDontSee('<a href="'.route('profile.view', $user->id).'"', false);
     }
 
@@ -824,8 +831,12 @@ class ActivityFeedTest extends TestCase
     {
         Mail::fake();
         $admin = $this->actingMember(Role::Admin);
+        $admin->update(['alias' => 'AdminNick']);
         $team = $admin->currentTeam;
-        $anwaerter = User::factory()->create(['current_team_id' => $team->id]);
+        $anwaerter = User::factory()->create([
+            'current_team_id' => $team->id,
+            'alias' => 'NeuNick',
+        ]);
         $team->users()->attach($anwaerter, ['role' => Role::Anwaerter->value]);
 
         $this->actingAs($admin)->post(route('anwaerter.approve', $anwaerter));
@@ -838,7 +849,8 @@ class ActivityFeedTest extends TestCase
         ]);
 
         $dashboard = $this->get('/dashboard');
-        $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied '.$anwaerter->name);
+        $dashboard->assertSeeText('AdminNick');
+        $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied NeuNick');
     }
 
     public function test_dashboard_shows_fallback_when_activity_subject_missing(): void

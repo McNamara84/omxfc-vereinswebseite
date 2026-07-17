@@ -7,9 +7,11 @@ use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Mail\ProfileContactUpdated;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\MemberMapCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
@@ -226,6 +228,25 @@ class UpdateProfileInformationFormTest extends TestCase
         $this->assertSame('Stefan K', $user->alias);
         $this->assertSame([], $user->author_aliases);
         Mail::assertNotQueued(ProfileContactUpdated::class);
+    }
+
+    public function test_changing_alias_invalidates_member_map_cache(): void
+    {
+        Mail::fake();
+        $team = Team::membersTeam();
+        $this->actingAs($user = $this->createMember());
+        app(MemberMapCacheService::class)->getMemberMapData($team);
+        $cacheKey = "member_map_data_v2_team_{$team->id}";
+
+        $this->assertTrue(Cache::has($cacheKey));
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', $this->profileFormData(['alias' => 'Neuer Nickname']))
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Neuer Nickname', $user->refresh()->alias);
+        $this->assertFalse(Cache::has($cacheKey));
     }
 
     public function test_ehrenmitglied_can_store_multiple_author_aliases(): void

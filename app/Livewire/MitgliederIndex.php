@@ -15,8 +15,8 @@ use Livewire\Component;
 
 class MitgliederIndex extends Component
 {
-    #[Url(as: 'sort', except: 'nachname')]
-    public string $sortBy = 'nachname';
+    #[Url(as: 'sort', except: 'name')]
+    public string $sortBy = 'name';
 
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
@@ -28,7 +28,7 @@ class MitgliederIndex extends Component
 
     private MembersTeamProvider $membersTeamProvider;
 
-    private const ALLOWED_SORT_FIELDS = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
+    private const ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
     private const ROLE_RANKS = [
         Role::Mitglied->value => 1,
@@ -48,9 +48,13 @@ class MitgliederIndex extends Component
 
     public function mount(): void
     {
+        if ($this->sortBy === 'nachname') {
+            $this->sortBy = 'name';
+        }
+
         // Validate sort params from URL
         if (! in_array($this->sortBy, self::ALLOWED_SORT_FIELDS)) {
-            $this->sortBy = 'nachname';
+            $this->sortBy = 'name';
         }
         if (! in_array($this->sortDir, ['asc', 'desc'])) {
             $this->sortDir = $this->sortBy === 'last_activity' ? 'desc' : 'asc';
@@ -71,6 +75,20 @@ class MitgliederIndex extends Component
 
         if ($this->sortBy === 'role') {
             return $query->orderByPivot('role', $this->sortDir)->get();
+        }
+
+        if ($this->sortBy === 'name') {
+            $direction = $this->sortDir === 'desc' ? -1 : 1;
+
+            return $query->get()
+                ->sort(function (User $left, User $right) use ($direction): int {
+                    $nameComparison = strnatcasecmp($left->nicknameOrName(), $right->nicknameOrName());
+
+                    return $nameComparison === 0
+                        ? $left->id <=> $right->id
+                        : $nameComparison * $direction;
+                })
+                ->values();
         }
 
         return $query->orderBy($this->sortBy, $this->sortDir)->get();

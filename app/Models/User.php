@@ -370,6 +370,11 @@ class User extends Authenticatable
         return $alias === '' ? null : $alias;
     }
 
+    public function nicknameOrName(): string
+    {
+        return $this->displayAlias() ?? trim((string) $this->name);
+    }
+
     /**
      * @return array<int, string>
      */

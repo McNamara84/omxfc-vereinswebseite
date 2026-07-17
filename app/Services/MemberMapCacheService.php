@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Cache;
 
 class MemberMapCacheService
 {
+    private const CACHE_VERSION = 'v2';
+
     public function getMemberMapData(Team $team): array
     {
-        $cacheKey = "member_map_data_team_{$team->id}";
+        $cacheKey = $this->cacheKey($team);
 
         if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
@@ -18,7 +20,7 @@ class MemberMapCacheService
 
         $members = $team->activeUsers()
             ->as('pivot')
-            ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
+            ->select('users.id', 'users.name', 'users.alias', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
             ->withPivot('role')
             ->get();
 
@@ -42,7 +44,7 @@ class MemberMapCacheService
                     $jitter = $this->addJitter($member->lat, $member->lon);
 
                     $memberData[] = [
-                        'name' => $member->name,
+                        'name' => $member->nicknameOrName(),
                         'city' => $member->stadt,
                         'role' => $member->pivot->role,
                         'lat' => $jitter['lat'],
@@ -69,9 +71,19 @@ class MemberMapCacheService
 
     public function refresh(Team $team): array
     {
-        Cache::forget("member_map_data_team_{$team->id}");
+        $this->invalidate($team);
 
         return $this->getMemberMapData($team);
+    }
+
+    public function invalidate(Team $team): void
+    {
+        Cache::forget($this->cacheKey($team));
+    }
+
+    private function cacheKey(Team $team): string
+    {
+        return 'member_map_data_'.self::CACHE_VERSION."_team_{$team->id}";
     }
 
     private function addJitter($lat, $lon): array

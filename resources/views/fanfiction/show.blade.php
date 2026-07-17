@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
         @php
-            $pageDescription = 'von '.$fanfiction->author_display_name;
+            $pageDescription = 'von '.$fanfiction->memberAuthorDisplayName();
 
             if ($fanfiction->published_at) {
                 $pageDescription .= ' • Veröffentlicht am '.$fanfiction->published_at->format('d.m.Y');

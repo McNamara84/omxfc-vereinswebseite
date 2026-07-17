@@ -48,7 +48,7 @@ class MitgliederIndexLivewireTest extends TestCase
             ]);
     }
 
-    public function test_index_sorts_members_by_nachname_asc(): void
+    public function test_index_sorts_members_by_visible_nickname_or_name_asc(): void
     {
         $team = Team::membersTeam();
 
@@ -56,6 +56,7 @@ class MitgliederIndexLivewireTest extends TestCase
             'name' => 'Anna Alpha',
             'vorname' => 'Anna',
             'nachname' => 'Alpha',
+            'alias' => 'Zebra',
             'current_team_id' => $team->id,
         ]);
         $team->users()->attach($a, ['role' => Role::Ehrenmitglied->value]);
@@ -64,6 +65,7 @@ class MitgliederIndexLivewireTest extends TestCase
             'name' => 'Zara Zulu',
             'vorname' => 'Zara',
             'nachname' => 'Zulu',
+            'alias' => 'Abby',
             'current_team_id' => $team->id,
         ]);
         $team->users()->attach($z, ['role' => Role::Kassenwart->value]);
@@ -77,13 +79,13 @@ class MitgliederIndexLivewireTest extends TestCase
         $this->actingAs($acting);
 
         Livewire::test(MitgliederIndex::class)
-            ->set('sortBy', 'nachname')
+            ->set('sortBy', 'name')
             ->set('sortDir', 'asc')
             ->assertSeeInOrder([
-                'Anna Alpha',
+                'Abby',
                 'Holger Ehrmann',
                 'Mike Member',
-                'Zara Zulu',
+                'Zebra',
             ]);
     }
 
@@ -108,12 +110,41 @@ class MitgliederIndexLivewireTest extends TestCase
         $this->actingAs($this->actingMember('Mitglied'));
 
         Livewire::test(MitgliederIndex::class)
-            ->assertSee('Alias: Stefan K')
+            ->assertSee('Stefan K')
+            ->assertDontSee('Alias: Stefan K')
+            ->assertDontSee('Stefan Kontakt')
             ->assertSee('Ian Rolf Hill')
             ->assertSee('Maddraxikon')
             ->assertSee('Nextcloud')
             ->assertSee('https://de.maddraxikon.com/index.php?title=Benutzer:Stefan_K', false)
             ->assertSee('https://cloud.maddrax-fanclub.de/u/Holger', false);
+    }
+
+    public function test_privileged_member_sees_nickname_and_civil_name(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create([
+            'name' => 'Stefan Kontakt',
+            'vorname' => 'Stefan',
+            'nachname' => 'Kontakt',
+            'alias' => 'Stefan K',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $this->actingAs($this->actingMember('Admin'));
+
+        Livewire::test(MitgliederIndex::class)
+            ->assertSee('Stefan K')
+            ->assertSee('Stefan Kontakt');
+    }
+
+    public function test_legacy_nachname_sort_parameter_maps_to_visible_name(): void
+    {
+        $this->actingAs($this->actingMember('Mitglied'));
+
+        Livewire::test(MitgliederIndex::class, ['sortBy' => 'nachname'])
+            ->assertSet('sortBy', 'name');
     }
 
     public function test_index_sorts_members_by_last_activity_desc(): void
@@ -136,7 +167,7 @@ class MitgliederIndexLivewireTest extends TestCase
             ->assertSeeInOrder(['Ralf Recent', 'Olaf Old']);
     }
 
-    public function test_index_falls_back_to_nachname_on_invalid_sort(): void
+    public function test_index_falls_back_to_visible_name_on_invalid_sort(): void
     {
         $team = Team::membersTeam();
 
@@ -165,13 +196,13 @@ class MitgliederIndexLivewireTest extends TestCase
         $this->actingAs($acting);
 
         Livewire::test(MitgliederIndex::class, ['sortBy' => 'foo'])
-            ->assertSet('sortBy', 'nachname')
+            ->assertSet('sortBy', 'name')
             ->assertSet('sortDir', 'asc')
             ->assertSeeInOrder([
-                'Charlie Current',
-                'Holger Ehrmann',
                 'Alice First',
                 'Bob Second',
+                'Charlie Current',
+                'Holger Ehrmann',
             ]);
     }
 
@@ -223,11 +254,11 @@ class MitgliederIndexLivewireTest extends TestCase
         $this->actingAs($this->actingMember('Mitglied'));
 
         Livewire::test(MitgliederIndex::class)
-            ->assertSet('sortBy', 'nachname')
+            ->assertSet('sortBy', 'name')
             ->assertSet('sortDir', 'asc')
-            ->call('sort', 'nachname')
+            ->call('sort', 'name')
             ->assertSet('sortDir', 'desc')
-            ->call('sort', 'nachname')
+            ->call('sort', 'name')
             ->assertSet('sortDir', 'asc');
     }
 
@@ -236,7 +267,7 @@ class MitgliederIndexLivewireTest extends TestCase
         $this->actingAs($this->actingMember('Mitglied'));
 
         Livewire::test(MitgliederIndex::class)
-            ->assertSet('sortBy', 'nachname')
+            ->assertSet('sortBy', 'name')
             ->call('sort', 'mitglied_seit')
             ->assertSet('sortBy', 'mitglied_seit')
             ->assertSet('sortDir', 'asc');
@@ -258,6 +289,6 @@ class MitgliederIndexLivewireTest extends TestCase
 
         Livewire::test(MitgliederIndex::class)
             ->call('sort', 'email')
-            ->assertSet('sortBy', 'nachname');
+            ->assertSet('sortBy', 'name');
     }
 }
