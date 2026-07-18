@@ -30,8 +30,6 @@ class MitgliederIndex extends Component
 
     private const ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
-    private const DISPLAY_NAME_SORT_EXPRESSION = "COALESCE(NULLIF(TRIM(users.alias), ''), TRIM(users.name))";
-
     private const ROLE_RANKS = [
         Role::Mitglied->value => 1,
         Role::Ehrenmitglied->value => 2,
@@ -81,12 +79,22 @@ class MitgliederIndex extends Component
 
         if ($this->sortBy === 'name') {
             return $query
-                ->orderBy(DB::raw(self::DISPLAY_NAME_SORT_EXPRESSION), $this->sortDir)
+                ->orderBy(DB::raw($this->displayNameSortExpression()), $this->sortDir)
                 ->orderBy('users.id')
                 ->get();
         }
 
         return $query->orderBy($this->sortBy, $this->sortDir)->get();
+    }
+
+    private function displayNameSortExpression(): string
+    {
+        $civilNameExpression = DB::getDriverName() === 'sqlite'
+            ? "TRIM(COALESCE(NULLIF(TRIM(users.vorname), ''), '') || ' ' || COALESCE(NULLIF(TRIM(users.nachname), ''), ''))"
+            : "TRIM(CONCAT_WS(' ', NULLIF(TRIM(users.vorname), ''), NULLIF(TRIM(users.nachname), '')))";
+        $placeholder = str_replace("'", "''", User::UNKNOWN_DISPLAY_NAME);
+
+        return "COALESCE(NULLIF(TRIM(users.alias), ''), NULLIF(TRIM(users.name), ''), NULLIF({$civilNameExpression}, ''), '{$placeholder}')";
     }
 
     #[Computed]

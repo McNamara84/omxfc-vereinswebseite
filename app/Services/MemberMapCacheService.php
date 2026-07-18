@@ -21,7 +21,7 @@ class MemberMapCacheService
 
         $members = $team->activeUsers()
             ->as('pivot')
-            ->select('users.id', 'users.name', 'users.alias', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
+            ->select('users.id', 'users.name', 'users.alias', 'users.vorname', 'users.nachname', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
             ->withPivot('role')
             ->get();
 

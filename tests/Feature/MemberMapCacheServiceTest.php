@@ -128,15 +128,28 @@ class MemberMapCacheServiceTest extends TestCase
             'lon' => 30.0,
             'current_team_id' => $team->id,
         ]);
+        $withCivilNameFallback = User::factory()->create([
+            'name' => '   ',
+            'alias' => '   ',
+            'vorname' => 'Civil',
+            'nachname' => 'Fallback',
+            'plz' => '33333',
+            'stadt' => 'Civil City',
+            'lat' => 30.0,
+            'lon' => 40.0,
+            'current_team_id' => $team->id,
+        ]);
 
         $team->users()->attach($withNickname, ['role' => Role::Mitglied->value]);
         $team->users()->attach($withoutNickname, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($withCivilNameFallback, ['role' => Role::Mitglied->value]);
 
         $data = (new MemberMapCacheService)->getMemberMapData($team);
         $names = array_column($data['memberData'], 'name');
 
         $this->assertContains('Kiki', $names);
         $this->assertContains('Name Ohne Alias', $names);
+        $this->assertContains('Civil Fallback', $names);
         $this->assertNotContains('Klara Klarname', $names);
     }
 

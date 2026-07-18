@@ -79,6 +79,15 @@ class MitgliederIndexLivewireTest extends TestCase
         ]);
         $team->users()->attach($blankAlias, ['role' => Role::Mitglied->value]);
 
+        $civilFallback = User::factory()->create([
+            'name' => '   ',
+            'vorname' => 'Carl',
+            'nachname' => 'Civil',
+            'alias' => '   ',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($civilFallback, ['role' => Role::Mitglied->value]);
+
         $acting = $this->actingMember('Mitglied');
         $acting->update([
             'name' => 'Mike Member',
@@ -93,6 +102,7 @@ class MitgliederIndexLivewireTest extends TestCase
             ->assertSeeInOrder([
                 'Abby',
                 'Barry Blank',
+                'Carl Civil',
                 'Holger Ehrmann',
                 'Mike Member',
                 'Zebra',
@@ -134,15 +144,21 @@ class MitgliederIndexLivewireTest extends TestCase
 
         $sortQuery = collect($queries)
             ->pluck('query')
+            ->map(fn (string $query): string => str_replace(
+                ['"', '`', '[', ']'],
+                '',
+                strtolower($query)
+            ))
             ->first(fn (string $query): bool => str_contains(
-                strtolower($query),
-                "coalesce(nullif(trim(users.alias), ''), trim(users.name)) desc"
-            ));
+                $query,
+                "coalesce(nullif(trim(users.alias), ''), nullif(trim(users.name), '')"
+            ) && str_contains($query, ' desc'));
 
         $this->assertNotNull($sortQuery);
-
-        $normalizedQuery = str_replace(['"', '`'], '', strtolower($sortQuery));
-        $this->assertStringContainsString('users.id asc', $normalizedQuery);
+        $this->assertStringContainsString('users.vorname', $sortQuery);
+        $this->assertStringContainsString('users.nachname', $sortQuery);
+        $this->assertStringContainsString(strtolower(User::UNKNOWN_DISPLAY_NAME), $sortQuery);
+        $this->assertStringContainsString('users.id asc', $sortQuery);
     }
 
     public function test_index_shows_alias_author_aliases_and_released_contact_links(): void
