@@ -30,6 +30,8 @@ class MitgliederIndex extends Component
 
     private const ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
+    private const DISPLAY_NAME_SORT_EXPRESSION = "COALESCE(NULLIF(TRIM(users.alias), ''), TRIM(users.name))";
+
     private const ROLE_RANKS = [
         Role::Mitglied->value => 1,
         Role::Ehrenmitglied->value => 2,
@@ -78,17 +80,10 @@ class MitgliederIndex extends Component
         }
 
         if ($this->sortBy === 'name') {
-            $direction = $this->sortDir === 'desc' ? -1 : 1;
-
-            return $query->get()
-                ->sort(function (User $left, User $right) use ($direction): int {
-                    $nameComparison = strnatcasecmp($left->nicknameOrName(), $right->nicknameOrName());
-
-                    return $nameComparison === 0
-                        ? $left->id <=> $right->id
-                        : $nameComparison * $direction;
-                })
-                ->values();
+            return $query
+                ->orderBy(DB::raw(self::DISPLAY_NAME_SORT_EXPRESSION), $this->sortDir)
+                ->orderBy('users.id')
+                ->get();
         }
 
         return $query->orderBy($this->sortBy, $this->sortDir)->get();

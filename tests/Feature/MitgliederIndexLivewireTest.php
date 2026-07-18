@@ -70,6 +70,15 @@ class MitgliederIndexLivewireTest extends TestCase
         ]);
         $team->users()->attach($z, ['role' => Role::Kassenwart->value]);
 
+        $blankAlias = User::factory()->create([
+            'name' => 'Barry Blank',
+            'vorname' => 'Barry',
+            'nachname' => 'Blank',
+            'alias' => '   ',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($blankAlias, ['role' => Role::Mitglied->value]);
+
         $acting = $this->actingMember('Mitglied');
         $acting->update([
             'name' => 'Mike Member',
@@ -83,10 +92,57 @@ class MitgliederIndexLivewireTest extends TestCase
             ->set('sortDir', 'asc')
             ->assertSeeInOrder([
                 'Abby',
+                'Barry Blank',
                 'Holger Ehrmann',
                 'Mike Member',
                 'Zebra',
             ]);
+    }
+
+    public function test_visible_name_sort_runs_in_database_with_stable_id_tiebreaker(): void
+    {
+        $team = Team::membersTeam();
+
+        $first = User::factory()->create([
+            'name' => 'Anna Früh',
+            'vorname' => 'Anna',
+            'nachname' => 'Früh',
+            'alias' => 'Gleicher Nickname',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($first, ['role' => Role::Mitglied->value]);
+
+        $second = User::factory()->create([
+            'name' => 'Berta Spät',
+            'vorname' => 'Berta',
+            'nachname' => 'Spät',
+            'alias' => 'Gleicher Nickname',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($second, ['role' => Role::Mitglied->value]);
+
+        $this->actingAs($this->actingMember('Admin'));
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        Livewire::test(MitgliederIndex::class, ['sortBy' => 'name', 'sortDir' => 'desc'])
+            ->assertSeeInOrder(['Anna Früh', 'Berta Spät']);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $sortQuery = collect($queries)
+            ->pluck('query')
+            ->first(fn (string $query): bool => str_contains(
+                strtolower($query),
+                "coalesce(nullif(trim(users.alias), ''), trim(users.name)) desc"
+            ));
+
+        $this->assertNotNull($sortQuery);
+
+        $normalizedQuery = str_replace(['"', '`'], '', strtolower($sortQuery));
+        $this->assertStringContainsString('users.id asc', $normalizedQuery);
     }
 
     public function test_index_shows_alias_author_aliases_and_released_contact_links(): void
