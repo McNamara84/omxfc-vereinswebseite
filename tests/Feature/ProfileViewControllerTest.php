@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MaddraxikonRewardEventStatus;
 use App\Enums\Role;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\MaddraxikonRewardEvent;
 use App\Models\Review;
 use App\Models\Team;
 use App\Models\Todo;
@@ -246,6 +248,72 @@ class ProfileViewControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewHas('userPoints', 0);
         $response->assertViewHas('categoryPoints', []);
+        $response->assertViewHas('badges', []);
+    }
+
+    public function test_retrologe_badge_is_awarded_for_a_maddraxikon_reward_without_legacy_todo(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+
+        MaddraxikonRewardEvent::factory()->create([
+            'user_id' => $member->id,
+            'awarded_points' => 1,
+            'status' => MaddraxikonRewardEventStatus::Awarded,
+            'awarded_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get("/profil/{$member->id}");
+
+        $response->assertOk();
+        $this->assertSame(
+            ['Retrologe (Stufe 1)'],
+            collect($response->viewData('badges'))->pluck('name')->all()
+        );
+    }
+
+    public function test_retrologe_badge_remains_as_historical_proof_after_reward_reversal(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+
+        MaddraxikonRewardEvent::factory()->create([
+            'user_id' => $member->id,
+            'awarded_points' => 1,
+            'status' => MaddraxikonRewardEventStatus::Reversed,
+            'awarded_at' => now()->subDay(),
+            'reversed_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get("/profil/{$member->id}");
+
+        $response->assertOk();
+        $this->assertSame(
+            ['Retrologe (Stufe 1)'],
+            collect($response->viewData('badges'))->pluck('name')->all()
+        );
+    }
+
+    public function test_retrologe_badge_is_not_awarded_for_an_event_without_credited_points(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+
+        MaddraxikonRewardEvent::factory()->create([
+            'user_id' => $member->id,
+            'awarded_points' => 0,
+            'status' => MaddraxikonRewardEventStatus::EvaluatedNoAward,
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get("/profil/{$member->id}");
+
+        $response->assertOk();
         $response->assertViewHas('badges', []);
     }
 

@@ -1,21 +1,21 @@
-<x-app-layout title="Datenschutzerklärung – Offizieller MADDRAX Fanclub e. V." description="Wie der Verein personenbezogene Daten von Mitgliedsanträgen verarbeitet und schützt.">
+<x-app-layout title="Datenschutzerklärung – Offizieller MADDRAX Fanclub e. V." description="Wie der Verein personenbezogene Daten in der Vereinsverwaltung und in freiwilligen Online-Diensten verarbeitet und schützt.">
     <x-public-page class="space-y-8">
         <x-ui.page-header
             eyebrow="Personenbezogene Daten im Verein"
             title="Datenschutz"
-            description="Diese Datenschutzerklärung erläutert, wie der OMXFC personenbezogene Daten aus Mitgliedsanträgen verarbeitet, speichert und schützt."
+            description="Diese Datenschutzerklärung erläutert, wie der OMXFC personenbezogene Daten in der Vereinsverwaltung und in freiwilligen Online-Diensten verarbeitet, speichert und schützt."
         >
             <x-slot:actions>
                 <div class="flex flex-wrap gap-2">
                     <span class="badge badge-primary badge-outline rounded-full px-3 py-3">DSGVO-konformer Überblick</span>
-                    <span class="badge badge-outline rounded-full px-3 py-3">Mitgliedsanträge & Verwaltung</span>
+                    <span class="badge badge-outline rounded-full px-3 py-3">Vereinsverwaltung & Online-Dienste</span>
                     <a href="{{ route('impressum') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/75">Zum Impressum</a>
                 </div>
             </x-slot:actions>
         </x-ui.page-header>
 
         <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] xl:items-start">
-            <x-ui.panel title="Datenschutzerklärung für Mitgliedsanträge" description="Die folgenden Abschnitte beschreiben Verantwortlichkeit, Verarbeitungszwecke, Rechtsgrundlagen und Betroffenenrechte.">
+            <x-ui.panel title="Datenschutzerklärung" description="Die folgenden Abschnitte beschreiben Verantwortlichkeit, Verarbeitungszwecke, Rechtsgrundlagen und Betroffenenrechte.">
                 <div class="space-y-4">
                     <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5 sm:p-6">
                         <h2 class="text-xl font-semibold mb-2">Verantwortlicher</h2>
@@ -59,6 +59,24 @@
                     </section>
 
                     <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5 sm:p-6">
+                        <h2 class="text-xl font-semibold mb-2">Freiwillige Maddraxikon-Verknüpfung und Baxx</h2>
+                        <p>Aktive Vereinsmitglieder können freiwillig ihr Maddraxikon-Konto verknüpfen. Dadurch ordnen wir zukünftige öffentliche Wiki-Beiträge dem Vereinskonto zu, prüfen sie nach den veröffentlichten Regeln und schreiben gegebenenfalls Baxx gut. Rechtsgrundlage ist deine Einwilligung nach Art. 6 Abs. 1 lit. a DSGVO.</p>
+                        <p class="mt-2">Während der Verknüpfung empfangen und prüfen wir die vom OAuth-Profilendpunkt gelieferten Identitätsdaten einschließlich OAuth-Subject-ID, Benutzername und Sperrstatus nur kurzzeitig. Über die öffentliche Action API lösen wir den bestätigten Benutzernamen zusätzlich zur lokalen numerischen Wiki-Nutzer-ID und zum dortigen Sperrstatus auf. Die Profilantwort als Ganzes und beide Sperrstatus werden nicht dauerhaft gespeichert.</p>
+                        <p class="mt-2">Dauerhaft verarbeiten wir nur die für Zuordnung, Missbrauchsschutz und Buchungsnachweis erforderlichen Daten:</p>
+                        <ul class="list-disc ml-6 mt-2 space-y-1">
+                            <li>Vereins-Nutzer-ID, opake OAuth-Subject-ID, lokale numerische Wiki-Nutzer-ID und kanonischer Wiki-Benutzername,</li>
+                            <li>Zeitpunkte der Verknüpfung, erneuten Bestätigung und Trennung,</li>
+                            <li>minimale öffentliche Revisionsmetadaten wie Revisions-ID, Seite, Namensraum und Zeitpunkt,</li>
+                            <li>Prüfstatus, angewandte Regel sowie Baxx-Buchung oder Gegenbuchung.</li>
+                        </ul>
+                        <p class="mt-2">Eine Wiki-E-Mailadresse wird nicht angefordert oder ausgewertet. Wiki-Inhalte sowie OAuth-Zugriffs- oder Aktualisierungstoken werden weder für die Zuordnung benötigt noch dauerhaft gespeichert.</p>
+                        <p class="mt-2">Du kannst die Einwilligung jederzeit im Profil durch Trennen der Verbindung mit Wirkung für die Zukunft widerrufen. Neue Beiträge werden dann nicht mehr zugeordnet. Notwendige historische Zuordnungs- und Buchungsdaten bleiben für den strikten 1:1-Schutz, die Missbrauchsprävention und die Nachvollziehbarkeit bereits gebuchter Baxx erhalten; bereits gutgeschriebene Baxx bleiben grundsätzlich bestehen.</p>
+                        <p class="mt-2">Protokolle administrativer Zuordnungskorrekturen werden grundsätzlich zehn Jahre aufbewahrt und anschließend automatisiert gelöscht. Verknüpfungs-, Beitrags- und Buchungsdaten werden bei Löschung des lokalen Benutzerkontos entfernt, soweit keine vorrangige gesetzliche Pflicht entgegensteht.</p>
+                        <p class="mt-2">Nicht rückrechenbare, gehashte Identitätsmerkmale ohne Wiki-Benutzername bleiben zum dauerhaften Schutz vor einer missbräuchlichen Neuzuordnung erhalten. Der dafür verwendete geheime Schlüssel wird getrennt vom Anwendungsschlüssel verwaltet.</p>
+                        <p class="mt-2">Verknüpfungs- und Beitragsdetails sehen nur das betroffene Mitglied und berechtigte Administratoren. Der Wiki-Benutzername wird anderen Mitgliedern ausschließlich angezeigt, wenn die bereits bestehende Kontaktfreigabe für das Maddraxikon-Profil aktiviert ist.</p>
+                    </section>
+
+                    <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5 sm:p-6">
                         <h2 class="text-xl font-semibold mb-2">Deine Rechte gemäß DSGVO</h2>
                         <p>Du hast das Recht:</p>
                         <ul class="list-disc ml-6 mt-2 space-y-1">
@@ -98,7 +116,7 @@
                     </div>
                 </x-ui.panel>
 
-                <x-ui.panel title="Kurzüberblick" description="Die Verarbeitung ist auf Mitgliedsanträge und Vereinsverwaltung begrenzt und basiert auf einem klar benannten Rechtsgrund.">
+                <x-ui.panel title="Kurzüberblick" description="Die Verarbeitung umfasst Vereinsverwaltung und ausdrücklich freiwillig aktivierte Online-Dienste mit klar benannten Rechtsgrundlagen.">
                     <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
                         <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO.</li>
                         <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Weitergabe nur im notwendigen Vereinskontext oder bei gesetzlicher Pflicht.</li>

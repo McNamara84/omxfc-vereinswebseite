@@ -12,4 +12,4 @@ until php artisan migrate:status >/dev/null 2>&1; do
     sleep 2
 done
 
-exec php artisan queue:work --tries=3 --timeout=120 --sleep=3
+exec php artisan queue:work --tries=3 --timeout=330 --sleep=3

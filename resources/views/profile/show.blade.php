@@ -90,6 +90,10 @@
                     @livewire('profile.update-profile-information-form')
                 </x-ui.panel>
             @endif
+            <x-ui.panel title="Maddraxikon & Baxx" description="Verbinde dein verifiziertes Wiki-Konto und verfolge deine qualifizierten Beiträge." data-tour-profile-key="profile-maddraxikon-baxx">
+                @livewire('profile.maddraxikon-account-panel')
+            </x-ui.panel>
+
 
             {{-- Serienspezifische Daten ergänzen --}}
             <x-ui.panel title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">

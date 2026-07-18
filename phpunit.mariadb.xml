@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    stopOnFailure="true"
+    executionOrder="random"
+    failOnWarning="true"
+    failOnRisky="true"
+    failOnEmptyTestSuite="true"
+    beStrictAboutOutputDuringTests="true"
+    cacheResult="true"
+    cacheDirectory=".phpunit.cache/mariadb"
+    backupGlobals="false"
+    processIsolation="false">
+    <testsuites>
+        <testsuite name="Maddraxikon MariaDB">
+            <file>tests/Feature/MaddraxikonAccountLinkCorrectionTest.php</file>
+            <file>tests/Feature/MaddraxikonAdminTest.php</file>
+            <file>tests/Feature/MaddraxikonContributionImporterTest.php</file>
+            <file>tests/Feature/MaddraxikonDataModelTest.php</file>
+            <file>tests/Feature/MaddraxikonOAuthClientSecurityTest.php</file>
+            <file>tests/Feature/MaddraxikonOAuthHardeningTest.php</file>
+            <file>tests/Feature/MaddraxikonOAuthTest.php</file>
+            <file>tests/Feature/MaddraxikonOAuthAttemptStoreMariaDbConcurrencyTest.php</file>
+            <file>tests/Feature/MaddraxikonOperationsTest.php</file>
+            <file>tests/Feature/MaddraxikonPipelineMariaDbConcurrencyTest.php</file>
+            <file>tests/Feature/MaddraxikonProfileHardeningTest.php</file>
+            <file>tests/Feature/MaddraxikonProfilePanelTest.php</file>
+            <file>tests/Feature/MaddraxikonRewardServiceTest.php</file>
+            <file>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</file>
+            <file>tests/Unit/MaddraxikonApiClientTest.php</file>
+            <file>tests/Unit/MaddraxikonJobsTest.php</file>
+            <file>tests/Unit/MaddraxikonNamespaceHealthServiceTest.php</file>
+            <file>tests/Unit/TeamMembersTeamTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">app</directory>
+        </include>
+    </source>
+    <php>
+        <ini name="memory_limit" value="512M"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_CONFIG_CACHE" value="bootstrap/cache/config-mariadb-phpunit.php" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="mysql" force="true"/>
+        <env name="DB_DATABASE" value="omxfc_maddraxikon_test" force="true"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="SCOUT_DRIVER" value="null"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="FANTREFFEN_DISABLE_RATE_LIMIT" value="true"/>
+        <env name="MADDRAXIKON_IDENTITY_HMAC_PEPPERS"
+            value="test-v1:0123456789abcdef0123456789abcdef"
+            force="true"/>
+    </php>
+</phpunit>

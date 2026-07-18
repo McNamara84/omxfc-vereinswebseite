@@ -15,6 +15,7 @@ use App\Http\Controllers\FanfictionController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\KompendiumController;
+use App\Http\Controllers\MaddraxikonOAuthController;
 use App\Http\Controllers\MaddraxiversumController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MitgliederController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\TourController;
 use App\Http\Controllers\VeranstaltungController;
 use App\Http\Controllers\VeranstaltungVerwaltungController;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Livewire\BelohnungenAdmin;
 use App\Livewire\BelohnungenIndex;
 use App\Livewire\FanfictionCreate;
@@ -50,6 +52,7 @@ use App\Livewire\HoerbuchShow;
 use App\Livewire\KassenbuchIndex;
 use App\Livewire\KompendiumAdminDashboard;
 use App\Livewire\KompendiumSearchAnalyticsDashboard;
+use App\Livewire\MaddraxikonAdmin;
 use App\Livewire\MeetingAdmin;
 use App\Livewire\MitgliederIndex;
 use App\Livewire\RezensionForm;
@@ -125,6 +128,33 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
     ->withoutMiddleware([RedirectIfAnwaerter::class])
     ->name('verification.verify.de');
 
+/*
+ * The controller handles an expired session with a plain login redirect so
+ * this security middleware can protect that response too, without retaining
+ * the callback query as an intended URL.
+ */
+Route::get(
+    '/oauth/maddraxikon/callback',
+    [MaddraxikonOAuthController::class, 'callback']
+)->middleware([
+    SecureMaddraxikonOAuthCallbackResponse::class,
+    'throttle:maddraxikon-oauth-callback',
+])->name('maddraxikon.oauth.callback');
+
+Route::middleware('auth')->group(function () {
+    Route::post(
+        '/profil/maddraxikon/verbinden',
+        [MaddraxikonOAuthController::class, 'start']
+    )->middleware(['maddraxikon.eligible', 'throttle:maddraxikon-oauth-start'])
+        ->name('maddraxikon.oauth.start');
+
+    Route::delete(
+        '/profil/maddraxikon/verbindung',
+        [MaddraxikonOAuthController::class, 'disconnect']
+    )->middleware('throttle:maddraxikon-oauth-disconnect')
+        ->name('maddraxikon.oauth.disconnect');
+
+});
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
@@ -287,6 +317,9 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::livewire('/belohnungen/admin', BelohnungenAdmin::class)
         ->name('rewards.admin')
         ->middleware('admin');
+    Route::livewire('/belohnungen/admin/maddraxikon', MaddraxikonAdmin::class)
+        ->name('rewards.admin.maddraxikon')
+        ->middleware('maddraxikon.admin');
 
     Route::livewire('/admin/treffen', MeetingAdmin::class)
         ->name('admin.meetings')

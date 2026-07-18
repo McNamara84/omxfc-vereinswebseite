@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Mail\ProfileContactUpdated;
+use App\Models\MaddraxikonAccountLink;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MemberMapCacheService;
@@ -367,6 +368,33 @@ class UpdateProfileInformationFormTest extends TestCase
         $this->assertSame('MaxCloud', $user->nextcloud_username);
 
         Mail::assertNotQueued(ProfileContactUpdated::class);
+    }
+
+    public function test_verified_link_allows_contact_release_without_legacy_username(): void
+    {
+        Mail::fake();
+        $user = $this->createMember(attributes: [
+            'maddraxikon_username' => null,
+        ]);
+        MaddraxikonAccountLink::factory()->for($user)->create([
+            'wiki_username' => 'Kanonischer Wiki-Name',
+        ]);
+        $this->actingAs($user);
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', $this->profileFormData([
+                'email' => $user->email,
+                'contact_release_maddraxikon' => true,
+                'maddraxikon_username' => null,
+            ]))
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $user->refresh();
+
+        $this->assertTrue($user->contact_release_maddraxikon);
+        $this->assertNull($user->maddraxikon_username);
+        $this->assertSame('Kanonischer Wiki-Name', $user->maddraxikonDisplayUsername());
     }
 
     public function test_contact_update_notifies_board_roles(): void

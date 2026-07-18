@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Schema;
@@ -158,6 +159,22 @@ class User extends Authenticatable
                 GeocodeUser::dispatch($user);
             }
         });
+
+        static::deleting(function (User $user): void {
+            $schema = Schema::connection($user->getConnectionName());
+
+            if (! $schema->hasTable('maddraxikon_identity_tombstones')) {
+                return;
+            }
+
+            $link = MaddraxikonAccountLink::query()
+                ->where('user_id', $user->getKey())
+                ->first();
+
+            if ($link) {
+                MaddraxikonIdentityTombstone::retire($link);
+            }
+        });
     }
 
     private function hasGeocodeColumns(): bool
@@ -203,6 +220,21 @@ class User extends Authenticatable
     public function points(): HasMany
     {
         return $this->hasMany(UserPoint::class);
+    }
+
+    public function maddraxikonAccountLink(): HasOne
+    {
+        return $this->hasOne(MaddraxikonAccountLink::class);
+    }
+
+    public function maddraxikonContributions(): HasMany
+    {
+        return $this->hasMany(MaddraxikonContribution::class);
+    }
+
+    public function maddraxikonRewardEvents(): HasMany
+    {
+        return $this->hasMany(MaddraxikonRewardEvent::class);
     }
 
     /**
@@ -453,11 +485,12 @@ class User extends Authenticatable
 
         $maddraxikonProfileUrl = $this->maddraxikonProfileUrl();
 
-        if ($this->contact_release_maddraxikon && filled($this->maddraxikon_username) && $maddraxikonProfileUrl) {
+        $maddraxikonUsername = $this->maddraxikonDisplayUsername();
+        if ($this->contact_release_maddraxikon && filled($maddraxikonUsername) && $maddraxikonProfileUrl) {
             $methods[] = [
                 'key' => 'maddraxikon',
                 'label' => 'Maddraxikon',
-                'value' => (string) $this->maddraxikon_username,
+                'value' => (string) $maddraxikonUsername,
                 'href' => $maddraxikonProfileUrl,
                 'icon' => 'o-book-open',
             ];
@@ -478,9 +511,24 @@ class User extends Authenticatable
         return $methods;
     }
 
+    public function maddraxikonDisplayUsername(): ?string
+    {
+        $link = $this->relationLoaded('maddraxikonAccountLink')
+            ? $this->getRelation('maddraxikonAccountLink')
+            : $this->maddraxikonAccountLink()->first();
+
+        if ($link?->isActive()) {
+            return $link->wiki_username;
+        }
+
+        $legacyUsername = trim((string) $this->maddraxikon_username);
+
+        return $legacyUsername !== '' ? $legacyUsername : null;
+    }
+
     public function maddraxikonProfileUrl(): ?string
     {
-        $username = trim((string) $this->maddraxikon_username);
+        $username = trim((string) $this->maddraxikonDisplayUsername());
 
         if ($username === '') {
             return null;

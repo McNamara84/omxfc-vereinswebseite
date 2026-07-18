@@ -63,4 +63,11 @@ return [
         ],
     ],
 
+    'maddraxikon' => [
+        'client_id' => env('MADDRAXIKON_OAUTH_CLIENT_ID') ?: null,
+        'client_secret' => env('MADDRAXIKON_OAUTH_CLIENT_SECRET') ?: null,
+        'redirect_uri' => env('MADDRAXIKON_OAUTH_REDIRECT_URI') ?: null,
+        'scope' => env('MADDRAXIKON_OAUTH_SCOPE') ?: 'mwoauth-authonly',
+    ],
+
 ];

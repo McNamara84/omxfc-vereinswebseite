@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Models\User;
+use App\Services\LockedMembersTeamMemberships;
+use App\Services\MembersTeamMembershipLock;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Http\Request;
@@ -17,7 +19,8 @@ class MitgliederController extends Controller
 {
     public function __construct(
         private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider
+        private MembersTeamProvider $membersTeamProvider,
+        private MembersTeamMembershipLock $membershipLock,
     ) {}
 
     public function changeRole(Request $request, User $user)
@@ -60,7 +63,44 @@ class MitgliederController extends Controller
         }
 
         // Rolle des Mitglieds ändern
-        $team->users()->updateExistingPivot($user->id, ['role' => $newRole->value]);
+        $lockedError = $this->membershipLock->run(
+            [$currentUser->id, $user->id],
+            function (LockedMembersTeamMemberships $memberships) use (
+                $currentUser,
+                $newRole,
+                $roleRanks,
+                $user,
+            ): ?string {
+                $lockedCurrentRole = $memberships->role($currentUser->id);
+                $lockedMemberRole = $memberships->role($user->id);
+
+                if ($lockedCurrentRole === null || $lockedMemberRole === null) {
+                    return 'Die Teamzugehörigkeit hat sich zwischenzeitlich geändert.';
+                }
+
+                $lockedCurrentRank = $roleRanks[$lockedCurrentRole->value] ?? 0;
+                $lockedMemberRank = $roleRanks[$lockedMemberRole->value] ?? 0;
+
+                if ($lockedCurrentRank <= $lockedMemberRank) {
+                    return 'Du hast keine Berechtigung, die Rolle dieses Mitglieds zu ändern.';
+                }
+
+                if (($roleRanks[$newRole->value] ?? 0) > $lockedCurrentRank) {
+                    return 'Du kannst keine Rolle vergeben, die höher als deine eigene ist.';
+                }
+
+                $memberships->team->users()->updateExistingPivot(
+                    $user->id,
+                    ['role' => $newRole->value],
+                );
+
+                return null;
+            },
+        );
+
+        if ($lockedError !== null) {
+            return back()->with('error', $lockedError);
+        }
 
         return back()->with('status', 'Die Rolle von '.$user->name.' wurde zu '.$request->role.' geändert.');
     }
@@ -96,10 +136,37 @@ class MitgliederController extends Controller
         }
 
         // Mitglied aus Team entfernen
-        $team->users()->detach($user->id);
+        $lockedError = $this->membershipLock->run(
+            [$currentUser->id, $user->id],
+            function (LockedMembersTeamMemberships $memberships) use (
+                $currentUser,
+                $roleRanks,
+                $user,
+            ): ?string {
+                $lockedCurrentRole = $memberships->role($currentUser->id);
+                $lockedMemberRole = $memberships->role($user->id);
 
-        // Nutzer löschen
-        $user->delete();
+                if ($lockedCurrentRole === null || $lockedMemberRole === null) {
+                    return 'Die Teamzugehörigkeit hat sich zwischenzeitlich geändert.';
+                }
+
+                if (
+                    ($roleRanks[$lockedCurrentRole->value] ?? 0)
+                    <= ($roleRanks[$lockedMemberRole->value] ?? 0)
+                ) {
+                    return 'Du hast keine Berechtigung, dieses Mitglied zu entfernen.';
+                }
+
+                $memberships->team->users()->detach($user->id);
+                $memberships->user($user->id)->delete();
+
+                return null;
+            },
+        );
+
+        if ($lockedError !== null) {
+            return back()->with('error', $lockedError);
+        }
 
         return back()->with('status', 'Die Mitgliedschaft wurde erfolgreich beendet.');
     }

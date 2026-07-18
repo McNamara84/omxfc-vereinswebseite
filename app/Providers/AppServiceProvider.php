@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Enums\PollVisibility;
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureMaddraxikonAdmin;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Teams\TeamMemberManager;
@@ -86,6 +88,18 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('database-restore', function ($request) {
             return Limit::perHour(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
+        });
+
+        RateLimiter::for('maddraxikon-oauth-start', function ($request) {
+            return Limit::perMinute(5)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
+        });
+
+        RateLimiter::for('maddraxikon-oauth-callback', function ($request) {
+            return Limit::perMinute(10)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
+        });
+
+        RateLimiter::for('maddraxikon-oauth-disconnect', function ($request) {
+            return Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
         });
 
         $version = Config::get('app.version');
@@ -191,6 +205,11 @@ class AppServiceProvider extends ServiceProvider
 
         // maryUI 2.9 Tab-Badges rendern intern diesen Alias.
         Blade::component('mary-badge', MaryBadge::class);
+
+        Livewire::addPersistentMiddleware([
+            EnsureAdmin::class,
+            EnsureMaddraxikonAdmin::class,
+        ]);
 
         // Override Jetstream Livewire components with maryUI Toast support
         Livewire::component('profile.update-password-form', UpdatePasswordForm::class);
