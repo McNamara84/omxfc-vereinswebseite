@@ -4,14 +4,18 @@ use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureAdminOrVorstand;
 use App\Http\Middleware\EnsureHoerbuchAccess;
 use App\Http\Middleware\EnsureHoerbuchManage;
+use App\Http\Middleware\EnsureMaddraxikonAdmin;
+use App\Http\Middleware\EnsureMaddraxikonEligible;
 use App\Http\Middleware\EnsureVorstand;
 use App\Http\Middleware\EnsureVorstandOrKassenwart;
 use App\Http\Middleware\LogPageVisit;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Http\Middleware\UpdateLastActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,7 +37,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'vorstand-or-kassenwart' => EnsureVorstandOrKassenwart::class,
             'hoerbuch-access' => EnsureHoerbuchAccess::class,
             'hoerbuch-manage' => EnsureHoerbuchManage::class,
+            'maddraxikon.admin' => EnsureMaddraxikonAdmin::class,
+            'maddraxikon.eligible' => EnsureMaddraxikonEligible::class,
         ]);
+        $middleware->prependToPriorityList(
+            ThrottleRequests::class,
+            SecureMaddraxikonOAuthCallbackResponse::class,
+        );
         $middleware->appendToGroup('web', UpdateLastActivity::class);
         $middleware->appendToGroup('web', LogPageVisit::class);
     })

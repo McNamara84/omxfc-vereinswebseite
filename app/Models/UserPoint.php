@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\BaxxMilestoneActivityService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,7 +32,7 @@ class UserPoint extends Model
             $userPointId = $userPoint->id;
 
             DB::afterCommit(function () use ($userPointId): void {
-                app(\App\Services\BaxxMilestoneActivityService::class)
+                app(BaxxMilestoneActivityService::class)
                     ->recordForUserPoint($userPointId);
             });
         });
@@ -70,5 +72,15 @@ class UserPoint extends Model
     public function todo(): BelongsTo
     {
         return $this->belongsTo(Todo::class);
+    }
+
+    public function maddraxikonRewardEvent(): HasOne
+    {
+        return $this->hasOne(MaddraxikonRewardEvent::class, 'user_point_id');
+    }
+
+    public function maddraxikonReversalRewardEvent(): HasOne
+    {
+        return $this->hasOne(MaddraxikonRewardEvent::class, 'reversal_user_point_id');
     }
 }

@@ -151,7 +151,12 @@ class Team extends JetstreamTeam
         }
 
         if (! $team) {
-            $team = self::query()->where('name', 'Mitglieder')->first();
+            $team = self::query()
+                ->where('name', 'Mitglieder')
+                ->get()
+                ->first(
+                    static fn (self $candidate): bool => $candidate->name === 'Mitglieder'
+                );
         }
 
         if ($team) {

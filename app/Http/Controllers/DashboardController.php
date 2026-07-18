@@ -17,12 +17,15 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\FanfictionAccessService;
+use App\Services\LockedMembersTeamMemberships;
+use App\Services\MembersTeamMembershipLock;
 use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use App\Services\TourAssignmentService;
 use App\Services\UserRoleService;
 use App\Support\PreviewText;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -38,6 +41,7 @@ class DashboardController extends Controller
         private RewardService $rewardService,
         private FanfictionAccessService $fanfictionAccessService,
         private TourAssignmentService $tourAssignmentService,
+        private MembersTeamMembershipLock $membershipLock,
     ) {}
 
     public function index()
@@ -272,10 +276,10 @@ class DashboardController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Database\Eloquent\Collection<int, Activity>  $activities
-     * @return \Illuminate\Database\Eloquent\Collection<int, Activity>
+     * @param  Collection<int, Activity>  $activities
+     * @return Collection<int, Activity>
      */
-    private function prepareActivityFeed(\Illuminate\Database\Eloquent\Collection $activities, User $user): \Illuminate\Database\Eloquent\Collection
+    private function prepareActivityFeed(Collection $activities, User $user): Collection
     {
         if (! $activities->contains(fn (Activity $activity): bool => $activity->subject_type === Fanfiction::class && $activity->action === 'published')) {
             return $activities;
@@ -529,16 +533,57 @@ class DashboardController extends Controller
 
     public function approveAnwaerter(User $user)
     {
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-        $team->users()->updateExistingPivot($user->id, ['role' => Role::Mitglied->value]);
-        // Mitgliedsdatum setzen
-        $user->mitglied_seit = now()->toDateString();
-        $user->save();
-        $this->tourAssignmentService->assignAutoToursForApprovedMember($user, Auth::user());
+        $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        $actor = Auth::user();
+        abort_unless($actor instanceof User, 403);
+
+        $locked = $this->membershipLock->run(
+            [$actor->id, $user->id],
+            function (LockedMembersTeamMemberships $memberships) use (
+                $actor,
+                $user,
+            ): ?array {
+                abort_unless(
+                    $memberships->hasRole(
+                        $actor->id,
+                        Role::Kassenwart,
+                        Role::Vorstand,
+                        Role::Admin,
+                    ),
+                    403,
+                );
+
+                if ($memberships->role($user->id) !== Role::Anwaerter) {
+                    return null;
+                }
+
+                $memberships->team->users()->updateExistingPivot(
+                    $user->id,
+                    ['role' => Role::Mitglied->value],
+                );
+                $lockedUser = $memberships->user($user->id);
+                $lockedUser->forceFill([
+                    'mitglied_seit' => now()->toDateString(),
+                ])->save();
+
+                return [$memberships->team, $lockedUser];
+            },
+        );
+
+        if ($locked === null) {
+            return back()->with(
+                'error',
+                'Der Antrag wurde bereits anderweitig bearbeitet.',
+            );
+        }
+
+        [$team, $user] = $locked;
+        $this->tourAssignmentService->assignAutoToursForApprovedMember($user, $actor);
         Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
 
         Activity::create([
-            'user_id' => Auth::id(),
+            'user_id' => $actor->id,
             'subject_type' => User::class,
             'subject_id' => $user->id,
             'action' => 'member_approved',
@@ -553,9 +598,44 @@ class DashboardController extends Controller
 
     public function rejectAnwaerter(User $user)
     {
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-        $team->users()->detach($user->id);
-        $user->delete();
+        $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        $actor = Auth::user();
+        abort_unless($actor instanceof User, 403);
+
+        $team = $this->membershipLock->run(
+            [$actor->id, $user->id],
+            function (LockedMembersTeamMemberships $memberships) use (
+                $actor,
+                $user,
+            ) {
+                abort_unless(
+                    $memberships->hasRole(
+                        $actor->id,
+                        Role::Kassenwart,
+                        Role::Vorstand,
+                        Role::Admin,
+                    ),
+                    403,
+                );
+
+                if ($memberships->role($user->id) !== Role::Anwaerter) {
+                    return null;
+                }
+
+                $memberships->team->users()->detach($user->id);
+                $memberships->user($user->id)->delete();
+
+                return $memberships->team;
+            },
+        );
+
+        if ($team === null) {
+            return back()->with(
+                'error',
+                'Der Antrag wurde bereits anderweitig bearbeitet.',
+            );
+        }
 
         Cache::forget("member_count_{$team->id}");
         Cache::forget(self::applicantsCacheKey($team->id));

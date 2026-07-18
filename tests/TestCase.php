@@ -28,7 +28,28 @@ abstract class TestCase extends BaseTestCase
     {
         ArtisanApplication::forgetBootstrappers();
 
-        return parent::createApplication();
+        $application = parent::createApplication();
+        $connection = (string) $application['config']->get(
+            'database.default'
+        );
+        $database = (string) $application['config']->get(
+            "database.connections.{$connection}.database"
+        );
+
+        if (
+            getenv('APP_ENV') === 'testing'
+            && in_array($connection, ['mysql', 'mariadb'], true)
+            && ! preg_match('/(?:^|_)test(?:_|$)/', $database)
+        ) {
+            throw new \RuntimeException(sprintf(
+                'Unsichere Testdatenbank verweigert: Verbindung %s zeigt auf %s. '
+                .'MariaDB-Tests duerfen nur eine Datenbank mit _test im Namen verwenden.',
+                $connection,
+                $database
+            ));
+        }
+
+        return $application;
     }
 
     protected function setUp(): void

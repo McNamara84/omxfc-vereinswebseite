@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
 class BaxxEarningRule extends Model
@@ -101,6 +102,11 @@ class BaxxEarningRule extends Model
     private static function legacyCacheKey(string $actionKey): string
     {
         return "baxx_earning_rule_model_{$actionKey}";
+    }
+
+    public function maddraxikonRewardEvents(): HasMany
+    {
+        return $this->hasMany(MaddraxikonRewardEvent::class);
     }
 
     protected static function booted(): void

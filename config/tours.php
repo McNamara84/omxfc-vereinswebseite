@@ -453,7 +453,7 @@ return [
         ],
     ],
     'profilpflege' => [
-        'version' => 1,
+        'version' => 2,
         'title' => 'Profil pflegen',
         'description' => 'Zeigt dir die wichtigsten Bereiche deiner Profil- und Sicherheitseinstellungen.',
         'self_service_enabled' => true,
@@ -494,6 +494,15 @@ return [
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-personal-data"]',
                     'mobile' => '[data-tour-profile-key="profile-personal-data"]',
+                ],
+            ],
+            [
+                'key' => 'profile-maddraxikon-baxx',
+                'title' => 'Maddraxikon & Baxx',
+                'description' => 'Hier verknüpfst du freiwillig dein verifiziertes Maddraxikon-Konto, trennst die Verbindung wieder und verfolgst deine Wiki-Beiträge.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
+                    'mobile' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
                 ],
             ],
             [

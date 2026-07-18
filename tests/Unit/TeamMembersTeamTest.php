@@ -93,6 +93,18 @@ class TeamMembersTeamTest extends TestCase
         $this->assertTrue($resolvedTeam->is($replacement));
     }
 
+    public function test_members_team_rejects_case_variant_names_even_with_ci_collation(): void
+    {
+        Team::membersTeam()?->delete();
+        Team::factory()->create([
+            'name' => 'mitglieder',
+            'personal_team' => false,
+        ]);
+        Team::clearMembersTeamCache();
+
+        $this->assertNull(Team::membersTeam());
+    }
+
     public function test_members_team_returns_null_when_not_found(): void
     {
         $team = Team::membersTeam();

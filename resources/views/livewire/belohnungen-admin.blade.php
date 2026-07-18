@@ -4,7 +4,11 @@
             eyebrow="Adminbereich"
             title="Belohnungen - Admin"
             description="Verwalte Belohnungen, Vergaberegeln, Downloads und Freischaltungen in einer zentralen Administrationsansicht."
-        />
+        >
+            <x-slot:actions>
+                <x-button label="Maddraxikon-Baxx" link="{{ route('rewards.admin.maddraxikon') }}" wire:navigate icon="o-book-open" class="btn-primary" />
+            </x-slot:actions>
+        </x-ui.page-header>
 
         {{-- Tabs --}}
         @php($tabBadges = $this->tabBadges())

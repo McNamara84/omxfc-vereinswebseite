@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Models\BookSwap;
+use App\Models\MaddraxikonRewardEvent;
 use App\Models\Review;
 use App\Models\Team;
 use App\Models\TodoCategory;
@@ -101,23 +102,31 @@ class ProfileViewController extends Controller
                 ];
             }
 
-            // Retrologe Badge - für Challenges der Kategorie "AG Maddraxikon"
+            // Retrologe Badge - für historische Challenges oder nachweislich
+            // gutgeschriebene Maddraxikon-Aktivität. Reversals bleiben als
+            // historischer Tätigkeitsnachweis erhalten.
             $maddraxikonCategory = TodoCategory::where('name', 'AG Maddraxikon')->first();
+            $hasMaddraxikonTodo = false;
 
             if ($maddraxikonCategory) {
-                $maddraxikonTasks = UserPoint::where('user_points.user_id', $user->id)
+                $hasMaddraxikonTodo = UserPoint::where('user_points.user_id', $user->id)
                     ->where('user_points.team_id', $memberTeam->id)
                     ->join('todos', 'user_points.todo_id', '=', 'todos.id')
                     ->where('todos.category_id', $maddraxikonCategory->id)
-                    ->count();
+                    ->exists();
+            }
 
-                if ($maddraxikonTasks > 0) {
-                    $badges[] = [
-                        'name' => 'Retrologe (Stufe 1)',
-                        'description' => 'Hat im Maddraxikon mitgewirkt',
-                        'image' => asset('images/badges/BadgeRetrologe1.png'),
-                    ];
-                }
+            $hasMaddraxikonReward = MaddraxikonRewardEvent::where('user_id', $user->id)
+                ->where('awarded_points', '>', 0)
+                ->whereIn('status', ['awarded', 'reversed'])
+                ->exists();
+
+            if ($hasMaddraxikonTodo || $hasMaddraxikonReward) {
+                $badges[] = [
+                    'name' => 'Retrologe (Stufe 1)',
+                    'description' => 'Hat im Maddraxikon mitgewirkt',
+                    'image' => asset('images/badges/BadgeRetrologe1.png'),
+                ];
             }
             // Rezensator Badges - für verfasste Rezensionen
             $reviewCount = Review::where('team_id', $memberTeam->id)

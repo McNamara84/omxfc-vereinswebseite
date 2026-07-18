@@ -43,6 +43,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'maddraxikon_username',
             'nextcloud_username',
         ]);
+        $hasActiveMaddraxikonLink = $user->maddraxikonAccountLink()->active()->exists();
 
         Validator::make($input, [
             'vorname' => ['required', 'string', 'max:255'],
@@ -68,7 +69,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'contact_release_maddraxikon' => ['nullable', 'boolean'],
             'contact_release_nextcloud' => ['nullable', 'boolean'],
             'maddraxikon_username' => [
-                Rule::requiredIf(fn () => $this->booleanInput($input['contact_release_maddraxikon'] ?? false)),
+                Rule::requiredIf(fn () => $this->booleanInput($input['contact_release_maddraxikon'] ?? false) && ! $hasActiveMaddraxikonLink),
                 'nullable',
                 'string',
                 'max:255',

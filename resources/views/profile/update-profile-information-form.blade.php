@@ -174,7 +174,8 @@
                                         placeholder="Stefan K"
                                     />
                                     <p class="mt-1 text-sm text-base-content/70">
-                                        {{ __('Trage deinen Benutzernamen aus dem Maddraxikon ein. Leerzeichen werden für den Profil-Link automatisch zu Unterstrichen.') }}
+                                        {{ __('Dieses freie Feld ist nur für den öffentlichen Legacy-Profilkontakt und wird nicht verifiziert. Die Baxx-Verknüpfung verwaltest du im separaten Bereich „Maddraxikon & Baxx“.') }}
+
                                     </p>
                                 </div>
                             @endif

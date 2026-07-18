@@ -47,6 +47,20 @@ class BelohnungenAdminTest extends TestCase
             ->assertSee('Belohnungen - Admin');
     }
 
+    public function test_admin_page_links_to_maddraxikon_dashboard(): void
+    {
+        $this->actingAdmin();
+        Config::set('app.testing_minimal_belohnungen_admin', false);
+
+        $this->get(route('rewards.admin'))
+            ->assertOk()
+            ->assertSee('Maddraxikon-Baxx')
+            ->assertSee(
+                route('rewards.admin.maddraxikon'),
+                escape: false,
+            );
+    }
+
     public function test_tab_badges_summarize_admin_sections(): void
     {
         $this->actingAdmin();

@@ -64,6 +64,22 @@ class BaxxEarningRuleSeeder extends Seeder
                 'points' => 1,
                 'every_count' => 1,
             ],
+            [
+                'action_key' => 'maddraxikon_edit_session',
+                'label' => 'Maddraxikon-Bearbeitungen',
+                'description' => '1 Baxx für jede 5. qualifizierte Bearbeitungssitzung.',
+                'points' => 1,
+                'every_count' => 5,
+                'is_active' => true,
+            ],
+            [
+                'action_key' => 'maddraxikon_new_article',
+                'label' => 'Neuer Maddraxikon-Artikel',
+                'description' => '5 Baxx für einen qualifizierten neuen Maddraxikon-Artikel.',
+                'points' => 5,
+                'every_count' => 1,
+                'is_active' => true,
+            ],
         ];
 
         foreach ($rules as $rule) {
