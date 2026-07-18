@@ -88,7 +88,7 @@ class MitgliederIndexAccessibilityTest extends TestCase
         $this->assertSame('descending', $mitgliedSeitHeader->attr('aria-sort'));
         $this->assertSame('col', $mitgliedSeitHeader->attr('scope'));
 
-        $nameHeader = $crawler->filter('[data-members-sort-column="nachname"]')->first();
+        $nameHeader = $crawler->filter('[data-members-sort-column="name"]')->first();
         $this->assertSame('none', $nameHeader->attr('aria-sort'));
     }
 
@@ -108,7 +108,7 @@ class MitgliederIndexAccessibilityTest extends TestCase
         $crawler = new Crawler($response->getContent());
         $table = $crawler->filter('[data-members-table]')->first();
 
-        $this->assertSame('nachname', $table->attr('data-members-sort'));
+        $this->assertSame('name', $table->attr('data-members-sort'));
         $this->assertSame('asc', $table->attr('data-members-dir'));
         $this->assertSame(
             (string) $team->activeUsers()->count(),
