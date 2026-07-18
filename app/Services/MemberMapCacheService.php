@@ -13,9 +13,10 @@ class MemberMapCacheService
     public function getMemberMapData(Team $team): array
     {
         $cacheKey = $this->cacheKey($team);
+        $cachedData = Cache::get($cacheKey);
 
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
+        if ($cachedData !== null) {
+            return $cachedData;
         }
 
         $members = $team->activeUsers()

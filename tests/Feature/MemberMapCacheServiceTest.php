@@ -14,6 +14,27 @@ class MemberMapCacheServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_cached_map_data_is_retrieved_with_one_cache_read(): void
+    {
+        $team = Team::factory()->create();
+        $cachedData = [
+            'memberData' => [],
+            'centerLat' => 51.1657,
+            'centerLon' => 10.4515,
+        ];
+
+        Cache::shouldReceive('get')
+            ->once()
+            ->with("member_map_data_v2_team_{$team->id}")
+            ->andReturn($cachedData);
+        Cache::shouldReceive('has')->never();
+
+        $this->assertSame(
+            $cachedData,
+            (new MemberMapCacheService)->getMemberMapData($team)
+        );
+    }
+
     public function test_service_caches_and_refreshes_member_map_data(): void
     {
         Cache::flush();
