@@ -18,6 +18,7 @@ use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Livewire;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class UpdateProfileInformationFormTest extends TestCase
@@ -230,23 +231,72 @@ class UpdateProfileInformationFormTest extends TestCase
         Mail::assertNotQueued(ProfileContactUpdated::class);
     }
 
-    public function test_changing_alias_invalidates_member_map_cache(): void
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function memberMapCacheFieldProvider(): array
     {
+        return [
+            'alias' => ['alias', 'Neuer Nickname'],
+            'first name' => ['vorname', 'Moritz'],
+            'last name' => ['nachname', 'Musterfrau'],
+            'postal code' => ['plz', '54321'],
+            'city' => ['stadt', 'Neue Stadt'],
+            'country' => ['land', 'Schweiz'],
+        ];
+    }
+
+    #[DataProvider('memberMapCacheFieldProvider')]
+    public function test_changing_member_map_profile_field_invalidates_member_map_cache(
+        string $field,
+        string $newValue,
+    ): void {
         Mail::fake();
         $team = Team::membersTeam();
-        $this->actingAs($user = $this->createMember());
+        $this->actingAs($user = $this->createMember(attributes: [
+            'lat' => 50.0,
+            'lon' => 10.0,
+        ]));
         app(MemberMapCacheService::class)->getMemberMapData($team);
         $cacheKey = "member_map_data_v2_team_{$team->id}";
 
         $this->assertTrue(Cache::has($cacheKey));
 
         Livewire::test(UpdateProfileInformationForm::class)
-            ->set('state', $this->profileFormData(['alias' => 'Neuer Nickname']))
+            ->set('state', $this->profileFormData([
+                'alias' => $field === 'alias' ? $newValue : $user->alias,
+                $field => $newValue,
+            ]))
             ->call('updateProfileInformation')
             ->assertHasNoErrors();
 
-        $this->assertSame('Neuer Nickname', $user->refresh()->alias);
+        $this->assertSame($newValue, $user->refresh()->{$field});
         $this->assertFalse(Cache::has($cacheKey));
+    }
+
+    public function test_changing_unrelated_profile_field_keeps_member_map_cache(): void
+    {
+        Mail::fake();
+        $team = Team::membersTeam();
+        $this->actingAs($user = $this->createMember(attributes: [
+            'lat' => 50.0,
+            'lon' => 10.0,
+        ]));
+        app(MemberMapCacheService::class)->getMemberMapData($team);
+        $cacheKey = "member_map_data_v2_team_{$team->id}";
+
+        $this->assertTrue(Cache::has($cacheKey));
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', $this->profileFormData([
+                'alias' => $user->alias,
+                'telefon' => '09876',
+            ]))
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame('09876', $user->refresh()->telefon);
+        $this->assertTrue(Cache::has($cacheKey));
     }
 
     public function test_ehrenmitglied_can_store_multiple_author_aliases(): void

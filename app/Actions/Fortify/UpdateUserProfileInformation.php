@@ -17,6 +17,15 @@ use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
+    private const MEMBER_MAP_CACHE_FIELDS = [
+        'alias',
+        'vorname',
+        'nachname',
+        'plz',
+        'stadt',
+        'land',
+    ];
+
     public function __construct(
         private readonly MemberMapCacheService $memberMapCacheService,
     ) {}
@@ -124,7 +133,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill($updates)->save();
         }
 
-        if ($user->wasChanged('alias') && ($membersTeam = Team::membersTeam())) {
+        if ($user->wasChanged(self::MEMBER_MAP_CACHE_FIELDS) && ($membersTeam = Team::membersTeam())) {
             $this->memberMapCacheService->invalidate($membersTeam);
         }
 
