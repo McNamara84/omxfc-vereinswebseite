@@ -15,8 +15,8 @@ use Livewire\Component;
 
 class MitgliederIndex extends Component
 {
-    #[Url(as: 'sort', except: 'nachname')]
-    public string $sortBy = 'nachname';
+    #[Url(as: 'sort', except: 'name')]
+    public string $sortBy = 'name';
 
     #[Url(as: 'dir', except: 'asc')]
     public string $sortDir = 'asc';
@@ -28,7 +28,7 @@ class MitgliederIndex extends Component
 
     private MembersTeamProvider $membersTeamProvider;
 
-    private const ALLOWED_SORT_FIELDS = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
+    private const ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
     private const ROLE_RANKS = [
         Role::Mitglied->value => 1,
@@ -48,9 +48,13 @@ class MitgliederIndex extends Component
 
     public function mount(): void
     {
+        if ($this->sortBy === 'nachname') {
+            $this->sortBy = 'name';
+        }
+
         // Validate sort params from URL
         if (! in_array($this->sortBy, self::ALLOWED_SORT_FIELDS)) {
-            $this->sortBy = 'nachname';
+            $this->sortBy = 'name';
         }
         if (! in_array($this->sortDir, ['asc', 'desc'])) {
             $this->sortDir = $this->sortBy === 'last_activity' ? 'desc' : 'asc';
@@ -73,7 +77,24 @@ class MitgliederIndex extends Component
             return $query->orderByPivot('role', $this->sortDir)->get();
         }
 
+        if ($this->sortBy === 'name') {
+            return $query
+                ->orderBy(DB::raw($this->displayNameSortExpression()), $this->sortDir)
+                ->orderBy('users.id')
+                ->get();
+        }
+
         return $query->orderBy($this->sortBy, $this->sortDir)->get();
+    }
+
+    private function displayNameSortExpression(): string
+    {
+        $civilNameExpression = DB::getDriverName() === 'sqlite'
+            ? "TRIM(COALESCE(NULLIF(TRIM(users.vorname), ''), '') || ' ' || COALESCE(NULLIF(TRIM(users.nachname), ''), ''))"
+            : "TRIM(CONCAT_WS(' ', NULLIF(TRIM(users.vorname), ''), NULLIF(TRIM(users.nachname), '')))";
+        $placeholder = str_replace("'", "''", User::UNKNOWN_DISPLAY_NAME);
+
+        return "COALESCE(NULLIF(TRIM(users.alias), ''), NULLIF(TRIM(users.name), ''), NULLIF({$civilNameExpression}, ''), '{$placeholder}')";
     }
 
     #[Computed]

@@ -209,7 +209,7 @@ class MitgliederKarteFeatureTest extends TestCase
         $this->get('/mitglieder/karte');
 
         $team = Team::membersTeam();
-        $cacheKey = "member_map_data_team_{$team->id}";
+        $cacheKey = "member_map_data_v2_team_{$team->id}";
         $this->assertTrue(Cache::has($cacheKey));
     }
 
@@ -241,8 +241,8 @@ class MitgliederKarteFeatureTest extends TestCase
         $memberData = json_decode($response->viewData('memberData'), true);
 
         $this->assertContains('Musterstadt', array_column($memberData, 'city'));
-        $this->assertTrue(Cache::has("member_map_data_team_{$membersTeam->id}"));
-        $this->assertFalse(Cache::has("member_map_data_team_{$otherTeam->id}"));
+        $this->assertTrue(Cache::has("member_map_data_v2_team_{$membersTeam->id}"));
+        $this->assertFalse(Cache::has("member_map_data_v2_team_{$otherTeam->id}"));
     }
 
     public function test_map_view_contains_accessibility_attributes_and_data(): void

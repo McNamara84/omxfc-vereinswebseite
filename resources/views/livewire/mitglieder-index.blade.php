@@ -38,13 +38,13 @@
 
     @php
         $sortLabels = [
-            'nachname' => 'Nachname',
+            'name' => 'Nickname/Name',
             'mitglied_seit' => 'Mitglied seit',
             'role' => 'Rolle',
             'last_activity' => 'Zuletzt online',
             'mitgliedsbeitrag' => 'Beitrag',
         ];
-        $sortLabel = $sortLabels[$sortBy] ?? $sortLabels['nachname'];
+        $sortLabel = $sortLabels[$sortBy] ?? $sortLabels['name'];
         $directionLabel = $sortDir === 'desc' ? 'absteigender' : 'aufsteigender';
         $filterOnlineActive = $nurOnline;
         $filterSummary = $filterOnlineActive
@@ -149,7 +149,7 @@
     {{-- Echte Tabelle --}}
     <div wire:loading.remove wire:target="sort, nurOnline">
     @php
-        $nachnameSortState = $sortBy === 'nachname' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $nameSortState = $sortBy === 'name' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
         $mitgliedSeitSortState = $sortBy === 'mitglied_seit' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
         $roleSortState = $sortBy === 'role' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
         $lastActivitySortState = $sortBy === 'last_activity' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
@@ -167,11 +167,11 @@
         aria-describedby="members-table-summary">
     <thead class="text-base-content">
     <tr>
-        <th scope="col" data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
-            <button wire:click="sort('nachname')" type="button"
+        <th scope="col" data-members-sort-column="name" aria-sort="{{ $nameSortState }}">
+            <button wire:click="sort('name')" type="button"
                class="flex items-center group text-base-content hover:text-primary">
-                Name
-                @if($sortBy === 'nachname')
+                Nickname/Name
+                @if($sortBy === 'name')
                     <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
                 @endif
             </button>
@@ -228,6 +228,7 @@
     @forelse($this->members as $member)
     @php
         $memberAlias = $member->displayAlias();
+        $memberDisplayName = $member->nicknameOrName();
         $memberAuthorAliases = collect($member->displayAliases())
             ->reject(fn (string $alias) => $memberAlias && $alias === $memberAlias)
             ->values();
@@ -237,15 +238,12 @@
         {{-- Name --}}
         <td>
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center">
-                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-10 !h-10" />
+                <x-avatar :image="$member->profile_photo_url" :alt="$memberDisplayName" class="!w-10 !h-10" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
-                        {{ $member->name }}
+                        {{ $memberDisplayName }}
                     </div>
-                    @if($memberAlias)
-                        <div class="text-sm font-medium text-primary">Alias: {{ $memberAlias }}</div>
-                    @endif
                     @if($memberAuthorAliases->isNotEmpty())
                         <div class="mt-1 flex flex-wrap gap-1">
                             @foreach($memberAuthorAliases as $authorAlias)
@@ -253,7 +251,7 @@
                             @endforeach
                         </div>
                     @endif
-                    @if($this->canViewDetails)
+                    @if($this->canViewDetails && $memberAlias)
                     <div class="text-sm text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
                     @endif
                 </div>
@@ -265,7 +263,7 @@
                             href="{{ $method['href'] }}"
                             @if(in_array($method['key'], ['maddraxikon', 'nextcloud'], true)) target="_blank" rel="noopener noreferrer" @endif
                             class="inline-flex items-center gap-1 rounded-full bg-base-200 px-2 py-1 text-xs text-base-content hover:bg-primary hover:text-primary-content"
-                            aria-label="{{ $method['label'] }} von {{ $member->name }}"
+                            aria-label="{{ $method['label'] }} von {{ $memberDisplayName }}"
                         >
                             <x-icon name="{{ $method['icon'] }}" class="h-3.5 w-3.5" />
                             <span>{{ $method['label'] }}</span>
@@ -414,9 +412,9 @@
         <div class="mb-4 bg-base-200 rounded-lg p-3">
             <h3 class="text-sm font-medium text-base-content mb-2">Sortieren nach:</h3>
             <div class="flex flex-wrap gap-2">
-                <button wire:click="sort('nachname')" type="button"
-                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
-                    Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                <button wire:click="sort('name')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'name' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Nickname/Name {{ $sortBy === 'name' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </button>
                 <button wire:click="sort('mitglied_seit')" type="button"
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
@@ -442,6 +440,7 @@
         @forelse($this->members as $member)
         @php
             $memberAlias = $member->displayAlias();
+            $memberDisplayName = $member->nicknameOrName();
             $memberAuthorAliases = collect($member->displayAliases())
                 ->reject(fn (string $alias) => $memberAlias && $alias === $memberAlias)
                 ->values();
@@ -449,14 +448,14 @@
         @endphp
         <x-ui.panel class="!p-4" wire:key="member-mobile-{{ $member->id }}">
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
-                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
+                <x-avatar :image="$member->profile_photo_url" :alt="$memberDisplayName" class="!w-12 !h-12" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
-                        {{ $member->name }}
+                        {{ $memberDisplayName }}
                     </div>
-                    @if($memberAlias)
-                        <div class="text-sm font-medium text-primary">Alias: {{ $memberAlias }}</div>
+                    @if($this->canViewDetails && $memberAlias)
+                        <div class="text-sm text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
                     @endif
                     @if($memberAuthorAliases->isNotEmpty())
                         <div class="mt-1 flex flex-wrap gap-1">
@@ -479,7 +478,7 @@
                         href="{{ $method['href'] }}"
                         @if(in_array($method['key'], ['maddraxikon', 'nextcloud'], true)) target="_blank" rel="noopener noreferrer" @endif
                         class="inline-flex items-center gap-1 rounded-full bg-base-200 px-2 py-1 text-xs text-base-content hover:bg-primary hover:text-primary-content"
-                        aria-label="{{ $method['label'] }} von {{ $member->name }}"
+                        aria-label="{{ $method['label'] }} von {{ $memberDisplayName }}"
                     >
                         <x-icon name="{{ $method['icon'] }}" class="h-3.5 w-3.5" />
                         <span>{{ $method['label'] }}</span>

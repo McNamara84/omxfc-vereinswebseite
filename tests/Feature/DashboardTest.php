@@ -167,6 +167,10 @@ class DashboardTest extends TestCase
         $team = Team::membersTeam();
 
         $topUsers = User::factory()->count(3)->create(['current_team_id' => $team->id]);
+        $topUsers->first()->update([
+            'name' => 'Top Klarname',
+            'alias' => 'TopNickname',
+        ]);
 
         foreach ($topUsers as $index => $topUser) {
             $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
@@ -194,6 +198,7 @@ class DashboardTest extends TestCase
         $this->assertSame(1, $srSummary->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
         $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('Top Klarname', $payload[0]['name']);
         $this->assertSame('1.234', $payload[0]['formatted_points']);
         $this->assertSame(1234, $payload[0]['points']);
     }
@@ -227,6 +232,7 @@ class DashboardTest extends TestCase
         $user = User::factory()->create([
             'current_team_id' => $team->id,
             'vorname' => 'Alex',
+            'alias' => 'DashboardNick',
         ]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
@@ -234,6 +240,7 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Willkommen zurück, Alex');
+        $response->assertDontSeeText('Willkommen zurück, DashboardNick');
         $response->assertSeeText('Schnellstart');
         $response->assertSeeText('Baxx verdienen');
         $response->assertSeeText('Aktuelle Veranstaltung ansehen');

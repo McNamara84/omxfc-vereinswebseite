@@ -1,13 +1,13 @@
 const sortLabels = {
-    nachname: 'Nachname',
+    name: 'Nickname/Name',
     mitglied_seit: 'Mitglied seit',
     role: 'Rolle',
     last_activity: 'Zuletzt online',
     mitgliedsbeitrag: 'Beitrag',
 };
 
-const resolveSortLabel = (sortKey = 'nachname') => {
-    return sortLabels[sortKey] ?? sortLabels.nachname;
+const resolveSortLabel = (sortKey = 'name') => {
+    return sortLabels[sortKey] ?? sortLabels.name;
 };
 
 const resolveDirectionLabel = (direction = 'asc') => {
@@ -25,7 +25,7 @@ const formatMemberCount = (count) => {
 };
 
 export const buildMembersTableSummary = ({
-    sortBy = 'nachname',
+    sortBy = 'name',
     sortDir = 'asc',
     filterOnline = false,
     totalMembers,
@@ -95,7 +95,7 @@ export const enhanceMembersTable = (table) => {
 
     const dataset = table.dataset ?? {};
     const summaryId = dataset.membersSummaryId ?? table.getAttribute('aria-describedby') ?? '';
-    const sortBy = dataset.membersSort ?? 'nachname';
+    const sortBy = dataset.membersSort ?? 'name';
     const sortDir = dataset.membersDir ?? 'asc';
     const filterOnline = parseBoolean(dataset.membersFilterOnline);
     const totalMembers = parseTotal(dataset.membersTotal);

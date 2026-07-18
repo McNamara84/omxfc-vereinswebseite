@@ -36,6 +36,8 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class User extends Authenticatable
 {
+    public const UNKNOWN_DISPLAY_NAME = 'Unbekanntes Mitglied';
+
     use HasApiTokens;
 
     /** @use HasFactory<UserFactory> */
@@ -368,6 +370,28 @@ class User extends Authenticatable
         $alias = trim((string) $this->alias);
 
         return $alias === '' ? null : $alias;
+    }
+
+    public function nicknameOrName(): string
+    {
+        $alias = $this->displayAlias();
+
+        if ($alias !== null) {
+            return $alias;
+        }
+
+        $name = trim((string) $this->name);
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        $civilName = implode(' ', array_filter([
+            trim((string) $this->vorname),
+            trim((string) $this->nachname),
+        ], static fn (string $part): bool => $part !== ''));
+
+        return $civilName !== '' ? $civilName : self::UNKNOWN_DISPLAY_NAME;
     }
 
     /**

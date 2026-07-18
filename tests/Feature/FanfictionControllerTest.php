@@ -105,6 +105,59 @@ class FanfictionControllerTest extends TestCase
         $response->assertSee($fanfiction->title);
     }
 
+    public function test_member_pages_use_nicknames_while_public_teaser_keeps_name(): void
+    {
+        $this->member->update([
+            'name' => 'Mara Mitglied',
+            'alias' => 'MaddraxMara',
+        ]);
+        $commenter = User::factory()->create([
+            'name' => 'Karla Kommentar',
+            'alias' => 'KommentarKarla',
+        ]);
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Nickname-Geschichte',
+        ]);
+        FanfictionComment::factory()->create([
+            'fanfiction_id' => $fanfiction->id,
+            'user_id' => $commenter->id,
+            'content' => 'Kommentar mit Nickname',
+        ]);
+
+        $this->get(route('fanfiction.public'))
+            ->assertOk()
+            ->assertSee('Mara Mitglied')
+            ->assertDontSee('MaddraxMara');
+
+        $this->actingAs($this->member)
+            ->get(route('fanfiction.index'))
+            ->assertOk()
+            ->assertSee('MaddraxMara')
+            ->assertSee('KommentarKarla');
+
+        $this->get(route('fanfiction.show', $fanfiction))
+            ->assertOk()
+            ->assertSee('MaddraxMara')
+            ->assertSee('KommentarKarla');
+    }
+
+    public function test_member_page_keeps_external_author_name(): void
+    {
+        $fanfiction = Fanfiction::factory()->published()->externalAuthor()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+            'author_name' => 'Externe Autorin',
+        ]);
+
+        $this->actingAs($this->member)
+            ->get(route('fanfiction.show', $fanfiction))
+            ->assertOk()
+            ->assertSee('Externe Autorin');
+    }
+
     public function test_member_cannot_view_draft_fanfiction(): void
     {
         $fanfiction = Fanfiction::factory()->draft()->create([

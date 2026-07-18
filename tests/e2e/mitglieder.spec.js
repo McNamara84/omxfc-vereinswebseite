@@ -19,10 +19,10 @@ test.describe('Mitgliederliste', () => {
 
         const heading = page.locator('[data-members-heading]');
         await expect(heading).toBeVisible();
-        await expect(page.locator('[data-members-summary]')).toContainText('Mitgliederliste, sortiert nach Nachname');
-        await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-sort', 'nachname');
+        await expect(page.locator('[data-members-summary]')).toContainText('Mitgliederliste, sortiert nach Nickname/Name');
+        await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-sort', 'name');
 
-        const nameHeader = page.getByRole('columnheader', { name: 'Name' });
+        const nameHeader = page.getByRole('columnheader', { name: 'Nickname/Name' });
         await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
 
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });

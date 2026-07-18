@@ -10,6 +10,7 @@ use App\Mail\NewReviewNotification;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
@@ -450,7 +451,46 @@ class RezensionLivewireTest extends TestCase
         Livewire::actingAs($user)
             ->test(RezensionShow::class, ['book' => $book])
             ->assertSee('R')
+            ->assertSee($user->name)
             ->assertOk();
+    }
+
+    public function test_show_uses_nicknames_for_review_comments_and_replies(): void
+    {
+        $reviewer = $this->actingMember();
+        $reviewer->update(['name' => 'Rita Review', 'alias' => 'ReziRita']);
+        $commenter = User::factory()->create(['name' => 'Karl Kommentar', 'alias' => 'Kommentator']);
+        $replier = User::factory()->create(['name' => 'Anna Antwort', 'alias' => 'AntwortAss']);
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman mit Nicknames',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $reviewer->currentTeam->id,
+            'user_id' => $reviewer->id,
+            'book_id' => $book->id,
+            'title' => 'Nickname-Rezension',
+            'content' => str_repeat('A', 140),
+        ]);
+        $comment = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $commenter->id,
+            'content' => 'Kommentar mit Nickname',
+        ]);
+        ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $replier->id,
+            'parent_id' => $comment->id,
+            'content' => 'Antwort mit Nickname',
+        ]);
+
+        Livewire::actingAs($reviewer)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertSee('ReziRita')
+            ->assertSee('Kommentator')
+            ->assertSee('AntwortAss')
+            ->assertSee('Antwort auf Kommentator');
     }
 
     public function test_show_displays_update_information_when_review_was_edited(): void

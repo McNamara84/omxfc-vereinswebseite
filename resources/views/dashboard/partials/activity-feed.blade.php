@@ -22,6 +22,7 @@
                 $isFantreffenRegistration = $activity->subject_type === \App\Models\FantreffenAnmeldung::class;
                 $isSwapCompletion = $activity->subject_type === \App\Models\BookSwap::class && $activity->action === 'swap_completed';
                 $activityUser = $activity->user;
+                $activityUserName = $activityUser?->nicknameOrName();
                 $showProfileLink = ! $isFantreffenRegistration && ! $isSwapCompletion && $activityUser;
                 $typeLabels = [
                     \App\Models\Review::class => 'Rezension',
@@ -54,7 +55,7 @@
                         <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
                             <span class="sr-only">von Nutzer</span>
                             <x-icon name="o-user" class="w-3.5 h-3.5" />
-                            <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="font-semibold text-primary hover:underline">{{ $activityUser->name }}</a>
+                            <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="font-semibold text-primary hover:underline">{{ $activityUserName }}</a>
                         </span>
                     @elseif(! $isFantreffenRegistration && ! $isSwapCompletion)
                         <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
@@ -71,7 +72,8 @@
                         </span>
                     @elseif($isFantreffenRegistration)
                         @php
-                            $registrantName = $subject?->vorname
+                            $registrantName = $activityUser?->displayAlias()
+                                ?? $subject?->vorname
                                 ?? $activityUser?->vorname
                                 ?? $activityUser?->name
                                 ?? 'Teilnehmer';
@@ -116,7 +118,7 @@
                         @php
                             $review = $subject?->review;
                             $commentPreview = \App\Support\PreviewText::make($subject?->content ?? '', 140);
-                            $commentAuthorName = $activityUser?->name ?? 'Unbekannter Nutzer';
+                            $commentAuthorName = $activityUserName ?? 'Unbekannter Nutzer';
                         @endphp
                         @if($review)
                             <div class="space-y-1">
@@ -141,7 +143,7 @@
                         @php
                             $fanfiction = $subject?->fanfiction;
                             $commentPreview = \App\Support\PreviewText::make($subject?->content ?? '', 140);
-                            $commentAuthorName = $activityUser?->name ?? 'Unbekannter Nutzer';
+                            $commentAuthorName = $activityUserName ?? 'Unbekannter Nutzer';
                         @endphp
                         @if($fanfiction)
                             <div class="space-y-1">
@@ -188,13 +190,13 @@
                             <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Tausch erfolgreich abgeschlossen</a>
                             <p>
                                 @if($offerOwner)
-                                    <a href="{{ route('profile.view', $offerOwner->id) }}" wire:navigate class="text-primary hover:underline">{{ $offerOwner->name }}</a>
+                                    <a href="{{ route('profile.view', $offerOwner->id) }}" wire:navigate class="text-primary hover:underline">{{ $offerOwner->nicknameOrName() }}</a>
                                 @else
                                     <span>Ein Mitglied</span>
                                 @endif
                                 und
                                 @if($requestOwner)
-                                    <a href="{{ route('profile.view', $requestOwner->id) }}" wire:navigate class="text-primary hover:underline">{{ $requestOwner->name }}</a>
+                                    <a href="{{ route('profile.view', $requestOwner->id) }}" wire:navigate class="text-primary hover:underline">{{ $requestOwner->nicknameOrName() }}</a>
                                 @else
                                     <span>ein weiteres Mitglied</span>
                                 @endif
@@ -218,7 +220,7 @@
                             <span>hat {{ $milestoneValue }} Baxx erreicht</span>
                         @endif
                     @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
-                        <span>Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" wire:navigate class="text-primary hover:underline">{{ $subject->name }}</a></span>
+                        <span>Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" wire:navigate class="text-primary hover:underline">{{ $subject->nicknameOrName() }}</a></span>
                     @endif
                 </div>
             </li>

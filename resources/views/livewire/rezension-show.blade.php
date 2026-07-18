@@ -10,7 +10,7 @@
             <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
             <p class="text-sm text-base-content">
                 von
-                <a href="{{ route('profile.view', $review->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $review->user->name }}</a>
+                <a href="{{ route('profile.view', $review->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $review->user->nicknameOrName() }}</a>
                 am {{ $review->created_at->format('d.m.Y H:i') }} Uhr
                 @if(!$review->created_at->eq($review->updated_at))
                     , geändert am {{ $review->updated_at->format('d.m.Y') }} um {{ $review->updated_at->format('H:i') }} Uhr

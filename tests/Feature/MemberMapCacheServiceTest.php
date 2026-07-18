@@ -14,6 +14,27 @@ class MemberMapCacheServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_cached_map_data_is_retrieved_with_one_cache_read(): void
+    {
+        $team = Team::factory()->create();
+        $cachedData = [
+            'memberData' => [],
+            'centerLat' => 51.1657,
+            'centerLon' => 10.4515,
+        ];
+
+        Cache::shouldReceive('get')
+            ->once()
+            ->with("member_map_data_v2_team_{$team->id}")
+            ->andReturn($cachedData);
+        Cache::shouldReceive('has')->never();
+
+        $this->assertSame(
+            $cachedData,
+            (new MemberMapCacheService)->getMemberMapData($team)
+        );
+    }
+
     public function test_service_caches_and_refreshes_member_map_data(): void
     {
         Cache::flush();
@@ -80,6 +101,56 @@ class MemberMapCacheServiceTest extends TestCase
         $this->assertCount(1, $data['memberData']);
         $this->assertEquals((float) self::DEFAULT_LAT, $data['centerLat']);
         $this->assertEquals((float) self::DEFAULT_LON, $data['centerLon']);
+    }
+
+    public function test_map_data_uses_nickname_with_name_fallback(): void
+    {
+        Cache::flush();
+
+        $team = Team::factory()->create();
+        $team->users()->detach();
+
+        $withNickname = User::factory()->create([
+            'name' => 'Klara Klarname',
+            'alias' => 'Kiki',
+            'plz' => '11111',
+            'stadt' => 'Nickname City',
+            'lat' => 10.0,
+            'lon' => 20.0,
+            'current_team_id' => $team->id,
+        ]);
+        $withoutNickname = User::factory()->create([
+            'name' => 'Name Ohne Alias',
+            'alias' => null,
+            'plz' => '22222',
+            'stadt' => 'Fallback City',
+            'lat' => 20.0,
+            'lon' => 30.0,
+            'current_team_id' => $team->id,
+        ]);
+        $withCivilNameFallback = User::factory()->create([
+            'name' => '   ',
+            'alias' => '   ',
+            'vorname' => 'Civil',
+            'nachname' => 'Fallback',
+            'plz' => '33333',
+            'stadt' => 'Civil City',
+            'lat' => 30.0,
+            'lon' => 40.0,
+            'current_team_id' => $team->id,
+        ]);
+
+        $team->users()->attach($withNickname, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($withoutNickname, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($withCivilNameFallback, ['role' => Role::Mitglied->value]);
+
+        $data = (new MemberMapCacheService)->getMemberMapData($team);
+        $names = array_column($data['memberData'], 'name');
+
+        $this->assertContains('Kiki', $names);
+        $this->assertContains('Name Ohne Alias', $names);
+        $this->assertContains('Civil Fallback', $names);
+        $this->assertNotContains('Klara Klarname', $names);
     }
 
     public function test_members_without_plz_or_with_anwaerter_role_are_excluded(): void

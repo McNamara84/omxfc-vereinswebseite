@@ -68,7 +68,7 @@
                                 @endif
                             </h3>
                             <p class="text-sm text-base-content">
-                                von <span class="font-medium">{{ $fanfiction->author_display_name }}</span>
+                                von <span class="font-medium">{{ $fanfiction->memberAuthorDisplayName() }}</span>
                                 @if ($fanfiction->published_at)
                                     • {{ $fanfiction->published_at->format('d.m.Y') }}
                                 @endif
@@ -167,11 +167,12 @@
                                 @else
                                     <div class="space-y-3">
                                         @foreach ($fanfiction->comments->take(3) as $comment)
+                                            @php $commentAuthorName = $comment->user?->nicknameOrName(); @endphp
                                             <div class="flex items-start gap-3 text-sm">
-                                                <x-avatar value="{{ $comment->user ? substr($comment->user->name, 0, 1) : '?' }}" class="!w-8 !h-8 !text-xs" />
+                                                <x-avatar value="{{ $commentAuthorName ? \Illuminate\Support\Str::substr($commentAuthorName, 0, 1) : '?' }}" class="!w-8 !h-8 !text-xs" />
                                                 <div class="flex-grow min-w-0">
                                                     <p class="font-medium">
-                                                        {{ $comment->user?->name ?? 'Unbekannt' }}
+                                                        {{ $commentAuthorName ?? 'Unbekannt' }}
                                                         <span class="font-normal text-base-content">
                                                             • {{ $comment->created_at->diffForHumans() }}
                                                         </span>

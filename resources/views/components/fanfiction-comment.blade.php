@@ -4,6 +4,7 @@
     $maxDepth = 3;
     $canEdit = auth()->id() === $comment->user_id;
     $canDelete = auth()->id() === $comment->user_id || auth()->user()?->hasTeamRole(auth()->user()?->currentTeam, 'Vorstand') || auth()->user()?->hasTeamRole(auth()->user()?->currentTeam, 'Admin');
+    $commentAuthorName = $comment->user?->nicknameOrName();
 @endphp
 
 <div class="@if($depth > 0) ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700 @endif" x-data="{ editing: false, replying: false }">
@@ -11,15 +12,15 @@
         <div class="flex items-start justify-between mb-2">
             <div class="flex items-center gap-2">
                 @if($comment->user && $comment->user->profile_photo_path)
-                    <img src="{{ $comment->user->profile_photo_url }}" alt="{{ $comment->user->name }}" class="w-8 h-8 rounded-full">
+                    <img src="{{ $comment->user->profile_photo_url }}" alt="{{ $commentAuthorName }}" class="w-8 h-8 rounded-full">
                 @else
                     <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-medium">
-                        {{ $comment->user ? substr($comment->user->name, 0, 1) : '?' }}
+                        {{ $commentAuthorName ? \Illuminate\Support\Str::substr($commentAuthorName, 0, 1) : '?' }}
                     </div>
                 @endif
                 <div>
                     <span class="font-medium text-gray-900 dark:text-gray-100">
-                        {{ $comment->user?->name ?? 'Gelöschter Benutzer' }}
+                        {{ $commentAuthorName ?? 'Gelöschter Benutzer' }}
                     </span>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
                         • {{ $comment->created_at->diffForHumans() }}

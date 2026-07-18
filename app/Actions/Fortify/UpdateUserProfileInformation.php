@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Mail\ProfileContactUpdated;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\MemberMapCacheService;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +17,19 @@ use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
+    private const MEMBER_MAP_CACHE_FIELDS = [
+        'alias',
+        'vorname',
+        'nachname',
+        'plz',
+        'stadt',
+        'land',
+    ];
+
+    public function __construct(
+        private readonly MemberMapCacheService $memberMapCacheService,
+    ) {}
+
     /**
      * Validate and update the given user's profile information.
      *
@@ -117,6 +131,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $this->updateVerifiedUser($user, $updates);
         } else {
             $user->forceFill($updates)->save();
+        }
+
+        if ($user->wasChanged(self::MEMBER_MAP_CACHE_FIELDS) && ($membersTeam = Team::membersTeam())) {
+            $this->memberMapCacheService->invalidate($membersTeam);
         }
 
         if ($changedContactLabels !== []) {
