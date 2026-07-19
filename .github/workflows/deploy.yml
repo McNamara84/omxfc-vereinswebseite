@@ -60,9 +60,6 @@ jobs:
             echo "Starting application container to initialize shared app volume..."
             $COMPOSE up -d --force-recreate --no-deps app
 
-            echo "Starting queue worker container..."
-            $COMPOSE up -d --force-recreate --no-deps queue
-
             echo "Starting web container..."
             $COMPOSE up -d --force-recreate --no-deps nginx
             
@@ -132,11 +129,30 @@ jobs:
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
             docker exec maddrax-app chmod -R 775 /var/www/html/storage
             
+            # Start long-running workers only after migrations and the
+            # configuration cache have been rebuilt. Otherwise they can retain
+            # stale environment values for the lifetime of the process.
+            echo "Starting background service containers..."
+            $COMPOSE up -d --force-recreate --no-deps queue scheduler
+            sleep 5
+
             # Gesundheitschecks
             echo "Running health checks..."
             
             echo "=== Container Status ==="
             docker ps
+
+            echo "=== Verifying background services ==="
+            for service in queue scheduler; do
+              if [ "$($COMPOSE ps --status running --services "$service")" = "$service" ]; then
+                echo "✅ ${service}: RUNNING"
+              else
+                echo "❌ ${service}: NOT RUNNING"
+                echo "=== ${service} logs ==="
+                $COMPOSE logs --tail=50 "$service" || true
+                exit 1
+              fi
+            done
             
             echo "=== Testing connectivity ==="
             if curl -f http://localhost:8080 >/dev/null 2>&1; then
