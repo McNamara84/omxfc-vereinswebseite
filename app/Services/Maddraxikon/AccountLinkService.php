@@ -109,6 +109,8 @@ final class AccountLinkService
                         );
                     }
 
+                    $shouldRecordLinkActivity = $existingForUser === null
+                        || ! $existingForUser->isActive();
                     $link = $existingForUser ?? new MaddraxikonAccountLink;
 
                     $link->forceFill([
@@ -128,12 +130,14 @@ final class AccountLinkService
 
                     $link = $link->fresh();
 
-                    Activity::query()->create([
-                        'user_id' => $user->getKey(),
-                        'subject_type' => MaddraxikonAccountLink::class,
-                        'subject_id' => $link->getKey(),
-                        'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
-                    ]);
+                    if ($shouldRecordLinkActivity) {
+                        Activity::query()->create([
+                            'user_id' => $user->getKey(),
+                            'subject_type' => MaddraxikonAccountLink::class,
+                            'subject_id' => $link->getKey(),
+                            'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
+                        ]);
+                    }
 
                     return $link;
                 });

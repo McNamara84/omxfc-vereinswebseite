@@ -77,6 +77,8 @@ class MaddraxikonRewardService
             throw new RecoveryRequiredException;
         }
 
+        $this->reconcilePendingRewardActivities();
+
         $query = MaddraxikonContribution::query()->due();
         $targetSourceKey = null;
 
@@ -117,19 +119,6 @@ class MaddraxikonRewardService
 
         $evaluated = 0;
         $blockedUserIds = [];
-        $awardedPointsByUser = [];
-        $recordAward = static function (
-            int $userId,
-            int $awardedPoints
-        ) use (&$awardedPointsByUser): void {
-            if ($awardedPoints < 1) {
-                return;
-            }
-
-            $awardedPointsByUser[$userId] = (
-                $awardedPointsByUser[$userId] ?? 0
-            ) + $awardedPoints;
-        };
 
         foreach ($sources as $candidate) {
             /** @var MaddraxikonContribution $contribution */
@@ -145,8 +134,7 @@ class MaddraxikonRewardService
                         $contribution,
                         $membersTeam,
                         $validation['revisions'],
-                        $validation['pages'],
-                        $recordAward
+                        $validation['pages']
                     );
                     $evaluated += $result;
 
@@ -154,8 +142,7 @@ class MaddraxikonRewardService
                     $result = $this->evaluateEditSession(
                         $contribution,
                         $membersTeam,
-                        $validation['revisions'],
-                        $recordAward
+                        $validation['revisions']
                     );
                     $evaluated += $result;
                 }
@@ -178,15 +165,7 @@ class MaddraxikonRewardService
             }
         }
 
-        foreach ($awardedPointsByUser as $userId => $awardedPoints) {
-            Activity::query()->create([
-                'user_id' => $userId,
-                'subject_type' => User::class,
-                'subject_id' => $userId,
-                'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX
-                    .$awardedPoints,
-            ]);
-        }
+        $this->reconcilePendingRewardActivities();
 
         return $evaluated;
     }
@@ -274,6 +253,7 @@ class MaddraxikonRewardService
 
                 $lockedEvent->update([
                     'status' => MaddraxikonRewardEventStatus::Reversed,
+                    'activity_pending' => false,
                     'reversal_user_point_id' => $reversal->id,
                     'reversed_at' => now(),
                     'reversed_by' => $admin->id,
@@ -534,8 +514,7 @@ class MaddraxikonRewardService
         MaddraxikonContribution $contribution,
         Team $membersTeam,
         array $revisionDetails,
-        array $pageDetails,
-        Closure $onAward
+        array $pageDetails
     ): int {
         $sourceKey = $this->sourceKey($contribution);
 
@@ -605,8 +584,7 @@ class MaddraxikonRewardService
             MaddraxikonRewardEvent::ACTION_NEW_ARTICLE,
             $sourceKey,
             $contribution,
-            $contribution->occurredAtUtc(),
-            onAward: $onAward
+            $contribution->occurredAtUtc()
         );
     }
 
@@ -616,8 +594,7 @@ class MaddraxikonRewardService
     private function evaluateEditSession(
         MaddraxikonContribution $seed,
         Team $membersTeam,
-        array $revisionDetails,
-        Closure $onAward
+        array $revisionDetails
     ): int {
         $anchorRevisionId = $seed->session_anchor_revision_id ?? $seed->revision_id;
         $sourceKey = 'edit-session:'.$anchorRevisionId;
@@ -690,8 +667,7 @@ class MaddraxikonRewardService
             $sourceKey,
             $valid->first(),
             $lastContribution->occurredAtUtc(),
-            $invalid->all(),
-            $onAward
+            $invalid->all()
         );
     }
 
@@ -738,11 +714,9 @@ class MaddraxikonRewardService
         string $sourceKey,
         MaddraxikonContribution $source,
         CarbonImmutable $activityAt,
-        array $invalidReasons = [],
-        ?Closure $onAward = null
+        array $invalidReasons = []
     ): int {
-        $award = null;
-        $evaluated = $this->withRewardDecisionLocks(
+        return $this->withRewardDecisionLocks(
             [$source->user_id],
             $source->wiki_key,
             function (LockedMembersTeamMemberships $memberships) use (
@@ -751,8 +725,7 @@ class MaddraxikonRewardService
                 $sourceKey,
                 $source,
                 $activityAt,
-                $invalidReasons,
-                &$award
+                $invalidReasons
             ): int {
                 if ($this->rewardExists($source->wiki_key, $sourceKey, true)) {
                     return 0;
@@ -916,6 +889,7 @@ class MaddraxikonRewardService
                     'status_reason' => $statusReason,
                     'user_point_id' => $userPoint?->id,
                     'awarded_at' => $awardedPoints > 0 ? now() : null,
+                    'activity_pending' => $awardedPoints > 0,
                 ]);
 
                 $lockedContributions->each(function (
@@ -938,21 +912,8 @@ class MaddraxikonRewardService
                     ]);
                 });
 
-                if ($event->awarded_points > 0) {
-                    $award = [
-                        'user_id' => (int) $event->user_id,
-                        'points' => (int) $event->awarded_points,
-                    ];
-                }
-
                 return 1;
             });
-
-        if ($award !== null && $onAward !== null) {
-            $onAward($award['user_id'], $award['points']);
-        }
-
-        return $evaluated;
     }
 
     /**
@@ -1185,6 +1146,71 @@ class MaddraxikonRewardService
             $last->occurredAtUtc()->addMinutes(
                 max(1, (int) config('maddraxikon.session_window_minutes', 30))
             )
+        );
+    }
+
+    /**
+     * Persist one feed entry per user for every still-unannounced award.
+     *
+     * Reward events carry the durable retry marker. Creating the activity and
+     * clearing that marker in one transaction makes retries idempotent: a
+     * failed insert leaves every event pending, while a committed insert can
+     * never be announced a second time.
+     */
+    private function reconcilePendingRewardActivities(): void
+    {
+        $userIds = MaddraxikonRewardEvent::query()
+            ->where('activity_pending', true)
+            ->select('user_id')
+            ->distinct()
+            ->orderBy('user_id')
+            ->pluck('user_id')
+            ->map(static fn (int|string $userId): int => (int) $userId)
+            ->all();
+
+        if ($userIds === []) {
+            return;
+        }
+
+        $this->membershipLock->run(
+            $userIds,
+            function (LockedMembersTeamMemberships $_memberships) use (
+                $userIds
+            ): void {
+                foreach ($userIds as $userId) {
+                    $events = MaddraxikonRewardEvent::query()
+                        ->where('user_id', $userId)
+                        ->where('activity_pending', true)
+                        ->orderBy('id')
+                        ->lockForUpdate()
+                        ->get();
+
+                    if ($events->isEmpty()) {
+                        continue;
+                    }
+
+                    $awardedPoints = (int) $events
+                        ->filter(static fn (MaddraxikonRewardEvent $event): bool => (
+                            $event->status === MaddraxikonRewardEventStatus::Awarded
+                            && $event->awarded_points > 0
+                        ))
+                        ->sum('awarded_points');
+
+                    if ($awardedPoints > 0) {
+                        Activity::query()->create([
+                            'user_id' => $userId,
+                            'subject_type' => User::class,
+                            'subject_id' => $userId,
+                            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX
+                                .$awardedPoints,
+                        ]);
+                    }
+
+                    MaddraxikonRewardEvent::query()
+                        ->whereKey($events->modelKeys())
+                        ->update(['activity_pending' => false]);
+                }
+            }
         );
     }
 

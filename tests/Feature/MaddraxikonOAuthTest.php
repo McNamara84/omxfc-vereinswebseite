@@ -206,6 +206,35 @@ class MaddraxikonOAuthTest extends TestCase
         $this->assertDatabaseCount('maddraxikon_account_links', 1);
     }
 
+    public function test_reauth_of_active_link_does_not_duplicate_link_activity(): void
+    {
+        $member = $this->createMember();
+        $this->fakeSuccessfulIdentity();
+
+        foreach (['first-code', 'reauth-code'] as $code) {
+            $attempt = $this->beginLink($member);
+
+            $this->get(route('maddraxikon.oauth.callback', [
+                'state' => $attempt['state'],
+                'code' => $code,
+            ]))->assertSessionHas('maddraxikon_status');
+        }
+
+        $link = MaddraxikonAccountLink::query()
+            ->where('user_id', $member->id)
+            ->sole();
+
+        $this->assertSame(
+            1,
+            Activity::query()
+                ->where('user_id', $member->id)
+                ->where('subject_type', MaddraxikonAccountLink::class)
+                ->where('subject_id', $link->id)
+                ->where('action', Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED)
+                ->count()
+        );
+    }
+
     public function test_callback_is_bound_to_original_laravel_user(): void
     {
         $member = $this->createMember();
@@ -413,6 +442,12 @@ class MaddraxikonOAuthTest extends TestCase
         $this->assertSame(now()->getTimestamp(), $link->verified_at->getTimestamp());
         $this->assertSame('Wiki Mitglied', $link->wiki_username);
         $this->assertTrue($link->isActive());
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $member->id,
+            'subject_type' => MaddraxikonAccountLink::class,
+            'subject_id' => $link->id,
+            'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
+        ]);
     }
 
     public function test_applicant_and_non_member_cannot_start_linking(): void

@@ -40,6 +40,7 @@ class MaddraxikonRewardEvent extends Model
         'user_point_id',
         'reversal_user_point_id',
         'awarded_at',
+        'activity_pending',
         'reversed_at',
         'reversed_by',
         'reversal_reason',
@@ -60,6 +61,7 @@ class MaddraxikonRewardEvent extends Model
             'capped_points' => 'integer',
             'status' => MaddraxikonRewardEventStatus::class,
             'awarded_at' => 'datetime',
+            'activity_pending' => 'boolean',
             'reversed_at' => 'datetime',
         ];
     }

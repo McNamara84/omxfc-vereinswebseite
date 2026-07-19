@@ -78,6 +78,7 @@ class MaddraxikonDataModelTest extends TestCase
             'capped_points',
             'user_point_id',
             'reversal_user_point_id',
+            'activity_pending',
             'reversed_by',
             'reversal_reason',
         ]));
@@ -115,6 +116,10 @@ class MaddraxikonDataModelTest extends TestCase
         $this->assertTrue(Schema::hasIndex(
             'maddraxikon_reward_events',
             'maddraxikon_rewards_user_action_sequence_index',
+        ));
+        $this->assertTrue(Schema::hasIndex(
+            'maddraxikon_reward_events',
+            'maddraxikon_rewards_pending_activity_index',
         ));
 
         // Statuses deliberately remain portable strings instead of DB enums.
