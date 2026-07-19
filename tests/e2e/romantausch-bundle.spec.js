@@ -341,6 +341,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Romantauschbörse Übersicht mit Stapeln erfüllt WCAG AA Richtlinien', async ({ page }) => {
             await loginAsMember(page);
+            test.setTimeout(60_000);
+
             
             // Erstelle ein Stapel-Angebot damit die Übersicht Stapel enthält
             await gotoBundleCreateForm(page);

@@ -83,11 +83,10 @@
     display: none !important;
 }
 
-/* View Transitions: Aktivierung. Animations-Regeln und prefers-reduced-motion-Override
-   folgen weiter unten in einem konsolidierten Block. */
-@view-transition {
-    navigation: auto;
-}
+/* Cross-Document-Transitions bleiben bewusst deaktiviert: Livewire `wire:navigate`
+   startet Same-Document-Transitions selbst. Eine parallele `@view-transition`-
+   Aktivierung lässt Chromium überlappende Transitions als unbehandelte
+   "Transition was skipped"-Promise ablehnen. */
 
 /* Vereinslogo als Asset referenzieren */
 .logo {
