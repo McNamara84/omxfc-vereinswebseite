@@ -5,6 +5,7 @@ namespace App\Services\Maddraxikon;
 use App\Enums\MaddraxikonAccountLinkStatus;
 use App\Enums\Role;
 use App\Mail\MaddraxikonAccountLinked;
+use App\Models\Activity;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonAccountLinkCorrection;
 use App\Models\MaddraxikonIdentityTombstone;
@@ -125,7 +126,16 @@ final class AccountLinkService
                         'consented_at' => $consentedAt,
                     ])->save();
 
-                    return $link->fresh();
+                    $link = $link->fresh();
+
+                    Activity::query()->create([
+                        'user_id' => $user->getKey(),
+                        'subject_type' => MaddraxikonAccountLink::class,
+                        'subject_id' => $link->getKey(),
+                        'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
+                    ]);
+
+                    return $link;
                 });
         } catch (QueryException $exception) {
             if ($this->isUniqueConstraintViolation($exception)) {

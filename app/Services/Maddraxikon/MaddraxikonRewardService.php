@@ -7,6 +7,7 @@ use App\Enums\MaddraxikonContributionStatus;
 use App\Enums\MaddraxikonContributionType;
 use App\Enums\MaddraxikonRewardEventStatus;
 use App\Enums\Role;
+use App\Models\Activity;
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
@@ -116,6 +117,19 @@ class MaddraxikonRewardService
 
         $evaluated = 0;
         $blockedUserIds = [];
+        $awardedPointsByUser = [];
+        $recordAward = static function (
+            int $userId,
+            int $awardedPoints
+        ) use (&$awardedPointsByUser): void {
+            if ($awardedPoints < 1) {
+                return;
+            }
+
+            $awardedPointsByUser[$userId] = (
+                $awardedPointsByUser[$userId] ?? 0
+            ) + $awardedPoints;
+        };
 
         foreach ($sources as $candidate) {
             /** @var MaddraxikonContribution $contribution */
@@ -131,7 +145,8 @@ class MaddraxikonRewardService
                         $contribution,
                         $membersTeam,
                         $validation['revisions'],
-                        $validation['pages']
+                        $validation['pages'],
+                        $recordAward
                     );
                     $evaluated += $result;
 
@@ -139,7 +154,8 @@ class MaddraxikonRewardService
                     $result = $this->evaluateEditSession(
                         $contribution,
                         $membersTeam,
-                        $validation['revisions']
+                        $validation['revisions'],
+                        $recordAward
                     );
                     $evaluated += $result;
                 }
@@ -160,6 +176,16 @@ class MaddraxikonRewardService
                 $this->recordEvaluationFailure($contribution, $exception);
                 $blockedUserIds[$contribution->user_id] = true;
             }
+        }
+
+        foreach ($awardedPointsByUser as $userId => $awardedPoints) {
+            Activity::query()->create([
+                'user_id' => $userId,
+                'subject_type' => User::class,
+                'subject_id' => $userId,
+                'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX
+                    .$awardedPoints,
+            ]);
         }
 
         return $evaluated;
@@ -508,7 +534,8 @@ class MaddraxikonRewardService
         MaddraxikonContribution $contribution,
         Team $membersTeam,
         array $revisionDetails,
-        array $pageDetails
+        array $pageDetails,
+        Closure $onAward
     ): int {
         $sourceKey = $this->sourceKey($contribution);
 
@@ -578,7 +605,8 @@ class MaddraxikonRewardService
             MaddraxikonRewardEvent::ACTION_NEW_ARTICLE,
             $sourceKey,
             $contribution,
-            $contribution->occurredAtUtc()
+            $contribution->occurredAtUtc(),
+            onAward: $onAward
         );
     }
 
@@ -588,7 +616,8 @@ class MaddraxikonRewardService
     private function evaluateEditSession(
         MaddraxikonContribution $seed,
         Team $membersTeam,
-        array $revisionDetails
+        array $revisionDetails,
+        Closure $onAward
     ): int {
         $anchorRevisionId = $seed->session_anchor_revision_id ?? $seed->revision_id;
         $sourceKey = 'edit-session:'.$anchorRevisionId;
@@ -661,7 +690,8 @@ class MaddraxikonRewardService
             $sourceKey,
             $valid->first(),
             $lastContribution->occurredAtUtc(),
-            $invalid->all()
+            $invalid->all(),
+            $onAward
         );
     }
 
@@ -708,9 +738,11 @@ class MaddraxikonRewardService
         string $sourceKey,
         MaddraxikonContribution $source,
         CarbonImmutable $activityAt,
-        array $invalidReasons = []
+        array $invalidReasons = [],
+        ?Closure $onAward = null
     ): int {
-        return $this->withRewardDecisionLocks(
+        $award = null;
+        $evaluated = $this->withRewardDecisionLocks(
             [$source->user_id],
             $source->wiki_key,
             function (LockedMembersTeamMemberships $memberships) use (
@@ -719,7 +751,8 @@ class MaddraxikonRewardService
                 $sourceKey,
                 $source,
                 $activityAt,
-                $invalidReasons
+                $invalidReasons,
+                &$award
             ): int {
                 if ($this->rewardExists($source->wiki_key, $sourceKey, true)) {
                     return 0;
@@ -905,8 +938,21 @@ class MaddraxikonRewardService
                     ]);
                 });
 
+                if ($event->awarded_points > 0) {
+                    $award = [
+                        'user_id' => (int) $event->user_id,
+                        'points' => (int) $event->awarded_points,
+                    ];
+                }
+
                 return 1;
             });
+
+        if ($award !== null && $onAward !== null) {
+            $onAward($award['user_id'], $award['points']);
+        }
+
+        return $evaluated;
     }
 
     /**

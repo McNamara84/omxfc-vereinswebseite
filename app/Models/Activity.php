@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Activity extends Model
 {
+    public const ACTION_MADDRAXIKON_ACCOUNT_LINKED = 'maddraxikon_account_linked';
+
+    public const ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX = 'maddraxikon_baxx_awarded_';
+
     protected $fillable = [
         'user_id',
         'subject_type',

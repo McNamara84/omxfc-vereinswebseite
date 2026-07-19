@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\MaddraxikonAccountLinkStatus;
 use App\Enums\Role;
 use App\Mail\MaddraxikonAccountLinked;
+use App\Models\Activity;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\Team;
 use App\Models\User;
@@ -142,6 +143,12 @@ class MaddraxikonOAuthTest extends TestCase
         $this->assertSame('oauth2', $link->verification_method);
         $this->assertSame('2026-07-18', $link->consent_version);
         $this->assertNull($link->disconnected_at);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $member->id,
+            'subject_type' => MaddraxikonAccountLink::class,
+            'subject_id' => $link->id,
+            'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
+        ]);
 
         Mail::assertQueued(MaddraxikonAccountLinked::class, function (MaddraxikonAccountLinked $mail): bool {
             return $mail->hasTo('member@example.com')

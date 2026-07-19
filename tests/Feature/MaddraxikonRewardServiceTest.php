@@ -8,6 +8,7 @@ use App\Enums\MaddraxikonContributionType;
 use App\Enums\MaddraxikonRewardEventStatus;
 use App\Enums\Role;
 use App\Exceptions\MaddraxikonApiException;
+use App\Models\Activity;
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
@@ -251,6 +252,12 @@ class MaddraxikonRewardServiceTest extends TestCase
             'user_id' => $user->id,
             'points' => 5,
         ]);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'5',
+        ]);
     }
 
     #[DataProvider('invalidArticleProvider')]
@@ -278,6 +285,11 @@ class MaddraxikonRewardServiceTest extends TestCase
             'awarded_points' => 0,
         ]);
         $this->assertDatabaseCount('user_points', 0);
+        $this->assertFalse(
+            Activity::query()
+                ->where('action', 'like', Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'%')
+                ->exists()
+        );
     }
 
     public static function invalidArticleProvider(): array
@@ -712,7 +724,7 @@ class MaddraxikonRewardServiceTest extends TestCase
     public function test_remote_validation_is_bundled_into_configured_chunks(): void
     {
         config(['maddraxikon.evaluation.api_batch_size' => 2]);
-        [, $link] = $this->linkedMember();
+        [$user, $link] = $this->linkedMember();
         $articles = collect();
         $startedAt = now()->subHours(30);
 
@@ -779,6 +791,19 @@ class MaddraxikonRewardServiceTest extends TestCase
             $pageBatches
         );
         $this->assertDatabaseCount('maddraxikon_reward_events', 5);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'10',
+        ]);
+        $this->assertSame(
+            1,
+            Activity::query()
+                ->where('user_id', $user->id)
+                ->where('action', 'like', Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'%')
+                ->count()
+        );
     }
 
     public function test_api_failure_opens_circuit_for_other_users_in_same_run(): void

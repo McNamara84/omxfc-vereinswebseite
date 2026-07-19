@@ -18,6 +18,7 @@ use App\Models\BookSwap;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
 use App\Models\FantreffenAnmeldung;
+use App\Models\MaddraxikonAccountLink;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Reward;
@@ -605,6 +606,52 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText('MeilensteinNick');
         $response->assertSeeText('100 Baxx erreicht');
         $response->assertSeeText('Meilenstein');
+    }
+
+    public function test_dashboard_shows_successful_maddraxikon_link_activity(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['alias' => 'VerknuepfungsNick']);
+        $this->actingAs($user);
+        $link = MaddraxikonAccountLink::factory()->for($user)->create([
+            'wiki_username' => 'Wiki Mitglied',
+        ]);
+
+        Activity::query()->create([
+            'user_id' => $user->id,
+            'subject_type' => MaddraxikonAccountLink::class,
+            'subject_id' => $link->id,
+            'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('VerknuepfungsNick');
+        $response->assertSeeText('Maddraxikon');
+        $response->assertSeeText('Wiki Mitglied');
+        $response->assertSeeText('verdient nun Baxx durch Bearbeitungen im Maddraxikon.');
+    }
+
+    public function test_dashboard_shows_aggregated_maddraxikon_baxx_activity(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['alias' => 'BaxxWikiNick']);
+        $this->actingAs($user);
+
+        Activity::query()->create([
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'7',
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('BaxxWikiNick');
+        $response->assertSeeText('Maddraxikon');
+        $response->assertSeeText('hat bei der aktuellen Maddraxikon-Abrechnung 7 Baxx durch Mitwirkung im Maddraxikon verdient.');
     }
 
     public function test_dashboard_displays_recent_activities(): void
