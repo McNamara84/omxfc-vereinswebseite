@@ -299,8 +299,15 @@ class MaddraxikonRewardServiceTest extends TestCase
             );
         } finally {
             $failActivityInsert = false;
+            Activity::flushEventListeners();
         }
 
+        $this->assertCount(
+            0,
+            Activity::getEventDispatcher()->getListeners(
+                'eloquent.creating: '.Activity::class
+            )
+        );
         $this->assertDatabaseHas('maddraxikon_reward_events', [
             'source_key' => 'new:'.$article->revision_id,
             'awarded_points' => 5,
