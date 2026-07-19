@@ -37,9 +37,13 @@
                     \App\Models\FantreffenAnmeldung::class => 'Fantreffen',
                     \App\Models\Todo::class => 'Challenge',
                     \App\Models\User::class => 'Mitglied',
+                    \App\Models\MaddraxikonAccountLink::class => 'Maddraxikon',
                 ];
                 if ($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, 'baxx_milestone_reached_')) {
                     $typeLabels[\App\Models\User::class] = 'Meilenstein';
+                }
+                if ($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, \App\Models\Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX)) {
+                    $typeLabels[\App\Models\User::class] = 'Maddraxikon';
                 }
                 $activityLabel = $typeLabels[$activity->subject_type] ?? 'Aktivität';
             @endphp
@@ -210,6 +214,17 @@
                         <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" wire:navigate class="text-info hover:underline">{{ $subject->title }}</a> angenommen</span>
                     @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
                         <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" wire:navigate class="text-info hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen und {{ $subject->points }} Baxx verdient</span>
+                    @elseif($activity->subject_type === \App\Models\MaddraxikonAccountLink::class && $activity->action === \App\Models\Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED)
+                        <span>hat das Mitgliedschaftskonto erfolgreich mit dem Maddraxikon-Konto „{{ $subject->wiki_username }}“ verknüpft und verdient nun Baxx durch Bearbeitungen im Maddraxikon.</span>
+                    @elseif($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, \App\Models\Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX))
+                        @php
+                            $maddraxikonAwardedPoints = (int) str_replace(
+                                \App\Models\Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX,
+                                '',
+                                (string) $activity->action
+                            );
+                        @endphp
+                        <span>hat bei der aktuellen Maddraxikon-Abrechnung {{ $maddraxikonAwardedPoints }} Baxx durch Mitwirkung im Maddraxikon verdient.</span>
                     @elseif($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, 'baxx_milestone_reached_'))
                         @php
                             $milestoneValue = (int) str_replace('baxx_milestone_reached_', '', (string) $activity->action);

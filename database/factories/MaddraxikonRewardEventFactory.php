@@ -41,6 +41,7 @@ class MaddraxikonRewardEventFactory extends Factory
             'user_point_id' => null,
             'reversal_user_point_id' => null,
             'awarded_at' => null,
+            'activity_pending' => false,
             'reversed_at' => null,
             'reversed_by' => null,
             'reversal_reason' => null,

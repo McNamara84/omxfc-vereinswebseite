@@ -8,6 +8,7 @@ use App\Enums\MaddraxikonContributionType;
 use App\Enums\MaddraxikonRewardEventStatus;
 use App\Enums\Role;
 use App\Exceptions\MaddraxikonApiException;
+use App\Models\Activity;
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
@@ -26,6 +27,7 @@ use LogicException;
 use Mockery;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use RuntimeException;
 use Tests\TestCase;
 
 #[CoversClass(MaddraxikonRewardService::class)]
@@ -251,6 +253,116 @@ class MaddraxikonRewardServiceTest extends TestCase
             'user_id' => $user->id,
             'points' => 5,
         ]);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'5',
+        ]);
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'source_key' => 'new:'.$article->revision_id,
+            'activity_pending' => false,
+        ]);
+    }
+
+    public function test_failed_activity_insert_is_reconciled_once_on_retry(): void
+    {
+        [$user, $link] = $this->linkedMember();
+        $article = $this->contribution($link, [
+            'type' => MaddraxikonContributionType::New,
+            'parent_revision_id' => 0,
+        ]);
+        $service = $this->service($this->apiForNewArticle($article));
+        $failActivityInsert = true;
+
+        Activity::creating(static function (Activity $activity) use (
+            &$failActivityInsert
+        ): void {
+            if (
+                $failActivityInsert
+                && str_starts_with(
+                    (string) $activity->action,
+                    Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX
+                )
+            ) {
+                throw new RuntimeException('Simulierter Activity-Insert-Fehler.');
+            }
+        });
+
+        try {
+            $service->evaluate();
+            $this->fail('Der simulierte Activity-Fehler wurde nicht ausgelöst.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame(
+                'Simulierter Activity-Insert-Fehler.',
+                $exception->getMessage()
+            );
+        } finally {
+            $failActivityInsert = false;
+            Activity::flushEventListeners();
+        }
+
+        $this->assertCount(
+            0,
+            Activity::getEventDispatcher()->getListeners(
+                'eloquent.creating: '.Activity::class
+            )
+        );
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'source_key' => 'new:'.$article->revision_id,
+            'awarded_points' => 5,
+            'activity_pending' => true,
+        ]);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 5,
+        ]);
+        $this->assertDatabaseMissing('activities', [
+            'user_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'5',
+        ]);
+
+        $this->assertSame(0, $service->evaluate());
+        $this->assertSame(0, $service->evaluate());
+
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'source_key' => 'new:'.$article->revision_id,
+            'activity_pending' => false,
+        ]);
+        $this->assertSame(
+            1,
+            Activity::query()
+                ->where('user_id', $user->id)
+                ->where(
+                    'action',
+                    Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'5'
+                )
+                ->count()
+        );
+    }
+
+    public function test_historical_reward_events_are_not_announced_retroactively(): void
+    {
+        [$user, $link] = $this->linkedMember();
+        MaddraxikonRewardEvent::factory()->create([
+            'user_id' => $user->id,
+            'account_link_id' => $link->id,
+            'awarded_points' => 5,
+            'candidate_points' => 5,
+            'status' => MaddraxikonRewardEventStatus::Awarded,
+            'awarded_at' => now()->subDay(),
+            'activity_pending' => false,
+        ]);
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldNotReceive('revisionDetails');
+        $api->shouldNotReceive('pageDetails');
+
+        $this->assertSame(0, $this->service($api)->evaluate());
+        $this->assertFalse(
+            Activity::query()
+                ->where('action', 'like', Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'%')
+                ->exists()
+        );
     }
 
     #[DataProvider('invalidArticleProvider')]
@@ -278,6 +390,11 @@ class MaddraxikonRewardServiceTest extends TestCase
             'awarded_points' => 0,
         ]);
         $this->assertDatabaseCount('user_points', 0);
+        $this->assertFalse(
+            Activity::query()
+                ->where('action', 'like', Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'%')
+                ->exists()
+        );
     }
 
     public static function invalidArticleProvider(): array
@@ -712,7 +829,7 @@ class MaddraxikonRewardServiceTest extends TestCase
     public function test_remote_validation_is_bundled_into_configured_chunks(): void
     {
         config(['maddraxikon.evaluation.api_batch_size' => 2]);
-        [, $link] = $this->linkedMember();
+        [$user, $link] = $this->linkedMember();
         $articles = collect();
         $startedAt = now()->subHours(30);
 
@@ -779,6 +896,19 @@ class MaddraxikonRewardServiceTest extends TestCase
             $pageBatches
         );
         $this->assertDatabaseCount('maddraxikon_reward_events', 5);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'10',
+        ]);
+        $this->assertSame(
+            1,
+            Activity::query()
+                ->where('user_id', $user->id)
+                ->where('action', 'like', Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'%')
+                ->count()
+        );
     }
 
     public function test_api_failure_opens_circuit_for_other_users_in_same_run(): void
