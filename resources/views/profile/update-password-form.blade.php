@@ -3,24 +3,23 @@
         <!-- Hidden username field for accessibility -->
         <input type="text" class="hidden" autocomplete="username" value="{{ old('email', auth()->user()->email) }}" />
 
-        <x-input
+        <x-password
             id="current_password"
             label="{{ __('Aktuelles Passwort') }}"
-            type="password"
             wire:model="state.current_password"
             autocomplete="current-password" />
 
-        <x-input
+        <x-password
             id="password"
             label="{{ __('Neues Passwort') }}"
-            type="password"
             wire:model="state.password"
+            hint="{{ __('Mindestens 8 Zeichen.') }}"
+            popover="{{ __('Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort.') }}"
             autocomplete="new-password" />
 
-        <x-input
+        <x-password
             id="password_confirmation"
             label="{{ __('Neues Passwort bestätigen') }}"
-            type="password"
             wire:model="state.password_confirmation"
             autocomplete="new-password" />
 

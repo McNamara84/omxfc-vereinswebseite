@@ -28,6 +28,15 @@ class UpdatePasswordTest extends TestCase
         $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
     }
 
+    public function test_password_form_uses_mary_password_help(): void
+    {
+        $this->actingAs($user = User::factory()->create());
+
+        Livewire::test(UpdatePasswordForm::class)
+            ->assertSee('Mindestens 8 Zeichen.')
+            ->assertSee('Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort.');
+    }
+
     public function test_current_password_must_be_correct(): void
     {
         $this->actingAs($user = User::factory()->create());

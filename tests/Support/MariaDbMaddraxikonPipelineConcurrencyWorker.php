@@ -39,7 +39,7 @@ $app->make(Kernel::class)->bootstrap();
  * exposes a barrier after the importer has read the sync state, but before it
  * persists the shared RecentChanges row.
  */
-final class MariaDbMaddraxikonPipelineConcurrencyApi extends MaddraxikonApiClient
+final class MariaDbMaddraxikonPipelineConcurrencyWorker extends MaddraxikonApiClient
 {
     public function __construct(
         private readonly string $mode,
@@ -221,7 +221,7 @@ try {
         );
     }
 
-    $api = new MariaDbMaddraxikonPipelineConcurrencyApi(
+    $api = new MariaDbMaddraxikonPipelineConcurrencyWorker(
         $mode,
         $userId,
         $externalId

@@ -20,6 +20,8 @@ class RegistrationTest extends TestCase
         $response = $this->get('/register');
 
         $response->assertStatus(200);
+        $response->assertSee('Mindestens 8 Zeichen.');
+        $response->assertSee('Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort.');
     }
 
     public function test_new_users_can_register(): void

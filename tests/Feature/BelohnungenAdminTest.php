@@ -142,7 +142,7 @@ class BelohnungenAdminTest extends TestCase
         $this->assertSame(Reward::count(), $component->tabBadges()['statistics']);
     }
 
-    public function test_mary_tab_badges_render_with_project_alias(): void
+    public function test_mary_tab_badges_render_with_upstream_alias(): void
     {
         $this->assertSame(
             Badge::class,

@@ -46,7 +46,7 @@ class MitgliedschaftControllerTest extends TestCase
         }
 
         // Prüfe, dass Hints für Passwort und Telefon vorhanden sind (maryUI fieldset-label)
-        $this->assertStringContainsString('Mindestens 6 Zeichen.', $html);
+        $this->assertStringContainsString('Mindestens 8 Zeichen.', $html);
         $this->assertStringContainsString('Bitte wiederhole dein Passwort.', $html);
 
         // Prüfe Beitrag-Slider
@@ -90,6 +90,34 @@ class MitgliedschaftControllerTest extends TestCase
         Mail::assertQueued(MitgliedAntragEingereicht::class, function ($mail) use ($user) {
             return $mail->hasTo($user->email);
         });
+    }
+
+    public function test_membership_application_rejects_passwords_below_the_default_security_minimum(): void
+    {
+        Mail::fake();
+
+        $response = $this->postJson(route('mitglied.store'), [
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'strasse' => 'Musterstraße',
+            'hausnummer' => '1',
+            'plz' => '12345',
+            'stadt' => 'Musterstadt',
+            'land' => 'Deutschland',
+            'mail' => 'short-password@example.com',
+            'passwort' => '1234567',
+            'passwort_confirmation' => '1234567',
+            'mitgliedsbeitrag' => 12,
+        ]);
+
+        $response
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['passwort']);
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'short-password@example.com',
+        ]);
+        Mail::assertNothingQueued();
     }
 
     public function test_membership_application_requires_first_name(): void

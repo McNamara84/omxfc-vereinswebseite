@@ -194,8 +194,12 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
             callCount++;
             // Erster Aufruf wird aborted, zweiter succeeds
             if (callCount === 1) {
-                opts.signal.addEventListener('abort', abortFn);
-                return new Promise(() => {}); // Never resolves
+                return new Promise((resolve, reject) => {
+                    opts.signal.addEventListener('abort', () => {
+                        abortFn();
+                        reject(new DOMException('Aborted', 'AbortError'));
+                    }, { once: true });
+                });
             }
             return Promise.resolve({
                 ok: true,
@@ -213,6 +217,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
         const second = r.fetchPreviousSpeaker(role);
 
         await second;
+        await first;
         expect(abortFn).toHaveBeenCalled();
         expect(role.previousSpeaker).toBe('Bisheriger Sprecher: Neu');
     });

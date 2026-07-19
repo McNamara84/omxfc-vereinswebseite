@@ -48,13 +48,13 @@ This document provides comprehensive guidance for AI assistants working with the
   - Laravel Jetstream 5.5 (team management, authentication)
   - Laravel Sanctum 4.3 (API authentication)
   - Livewire 4.x (reactive components)
-    - Laravel Scout 11.x with TNTSearch (full-text search)
+  - Laravel Scout 11.x (search integration)
   - Spatie Laravel PDF (PDF generation)
   - Spatie Laravel Sitemap 8.0 (sitemap generation)
 
 ### Frontend
 - **CSS Framework:** Tailwind CSS 4.x
-- **UI Components:** maryUI 2.8 (Blade component library)
+- **UI Components:** maryUI 2.9 (Blade component library)
 - **Build Tool:** Vite 8.x
 - **JavaScript:**
   - Alpine.js (via Jetstream)
@@ -67,8 +67,8 @@ This document provides comprehensive guidance for AI assistants working with the
 - **PHP Testing:** PHPUnit 13.x
 - **JavaScript Testing:**
   - Vitest 4.1 (unit tests)
-  - Playwright 1.60 (E2E tests)
-  - @axe-core/playwright 4.11 (accessibility testing)
+  - Playwright 1.61 (E2E tests)
+  - @axe-core/playwright 4.12 (accessibility testing)
 - **Code Style:** Laravel Pint 1.29
 
 ### Development Tools
@@ -159,7 +159,7 @@ omxfc-vereinswebseite/
 ├── phpunit.xml               # PHPUnit configuration
 ├── playwright.config.js      # Playwright configuration
 ├── vitest.config.js          # Vitest configuration
-├── tailwind.config.js        # Tailwind CSS configuration
+├── resources/css/app.css     # Tailwind CSS configuration and sources
 ├── vite.config.js            # Vite build configuration
 ```
 
