@@ -166,7 +166,11 @@ class NewsletterImageService
         $filename = $name.'-'.Str::uuid().'.'.$extension;
         $originalPath = self::ORIGINAL_STORAGE_PATH.'/'.$filename;
 
-        if (! Storage::disk('local')->put($originalPath, $image->getContent())) {
+        if (Storage::disk('local')->putFileAs(
+            self::ORIGINAL_STORAGE_PATH,
+            $image,
+            $filename,
+        ) === false) {
             throw new \RuntimeException('Originalbild konnte nicht gesichert werden.');
         }
 
