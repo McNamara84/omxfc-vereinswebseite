@@ -36,14 +36,12 @@ jobs:
           tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
 
       - name: Scan pushed image for high and critical vulnerabilities
-        uses: docker/scout-action@2688993af7bafd6ba8c6a74ec652442be91dd82b # v1.23.1
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
-          command: cves
-          image: registry://ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
-          only-severities: critical,high
-          exit-code: true
-          summary: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
+          fail-build: true
+          severity-cutoff: high
+          output-format: table
   deploy:
     needs: build
     runs-on: ubuntu-latest
