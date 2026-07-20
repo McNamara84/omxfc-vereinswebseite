@@ -562,11 +562,11 @@ class RpgCharacterSheetService
         ];
     }
 
-    public function characterSheetPdfResponse(array $data)
+    public function characterSheetPdfResponse(array $data) // @pest-ignore-profanity -- RPG domain term.
     {
         $name = Str::slug($data['character']['character_name'] ?: 'charakter') ?: 'charakter';
 
-        return Pdf::view('rpg.char-sheet', $data)
+        return Pdf::view('rpg.char-sheet', $data) /* @pest-ignore-profanity -- Existing RPG view path. */
             ->driver('dompdf')
             ->format('a4')
             ->margins(10, 10, 10, 10)

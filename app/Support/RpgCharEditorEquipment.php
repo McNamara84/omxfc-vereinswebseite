@@ -126,7 +126,7 @@ final class RpgCharEditorEquipment
             ['id' => 'kreide', 'name' => 'Kreide', 'category' => 'low_tech', 'summary' => 'Um Markierungen vorzunehmen', 'tw' => '1', 'bucks' => '1'],
             ['id' => 'papier-10-blatt', 'name' => 'Papier (10 Blatt)', 'category' => 'low_tech', 'summary' => 'Um Aufzeichnungen zu machen', 'tw' => '1', 'bucks' => '5'],
             ['id' => 'rucksack', 'name' => 'Rucksack', 'category' => 'low_tech', 'summary' => 'Trägt bis zu 10 Kilogramm Inhalt', 'tw' => '3', 'bucks' => '10'],
-            ['id' => 'sack', 'name' => 'Sack', 'category' => 'low_tech', 'summary' => 'Trägt bis zu 20 Kilogramm Inhalt', 'tw' => '2', 'bucks' => '4'],
+            ['id' => 'sack', 'name' => 'Sack', 'category' => 'low_tech', 'summary' => 'Trägt bis zu 20 Kilogramm Inhalt', 'tw' => '2', 'bucks' => '4'], // @pest-ignore-profanity -- English inventory item.
             ['id' => 'schlafsack', 'name' => 'Schlafsack', 'category' => 'low_tech', 'summary' => 'Um sich bei schlechtem Wetter warm zu halten', 'tw' => '3', 'bucks' => '12'],
             ['id' => 'schreibfeder', 'name' => 'Schreibfeder', 'category' => 'low_tech', 'summary' => 'Um mit Tinte zu schreiben', 'tw' => '1', 'bucks' => '8'],
             ['id' => 'seil', 'name' => 'Seil', 'category' => 'low_tech', 'summary' => '20 Meter langes Hanfseil', 'tw' => '2', 'bucks' => '6'],

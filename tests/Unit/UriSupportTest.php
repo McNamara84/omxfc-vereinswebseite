@@ -35,6 +35,21 @@ class UriSupportTest extends TestCase
     }
 
     #[Test]
+    public function absolute_host_matching_is_case_insensitive_but_rejects_ambiguous_hosts(): void
+    {
+        $this->assertTrue(UriSupport::isAbsoluteUrlForHost(
+            'HTTPS://MADDRAX-FANCLUB.DE/path',
+            'https',
+            'maddrax-fanclub.de'
+        ));
+
+        $this->assertFalse(UriSupport::isAbsoluteUrlForHost('//maddrax-fanclub.de/path', 'https', 'maddrax-fanclub.de'));
+        $this->assertFalse(UriSupport::isAbsoluteUrlForHost('https://example.com', 'https', 'maddrax-fanclub.de'));
+        $this->assertFalse(UriSupport::isAbsoluteUrlForHost('https://maddrax-fanclub.de.evil.example', 'https', 'maddrax-fanclub.de'));
+        $this->assertFalse(UriSupport::isAbsoluteUrlForHost('https://user@maddrax-fanclub.de', 'http', 'maddrax-fanclub.de'));
+    }
+
+    #[Test]
     public function safe_markdown_href_matches_existing_link_policy(): void
     {
         $this->assertTrue(UriSupport::isSafeMarkdownHref('https://example.com'));
@@ -51,5 +66,11 @@ class UriSupportTest extends TestCase
         $this->assertFalse(UriSupport::isSafeMarkdownHref('http:///example.com'));
         $this->assertFalse(UriSupport::isSafeMarkdownHref('123start/page'));
         $this->assertFalse(UriSupport::isSafeMarkdownHref('@notes/file'));
+        $this->assertFalse(UriSupport::isSafeMarkdownHref('https://'));
+        $this->assertFalse(UriSupport::isSafeMarkdownHref('mailto:'));
+        $this->assertFalse(UriSupport::isSafeMarkdownHref("javascript:\0alert(1)"));
+        $this->assertFalse(UriSupport::isSafeMarkdownHref('\\\\example.com\\share'));
+        $this->assertTrue(UriSupport::isSafeMarkdownHref('../docs/readme.md#intro'));
+        $this->assertTrue(UriSupport::isSafeMarkdownHref('/absolute/path?section=1'));
     }
 }

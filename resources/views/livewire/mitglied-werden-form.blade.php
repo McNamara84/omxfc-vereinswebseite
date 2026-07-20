@@ -42,9 +42,9 @@
 
         <x-input wire:model.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" title="Wird als Anmeldename für den Mitgliederbereich verwendet." />
 
-        <x-input wire:model.blur="passwort" name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" hint="Mindestens 6 Zeichen." />
+        <x-password wire:model.blur="passwort" name="passwort" label="Passwort" required class="w-full" autocomplete="new-password" hint="Mindestens 8 Zeichen." popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort." />
 
-        <x-input wire:model.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" type="password" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
+        <x-password wire:model.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
 
         <div class="col-span-1 md:col-span-2 w-full space-y-2" x-data="{ beitrag: @entangle('mitgliedsbeitrag') }">
             <label for="mitgliedsbeitrag" class="pt-0 label label-text font-semibold">

@@ -137,7 +137,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:stable-alpine
+    image: nginx:stable-alpine@sha256:97d490c12ba55b4946b01546d1c3ed324e8d41ab1c9fcb2a616aa470620e5b46
     depends_on:
       app:
         condition: service_started
@@ -151,7 +151,7 @@ services:
       - omxfc-dev-network
 
   vite:
-    image: node:26-alpine
+    image: node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66
     init: true
     working_dir: /workspace
     command: ['sh', '/workspace/docker/dev/start-vite.sh']
@@ -167,7 +167,7 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:12.3
+    image: mariadb:12.3@sha256:628f228f0fd5913a220438693576b29b6fe4dc1fa0a1298c0e98579fae28635f
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}
@@ -188,7 +188,7 @@ services:
       - omxfc-dev-network
 
   typesense:
-    image: typesense/typesense:30.2
+    image: typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
     command: '--data-dir /typesense-data --api-key=${DOCKER_DEV_TYPESENSE_API_KEY:-local-dev-typesense-key}'
     ports:
       - '${DOCKER_DEV_TYPESENSE_FORWARD_PORT:-8108}:8108'

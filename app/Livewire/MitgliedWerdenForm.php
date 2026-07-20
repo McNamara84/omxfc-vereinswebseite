@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 
 class MitgliedWerdenForm extends Component
@@ -52,7 +53,7 @@ class MitgliedWerdenForm extends Component
             'stadt' => 'required|string|max:255',
             'land' => 'required|string',
             'mail' => 'required|email|unique:users,email',
-            'passwort' => 'required|confirmed|min:6',
+            'passwort' => ['required', 'confirmed', Password::default()],
             'mitgliedsbeitrag' => 'required|numeric|min:12|max:120',
             'telefon' => 'nullable|string|max:20',
             'verein_gefunden' => 'nullable|string|max:255',
@@ -73,8 +74,8 @@ class MitgliedWerdenForm extends Component
             'mail.required' => 'Bitte gültige Mailadresse eingeben.',
             'mail.email' => 'Bitte gültige Mailadresse eingeben.',
             'mail.unique' => 'Diese E-Mail-Adresse wird bereits verwendet.',
-            'passwort.required' => 'Passwort mindestens 6 Zeichen.',
-            'passwort.min' => 'Passwort mindestens 6 Zeichen.',
+            'passwort.required' => 'Bitte gib ein Passwort ein.',
+            'passwort.min' => 'Das Passwort muss mindestens :min Zeichen lang sein.',
             'passwort.confirmed' => 'Passwörter stimmen nicht überein.',
             'satzung_check.accepted' => 'Du musst die Satzung akzeptieren.',
         ];

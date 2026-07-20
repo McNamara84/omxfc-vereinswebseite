@@ -52,7 +52,7 @@
         </p>
 
         <div class="mt-4">
-            <x-input type="password" class="w-3/4"
+            <x-password class="w-3/4"
                         placeholder="{{ __('Passwort') }}"
                         wire:model="password"
                         wire:keydown.enter="logoutOtherBrowserSessions" />

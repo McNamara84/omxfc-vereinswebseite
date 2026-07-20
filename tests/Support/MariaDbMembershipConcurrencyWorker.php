@@ -41,7 +41,7 @@ $app->make(Kernel::class)->bootstrap();
  * the concurrency test two independent Laravel database connections without
  * relying on timing sleeps or on uncommitted test-process fixtures.
  */
-final class MariaDbMembershipConcurrencyApi extends MaddraxikonApiClient
+final class MariaDbMembershipConcurrencyWorker extends MaddraxikonApiClient
 {
     public function revisionDetails(array $revisionIds): array
     {
@@ -217,7 +217,7 @@ try {
         DB::statement('SET SESSION innodb_lock_wait_timeout = 1');
         app()->instance(
             MaddraxikonApiClient::class,
-            new MariaDbMembershipConcurrencyApi(
+            new MariaDbMembershipConcurrencyWorker(
                 app(MaddraxikonApiRequestGuard::class),
             ),
         );

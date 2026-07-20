@@ -55,7 +55,7 @@ class RpgCharEditorController extends Controller
     }
 
     /**
-     * Prepare a character sheet PDF and redirect to a GET viewer URL.
+     * Prepare a character sheet PDF and redirect to a GET viewer URL. @pest-ignore-profanity -- RPG domain term.
      */
     public function storePdfExport(Request $request)
     {
@@ -75,7 +75,7 @@ class RpgCharEditorController extends Controller
     }
 
     /**
-     * Generate a character sheet PDF from a prepared export payload.
+     * Generate a character sheet PDF from a prepared export payload. @pest-ignore-profanity -- RPG domain term.
      */
     public function showPdf(Request $request, string $token)
     {

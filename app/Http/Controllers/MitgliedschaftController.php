@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rules\Password;
 use Laravel\Jetstream\Jetstream;
 
 class MitgliedschaftController extends Controller
@@ -23,7 +24,7 @@ class MitgliedschaftController extends Controller
             'stadt' => 'required|string|max:255',
             'land' => 'required|string',
             'mail' => 'required|email|unique:users,email',
-            'passwort' => 'required|confirmed|min:6',
+            'passwort' => ['required', 'confirmed', Password::default()],
             'mitgliedsbeitrag' => 'required|numeric|min:12|max:120',
             'telefon' => 'nullable|string|max:20',
             'verein_gefunden' => 'nullable|string|max:255',

@@ -65,6 +65,9 @@ export default defineConfig({
   // backed by one shared SQLite file. Default to one worker there to avoid
   // request queueing and cross-test interference; allow explicit override.
   workers: playwrightWorkers,
+  forbidOnly: isCI,
+  retries: isCI ? 1 : 0,
+  reporter: isCI ? [['line'], ['github']] : 'list',
   
   // Browser-Projekte explizit definieren
   projects: isCI
@@ -91,5 +94,6 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${playwrightPort}`,
     reducedMotion: 'reduce',
+    trace: 'retain-on-failure-and-retries',
   },
 });

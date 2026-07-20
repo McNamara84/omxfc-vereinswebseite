@@ -1,6 +1,12 @@
-import { expect } from '@playwright/test';
-
 const supportedLoadStates = new Set(['domcontentloaded', 'load', 'networkidle']);
+
+let playwrightModulePromise;
+
+const loadPlaywright = () => {
+    playwrightModulePromise ??= import('@playwright/test');
+
+    return playwrightModulePromise;
+};
 
 export const matchesUrl = (currentUrl, expectedUrl) => {
     if (typeof expectedUrl === 'function') {
@@ -17,6 +23,8 @@ export const matchesUrl = (currentUrl, expectedUrl) => {
 export const withNavigationDefaults = (options = {}) => ({ waitUntil: 'domcontentloaded', ...options });
 
 export const waitForMatchingUrl = async (page, expectedUrl, timeout) => {
+    // Keep the pure URL helpers lightweight for unit tests and non-Playwright consumers.
+    const { expect } = await loadPlaywright();
     await expect
         .poll(() => matchesUrl(page.url(), expectedUrl), {
             timeout,

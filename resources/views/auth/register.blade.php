@@ -50,6 +50,8 @@
                         name="password"
                         required
                         autocomplete="new-password"
+                        hint="Mindestens 8 Zeichen."
+                        popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort."
                         data-testid="register-password"
                     />
                 </div>

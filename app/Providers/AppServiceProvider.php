@@ -28,7 +28,6 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
-use Mary\View\Components\Badge as MaryBadge;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -202,9 +201,6 @@ class AppServiceProvider extends ServiceProvider
         // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
         // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
-
-        // maryUI 2.9 Tab-Badges rendern intern diesen Alias.
-        Blade::component('mary-badge', MaryBadge::class);
 
         Livewire::addPersistentMiddleware([
             EnsureAdmin::class,

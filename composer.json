@@ -29,24 +29,23 @@
         "php": "~8.5.0",
         "dompdf/dompdf": "^3.1",
         "guzzlehttp/psr7": "^2.9",
+        "intervention/image": "^4.2",
         "laravel/framework": "^13.0",
         "laravel/jetstream": "^5.5",
         "laravel/sanctum": "^4.3",
         "laravel/scout": "^11.0",
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.0",
-        "robsontenorio/mary": "^2.8",
+        "robsontenorio/mary": "^2.9",
         "spatie/browsershot": "^5.2",
         "spatie/laravel-pdf": "^2.6",
         "spatie/laravel-sitemap": "^8.0",
         "typesense/typesense-php": "^6.0"
     },
     "require-dev": {
-        "doctrine/dbal": "^4.4",
         "fakerphp/faker": "^1.23",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.29",
-        "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9",
         "pestphp/pest": "5.x-dev",
@@ -56,7 +55,7 @@
         "pestphp/pest-plugin-laravel": "5.x-dev",
         "pestphp/pest-plugin-mutate": "5.x-dev",
         "pestphp/pest-plugin-profanity": "5.x-dev",
-        "phpunit/phpunit": "13.2.3",
+        "phpunit/phpunit": "13.2.4",
         "symfony/process": "^8.1"
     },
     "autoload": {
@@ -87,7 +86,9 @@
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
-        "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:work --tries=1\" \"npm run dev\" --names='server,queue,vite'"
+        "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:work --tries=1\" \"npm run dev\" --names='server,queue,vite'",
+        "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",
+        "test:profanity": "@php vendor/bin/pest --profanity --compact"
     },
     "extra": {
         "laravel": {

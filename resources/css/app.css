@@ -1,12 +1,25 @@
-@config "../../tailwind.config.js";
 @import "tailwindcss";
+
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../vendor/laravel/jetstream/**/*.blade.php";
+@source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
+@source "../../storage/framework/views/*.php";
+@source "../js/**/*.js";
+@source "../views/**/*.blade.php";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
     themes: caramellatte --default, coffee --prefersdark;
 }
 
 :root {
-    --omxfc-font-display: "Space Grotesk", "Figtree", sans-serif;
+    --omxfc-font-display: "Space Grotesk", var(--font-sans);
 }
 
 .font-display {
@@ -70,11 +83,10 @@
     display: none !important;
 }
 
-/* View Transitions: Aktivierung. Animations-Regeln und prefers-reduced-motion-Override
-   folgen weiter unten in einem konsolidierten Block. */
-@view-transition {
-    navigation: auto;
-}
+/* Cross-Document-Transitions bleiben bewusst deaktiviert: Livewire `wire:navigate`
+   startet Same-Document-Transitions selbst. Eine parallele `@view-transition`-
+   Aktivierung lässt Chromium überlappende Transitions als unbehandelte
+   "Transition was skipped"-Promise ablehnen. */
 
 /* Vereinslogo als Asset referenzieren */
 .logo {
