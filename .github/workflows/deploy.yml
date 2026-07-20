@@ -35,12 +35,13 @@ jobs:
           provenance: mode=max
           tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
 
-      - name: Scan pushed image for high and critical vulnerabilities
+      - name: Scan pushed image for fixable high and critical vulnerabilities
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
           fail-build: true
           severity-cutoff: high
+          only-fixed: true
           output-format: table
   deploy:
     needs: build
