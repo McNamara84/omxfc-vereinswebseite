@@ -74,8 +74,8 @@ class MitgliedWerdenForm extends Component
             'mail.required' => 'Bitte gültige Mailadresse eingeben.',
             'mail.email' => 'Bitte gültige Mailadresse eingeben.',
             'mail.unique' => 'Diese E-Mail-Adresse wird bereits verwendet.',
-            'passwort.required' => 'Passwort mindestens 8 Zeichen.',
-            'passwort.min' => 'Passwort mindestens 8 Zeichen.',
+            'passwort.required' => 'Bitte gib ein Passwort ein.',
+            'passwort.min' => 'Das Passwort muss mindestens :min Zeichen lang sein.',
             'passwort.confirmed' => 'Passwörter stimmen nicht überein.',
             'satzung_check.accepted' => 'Du musst die Satzung akzeptieren.',
         ];

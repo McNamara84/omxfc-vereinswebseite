@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class MitgliedschaftControllerTest extends TestCase
@@ -118,6 +119,29 @@ class MitgliedschaftControllerTest extends TestCase
             'email' => 'short-password@example.com',
         ]);
         Mail::assertNothingQueued();
+    }
+
+    public function test_membership_form_uses_a_required_message_for_an_empty_password(): void
+    {
+        $component = Livewire::test(MitgliedWerdenForm::class)
+            ->call('submit')
+            ->assertHasErrors(['passwort' => 'required']);
+
+        $this->assertSame('Bitte gib ein Passwort ein.', $component->errors()->first('passwort'));
+    }
+
+    public function test_membership_form_uses_the_default_minimum_message_for_a_short_password(): void
+    {
+        $component = Livewire::test(MitgliedWerdenForm::class)
+            ->set('passwort', '1234567')
+            ->set('passwort_confirmation', '1234567')
+            ->call('submit')
+            ->assertHasErrors(['passwort']);
+
+        $this->assertSame(
+            'Das Passwort muss mindestens 8 Zeichen lang sein.',
+            $component->errors()->first('passwort')
+        );
     }
 
     public function test_membership_application_requires_first_name(): void
