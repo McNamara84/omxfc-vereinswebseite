@@ -194,7 +194,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
             callCount++;
             // Erster Aufruf wird aborted, zweiter succeeds
             if (callCount === 1) {
-                return new Promise((resolve, reject) => {
+                return new Promise((_, reject) => {
                     opts.signal.addEventListener('abort', () => {
                         abortFn();
                         reject(new DOMException('Aborted', 'AbortError'));
