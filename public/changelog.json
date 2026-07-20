@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.14.0",
+    "pub_date": "2026-07-20",
+    "notes": [
+      "[New] Verbinden des Mitgliederkontos mit dem Maddraxikon über OAuth2.",
+      "[New] Weitere Aktivitöten im Dashboard für Mitwirken im Maddraxikon.",
+      "[Improved] Ausweitung der Anzeige des einstellbaren Spitznamens in der UI.",
+      "[Improved] Bessere Ladezeiten durch Verwendung eines moderneren Datenbankmanagementsystems.",
+      "[Fixed] Rassen Techno, Präkristofluu und Kulturen Bunkermensch und Mensch des 21. Jahrhunderts werden korrekt angezeigt."
+    ]
+  },
+  {
     "version": "1.13.1",
     "pub_date": "2026-07-12",
     "notes": [
