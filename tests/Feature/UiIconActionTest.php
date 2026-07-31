@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
-use InvalidArgumentException;
+use Illuminate\View\ViewException;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
@@ -57,7 +57,7 @@ class UiIconActionTest extends TestCase
 
     public function test_it_rejects_unknown_tooltip_positions(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ViewException::class);
         $this->expectExceptionMessage('Unsupported tooltip position: diagonal');
 
         Blade::render(<<<'BLADE'
@@ -67,7 +67,7 @@ class UiIconActionTest extends TestCase
 
     public function test_it_rejects_unknown_tooltip_alignments(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(ViewException::class);
         $this->expectExceptionMessage('Unsupported tooltip alignment: outside');
 
         Blade::render(<<<'BLADE'
