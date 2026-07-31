@@ -29,7 +29,18 @@ test.describe('Umfragen', () => {
     await page.goto('/umfrage');
     await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Öffentliche Umfrage?');
 
-    await page.getByRole('radio', { name: 'Option A' }).check();
+    const optionARadio = page.getByRole('radio', { name: 'Option A' });
+    const optionACard = optionARadio.locator('xpath=..');
+
+    await expect(optionACard).toHaveClass(/card/);
+    await expect(optionACard).toHaveAttribute('data-testid', /poll-option-card-/);
+    expect(await optionARadio.evaluate((radio) => radio.parentElement?.classList.contains('card'))).toBe(true);
+
+    await optionARadio.check();
+    await expect(optionARadio).toBeChecked();
+    await expect.poll(
+      () => optionACard.evaluate((card) => getComputedStyle(card).outlineColor),
+    ).not.toBe('rgba(0, 0, 0, 0)');
     
     // DEBUG: Check Livewire/Alpine status before submit
     const statusBefore = await page.evaluate(() => {

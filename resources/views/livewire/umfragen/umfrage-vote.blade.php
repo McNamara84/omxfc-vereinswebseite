@@ -39,34 +39,39 @@
                         <legend class="sr-only">Antwort auswählen</legend>
 
                         @foreach ($this->poll->options as $option)
-                            <label class="block rounded-lg border border-base-content/10 p-4 hover:bg-base-200 focus-within:ring-2 focus-within:ring-primary cursor-pointer">
-                                <div class="flex items-start gap-3">
-                                    <input
-                                        type="radio"
-                                        class="radio radio-primary mt-1"
-                                        name="poll-option"
-                                        wire:model="selectedOptionId"
-                                        value="{{ $option->id }}"
-                                        @disabled(! $canVote)
-                                        aria-describedby="option-{{ $option->id }}-desc"
-                                    />
+                            <label
+                                @class([
+                                    'card card-border bg-base-100 transition-colors has-checked:text-primary',
+                                    'hover:bg-base-200/70' => $canVote,
+                                    'cursor-not-allowed opacity-70' => ! $canVote,
+                                ])
+                                data-testid="poll-option-card-{{ $option->id }}"
+                            >
+                                <input
+                                    type="radio"
+                                    class="radio radio-primary absolute start-4 top-5 z-10"
+                                    name="poll-option"
+                                    wire:model="selectedOptionId"
+                                    value="{{ $option->id }}"
+                                    @disabled(! $canVote)
+                                    aria-describedby="option-{{ $option->id }}-desc"
+                                />
 
-                                    <div class="flex-1">
-                                        <div class="font-semibold">{{ $option->label }}</div>
+                                <div class="card-body p-4 ps-12 text-base-content">
+                                    <div class="card-title text-base">{{ $option->label }}</div>
 
-                                        <div id="option-{{ $option->id }}-desc" class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                            @if ($option->image_url)
-                                                <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="rounded-md border border-base-content/10 w-full max-h-48 object-contain" loading="lazy" decoding="async" />
-                                            @endif
+                                    <div id="option-{{ $option->id }}-desc" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        @if ($option->image_url)
+                                            <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="max-h-48 w-full rounded-md border border-base-content/10 object-contain" loading="lazy" decoding="async" />
+                                        @endif
 
-                                            @if ($option->link_url)
-                                                <div>
-                                                    <a href="{{ $option->link_url }}" target="_blank" rel="noopener" class="inline-flex items-center text-primary hover:underline">
-                                                        Mehr Infos
-                                                    </a>
-                                                </div>
-                                            @endif
-                                        </div>
+                                        @if ($option->link_url)
+                                            <div>
+                                                <a href="{{ $option->link_url }}" target="_blank" rel="noopener" class="inline-flex items-center text-primary hover:underline">
+                                                    Mehr Infos
+                                                </a>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </label>

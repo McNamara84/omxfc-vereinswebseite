@@ -137,10 +137,11 @@
                                                 placeholder="https://..."
                                             />
                                         </div>
-                                        <x-button
+                                        <x-ui.icon-action
                                             icon="o-information-circle"
                                             class="btn-ghost btn-sm mb-0.5"
                                             tooltip="Empfohlen: querformatiges Bild (z. B. 1200×630)"
+                                            tooltip-align="end"
                                         />
                                     </div>
                                 </div>
@@ -152,11 +153,13 @@
                                     />
                                 </div>
                                 <div class="md:col-span-1">
-                                    <x-button
+                                    <x-ui.icon-action
                                         wire:click="removeOption({{ $index }})"
                                         icon="o-trash"
                                         class="btn-ghost btn-error w-full"
                                         tooltip="Antwort {{ $index + 1 }} entfernen"
+                                        tooltip-align="end"
+                                        wrapper-class="w-full"
                                     />
                                 </div>
                             </div>

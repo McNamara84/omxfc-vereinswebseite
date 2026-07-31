@@ -14,6 +14,7 @@ use App\Services\Polls\PollVotingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -154,6 +155,45 @@ class PollsTest extends TestCase
         } catch (ValidationException $e) {
             $this->assertStringContainsString(PollVotingService::ERROR_ALREADY_VOTED_IP, $e->errors()['poll'][0] ?? '');
         }
+    }
+
+    public function test_vote_options_use_selectable_daisyui_cards_with_direct_radio_controls(): void
+    {
+        $creator = User::factory()->create();
+
+        $poll = Poll::query()->create([
+            'question' => 'Welche Option?',
+            'menu_label' => 'Card-Test',
+            'visibility' => PollVisibility::Public,
+            'status' => PollStatus::Active,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+            'activated_at' => now(),
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        $options = collect(['Option A', 'Option B'])
+            ->map(fn (string $label, int $index): PollOption => PollOption::query()->create([
+                'poll_id' => $poll->id,
+                'label' => $label,
+                'sort_order' => $index,
+            ]));
+
+        $crawler = new Crawler(Livewire::test(UmfrageVote::class)->html());
+        $cards = $crawler->filter('label.card.card-border[data-testid^="poll-option-card-"]');
+        $radios = $crawler->filter('label.card > input.radio[type="radio"][name="poll-option"]');
+
+        $this->assertCount(2, $cards);
+        $this->assertCount(2, $radios);
+        $this->assertSame(
+            $options->map(fn (PollOption $option): string => (string) $option->id)->all(),
+            $radios->each(fn (Crawler $radio): ?string => $radio->attr('value')),
+        );
+
+        $cards->each(function (Crawler $card): void {
+            $this->assertCount(1, $card->children()->filter('input.radio[type="radio"]'));
+            $this->assertCount(1, $card->children()->filter('.card-body'));
+        });
     }
 
     public function test_voting_is_blocked_before_start_date(): void

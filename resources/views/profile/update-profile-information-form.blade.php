@@ -79,12 +79,13 @@
                             </div>
 
                             @if (count($state['author_aliases'] ?? []) > 1)
-                                <x-button
+                                <x-ui.icon-action
                                     type="button"
                                     icon="o-trash"
                                     class="btn-ghost text-error"
                                     wire:click="removeAuthorAlias({{ $index }})"
                                     tooltip="Autorenname entfernen"
+                                    tooltip-align="end"
                                 />
                             @endif
                         </div>
