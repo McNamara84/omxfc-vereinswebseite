@@ -114,6 +114,22 @@ class TodoPlaywrightSeeder extends Seeder
 
         $team->users()->attach($member, ['role' => 'Mitglied']);
 
+        // Dieser Benutzer gehört exklusiv zum Mitgliederkarten-E2E-Test. Damit
+        // hängt der gesperrte Zustand weder von Challenge-Aktionen noch von
+        // anderen Tests ab, die den allgemeinen Playwright-Benutzer verwenden.
+        $mapMember = User::factory()->create([
+            'name' => 'Playwright Kartenmitglied',
+            'email' => 'playwright-map-locked@example.com',
+            'current_team_id' => $team->id,
+            'plz' => '99084',
+            'stadt' => 'Erfurt',
+            'land' => 'Deutschland',
+            'lat' => 50.9787,
+            'lon' => 11.0328,
+        ]);
+
+        $team->users()->attach($mapMember, ['role' => 'Mitglied']);
+
         Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,

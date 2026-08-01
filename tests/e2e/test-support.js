@@ -23,6 +23,32 @@ const retryableNavigationErrors = [
     'net::ERR_CONNECTION_REFUSED',
     'Timeout',
 ];
+const livewireUpdatePathPattern = /\/livewire(?:-[^/]+)?\/update\/?$/;
+
+const isLivewireUpdateResponse = (response) => {
+    const request = response.request();
+    const pathname = new URL(response.url()).pathname;
+
+    return request.method() === 'POST' && livewireUpdatePathPattern.test(pathname);
+};
+
+export const clickAndWaitForLivewireUpdate = async (
+    page,
+    locator,
+    { clickOptions = {}, timeout = 15_000 } = {},
+) => {
+    const responsePromise = page.waitForResponse(isLivewireUpdateResponse, { timeout });
+    const [response] = await Promise.all([
+        responsePromise,
+        locator.click(clickOptions),
+    ]);
+
+    if (!response.ok()) {
+        throw new Error(`Livewire update failed with HTTP ${response.status()}.`);
+    }
+
+    return response;
+};
 
 const disableMotionForPlaywright = () => {
     const installRafFallback = () => {

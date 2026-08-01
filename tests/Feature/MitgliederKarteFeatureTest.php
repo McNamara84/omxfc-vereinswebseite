@@ -59,6 +59,10 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertViewIs('mitglieder.karte');
         $response->assertSee('Mitgliederkarte freischalten');
         $response->assertSee('data-member-map', false);
+        $response->assertSee('data-testid="member-map-earn-baxx-cta"', false);
+        $response->assertSee('Zu Baxx verdienen');
+        $response->assertViewHas('availableBaxx', 0);
+        $response->assertViewHas('canPurchase', false);
     }
 
     public function test_locked_preview_remains_reachable_when_members_team_is_missing(): void
