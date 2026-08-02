@@ -30,6 +30,7 @@
         </button>
 
         <dialog
+            wire:ignore.self
             x-data="{ isOpen: @entangle('showModal').live }"
             x-effect="
                 if (isOpen && !$el.open) {

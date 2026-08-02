@@ -35,7 +35,13 @@ test.describe('Website feedback', () => {
 
         await page.getByRole('radio', { name: 'Idee' }).check();
         await page.getByLabel('Dein Feedback').fill('Auf Mobilgeräten wäre eine kompaktere Terminübersicht hilfreich.');
-        await page.getByLabel('Anonym an Admins und Vorstand senden').check();
+        const anonymousCheckbox = page.getByLabel('Anonym an Admins und Vorstand senden');
+        await clickAndWaitForLivewireUpdate(page, anonymousCheckbox);
+        await expect(anonymousCheckbox).toBeChecked();
+        await expect(modal).toBeVisible();
+        await expect(page.getByText(
+            'Dein Name und deine E-Mail-Adresse werden nicht in die Nachricht oder deren Antwortadresse aufgenommen.',
+        )).toBeVisible();
 
         await clickAndWaitForLivewireUpdate(page, page.getByRole('button', { name: 'Feedback senden' }));
 
