@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Enums\PollVisibility;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureMaddraxikonAdmin;
+use App\Jobs\SendErrorIncidentReport;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Teams\TeamMemberManager;
@@ -15,10 +16,14 @@ use App\Support\Navigation\NavigationBuilder;
 use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +32,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Mary\View\Components\Dropdown as MaryDropdown;
 
@@ -49,6 +55,40 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+            $executionId = (string) Str::uuid();
+            $executionType = str_starts_with((string) $event->command, 'schedule:')
+                ? 'scheduler'
+                : 'console';
+
+            Context::add([
+                'correlation_id' => $executionId,
+                'execution_id' => $executionId,
+                'execution_type' => $executionType,
+                'execution_name' => (string) $event->command,
+            ]);
+        });
+
+        Event::listen(JobProcessing::class, function (JobProcessing $event): void {
+            $executionId = $event->job->uuid() ?: (string) Str::uuid();
+            $executionName = $event->job->resolveName();
+            $context = [
+                'execution_id' => $executionId,
+                'execution_type' => 'queue',
+                'execution_name' => $executionName,
+            ];
+
+            if (Context::missing('correlation_id')) {
+                $context['correlation_id'] = $executionId;
+            }
+
+            if ($executionName === SendErrorIncidentReport::class) {
+                $context['error_notification_delivery'] = true;
+            }
+
+            Context::add($context);
+        });
+
         // Force HTTPS in production – URL::forceScheme() erzwingt https:// bei der URL-Generierung.
         // Zusätzlich müssen X-Forwarded-Proto und X-Forwarded-Port gesetzt werden, damit
         // request()->isSecure() und request()->getPort() die korrekten Werte liefern.

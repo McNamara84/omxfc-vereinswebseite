@@ -50,6 +50,29 @@ class BrowserStatsServiceTest extends TestCase
         $this->assertSame('Festgerät', $service->detectDeviceType(null));
     }
 
+    public function test_detect_browser_version_extracts_supported_versions(): void
+    {
+        $service = app(BrowserStatsService::class);
+
+        $agents = [
+            '120.0.0.0' => 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
+            '106.0.0.0' => 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36 OPR/106.0.0.0',
+            '6.5.3206.53' => 'Mozilla/5.0 Chrome/120.0.0.0 Safari/537.36 Vivaldi/6.5.3206.53',
+            '23.0' => 'Mozilla/5.0 Chrome/120.0.0.0 Mobile Safari/537.36 SamsungBrowser/23.0',
+            '120.0.6099.144' => 'Mozilla/5.0 Chrome/120.0.6099.144 Safari/537.36',
+            '117.0' => 'Mozilla/5.0 Gecko/20100101 Firefox/117.0',
+            '17.0' => 'Mozilla/5.0 Version/17.0 Mobile/15E148 Safari/604.1',
+            '11.0' => 'Mozilla/5.0 Trident/7.0; rv:11.0 like Gecko',
+        ];
+
+        foreach ($agents as $expectedVersion => $userAgent) {
+            $this->assertSame($expectedVersion, $service->detectBrowserVersion($userAgent));
+        }
+
+        $this->assertSame('Unbekannt', $service->detectBrowserVersion('CustomBrowser/1.0'));
+        $this->assertSame('Unbekannt', $service->detectBrowserVersion(null));
+    }
+
     public function test_browser_usage_counts_all_recent_sessions_per_member(): void
     {
         $service = app(BrowserStatsService::class);
