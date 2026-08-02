@@ -50,8 +50,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: [1, 2]
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -59,6 +57,8 @@ jobs:
         with:
           php-version: '8.5'
           extensions: gd, exif
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -163,14 +163,14 @@ jobs:
   browser_preview:
     runs-on: ubuntu-latest
     name: PHP 8.5 Browser Preview Regression
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -217,8 +217,6 @@ jobs:
       - tests
     runs-on: ubuntu-latest
     name: PHP 8.5 - Coverage
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -232,6 +230,8 @@ jobs:
           extensions: gd, exif
           coverage: xdebug
           ini-values: xdebug.mode=coverage
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
