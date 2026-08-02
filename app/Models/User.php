@@ -34,6 +34,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $lieblingsthema
  * @property string|null $lieblingshardcover
  * @property string|null $lieblingscover
+ * @property int $website_feedback_session_count
  */
 class User extends Authenticatable
 {
@@ -136,6 +137,7 @@ class User extends Authenticatable
             'bezahlt_bis' => 'date',
             'notify_new_review' => 'boolean',
             'last_activity' => 'integer',
+            'website_feedback_session_count' => 'integer',
             'lat' => 'float',
             'lon' => 'float',
             'author_aliases' => 'array',
