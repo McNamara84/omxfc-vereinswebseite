@@ -285,6 +285,15 @@
                                     {{ $roman->hochgeladen_am->format('d.m.Y H:i') }}
                                 </td>
                                 <td class="text-right space-x-1">
+                                    <x-button
+                                        link="{{ route('kompendium.admin.romane.download', $roman) }}"
+                                        :no-wire-navigate="true"
+                                        icon="o-arrow-down-tray"
+                                        class="btn-ghost btn-xs"
+                                        title="Herunterladen"
+                                        aria-label="{{ $roman->titel }} herunterladen"
+                                        data-testid="download-btn-{{ $roman->id }}" />
+
                                     {{-- Bearbeiten (immer außer bei laufender Indexierung) --}}
                                     @if($roman->status !== 'indexierung_laeuft')
                                         <x-button

@@ -44,23 +44,23 @@ test.describe('Kompendium Admin Dashboard', () => {
         await expect(page.getByTestId('novels-table')).toBeVisible();
 
         // Prüfe auf Seeder-Daten - verwende spezifische Zelle
-        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis', exact: true })).toBeVisible();
     });
 
     test('can filter by series', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
         // Standard-Tab ist Maddrax - prüfe dass Maddrax-Roman sichtbar ist
-        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis', exact: true })).toBeVisible();
 
         // Auf Mission Mars Tab klicken
         await page.getByTestId('tab-missionmars').click();
 
         // Warten bis Livewire die Mission-Mars-Daten gerendert hat
-        await expect(page.getByRole('cell', { name: 'Expedition zum roten Planeten' })).toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Expedition zum roten Planeten', exact: true })).toBeVisible();
 
         // Maddrax Romane sollten nicht sichtbar sein
-        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).not.toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis', exact: true })).not.toBeVisible();
     });
 
     test('can filter by status', async ({ page }) => {
@@ -71,10 +71,10 @@ test.describe('Kompendium Admin Dashboard', () => {
         await filterSection.getByLabel('Status').selectOption('indexiert');
 
         // Warten bis Livewire die gefilterten Daten gerendert hat
-        await expect(page.getByRole('cell', { name: 'Stadt ohne Hoffnung' })).toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Stadt ohne Hoffnung', exact: true })).toBeVisible();
 
         // Nicht indexierter Roman sollte nicht sichtbar sein
-        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).not.toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis', exact: true })).not.toBeVisible();
     });
 
     test('can search for novels', async ({ page }) => {
@@ -84,10 +84,10 @@ test.describe('Kompendium Admin Dashboard', () => {
         await page.getByTestId('search-input').fill('Dämonen');
 
         // Warten bis Livewire die Suche ausgeführt hat (debounce + Render)
-        await expect(page.getByRole('cell', { name: 'Dämonen der Vergangenheit' })).toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Dämonen der Vergangenheit', exact: true })).toBeVisible();
 
         // Andere Romane sollten nicht sichtbar sein
-        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).not.toBeVisible();
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis', exact: true })).not.toBeVisible();
     });
 
     test('shows status badges correctly', async ({ page }) => {
@@ -144,7 +144,10 @@ test.describe('Kompendium Admin Dashboard', () => {
         await filterSection.getByLabel('Status').selectOption('fehler');
 
         // Warten bis Livewire die Fehler-Romane gerendert hat
-        await expect(page.getByRole('cell', { name: 'Fehlerhafter Roman' })).toBeVisible();
+        const errorNovelCell = page.getByTestId('novels-table')
+            .getByRole('cell')
+            .filter({ hasText: 'Fehlerhafter Roman' });
+        await expect(errorNovelCell).toBeVisible();
     });
 
     test('admin link visible on kompendium page', async ({ page }) => {
