@@ -14,7 +14,6 @@ use App\Models\RomantauschBaxxSpecialOffer;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -144,21 +143,25 @@ class BelohnungenAdminTest extends TestCase
 
     public function test_mary_tab_badges_render_with_upstream_alias(): void
     {
+        $this->actingAdmin();
+        Config::set('app.testing_minimal_belohnungen_admin', false);
+
         $this->assertSame(
             Badge::class,
             app('blade.compiler')->getClassComponentAliases()['mary-badge'] ?? null,
         );
 
-        $html = Blade::render(<<<'BLADE'
-<x-tab name="rewards" label="Belohnungen" badge="3" badge-class="badge-primary">
-    Inhalt
-</x-tab>
-BLADE);
+        $component = Livewire::test(BelohnungenAdmin::class);
+        $html = $component->html();
+        $badge = (string) $component->instance()->tabBadges()['rewards'];
 
         $this->assertStringContainsString('Belohnungen', $html);
         $this->assertStringContainsString('badge-primary', $html);
         $this->assertStringContainsString('badge-sm', $html);
-        $this->assertMatchesRegularExpression('/badge-primary[^>]*>.*3.*<\\/div>/s', $html);
+        $this->assertMatchesRegularExpression(
+            '/badge-primary[^>]*>.*'.preg_quote($badge, '/').'.*<\\/div>/s',
+            $html,
+        );
     }
 
     public function test_admin_page_forbidden_for_regular_member(): void

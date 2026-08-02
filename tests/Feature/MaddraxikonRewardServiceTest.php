@@ -772,7 +772,7 @@ class MaddraxikonRewardServiceTest extends TestCase
     {
         config(['maddraxikon.evaluation.source_batch_size' => 2]);
         [, $link] = $this->linkedMember();
-        $startedAt = now()->subHours(30);
+        $startedAt = now()->subDays(2)->startOfDay()->addHour();
         $first = $this->contribution($link, [
             'page_id' => 501,
             'occurred_at' => $startedAt,

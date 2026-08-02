@@ -10,11 +10,46 @@ permissions:
   contents: read
 
 jobs:
+  pest_quality:
+    runs-on: ubuntu-latest
+    name: Pest 5 Quality Gates
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: intl
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.5-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Run PHPStan for migrated Pest tests
+        run: composer test:types
+      - name: Verify Pest Rector migration
+        run: composer test:rector
+      - name: Run architecture and security rules
+        run: composer test:arch
+      - name: Run profanity scan
+        run: composer test:profanity
+
   tests:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Tests (fast)
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
+    name: PHP 8.5 Tests (shard ${{ matrix.shard }}/2)
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -22,6 +57,8 @@ jobs:
         with:
           php-version: '8.5'
           extensions: gd, exif
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -46,9 +83,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
+          key: ${{ runner.os }}-php-8.5-phpunit-shard-${{ matrix.shard }}-${{ hashFiles('phpunit.xml', 'composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-phpunit-cache-
+            ${{ runner.os }}-php-8.5-phpunit-shard-${{ matrix.shard }}-
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Install Dependencies
@@ -61,11 +98,11 @@ jobs:
           touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
-      - name: Execute tests (Unit and Feature tests) excluding #[Large]
+      - name: Execute time-balanced Pest shard
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php vendor/bin/phpunit --exclude-group large
+        run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact
 
   maddraxikon_mariadb:
     runs-on: ubuntu-latest
@@ -123,73 +160,17 @@ jobs:
       - name: Execute Maddraxikon tests on MariaDB
         run: php vendor/bin/phpunit --configuration=phpunit.mariadb.xml
 
-  tests_large:
-    runs-on: ubuntu-latest
-    name: PHP 8.5 Tests (large)
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
-
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
-        with:
-          php-version: '8.5'
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-      - name: Cache Composer dependencies
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: vendor
-          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-
-            ${{ runner.os }}-php-8.5-
-            ${{ runner.os }}-
-      - name: Cache Composer downloads
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.composer/cache
-          key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-cache-
-            ${{ runner.os }}-php-8.5-
-            ${{ runner.os }}-
-      - name: Cache PHPUnit result cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-8.5-phpunit-cache-
-            ${{ runner.os }}-php-8.5-
-            ${{ runner.os }}-
-      - name: Install Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
-      - name: Create Database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
-      - name: Setup Node.js and build assets
-        uses: ./.github/actions/build-assets
-      - name: Execute only #[Large] tests
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-        run: php vendor/bin/phpunit --group large
-
   browser_preview:
     runs-on: ubuntu-latest
     name: PHP 8.5 Browser Preview Regression
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -234,11 +215,8 @@ jobs:
   coverage:
     needs:
       - tests
-      - tests_large
     runs-on: ubuntu-latest
     name: PHP 8.5 - Coverage
-    env:
-      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -252,6 +230,8 @@ jobs:
           extensions: gd, exif
           coverage: xdebug
           ini-values: xdebug.mode=coverage
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -328,7 +308,6 @@ jobs:
   js-coverage:
     needs:
       - tests
-      - tests_large
     runs-on: ubuntu-latest
     name: JS Coverage
 
@@ -448,4 +427,3 @@ jobs:
           publish_dir: ./output
           publish_branch: image-data
           github_token: ${{ secrets.GITHUB_TOKEN }}
-

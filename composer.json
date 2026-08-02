@@ -48,14 +48,18 @@
         "laravel/pint": "^1.29",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.9",
-        "pestphp/pest": "5.x-dev",
-        "pestphp/pest-plugin": "5.x-dev",
-        "pestphp/pest-plugin-arch": "5.x-dev",
-        "pestphp/pest-plugin-browser": "5.x-dev",
-        "pestphp/pest-plugin-laravel": "5.x-dev",
-        "pestphp/pest-plugin-mutate": "5.x-dev",
-        "pestphp/pest-plugin-profanity": "5.x-dev",
-        "phpunit/phpunit": "13.2.4",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin": "^5.0",
+        "pestphp/pest-plugin-agent": "^5.0",
+        "pestphp/pest-plugin-arch": "^5.0",
+        "pestphp/pest-plugin-browser": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "pestphp/pest-plugin-mutate": "^5.0",
+        "pestphp/pest-plugin-phpstan": "^5.0",
+        "pestphp/pest-plugin-profanity": "^5.0",
+        "pestphp/pest-plugin-rector": "^5.0",
+        "phpunit/phpunit": "^13.2.6",
+        "rector/rector": "^2.5",
         "symfony/process": "^8.1"
     },
     "autoload": {
@@ -87,8 +91,13 @@
             "@php artisan migrate --graceful --ansi"
         ],
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:work --tries=1\" \"npm run dev\" --names='server,queue,vite'",
+        "test": "@php vendor/bin/pest --compact",
         "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",
-        "test:profanity": "@php vendor/bin/pest --profanity --compact"
+        "test:profanity": "@php vendor/bin/pest --profanity --compact",
+        "test:rector": "@php vendor/bin/rector process --dry-run",
+        "test:tia": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/MaddraxikonIdentityHmacPeppersTest.php tests/Unit/UriSupportTest.php --tia --compact",
+        "test:tia:fresh": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/MaddraxikonIdentityHmacPeppersTest.php tests/Unit/UriSupportTest.php --tia --fresh --compact",
+        "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G"
     },
     "extra": {
         "laravel": {

@@ -1,0 +1,69 @@
+name: Pest TIA Baseline
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    name: PHP 8.5 TIA Baseline
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: gd, exif
+          coverage: xdebug
+          ini-values: xdebug.mode=coverage
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-php-8.5-tia-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-tia-composer-
+            ${{ runner.os }}-php-8.5-composer-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Create Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
+      - name: Record a fresh dependency graph for native Pest tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+          XDEBUG_MODE: coverage
+        run: >-
+          ./vendor/bin/pest
+          tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
+          tests/Unit/UriSupportTest.php
+          --tia --fresh --compact --order-by=random --random-order-seed=1
+      - name: Resolve TIA baseline directory
+        id: baseline-path
+        run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
+      - name: Upload TIA baseline
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: pest-tia-baseline
+          path: ${{ steps.baseline-path.outputs.path }}
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

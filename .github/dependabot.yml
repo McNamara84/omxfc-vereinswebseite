@@ -10,7 +10,7 @@ updates:
       timezone: Europe/Berlin
     open-pull-requests-limit: 8
     groups:
-      pest-development-stack:
+      pest-stack:
         patterns:
           - pestphp/*
           - phpunit/phpunit

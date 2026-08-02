@@ -64,6 +64,7 @@ class DatabaseMaintenanceAuditLoggerTest extends TestCase
     public function test_log_writes_jsonl_outside_database_and_redacts_sensitive_context(): void
     {
         $logger = app(DatabaseMaintenanceAuditLogger::class);
+        request()->server->set('REMOTE_ADDR', '203.0.113.10');
 
         $logger->log('restore_requested', [
             'filename' => 'dump.sql.gz',
@@ -78,5 +79,6 @@ class DatabaseMaintenanceAuditLoggerTest extends TestCase
         $this->assertSame('restore_requested', $payload['event']);
         $this->assertSame('dump.sql.gz', $payload['context']['filename']);
         $this->assertSame('[redacted]', $payload['context']['password']);
+        expect($payload['ip'])->toBeIpAddress()->toBe('203.0.113.10');
     }
 }
