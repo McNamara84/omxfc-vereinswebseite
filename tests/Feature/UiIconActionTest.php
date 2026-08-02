@@ -2,15 +2,32 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Console\Application as ArtisanApplication;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\ViewException;
 use Symfony\Component\DomCrawler\Crawler;
-use Tests\TestCase;
 
-class UiIconActionTest extends TestCase
+class UiIconActionTest extends BaseTestCase
 {
-    use RefreshDatabase;
+    public function createApplication()
+    {
+        ArtisanApplication::forgetBootstrappers();
+
+        $app = require __DIR__.'/../../bootstrap/app.php';
+
+        $app->make(Kernel::class)->bootstrap();
+
+        return $app;
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+    }
 
     public function test_it_renders_an_accessible_icon_button_with_default_tooltip_alignment(): void
     {
