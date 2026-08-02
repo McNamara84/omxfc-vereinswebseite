@@ -1,0 +1,9 @@
+includes:
+    - vendor/pestphp/pest-plugin-phpstan/extension.neon
+
+parameters:
+    level: 10
+    paths:
+        - tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
+        - tests/Unit/UriSupportTest.php
+    tmpDir: /tmp/omxfc-phpstan

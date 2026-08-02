@@ -91,8 +91,13 @@
             "@php artisan migrate --graceful --ansi"
         ],
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:work --tries=1\" \"npm run dev\" --names='server,queue,vite'",
+        "test": "@php vendor/bin/pest --compact",
         "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",
-        "test:profanity": "@php vendor/bin/pest --profanity --compact"
+        "test:profanity": "@php vendor/bin/pest --profanity --compact",
+        "test:rector": "@php vendor/bin/rector process --dry-run",
+        "test:tia": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/MaddraxikonIdentityHmacPeppersTest.php tests/Unit/UriSupportTest.php --tia --compact",
+        "test:tia:fresh": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/MaddraxikonIdentityHmacPeppersTest.php tests/Unit/UriSupportTest.php --tia --fresh --compact",
+        "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G"
     },
     "extra": {
         "laravel": {

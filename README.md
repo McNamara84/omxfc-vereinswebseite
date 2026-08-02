@@ -190,7 +190,14 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 
 | Zweck                        | Befehl |
 |------------------------------|--------|
-| PHPUnit-Tests                | `npm run docker:dev:test:php` |
+| Vollständige Pest-Suite      | `composer test` |
+| PHP-Tests im Docker-Stack    | `npm run docker:dev:test:php` |
+| Frische TIA-Basis aufzeichnen | `composer test:tia:fresh` |
+| Nur betroffene Tests mit TIA | `composer test:tia` |
+| Pest-PHPStan (migrierte Tests) | `composer test:types` |
+| Pest-Rector-Migration prüfen | `composer test:rector` |
+| Architektur- und Security-Regeln | `composer test:arch` |
+| Profanity-Scan               | `composer test:profanity` |
 | Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
 | Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
@@ -198,13 +205,13 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen lokal bewusst effizient: PHPUnit bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue.
+Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA benötigt Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Der Test-Stack verwendet die stabilen Versionen Pest 5.0.2 und PHPUnit 13.2.6. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Die geplante schrittweise Nutzung von TIA, neuen Expectations, PHPStan, Rector, Mutation Testing und zeitbasiertem Sharding ist im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md) dokumentiert.
+Der Test-Stack verwendet die stabilen Versionen Pest 5.0.2 und PHPUnit 13.2.6. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). TIA, neue Format-Expectations, PHPStan, Rector, das Agent-Plugin, erweiterte Architekturregeln und zeitbasiertes CI-Sharding sind eingeführt. Umsetzungsstand, Ausbaupfade und der derzeitige Upstream-Blocker für Mutation Testing stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
 ## Deployment
 

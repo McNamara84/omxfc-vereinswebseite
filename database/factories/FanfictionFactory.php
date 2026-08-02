@@ -92,7 +92,7 @@ class FanfictionFactory extends Factory
      */
     private function generateStoryContent(): string
     {
-        $paragraphs = $this->faker->paragraphs(rand(3, 6));
+        $paragraphs = $this->faker->paragraphs(random_int(3, 6));
         $content = '';
 
         foreach ($paragraphs as $index => $paragraph) {
@@ -102,7 +102,7 @@ class FanfictionFactory extends Factory
 
             $content .= $paragraph."\n\n";
 
-            if ($index === 1 && rand(0, 1)) {
+            if ($index === 1 && random_int(0, 1) === 1) {
                 $content .= '> '.$this->faker->sentence()."\n\n";
             }
         }

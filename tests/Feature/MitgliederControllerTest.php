@@ -56,6 +56,8 @@ class MitgliederControllerTest extends TestCase
         $data = $response->json('emails');
         $this->assertStringContainsString('a@a.de', $data);
         $this->assertStringContainsString('b@a.de', $data);
+        collect(explode('; ', $data))
+            ->each(fn (string $email) => expect($email)->toBeEmail());
 
         $this->actingAs($this->actingMember('Mitglied'));
         $this->getJson('/mitglieder/all-emails')->assertStatus(403);
