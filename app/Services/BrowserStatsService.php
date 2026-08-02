@@ -82,6 +82,39 @@ class BrowserStatsService
         ];
     }
 
+    /**
+     * Ermittelt die vom User-Agent gemeldete Browserversion.
+     */
+    public function detectBrowserVersion(?string $userAgent): string
+    {
+        if (! is_string($userAgent) || trim($userAgent) === '') {
+            return 'Unbekannt';
+        }
+
+        $browser = $this->detectBrowser($userAgent)['browser'];
+        $patterns = match ($browser) {
+            'Microsoft Edge' => ['~Edg(?:A|iOS)?/([0-9.]+)~i'],
+            'Opera' => ['~OPR/([0-9.]+)~i', '~Version/([0-9.]+).*Opera~i'],
+            'Vivaldi' => ['~Vivaldi/([0-9.]+)~i'],
+            'Brave' => ['~Brave/([0-9.]+)~i'],
+            'Samsung Internet' => ['~SamsungBrowser/([0-9.]+)~i'],
+            'Tor Browser' => ['~TorBrowser/([0-9.]+)~i', '~Firefox/([0-9.]+)~i'],
+            'Google Chrome' => ['~(?:Chrome|CriOS)/([0-9.]+)~i'],
+            'Mozilla Firefox' => ['~(?:Firefox|FxiOS)/([0-9.]+)~i'],
+            'Safari' => ['~Version/([0-9.]+)~i'],
+            'Internet Explorer' => ['~MSIE\s+([0-9.]+)~i', '~rv:([0-9.]+)~i'],
+            default => [],
+        };
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $userAgent, $matches) === 1) {
+                return $matches[1];
+            }
+        }
+
+        return 'Unbekannt';
+    }
+
     public function detectDeviceType(?string $userAgent): string
     {
         if (! is_string($userAgent) || trim($userAgent) === '') {

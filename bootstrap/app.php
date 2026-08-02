@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AssignLogCorrelationId;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureAdminOrVorstand;
 use App\Http\Middleware\EnsureHoerbuchAccess;
@@ -12,6 +13,7 @@ use App\Http\Middleware\LogPageVisit;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Http\Middleware\UpdateLastActivity;
+use App\Services\ErrorReporting\ErrorIncidentReporter;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->prepend(AssignLogCorrelationId::class);
+
         // Trusted Proxies konfigurierbar via ENV (Default: '*' für Docker-Setup)
         $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
 
@@ -48,5 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', LogPageVisit::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->reportable(function (Throwable $exception): void {
+            app(ErrorIncidentReporter::class)->report($exception);
+        });
     })->create();
