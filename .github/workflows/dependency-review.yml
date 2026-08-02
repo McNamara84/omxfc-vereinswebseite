@@ -22,3 +22,34 @@ jobs:
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
+
+  dependency-audit:
+    name: Lockfile validation and audits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      - name: Validate Composer metadata and lockfile
+        run: composer validate --no-check-publish --strict
+
+      - name: Audit Composer lockfile
+        run: composer audit --locked --abandoned=fail
+
+      - name: Verify npm lockfile can be installed
+        run: npm ci --ignore-scripts
+
+      - name: Audit npm lockfile
+        run: npm audit --package-lock-only --audit-level=moderate

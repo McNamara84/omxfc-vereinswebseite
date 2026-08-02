@@ -108,17 +108,20 @@
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">
                     @auth
-                        <x-dropdown as="menu" right class="shrink-0">
-                            <x-slot:trigger>
-                                <div
-                                    class="flex items-center"
-                                    data-tour-device="desktop"
-                                    data-tour-key="profile-menu"
-                                    x-bind:data-tour-open="open ? 'true' : 'false'"
-                                >
-                                    <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                    <span class="sr-only">Profilmenü öffnen</span>
-                                </div>
+                        <x-mary-dropdown right>
+                            <x-slot:trigger
+                                class="flex items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                data-testid="profile-menu-trigger"
+                                data-tour-device="desktop"
+                                data-tour-key="profile-menu"
+                                aria-label="Profilmenü von {{ Auth::user()->name }} öffnen"
+                                aria-haspopup="menu"
+                                aria-expanded="false"
+                                x-bind:aria-expanded="open.toString()"
+                                x-bind:data-tour-open="open ? 'true' : 'false'"
+                                x-on:keydown.escape.window="if (open) { open = false; $refs.button.focus() }"
+                            >
+                                <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="" />
                             </x-slot:trigger>
                             <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
                             <x-menu-separator />
@@ -131,7 +134,7 @@
                                     </button>
                                 </form>
                             </li>
-                        </x-dropdown>
+                        </x-mary-dropdown>
                     @endauth
 
                     @guest

@@ -305,6 +305,26 @@ class NavigationMenuTest extends TestCase
         $this->assertSame('Menü öffnen', trim($menuToggleAccessibilityText->text()));
     }
 
+    public function test_authenticated_profile_menu_uses_an_accessible_mary_dropdown_trigger(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create(['name' => 'Ada Beispiel']);
+
+        $response = $this->withoutVite()->actingAs($user)->get('/');
+
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+        $trigger = $crawler->filter('nav details > summary[data-testid="profile-menu-trigger"]');
+
+        $this->assertCount(1, $trigger);
+        $this->assertSame('Profilmenü von Ada Beispiel öffnen', $trigger->attr('aria-label'));
+        $this->assertSame('menu', $trigger->attr('aria-haspopup'));
+        $this->assertSame('false', $trigger->attr('aria-expanded'));
+        $this->assertSame('open.toString()', $trigger->attr('x-bind:aria-expanded'));
+        $this->assertStringContainsString('open = false', $trigger->attr('x-on:keydown.escape.window'));
+        $this->assertCount(0, $trigger->filter('button, a, input, select, textarea'));
+    }
+
     public function test_admin_users_see_admin_menu_with_statistik_link(): void
     {
         $team = Team::membersTeam();
