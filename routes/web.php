@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DatabaseMaintenanceController;
+use App\Http\Controllers\Admin\KompendiumRomanDownloadController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\ArbeitsgruppenController;
@@ -450,6 +451,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('admin', KompendiumAdminDashboard::class)
             ->middleware('admin')
             ->name('admin');
+
+        Route::get('admin/romane/{roman}/herunterladen', KompendiumRomanDownloadController::class)
+            ->middleware('admin')
+            ->name('admin.romane.download');
 
         Route::get('admin/suchstatistik', KompendiumSearchAnalyticsDashboard::class)
             ->middleware('admin')
