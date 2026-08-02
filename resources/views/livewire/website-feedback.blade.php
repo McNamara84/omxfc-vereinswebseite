@@ -96,7 +96,7 @@
                         <textarea
                             id="website-feedback-message"
                             wire:model="message"
-                            x-on:input="count = $event.target.value.length"
+                            x-on:input="count = Array.from($event.target.value).length"
                             placeholder="Was funktioniert gut oder was können wir verbessern?"
                             rows="6"
                             minlength="{{ $messageMinLength }}"
@@ -108,7 +108,7 @@
                         ></textarea>
                         <div id="website-feedback-message-help">
                             <p class="text-right text-xs text-base-content/60" aria-live="polite">
-                                <span x-text="count">{{ mb_strlen($message) }}</span>/{{ $messageMaxLength }} Zeichen
+                                <span x-text="count" data-testid="website-feedback-message-count">{{ mb_strlen($message) }}</span>/{{ $messageMaxLength }} Zeichen
                             </p>
                             @error('message')
                                 <p class="text-sm text-error" role="alert">{{ $message }}</p>

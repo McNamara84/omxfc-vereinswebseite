@@ -51,8 +51,12 @@ class WebsiteFeedback extends Component
     ): void {
         $this->authorizedUser($sessions);
 
-        $this->pageUrl = $this->normalizePageUrl($pageUrl);
-        $this->pageTitle = $this->normalizePageTitle($pageTitle, $this->pageUrl);
+        $normalizedPageUrl = $this->normalizePageUrl($pageUrl);
+        $normalizedPageTitle = $this->normalizePageTitle($pageTitle, $normalizedPageUrl);
+
+        $this->reset(['category', 'message', 'anonymous']);
+        $this->pageUrl = $normalizedPageUrl;
+        $this->pageTitle = $normalizedPageTitle;
         $this->showModal = true;
         $this->sent = false;
         $this->resetValidation();

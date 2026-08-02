@@ -143,6 +143,26 @@ class WebsiteFeedbackTest extends TestCase
 
     }
 
+    public function test_opening_feedback_resets_a_previous_draft_before_updating_the_page_context(): void
+    {
+        $this->allowFeedbackSession();
+        $this->actingMember();
+
+        Livewire::test(WebsiteFeedback::class)
+            ->call('openFeedback', 'http://localhost/chronik', 'Chronik')
+            ->set('category', 'idea')
+            ->set('message', 'Dieser Entwurf gehört zur Chronikseite.')
+            ->set('anonymous', true)
+            ->call('closeFeedback')
+            ->call('openFeedback', 'http://localhost/dashboard', 'Dashboard')
+            ->assertSet('category', '')
+            ->assertSet('message', '')
+            ->assertSet('anonymous', false)
+            ->assertSet('pageUrl', 'http://localhost/dashboard')
+            ->assertSet('pageTitle', 'Dashboard')
+            ->assertSet('showModal', true);
+    }
+
     public function test_external_feedback_page_url_is_rejected(): void
     {
         $this->allowFeedbackSession();
