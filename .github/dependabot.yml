@@ -10,6 +10,14 @@ updates:
       timezone: Europe/Berlin
     open-pull-requests-limit: 8
     groups:
+      livewire-ui-stack:
+        patterns:
+          - laravel/jetstream
+          - livewire/livewire
+          - robsontenorio/mary
+        update-types:
+          - patch
+          - minor
       pest-stack:
         patterns:
           - pestphp/*
@@ -17,6 +25,10 @@ updates:
           - nunomaduro/collision
       production-patch-and-minor:
         dependency-type: production
+        exclude-patterns:
+          - laravel/jetstream
+          - livewire/livewire
+          - robsontenorio/mary
         update-types:
           - patch
           - minor
@@ -39,9 +51,25 @@ updates:
       timezone: Europe/Berlin
     open-pull-requests-limit: 8
     groups:
+      frontend-ui-stack:
+        patterns:
+          - "@alpinejs/*"
+          - "@tailwindcss/*"
+          - alpinejs
+          - daisyui
+          - tailwindcss
+        update-types:
+          - patch
+          - minor
       npm-patch-and-minor:
         patterns:
           - "*"
+        exclude-patterns:
+          - "@alpinejs/*"
+          - "@tailwindcss/*"
+          - alpinejs
+          - daisyui
+          - tailwindcss
         update-types:
           - patch
           - minor

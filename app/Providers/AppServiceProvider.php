@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
+use Mary\View\Components\Dropdown as MaryDropdown;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -201,6 +202,10 @@ class AppServiceProvider extends ServiceProvider
         // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
         // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
+
+        // Der lokale <x-dropdown> bleibt während der schrittweisen Migration verfügbar.
+        // Über diesen Alias können einzelne Aufrufer bereits MaryUI verwenden.
+        Blade::component('mary-dropdown', MaryDropdown::class);
 
         Livewire::addPersistentMiddleware([
             EnsureAdmin::class,
