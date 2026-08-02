@@ -90,24 +90,27 @@
                                             @if($fanfiction->status === \App\Enums\FanfictionStatus::Draft)
                                                 <form action="{{ route('admin.fanfiction.publish', $fanfiction) }}" method="POST" class="inline">
                                                     @csrf
-                                                    <x-button
+                                                    <x-ui.icon-action
                                                         type="submit"
                                                         icon="o-check"
                                                         class="btn-ghost btn-sm text-success"
                                                         tooltip="Veröffentlichen"
+                                                        tooltip-align="end"
                                                     />
                                                 </form>
                                             @endif
-                                            <x-button
+                                            <x-ui.icon-action
                                                 icon="o-pencil-square"
                                                 link="{{ route('admin.fanfiction.edit', $fanfiction) }}" wire:navigate
                                                 class="btn-ghost btn-sm text-info"
                                                 tooltip="Bearbeiten"
+                                                tooltip-align="end"
                                             />
-                                            <x-button
+                                            <x-ui.icon-action
                                                 icon="o-trash"
                                                 class="btn-ghost btn-sm text-error"
                                                 tooltip="Löschen"
+                                                tooltip-align="end"
                                                 @click="deleteUrl = '{{ route('admin.fanfiction.destroy', $fanfiction) }}'; document.getElementById('delete-fanfiction-modal').showModal()"
                                             />
                                         </div>

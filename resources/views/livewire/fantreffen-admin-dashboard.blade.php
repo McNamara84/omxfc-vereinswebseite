@@ -340,12 +340,13 @@
                         {{-- Aktionen Spalte --}}
                         @scope('cell_actions', $anmeldung)
                             <div class="text-center">
-                                <x-button 
+                                <x-ui.icon-action
                                     wire:click="deleteAnmeldung({{ $anmeldung->id }})"
                                     wire:confirm="Möchten Sie die Anmeldung von {{ $anmeldung->full_name }} wirklich löschen?"
                                     icon="o-trash"
                                     class="btn-ghost btn-xs text-error hover:btn-error"
                                     tooltip="Anmeldung löschen"
+                                    tooltip-align="end"
                                 />
                             </div>
                         @endscope

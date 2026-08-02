@@ -714,14 +714,15 @@ class MaddraxikonRewardServiceTest extends TestCase
 
     public function test_activity_date_uses_berlin_timezone(): void
     {
-        [, $link] = $this->linkedMember();
         $activityAt = CarbonImmutable::parse('2026-07-18 23:30:00', 'UTC');
+        $this->travelTo($activityAt->addDay()->addMinute());
+
+        [, $link] = $this->linkedMember();
         $article = $this->contribution($link, [
             'type' => MaddraxikonContributionType::New,
             'occurred_at' => $activityAt->setTimezone(config('app.timezone')),
             'eligible_after' => $activityAt->addDay()->setTimezone(config('app.timezone')),
         ]);
-        $this->travelTo($activityAt->addDay()->addMinute());
 
         $this->service($this->apiForNewArticle($article))->evaluate();
 

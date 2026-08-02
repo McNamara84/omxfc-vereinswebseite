@@ -251,17 +251,22 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Füge eine Antwort hinzu
         await addAnswerOption(page, 3);
 
-        // Hover über den Info-Button (mit tooltip) - suche nach tooltip-Elementen
-        const tooltipElement = page.locator('[data-tip]').first();
-        
-        // Falls tooltip vorhanden, prüfen wir das Attribut
-        const tooltipCount = await tooltipElement.count();
-        if (tooltipCount > 0) {
-            await expect(tooltipElement).toHaveAttribute('data-tip');
-        } else {
-            // Fallback: Prüfe ob info-Icon im Formular existiert
-            await expect(page.locator('.tooltip, [data-tip]')).toHaveCount(0);
-        }
+        const infoButton = page.getByRole('button', {
+            name: 'Empfohlen: querformatiges Bild (z. B. 1200×630)',
+        }).first();
+        const tooltipElement = infoButton.locator('xpath=..');
+
+        await expect(infoButton).toBeVisible();
+        await expect(tooltipElement).toHaveClass(/tooltip-end/);
+        await expect(tooltipElement).toHaveAttribute(
+            'data-tip',
+            'Empfohlen: querformatiges Bild (z. B. 1200×630)',
+        );
+
+        await infoButton.hover();
+        await expect.poll(
+            () => tooltipElement.evaluate((element) => getComputedStyle(element, '::before').opacity),
+        ).toBe('1');
     });
 });
 

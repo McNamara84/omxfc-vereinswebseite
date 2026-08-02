@@ -80,12 +80,13 @@
 
                     @scope('cell_actions', $reward)
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReward({{ $reward->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReward({{ $reward->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $reward->is_active ? 'o-eye-slash' : 'o-eye' }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRewardActive({{ $reward->id }})"
                                 tooltip="{{ $reward->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                                tooltip-align="end"
                             />
                         </div>
                     @endscope
@@ -168,12 +169,13 @@
 
                     @scope('cell_actions', $rule)
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRule({{ $rule->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRule({{ $rule->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $rule->is_active ? 'o-eye-slash' : 'o-eye' }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRuleActive({{ $rule->id }})"
                                 tooltip="{{ $rule->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                                tooltip-align="end"
                             />
                         </div>
                     @endscope
@@ -219,12 +221,13 @@
                     @scope('cell_actions', $offer)
                         @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditMaddraxiversumSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditMaddraxiversumSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $toggleAction['icon'] }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleMaddraxiversumSpecialOfferActive({{ $offer->id }})"
                                 tooltip="{{ $toggleAction['tooltip'] }}"
+                                tooltip-align="end"
                                 :disabled="$toggleAction['disabled']"
                             />
                         </div>
@@ -304,12 +307,13 @@
                     @scope('cell_actions', $offer)
                         @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRomantauschSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRomantauschSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $toggleAction['icon'] }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRomantauschSpecialOfferActive({{ $offer->id }})"
                                 tooltip="{{ $toggleAction['tooltip'] }}"
+                                tooltip-align="end"
                                 :disabled="$toggleAction['disabled']"
                             />
                         </div>
@@ -356,12 +360,13 @@
                     @scope('cell_actions', $offer)
                         @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReviewSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReviewSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $toggleAction['icon'] }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleReviewSpecialOfferActive({{ $offer->id }})"
                                 tooltip="{{ $toggleAction['tooltip'] }}"
+                                tooltip-align="end"
                                 :disabled="$toggleAction['disabled']"
                             />
                         </div>
@@ -538,19 +543,21 @@
 
                     @scope('cell_actions', $download)
                         <div class="flex gap-2">
-                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditDownload({{ $download->id }})" tooltip="Bearbeiten" />
-                            <x-button
+                            <x-ui.icon-action icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditDownload({{ $download->id }})" tooltip="Bearbeiten" tooltip-align="end" />
+                            <x-ui.icon-action
                                 icon="{{ $download->is_active ? 'o-eye-slash' : 'o-eye' }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleDownloadActive({{ $download->id }})"
                                 tooltip="{{ $download->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                                tooltip-align="end"
                             />
-                            <x-button
+                            <x-ui.icon-action
                                 icon="o-trash"
                                 class="btn-ghost btn-xs text-error"
                                 wire:click="deleteDownload({{ $download->id }})"
                                 wire:confirm="Download '{{ $download->title }}' wirklich löschen? Die Datei wird ebenfalls entfernt."
                                 tooltip="Löschen"
+                                tooltip-align="end"
                             />
                         </div>
                     @endscope

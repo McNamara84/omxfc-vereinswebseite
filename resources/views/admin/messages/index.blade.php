@@ -43,12 +43,13 @@
                     <form method="POST" action="{{ route('admin.messages.destroy', $message) }}" class="ml-4">
                         @csrf
                         @method('DELETE')
-                        <x-button
+                        <x-ui.icon-action
                             type="submit"
                             icon="o-trash"
                             class="btn-ghost btn-sm text-error"
                             onclick="return confirm('Nachricht löschen?')"
                             tooltip="Löschen"
+                            tooltip-align="end"
                         />
                     </form>
                 </div>

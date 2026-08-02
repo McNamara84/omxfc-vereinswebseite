@@ -122,40 +122,44 @@
                             />
 
                             {{-- Move Up --}}
-                            <x-button 
-                                wire:click="moveUp({{ $author->id }})" 
-                                icon="o-chevron-up" 
-                                class="btn-ghost btn-xs" 
+                            <x-ui.icon-action
+                                wire:click="moveUp({{ $author->id }})"
+                                icon="o-chevron-up"
+                                class="btn-ghost btn-xs"
                                 :disabled="$author->sort_order <= 0"
                                 tooltip="Nach oben"
+                                tooltip-align="end"
                                 spinner="moveUp"
                             />
 
                             {{-- Move Down --}}
-                            <x-button 
-                                wire:click="moveDown({{ $author->id }})" 
-                                icon="o-chevron-down" 
-                                class="btn-ghost btn-xs" 
+                            <x-ui.icon-action
+                                wire:click="moveDown({{ $author->id }})"
+                                icon="o-chevron-down"
+                                class="btn-ghost btn-xs"
                                 :disabled="$loop->last"
                                 tooltip="Nach unten"
+                                tooltip-align="end"
                                 spinner="moveDown"
                             />
 
                             {{-- Edit --}}
-                            <x-button 
-                                wire:click="edit({{ $author->id }})" 
-                                icon="o-pencil" 
+                            <x-ui.icon-action
+                                wire:click="edit({{ $author->id }})"
+                                icon="o-pencil"
                                 class="btn-ghost btn-xs text-info"
                                 tooltip="Bearbeiten"
+                                tooltip-align="end"
                             />
 
                             {{-- Delete --}}
-                            <x-button 
-                                wire:click="delete({{ $author->id }})" 
+                            <x-ui.icon-action
+                                wire:click="delete({{ $author->id }})"
                                 wire:confirm="Möchtest du den Autor &quot;{{ e($author->name) }}&quot; wirklich löschen?"
-                                icon="o-trash" 
+                                icon="o-trash"
                                 class="btn-ghost btn-xs text-error"
                                 tooltip="Löschen"
+                                tooltip-align="end"
                                 spinner="delete"
                             />
                         </div>

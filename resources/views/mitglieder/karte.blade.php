@@ -89,7 +89,7 @@
                                         Dir fehlen aktuell {{ $missingBaxx }} Baxx für die Freischaltung.
                                     </p>
                                     <div class="mt-5 flex flex-wrap justify-center gap-3">
-                                        <x-button label="Zu Baxx verdienen" link="{{ route('todos.index') }}" wire:navigate icon="o-clipboard-document-list" class="btn-primary btn-sm" />
+                                        <x-button data-testid="member-map-earn-baxx-cta" label="Zu Baxx verdienen" link="{{ route('todos.index') }}" wire:navigate icon="o-clipboard-document-list" class="btn-primary btn-sm" />
                                         <x-button label="Im Belohnungsbereich ansehen" link="{{ route('rewards.index') }}" wire:navigate icon="o-gift" class="btn-outline btn-sm" />
                                     </div>
                                 @endif

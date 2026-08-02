@@ -1,4 +1,4 @@
-import { test, expect } from './test-support.js';
+import { clickAndWaitForLivewireUpdate, expect, test } from './test-support.js';
 
 async function expectHeadingsInDomOrder(page, headings) {
     const locators = headings.map((name) => page.getByRole('heading', { level: 2, name, exact: true }));
@@ -112,7 +112,7 @@ test('admin can filter and accept challenges', async ({ page }) => {
     const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
     await expect(verifyButton).toBeVisible();
 
-    await verifyButton.click();
+    await clickAndWaitForLivewireUpdate(page, verifyButton);
     await expect(page).toHaveURL(/filter=pending/);
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
@@ -123,18 +123,18 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(filterDetails).toHaveAttribute('open');
 
     const allButton = page.getByRole('button', { name: 'Alle', exact: true });
-    await allButton.click();
+    await clickAndWaitForLivewireUpdate(page, allButton);
     await expect(page).not.toHaveURL(/filter=pending/);
 
-    const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
+    const assignRow = page.getByRole('row', { name: /Offene Playwright Challenge/ });
+    const assignButton = assignRow.getByRole('button', { name: 'Übernehmen', exact: true });
     await expect(assignButton).toBeVisible();
 
     // Den Titel der zu übernehmenden Challenge auslesen (er steht in der ersten
     // Zelle derselben Tabellen-Zeile wie der Button).
-    const assignRow = assignButton.locator('xpath=ancestor::tr[1]');
     const todoTitle = (await assignRow.locator('td').first().innerText()).trim();
 
-    await assignButton.click();
+    await clickAndWaitForLivewireUpdate(page, assignButton);
 
     // Livewire aktualisiert die Seite inline; prüfe den stabilen Endzustand
     // statt auf einen flüchtigen Toast zu warten.
