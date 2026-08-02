@@ -204,7 +204,7 @@ Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MOD
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack aus unreleasten Branches. `symfony/process` bleibt dagegen bewusst auf der stabilen Constraint `^8.1`; sämtliche konkrete Revisionen sind über `composer.lock` festgelegt. Ein Rückfall auf Pest 4 ist nicht möglich, weil dessen stabiles Laravel-Plugin Laravel 13 nicht unterstützt. Der aktuelle Stack verwendet PHPUnit 13.2.4. `pestphp/pest-plugin-mutate` muss bis zu stabilen Pest-5-Tags zusätzlich direkt auf `5.x-dev` festgelegt bleiben, damit Composer die vom Pest-Kern verlangte Vorabversion bei `minimum-stability: stable` auflösen kann; ein Mutation-Script wird wegen einer derzeitigen Upstream-Inkompatibilität mit PHP Code Coverage noch nicht angeboten.
+Der Test-Stack verwendet die stabilen Versionen Pest 5.0.2 und PHPUnit 13.2.6. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Die geplante schrittweise Nutzung von TIA, neuen Expectations, PHPStan, Rector, Mutation Testing und zeitbasiertem Sharding ist im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md) dokumentiert.
 
 ## Deployment
 
