@@ -32,7 +32,13 @@ class PageControllerProtokolleTest extends TestCase
         $this->assertCount(2, $viewData[2025]);
         $this->assertSame('Außerordentliche Mitgliederversammlung', $viewData[2025][1]['titel']);
         $this->assertArrayHasKey(2026, $viewData);
+        $this->assertCount(2, $viewData[2026]);
         $this->assertSame('Außerordentliche Mitgliederversammlung', $viewData[2026][0]['titel']);
+        $this->assertSame([
+            'datum' => '15. Juli 2026',
+            'titel' => 'Jahreshauptversammlung',
+            'datei' => '2026-07-15-jhv.pdf',
+        ], $viewData[2026][1]);
 
         $years = array_keys($viewData);
         $this->assertArraysAreIdentical([2026, 2025, 2024, 2023], $years);

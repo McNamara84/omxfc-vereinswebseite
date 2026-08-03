@@ -37,11 +37,27 @@ class ProtokolleTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('protokolle', function ($protokolle) {
-            return isset($protokolle[2024]) && count($protokolle[2024]) === 3;
+            return isset($protokolle[2024], $protokolle[2026])
+                && count($protokolle[2024]) === 3
+                && count($protokolle[2026]) === 2
+                && $protokolle[2026][1]['datei'] === '2026-07-15-jhv.pdf';
         });
 
+        $response->assertSee('8 Dokumente');
         $response->assertSee('3 Dokumente');
         $response->assertSee('Protokolle 2025');
+        $response->assertSeeText('15. Juli 2026 – Jahreshauptversammlung');
+    }
+
+    public function test_jhv_2026_protokoll_can_be_downloaded(): void
+    {
+        $this->actingAs($this->actingMember());
+
+        $response = $this->get('/protokolle/download/2026-07-15-jhv.pdf');
+
+        $response->assertOk();
+        $response->assertDownload('2026-07-15-jhv.pdf');
+        $this->assertSame('application/pdf', $response->headers->get('content-type'));
     }
 
     public function test_protokoll_can_be_downloaded_when_file_exists(): void
