@@ -166,6 +166,7 @@ class PageController extends Controller
             ],
             2026 => [
                 ['datum' => '6. März 2026', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2026-03-06-aomv.pdf'],
+                ['datum' => '15. Juli 2026', 'titel' => 'Jahreshauptversammlung', 'datei' => '2026-07-15-jhv.pdf'],
             ],
         ];
 

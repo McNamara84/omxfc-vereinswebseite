@@ -32,6 +32,7 @@ test.describe('Protokolle page', () => {
         const firstPanel = page.locator('#content-2026');
         await expect(firstPanel).toBeVisible();
         await expect(firstPanel).toContainText('Außerordentliche Mitgliederversammlung');
+        await expect(firstPanel).toContainText('15. Juli 2026 – Jahreshauptversammlung');
 
         // Zuklappen per Klick
         await accordionButton2026.click();
