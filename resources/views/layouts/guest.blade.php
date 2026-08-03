@@ -30,6 +30,10 @@
             {{ $slot }}
         </div>
 
+        @auth
+            <livewire:website-feedback />
+        @endauth
+
         @vite(['resources/js/app.js'])
     </body>
 </html>

@@ -132,8 +132,8 @@ class NavigationMenuTest extends TestCase
         $this->assertStringContainsString('Belohnungen einlösen', $navigationText);
         $this->assertStringContainsString('Auktionen', $navigationText);
         $this->assertStringNotContainsString('Challenges', $navigationText);
-        $response->assertDontSeeText('Vorstand');
-        $response->assertDontSeeText('Admin');
+        $this->assertStringNotContainsString('Vorstand', $navigationText);
+        $this->assertStringNotContainsString('Admin', $navigationText);
         $response->assertSee(route('auktionen.index'));
     }
 

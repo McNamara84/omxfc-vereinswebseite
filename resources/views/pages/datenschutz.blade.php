@@ -77,6 +77,15 @@
                     </section>
 
                     <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5 sm:p-6">
+                        <h2 class="text-xl font-semibold mb-2">Feedback zur Vereinswebsite</h2>
+                        <p>Aktive, eingeloggte Mitglieder können freiwillig Feedback zur Vereinswebsite einreichen. Dabei verarbeiten wir die gewählte Kategorie, den Feedbacktext, den Titel und die Adresse der betroffenen Seite sowie den Absendezeitpunkt. Das Feedback wird per E-Mail einzeln an aktive Mitglieder mit der Rolle Admin oder Vorstand übermittelt.</p>
+                        <p class="mt-2">Du entscheidest vor dem Absenden, ob dein Feedback namentlich oder gegenüber den Empfängern anonym übermittelt wird. Bei namentlichem Feedback enthält die E-Mail deinen Anzeigenamen und deine Konto-E-Mail-Adresse, damit Rückfragen möglich sind. Bei anonymem Feedback werden diese Angaben weder in den Mailinhalt noch in die Antwortadresse übernommen. Zur Berechtigungs- und Missbrauchsprüfung muss die Anwendung während des Absendevorgangs dennoch erkennen, welches Mitglied angemeldet ist.</p>
+                        <p class="mt-2">Die Website legt keine eigene dauerhafte Kopie des Feedbackinhalts und keine Zuordnung anonym versandter Inhalte zu einem Mitglied an. Die versendete Nachricht verbleibt entsprechend der vereinsinternen Aufbewahrung in den Postfächern der Empfänger. Technische Protokolle enthalten keinen Feedbacktext.</p>
+                        <p class="mt-2">Damit der Feedback-Hinweis nur in ausgewählten Sitzungen erscheint, speichern wir am Mitgliedskonto ausschließlich einen fortlaufenden, inhaltslosen Session-Zähler. Innerhalb der aktuellen Sitzung wird zusätzlich gespeichert, ob der Hinweis vorgesehen ist und bereits verwendet wurde. Diese Sitzungsdaten enden mit der Laravel-Sitzung.</p>
+                        <p class="mt-2">Die Verarbeitung dient der Verbesserung und sicheren Weiterentwicklung des freiwillig genutzten Vereinsangebots sowie der Bearbeitung deiner Rückmeldung im Vereinskontext. Du kannst das Formular jederzeit ohne Übermittlung schließen.</p>
+                    </section>
+
+                    <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5 sm:p-6">
                         <h2 class="text-xl font-semibold mb-2">Deine Rechte gemäß DSGVO</h2>
                         <p>Du hast das Recht:</p>
                         <ul class="list-disc ml-6 mt-2 space-y-1">

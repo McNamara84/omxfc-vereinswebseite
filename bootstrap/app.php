@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureVorstandOrKassenwart;
 use App\Http\Middleware\LogPageVisit;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
+use App\Http\Middleware\TrackWebsiteFeedbackSession;
 use App\Http\Middleware\UpdateLastActivity;
 use App\Services\ErrorReporting\ErrorIncidentReporter;
 use Illuminate\Foundation\Application;
@@ -50,6 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         );
         $middleware->appendToGroup('web', UpdateLastActivity::class);
         $middleware->appendToGroup('web', LogPageVisit::class);
+        $middleware->appendToGroup('web', TrackWebsiteFeedbackSession::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->reportable(function (Throwable $exception): void {

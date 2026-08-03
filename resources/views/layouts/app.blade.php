@@ -63,6 +63,10 @@
         @endpersist
     </div>
 
+    @auth
+        <livewire:website-feedback />
+    @endauth
+
     @stack('modals')
     @stack('scripts')
 
