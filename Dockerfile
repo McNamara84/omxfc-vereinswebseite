@@ -22,13 +22,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libwebp-dev \
     libonig-dev \
     libicu-dev \
+    libzip-dev \
     libsqlite3-dev \
     libxml2-dev \
     zip \
     unzip \
     mariadb-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd sockets intl \
+    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd sockets intl zip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
