@@ -12,6 +12,7 @@ class KompendiumRomanArchiveService
     public function __construct(
         private readonly KompendiumRomanFileValidator $fileValidator,
         private readonly KompendiumRomanArchiveWriter $archiveWriter,
+        private readonly KompendiumRomanArchiveTemporaryFileFactory $temporaryFileFactory,
     ) {}
 
     public function create(): KompendiumRomanArchiveFile
@@ -86,12 +87,7 @@ class KompendiumRomanArchiveService
         }
 
         $temporaryDirectory = $disk->path('temp/kompendium-exports');
-        File::ensureDirectoryExists($temporaryDirectory, 0700);
-
-        $temporaryPath = @tempnam($temporaryDirectory, 'romane-');
-        if ($temporaryPath === false) {
-            throw new KompendiumRomanArchiveException('Das temporäre ZIP-Archiv konnte nicht angelegt werden.');
-        }
+        $temporaryPath = $this->temporaryFileFactory->create($temporaryDirectory);
 
         try {
             $this->archiveWriter->write($temporaryPath, $entries);
