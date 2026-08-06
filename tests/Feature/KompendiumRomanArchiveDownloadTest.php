@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Admin\KompendiumRomanArchiveDownloadController;
 use App\Models\KompendiumRoman;
 use App\Models\User;
+use App\Services\KompendiumRomanArchiveException;
 use App\Services\KompendiumRomanArchiveService;
 use App\Services\KompendiumRomanArchiveWriter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -275,7 +276,10 @@ class KompendiumRomanArchiveDownloadTest extends TestCase
             ->once()
             ->withArgs(fn (string $message, array $context): bool => $message === 'Kompendium: ZIP-Export wurde abgebrochen.'
                 && $context['user_id'] === $this->admin->id
-                && $context['fehler'] === 'Das ZIP-Archiv konnte nicht erstellt werden.');
+                && $context['fehler'] === 'Das ZIP-Archiv konnte nicht erstellt werden.'
+                && $context['exception'] instanceof KompendiumRomanArchiveException
+                && $context['exception']->getPrevious() instanceof RuntimeException
+                && $context['exception']->getPrevious()->getMessage() === 'Interner technischer Fehler');
     }
 
     public function test_empty_archive_created_by_writer_is_rejected_and_removed(): void

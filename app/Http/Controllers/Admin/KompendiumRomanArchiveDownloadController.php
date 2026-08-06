@@ -22,6 +22,7 @@ class KompendiumRomanArchiveDownloadController extends Controller
             Log::warning('Kompendium: ZIP-Export wurde abgebrochen.', [
                 'user_id' => $request->user()?->id,
                 'fehler' => $exception->getMessage(),
+                'exception' => $exception,
             ]);
 
             return redirect()
