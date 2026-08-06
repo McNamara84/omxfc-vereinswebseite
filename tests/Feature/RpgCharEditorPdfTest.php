@@ -163,7 +163,7 @@ class RpgCharEditorPdfTest extends TestCase
             'portrait' => null,
         ])->render();
 
-        $this->assertStringContainsString('Geschlecht:</strong> Männlich', $html);
+        $this->assertStringContainsString('Barbar · Landbewohner · männlich', $html);
         $this->assertStringNotContainsString('maennlich', $html);
     }
 
@@ -189,8 +189,8 @@ class RpgCharEditorPdfTest extends TestCase
             'portrait' => null,
         ])->render();
 
-        $this->assertStringContainsString('<li>Zäh</li>', $html);
-        $this->assertStringNotContainsString('<li>Zäh </li>', $html);
+        $this->assertStringContainsString('<tr><th>Vorteile</th><td>Zäh</td></tr>', $html);
+        $this->assertStringNotContainsString('<tr><th>Vorteile</th><td>Zäh </td></tr>', $html);
     }
 
     public function test_failed_pdf_prepare_redirect_keeps_editor_input_for_recovery(): void
@@ -2464,6 +2464,129 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
         $this->assertStringContainsString('mit-portrait.pdf', $response->headers->get('content-disposition'));
         $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
+    public function test_pdf_export_accepts_training_allocations_and_calculates_active_combat_values(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $skills = $this->validPdfPayload()['skills'];
+        $skills[] = ['name' => 'Fahren', 'value' => 4];
+        $skills[] = ['name' => 'Unterhalten: Geschichten', 'value' => 1];
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(function (array $data): bool {
+                return $data['trainings'] === ['Arbeiter']
+                    && collect($data['training_allocations'])->contains(fn (array $allocation): bool => $allocation === [
+                        'training' => 'Arbeiter',
+                        'skill' => 'Fahren',
+                        'points' => 4,
+                    ])
+                    && ($data['equipment']['active_armor_id'] ?? null) === 'verstaerktes-leder'
+                    && ($data['equipment']['active_shield_id'] ?? null) === 'holzschild'
+                    && ($data['combat']['active_armor']['id'] ?? null) === 'verstaerktes-leder'
+                    && ($data['combat']['active_shield']['id'] ?? null) === 'holzschild'
+                    && ($data['combat']['defense']['parade'] ?? null) === 3
+                    && ($data['combat']['defense']['damage_reduction'] ?? null) === 2
+                    && ($data['sheet']['trainings'] ?? null) === 'Arbeiter';
+            }))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'skills' => $skills,
+            'trainings' => ['Arbeiter'],
+            'training_allocations' => [
+                ['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4],
+                ['training' => 'Arbeiter', 'skill' => 'Unterhalten: Geschichten', 'points' => 1],
+            ],
+            'equipment_items' => [
+                ['id' => 'schwert', 'quantity' => 1],
+                ['id' => 'bogen', 'quantity' => 1],
+                ['id' => 'verstaerktes-leder', 'quantity' => 1],
+                ['id' => 'holzschild', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+            ],
+            'active_armor_id' => 'verstaerktes-leder',
+            'active_shield_id' => 'holzschild',
+        ]));
+
+        $response->assertOk();
+    }
+
+    public function test_pdf_export_rejects_invalid_training_definitions_allocations_and_prerequisites(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'trainings' => ['Raumpilot'],
+        ]))->assertSessionHasErrors('trainings');
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'trainings' => ['Krieger'],
+            'training_allocations' => [
+                ['training' => 'Krieger', 'skill' => 'Heiler', 'points' => 5],
+            ],
+        ]))->assertSessionHasErrors('training_allocations');
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'trainings' => ['Arbeiter'],
+            'training_allocations' => [
+                ['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4],
+            ],
+        ]))->assertSessionHasErrors('training_allocations');
+
+        $seherSkills = $this->validPdfPayload()['skills'];
+        $seherSkills[] = ['name' => 'Kunde', 'value' => 4];
+        $seherSkills[] = ['name' => 'Sprachen', 'value' => 1];
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'skills' => $seherSkills,
+            'trainings' => ['Seher'],
+            'training_allocations' => [
+                ['training' => 'Seher', 'skill' => 'Kunde', 'points' => 4],
+                ['training' => 'Seher', 'skill' => 'Sprachen', 'points' => 1],
+            ],
+        ]))->assertSessionHasErrors('trainings');
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'trainings' => ["Rev'rend", 'Krieger', 'Arbeiter'],
+        ]))->assertSessionHasErrors('trainings');
+    }
+
+    public function test_pdf_export_rejects_active_armor_or_shield_outside_the_selected_equipment(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        Pdf::shouldReceive('view')->never();
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'active_armor_id' => 'verstaerktes-leder',
+        ]))->assertSessionHasErrors('active_armor_id');
+
+        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'active_shield_id' => 'bogen',
+        ]))->assertSessionHasErrors('active_shield_id');
+    }
+
+    public function test_real_pdf_stays_on_exactly_one_a4_page(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+            'description' => str_repeat('Lange Charakterbeschreibung für den Ausdruck. ', 20),
+            'equipment' => str_repeat('Ausführliche Ausrüstungsnotiz. ', 20),
+        ]));
+
+        $response->assertOk();
+        $content = $response->getContent();
+        $this->assertStringStartsWith('%PDF', $content);
+        $this->assertSame(1, preg_match_all('/\/Type\s*\/Page\b/', $content));
+        $this->assertMatchesRegularExpression('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+595(?:\.\d+)?\s+841(?:\.\d+)?\s*\]/', $content);
     }
 
     public function test_pdf_includes_base64_portrait_when_uploaded_for_ag_rollenspiel_member(): void
