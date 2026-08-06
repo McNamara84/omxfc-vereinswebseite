@@ -15,6 +15,8 @@
         'portrait_data_url',
         'attributes',
         'skills',
+        'trainings',
+        'training_allocations',
         'techno_skill_points',
         'praekristofluu_skill_points',
         'bunkermensch_bonus_skill',
@@ -28,6 +30,8 @@
         'barbar_attribute_bonus',
         'clothing',
         'equipment_items',
+        'active_armor_id',
+        'active_shield_id',
         'equipment',
     ]);
 
@@ -92,6 +96,7 @@
                     <a href="#char-editor-basics" class="btn btn-ghost btn-sm">Charakterdaten</a>
                     <a href="#char-editor-attributes" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Attribute</a>
                     <a href="#char-editor-skills" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Fertigkeiten</a>
+                    <a href="#char-editor-trainings" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Ausbildungen</a>
                     <a href="#char-editor-specials" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Besonderheiten</a>
                     <a href="#char-editor-equipment" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Ausrüstung</a>
                     <a href="#char-editor-export" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Export</a>
@@ -528,10 +533,112 @@
                         </datalist>
                     </section>
 
-                    <section id="char-editor-specials" class="border-t border-base-300/70 pt-6" data-testid="char-editor-specials-section">
+                    <section id="char-editor-trainings" class="border-t border-base-300/70 pt-6" data-testid="char-editor-trainings-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 4</p>
+                                <h2 class="mt-1 text-xl font-semibold text-primary">Ausbildungen</h2>
+                            </div>
+                            <span class="badge badge-outline" aria-live="polite" x-text="selectedTrainings.length + ' gewählt · ' + trainingTotalCost() + ' FP gebunden'"></span>
+                        </div>
+
+                        <p class="mb-4 text-sm leading-6 text-base-content/75">
+                            Ausbildungen verteilen einen Teil der regulären 20 Fertigkeitspunkte auf passende Fertigkeiten. Sie gewähren keine zusätzlichen FP.
+                        </p>
+
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2" role="group" aria-label="Ausbildungen wählen">
+                            <template x-for="rule in trainingRules()" :key="'training-choice-' + rule.name">
+                                <label class="rounded-md border border-base-300 bg-base-100 p-3 transition" :class="{ 'border-primary/60 bg-primary/5': isTrainingSelected(rule.name), 'opacity-55': isTrainingDisabled(rule.name) }">
+                                    <span class="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            name="trainings[]"
+                                            class="checkbox checkbox-primary checkbox-sm mt-1"
+                                            :value="rule.name"
+                                            x-model="selectedTrainings"
+                                            :disabled="isTrainingDisabled(rule.name)"
+                                            @change="$nextTick(() => handleTrainingSelection(rule.name))"
+                                        >
+                                        <span class="min-w-0 flex-1">
+                                            <span class="flex flex-wrap items-center justify-between gap-2">
+                                                <strong x-text="rule.name"></strong>
+                                                <span class="badge badge-ghost" x-text="rule.cost + ' FP'"></span>
+                                            </span>
+                                            <span class="mt-1 block text-sm leading-5 text-base-content/70" x-text="rule.description"></span>
+                                            <span class="mt-2 block text-xs text-base-content/60" x-text="'Fertigkeiten: ' + rule.skills.join(', ')"></span>
+                                            <template x-if="trainingRequiredAdvantages(rule).length">
+                                                <span class="mt-2 block text-xs" :class="trainingPrerequisitesMet(rule) ? 'text-success' : 'text-error'" x-text="'Voraussetzung: ' + trainingRequiredAdvantages(rule).join(', ')"></span>
+                                            </template>
+                                        </span>
+                                    </span>
+                                </label>
+                            </template>
+                        </div>
+
+                        <template x-for="(entry, index) in trainingAllocationEntries()" :key="'training-allocation-hidden-' + entry.training + '-' + entry.skill">
+                            <span>
+                                <input type="hidden" :name="'training_allocations[' + index + '][training]'" :value="entry.training">
+                                <input type="hidden" :name="'training_allocations[' + index + '][skill]'" :value="entry.skill">
+                                <input type="hidden" :name="'training_allocations[' + index + '][points]'" :value="entry.points">
+                            </span>
+                        </template>
+
+                        <div class="mt-4 space-y-4" x-show="selectedTrainingRules().length" x-cloak>
+                            <template x-for="rule in selectedTrainingRules()" :key="'training-allocation-' + rule.name">
+                                <div class="rounded-md border border-base-300 bg-base-200/40 p-3">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div>
+                                            <h3 class="font-semibold text-base-content" x-text="rule.name"></h3>
+                                            <p class="text-xs text-base-content/65">FP auf die erlaubten Fertigkeiten verteilen</p>
+                                        </div>
+                                        <span class="badge" :class="trainingAllocationRemaining(rule.name) === 0 && trainingPrerequisitesMet(rule) ? 'badge-success' : 'badge-warning badge-outline'" x-text="trainingAllocationRemaining(rule.name) === 0 ? 'vollständig' : Math.abs(trainingAllocationRemaining(rule.name)) + ' FP offen'"></span>
+                                    </div>
+
+                                    <div class="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+                                        <template x-for="baseSkill in rule.skills" :key="rule.name + '-' + baseSkill">
+                                            <div class="grid grid-cols-[minmax(0,1fr)_5.5rem] items-end gap-2 rounded border border-base-300 bg-base-100 p-2">
+                                                <div>
+                                                    <label class="block text-xs font-medium text-base-content/70" x-text="baseSkill"></label>
+                                                    <template x-if="trainingSkillIsSpecializable(baseSkill)">
+                                                        <input
+                                                            type="text"
+                                                            list="skills-list"
+                                                            class="input input-bordered input-sm mt-1 w-full"
+                                                            :value="trainingSkillTarget(rule.name, baseSkill)"
+                                                            :aria-label="'Konkrete Fertigkeit für ' + baseSkill"
+                                                            @change="setTrainingSkillTarget(rule.name, baseSkill, $event.target.value); $event.target.value = trainingSkillTarget(rule.name, baseSkill)"
+                                                        >
+                                                    </template>
+                                                    <template x-if="!trainingSkillIsSpecializable(baseSkill)">
+                                                        <p class="mt-2 text-sm" x-text="baseSkill"></p>
+                                                    </template>
+                                                </div>
+                                                <div>
+                                                    <label class="block text-xs font-medium text-base-content/70">FP</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        :max="trainingAllocationMax(rule.name, baseSkill)"
+                                                        step="1"
+                                                        class="input input-bordered input-sm mt-1 w-full text-center"
+                                                        :value="trainingAllocationPoints(rule.name, baseSkill)"
+                                                        :aria-label="'Ausbildungspunkte für ' + baseSkill"
+                                                        @input="setTrainingAllocation(rule.name, baseSkill, $event.target.value); $event.target.value = trainingAllocationPoints(rule.name, baseSkill)"
+                                                        @change="setTrainingAllocation(rule.name, baseSkill, $event.target.value); $event.target.value = trainingAllocationPoints(rule.name, baseSkill)"
+                                                    >
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </section>
+
+                    <section id="char-editor-specials" class="border-t border-base-300/70 pt-6" data-testid="char-editor-specials-section">
+                        <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Besonderheiten</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="selectedDisadvantages.length + ' / ' + chosenAdvantagesCount() + ' Nachteile'"></span>
@@ -668,13 +775,15 @@
                     <section id="char-editor-equipment" class="border-t border-base-300/70 pt-6" data-testid="char-editor-equipment-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 6</p>
                                 <h2 id="equipment-heading" class="mt-1 text-xl font-semibold text-primary">Ausrüstung</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></span>
                         </div>
 
                         <input type="hidden" name="clothing" :value="clothing">
+                        <input type="hidden" name="active_armor_id" :value="activeArmorId">
+                        <input type="hidden" name="active_shield_id" :value="activeShieldId">
                         <template x-for="(entry, index) in selectedEquipmentEntries()" :key="'equipment-hidden-' + entry.id">
                             <span>
                                 <input type="hidden" :name="'equipment_items[' + index + '][id]'" :value="entry.id">
@@ -761,6 +870,42 @@
                             </div>
                         </div>
 
+                        <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2" x-show="selectedArmorEntries().length || selectedShieldEntries().length" x-cloak data-testid="active-protection-selection">
+                            <fieldset class="rounded-md border border-base-300 bg-base-200/40 p-3 text-sm">
+                                <legend class="px-1 font-medium text-base-content">Aktive Rüstung</legend>
+                                <label class="mt-1 flex items-center gap-2">
+                                    <input type="radio" class="radio radio-primary radio-sm" name="active-armor-choice" value="" :checked="activeArmorId === ''" @change="setActiveArmor('')">
+                                    <span>Keine Rüstung angelegt</span>
+                                </label>
+                                <template x-for="entry in selectedArmorEntries()" :key="'active-armor-' + entry.id">
+                                    <label class="mt-2 flex items-center justify-between gap-3">
+                                        <span class="flex items-center gap-2">
+                                            <input type="radio" class="radio radio-primary radio-sm" name="active-armor-choice" :value="entry.id" :checked="activeArmorId === entry.id" @change="setActiveArmor(entry.id)">
+                                            <span x-text="entry.item.name"></span>
+                                        </span>
+                                        <span class="text-xs text-base-content/60" x-text="'SF ' + entry.item.combat.protection + ' · BM ' + entry.item.combat.movementModifier"></span>
+                                    </label>
+                                </template>
+                            </fieldset>
+
+                            <fieldset class="rounded-md border border-base-300 bg-base-200/40 p-3 text-sm">
+                                <legend class="px-1 font-medium text-base-content">Aktiver Schild</legend>
+                                <label class="mt-1 flex items-center gap-2">
+                                    <input type="radio" class="radio radio-primary radio-sm" name="active-shield-choice" value="" :checked="activeShieldId === ''" @change="setActiveShield('')">
+                                    <span>Keinen Schild geführt</span>
+                                </label>
+                                <template x-for="entry in selectedShieldEntries()" :key="'active-shield-' + entry.id">
+                                    <label class="mt-2 flex items-center justify-between gap-3">
+                                        <span class="flex items-center gap-2">
+                                            <input type="radio" class="radio radio-primary radio-sm" name="active-shield-choice" :value="entry.id" :checked="activeShieldId === entry.id" @change="setActiveShield(entry.id)">
+                                            <span x-text="entry.item.name"></span>
+                                        </span>
+                                        <span class="text-xs text-base-content/60" x-text="'Abwehr +' + entry.item.combat.defenseBonus"></span>
+                                    </label>
+                                </template>
+                            </fieldset>
+                        </div>
+
                         <div class="mt-4">
                             <label for="equipment" class="block text-sm font-medium text-base-content mb-1">Notizen zur Ausrüstung</label>
                             <x-textarea name="equipment" id="equipment" rows="3" x-model="equipment" aria-labelledby="equipment-heading" />
@@ -770,7 +915,7 @@
                     <section id="char-editor-export" class="border-t border-base-300/70 pt-6" data-testid="char-editor-export-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 6</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 7</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Export</h2>
                             </div>
                             <span class="badge" :class="formValid() ? 'badge-success' : 'badge-outline'" aria-live="polite" x-text="formValid() ? 'Bereit' : completionIssues().length + ' offen'"></span>

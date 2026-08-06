@@ -381,6 +381,16 @@ const equipmentCategoryLabels = () => equipmentRuleConfig().categories || {};
 const equipmentLimit = () => Number(equipmentRuleConfig().limits?.items) || 6;
 const highTechEquipmentLimit = () => Number(equipmentRuleConfig().limits?.highTechItems) || 4;
 const equipmentQuantityMax = () => Number(equipmentRuleConfig().limits?.maxQuantity) || 20;
+const defaultTrainingRuleConfig = () => ({ maxTrainings: 10, maxAllocations: 64, trainings: [] });
+const trainingRuleConfig = () => {
+    const config = objectFromSpecialRuleConfig('trainingRules');
+
+    return Array.isArray(config.trainings) ? config : defaultTrainingRuleConfig();
+};
+const trainingRules = () => trainingRuleConfig().trainings || [];
+const trainingRulesByName = () => Object.fromEntries(trainingRules().map(training => [training.name, training]));
+const trainingLimit = () => Number(trainingRuleConfig().maxTrainings) || 10;
+const SPECIALIZABLE_TRAINING_SKILLS = new Set(['Beruf', 'Kunde', 'Sprachen', 'Unterhalten', 'Wissenschaftler']);
 const buildAdvantageRules = () => {
     const costs = objectFromSpecialRuleConfig('advantageCosts');
     const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
@@ -554,6 +564,10 @@ function oldHasAdvancedPayload(input) {
         'disadvantages',
         'clothing',
         'equipment_items',
+        'trainings',
+        'training_allocations',
+        'active_armor_id',
+        'active_shield_id',
         'portrait_data_url',
         'barbar_attribute_bonus',
         'techno_skill_points',
@@ -590,6 +604,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipment: '',
     clothing: '',
     selectedEquipment: {},
+    activeArmorId: '',
+    activeShieldId: '',
     equipmentSearch: '',
     equipmentCategoryFilter: 'all',
 
@@ -629,6 +645,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     attributes: { st: 0, ge: 0, ro: 0, wi: 0, wa: 0, in: 0, au: 0 },
     skills: [],
     skillUid: 0,
+    selectedTrainings: [],
+    trainingAllocations: {},
+    trainingSkillTargets: {},
     selectedAdvantages: ['Zäh'],
     selectedDisadvantages: [],
     raceLocked: { advantages: [], disadvantages: [] },
@@ -766,6 +785,208 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     skillSuggestions() {
         return skillSuggestions();
     },
+
+    trainingRules() {
+        return trainingRules();
+    },
+
+    trainingRule(name) {
+        return trainingRulesByName()[name] || null;
+    },
+
+    trainingLimit() {
+        return trainingLimit();
+    },
+
+    selectedTrainingRules() {
+        return this.selectedTrainings.map(name => this.trainingRule(name)).filter(Boolean);
+    },
+
+    isTrainingSelected(name) {
+        return this.selectedTrainings.includes(name);
+    },
+
+    isTrainingDisabled(name) {
+        if (this.isTrainingSelected(name)) return false;
+
+        const rule = this.trainingRule(name);
+        return this.selectedTrainings.length >= this.trainingLimit()
+            || (rule && this.trainingTotalCost() + Number(rule.cost || 0) > this.base.FP);
+    },
+
+    trainingRequiredAdvantages(rule) {
+        return Array.isArray(rule?.requiredAdvantages) ? rule.requiredAdvantages : [];
+    },
+
+    trainingPrerequisitesMet(rule) {
+        return this.trainingRequiredAdvantages(rule).every(advantage => this.selectedAdvantages.includes(advantage));
+    },
+
+    trainingDefaultTarget(rule, baseSkill) {
+        const specialization = rule?.suggestedSpecializations?.[baseSkill];
+
+        return specialization ? `${baseSkill}: ${specialization}` : baseSkill;
+    },
+
+    trainingSkillIsSpecializable(baseSkill) {
+        return SPECIALIZABLE_TRAINING_SKILLS.has(baseSkill);
+    },
+
+    trainingSkillTarget(trainingName, baseSkill) {
+        const rule = this.trainingRule(trainingName);
+
+        return normalizeSkillName(this.trainingSkillTargets?.[trainingName]?.[baseSkill]
+            || this.trainingDefaultTarget(rule, baseSkill));
+    },
+
+    initializeTrainingState(trainingName) {
+        const rule = this.trainingRule(trainingName);
+        if (!rule) return;
+
+        const targets = { ...(this.trainingSkillTargets[trainingName] || {}) };
+        const allocations = { ...(this.trainingAllocations[trainingName] || {}) };
+
+        (rule.skills || []).forEach((baseSkill) => {
+            targets[baseSkill] ||= this.trainingDefaultTarget(rule, baseSkill);
+            allocations[baseSkill] = Number.parseInt(allocations[baseSkill], 10) || 0;
+        });
+
+        this.trainingSkillTargets = { ...this.trainingSkillTargets, [trainingName]: targets };
+        this.trainingAllocations = { ...this.trainingAllocations, [trainingName]: allocations };
+    },
+
+    handleTrainingSelection(trainingName) {
+        if (this.isTrainingSelected(trainingName)) {
+            this.initializeTrainingState(trainingName);
+            return;
+        }
+
+        const previousTargets = Object.values(this.trainingSkillTargets[trainingName] || {});
+        const nextTargets = { ...this.trainingSkillTargets };
+        const nextAllocations = { ...this.trainingAllocations };
+        delete nextTargets[trainingName];
+        delete nextAllocations[trainingName];
+        this.trainingSkillTargets = nextTargets;
+        this.trainingAllocations = nextAllocations;
+        previousTargets.forEach(target => this.refreshTrainingSkill(target));
+    },
+
+    trainingAllocationPoints(trainingName, baseSkill) {
+        const parsed = Number.parseInt(this.trainingAllocations?.[trainingName]?.[baseSkill], 10);
+
+        return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+    },
+
+    trainingAllocationTotal(trainingName) {
+        const rule = this.trainingRule(trainingName);
+        if (!rule) return 0;
+
+        return (rule.skills || []).reduce((sum, baseSkill) => (
+            sum + this.trainingAllocationPoints(trainingName, baseSkill)
+        ), 0);
+    },
+
+    trainingAllocationRemaining(trainingName) {
+        const rule = this.trainingRule(trainingName);
+
+        return rule ? Number(rule.cost) - this.trainingAllocationTotal(trainingName) : 0;
+    },
+
+    trainingAllocatedForSkill(skillName) {
+        const normalizedName = normalizeSkillName(skillName);
+        if (!normalizedName) return 0;
+
+        return this.selectedTrainingRules().reduce((sum, rule) => (
+            sum + (rule.skills || []).reduce((skillSum, baseSkill) => {
+                const target = this.trainingSkillTarget(rule.name, baseSkill);
+
+                return skillSum + (target === normalizedName
+                    ? this.trainingAllocationPoints(rule.name, baseSkill)
+                    : 0);
+            }, 0)
+        ), 0);
+    },
+
+    trainingAllocationMax(trainingName, baseSkill) {
+        const rule = this.trainingRule(trainingName);
+        if (!rule) return 0;
+
+        const current = this.trainingAllocationPoints(trainingName, baseSkill);
+        const packageRoom = Number(rule.cost) - (this.trainingAllocationTotal(trainingName) - current);
+        const target = this.trainingSkillTarget(trainingName, baseSkill);
+        const grant = this.getGrant(target);
+        if (grant?.type === 'exact') return 0;
+
+        const freeStart = grant ? grant.value : 0;
+        const allocatedElsewhere = this.trainingAllocatedForSkill(target) - current;
+        const skillRoom = this.getSkillMax(target) - freeStart - allocatedElsewhere;
+
+        return Math.max(0, Math.min(packageRoom, skillRoom));
+    },
+
+    setTrainingAllocation(trainingName, baseSkill, value) {
+        if (!this.isTrainingSelected(trainingName)) return;
+
+        this.initializeTrainingState(trainingName);
+        const parsed = Number.parseInt(value, 10);
+        const points = Math.max(0, Math.min(Number.isFinite(parsed) ? parsed : 0, this.trainingAllocationMax(trainingName, baseSkill)));
+        const allocations = { ...this.trainingAllocations[trainingName], [baseSkill]: points };
+        this.trainingAllocations = { ...this.trainingAllocations, [trainingName]: allocations };
+
+        const target = this.trainingSkillTarget(trainingName, baseSkill);
+        if (points > 0) {
+            const skill = this.ensureSkill(target);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+        } else {
+            this.refreshTrainingSkill(target);
+        }
+    },
+
+    setTrainingSkillTarget(trainingName, baseSkill, value) {
+        const previousTarget = this.trainingSkillTarget(trainingName, baseSkill);
+        const normalized = normalizeSkillName(value);
+        const target = skillBaseName(normalized) === baseSkill
+            ? normalized
+            : this.trainingDefaultTarget(this.trainingRule(trainingName), baseSkill);
+        const targets = { ...this.trainingSkillTargets[trainingName], [baseSkill]: target };
+        this.trainingSkillTargets = { ...this.trainingSkillTargets, [trainingName]: targets };
+
+        this.refreshTrainingSkill(previousTarget);
+        if (this.trainingAllocationPoints(trainingName, baseSkill) > 0) {
+            const skill = this.ensureSkill(target);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+        }
+    },
+
+    trainingAllocationEntries() {
+        return this.selectedTrainingRules().flatMap(rule => (rule.skills || []).map(baseSkill => ({
+            training: rule.name,
+            skill: this.trainingSkillTarget(rule.name, baseSkill),
+            points: this.trainingAllocationPoints(rule.name, baseSkill),
+        }))).filter(entry => entry.points > 0 && entry.skill);
+    },
+
+    trainingRulesComplete() {
+        if (this.selectedTrainings.length > this.trainingLimit() || this.trainingTotalCost() > this.base.FP) return false;
+
+        return this.selectedTrainingRules().length === this.selectedTrainings.length
+            && this.selectedTrainingRules().every(rule => {
+                const targets = (rule.skills || [])
+                    .filter(baseSkill => this.trainingAllocationPoints(rule.name, baseSkill) > 0)
+                    .map(baseSkill => this.trainingSkillTarget(rule.name, baseSkill));
+
+                return this.trainingPrerequisitesMet(rule)
+                    && this.trainingAllocationTotal(rule.name) === Number(rule.cost)
+                    && targets.length === new Set(targets).size;
+            });
+    },
+
+    trainingTotalCost() {
+        return this.selectedTrainingRules().reduce((sum, rule) => sum + Number(rule.cost || 0), 0);
+    },
+
     equipmentRules() {
         return equipmentRuleConfig();
     },
@@ -818,6 +1039,35 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return Object.entries(this.selectedEquipment)
             .map(([id, quantity]) => ({ id, quantity: Number.parseInt(quantity, 10) || 0, item: this.equipmentItem(id) }))
             .filter(entry => entry.item && entry.quantity > 0);
+    },
+
+    equipmentCombatKind(item) {
+        return item?.combat?.kind || '';
+    },
+
+    selectedArmorEntries() {
+        return this.selectedEquipmentEntries().filter(entry => this.equipmentCombatKind(entry.item) === 'armor');
+    },
+
+    selectedShieldEntries() {
+        return this.selectedEquipmentEntries().filter(entry => this.equipmentCombatKind(entry.item) === 'shield');
+    },
+
+    setActiveArmor(id) {
+        this.activeArmorId = this.selectedArmorEntries().some(entry => entry.id === id) ? id : '';
+    },
+
+    setActiveShield(id) {
+        this.activeShieldId = this.selectedShieldEntries().some(entry => entry.id === id) ? id : '';
+    },
+
+    enforceActiveEquipmentSelection() {
+        if (!this.selectedArmorEntries().some(entry => entry.id === this.activeArmorId)) {
+            this.activeArmorId = '';
+        }
+        if (!this.selectedShieldEntries().some(entry => entry.id === this.activeShieldId)) {
+            this.activeShieldId = '';
+        }
     },
 
     equipmentCountsTowardLimit(item) {
@@ -908,6 +1158,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
 
         this.selectedEquipment = next;
+        this.enforceActiveEquipmentSelection();
     },
 
     incrementEquipment(id) {
@@ -925,6 +1176,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.selectedEquipmentEntries().forEach((entry) => {
             this.setEquipmentQuantity(entry.id, entry.quantity);
         });
+        this.enforceActiveEquipmentSelection();
     },
 
     includedAmmunition() {
@@ -1005,6 +1257,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         if (this.fpRemaining() !== 0) {
             issues.push(`Fertigkeiten: ${Math.abs(this.fpRemaining())} Punkt${Math.abs(this.fpRemaining()) === 1 ? '' : 'e'} ${this.fpRemaining() > 0 ? 'offen' : 'zu viel'}`);
+        }
+
+        if (!this.trainingRulesComplete()) {
+            issues.push('Ausbildungen: Punkteverteilung oder Voraussetzung unvollständig');
         }
 
         if (!this.technoSkillPoolComplete()) {
@@ -1136,6 +1392,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     formValid() {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
+            && this.trainingRulesComplete()
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
             && this.selectedDisadvantages.length >= this.chosenAdvantagesCount()
@@ -1323,6 +1580,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.applyOldCultureChoiceInput(oldInput);
         this.applyOldSkillInput(oldInput.skills);
         this.applyOldSpecialInput(oldInput);
+        this.applyOldTrainingInput(oldInput);
         this.applyOldEquipmentInput(oldInput);
         this.enforceAdvantageLimit();
         this.enforceEquipmentLimits();
@@ -1424,6 +1682,38 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         );
     },
 
+    applyOldTrainingInput(input) {
+        const available = trainingRulesByName();
+        this.selectedTrainings = [...new Set(oldArray(input.trainings)
+            .map(value => oldString(value).trim())
+            .filter(name => available[name]))]
+            .slice(0, this.trainingLimit());
+
+        this.selectedTrainings.forEach(name => this.initializeTrainingState(name));
+
+        oldArray(input.training_allocations).forEach((entry) => {
+            const allocation = oldRecord(entry);
+            const trainingName = oldString(allocation.training).trim();
+            const skillName = normalizeSkillName(allocation.skill);
+            const points = oldInteger(allocation.points, 0);
+            const rule = this.trainingRule(trainingName);
+            const baseSkill = skillBaseName(skillName);
+
+            if (!rule || !this.isTrainingSelected(trainingName) || !(rule.skills || []).includes(baseSkill) || !skillName) return;
+
+            const targets = { ...this.trainingSkillTargets[trainingName], [baseSkill]: skillName };
+            const allocations = { ...this.trainingAllocations[trainingName], [baseSkill]: Math.max(0, points) };
+            this.trainingSkillTargets = { ...this.trainingSkillTargets, [trainingName]: targets };
+            this.trainingAllocations = { ...this.trainingAllocations, [trainingName]: allocations };
+        });
+
+        this.trainingAllocationEntries().forEach((allocation) => {
+            const skill = this.ensureSkill(allocation.skill);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+        });
+    },
+
     applyOldEquipmentInput(input) {
         const selectedEquipment = {};
 
@@ -1441,6 +1731,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         });
 
         this.selectedEquipment = selectedEquipment;
+        this.activeArmorId = oldString(input.active_armor_id);
+        this.activeShieldId = oldString(input.active_shield_id);
+        this.enforceActiveEquipmentSelection();
     },
 
     // --- Methods ---
@@ -1550,6 +1843,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     removeSkill(index) {
+        if (this.trainingAllocatedForSkill(this.skills[index]?.name) > 0) return;
         this.skills.splice(index, 1);
     },
 
@@ -1577,20 +1871,43 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     applyGrantToSkill(skill) {
         const grant = this.getGrant(skill.name);
-        if (!grant) return;
+        const trainingPoints = this.trainingAllocatedForSkill(skill.name);
+
+        skill.nameDisabled = false;
+        skill.locked = false;
+        skill.badge = null;
+        skill.valueDisabled = false;
+
+        if (!grant && trainingPoints <= 0) return;
 
         const hasRaceGrant = Boolean(this.raceGrants[skill.name]);
         const hasCultureGrant = Boolean(this.cultureGrants[skill.name]);
 
         skill.nameDisabled = true;
         skill.locked = true;
-        skill.badge = hasRaceGrant && hasCultureGrant ? 'Rasse/Kultur' : (hasRaceGrant ? 'Rasse' : 'Kultur');
-        skill.valueDisabled = grant.type === 'exact';
+        if (grant) {
+            skill.badge = hasRaceGrant && hasCultureGrant ? 'Rasse/Kultur' : (hasRaceGrant ? 'Rasse' : 'Kultur');
+            skill.valueDisabled = grant.type === 'exact';
+        }
+        if (trainingPoints > 0) {
+            skill.badge = skill.badge ? `${skill.badge}/Ausbildung` : 'Ausbildung';
+        }
 
-        if (grant.type === 'exact') {
+        if (grant?.type === 'exact') {
             skill.value = grant.value;
-        } else if (skill.value < grant.value) {
-            skill.value = grant.value;
+        } else {
+            const minimum = (grant?.value || 0) + trainingPoints;
+            if (skill.value < minimum) skill.value = minimum;
+        }
+    },
+
+    refreshTrainingSkill(name) {
+        const skill = this.skills.find(entry => entry.name === normalizeSkillName(name));
+        if (!skill) return;
+
+        this.applyGrantToSkill(skill);
+        if (!this.getGrant(skill.name) && this.trainingAllocatedForSkill(skill.name) <= 0 && skill.value <= 0) {
+            this.skills = this.skills.filter(entry => entry !== skill);
         }
     },
 
@@ -1599,7 +1916,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (!skill) return;
 
         const grant = this.getGrant(name);
-        if (!grant) {
+        if (!grant && this.trainingAllocatedForSkill(name) <= 0) {
             this.skills = this.skills.filter(s => s !== skill);
             return;
         }
@@ -1619,7 +1936,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     getSkillMin(name) {
         const grant = this.getGrant(name);
-        return grant ? grant.value : 0;
+        return (grant ? grant.value : 0) + this.trainingAllocatedForSkill(name);
     },
 
     getSkillMax(name) {

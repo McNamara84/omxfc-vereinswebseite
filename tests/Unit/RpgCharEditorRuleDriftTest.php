@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\RpgCharacterSheetService;
 use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgCharEditorTraining;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -22,6 +23,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'repeatableAdvantages',
             'advantageDetailRequired',
             'disadvantageDetailRequired',
+            'trainingRules',
             'equipmentRules',
         ], array_keys($config));
         $this->assertSame(RpgCharacterSheetService::attributeRuleConfig(), $config['attributeRules']);
@@ -32,6 +34,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame($this->controllerConstant('REPEATABLE_ADVANTAGES'), $config['repeatableAdvantages']);
         $this->assertSame($this->controllerConstant('ADVANTAGE_DETAIL_REQUIRED'), $config['advantageDetailRequired']);
         $this->assertSame($this->controllerConstant('DISADVANTAGE_DETAIL_REQUIRED'), $config['disadvantageDetailRequired']);
+        $this->assertSame(RpgCharEditorTraining::ruleConfig(), $config['trainingRules']);
         $this->assertSame(RpgCharEditorEquipment::ruleConfig(), $config['equipmentRules']);
     }
 
@@ -52,6 +55,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString("listFromSpecialRuleConfig('advantageDetailRequired'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantageDetailRequired'", $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('equipmentRules'", $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('trainingRules'", $source);
+        $this->assertStringContainsString('trainingRulesComplete()', $source);
         $this->assertStringContainsString('equipmentComplete()', $source);
         $viewSource = $this->charEditorViewSource();
         $this->assertStringContainsString('equipmentLimit()', $viewSource);
@@ -75,6 +80,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
         $this->assertNotEmpty($config['equipmentRules']['items']);
+        $this->assertCount(10, $config['trainingRules']['trainings']);
         $this->assertSame(6, $config['equipmentRules']['limits']['items']);
     }
 

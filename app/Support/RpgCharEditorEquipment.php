@@ -72,9 +72,64 @@ final class RpgCharEditorEquipment
         return ($item['countsTowardLimit'] ?? true) !== false;
     }
 
-    public static function items(): array
+    /**
+     * Structured combat data used for calculations. The human-readable summary
+     * remains separate so neither the server nor the PDF has to parse prose.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function combatProfiles(): array
     {
         return [
+            'faustschlag-tritt' => self::meleeProfile(['st'], -1),
+            'schlagring-stein' => self::meleeProfile(['st'], 0),
+            'messer-dolch' => self::meleeProfile(['ge'], 0, self::rangedMode('Fernkampf', 0, 0, 'Wurfgeschoss', 'E', '2m', '10m')),
+            'kurzschwert' => self::meleeProfile(['ge'], 0),
+            'degen' => self::meleeProfile(['ge'], 1),
+            'entermesser-saebel' => self::meleeProfile(['ge'], 1),
+            'schwert' => self::meleeProfile(['st', 'ge'], 1),
+            'axt' => self::meleeProfile(['st'], 1, self::rangedMode('Fernkampf', 0, 1, 'Wurfgeschoss', 'E', '3m', '15m')),
+            'keule' => self::meleeProfile(['st'], 1, self::rangedMode('Fernkampf', 0, 1, 'Wurfgeschoss', 'E', '2m', '10m')),
+            'baseballschlaeger' => self::meleeProfile(['st'], 1),
+            'schockstab-hydrit' => self::meleeProfile(['ge'], 1),
+            'harpoon-speer' => self::meleeProfile(['st'], 2, self::rangedMode('Fernkampf', 0, 2, 'Wurfgeschoss', 'E', '5m', '25m')),
+            'lanze-hellebarde' => self::meleeProfile(['st'], 2),
+            'kampfstab' => self::meleeProfile(['st', 'ge'], 2),
+            'zweihandschwert' => self::meleeProfile(['st'], 2),
+            'streitaxt' => self::meleeProfile(['st'], 2),
+            'kettensaege' => self::meleeProfile(['st'], 3),
+
+            'geworfener-stein' => self::rangedProfile('Fernkampf', 0, -2, 'Wurfgeschoss', 'E', '6m', '30m'),
+            'schleuder' => self::rangedProfile('Fernkampf', 0, -1, 'Projektilwaffe', 'E', '10m', '50m'),
+            'zwille' => self::rangedProfile('Fernkampf', 0, 0, 'Projektilwaffe', 'E', '8m', '40m'),
+            'bogen' => self::rangedProfile('Fernkampf', 1, -1, 'Projektilwaffe', 'E', '15m', '75m'),
+            'armbrust' => self::rangedProfile('Fernkampf', 0, 1, 'Projektilwaffe', 'E', '20m', '100m', '1'),
+            'revolver' => self::rangedProfile('Feuerwaffen', 1, 2, 'Schießpulverwaffe', 'E', '4m', '40m', '6'),
+            'automatikpistole' => self::rangedProfile('Feuerwaffen', 1, 2, 'Schießpulverwaffe', 'H', '6m', '60m', '20'),
+            'gewehr-bolzer' => self::rangedProfile('Feuerwaffen', 1, 2, 'Schießpulverwaffe', 'H', '60m', '600m', '6'),
+            'maschinenpistole' => self::rangedProfile('Feuerwaffen', 1, 2, 'Schießpulverwaffe', 'A', '25m', '250m', '40'),
+            'automatikgewehr' => self::rangedProfile('Feuerwaffen', 1, 2, 'Schießpulverwaffe', 'A', '50m', '500m', '40'),
+            'driller' => self::rangedProfile('Feuerwaffen', 0, 3, 'Energiewaffe', 'E', '8m', '80m', '50'),
+            'energiegewehr' => self::rangedProfile('Feuerwaffen', 2, 3, 'Energiewaffe', 'H', '80m', '800m', 'bis 100'),
+            'kanone' => self::rangedProfile('Feuerwaffen', 0, 3, 'Schießpulverwaffe', 'E', '60m', '600m', '1'),
+
+            'felle' => self::armorProfile(0, 0),
+            'lederruestung' => self::armorProfile(0, 0),
+            'verstaerktes-leder' => self::armorProfile(1, -1),
+            'kettenhemd' => self::armorProfile(1, -1),
+            'andronenpanzer' => self::armorProfile(2, -2),
+            'schutzanzug' => self::armorProfile(1, 0),
+            'kampfpanzer' => self::armorProfile(3, -1),
+
+            'holzschild' => self::shieldProfile(),
+            'metallschild' => self::shieldProfile(),
+            'plastikschild' => self::shieldProfile(),
+        ];
+    }
+
+    public static function items(): array
+    {
+        $items = [
             ['id' => 'faustschlag-tritt', 'name' => 'Faustschlag / Tritt', 'category' => 'melee_weapons', 'summary' => 'ST, P 0, S -1', 'tw' => '-', 'bucks' => '-', 'countsTowardLimit' => false],
             ['id' => 'schlagring-stein', 'name' => 'Schlagring / Stein', 'category' => 'melee_weapons', 'summary' => 'ST, P 0, S +0', 'tw' => '-', 'bucks' => '-'],
             ['id' => 'messer-dolch', 'name' => 'Messer / Dolch', 'category' => 'melee_weapons', 'summary' => 'GE, P 0, S +0, Wurf E, RI 2m, MR 10m', 'tw' => '2', 'bucks' => '2'],
@@ -172,5 +227,86 @@ final class RpgCharEditorEquipment
             ['id' => 'x-quad', 'name' => 'X-Quad', 'category' => 'transport', 'summary' => 'P 1-2, SW 1, G -/-/*/100/60, MB 2', 'tw' => '5K', 'bucks' => '25K', 'minimumEducation' => 2],
             ['id' => 'yakk', 'name' => 'Yakk', 'category' => 'transport', 'summary' => 'Reittier/Fortbewegungsmittel; P 1-3, SW 0, G -/-/8', 'tw' => '100', 'bucks' => '500'],
         ];
+
+        $profiles = self::combatProfiles();
+
+        return array_map(static function (array $item) use ($profiles): array {
+            $profile = $profiles[$item['id']] ?? null;
+
+            return $profile === null ? $item : $item + ['combat' => $profile];
+        }, $items);
+    }
+
+    /**
+     * @param  list<string>  $attributes
+     * @param  array<string, mixed>|null  $alternate
+     * @return array<string, mixed>
+     */
+    private static function meleeProfile(array $attributes, int $damage, ?array $alternate = null): array
+    {
+        $modes = [[
+            'kind' => 'melee',
+            'skill' => 'Nahkampf',
+            'attributes' => $attributes,
+            'damageAttribute' => 'st',
+            'precision' => 0,
+            'damage' => $damage,
+        ]];
+
+        if ($alternate !== null) {
+            $modes[] = $alternate;
+        }
+
+        return ['kind' => 'weapon', 'modes' => $modes];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function rangedProfile(string $skill, int $precision, int $damage, string $type, string $fireRate, string $rangeIncrement, string $maxRange, ?string $magazine = null): array
+    {
+        return ['kind' => 'weapon', 'modes' => [
+            self::rangedMode($skill, $precision, $damage, $type, $fireRate, $rangeIncrement, $maxRange, $magazine),
+        ]];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function rangedMode(string $skill, int $precision, int $damage, string $type, string $fireRate, string $rangeIncrement, string $maxRange, ?string $magazine = null): array
+    {
+        return [
+            'kind' => 'ranged',
+            'skill' => $skill,
+            'attributes' => ['wa'],
+            'damageAttribute' => 'wa',
+            'precision' => $precision,
+            'damage' => $damage,
+            'type' => $type,
+            'fireRate' => $fireRate,
+            'rangeIncrement' => $rangeIncrement,
+            'maxRange' => $maxRange,
+            'magazine' => $magazine,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function armorProfile(int $protection, int $movementModifier): array
+    {
+        return [
+            'kind' => 'armor',
+            'protection' => $protection,
+            'movementModifier' => $movementModifier,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function shieldProfile(): array
+    {
+        return ['kind' => 'shield', 'defenseBonus' => 1];
     }
 }

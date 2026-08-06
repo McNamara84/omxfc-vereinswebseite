@@ -61,6 +61,15 @@ const specialRuleConfig = {
         'Verpflichtung',
         'Verwundbarkeit',
     ],
+    trainingRules: {
+        maxTrainings: 10,
+        maxAllocations: 64,
+        trainings: [
+            { name: 'Krieger', cost: 5, skills: ['Nahkampf', 'Fernkampf', 'Feuerwaffen', 'Reiten', 'Fahren', 'Pilot'], description: 'Kampfausbildung' },
+            { name: 'Arbeiter', cost: 5, skills: ['Beruf', 'Fahren', 'Unterhalten'], description: 'Berufsausbildung' },
+            { name: 'Seher', cost: 5, skills: ['Kunde', 'Unterhalten', 'Sprachen'], description: 'Mentale Ausbildung', requiredAdvantages: ['Psychische Kraft'] },
+        ],
+    },
     equipmentRules: {
         limits: { items: 6, highTechItems: 4, maxQuantity: 20 },
         categories: {
@@ -68,6 +77,8 @@ const specialRuleConfig = {
             ranged_weapons: 'Fernkampfwaffen',
             low_tech: 'Low-Tech-Gegenstände',
             high_tech: 'High-Tech-Gegenstände',
+            armor: 'Rüstungen',
+            shields: 'Schilde',
         },
         clothing: [
             { id: 'kleidung-einfach', name: 'Kleidung, einfach', tw: '4', bucks: '10' },
@@ -82,6 +93,8 @@ const specialRuleConfig = {
             { id: 'wochenration', name: 'Wochenration', category: 'low_tech', summary: '7 Tage Lebensmittel', tw: '4', bucks: '15' },
             { id: 'bogen', name: 'Bogen', category: 'ranged_weapons', summary: 'P +1', tw: '12', bucks: '30', ammunition: { amount: 30, unit: 'Pfeile' } },
             { id: 'funkgeraet', name: 'Funkgerät', category: 'high_tech', summary: 'Reichweite 200m', tw: '35', bucks: '600', requiresHighTechAdvantage: true },
+            { id: 'lederruestung', name: 'Lederrüstung', category: 'armor', summary: 'SF 0, BM 0', tw: '9', bucks: '50', combat: { kind: 'armor', protection: 0, movementModifier: 0 } },
+            { id: 'holzschild', name: 'Holzschild', category: 'shields', summary: 'Schild', tw: '6', bucks: '30', combat: { kind: 'shield', defenseBonus: 1 } },
         ],
     },
 };
@@ -813,6 +826,95 @@ describe('charEditor – Rassen-Logik', () => {
     });
 });
 
+describe('charEditor - Ausbildungen', () => {
+    it('bindet Ausbildungspunkte an erlaubte Fertigkeiten und zählt sie als reguläre FP', () => {
+        const e = createEditor({ selectedTrainings: ['Krieger'] });
+        e.initializeTrainingState('Krieger');
+
+        e.setTrainingAllocation('Krieger', 'Nahkampf', 3);
+        e.setTrainingAllocation('Krieger', 'Fernkampf', 2);
+
+        expect(e.trainingAllocationTotal('Krieger')).toBe(5);
+        expect(e.trainingAllocationRemaining('Krieger')).toBe(0);
+        expect(e.trainingRulesComplete()).toBe(true);
+        expect(e.trainingAllocatedForSkill('Nahkampf')).toBe(3);
+        expect(e.getSkillMin('Nahkampf')).toBe(3);
+        expect(e.fpUsed()).toBe(5);
+        expect(e.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Nahkampf', value: 3, locked: true, badge: 'Ausbildung' }),
+            expect.objectContaining({ name: 'Fernkampf', value: 2, locked: true, badge: 'Ausbildung' }),
+        ]));
+        expect(e.trainingAllocationEntries()).toEqual([
+            { training: 'Krieger', skill: 'Nahkampf', points: 3 },
+            { training: 'Krieger', skill: 'Fernkampf', points: 2 },
+        ]);
+    });
+
+    it('verlangt die Voraussetzung für Seher und unterstützt Spezialisierungen', () => {
+        const e = createEditor({ selectedTrainings: ['Seher'] });
+        e.initializeTrainingState('Seher');
+        e.setTrainingSkillTarget('Seher', 'Kunde', 'Kunde: Mutanten');
+        e.setTrainingAllocation('Seher', 'Kunde', 4);
+        e.setTrainingSkillTarget('Seher', 'Unterhalten', 'Unterhalten: Weissagung');
+        e.setTrainingAllocation('Seher', 'Unterhalten', 1);
+
+        expect(e.trainingRulesComplete()).toBe(false);
+        expect(e.trainingAllocationEntries()).toContainEqual({ training: 'Seher', skill: 'Kunde: Mutanten', points: 4 });
+
+        e.selectedAdvantages = ['Zäh', 'Psychische Kraft'];
+
+        expect(e.trainingRulesComplete()).toBe(true);
+        expect(e.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Kunde: Mutanten', value: 4 }),
+            expect.objectContaining({ name: 'Unterhalten: Weissagung', value: 1 }),
+        ]));
+    });
+
+    it('entfernt Zuordnungen beim Abwählen, lässt bezahlte Fertigkeitswerte aber bestehen', () => {
+        const e = createEditor({ selectedTrainings: ['Arbeiter'] });
+        e.initializeTrainingState('Arbeiter');
+        e.setTrainingAllocation('Arbeiter', 'Fahren', 4);
+        e.setTrainingAllocation('Arbeiter', 'Beruf', 1);
+
+        e.selectedTrainings = [];
+        e.handleTrainingSelection('Arbeiter');
+
+        expect(e.trainingAllocationEntries()).toEqual([]);
+        expect(e.trainingRulesComplete()).toBe(true);
+        expect(e.skills.find(skill => skill.name === 'Fahren')).toMatchObject({ value: 4, locked: false, badge: null });
+        expect(e.fpUsed()).toBe(5);
+    });
+
+    it('stellt Ausbildungen und Zuordnungen aus Laravel Old Input wieder her', () => {
+        window.rpgCharEditorOldInput = {
+            player_name: 'Spieler',
+            character_name: 'Held',
+            gender: 'maennlich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+            attributes: { st: 2, ge: 1 },
+            barbar_attribute_bonus: 'st',
+            skills: [
+                { name: 'Nahkampf', value: 4 },
+                { name: 'Fernkampf', value: 2 },
+            ],
+            trainings: ['Krieger'],
+            training_allocations: [
+                { training: 'Krieger', skill: 'Nahkampf', points: 3 },
+                { training: 'Krieger', skill: 'Fernkampf', points: 2 },
+            ],
+        };
+        const e = createEditor();
+
+        e.init();
+
+        expect(e.selectedTrainings).toEqual(['Krieger']);
+        expect(e.trainingRulesComplete()).toBe(true);
+        expect(e.trainingAllocationTotal('Krieger')).toBe(5);
+        expect(e.skills.find(skill => skill.name === 'Nahkampf')).toMatchObject({ value: 4, locked: true });
+    });
+});
+
 
 describe('charEditor - Ausruestung', () => {
     it('verlangt Kleidung und exakt sechs Ausruestungsgegenstaende', () => {
@@ -950,6 +1052,30 @@ describe('charEditor - Ausruestung', () => {
 
         expect(e.equipmentQuantity('funkgeraet')).toBe(0);
         expect(e.highTechEquipmentCount()).toBe(0);
+    });
+
+    it('verwaltet aktive Rüstung und aktiven Schild nur aus der aktuellen Auswahl', () => {
+        const e = createEditor({ clothing: 'kleidung-einfach' });
+
+        e.setEquipmentQuantity('lederruestung', 1);
+        e.setEquipmentQuantity('holzschild', 1);
+        e.setActiveArmor('lederruestung');
+        e.setActiveShield('holzschild');
+
+        expect(e.selectedArmorEntries().map(entry => entry.id)).toEqual(['lederruestung']);
+        expect(e.selectedShieldEntries().map(entry => entry.id)).toEqual(['holzschild']);
+        expect(e.activeArmorId).toBe('lederruestung');
+        expect(e.activeShieldId).toBe('holzschild');
+
+        e.setEquipmentQuantity('lederruestung', 0);
+        e.setEquipmentQuantity('holzschild', 0);
+
+        expect(e.activeArmorId).toBe('');
+        expect(e.activeShieldId).toBe('');
+        e.setActiveArmor('bogen');
+        e.setActiveShield('bogen');
+        expect(e.activeArmorId).toBe('');
+        expect(e.activeShieldId).toBe('');
     });
 });
 

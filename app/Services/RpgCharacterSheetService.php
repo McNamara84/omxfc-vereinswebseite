@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgCharEditorTraining;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -490,6 +491,7 @@ class RpgCharacterSheetService
             'repeatableAdvantages' => self::REPEATABLE_ADVANTAGES,
             'advantageDetailRequired' => self::ADVANTAGE_DETAIL_REQUIRED,
             'disadvantageDetailRequired' => self::DISADVANTAGE_DETAIL_REQUIRED,
+            'trainingRules' => RpgCharEditorTraining::ruleConfig(),
             'equipmentRules' => RpgCharEditorEquipment::ruleConfig(),
         ];
     }
@@ -505,10 +507,18 @@ class RpgCharacterSheetService
             'disadvantage_details.*' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
             'advantage_counts' => 'nullable|array|max:'.self::ADVANTAGE_COUNT_MAX_ITEMS,
             'advantage_counts.*' => 'nullable|integer|min:1|max:'.self::ADVANTAGE_COUNT_MAX_VALUE,
+            'trainings' => 'nullable|array|max:'.RpgCharEditorTraining::MAX_TRAININGS,
+            'trainings.*' => 'required|string|max:100',
+            'training_allocations' => 'nullable|array|max:'.RpgCharEditorTraining::MAX_ALLOCATIONS,
+            'training_allocations.*.training' => 'required|string|max:100',
+            'training_allocations.*.skill' => 'required|string|max:255',
+            'training_allocations.*.points' => 'required|integer|min:1|max:'.self::BASE_SKILL_POINTS,
             'clothing' => 'required|string',
             'equipment_items' => 'required|array|max:'.RpgCharEditorEquipment::MAX_ITEMS,
             'equipment_items.*.id' => 'required|string',
             'equipment_items.*.quantity' => 'required|integer|min:1|max:'.RpgCharEditorEquipment::QUANTITY_MAX,
+            'active_armor_id' => 'nullable|string|max:255',
+            'active_shield_id' => 'nullable|string|max:255',
         ]);
 
         $character = $this->characterPayload($request);
@@ -529,9 +539,13 @@ class RpgCharacterSheetService
         $advantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('advantage_details', [])), $advantages);
         $disadvantageDetails = $this->filterSpecialMapByNames($this->specialDetailsPayload($request->input('disadvantage_details', [])), $disadvantages);
         $advantageCounts = $this->advantageCountsPayload($request->input('advantage_counts', []));
+        $trainings = $this->trainingNamesPayload($request->input('trainings', []));
+        $trainingAllocations = $this->trainingAllocationsPayload($request->input('training_allocations', []));
         $barbarAttributeBonus = $this->stringPayload($request->input('barbar_attribute_bonus', ''));
         $clothing = $this->stringPayload($request->input('clothing', ''));
         $equipmentItems = $this->equipmentItemsPayload($request->input('equipment_items', []));
+        $activeArmorId = $this->stringPayload($request->input('active_armor_id', ''));
+        $activeShieldId = $this->stringPayload($request->input('active_shield_id', ''));
 
         $this->validateCharacterRules(
             $character,
@@ -545,8 +559,10 @@ class RpgCharacterSheetService
             $barbarAttributeBonus,
             $skillPools,
             $cultureChoices,
+            $trainings,
+            $trainingAllocations,
         );
-        $this->validateEquipmentRules($clothing, $equipmentItems, $advantages);
+        $this->validateEquipmentRules($clothing, $equipmentItems, $advantages, $activeArmorId, $activeShieldId);
 
         return [
             'character' => $character,
@@ -557,19 +573,25 @@ class RpgCharacterSheetService
             'advantage_details' => $advantageDetails,
             'disadvantage_details' => $disadvantageDetails,
             'advantage_counts' => $advantageCounts,
-            'equipment' => $this->equipmentExportPayload($clothing, $equipmentItems, $character['equipment']),
+            'trainings' => $trainings,
+            'training_allocations' => $trainingAllocations,
+            'equipment' => $this->equipmentExportPayload($clothing, $equipmentItems, $character['equipment'], $activeArmorId, $activeShieldId),
             'portrait' => $this->portraitPayload($request),
         ];
     }
 
     public function characterSheetPdfResponse(array $data) // @pest-ignore-profanity -- RPG domain term.
     {
-        $name = Str::slug($data['character']['character_name'] ?: 'charakter') ?: 'charakter';
+        $character = is_array($data['character'] ?? null) ? $data['character'] : [];
+        $name = Str::slug((string) ($character['character_name'] ?? 'charakter')) ?: 'charakter';
+        $combat = (new RpgCharacterCombatCalculator)->calculate($data);
+        $data['combat'] = $combat;
+        $data['sheet'] = (new RpgCharacterSheetPresenter)->present($data, $combat);
 
         return Pdf::view('rpg.char-sheet', $data) /* @pest-ignore-profanity -- Existing RPG view path. */
             ->driver('dompdf')
             ->format('a4')
-            ->margins(10, 10, 10, 10)
+            ->margins(4, 4, 4, 4)
             ->inline($name.'.pdf');
     }
 
@@ -593,7 +615,7 @@ class RpgCharacterSheetService
         }
     }
 
-    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = '', array $skillPools = [], array $cultureChoices = []): void
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = '', array $skillPools = [], array $cultureChoices = [], array $trainings = [], array $trainingAllocations = []): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
@@ -683,6 +705,16 @@ class RpgCharacterSheetService
 
         $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
         $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages, $skillPools, $cultureChoices);
+        $this->validateTrainingRules(
+            $race,
+            $culture,
+            $skills,
+            $canonicalAdvantages,
+            $skillPools,
+            $cultureChoices,
+            $trainings,
+            $trainingAllocations,
+        );
         $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
         $this->validateCultureRequirements($culture, $skills);
         $this->validateSpecialBudgetAndDetails(
@@ -766,6 +798,129 @@ class RpgCharacterSheetService
         if ($this->skillPointsUsed($skills, $grants) > self::BASE_SKILL_POINTS) {
             throw ValidationException::withMessages([
                 'skills' => 'Die gewählten Fertigkeiten überschreiten die verfügbaren Fertigkeitspunkte.',
+            ]);
+        }
+    }
+
+    private function validateTrainingRules(string $race, string $culture, array $skills, array $advantages, array $skillPools, array $cultureChoices, array $trainings, array $allocations): void
+    {
+        $definitions = RpgCharEditorTraining::map();
+        $seenTrainings = [];
+        $totalTrainingCost = 0;
+
+        foreach ($trainings as $training) {
+            if (! array_key_exists($training, $definitions)) {
+                throw ValidationException::withMessages([
+                    'trainings' => "Die Ausbildung {$training} ist laut Regelwerk nicht erlaubt.",
+                ]);
+            }
+
+            if (isset($seenTrainings[$training])) {
+                throw ValidationException::withMessages([
+                    'trainings' => "Die Ausbildung {$training} wurde mehrfach gewählt.",
+                ]);
+            }
+
+            $seenTrainings[$training] = true;
+            $totalTrainingCost += (int) $definitions[$training]['cost'];
+
+            foreach ($definitions[$training]['requiredAdvantages'] ?? [] as $requiredAdvantage) {
+                if (! in_array($requiredAdvantage, $advantages, true)) {
+                    throw ValidationException::withMessages([
+                        'trainings' => "Die Ausbildung {$training} benötigt den Vorteil {$requiredAdvantage}.",
+                    ]);
+                }
+            }
+        }
+
+        if ($totalTrainingCost > self::BASE_SKILL_POINTS) {
+            throw ValidationException::withMessages([
+                'trainings' => 'Die gewählten Ausbildungen kosten mehr Fertigkeitspunkte als verfügbar sind.',
+            ]);
+        }
+
+        $pointsByTraining = array_fill_keys($trainings, 0);
+        $claimedPaidPoints = [];
+        $seenAllocations = [];
+
+        foreach ($allocations as $allocation) {
+            $training = (string) ($allocation['training'] ?? '');
+            $skillName = $this->canonicalSkillName((string) ($allocation['skill'] ?? ''));
+            $points = (int) ($allocation['points'] ?? 0);
+
+            if (! isset($seenTrainings[$training])) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Für die nicht gewählte Ausbildung {$training} wurden Fertigkeitspunkte übermittelt.",
+                ]);
+            }
+
+            if ($points < 1) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => 'Ausbildungspunkte müssen positive ganze Zahlen sein.',
+                ]);
+            }
+
+            $baseName = $this->skillBaseName($skillName);
+
+            if (! in_array($baseName, $definitions[$training]['skills'], true)
+                || ! $this->isAllowedSkillName($skillName, $race)) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Die Fertigkeit {$skillName} gehört nicht zur Ausbildung {$training}.",
+                ]);
+            }
+
+            $allocationKey = $training."\0".$skillName;
+
+            if (isset($seenAllocations[$allocationKey])) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Die Fertigkeit {$skillName} wurde für {$training} mehrfach zugeordnet.",
+                ]);
+            }
+
+            $seenAllocations[$allocationKey] = true;
+            $pointsByTraining[$training] += $points;
+            $claimedPaidPoints[$skillName] = ($claimedPaidPoints[$skillName] ?? 0) + $points;
+        }
+
+        foreach ($trainings as $training) {
+            $expected = (int) $definitions[$training]['cost'];
+            $actual = (int) ($pointsByTraining[$training] ?? 0);
+
+            if ($actual !== $expected) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Für die Ausbildung {$training} müssen genau {$expected} FP verteilt werden; übermittelt wurden {$actual}.",
+                ]);
+            }
+        }
+
+        if ($trainings === [] && $allocations !== []) {
+            throw ValidationException::withMessages([
+                'training_allocations' => 'Ausbildungspunkte dürfen nur mit einer gewählten Ausbildung übermittelt werden.',
+            ]);
+        }
+
+        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices);
+
+        foreach ($claimedPaidPoints as $skillName => $claimedPoints) {
+            $finalValue = $this->exactSkillValue($skills, $skillName);
+            $grantValue = $this->skillGrantValue($grants, $skillName) ?? self::SKILL_BASE_MIN;
+
+            if ($finalValue === null || $finalValue < $grantValue + $claimedPoints) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Die Ausbildungspunkte für {$skillName} sind nicht im übermittelten Fertigkeitswert enthalten.",
+                ]);
+            }
+
+            if ($grantValue + $claimedPoints > self::SKILL_BASE_MAX) {
+                throw ValidationException::withMessages([
+                    'training_allocations' => "Die Ausbildungspunkte für {$skillName} überschreiten den erlaubten Fertigkeitswert; verteile die überschüssigen Punkte anderweitig.",
+                ]);
+            }
+        }
+
+        if ($totalTrainingCost > $this->skillPointsUsed($skills, $grants)) {
+            throw ValidationException::withMessages([
+                'training_allocations' => 'Die Ausbildungspunkte sind nicht vollständig in den bezahlten Fertigkeitswerten enthalten.',
             ]);
         }
     }
@@ -1591,6 +1746,22 @@ class RpgCharacterSheetService
         return $value ?? PHP_INT_MIN;
     }
 
+    private function exactSkillValue(array $skills, string $skillName): ?int
+    {
+        $canonicalSkillName = $this->canonicalSkillName($skillName);
+
+        foreach ($skills as $skill) {
+            if ($this->canonicalSkillName((string) ($skill['name'] ?? '')) !== $canonicalSkillName
+                || ! is_numeric($skill['value'] ?? null)) {
+                continue;
+            }
+
+            return (int) $skill['value'];
+        }
+
+        return null;
+    }
+
     private function stringPayload(mixed $value): string
     {
         if (! is_scalar($value) && $value !== null) {
@@ -1793,6 +1964,56 @@ class RpgCharacterSheetService
         return self::SPECIAL_NAME_ALIASES[$normalized] ?? $normalized;
     }
 
+    private function trainingNamesPayload(mixed $trainings): array
+    {
+        if (! is_array($trainings)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($trainings as $training) {
+            $name = $this->stringPayload($training);
+
+            if ($name !== '') {
+                $payload[] = $name;
+            }
+        }
+
+        return $payload;
+    }
+
+    private function trainingAllocationsPayload(mixed $allocations): array
+    {
+        if (! is_array($allocations)) {
+            return [];
+        }
+
+        $payload = [];
+
+        foreach ($allocations as $allocation) {
+            if (! is_array($allocation)) {
+                continue;
+            }
+
+            $training = $this->stringPayload($allocation['training'] ?? '');
+            $skill = $this->canonicalSkillName($this->stringPayload($allocation['skill'] ?? ''));
+            $rawPoints = $this->stringPayload($allocation['points'] ?? '');
+
+            if ($training === '' || $skill === '' || ! preg_match('/^\d+$/', $rawPoints)) {
+                continue;
+            }
+
+            $payload[] = [
+                'training' => $training,
+                'skill' => $skill,
+                'points' => (int) $rawPoints,
+            ];
+        }
+
+        return $payload;
+    }
+
     private function equipmentItemsPayload(mixed $items): array
     {
         if (! is_array($items)) {
@@ -1823,7 +2044,7 @@ class RpgCharacterSheetService
         ));
     }
 
-    private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages): void
+    private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages, string $activeArmorId = '', string $activeShieldId = ''): void
     {
         $clothingMap = RpgCharEditorEquipment::clothingMap();
         $itemMap = RpgCharEditorEquipment::itemMap();
@@ -1884,9 +2105,32 @@ class RpgCharacterSheetService
                 'equipment_items' => 'Mit High-Tech-Ausrüstung dürfen höchstens '.RpgCharEditorEquipment::HIGH_TECH_ITEM_LIMIT.' High-Tech- oder Techno-Gegenstände gewählt werden.',
             ]);
         }
+
+        $selectedIds = array_fill_keys(array_map(
+            static fn (array $equipmentItem): string => (string) ($equipmentItem['id'] ?? ''),
+            $equipmentItems,
+        ), true);
+
+        $this->validateActiveEquipmentId($activeArmorId, 'armor', 'active_armor_id', 'Rüstung', $selectedIds, $itemMap);
+        $this->validateActiveEquipmentId($activeShieldId, 'shield', 'active_shield_id', 'Schild', $selectedIds, $itemMap);
     }
 
-    private function equipmentExportPayload(string $clothing, array $equipmentItems, string $notes): array
+    private function validateActiveEquipmentId(string $id, string $expectedKind, string $field, string $label, array $selectedIds, array $itemMap): void
+    {
+        if ($id === '') {
+            return;
+        }
+
+        $kind = $itemMap[$id]['combat']['kind'] ?? null;
+
+        if (! isset($selectedIds[$id]) || $kind !== $expectedKind) {
+            throw ValidationException::withMessages([
+                $field => "Der aktive {$label} muss aus den gewählten Ausrüstungsgegenständen stammen.",
+            ]);
+        }
+    }
+
+    private function equipmentExportPayload(string $clothing, array $equipmentItems, string $notes, string $activeArmorId = '', string $activeShieldId = ''): array
     {
         $clothingMap = RpgCharEditorEquipment::clothingMap();
         $itemMap = RpgCharEditorEquipment::itemMap();
@@ -1919,6 +2163,8 @@ class RpgCharacterSheetService
             'items' => $exportItems,
             'ammunition' => $this->equipmentAmmunitionPayload($equipmentItems),
             'notes' => $notes,
+            'active_armor_id' => $activeArmorId !== '' ? $activeArmorId : null,
+            'active_shield_id' => $activeShieldId !== '' ? $activeShieldId : null,
         ];
     }
 
