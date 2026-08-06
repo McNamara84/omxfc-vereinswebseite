@@ -26,6 +26,7 @@
     },
     "license": "GPL-3.0-or-later",
     "require": {
+        "ext-zip": "*",
         "php": "~8.5.0",
         "dompdf/dompdf": "^3.1",
         "guzzlehttp/psr7": "^2.9",

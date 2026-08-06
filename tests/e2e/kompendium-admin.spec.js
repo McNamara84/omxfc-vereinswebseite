@@ -164,6 +164,15 @@ test.describe('Kompendium Admin Dashboard', () => {
         await expect(page.getByRole('button', { name: 'Alle indexieren' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Alle de-indexieren' })).toBeVisible();
     });
+
+    test('shows the unfiltered ZIP download as a regular browser link', async ({ page }) => {
+        await page.goto('/kompendium/admin');
+
+        const downloadLink = page.getByTestId('download-all-novels');
+        await expect(downloadLink).toBeVisible();
+        await expect(downloadLink).toHaveAttribute('href', /\/kompendium\/admin\/romane\/herunterladen$/);
+        await expect(downloadLink).not.toHaveAttribute('wire:navigate', /.*/);
+    });
 });
 
 test.describe('Kompendium Public Page', () => {

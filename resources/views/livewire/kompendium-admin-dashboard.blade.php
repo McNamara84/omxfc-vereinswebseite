@@ -9,6 +9,13 @@
         >
             <x-slot:actions>
                 <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+                <x-button
+                    label="Alle Romane als ZIP"
+                    link="{{ route('kompendium.admin.romane.download-all') }}"
+                    :no-wire-navigate="true"
+                    icon="o-arrow-down-tray"
+                    class="btn-secondary"
+                    data-testid="download-all-novels" />
                 <x-button label="Suchstatistik" link="{{ route('kompendium.admin.search-statistics') }}" wire:navigate icon="o-chart-bar-square" class="btn-primary" />
             </x-slot:actions>
         </x-ui.page-header>
