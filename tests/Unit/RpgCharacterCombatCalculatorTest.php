@@ -75,7 +75,8 @@ class RpgCharacterCombatCalculatorTest extends TestCase
         $this->assertSame(-1, $daggerModes[1]['damage_modifier']);
 
         $natural = collect($combat['weapons'])->firstWhere('id', 'natuerliche-waffen');
-        $this->assertSame(3, $natural['attack']);
+        $this->assertSame(4, $natural['attack']);
+        $this->assertSame('Nahkampf', $natural['skill']);
         $this->assertSame(2, $natural['damage_modifier']);
     }
 
@@ -99,5 +100,42 @@ class RpgCharacterCombatCalculatorTest extends TestCase
         $this->assertContains('Scharfschütze: +1 Schaden im ersten Reichweiteninkrement.', $combat['situational_notes']);
         $this->assertContains('Taratzenfutter: gegen den Charakter gerichtete Schadenswürfe +1.', $combat['situational_notes']);
         $this->assertContains('Verwundbarkeit (Feuer): RO zählt nicht gegen Schaden.', $combat['situational_notes']);
+    }
+
+    public function test_it_exposes_all_non_numeric_advantage_effects_as_rule_notes(): void
+    {
+        $combat = (new RpgCharacterCombatCalculator)->calculate([
+            'advantages' => [
+                'Anführer',
+                'Gestaltwandler',
+                'Gesteigerter Sinn',
+                'Kiemen',
+                'Nachtsicht',
+                'Natürliche Waffen',
+                'Psychische Kraft',
+                'Psychisches Reservoir',
+                'Regeneration',
+                'Sprachbegabt',
+            ],
+            'advantage_effects' => [
+                ['name' => 'Gesteigerter Sinn', 'target' => 'Hören', 'justification' => 'Mutation'],
+                ['name' => 'Psychische Kraft', 'target' => 'Telekinese', 'justification' => ''],
+                ['name' => 'Regeneration', 'target' => '', 'justification' => 'Mutation'],
+                ['name' => 'Regeneration', 'target' => '', 'justification' => 'Naniten'],
+                ['name' => 'Regeneration', 'target' => '', 'justification' => 'Implantat'],
+            ],
+        ]);
+
+        $notes = implode("\n", $combat['situational_notes']);
+        $this->assertStringContainsString('Anführer: +2', $notes);
+        $this->assertStringContainsString('Statur und Größe ±20 %', $notes);
+        $this->assertStringContainsString('Gesteigerter Sinn (Hören): +3', $notes);
+        $this->assertStringContainsString('Kiemen: unbegrenztes Atmen unter Wasser.', $notes);
+        $this->assertStringContainsString('Nachtsicht: keine Abzüge durch Dunkelheit.', $notes);
+        $this->assertStringContainsString('Natürliche Waffen: Angriff mit Nahkampf und ST/GE; Schaden +1 S.', $notes);
+        $this->assertStringContainsString('Psychische Kraft: Telekinese.', $notes);
+        $this->assertStringContainsString('Psychisches Reservoir: höchster psychischer FW zählt bei der PEP-Ermittlung doppelt.', $notes);
+        $this->assertStringContainsString('Regeneration: Heilung mit Faktor 1000.', $notes);
+        $this->assertStringContainsString('Sprachbegabt: bis zu drei Sprachen oder Dialekte je Fertigkeitspunkt.', $notes);
     }
 }

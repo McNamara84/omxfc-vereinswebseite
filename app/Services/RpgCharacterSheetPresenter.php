@@ -65,11 +65,12 @@ final class RpgCharacterSheetPresenter
             'portrait' => is_string($data['portrait'] ?? null) ? $data['portrait'] : null,
             'attributes' => $this->attributeRows($data['attributes'] ?? []),
             'skill_columns' => $this->skillColumns($skills),
-            'specializations' => $this->short($this->allSpecializationsText($skills), 240),
-            'advantages' => $this->short($this->specialText(
+            'specializations' => $this->short($this->allSpecializationsText($skills, $data['languages'] ?? []), 240),
+            'advantages' => $this->short($this->advantageText(
                 $data['advantages'] ?? [],
                 $data['advantage_details'] ?? [],
                 $data['advantage_counts'] ?? [],
+                $data['advantage_effects'] ?? [],
             ), 310),
             'disadvantages' => $this->short($this->specialText(
                 $data['disadvantages'] ?? [],
@@ -191,7 +192,7 @@ final class RpgCharacterSheetPresenter
     /**
      * @param  list<array<string, mixed>>  $skills
      */
-    private function allSpecializationsText(array $skills): string
+    private function allSpecializationsText(array $skills, mixed $languages = []): string
     {
         $parts = [];
 
@@ -203,7 +204,69 @@ final class RpgCharacterSheetPresenter
             }
         }
 
+        if (is_array($languages)) {
+            $languageNames = array_values(array_unique(array_filter(array_map(
+                static fn (mixed $language): string => is_scalar($language) ? trim((string) $language) : '',
+                $languages,
+            ))));
+            if ($languageNames !== []) {
+                $parts = array_values(array_filter($parts, static fn (string $part): bool => ! str_starts_with($part, 'Sprachen:')));
+                $parts[] = 'Sprachen: '.implode(', ', $languageNames);
+            }
+        }
+
         return implode(' · ', $parts);
+    }
+
+    private function advantageText(mixed $names, mixed $details, mixed $counts, mixed $effects): string
+    {
+        if (! is_array($effects) || $effects === []) {
+            return $this->specialText($names, $details, $counts);
+        }
+
+        $names = is_array($names) ? $names : [];
+        $grouped = [];
+        foreach ($effects as $effect) {
+            if (! is_array($effect)) {
+                continue;
+            }
+            $name = trim((string) ($effect['name'] ?? ''));
+            if ($name !== '') {
+                $grouped[$name][] = $effect;
+            }
+        }
+
+        $parts = [];
+        foreach ($names as $name) {
+            if (! is_scalar($name) || trim((string) $name) === '') {
+                continue;
+            }
+            $name = trim((string) $name);
+            $instances = $grouped[$name] ?? [];
+            $instanceParts = [];
+            foreach ($instances as $instance) {
+                $target = trim((string) ($instance['target'] ?? ''));
+                $justification = trim((string) ($instance['justification'] ?? ''));
+                $detail = implode(' – ', array_values(array_filter([
+                    $target,
+                    in_array($justification, ['Rasse', 'Figurenstärke 3'], true) ? '' : $justification,
+                ])));
+                if ($detail !== '') {
+                    $instanceParts[] = $detail;
+                }
+            }
+
+            $part = $name;
+            if (count($instances) > 1) {
+                $part .= ' ('.count($instances).'×)';
+            }
+            if ($instanceParts !== []) {
+                $part .= ': '.implode('; ', $instanceParts);
+            }
+            $parts[] = $part;
+        }
+
+        return implode(', ', $parts);
     }
 
     private function specialText(mixed $names, mixed $details, mixed $counts = []): string

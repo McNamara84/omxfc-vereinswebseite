@@ -24,6 +24,7 @@ class RpgCharacterStorageTest extends TestCase
     private function validCharacterPayload(array $overrides = []): array
     {
         $payload = array_replace_recursive([
+            'figurenstaerke' => 3,
             'player_name' => 'Spieler Eins',
             'character_name' => 'Foo Bar',
             'gender' => 'maennlich',
@@ -45,6 +46,8 @@ class RpgCharacterStorageTest extends TestCase
             ],
             'advantages' => ['Zaeh'],
             'disadvantages' => ['Auffaellig'],
+            'advantage_effects' => [],
+            'languages' => [],
             'clothing' => 'kleidung-einfach',
             'equipment_items' => [
                 ['id' => 'messer-dolch', 'quantity' => 1],
@@ -57,10 +60,33 @@ class RpgCharacterStorageTest extends TestCase
             'equipment' => 'Messer, Seil, Feldflasche',
         ], $overrides);
 
-        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'equipment_items'] as $listKey) {
+        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'advantage_effects', 'languages', 'equipment_items'] as $listKey) {
             if (array_key_exists($listKey, $overrides)) {
                 $payload[$listKey] = $overrides[$listKey];
             }
+        }
+
+        $modifiers = match ($payload['race'] ?? '') {
+            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
+            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
+            default => [],
+        };
+        $payload['attribute_adjustments'] = [];
+        foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
+            $payload['attribute_adjustments'][$attribute] = (int) ($payload['attributes'][$attribute] ?? 0)
+                - (int) ($modifiers[$attribute] ?? 0);
+        }
+
+        if (! array_key_exists('equipment_items', $overrides)
+            && in_array($payload['race'], ['Techno', 'Präkristofluu'], true)) {
+            $payload['equipment_items'] = [
+                ['id' => 'fernglas', 'quantity' => 1],
+                ['id' => 'funkgeraet', 'quantity' => 1],
+                ['id' => 'gasmaske', 'quantity' => 1],
+                ['id' => 'atemgeraet', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+            ];
         }
 
         return $payload;

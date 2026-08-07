@@ -8,6 +8,13 @@
 let editorFactory;
 
 const specialRuleConfig = {
+    creation: {
+        level: 3,
+        baseAttributePoints: 2,
+        maxExtraAttributePoints: 1,
+        freeAdvantageUnits: 1,
+        maxExtraAdvantageUnits: 2,
+    },
     advantages: [
         'Anführer',
         'Gestaltwandler',
@@ -50,11 +57,26 @@ const specialRuleConfig = {
         Gestaltwandler: 3,
         Zäh: 0,
     },
-    repeatableAdvantages: ['Panzerung'],
-    advantageDetailRequired: ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Tiergefährte'],
+    advantageRules: {
+        'Gesteigertes Attribut': { repeat: 'unique_target', targets: ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'], requires_justification: true, detail_placeholder: 'Ursprung begründen' },
+        'Gesteigerter Sinn': { repeat: 'unique_target', targets: ['Sehen', 'Hören', 'Riechen', 'Schmecken', 'Tasten'], requires_justification: true, detail_placeholder: 'Ursprung begründen' },
+        Nachtsicht: { repeat: 'none', requires_justification: true },
+        'Natürliche Waffen': { repeat: 'none', requires_justification: true },
+        Panzerung: { repeat: 'stack', requires_justification: true },
+        'Psychische Kraft': { repeat: 'none', targets: ['Beherrschung', 'Empathie', 'Gedankenschild', 'Pyrokinese', 'Telepathie', 'Telekinese'] },
+        Regeneration: { repeat: 'stack', requires_justification: true },
+        Schnell: { repeat: 'none', requires_justification: true },
+        Tiergefährte: { repeat: 'none', requires_detail: true, detail_placeholder: 'Tier und Besonderheit notieren' },
+    },
+    disadvantageRules: {
+        'Anfälligkeit gegen Wahnsinn': { requires_detail: true, detail_placeholder: 'Auslöser notieren' },
+    },
+    repeatableAdvantages: ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Panzerung', 'Regeneration'],
+    advantageDetailRequired: ['Tiergefährte'],
     disadvantageDetailRequired: [
         'Abergläubisch',
         'Abhängige',
+        'Anfälligkeit gegen Wahnsinn',
         'Ehrenkodex',
         'Feind',
         'Gejagt',
@@ -211,6 +233,7 @@ describe('charEditor – Attribut-Clamping', () => {
             creationPoints: 3,
             attributes: [],
         };
+        window.rpgCharEditorRules.creation.baseAttributePoints = 3;
 
         vi.resetModules();
         await import('@/alpine/char-editor.js');
@@ -270,9 +293,10 @@ describe('charEditor – Attribut-Clamping', () => {
         expect(e.skillTooltip('Athletik')).toContain('Klettern');
         expect(e.skillTooltip('Beruf: Bauer')).toContain('Spezialisierung');
         expect(e.skillTooltip('  Beruf:Künstler  ')).toContain('Spezialisierung');
-        expect(e.skillTooltip('Natuerliche_Waffen')).toContain('Rassenbedingte Sonderregel');
+        expect(e.skillTooltip('Sprachen')).not.toContain('Spezialisierung');
+        expect(e.skillTooltip('Natuerliche_Waffen')).toBe('');
         expect(e.skillTooltip('Bildung')).toContain('Kind zweier Welten');
-        expect(e.skillTooltip('Natürliche Waffen')).toContain('Rassenbedingte Sonderregel');
+        expect(e.skillTooltip('Natürliche Waffen')).toBe('');
     });
 
     it('schlägt nur frei wählbare Fertigkeiten in der Datalist vor', () => {
@@ -454,7 +478,8 @@ describe('charEditor – Rassen-Logik', () => {
 
         expect(e.raceGrants.Athletik).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 1 });
-        expect(e.raceGrants['Natürliche Waffen']).toEqual({ type: 'min', value: 1 });
+        expect(e.raceGrants['Natürliche Waffen']).toBeUndefined();
+        expect(e.skills.find(s => s.name === 'Natürliche Waffen')).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse' });
         expect(e.selectedAdvantages).toEqual(expect.arrayContaining(['Kiemen', 'Natürliche Waffen']));
         expect(e.raceLocked.advantages).toEqual(['Kiemen', 'Natürliche Waffen']);
@@ -467,13 +492,13 @@ describe('charEditor – Rassen-Logik', () => {
         e.applyRaceHydrit();
 
         expect(e.chosenAdvantagesCount()).toBe(0);
-        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.freeAdvantagePoints()).toBe(1);
         expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Kiemen', 'Natürliche Waffen']);
 
         e.selectedAdvantages.push('Schnell', 'Kampfreflexe', 'Nachtsicht');
         e.enforceAdvantageLimit();
 
-        expect(e.selectedAdvantages).toEqual(['Zäh', 'Kiemen', 'Natürliche Waffen', 'Schnell', 'Kampfreflexe']);
+        expect(e.selectedAdvantages).toEqual(['Zäh', 'Kiemen', 'Natürliche Waffen', 'Schnell', 'Kampfreflexe', 'Nachtsicht']);
     });
 
     it('Rassenwechsel entfernt Hydrit-Pflichtmerkmale und behält nur übrige Grants', () => {
@@ -509,9 +534,27 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.selectedAdvantages).not.toContain('Psychisches Reservoir');
         expect(e.selectedDisadvantages).toEqual(expect.arrayContaining(['Blutdurst', 'Lichtscheu', 'Gejagt']));
         expect(e.chosenAdvantagesCount()).toBe(0);
-        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.freeAdvantagePoints()).toBe(1);
         expect(e.selectedDisabledAdvantages()).toEqual(['Zäh', 'Nachtsicht']);
         expect(e.selectedLockedDisadvantages()).toEqual(['Blutdurst', 'Lichtscheu', 'Gejagt']);
+    });
+
+    it('behält einen zuvor frei gewählten Vorteil nach dem Ende einer gleichnamigen Rassenregel', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Nachtsicht'];
+        e.synchronizeAdvantageEffects();
+        e.setAdvantageEffectField(0, 'justification', 'Implantat');
+
+        e.applyRaceNosfera();
+        e.synchronizeAdvantageEffects();
+        expect(e.raceAutoSelectedAdvantages).toEqual([]);
+        expect(e.advantageCost('Nachtsicht')).toBe(0);
+
+        e.clearRace();
+        e.synchronizeAdvantageEffects();
+        expect(e.selectedAdvantages).toContain('Nachtsicht');
+        expect(e.advantageCost('Nachtsicht')).toBe(1);
+        expect(e.advantageEffectEntries('Nachtsicht')[0].justification).toBe('Implantat');
     });
 
     it('Rassenwechsel entfernt Nosfera-Pflichtmerkmale, Fertigkeiten und Attributsmodifikatoren', () => {
@@ -552,7 +595,7 @@ describe('charEditor – Rassen-Logik', () => {
         expect(e.raceLocked.disadvantages).toEqual(['Auffällig', 'Primitiv', 'Gejagt']);
         expect(e.selectedDisadvantages).toEqual(expect.arrayContaining(['Auffällig', 'Primitiv', 'Gejagt']));
         expect(e.chosenAdvantagesCount()).toBe(0);
-        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.freeAdvantagePoints()).toBe(1);
         expect(e.selectedLockedDisadvantages()).toEqual(['Auffällig', 'Primitiv', 'Gejagt']);
     });
 
@@ -1698,14 +1741,16 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants['Beruf: Fischer']).toEqual({ type: 'min', value: 1 });
     });
 
-    it('weibliches Volk der 13 Inseln erzwingt Psychische Kraft ohne freie Vorteile zu verbrauchen', () => {
+    it('weibliches Volk der 13 Inseln erzwingt kostenpflichtige Psychische Kraft mit Telepathie', () => {
         const e = createEditor({ race: 'Barbar', culture: 'Volk der 13 Inseln', gender: 'weiblich' });
         e.applyCultureVolkDer13Inseln();
 
         expect(e.cultureLocked.advantages).toEqual(['Psychische Kraft']);
         expect(e.selectedAdvantages).toContain('Psychische Kraft');
-        expect(e.chosenAdvantagesCount()).toBe(0);
-        expect(e.freeAdvantagePoints()).toBe(2);
+        expect(e.chosenAdvantagesCount()).toBe(1);
+        expect(e.freeAdvantagePoints()).toBe(0);
+        expect(e.advantageEffectsFor?.('Psychische Kraft') ?? e.advantageEffectEntries('Psychische Kraft'))
+            .toEqual([expect.objectContaining({ target: 'Telepathie' })]);
         expect(e.selectedDisabledAdvantages()).toEqual(['Z\u00e4h', 'Psychische Kraft']);
 
         e.gender = 'maennlich';
@@ -1725,7 +1770,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.selectedAdvantages).toContain('Psychische Kraft');
         expect(e.chosenAdvantagesCount()).toBe(1);
-        expect(e.freeAdvantagePoints()).toBe(1);
+        expect(e.freeAdvantagePoints()).toBe(0);
     });
 });
 
@@ -1754,13 +1799,13 @@ describe('charEditor – Vorteile/Nachteile', () => {
 
         expect(e.selectedAdvantages).toBe(selectedAdvantages);
     });
-    it('begrenzt frei wählbare Vorteile auf 2', () => {
+    it('begrenzt frei wählbare Vorteilswerte auf drei', () => {
         const e = createEditor();
         e.selectedAdvantages = ['Zäh', 'Schnell', 'Stark', 'Weise'];
         e.enforceAdvantageLimit();
-        // Zäh + max 2 frei gewählte
+        // Zäh + maximal drei Vorteilswerte (einer frei, zwei mit Ausgleich)
         const chosen = e.selectedAdvantages.filter(a => a !== 'Zäh');
-        expect(chosen.length).toBeLessThanOrEqual(2);
+        expect(chosen.length).toBeLessThanOrEqual(3);
     });
 
     it('isAdvantageDisabled: Zäh ist immer disabled', () => {
@@ -1768,10 +1813,12 @@ describe('charEditor – Vorteile/Nachteile', () => {
         expect(e.isAdvantageDisabled('Zäh')).toBe(true);
     });
 
-    it('sperrt weitere Vorteile, sobald zwei frei gewählt sind', () => {
+    it('sperrt weitere Vorteile erst bei drei verbrauchten Werten', () => {
         const e = createEditor();
         e.selectedAdvantages = ['Zäh', 'Schnell', 'Kampfreflexe'];
 
+        expect(e.isAdvantageDisabled('Nachtsicht')).toBe(false);
+        e.selectedAdvantages.push('Kiemen');
         expect(e.isAdvantageDisabled('Nachtsicht')).toBe(true);
         expect(e.isAdvantageDisabled('Schnell')).toBe(false);
     });
@@ -1789,6 +1836,98 @@ describe('charEditor – Vorteile/Nachteile', () => {
 
         expect(e.selectedLockedDisadvantages()).toEqual(['Primitiv', 'Gejagt']);
     });
+
+    it('gewährt einen freien Vorteilswert und fordert erst danach Ausgleich', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Kampfreflexe'];
+        e.synchronizeAdvantageEffects();
+
+        expect(e.chosenAdvantagesCount()).toBe(1);
+        expect(e.missingAdvantageCompensations()).toBe(0);
+
+        e.selectedAdvantages.push('Kaltblütig');
+        e.synchronizeAdvantageEffects();
+
+        expect(e.missingAdvantageCompensations()).toBe(1);
+        e.selectedDisadvantages = ['Auffällig'];
+        expect(e.missingAdvantageCompensations()).toBe(0);
+    });
+
+    it('zählt Rassennachteile nicht als Ausgleich und kann sie mit einem Vorteilswert negieren', () => {
+        const guul = createEditor();
+        guul.applyRaceGuul();
+        guul.selectedAdvantages.push('Kampfreflexe', 'Kaltblütig');
+        guul.synchronizeAdvantageEffects();
+
+        expect(guul.availableAdvantageCompensations()).toBe(0);
+        expect(guul.missingAdvantageCompensations()).toBe(1);
+
+        const wulfane = createEditor();
+        wulfane.applyRaceWulfane();
+        wulfane.toggleRacialDisadvantageNegation('Ehrenkodex', true);
+
+        expect(wulfane.selectedDisadvantages).not.toContain('Ehrenkodex');
+        expect(wulfane.negatedRacialDisadvantages).toEqual(['Ehrenkodex']);
+        expect(wulfane.chosenAdvantagesCount()).toBe(1);
+        expect(wulfane.missingAdvantageCompensations()).toBe(0);
+    });
+
+    it('trennt den zusätzlichen AP von Attributsenkungen für Vorteils-Ausgleiche', () => {
+        const e = createEditor();
+        e.setExtraApAttribute('au');
+
+        expect(e.attributeCreationAdjustment('au')).toBe(-1);
+        expect(e.hasValidExtraApTrade()).toBe(true);
+        expect(e.apRemaining()).toBe(3);
+
+        ['st', 'ge', 'ro'].forEach(attribute => {
+            e.attributes[attribute] = 1;
+            e.clampAttribute(attribute);
+        });
+        expect(e.attributes.ro).toBe(1);
+        expect(e.apRemaining()).toBe(0);
+
+        e.toggleAdvantageCompensationAttribute('au', true);
+        expect(e.advantageCompensationAttributes).toEqual([]);
+
+        e.toggleAdvantageCompensationAttribute('wi', true);
+        expect(e.attributeCreationAdjustment('wi')).toBe(-1);
+        expect(e.hasValidAdvantageAttributeCompensation('wi')).toBe(true);
+    });
+
+    it('wendet Gesteigertes Attribut auf den Endwert an und verhindert doppelte Ziele', () => {
+        const e = createEditor();
+        e.selectedAdvantages = ['Zäh', 'Gesteigertes Attribut'];
+        e.synchronizeAdvantageEffects();
+        e.setAdvantageEffectField(0, 'target', 'wi');
+        e.setAdvantageEffectField(0, 'justification', 'Mutation');
+
+        expect(e.attributeAdvantageBonus('wi')).toBe(1);
+        expect(e.attributes.wi).toBe(1);
+        expect(e.attributeCreationAdjustment('wi')).toBe(0);
+        expect(e.advantageEffectsComplete()).toBe(true);
+
+        e.setAdvantageCount('Gesteigertes Attribut', 2);
+        e.setAdvantageEffectField(1, 'target', 'wi');
+        e.setAdvantageEffectField(1, 'justification', 'Implantat');
+        expect(e.advantageEffectsComplete()).toBe(false);
+    });
+
+    it('validiert die Sprachkapazität mit und ohne Sprachbegabt', () => {
+        const e = createEditor();
+        e.skills = [{ uid: 1, name: 'Sprachen', value: 2 }];
+        e.languages = ['Deutsch', 'Englisch'];
+
+        expect(e.languagesComplete()).toBe(true);
+        e.languages.push('Französisch');
+        expect(e.languagesComplete()).toBe(false);
+
+        e.selectedAdvantages = ['Zäh', 'Sprachbegabt'];
+        e.synchronizeAdvantageEffects();
+        e.languages = ['Deutsch', 'Englisch', 'Französisch', 'Schwedisch', 'Dänisch', 'Finnisch'];
+        expect(e.languageMaximum()).toBe(6);
+        expect(e.languagesComplete()).toBe(true);
+    });
 });
 
 describe('charEditor – W66-Regeln', () => {
@@ -1802,16 +1941,17 @@ describe('charEditor – W66-Regeln', () => {
         expect(e.disadvantageRollLabel('Verwundbarkeit')).toBe('66');
     });
 
-    it('berechnet Gestaltwandler als drei Vorteile und sperrt ihn bei nur zwei freien Punkten', () => {
+    it('berechnet Gestaltwandler als drei verfügbare Vorteilswerte', () => {
         const e = createEditor();
 
         expect(e.advantageCost('Gestaltwandler')).toBe(3);
-        expect(e.isAdvantageDisabled('Gestaltwandler')).toBe(true);
+        expect(e.isAdvantageDisabled('Gestaltwandler')).toBe(false);
 
         e.selectedAdvantages = ['Zäh', 'Gestaltwandler'];
         e.enforceAdvantageLimit();
 
-        expect(e.selectedAdvantages).toEqual(['Zäh']);
+        expect(e.selectedAdvantages).toEqual(['Zäh', 'Gestaltwandler']);
+        expect(e.missingAdvantageCompensations()).toBe(2);
     });
 
     it('zaehlt Panzerung mehrfach und begrenzt die Kosten auf das Budget', () => {
@@ -1826,8 +1966,8 @@ describe('charEditor – W66-Regeln', () => {
 
         e.setAdvantageCount('Panzerung', 3);
 
-        expect(e.advantageCounts.Panzerung).toBe(2);
-        expect(e.chosenAdvantagesCount()).toBe(2);
+        expect(e.advantageCounts.Panzerung).toBe(3);
+        expect(e.chosenAdvantagesCount()).toBe(3);
     });
 
     it('wuerfelt Vorteile nach W66 und uebernimmt eintragbare Ergebnisse', () => {
@@ -1865,7 +2005,8 @@ describe('charEditor – W66-Regeln', () => {
 
         expect(e.requiredSpecialDetailsFilled()).toBe(false);
 
-        e.advantageDetails.Tiergefährte = 'Schwarzer Januskater';
+        e.synchronizeAdvantageEffects();
+        e.setAdvantageEffectField(0, 'justification', 'Schwarzer Januskater');
         e.selectedDisadvantages = ['Abergläubisch'];
         e.disadvantageDetails.Abergläubisch = 'Salz, Omen, dreimal klopfen';
 
@@ -1979,6 +2120,21 @@ describe('charEditor – Computed Properties', () => {
 describe('charEditor - Laravel Old Input', () => {
     const tinyPngDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
 
+    it('stellt das Tausch-Attribut vor den damit finanzierten Attributspunkten wieder her', () => {
+        window.rpgCharEditorOldInput = {
+            attributes: { st: '1', ge: '1', ro: '1', au: '-1' },
+            extra_ap_attribute: 'au',
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.extraApAttribute).toBe('au');
+        expect(e.attributes).toMatchObject({ st: 1, ge: 1, ro: 1, au: -1 });
+        expect(e.hasValidExtraApTrade()).toBe(true);
+        expect(e.apRemaining()).toBe(0);
+    });
+
     it('stellt einen serverseitig abgelehnten Editor-Submit wieder her', () => {
         const portraitDataUrl = tinyPngDataUrl;
         window.rpgCharEditorOldInput = {
@@ -2057,6 +2213,31 @@ describe('charEditor - Laravel Old Input', () => {
             expect(e.portraitPreview).toBeNull();
             expect(e.advancedUnlocked).toBe(false);
         });
+    });
+
+    it('überführt alte spezialisierte Sprachfertigkeiten in gemeinsame Fertigkeit und Sprachenliste', () => {
+        window.rpgCharEditorOldInput = {
+            player_name: 'Spieler',
+            character_name: 'Sprachkundig',
+            gender: 'maennlich',
+            race: 'Barbar',
+            culture: 'Landbewohner',
+            skills: [
+                { name: 'Sprachen: Deutsch', value: '1' },
+                { name: ' Sprachen : Englisch ', value: '1' },
+            ],
+            languages: ['Deutsch'],
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.skills).toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Sprachen', value: 2 }),
+        ]));
+        expect(e.skills.some(skill => skill.name.startsWith('Sprachen:'))).toBe(false);
+        expect(e.languages).toEqual(['Deutsch', 'Englisch']);
+        expect(e.languagesComplete()).toBe(true);
     });
 
     it('decodiert fuer Portrait-Signaturen nur den Base64-Header', () => {

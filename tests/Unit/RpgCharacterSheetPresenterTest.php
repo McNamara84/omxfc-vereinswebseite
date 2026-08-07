@@ -76,4 +76,29 @@ class RpgCharacterSheetPresenterTest extends TestCase
         $this->assertLessThanOrEqual(230, mb_strlen($sheet['description']));
         $this->assertStringEndsWith('…', $sheet['character_name']);
     }
+
+    public function test_it_formats_structured_advantage_instances_and_languages(): void
+    {
+        $data = [
+            'skills' => [['name' => 'Sprachen', 'value' => 2]],
+            'languages' => ['Deutsch', 'Englisch', 'Schwedisch'],
+            'advantages' => ['Zäh', 'Gesteigerter Sinn', 'Psychische Kraft', 'Regeneration'],
+            'advantage_effects' => [
+                ['name' => 'Zäh', 'target' => '', 'justification' => 'Figurenstärke 3'],
+                ['name' => 'Gesteigerter Sinn', 'target' => 'Sehen', 'justification' => 'Implantat'],
+                ['name' => 'Gesteigerter Sinn', 'target' => 'Hören', 'justification' => 'Mutation'],
+                ['name' => 'Psychische Kraft', 'target' => 'Telepathie', 'justification' => ''],
+                ['name' => 'Regeneration', 'target' => '', 'justification' => 'Naniten'],
+                ['name' => 'Regeneration', 'target' => '', 'justification' => 'Mutation'],
+            ],
+        ];
+        $combat = (new RpgCharacterCombatCalculator)->calculate($data);
+        $sheet = (new RpgCharacterSheetPresenter)->present($data, $combat);
+
+        $this->assertStringContainsString('Gesteigerter Sinn (2×): Sehen – Implantat; Hören – Mutation', $sheet['advantages']);
+        $this->assertStringContainsString('Psychische Kraft: Telepathie', $sheet['advantages']);
+        $this->assertStringContainsString('Regeneration (2×): Naniten; Mutation', $sheet['advantages']);
+        $this->assertStringContainsString('Sprachen: Deutsch, Englisch, Schwedisch', $sheet['specializations']);
+        $this->assertContains('Regeneration: Heilung mit Faktor 100.', $combat['situational_notes']);
+    }
 }

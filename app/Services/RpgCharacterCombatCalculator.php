@@ -27,6 +27,7 @@ final class RpgCharacterCombatCalculator
         $advantages = $this->stringList($data['advantages'] ?? []);
         $disadvantages = $this->stringList($data['disadvantages'] ?? []);
         $advantageCounts = is_array($data['advantage_counts'] ?? null) ? $data['advantage_counts'] : [];
+        $advantageEffects = is_array($data['advantage_effects'] ?? null) ? $data['advantage_effects'] : [];
         $equipment = is_array($data['equipment'] ?? null) ? $data['equipment'] : [];
         $items = $this->selectedItems($equipment['items'] ?? []);
         $activeArmor = $this->activeItem($items, (string) ($equipment['active_armor_id'] ?? ''), 'armor');
@@ -38,7 +39,7 @@ final class RpgCharacterCombatCalculator
         $fastBonus = in_array('Schnell', $advantages, true) ? 1 : 0;
         $toughBonus = in_array('Zäh', $advantages, true) ? 1 : 0;
         $armorAdvantageBonus = in_array('Panzerung', $advantages, true)
-            ? max(1, (int) ($advantageCounts['Panzerung'] ?? 1))
+            ? max(1, $this->advantageInstanceCount('Panzerung', $advantageEffects, $advantageCounts))
             : 0;
         $armorProtection = (int) ($activeArmor['combat']['protection'] ?? 0);
 
@@ -72,7 +73,7 @@ final class RpgCharacterCombatCalculator
             'armor' => $this->armorRows($items, (string) ($equipment['active_armor_id'] ?? ''), (string) ($equipment['active_shield_id'] ?? '')),
             'active_armor' => $this->publicItem($activeArmor),
             'active_shield' => $this->publicItem($activeShield),
-            'situational_notes' => $this->situationalNotes($advantages, $disadvantages, $data['disadvantage_details'] ?? []),
+            'situational_notes' => $this->situationalNotes($advantages, $disadvantages, $data['disadvantage_details'] ?? [], $advantageEffects, $advantageCounts),
         ];
     }
 
@@ -246,7 +247,7 @@ final class RpgCharacterCombatCalculator
             ];
             $naturalMode = [
                 'kind' => 'melee',
-                'skill' => 'Natürliche Waffen',
+                'skill' => 'Nahkampf',
                 'attributes' => ['st', 'ge'],
                 'damageAttribute' => 'st',
                 'precision' => 0,
@@ -369,10 +370,49 @@ final class RpgCharacterCombatCalculator
      * @param  list<string>  $disadvantages
      * @return list<string>
      */
-    private function situationalNotes(array $advantages, array $disadvantages, mixed $details): array
+    private function situationalNotes(array $advantages, array $disadvantages, mixed $details, array $advantageEffects = [], array $advantageCounts = []): array
     {
         $notes = [];
         $details = is_array($details) ? $details : [];
+
+        if (in_array('Anführer', $advantages, true)) {
+            $notes[] = 'Anführer: +2 auf Proben, um Personen zu befehligen oder zu überzeugen.';
+        }
+        if (in_array('Gestaltwandler', $advantages, true)) {
+            $notes[] = 'Gestaltwandler: Gestalt und Stimme veränderbar; Statur und Größe ±20 %, außerdem Haarfarbe und -länge, Augenfarbe, Hautfarbe und Geschlecht.';
+        }
+        foreach ($advantageEffects as $effect) {
+            if (! is_array($effect)) {
+                continue;
+            }
+            $name = (string) ($effect['name'] ?? '');
+            $target = trim((string) ($effect['target'] ?? ''));
+            if ($name === 'Gesteigerter Sinn' && $target !== '') {
+                $notes[] = "Gesteigerter Sinn ({$target}): +3 auf passende Wahrnehmungsproben.";
+            }
+            if ($name === 'Psychische Kraft' && $target !== '') {
+                $notes[] = "Psychische Kraft: {$target}.";
+            }
+        }
+        if (in_array('Kiemen', $advantages, true)) {
+            $notes[] = 'Kiemen: unbegrenztes Atmen unter Wasser.';
+        }
+        if (in_array('Nachtsicht', $advantages, true)) {
+            $notes[] = 'Nachtsicht: keine Abzüge durch Dunkelheit.';
+        }
+        if (in_array('Natürliche Waffen', $advantages, true)) {
+            $notes[] = 'Natürliche Waffen: Angriff mit Nahkampf und ST/GE; Schaden +1 S.';
+        }
+        if (in_array('Psychisches Reservoir', $advantages, true)) {
+            $notes[] = 'Psychisches Reservoir: höchster psychischer FW zählt bei der PEP-Ermittlung doppelt.';
+        }
+        if (in_array('Regeneration', $advantages, true)) {
+            $count = $this->advantageInstanceCount('Regeneration', $advantageEffects, $advantageCounts);
+            $notes[] = 'Regeneration: Heilung mit Faktor '.(10 ** max($count, 1)).'.';
+        }
+        if (in_array('Sprachbegabt', $advantages, true)) {
+            $notes[] = 'Sprachbegabt: bis zu drei Sprachen oder Dialekte je Fertigkeitspunkt.';
+        }
 
         if (in_array('Scharfschütze', $advantages, true)) {
             $notes[] = 'Scharfschütze: +1 Schaden im ersten Reichweiteninkrement.';
@@ -388,5 +428,15 @@ final class RpgCharacterCombatCalculator
         }
 
         return $notes;
+    }
+
+    private function advantageInstanceCount(string $name, array $effects, array $counts): int
+    {
+        $structuredCount = count(array_filter(
+            $effects,
+            static fn (mixed $effect): bool => is_array($effect) && ($effect['name'] ?? '') === $name,
+        ));
+
+        return $structuredCount > 0 ? $structuredCount : max(1, (int) ($counts[$name] ?? 1));
     }
 }

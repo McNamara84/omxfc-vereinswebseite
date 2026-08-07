@@ -46,16 +46,14 @@ jobs:
           touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
-      - name: Record a fresh dependency graph for native Pest tests
+      - name: Record a fresh Pest dependency graph
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
           XDEBUG_MODE: coverage
-        run: >-
-          ./vendor/bin/pest
-          tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
-          tests/Unit/UriSupportTest.php
-          --tia --fresh --compact --order-by=random --random-order-seed=1
+        # Pest 5 does not allow a fixed random-order seed together with TIA.
+        # Keep the CI invocation aligned with the canonical Composer script.
+        run: composer test:tia:fresh
       - name: Resolve TIA baseline directory
         id: baseline-path
         run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
