@@ -24,6 +24,8 @@ class ProfileViewController extends Controller
 
     public function show(User $user)
     {
+        $user->loadMissing('maddraxikonAccountLink');
+
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
 

@@ -132,7 +132,7 @@ final class MaddraxikonOAuthController extends Controller
             ->route('profile.show')
             ->with(
                 'maddraxikon_status',
-                'Die Maddraxikon-Verknüpfung wurde getrennt. Bereits gutgeschriebene Baxx bleiben erhalten.',
+                'Die Maddraxikon-Verknüpfung ist getrennt und das Maddraxikon-Profil nicht freigegeben. Bereits gutgeschriebene Baxx bleiben erhalten.',
             );
     }
 

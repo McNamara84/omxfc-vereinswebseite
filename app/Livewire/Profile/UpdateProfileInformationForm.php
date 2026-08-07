@@ -51,7 +51,6 @@ class UpdateProfileInformationForm extends Component
             'contact_release_phone',
             'contact_release_maddraxikon',
             'contact_release_nextcloud',
-            'maddraxikon_username',
             'nextcloud_username',
         ]);
 
@@ -61,7 +60,6 @@ class UpdateProfileInformationForm extends Component
         $this->state['contact_release_phone'] = (bool) ($this->state['contact_release_phone'] ?? false);
         $this->state['contact_release_maddraxikon'] = (bool) ($this->state['contact_release_maddraxikon'] ?? false);
         $this->state['contact_release_nextcloud'] = (bool) ($this->state['contact_release_nextcloud'] ?? false);
-        $this->state['maddraxikon_username'] = $this->state['maddraxikon_username'] ?? '';
         $this->state['nextcloud_username'] = $this->state['nextcloud_username'] ?? '';
     }
 
@@ -153,6 +151,15 @@ class UpdateProfileInformationForm extends Component
      */
     public function render()
     {
-        return view('profile.update-profile-information-form');
+        $user = auth()->user();
+        $maddraxikonAccountLink = $user
+            ?->maddraxikonAccountLink()
+            ->active()
+            ->first();
+        $user?->setRelation('maddraxikonAccountLink', $maddraxikonAccountLink);
+
+        return view('profile.update-profile-information-form', [
+            'maddraxikonAccountLink' => $maddraxikonAccountLink,
+        ]);
     }
 }

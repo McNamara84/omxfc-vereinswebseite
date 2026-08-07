@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureMaddraxikonAdmin;
 use App\Jobs\SendErrorIncidentReport;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
+use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Polls\ActivePollResolver;
@@ -253,6 +254,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Override Jetstream Livewire components with maryUI Toast support
+        Livewire::component('profile.update-profile-information-form', UpdateProfileInformationForm::class);
         Livewire::component('profile.update-password-form', UpdatePasswordForm::class);
         Livewire::component('profile.logout-other-browser-sessions-form', LogoutOtherBrowserSessionsForm::class);
         Livewire::component('teams.update-team-name-form', UpdateTeamNameForm::class);

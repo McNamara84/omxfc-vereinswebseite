@@ -3,17 +3,19 @@
 namespace App\Actions\Fortify;
 
 use App\Enums\Role;
-use App\Mail\ProfileContactUpdated;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MemberMapCacheService;
-use Carbon\CarbonInterface;
+use App\Services\ProfileContactUpdateNotifier;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+use RuntimeException;
+use Throwable;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -28,6 +30,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
     public function __construct(
         private readonly MemberMapCacheService $memberMapCacheService,
+        private readonly ProfileContactUpdateNotifier $profileContactUpdateNotifier,
     ) {}
 
     /**
@@ -37,13 +40,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
      */
     public function update(User $user, array $input): void
     {
-        $contactSnapshotBefore = $this->contactSnapshot($user);
         $input = $this->normalizeNullableStringInputs($input, [
             'telefon',
-            'maddraxikon_username',
             'nextcloud_username',
         ]);
         $hasActiveMaddraxikonLink = $user->maddraxikonAccountLink()->active()->exists();
+        $wantsMaddraxikonRelease = $this->booleanInput($input['contact_release_maddraxikon'] ?? false);
 
         Validator::make($input, [
             'vorname' => ['required', 'string', 'max:255'],
@@ -66,14 +68,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'author_aliases.*' => ['nullable', 'string', 'max:255'],
             'contact_release_email' => ['nullable', 'boolean'],
             'contact_release_phone' => ['nullable', 'boolean'],
-            'contact_release_maddraxikon' => ['nullable', 'boolean'],
-            'contact_release_nextcloud' => ['nullable', 'boolean'],
-            'maddraxikon_username' => [
-                Rule::requiredIf(fn () => $this->booleanInput($input['contact_release_maddraxikon'] ?? false) && ! $hasActiveMaddraxikonLink),
+            'contact_release_maddraxikon' => [
                 'nullable',
-                'string',
-                'max:255',
+                'boolean',
+                Rule::prohibitedIf($wantsMaddraxikonRelease && ! $hasActiveMaddraxikonLink),
             ],
+            'contact_release_nextcloud' => ['nullable', 'boolean'],
             'nextcloud_username' => [
                 Rule::requiredIf(fn () => $this->booleanInput($input['contact_release_nextcloud'] ?? false)),
                 'nullable',
@@ -83,11 +83,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:8192'],
         ])->validateWithBag('updateProfileInformation');
 
-        if (isset($input['photo'])) {
-            $user->updateProfilePhoto($input['photo']);
-        }
-
-        $updates = [
+        $baseUpdates = [
             'vorname' => $input['vorname'],
             'nachname' => $input['nachname'],
             'strasse' => $input['strasse'],
@@ -104,57 +100,126 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 : [],
             'contact_release_email' => $this->booleanInput($input['contact_release_email'] ?? false),
             'contact_release_phone' => $this->booleanInput($input['contact_release_phone'] ?? false),
-            'contact_release_maddraxikon' => $this->booleanInput($input['contact_release_maddraxikon'] ?? false),
+            'contact_release_maddraxikon' => $wantsMaddraxikonRelease,
             'contact_release_nextcloud' => $this->booleanInput($input['contact_release_nextcloud'] ?? false),
-            'maddraxikon_username' => $this->nullableString($input['maddraxikon_username'] ?? null),
             'nextcloud_username' => $this->nullableString($input['nextcloud_username'] ?? null),
         ];
 
-        $changedContactLabels = $this->changedContactLabels($contactSnapshotBefore, [
-            'email' => (string) $updates['email'],
-            'telefon' => $updates['telefon'],
-            'contact_release_email' => $updates['contact_release_email'],
-            'contact_release_phone' => $updates['contact_release_phone'],
-            'contact_release_maddraxikon' => $updates['contact_release_maddraxikon'],
-            'contact_release_nextcloud' => $updates['contact_release_nextcloud'],
-            'maddraxikon_username' => $updates['maddraxikon_username'],
-            'nextcloud_username' => $updates['nextcloud_username'],
-        ]);
+        $profilePhoto = $input['photo'] ?? null;
+        $profilePhotoDisk = null;
+        $stagedProfilePhotoPath = null;
 
-        $contactChangedAt = null;
+        if ($profilePhoto instanceof UploadedFile) {
+            $profilePhotoDisk = $user->profilePhotoStorageDisk();
+            $storedPath = $profilePhoto->storePublicly(
+                'profile-photos',
+                ['disk' => $profilePhotoDisk],
+            );
 
-        if ($changedContactLabels !== []) {
-            $contactChangedAt = now();
-            $updates['contact_released_at'] = $contactChangedAt;
+            if (! is_string($storedPath)) {
+                throw new RuntimeException('Das Profilbild konnte nicht gespeichert werden.');
+            }
+
+            $stagedProfilePhotoPath = $storedPath;
+            $baseUpdates['profile_photo_path'] = $stagedProfilePhotoPath;
         }
 
-        if ($input['email'] !== $user->email && $user instanceof MustVerifyEmail) {
-            $this->updateVerifiedUser($user, $updates);
-        } else {
-            $user->forceFill($updates)->save();
+        try {
+            $result = DB::transaction(function () use ($user, $baseUpdates, $stagedProfilePhotoPath): array {
+                $lockedUser = User::query()
+                    ->whereKey($user->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $contactSnapshotBefore = $this->contactSnapshot($lockedUser);
+                $previousProfilePhotoPath = $stagedProfilePhotoPath !== null
+                    ? $lockedUser->profile_photo_path
+                    : null;
+                $updates = $baseUpdates;
+
+                $activeLink = $lockedUser->maddraxikonAccountLink()
+                    ->active()
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $activeLink) {
+                    $updates['contact_release_maddraxikon'] = false;
+                }
+
+                $changedContactLabels = $this->changedContactLabels($contactSnapshotBefore, [
+                    'email' => (string) $updates['email'],
+                    'telefon' => $updates['telefon'],
+                    'contact_release_email' => $updates['contact_release_email'],
+                    'contact_release_phone' => $updates['contact_release_phone'],
+                    'contact_release_maddraxikon' => $updates['contact_release_maddraxikon'],
+                    'contact_release_nextcloud' => $updates['contact_release_nextcloud'],
+                    'nextcloud_username' => $updates['nextcloud_username'],
+                ]);
+
+                $contactChangedAt = null;
+
+                if ($changedContactLabels !== []) {
+                    $contactChangedAt = now();
+                    $updates['contact_released_at'] = $contactChangedAt;
+                }
+
+                $requiresEmailVerification = $updates['email'] !== $lockedUser->email
+                    && $lockedUser instanceof MustVerifyEmail;
+
+                if ($requiresEmailVerification) {
+                    $updates['email_verified_at'] = null;
+                }
+
+                $lockedUser->forceFill($updates)->save();
+
+                return [
+                    'changed_contact_labels' => $changedContactLabels,
+                    'contact_changed_at' => $contactChangedAt,
+                    'map_cache_changed' => $lockedUser->wasChanged(self::MEMBER_MAP_CACHE_FIELDS),
+                    'requires_email_verification' => $requiresEmailVerification,
+                    'previous_profile_photo_path' => $previousProfilePhotoPath,
+                ];
+            }, attempts: 3);
+        } catch (Throwable $exception) {
+            $this->deleteStoredProfilePhoto($profilePhotoDisk, $stagedProfilePhotoPath);
+
+            throw $exception;
         }
 
-        if ($user->wasChanged(self::MEMBER_MAP_CACHE_FIELDS) && ($membersTeam = Team::membersTeam())) {
+        $this->deleteStoredProfilePhoto(
+            $profilePhotoDisk,
+            $result['previous_profile_photo_path'],
+        );
+
+        $user->refresh();
+
+        if ($result['requires_email_verification']) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        if ($result['map_cache_changed'] && ($membersTeam = Team::membersTeam())) {
             $this->memberMapCacheService->invalidate($membersTeam);
         }
 
-        if ($changedContactLabels !== []) {
-            $this->notifyBoardAboutContactUpdate($user->refresh(), $changedContactLabels, $contactChangedAt);
+        if ($result['changed_contact_labels'] !== []) {
+            $this->profileContactUpdateNotifier->notify(
+                $user,
+                $result['changed_contact_labels'],
+                $result['contact_changed_at'],
+            );
         }
     }
 
-    /**
-     * Update the given verified user's profile information.
-     *
-     * @param  array<string, mixed>  $input
-     */
-    protected function updateVerifiedUser(User $user, array $input): void
+    private function deleteStoredProfilePhoto(?string $disk, ?string $path): void
     {
-        $user->forceFill(array_merge($input, [
-            'email_verified_at' => null,
-        ]))->save();
+        if ($disk === null || blank($path)) {
+            return;
+        }
 
-        $user->sendEmailVerificationNotification();
+        try {
+            Storage::disk($disk)->delete($path);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     private function booleanInput(mixed $value): bool
@@ -219,7 +284,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'contact_release_phone' => (bool) $user->contact_release_phone,
             'contact_release_maddraxikon' => (bool) $user->contact_release_maddraxikon,
             'contact_release_nextcloud' => (bool) $user->contact_release_nextcloud,
-            'maddraxikon_username' => $this->nullableString($user->maddraxikon_username),
             'nextcloud_username' => $this->nullableString($user->nextcloud_username),
         ];
     }
@@ -243,8 +307,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $changed[] = 'Telefon';
         }
 
-        if ($before['contact_release_maddraxikon'] !== $after['contact_release_maddraxikon']
-            || (($before['contact_release_maddraxikon'] || $after['contact_release_maddraxikon']) && $before['maddraxikon_username'] !== $after['maddraxikon_username'])) {
+        if ($before['contact_release_maddraxikon'] !== $after['contact_release_maddraxikon']) {
             $changed[] = 'Maddraxikon';
         }
 
@@ -254,44 +317,5 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         }
 
         return array_values(array_unique($changed));
-    }
-
-    /**
-     * @param  array<int, string>  $changedContactLabels
-     */
-    private function notifyBoardAboutContactUpdate(User $user, array $changedContactLabels, CarbonInterface $contactChangedAt): void
-    {
-        $team = Team::membersTeam();
-
-        if (! $team) {
-            Log::warning('Profil-Kontaktaktualisierung ohne Mitglieder-Team.', [
-                'user_id' => $user->id,
-            ]);
-
-            return;
-        }
-
-        $recipients = $team->activeUsers()
-            ->wherePivotIn('role', [
-                Role::Admin->value,
-                Role::Vorstand->value,
-                Role::Kassenwart->value,
-            ])
-            ->whereNotNull('users.email')
-            ->pluck('users.email')
-            ->filter()
-            ->unique()
-            ->values()
-            ->all();
-
-        if ($recipients === []) {
-            Log::warning('Profil-Kontaktaktualisierung ohne Vorstand-Empfaenger.', [
-                'user_id' => $user->id,
-            ]);
-
-            return;
-        }
-
-        Mail::to($recipients)->queue(new ProfileContactUpdated($user, $changedContactLabels, $contactChangedAt));
     }
 }
