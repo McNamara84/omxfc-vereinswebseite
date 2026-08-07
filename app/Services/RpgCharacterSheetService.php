@@ -415,11 +415,14 @@ class RpgCharacterSheetService
 
     public function validatedPdfPayload(Request $request): array
     {
+        $validCreationLevels = RpgCharEditorSpecialRules::validCreationLevels();
+        $maximumSkillPoints = max(array_column(RpgCharEditorSpecialRules::CREATION_LEVELS, 'skillPoints'));
+
         $request->validate([
-            'figurenstaerke' => 'required|integer|in:'.RpgCharEditorSpecialRules::CREATION_LEVEL,
+            'figurenstaerke' => 'required|integer|in:'.implode(',', $validCreationLevels),
             'portrait' => 'nullable|image|max:2048',
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
-            'attribute_adjustments' => 'required_if:figurenstaerke,'.RpgCharEditorSpecialRules::CREATION_LEVEL.'|array:st,ge,ro,wi,wa,in,au',
+            'attribute_adjustments' => 'required|array:st,ge,ro,wi,wa,in,au',
             'attribute_adjustments.st' => 'required|integer|min:-1|max:1',
             'attribute_adjustments.ge' => 'required|integer|min:-1|max:1',
             'attribute_adjustments.ro' => 'required|integer|min:-1|max:1',
@@ -449,7 +452,7 @@ class RpgCharacterSheetService
             'training_allocations' => 'nullable|array|max:'.RpgCharEditorTraining::MAX_ALLOCATIONS,
             'training_allocations.*.training' => 'required|string|max:100',
             'training_allocations.*.skill' => 'required|string|max:255',
-            'training_allocations.*.points' => 'required|integer|min:1|max:'.self::BASE_SKILL_POINTS,
+            'training_allocations.*.points' => 'required|integer|min:1|max:'.$maximumSkillPoints,
             'clothing' => 'required|string',
             'equipment_items' => 'required|array|max:'.RpgCharEditorEquipment::MAX_ITEMS,
             'equipment_items.*.id' => 'required|string',
@@ -459,6 +462,7 @@ class RpgCharacterSheetService
         ]);
 
         $character = $this->characterPayload($request);
+        $creationLevel = (int) $request->input('figurenstaerke');
         $this->validateCharacterPayload($character);
         $this->validateCharacterSelection($character);
         $usesCreationV2 = true;
@@ -491,6 +495,7 @@ class RpgCharacterSheetService
         if ($usesCreationV2) {
             $advantageEffects = $this->advantageEffectsPayload($request->input('advantage_effects', []));
             $creationEvaluation = (new RpgCharacterCreationEvaluator)->evaluate([
+                'creation_level' => $creationLevel,
                 'race' => $character['race'] ?? '',
                 'culture' => $character['culture'] ?? '',
                 'gender' => $character['gender'] ?? '',
@@ -547,10 +552,11 @@ class RpgCharacterSheetService
         $payload = [
             'rules' => $usesCreationV2 ? [
                 'edition' => 2007,
-                'creation_level' => RpgCharEditorSpecialRules::CREATION_LEVEL,
+                'creation_level' => $creationLevel,
                 'payload_version' => 2,
             ] : null,
             'creation' => $usesCreationV2 ? [
+                'level_rules' => $creationEvaluation['level_rules'],
                 'attribute_adjustments' => $creationEvaluation['attributes']['creation_adjustments'],
                 'attribute_race_modifiers' => $creationEvaluation['attributes']['race_modifiers'],
                 'attribute_advantage_bonuses' => $creationEvaluation['attributes']['advantage_bonuses'],
@@ -701,6 +707,11 @@ class RpgCharacterSheetService
         $canonicalAdvantageDetails = $this->canonicalSpecialMap($advantageDetails);
         $canonicalDisadvantageDetails = $this->canonicalSpecialMap($disadvantageDetails);
         $canonicalAdvantageCounts = $this->canonicalSpecialMap($advantageCounts);
+        $levelRules = is_array($creationEvaluation['level_rules'] ?? null)
+            ? $creationEvaluation['level_rules']
+            : RpgCharEditorSpecialRules::creationLevel(RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL);
+        $skillPoints = (int) $levelRules['skillPoints'];
+        $skillMax = (int) $levelRules['skillMax'];
 
         $this->validateSpecialLists($canonicalAdvantages, $canonicalDisadvantages);
         $this->validateAdvantageCounts($canonicalAdvantages, $canonicalAdvantageCounts);
@@ -720,7 +731,7 @@ class RpgCharacterSheetService
                 'skills' => 'Natürliche Waffen ist keine eigene Fertigkeit; Angriffe verwenden Nahkampf mit ST oder GE.',
             ]);
         }
-        $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages, $skillPools, $cultureChoices);
+        $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages, $skillPools, $cultureChoices, $skillPoints, $skillMax);
         $this->validateTrainingRules(
             $race,
             $culture,
@@ -730,6 +741,8 @@ class RpgCharacterSheetService
             $cultureChoices,
             $trainings,
             $trainingAllocations,
+            $skillPoints,
+            $skillMax,
         );
         $this->validateRaceRequirements(
             $race,
@@ -763,11 +776,19 @@ class RpgCharacterSheetService
         }
     }
 
-    private function validateSkillRules(string $race, string $culture, array $skills, array $advantages, array $skillPools = [], array $cultureChoices = []): void
-    {
+    private function validateSkillRules(
+        string $race,
+        string $culture,
+        array $skills,
+        array $advantages,
+        array $skillPools = [],
+        array $cultureChoices = [],
+        int $skillPoints = self::BASE_SKILL_POINTS,
+        int $skillMax = self::SKILL_BASE_MAX,
+    ): void {
         $seen = [];
         $this->validateCultureChoiceInputs($culture, $cultureChoices);
-        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices);
+        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices, $skillMax);
 
         foreach ($skills as $skill) {
             $name = (string) ($skill['name'] ?? '');
@@ -794,10 +815,12 @@ class RpgCharacterSheetService
             }
 
             $skillValue = (int) $value;
+            $grantValue = $this->skillGrantValue($grants, $name) ?? self::SKILL_BASE_MIN;
+            $maximumFinalValue = max($skillMax, $grantValue);
 
-            if ($skillValue < self::SKILL_BASE_MIN || $skillValue > self::SKILL_BASE_MAX) {
+            if ($skillValue < self::SKILL_BASE_MIN || $skillValue > $maximumFinalValue) {
                 throw ValidationException::withMessages([
-                    'skills' => "Der Fertigkeitswert für {$name} muss im Bereich von ".self::SKILL_BASE_MIN.' bis '.self::SKILL_BASE_MAX.' liegen.',
+                    'skills' => "Der Fertigkeitswert für {$name} muss im Bereich von ".self::SKILL_BASE_MIN." bis {$maximumFinalValue} liegen.",
                 ]);
             }
 
@@ -820,15 +843,25 @@ class RpgCharacterSheetService
             ]);
         }
 
-        if ($this->skillPointsUsed($skills, $grants) > self::BASE_SKILL_POINTS) {
+        if ($this->skillPointsUsed($skills, $grants) > $skillPoints) {
             throw ValidationException::withMessages([
                 'skills' => 'Die gewählten Fertigkeiten überschreiten die verfügbaren Fertigkeitspunkte.',
             ]);
         }
     }
 
-    private function validateTrainingRules(string $race, string $culture, array $skills, array $advantages, array $skillPools, array $cultureChoices, array $trainings, array $allocations): void
-    {
+    private function validateTrainingRules(
+        string $race,
+        string $culture,
+        array $skills,
+        array $advantages,
+        array $skillPools,
+        array $cultureChoices,
+        array $trainings,
+        array $allocations,
+        int $skillPoints = self::BASE_SKILL_POINTS,
+        int $skillMax = self::SKILL_BASE_MAX,
+    ): void {
         $definitions = RpgCharEditorTraining::map();
         $seenTrainings = [];
         $totalTrainingCost = 0;
@@ -858,7 +891,7 @@ class RpgCharacterSheetService
             }
         }
 
-        if ($totalTrainingCost > self::BASE_SKILL_POINTS) {
+        if ($totalTrainingCost > $skillPoints) {
             throw ValidationException::withMessages([
                 'trainings' => 'Die gewählten Ausbildungen kosten mehr Fertigkeitspunkte als verfügbar sind.',
             ]);
@@ -924,7 +957,7 @@ class RpgCharacterSheetService
             ]);
         }
 
-        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices);
+        $grants = $this->freeSkillGrants($race, $culture, $skills, $skillPools, $cultureChoices, $skillMax);
 
         foreach ($claimedPaidPoints as $skillName => $claimedPoints) {
             $finalValue = $this->exactSkillValue($skills, $skillName);
@@ -936,7 +969,7 @@ class RpgCharacterSheetService
                 ]);
             }
 
-            if ($grantValue + $claimedPoints > self::SKILL_BASE_MAX) {
+            if ($claimedPoints > max($skillMax - $grantValue, 0)) {
                 throw ValidationException::withMessages([
                     'training_allocations' => "Die Ausbildungspunkte für {$skillName} überschreiten den erlaubten Fertigkeitswert; verteile die überschüssigen Punkte anderweitig.",
                 ]);
@@ -965,21 +998,33 @@ class RpgCharacterSheetService
             && (bool) (self::SKILL_RULES[$baseName]['specializable'] ?? false);
     }
 
-    private function freeSkillGrants(string $race, string $culture, array $skills, array $skillPools = [], array $cultureChoices = []): array
-    {
-        $grants = [];
-        $raceSkillPool = $this->skillPoolForRace($race, $skills, $skillPools);
+    private function freeSkillGrants(
+        string $race,
+        string $culture,
+        array $skills,
+        array $skillPools = [],
+        array $cultureChoices = [],
+        int $skillMax = self::SKILL_BASE_MAX,
+    ): array {
+        $raceGrants = [];
+        $cultureGrants = [];
+        $raceSkillPool = $this->skillPoolForRace($race, $skills, $skillPools, $skillMax);
 
-        $this->validateRaceSkillPool($race, $skills, $raceSkillPool);
-        $this->addRequirementSkillGrants($grants, $this->raceRequirements($race), $skills);
-        $this->addSkillPoolGrants($grants, $raceSkillPool);
-        $this->addRequirementSkillGrants($grants, $this->cultureRequirementsForGrants($culture, $cultureChoices), $skills);
-        $this->addCultureChoiceSkillGrants($grants, $culture, $cultureChoices);
+        $this->validateRaceSkillPool($race, $skills, $raceSkillPool, $skillMax);
+        $this->addRequirementSkillGrants($raceGrants, $this->raceRequirements($race), $skills);
+        $this->addSkillPoolGrants($raceGrants, $raceSkillPool);
+        $this->addRequirementSkillGrants($cultureGrants, $this->cultureRequirementsForGrants($culture, $cultureChoices), $skills);
+        $this->addCultureChoiceSkillGrants($cultureGrants, $culture, $cultureChoices);
+
+        $grants = $raceGrants;
+        foreach ($cultureGrants as $skillName => $value) {
+            $grants[$skillName] = ($grants[$skillName] ?? self::SKILL_BASE_MIN) + $value;
+        }
 
         return $grants;
     }
 
-    private function skillPoolForRace(string $race, array $skills, array $skillPools): array
+    private function skillPoolForRace(string $race, array $skills, array $skillPools, int $skillMax = self::SKILL_BASE_MAX): array
     {
         return match ($race) {
             'Techno' => $this->normalizedSkillPool(
@@ -987,21 +1032,23 @@ class RpgCharacterSheetService
                 self::TECHNO_SKILL_POOL_VALUES,
                 self::TECHNO_SKILL_POOL_POINTS,
                 $skills,
+                $skillMax,
             ),
             'Präkristofluu' => $this->normalizedSkillPool(
                 $skillPools['praekristofluu'] ?? [],
                 self::PRAEKRISTOFLUU_SKILL_POOL_VALUES,
                 self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
                 $skills,
+                $skillMax,
             ),
             default => [],
         };
     }
 
-    private function normalizedSkillPool(array $submittedPool, array $skillNames, int $poolPoints, array $skills): array
+    private function normalizedSkillPool(array $submittedPool, array $skillNames, int $poolPoints, array $skills, int $skillMax = self::SKILL_BASE_MAX): array
     {
         if ($submittedPool === []) {
-            return $this->inferSkillPoolFromSkills($skills, $skillNames, $poolPoints);
+            return $this->inferSkillPoolFromSkills($skills, $skillNames, $poolPoints, $skillMax);
         }
 
         $pool = [];
@@ -1013,7 +1060,7 @@ class RpgCharacterSheetService
         return $pool;
     }
 
-    private function inferSkillPoolFromSkills(array $skills, array $skillNames, int $poolPoints): array
+    private function inferSkillPoolFromSkills(array $skills, array $skillNames, int $poolPoints, int $skillMax = self::SKILL_BASE_MAX): array
     {
         $pool = array_fill_keys($skillNames, 0);
         $remaining = $poolPoints;
@@ -1023,7 +1070,7 @@ class RpgCharacterSheetService
                 break;
             }
 
-            $skillValue = min(max($this->skillValue($skills, $skillName), 0), self::SKILL_BASE_MAX);
+            $skillValue = min(max($this->skillValue($skills, $skillName), 0), $skillMax);
             $grantValue = min($skillValue, $remaining);
             $pool[$skillName] = $grantValue;
             $remaining -= $grantValue;
@@ -1032,7 +1079,7 @@ class RpgCharacterSheetService
         return $pool;
     }
 
-    private function validateRaceSkillPool(string $race, array $skills, array $skillPool): void
+    private function validateRaceSkillPool(string $race, array $skills, array $skillPool, int $skillMax = self::SKILL_BASE_MAX): void
     {
         $expectedPoolPoints = match ($race) {
             'Techno' => self::TECHNO_SKILL_POOL_POINTS,
@@ -1053,9 +1100,9 @@ class RpgCharacterSheetService
                 ]);
             }
 
-            if ($value < self::SKILL_BASE_MIN || $value > self::SKILL_BASE_MAX) {
+            if ($value < self::SKILL_BASE_MIN || $value > $skillMax) {
                 throw ValidationException::withMessages([
-                    'skills' => "Die Rassenpunkte für {$skillName} müssen im Bereich von ".self::SKILL_BASE_MIN.' bis '.self::SKILL_BASE_MAX.' liegen.',
+                    'skills' => "Die Rassenpunkte für {$skillName} müssen im Bereich von ".self::SKILL_BASE_MIN." bis {$skillMax} liegen.",
                 ]);
             }
 
@@ -1131,7 +1178,7 @@ class RpgCharacterSheetService
     private function setAdditiveChoiceGrant(array &$grants, string $skillName): void
     {
         $currentGrant = $this->skillGrantValue($grants, $skillName) ?? self::SKILL_BASE_MIN;
-        $this->setSkillGrant($grants, $skillName, min(self::SKILL_BASE_MAX, $currentGrant + 1));
+        $this->setSkillGrant($grants, $skillName, $currentGrant + 1);
     }
 
     private function selectedCultureChoice(array $cultureChoices, string $key, array $allowedSkills): ?string
@@ -2048,7 +2095,9 @@ class RpgCharacterSheetService
             $parts = array_values(array_filter([
                 (string) ($effect['target'] ?? ''),
                 (string) ($effect['justification'] ?? ''),
-            ], static fn (string $part): bool => $part !== '' && $part !== 'Rasse' && $part !== 'Figurenstärke 3'));
+            ], static fn (string $part): bool => $part !== ''
+                && $part !== 'Rasse'
+                && ! preg_match('/^Figurenstärke [1-5]$/u', $part)));
             if ($parts !== []) {
                 $details[$name] = implode(' – ', $parts);
             }

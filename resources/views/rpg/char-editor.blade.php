@@ -11,6 +11,7 @@
         'gender',
         'race',
         'culture',
+        'figurenstaerke',
         'description',
         'portrait_data_url',
         'attributes',
@@ -94,7 +95,6 @@
                 <input type="hidden" name="culture" :value="culture" x-bind:disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" x-bind:disabled="!shouldSubmitPortraitPreview()">
 
-                <input type="hidden" name="figurenstaerke" value="3">
                 <input type="hidden" name="barbar_attribute_bonus" :value="barbarAttributeBonus || ''" x-bind:disabled="race !== 'Barbar' || !advancedUnlocked">
                 <input type="hidden" name="extra_ap_attribute" :value="extraApAttribute" x-bind:disabled="!extraApAttribute || !advancedUnlocked">
                 @foreach($attributeRules as $attribute)
@@ -187,6 +187,26 @@
                                         <option value="Untergrundbewohner" x-bind:disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
                                         <option value="Volk der 13 Inseln" x-bind:disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
                                     </select>
+                                </div>
+
+                                <div>
+                                    <label for="figurenstaerke" class="block text-sm font-medium text-base-content mb-1">Figurenstärke</label>
+                                    <select
+                                        name="figurenstaerke"
+                                        id="figurenstaerke"
+                                        class="select select-bordered w-full"
+                                        x-model.number="creationLevel"
+                                        x-init="$nextTick(() => initializeCreationLevelSelect($el))"
+                                        data-testid="creation-level-select"
+                                    >
+                                        @foreach(($specialRules['creation']['levels'] ?? []) as $creationLevelRule)
+                                            <option
+                                                value="{{ $creationLevelRule['level'] }}"
+                                                @selected($creationLevelRule['level'] === ($specialRules['creation']['defaultLevel'] ?? 3))
+                                            >Stufe {{ $creationLevelRule['level'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p class="mt-1 text-xs text-base-content/65" x-text="base.AP + ' AP · ' + base.FP + ' FP · maximal FW ' + base.maxFW + ' · ' + base.freeAdvantages + ' freie Vorteilswerte'"></p>
                                 </div>
 
                                 <div class="sm:col-span-2">
@@ -347,7 +367,7 @@
                         <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2" data-testid="attribute-trade-controls">
                             <div class="rounded-md border border-base-300 bg-base-200/40 p-3">
                                 <label for="extra-ap-attribute" class="text-sm font-medium text-base-content">Zusätzlichen AP erwerben</label>
-                                <p class="mt-1 text-xs leading-5 text-base-content/70">Senkt genau ein Attribut freiwillig um 1 und erhöht das AP-Budget von 2 auf 3.</p>
+                                <p class="mt-1 text-xs leading-5 text-base-content/70" x-text="'Senkt genau ein Attribut freiwillig um 1 und erhöht das AP-Budget von ' + base.AP + ' auf ' + (base.AP + 1) + '.'"></p>
                                 <select id="extra-ap-attribute" class="select select-bordered select-sm mt-2 w-full" :value="extraApAttribute" @change="setExtraApAttribute($event.target.value)">
                                     <option value="">Kein zusätzlicher AP</option>
                                     <template x-for="attributeOption in attributeOptions" :key="'extra-ap-option-' + attributeOption.id">
@@ -615,7 +635,7 @@
                         </div>
 
                         <p class="mb-4 text-sm leading-6 text-base-content/75">
-                            Ausbildungen verteilen einen Teil der regulären 20 Fertigkeitspunkte auf passende Fertigkeiten. Sie gewähren keine zusätzlichen FP.
+                            Ausbildungen verteilen einen Teil der regulären <span x-text="base.FP"></span> Fertigkeitspunkte auf passende Fertigkeiten. Sie gewähren keine zusätzlichen FP.
                         </p>
 
                         <div class="grid grid-cols-1 gap-3 md:grid-cols-2" role="group" aria-label="Ausbildungen wählen">
@@ -716,7 +736,7 @@
                             <span class="badge" :class="missingAdvantageCompensations() === 0 ? 'badge-success badge-outline' : 'badge-warning badge-outline'" aria-live="polite" x-text="'Vorteilswerte ' + chosenAdvantagesCount() + ' / ' + advantageUnitLimit() + ' · Ausgleich ' + availableAdvantageCompensations() + ' / ' + extraAdvantageUnits()"></span>
                         </div>
                         <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="advantage-budget-summary">
-                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong>1 frei</strong><span class="block text-xs text-base-content/65">auf Figurenstärke 3</span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="base.freeAdvantages + ' frei'"></strong><span class="block text-xs text-base-content/65" x-text="'auf Figurenstärke ' + creationLevel"></span></div>
                             <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="extraAdvantageUnits() + ' zusätzlich'"></strong><span class="block text-xs text-base-content/65">maximal 2</span></div>
                             <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="missingAdvantageCompensations() === 0 ? 'Ausgeglichen' : missingAdvantageCompensations() + ' offen'"></strong><span class="block text-xs text-base-content/65">freiwillige Nachteile oder Senkungen</span></div>
                         </div>
@@ -818,7 +838,7 @@
                             <div>
                                 <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                                     <h3 id="disadvantages-heading" class="text-sm font-medium text-base-content">Nachteile</h3>
-                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Frei gewählt: ' + voluntaryDisadvantages().length + ' · rassengegeben: ' + (raceLocked.disadvantages.length - negatedRacialDisadvantages.length)"></p>
+                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Frei gewählt: ' + voluntaryDisadvantages().length + ' · automatisch: ' + automaticDisadvantages().length + ' · rassengegeben: ' + (raceLocked.disadvantages.length - negatedRacialDisadvantages.length)"></p>
                                 </div>
 
                                 <template x-for="lockedDisadvantage in selectedLockedDisadvantages()" :key="'locked-disadvantage-' + lockedDisadvantage">

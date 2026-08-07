@@ -261,6 +261,29 @@ const numericCreationRule = (key, fallback) => {
     const parsed = Number(creationRuleConfig()[key]);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
+const creationLevelRules = () => {
+    const configured = creationRuleConfig().levels;
+    if (Array.isArray(configured) && configured.length) return configured;
+
+    return [{
+        level: numericCreationRule('level', 3),
+        attributePoints: numericCreationRule('baseAttributePoints', 2),
+        skillPoints: 20,
+        skillMax: 4,
+        freeAdvantageUnits: numericCreationRule('freeAdvantageUnits', 1),
+        automaticAdvantages: ['Zäh'],
+        automaticDisadvantages: [],
+    }];
+};
+const defaultCreationLevel = () => {
+    const parsed = Number(creationRuleConfig().defaultLevel ?? creationRuleConfig().level);
+
+    return Number.isFinite(parsed) ? parsed : 3;
+};
+const creationLevelRule = (level = defaultCreationLevel()) => creationLevelRules()
+    .find(rule => Number(rule.level) === Number(level))
+    || creationLevelRules().find(rule => Number(rule.level) === defaultCreationLevel())
+    || creationLevelRules()[0];
 
 const numericRuleCost = (value) => {
     const parsed = Number(value);
@@ -629,11 +652,13 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipmentCategoryFilter: 'all',
 
     // Game constants
+    creationLevel: defaultCreationLevel(),
+    initialCreationLevel: defaultCreationLevel(),
     base: {
-        AP: numericCreationRule('baseAttributePoints', attributeCreationPoints()),
-        FP: skillCreationPoints(),
-        maxFW: skillMaxValue(),
-        freeAdvantages: numericCreationRule('freeAdvantageUnits', 1),
+        AP: Number(creationLevelRule()?.attributePoints ?? attributeCreationPoints()),
+        FP: Number(creationLevelRule()?.skillPoints ?? skillCreationPoints()),
+        maxFW: Number(creationLevelRule()?.skillMax ?? skillMaxValue()),
+        freeAdvantages: Number(creationLevelRule()?.freeAdvantageUnits ?? 1),
         maxExtraAdvantages: numericCreationRule('maxExtraAdvantageUnits', 2),
         maxExtraAP: numericCreationRule('maxExtraAttributePoints', 1),
     },
@@ -674,8 +699,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     selectedTrainings: [],
     trainingAllocations: {},
     trainingSkillTargets: {},
-    selectedAdvantages: ['Zäh'],
-    selectedDisadvantages: [],
+    selectedAdvantages: [...(creationLevelRule()?.automaticAdvantages || [])],
+    selectedDisadvantages: [...(creationLevelRule()?.automaticDisadvantages || [])],
+    levelLocked: {
+        advantages: [...(creationLevelRule()?.automaticAdvantages || [])],
+        disadvantages: [...(creationLevelRule()?.automaticDisadvantages || [])],
+    },
+    levelAutoSelectedAdvantages: [...(creationLevelRule()?.automaticAdvantages || [])],
+    levelAutoSelectedDisadvantages: [...(creationLevelRule()?.automaticDisadvantages || [])],
     raceLocked: { advantages: [], disadvantages: [] },
     raceAutoSelectedAdvantages: [],
     cultureLocked: { advantages: [], disadvantages: [] },
@@ -697,7 +728,70 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     purchaseSlotIfNeeded: false,
     characterSlotSummary: typeof window === 'undefined' ? null : (window.rpgCharacterSlots || null),
     basicsFilled() {
-        return Boolean(this.playerName.trim() && this.characterName.trim() && this.gender && this.race && this.culture);
+        return Boolean(this.playerName.trim()
+            && this.characterName.trim()
+            && this.gender
+            && this.race
+            && this.culture
+            && creationLevelRules().some(rule => Number(rule.level) === Number(this.creationLevel)));
+    },
+
+    creationLevelOptions() {
+        return creationLevelRules();
+    },
+
+    currentCreationLevelRule() {
+        return creationLevelRule(this.creationLevel);
+    },
+
+    initializeCreationLevelSelect(element) {
+        this.creationLevel = this.initialCreationLevel;
+        this.handleCreationLevelChange();
+        if (element) element.value = String(this.creationLevel);
+    },
+
+    handleCreationLevelChange() {
+        const rule = this.currentCreationLevelRule();
+        if (!rule) return;
+
+        this.creationLevel = Number(rule.level);
+        this.base.AP = Number(rule.attributePoints);
+        this.base.FP = Number(rule.skillPoints);
+        this.base.maxFW = Number(rule.skillMax);
+        this.base.freeAdvantages = Number(rule.freeAdvantageUnits);
+        this.syncLevelAutomaticSelections(
+            Array.isArray(rule.automaticAdvantages) ? rule.automaticAdvantages : [],
+            Array.isArray(rule.automaticDisadvantages) ? rule.automaticDisadvantages : [],
+        );
+    },
+
+    syncLevelAutomaticSelections(advantages, disadvantages) {
+        const previousAdvantages = [...this.levelAutoSelectedAdvantages];
+        const previousDisadvantages = [...this.levelAutoSelectedDisadvantages];
+        const nextAdvantages = [...new Set(advantages)];
+        const nextDisadvantages = [...new Set(disadvantages)];
+
+        this.selectedAdvantages = this.selectedAdvantages.filter(value => (
+            !previousAdvantages.includes(value) || nextAdvantages.includes(value)
+        ));
+        const newlySelectedAdvantages = nextAdvantages.filter(value => !this.selectedAdvantages.includes(value));
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, ...newlySelectedAdvantages])];
+
+        this.selectedDisadvantages = this.selectedDisadvantages.filter(value => (
+            !previousDisadvantages.includes(value) || nextDisadvantages.includes(value)
+        ));
+        const newlySelectedDisadvantages = nextDisadvantages.filter(value => !this.selectedDisadvantages.includes(value));
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, ...newlySelectedDisadvantages])];
+
+        this.levelLocked = { advantages: nextAdvantages, disadvantages: nextDisadvantages };
+        this.levelAutoSelectedAdvantages = [
+            ...previousAdvantages.filter(value => nextAdvantages.includes(value) && this.selectedAdvantages.includes(value)),
+            ...newlySelectedAdvantages,
+        ];
+        this.levelAutoSelectedDisadvantages = [
+            ...previousDisadvantages.filter(value => nextDisadvantages.includes(value) && this.selectedDisadvantages.includes(value)),
+            ...newlySelectedDisadvantages,
+        ];
     },
 
     attributeBaseMin() {
@@ -832,11 +926,15 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     lockedAdvantages() {
-        return [...new Set([...this.raceLocked.advantages, ...this.cultureLocked.advantages])];
+        return [...new Set([...this.levelLocked.advantages, ...this.raceLocked.advantages, ...this.cultureLocked.advantages])];
     },
 
     automaticAdvantages() {
-        return [...new Set(['Zäh', ...this.raceLocked.advantages])];
+        return [...new Set([...this.levelLocked.advantages, ...this.raceLocked.advantages])];
+    },
+
+    automaticDisadvantages() {
+        return [...new Set(this.levelLocked.disadvantages)];
     },
 
     advantageRule(value) {
@@ -1373,6 +1471,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             issues.push(`Fertigkeiten: ${Math.abs(this.fpRemaining())} Punkt${Math.abs(this.fpRemaining()) === 1 ? '' : 'e'} ${this.fpRemaining() > 0 ? 'offen' : 'zu viel'}`);
         }
 
+        if (!this.skillsWithinLevelLimit()) {
+            issues.push(`Fertigkeiten: Höchstwert der Figurenstärke ${this.creationLevel} überschritten`);
+        }
+
         if (!this.trainingRulesComplete()) {
             issues.push('Ausbildungen: Punkteverteilung oder Voraussetzung unvollständig');
         }
@@ -1430,13 +1532,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     advantageLockLabel(value) {
-        if (value === 'Zäh') return 'Pflicht';
+        if (this.levelLocked.advantages.includes(value)) return 'Figurenstärke';
         if (this.raceLocked.advantages.includes(value)) return 'Rasse';
         if (this.cultureLocked.advantages.includes(value)) return 'Kultur';
         return '';
     },
 
     disadvantageLockLabel(value) {
+        if (this.levelLocked.disadvantages.includes(value)) return 'Figurenstärke';
         return this.raceLocked.disadvantages.includes(value) ? 'Pflicht' : '';
     },
 
@@ -1453,7 +1556,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     advantageCost(value) {
-        if (!value || value === 'Zäh' || this.raceLocked.advantages.includes(value)) return 0;
+        if (!value || this.automaticAdvantages().includes(value)) return 0;
 
         const rule = this.advantageRule(value);
         const baseCost = rule?.cost ?? 1;
@@ -1478,7 +1581,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     voluntaryDisadvantages() {
-        return this.selectedDisadvantages.filter(value => !this.raceLocked.disadvantages.includes(value));
+        return this.selectedDisadvantages.filter(value => !this.raceLocked.disadvantages.includes(value)
+            && !this.automaticDisadvantages().includes(value));
     },
 
     availableAdvantageCompensations() {
@@ -1620,7 +1724,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     disadvantageRequiresDetail(value) {
         const rule = this.disadvantageRule(value);
-        return this.isDisadvantageSelected(value) && Boolean(rule?.requiresDetail) && !this.raceLocked.disadvantages.includes(value);
+        return this.isDisadvantageSelected(value) && Boolean(rule?.requiresDetail) && !this.isDisadvantageDisabled(value);
     },
 
     advantageDetailPlaceholder(value) {
@@ -1641,6 +1745,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     formValid() {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
+            && this.skillsWithinLevelLimit()
             && this.trainingRulesComplete()
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
@@ -1795,6 +1900,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     hydrateFromOldInput(oldInput = editorOldInput()) {
         if (!oldInput) return false;
 
+        this.initialCreationLevel = oldInteger(oldInput.figurenstaerke, defaultCreationLevel());
+        this.creationLevel = this.initialCreationLevel;
+        this.handleCreationLevelChange();
         this.playerName = oldString(oldInput.player_name);
         this.characterName = oldString(oldInput.character_name);
         this.gender = oldString(oldInput.gender);
@@ -1936,7 +2044,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
 
         if (disadvantages.length) {
-            const lockedDisadvantages = this.selectedDisadvantages.filter(value => this.raceLocked.disadvantages.includes(value));
+            const lockedDisadvantages = this.selectedDisadvantages.filter(value => this.isDisadvantageDisabled(value));
             this.selectedDisadvantages = [...new Set([...lockedDisadvantages, ...disadvantages])];
         }
 
@@ -2044,7 +2152,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Methods ---
     init() {
+        this.handleCreationLevelChange();
         this.hydrateFromOldInput();
+        this.$watch('creationLevel', () => this.handleCreationLevelChange());
         this.$watch('race', () => this.handleRaceChange());
         this.$watch('culture', () => this.handleCultureChange());
         this.$watch('gender', () => this.handleGenderChange());
@@ -2243,7 +2353,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         return {
             type: grants.some(grant => grant.type === 'exact') ? 'exact' : 'min',
-            value: Math.max(...grants.map(grant => grant.value)),
+            value: grants.reduce((sum, grant) => sum + Number(grant.value || 0), 0),
         };
     },
 
@@ -2255,7 +2365,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     getSkillMax(name) {
         const grant = this.getGrant(name);
         if (grant && grant.type === 'exact') return grant.value;
-        return this.base.maxFW;
+        return Math.max(this.base.maxFW, grant?.value || 0);
+    },
+
+    skillsWithinLevelLimit() {
+        return this.skills.every(skill => Number(skill.value) <= this.getSkillMax(skill.name));
     },
 
     isSkillDisabled(skill) {
@@ -2323,7 +2437,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     technoSkillPoolComplete() {
-        return this.race !== 'Techno' || this.technoPoolUsed() === this.technoSkillPoolPoints;
+        return this.race !== 'Techno' || (
+            this.technoPoolUsed() === this.technoSkillPoolPoints
+            && TECHNO_SKILLS.every(name => Number(this.technoSkillPoints[name] || 0) <= this.base.maxFW)
+        );
     },
 
     setTechnoSkillPoints(skillName, value) {
@@ -2367,7 +2484,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     praekristofluuSkillPoolComplete() {
-        return this.race !== PRAEKRISTOFLUU_RACE || this.praekristofluuPoolUsed() === this.praekristofluuSkillPoolPoints;
+        return this.race !== PRAEKRISTOFLUU_RACE || (
+            this.praekristofluuPoolUsed() === this.praekristofluuSkillPoolPoints
+            && PRAEKRISTOFLUU_SKILLS.every(name => Number(this.praekristofluuSkillPoints[name] || 0) <= this.base.maxFW)
+        );
     },
 
     setPraekristofluuSkillPoints(skillName, value) {
@@ -2850,9 +2970,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     refreshBunkermenschBonusGrant() {
         if (this.culture !== 'Bunkermensch' || !this.bunkermenschBonusSkill) return;
 
-        const raceValue = Number(this.technoSkillPoints[this.bunkermenschBonusSkill]) || 0;
-        const value = Math.min(this.base.maxFW, raceValue + 1);
-        this.cultureGrants[this.bunkermenschBonusSkill] = { type: 'min', value };
+        this.cultureGrants[this.bunkermenschBonusSkill] = { type: 'min', value: 1 };
         const skill = this.ensureSkill(this.bunkermenschBonusSkill);
         this.applyGrantToSkill(skill);
     },
@@ -2905,11 +3023,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     refreshMensch21BonusGrant(skillName) {
         if (this.culture !== MENSCH_21_CULTURE || !MENSCH_21_BONUS_SKILLS.includes(skillName)) return;
 
-        const raceValue = this.race === PRAEKRISTOFLUU_RACE
-            ? (Number(this.praekristofluuSkillPoints[skillName]) || 0)
-            : 0;
-        const value = Math.min(this.base.maxFW, raceValue + 1);
-        this.cultureGrants[skillName] = { type: 'min', value };
+        this.cultureGrants[skillName] = { type: 'min', value: 1 };
         const skill = this.ensureSkill(skillName);
         this.applyGrantToSkill(skill);
     },
@@ -2957,23 +3071,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Advantages / disadvantages ---
     enforceAdvantageLimit() {
-        const max = this.advantageUnitLimit();
         const lockedAdvantages = this.lockedAdvantages();
-        const locked = this.selectedAdvantages.filter(value => lockedAdvantages.includes(value));
-        const chosen = this.selectedAdvantages.filter(value => value !== 'Zäh' && !lockedAdvantages.includes(value));
-        const kept = [];
-        let used = this.negatedRacialDisadvantages.length
-            + locked.reduce((sum, value) => sum + this.advantageCost(value), 0);
-
-        chosen.forEach((value) => {
-            const cost = this.advantageCost(value);
-            if (used + cost <= max) {
-                kept.push(value);
-                used += cost;
-            }
-        });
-
-        const nextSelectedAdvantages = [...new Set(['Zäh', ...locked, ...kept])];
+        const nextSelectedAdvantages = [...new Set([...this.selectedAdvantages, ...lockedAdvantages])];
         const changed = nextSelectedAdvantages.length !== this.selectedAdvantages.length
             || nextSelectedAdvantages.some((value, index) => value !== this.selectedAdvantages[index]);
 
@@ -2981,7 +3080,6 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             this.selectedAdvantages = nextSelectedAdvantages;
         }
 
-        this.clampRepeatableAdvantageCounts();
         this.synchronizeAdvantageEffects();
     },
 
@@ -3021,7 +3119,6 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     isAdvantageDisabled(value) {
-        if (value === 'Zäh') return true;
         if (this.lockedAdvantages().includes(value)) return true;
         if (this.selectedAdvantages.includes(value)) return false;
 
@@ -3031,7 +3128,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     isDisadvantageDisabled(value) {
-        return this.raceLocked.disadvantages.includes(value);
+        return this.levelLocked.disadvantages.includes(value) || this.raceLocked.disadvantages.includes(value);
     },
 
     rollD6() {
@@ -3079,7 +3176,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyRolledAdvantage(rule) {
-        if (this.lockedAdvantages().includes(rule.name) || rule.name === 'Zäh') return false;
+        if (this.lockedAdvantages().includes(rule.name)) return false;
 
         if (rule.repeatable && this.selectedAdvantages.includes(rule.name)) {
             const previous = this.advantageCount(rule.name);

@@ -228,9 +228,9 @@ class RpgCharacterCreationV2Test extends TestCase
         $this->assertSame('Telepathie', collect($data['advantage_effects'])->firstWhere('name', 'Psychische Kraft')['target']);
     }
 
-    public function test_v2_requires_creation_level_three_and_all_seven_adjustments(): void
+    public function test_v2_accepts_creation_levels_one_to_five_and_requires_all_seven_adjustments(): void
     {
-        foreach ([null, 1, 4] as $level) {
+        foreach ([null, 0, 6] as $level) {
             $payload = $this->payload();
             if ($level === null) {
                 unset($payload['figurenstaerke']);
@@ -246,6 +246,29 @@ class RpgCharacterCreationV2Test extends TestCase
             }
         }
 
+        $levelPayloads = [
+            1 => [
+                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'advantages' => [],
+            ],
+            2 => [
+                'attribute_adjustments' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attributes' => ['st' => 2, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'advantages' => [],
+            ],
+            3 => [],
+            4 => [],
+            5 => [],
+        ];
+
+        foreach ($levelPayloads as $level => $overrides) {
+            $data = $this->validate($this->payload(['figurenstaerke' => $level, ...$overrides]));
+
+            $this->assertSame($level, $data['rules']['creation_level']);
+            $this->assertSame($level, $data['creation']['level_rules']['level']);
+        }
+
         $payload = $this->payload();
         unset($payload['attribute_adjustments']['au']);
 
@@ -255,6 +278,127 @@ class RpgCharacterCreationV2Test extends TestCase
         } catch (ValidationException $exception) {
             $this->assertArrayHasKey('attribute_adjustments.au', $exception->errors());
         }
+    }
+
+    public function test_v2_applies_level_dependent_skill_caps_and_point_budgets(): void
+    {
+        $levelOneBase = [
+            'figurenstaerke' => 1,
+            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            'advantages' => [],
+        ];
+
+        try {
+            $this->validate($this->payload($levelOneBase + [
+                'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 4]],
+            ]));
+            $this->fail('Ein FW über dem Maximum von Figurenstärke 1 wurde akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('skills', $exception->errors());
+        }
+
+        try {
+            $this->validate($this->payload($levelOneBase + [
+                'skills' => [
+                    ...$this->payload()['skills'],
+                    ['name' => 'Handeln', 'value' => 3],
+                    ['name' => 'Fahren', 'value' => 3],
+                    ['name' => 'Feuerwaffen', 'value' => 3],
+                    ['name' => 'Heiler', 'value' => 2],
+                ],
+            ]));
+            $this->fail('Mehr als 10 FP auf Figurenstärke 1 wurden akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('skills', $exception->errors());
+        }
+
+        $levelFour = $this->validate($this->payload([
+            'figurenstaerke' => 4,
+            'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 5]],
+        ]));
+        $levelFive = $this->validate($this->payload([
+            'figurenstaerke' => 5,
+            'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 6]],
+        ]));
+
+        $this->assertSame('5', collect($levelFour['skills'])->firstWhere('name', 'Handeln')['value']);
+        $this->assertSame('6', collect($levelFive['skills'])->firstWhere('name', 'Handeln')['value']);
+    }
+
+    public function test_v2_applies_level_dependent_training_budgets(): void
+    {
+        $trainings = ['Arbeiter', 'Arzt (Heilkundiger)', 'Krieger'];
+
+        try {
+            $this->validate($this->payload([
+                'figurenstaerke' => 1,
+                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'advantages' => [],
+                'trainings' => $trainings,
+            ]));
+            $this->fail('Ausbildungen für 15 FP wurden auf Figurenstärke 1 akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('trainings', $exception->errors());
+        }
+
+        try {
+            $this->validate($this->payload([
+                'figurenstaerke' => 4,
+                'trainings' => $trainings,
+            ]));
+            $this->fail('Ausbildungen ohne Punkteverteilung wurden akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('training_allocations', $exception->errors());
+            $this->assertArrayNotHasKey('trainings', $exception->errors());
+        }
+    }
+
+    public function test_v2_allows_additive_race_and_culture_grants_above_the_purchased_skill_cap(): void
+    {
+        $data = $this->validate($this->payload([
+            'figurenstaerke' => 1,
+            'race' => 'Techno',
+            'culture' => 'Bunkermensch',
+            'barbar_attribute_bonus' => '',
+            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            'attributes' => ['st' => -1, 'ge' => 0, 'ro' => -1, 'wi' => 0, 'wa' => 0, 'in' => 1, 'au' => 0],
+            'techno_skill_points' => [
+                'Fahren' => 2,
+                'Feuerwaffen' => 2,
+                'Heiler' => 2,
+                'Pilot' => 2,
+                'Techniker' => 2,
+                'Wissenschaftler' => 2,
+            ],
+            'bunkermensch_bonus_skill' => 'Feuerwaffen',
+            'skills' => [
+                ['name' => 'Bildung', 'value' => 4],
+                ['name' => 'Nahkampf', 'value' => 1],
+                ['name' => 'Fahren', 'value' => 2],
+                ['name' => 'Feuerwaffen', 'value' => 3],
+                ['name' => 'Heiler', 'value' => 2],
+                ['name' => 'Pilot', 'value' => 2],
+                ['name' => 'Techniker', 'value' => 2],
+                ['name' => 'Wissenschaftler', 'value' => 2],
+            ],
+            'advantages' => [],
+            'disadvantages' => ['Tödliche Immunschwäche'],
+            'equipment_items' => [
+                ['id' => 'fernglas', 'quantity' => 1],
+                ['id' => 'funkgeraet', 'quantity' => 1],
+                ['id' => 'gasmaske', 'quantity' => 1],
+                ['id' => 'atemgeraet', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+            ],
+        ]));
+
+        $this->assertSame('4', collect($data['skills'])->firstWhere('name', 'Bildung')['value']);
+        $this->assertSame('3', collect($data['skills'])->firstWhere('name', 'Feuerwaffen')['value']);
+        $this->assertContains('Taratzenfutter', $data['disadvantages']);
+        $this->assertContains('High-Tech-Ausrüstung', $data['advantages']);
     }
 
     public function test_v2_derives_repeat_counts_and_attribute_bonuses_from_effect_instances(): void

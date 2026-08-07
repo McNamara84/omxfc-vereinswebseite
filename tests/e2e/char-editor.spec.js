@@ -229,6 +229,67 @@ test.describe('RPG Charakter-Editor', () => {
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
     });
 
+    test('wechselt Figurenstärke regelkonform ohne bestehende Eingaben zu löschen', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+        await page.locator('input[name="player_name"]:not([type="hidden"])').fill('Playwright Spieler');
+        await page.locator('input[name="character_name"]:not([type="hidden"])').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+        await page.locator('#race').selectOption('Barbar');
+        await page.locator('#culture').selectOption('Landbewohner');
+        await page.getByTestId('char-editor-continue-button').click();
+        await expect(page.getByTestId('char-editor-advantages-list')).toBeVisible();
+
+        const levelSelect = page.getByTestId('creation-level-select');
+        const initialLevelState = await page.getByTestId('char-editor-form').evaluate((form) => ({
+            defaultLevel: window.rpgCharEditorRules?.creation?.defaultLevel,
+            creationLevel: window.Alpine?.$data(form)?.creationLevel,
+            initialCreationLevel: window.Alpine?.$data(form)?.initialCreationLevel,
+        }));
+        expect(initialLevelState).toEqual({ defaultLevel: 3, creationLevel: 3, initialCreationLevel: 3 });
+        await expect(levelSelect).toHaveValue('3');
+
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+            const skill = state.skills.find(entry => entry.name === 'Überleben');
+            skill.value = 4;
+            state.attributes.ge = 1;
+            state.selectedAdvantages = [...new Set([...state.selectedAdvantages, 'Kampfreflexe'])];
+        });
+
+        await levelSelect.selectOption('1');
+
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).toBeDisabled();
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).not.toBeChecked();
+        await expect(page.getByTestId('char-editor-completion-issues')).toContainText('Höchstwert der Figurenstärke 1 überschritten');
+
+        const levelOneState = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine.$data(form);
+            return {
+                attribute: state.attributes.ge,
+                skill: state.skills.find(entry => entry.name === 'Überleben')?.value,
+                advantage: state.selectedAdvantages.includes('Kampfreflexe'),
+                base: state.base,
+            };
+        });
+        expect(levelOneState).toMatchObject({
+            attribute: 1,
+            skill: 4,
+            advantage: true,
+            base: { AP: 0, FP: 10, maxFW: 3, freeAdvantages: 0 },
+        });
+
+        await levelSelect.selectOption('5');
+
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).not.toBeChecked();
+
+        const submittedLevel = await page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).get('figurenstaerke'));
+        expect(submittedLevel).toBe('5');
+    });
+
 
     test('sperrt High-Tech-Ausruestung im Editor ohne passenden Vorteil', async ({ page }) => {
         await openAdvancedEditor(page);

@@ -289,6 +289,8 @@ class RpgCharEditorPdfTest extends TestCase
         ])->render();
 
         $this->assertStringContainsString('Barbar · Landbewohner · männlich', $html);
+        $this->assertStringContainsString('Figurenstärke', $html);
+        $this->assertMatchesRegularExpression('/Figurenstärke<\/th>\s*<td>3<\/td>/', $html);
         $this->assertStringNotContainsString('maennlich', $html);
     }
 

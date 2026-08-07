@@ -121,6 +121,7 @@
                     <tr><th>Name</th><td>{{ $sheet['character_name'] }}</td></tr>
                     <tr><th>Spieler</th><td>{{ $sheet['player_name'] }}</td></tr>
                     <tr><th>Rasse &amp; Kultur</th><td>{{ $sheet['race_culture'] }}@if($sheet['gender']) · {{ $sheet['gender'] }}@endif</td></tr>
+                    <tr><th>Figurenstärke</th><td>{{ $sheet['creation_level'] }}</td></tr>
                 </table>
             </td>
         </tr>
