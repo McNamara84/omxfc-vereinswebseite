@@ -15,6 +15,7 @@ use App\Services\LockedMembersTeamMemberships;
 use App\Services\Maddraxikon\Exceptions\AccountLinkConflictException;
 use App\Services\Maddraxikon\Exceptions\AccountLinkIneligibleException;
 use App\Services\MembersTeamMembershipLock;
+use App\Services\ProfileContactUpdateNotifier;
 use Carbon\CarbonInterface;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ final class AccountLinkService
 {
     public function __construct(
         private readonly MembersTeamMembershipLock $membershipLock,
+        private readonly ProfileContactUpdateNotifier $profileContactUpdateNotifier,
     ) {}
 
     public function activate(
@@ -167,25 +169,51 @@ final class AccountLinkService
 
     public function disconnect(User $user): bool
     {
-        return DB::transaction(function () use ($user): bool {
-            User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
+        $result = DB::transaction(function () use ($user): array {
+            $lockedUser = User::query()
+                ->whereKey($user->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
             $link = MaddraxikonAccountLink::query()
                 ->where('user_id', $user->getKey())
                 ->lockForUpdate()
                 ->first();
 
-            if (! $link || ! $link->isActive()) {
-                return false;
+            $disconnectedAt = now();
+            $wasActive = $link?->isActive() ?? false;
+            $contactReleaseDisabled = (bool) $lockedUser->contact_release_maddraxikon;
+
+            if ($wasActive) {
+                $link->forceFill([
+                    'status' => MaddraxikonAccountLinkStatus::Disconnected,
+                    'disconnected_at' => $disconnectedAt,
+                ])->save();
             }
 
-            $link->forceFill([
-                'status' => MaddraxikonAccountLinkStatus::Disconnected,
-                'disconnected_at' => now(),
-            ])->save();
+            if ($contactReleaseDisabled) {
+                $lockedUser->forceFill([
+                    'contact_release_maddraxikon' => false,
+                    'contact_released_at' => $disconnectedAt,
+                ])->save();
+            }
 
-            return true;
+            return [
+                'disconnected' => $wasActive,
+                'contact_release_disabled' => $contactReleaseDisabled,
+                'contact_changed_at' => $contactReleaseDisabled ? $disconnectedAt : null,
+            ];
         }, attempts: 3);
+
+        if ($result['contact_release_disabled']) {
+            $this->profileContactUpdateNotifier->notify(
+                $user->refresh(),
+                ['Maddraxikon'],
+                $result['contact_changed_at'],
+            );
+        }
+
+        return $result['disconnected'];
     }
 
     public function releaseDisconnectedLink(

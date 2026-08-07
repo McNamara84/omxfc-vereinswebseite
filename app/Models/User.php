@@ -80,7 +80,6 @@ class User extends Authenticatable
         'contact_release_phone',
         'contact_release_maddraxikon',
         'contact_release_nextcloud',
-        'maddraxikon_username',
         'nextcloud_username',
         'contact_released_at',
         'verein_gefunden',
@@ -523,9 +522,7 @@ class User extends Authenticatable
             return $link->wiki_username;
         }
 
-        $legacyUsername = trim((string) $this->maddraxikon_username);
-
-        return $legacyUsername !== '' ? $legacyUsername : null;
+        return null;
     }
 
     public function maddraxikonProfileUrl(): ?string

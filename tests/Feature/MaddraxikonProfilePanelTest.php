@@ -54,7 +54,10 @@ class MaddraxikonProfilePanelTest extends TestCase
             ->assertSee('nur kurzzeitig')
             ->assertSee('opake OAuth-Subject-ID')
             ->assertSee('lokale numerische Wiki-Nutzer-ID')
-            ->assertSee('beide Sperrstatus werden nicht dauerhaft gespeichert');
+            ->assertSee('beide Sperrstatus werden nicht dauerhaft gespeichert')
+            ->assertSee('kanonische Benutzername einer aktiven Maddraxikon-Verknüpfung')
+            ->assertSee('separate Kontaktfreigabe')
+            ->assertSee('Profilfreigabe automatisch deaktiviert');
     }
 
     public function test_panel_shows_active_link_and_only_own_contributions(): void
@@ -92,6 +95,8 @@ class MaddraxikonProfilePanelTest extends TestCase
             ->assertSee('Wiki Mitglied')
             ->assertSee('Eigener Artikel')
             ->assertSee('Abgelehnt: 1')
+            ->assertSee('steuerst du separat unter „Kontaktfreigabe“')
+            ->assertSee('Profilfreigabe wird')
             ->assertSee('https://de.maddraxikon.com/index.php?diff=1234', escape: false)
             ->assertDontSee('Fremder privater Artikel');
     }
@@ -152,7 +157,6 @@ class MaddraxikonProfilePanelTest extends TestCase
         $viewer = $this->createMember();
         $target = $this->createMember(attributes: [
             'contact_release_maddraxikon' => true,
-            'maddraxikon_username' => 'Unverifizierter Altname',
         ]);
         MaddraxikonAccountLink::factory()->for($target)->create([
             'wiki_username' => 'Kanonischer Wiki-Name',
@@ -162,15 +166,13 @@ class MaddraxikonProfilePanelTest extends TestCase
             ->get(route('profile.view', $target))
             ->assertOk()
             ->assertSee('Kanonischer Wiki-Name')
-            ->assertSee('Benutzer:Kanonischer_Wiki-Name', escape: false)
-            ->assertDontSee('Unverifizierter Altname');
+            ->assertSee('Benutzer:Kanonischer_Wiki-Name', escape: false);
 
         $target->forceFill(['contact_release_maddraxikon' => false])->save();
 
         $this->get(route('profile.view', $target))
             ->assertOk()
-            ->assertDontSee('Kanonischer Wiki-Name')
-            ->assertDontSee('Unverifizierter Altname');
+            ->assertDontSee('Kanonischer Wiki-Name');
     }
 
     public function test_information_mail_contains_no_internal_identity_or_token_data(): void
@@ -207,12 +209,11 @@ class MaddraxikonProfilePanelTest extends TestCase
         $this->assertStringNotContainsString('01:30 Uhr', $html);
     }
 
-    public function test_inactive_link_does_not_override_legacy_public_contact_name(): void
+    public function test_inactive_link_never_exposes_a_profile_contact(): void
     {
         $viewer = $this->createMember();
         $target = $this->createMember(attributes: [
             'contact_release_maddraxikon' => true,
-            'maddraxikon_username' => 'Bewusst freigegebener Altname',
         ]);
         MaddraxikonAccountLink::factory()->disconnected()->for($target)->create([
             'wiki_username' => 'Nicht mehr aktiver Name',
@@ -222,7 +223,6 @@ class MaddraxikonProfilePanelTest extends TestCase
         $this->actingAs($viewer)
             ->get(route('profile.view', $target))
             ->assertOk()
-            ->assertSee('Bewusst freigegebener Altname')
             ->assertDontSee('Nicht mehr aktiver Name');
     }
 

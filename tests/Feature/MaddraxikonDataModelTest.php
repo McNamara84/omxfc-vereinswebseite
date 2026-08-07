@@ -20,12 +20,90 @@ use Carbon\CarbonInterface;
 use Database\Seeders\BaxxEarningRuleSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class MaddraxikonDataModelTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_legacy_profile_username_column_is_removed(): void
+    {
+        $this->assertFalse(Schema::hasColumn('users', 'maddraxikon_username'));
+    }
+
+    public function test_legacy_profile_migration_preserves_only_releases_with_active_links(): void
+    {
+        $migration = require database_path(
+            'migrations/2026_08_07_120000_drop_maddraxikon_username_from_users_table.php'
+        );
+        $migration->down();
+
+        try {
+            $originalReleaseTime = CarbonImmutable::parse('2026-08-01T10:00:00Z');
+            $migrationTime = CarbonImmutable::parse('2026-08-07T12:00:00Z');
+
+            $activeUser = User::factory()->create([
+                'contact_release_maddraxikon' => true,
+                'contact_released_at' => $originalReleaseTime,
+            ]);
+            MaddraxikonAccountLink::factory()->for($activeUser)->create();
+
+            $disconnectedUser = User::factory()->create([
+                'contact_release_maddraxikon' => true,
+                'contact_released_at' => $originalReleaseTime,
+            ]);
+            MaddraxikonAccountLink::factory()->disconnected()->for($disconnectedUser)->create();
+
+            $unlinkedUser = User::factory()->create([
+                'contact_release_maddraxikon' => true,
+                'contact_released_at' => $originalReleaseTime,
+            ]);
+
+            DB::table('users')->where('id', $activeUser->id)->update([
+                'maddraxikon_username' => 'Aktiver Altname',
+            ]);
+            DB::table('users')->where('id', $disconnectedUser->id)->update([
+                'maddraxikon_username' => 'Getrennter Altname',
+            ]);
+            DB::table('users')->where('id', $unlinkedUser->id)->update([
+                'maddraxikon_username' => 'Unverknüpfter Altname',
+            ]);
+
+            CarbonImmutable::setTestNow($migrationTime);
+            $migration->up();
+            CarbonImmutable::setTestNow();
+
+            $this->assertFalse(Schema::hasColumn('users', 'maddraxikon_username'));
+            $this->assertTrue((bool) DB::table('users')->where('id', $activeUser->id)->value('contact_release_maddraxikon'));
+            $this->assertSame(
+                $originalReleaseTime->format('Y-m-d H:i:s'),
+                DB::table('users')->where('id', $activeUser->id)->value('contact_released_at'),
+            );
+
+            foreach ([$disconnectedUser, $unlinkedUser] as $user) {
+                $this->assertFalse((bool) DB::table('users')->where('id', $user->id)->value('contact_release_maddraxikon'));
+                $this->assertSame(
+                    $migrationTime->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
+                    DB::table('users')->where('id', $user->id)->value('contact_released_at'),
+                );
+            }
+
+            $migration->down();
+
+            $this->assertTrue(Schema::hasColumn('users', 'maddraxikon_username'));
+            $this->assertNull(DB::table('users')->where('id', $activeUser->id)->value('maddraxikon_username'));
+            $this->assertNull(DB::table('users')->where('id', $disconnectedUser->id)->value('maddraxikon_username'));
+            $this->assertNull(DB::table('users')->where('id', $unlinkedUser->id)->value('maddraxikon_username'));
+        } finally {
+            CarbonImmutable::setTestNow();
+
+            if (Schema::hasColumn('users', 'maddraxikon_username')) {
+                $migration->up();
+            }
+        }
+    }
 
     public function test_all_maddraxikon_tables_and_ledger_columns_exist(): void
     {

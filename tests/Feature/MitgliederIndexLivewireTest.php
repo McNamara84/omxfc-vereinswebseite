@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\MitgliederIndex;
+use App\Models\MaddraxikonAccountLink;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MembersTeamProvider;
@@ -174,8 +175,10 @@ class MitgliederIndexLivewireTest extends TestCase
             'author_aliases' => ['Ian Rolf Hill'],
             'contact_release_maddraxikon' => true,
             'contact_release_nextcloud' => true,
-            'maddraxikon_username' => 'Stefan K',
             'nextcloud_username' => 'Holger',
+        ]);
+        MaddraxikonAccountLink::factory()->for($member)->create([
+            'wiki_username' => 'Stefan K',
         ]);
         $team->users()->attach($member, ['role' => Role::Ehrenmitglied->value]);
 
@@ -190,6 +193,42 @@ class MitgliederIndexLivewireTest extends TestCase
             ->assertSee('Nextcloud')
             ->assertSee('https://de.maddraxikon.com/index.php?title=Benutzer:Stefan_K', false)
             ->assertSee('https://cloud.maddrax-fanclub.de/u/Holger', false);
+    }
+
+    public function test_index_eager_loads_maddraxikon_links_for_all_members(): void
+    {
+        $team = Team::membersTeam();
+
+        foreach (range(1, 3) as $index) {
+            $member = User::factory()->create([
+                'name' => "Wiki Mitglied {$index}",
+                'current_team_id' => $team->id,
+                'contact_release_maddraxikon' => true,
+            ]);
+            $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+            MaddraxikonAccountLink::factory()->for($member)->create([
+                'wiki_username' => "WikiName{$index}",
+            ]);
+        }
+
+        $this->actingAs($this->actingMember('Mitglied'));
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        Livewire::test(MitgliederIndex::class)
+            ->assertSee('WikiName1')
+            ->assertSee('WikiName2')
+            ->assertSee('WikiName3');
+
+        $linkQueries = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->filter(fn (string $query): bool => str_contains(
+                strtolower($query),
+                'from "maddraxikon_account_links"',
+            ));
+        DB::disableQueryLog();
+
+        $this->assertCount(1, $linkQueries);
     }
 
     public function test_privileged_member_sees_nickname_and_civil_name(): void

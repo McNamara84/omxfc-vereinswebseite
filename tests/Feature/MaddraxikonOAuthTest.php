@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\MaddraxikonAccountLinkStatus;
 use App\Enums\Role;
 use App\Mail\MaddraxikonAccountLinked;
+use App\Mail\ProfileContactUpdated;
 use App\Models\Activity;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\Team;
@@ -409,7 +410,10 @@ class MaddraxikonOAuthTest extends TestCase
     public function test_disconnect_and_reverify_same_identity_preserves_first_verification(): void
     {
         Carbon::setTestNow('2026-07-18 10:00:00');
-        $member = $this->createMember();
+        $member = $this->createMember(attributes: [
+            'contact_release_maddraxikon' => true,
+            'contact_released_at' => now()->subYear(),
+        ]);
         $link = MaddraxikonAccountLink::factory()->for($member)->create([
             'oauth_subject' => '42',
             'wiki_user_id' => 42,
@@ -427,6 +431,13 @@ class MaddraxikonOAuthTest extends TestCase
             'id' => $link->id,
             'status' => MaddraxikonAccountLinkStatus::Disconnected->value,
         ]);
+        $member->refresh();
+        $this->assertFalse($member->contact_release_maddraxikon);
+        $this->assertSame(now()->getTimestamp(), $member->contact_released_at?->getTimestamp());
+        Mail::assertQueued(ProfileContactUpdated::class, function (ProfileContactUpdated $mail): bool {
+            return $mail->changedContactLabels === ['Maddraxikon']
+                && $mail->hasTo('info@maddraxikon.com');
+        });
 
         Carbon::setTestNow('2026-07-19 11:00:00');
         $attempt = $this->beginLink($member);
@@ -442,12 +453,68 @@ class MaddraxikonOAuthTest extends TestCase
         $this->assertSame(now()->getTimestamp(), $link->verified_at->getTimestamp());
         $this->assertSame('Wiki Mitglied', $link->wiki_username);
         $this->assertTrue($link->isActive());
+        $this->assertFalse($member->refresh()->contact_release_maddraxikon);
         $this->assertDatabaseHas('activities', [
             'user_id' => $member->id,
             'subject_type' => MaddraxikonAccountLink::class,
             'subject_id' => $link->id,
             'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
         ]);
+    }
+
+    public function test_disconnect_without_profile_release_keeps_contact_timestamp_and_is_idempotent(): void
+    {
+        Carbon::setTestNow('2026-07-18 10:00:00');
+        $originalContactTime = now()->subYear();
+        $member = $this->createMember(attributes: [
+            'contact_release_maddraxikon' => false,
+            'contact_released_at' => $originalContactTime,
+        ]);
+        $link = MaddraxikonAccountLink::factory()->for($member)->create();
+
+        $this->actingAs($member)
+            ->delete(route('maddraxikon.oauth.disconnect'))
+            ->assertSessionHas('maddraxikon_status');
+
+        $member->refresh();
+        $this->assertFalse($member->contact_release_maddraxikon);
+        $this->assertSame(
+            $originalContactTime->getTimestamp(),
+            $member->contact_released_at?->getTimestamp(),
+        );
+        Mail::assertNotQueued(ProfileContactUpdated::class);
+
+        Carbon::setTestNow('2026-07-19 11:00:00');
+        $this->actingAs($member)
+            ->delete(route('maddraxikon.oauth.disconnect'))
+            ->assertSessionHas('maddraxikon_status');
+
+        $this->assertSame(
+            $originalContactTime->getTimestamp(),
+            $member->refresh()->contact_released_at?->getTimestamp(),
+        );
+        $this->assertSame(
+            $link->fresh()->disconnected_at?->getTimestamp(),
+            Carbon::parse('2026-07-18 10:00:00')->getTimestamp(),
+        );
+        Mail::assertNotQueued(ProfileContactUpdated::class);
+    }
+
+    public function test_disconnect_repairs_release_flag_on_an_already_disconnected_link(): void
+    {
+        Carbon::setTestNow('2026-07-18 10:00:00');
+        $member = $this->createMember(attributes: [
+            'contact_release_maddraxikon' => true,
+        ]);
+        MaddraxikonAccountLink::factory()->disconnected()->for($member)->create();
+
+        $this->actingAs($member)
+            ->delete(route('maddraxikon.oauth.disconnect'))
+            ->assertSessionHas('maddraxikon_status');
+
+        $this->assertFalse($member->refresh()->contact_release_maddraxikon);
+        $this->assertSame(now()->getTimestamp(), $member->contact_released_at?->getTimestamp());
+        Mail::assertQueued(ProfileContactUpdated::class);
     }
 
     public function test_applicant_and_non_member_cannot_start_linking(): void

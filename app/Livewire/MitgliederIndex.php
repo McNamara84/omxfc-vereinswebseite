@@ -67,7 +67,7 @@ class MitgliederIndex extends Component
     public function members(): Collection
     {
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-        $query = $team->activeUsers();
+        $query = $team->activeUsers()->with('maddraxikonAccountLink');
 
         if ($this->nurOnline) {
             $query->whereIn('users.id', array_keys($this->onlineUserIdSet));

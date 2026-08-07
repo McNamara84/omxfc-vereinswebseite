@@ -52,6 +52,10 @@
                     @endif
                     Pro Aktivitätstag werden höchstens {{ $rewardPolicy['daily_point_cap'] }} Baxx gutgeschrieben.
                 </p>
+                <p class="text-sm leading-relaxed text-base-content/70">
+                    Ob dein verifizierter Maddraxikon-Benutzername für andere Mitglieder sichtbar ist,
+                    steuerst du separat unter „Kontaktfreigabe“.
+                </p>
             </div>
 
             <form method="POST" action="{{ route('maddraxikon.oauth.disconnect') }}">
@@ -68,8 +72,9 @@
 
         <x-alert icon="o-information-circle" class="alert-info" role="note">
             Beim Trennen enden zukünftige Gutschriften sofort. Bereits
-            gutgeschriebene Baxx bleiben bestehen. Eine spätere Reaktivierung
-            erfordert eine neue Anmeldung im Maddraxikon.
+            gutgeschriebene Baxx bleiben bestehen und die Profilfreigabe wird
+            deaktiviert. Eine spätere Reaktivierung erfordert eine neue Anmeldung
+            im Maddraxikon und eine erneute bewusste Profilfreigabe.
         </x-alert>
 
         @if (! $eligible)

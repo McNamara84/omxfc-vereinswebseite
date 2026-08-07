@@ -164,21 +164,30 @@
                             <x-checkbox
                                 label="{{ __('Maddraxikon-Profil freigeben') }}"
                                 wire:model.live="state.contact_release_maddraxikon"
+                                :disabled="! $maddraxikonAccountLink"
                             />
 
-                            @if ($state['contact_release_maddraxikon'] ?? false)
+                            @if ($maddraxikonAccountLink)
                                 <div class="pl-7">
-                                    <x-input
-                                        id="maddraxikon_username"
-                                        label="{{ __('Maddraxikon-Account') }}"
-                                        wire:model="state.maddraxikon_username"
-                                        placeholder="Stefan K"
-                                    />
+                                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                                        <x-badge value="Verifiziert" class="badge-success badge-sm" />
+                                        <a
+                                            href="{{ $this->user->maddraxikonProfileUrl() }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="font-semibold link link-primary"
+                                        >
+                                            {{ $maddraxikonAccountLink->wiki_username }}
+                                        </a>
+                                    </div>
                                     <p class="mt-1 text-sm text-base-content/70">
-                                        {{ __('Dieses freie Feld ist nur für den öffentlichen Legacy-Profilkontakt und wird nicht verifiziert. Die Baxx-Verknüpfung verwaltest du im separaten Bereich „Maddraxikon & Baxx“.') }}
-
+                                        {{ __('Nur dieser über die Accountverknüpfung bestätigte Benutzername kann für andere Mitglieder freigegeben werden.') }}
                                     </p>
                                 </div>
+                            @else
+                                <p class="pl-7 text-sm text-base-content/70">
+                                    {{ __('Verbinde dein Konto zuerst im Bereich „Maddraxikon & Baxx“, um dein Maddraxikon-Profil freigeben zu können.') }}
+                                </p>
                             @endif
                         </div>
 

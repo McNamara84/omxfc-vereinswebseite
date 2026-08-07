@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonRewardEvent;
 use App\Models\Review;
 use App\Models\Team;
@@ -127,8 +128,10 @@ class ProfileViewControllerTest extends TestCase
             'contact_release_phone' => true,
             'contact_release_maddraxikon' => true,
             'contact_release_nextcloud' => true,
-            'maddraxikon_username' => 'Stefan K',
             'nextcloud_username' => 'Holger',
+        ]);
+        MaddraxikonAccountLink::factory()->for($target)->create([
+            'wiki_username' => 'Stefan K',
         ]);
         $this->actingAs($viewer);
 

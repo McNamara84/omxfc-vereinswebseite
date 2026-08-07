@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Enums\MaddraxikonAccountLinkStatus;
 use App\Enums\Role;
 use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Mail\ProfileContactUpdated;
@@ -13,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
@@ -63,7 +66,6 @@ class UpdateProfileInformationFormTest extends TestCase
             'mitgliedsbeitrag' => 12.00,
             'alias' => 'Maxi',
             'author_aliases' => ['Max Power'],
-            'maddraxikon_username' => 'Max Muster',
             'nextcloud_username' => 'MaxCloud',
         ];
     }
@@ -77,7 +79,6 @@ class UpdateProfileInformationFormTest extends TestCase
             'contact_release_phone' => false,
             'contact_release_maddraxikon' => false,
             'contact_release_nextcloud' => false,
-            'maddraxikon_username' => null,
             'nextcloud_username' => null,
         ], $overrides);
     }
@@ -106,19 +107,18 @@ class UpdateProfileInformationFormTest extends TestCase
             'contact_release_phone',
             'contact_release_maddraxikon',
             'contact_release_nextcloud',
-            'maddraxikon_username',
             'nextcloud_username',
         ];
 
         foreach ($expectedFields as $key) {
             $expected = match ($key) {
                 'author_aliases' => $user->author_aliases ?: [''],
-                'alias', 'maddraxikon_username', 'nextcloud_username' => $user->{$key} ?? '',
+                'alias', 'nextcloud_username' => $user->{$key} ?? '',
                 default => $user->{$key},
             };
             $actual = $component->state[$key] ?? match ($key) {
                 'author_aliases' => [''],
-                'alias', 'maddraxikon_username', 'nextcloud_username' => '',
+                'alias', 'nextcloud_username' => '',
                 'contact_release_email',
                 'contact_release_phone',
                 'contact_release_maddraxikon',
@@ -337,7 +337,7 @@ class UpdateProfileInformationFormTest extends TestCase
         Mail::assertNotQueued(ProfileContactUpdated::class);
     }
 
-    public function test_contact_release_requires_non_blank_matching_contact_values(): void
+    public function test_contact_release_requires_values_and_active_maddraxikon_link(): void
     {
         Mail::fake();
         $this->actingAs($user = $this->createMember());
@@ -347,14 +347,13 @@ class UpdateProfileInformationFormTest extends TestCase
                 'telefon' => '   ',
                 'contact_release_phone' => true,
                 'contact_release_maddraxikon' => true,
-                'maddraxikon_username' => '   ',
                 'contact_release_nextcloud' => true,
                 'nextcloud_username' => '   ',
             ]))
             ->call('updateProfileInformation')
             ->assertHasErrors([
                 'telefon',
-                'maddraxikon_username',
+                'contact_release_maddraxikon',
                 'nextcloud_username',
             ]);
 
@@ -364,18 +363,15 @@ class UpdateProfileInformationFormTest extends TestCase
         $this->assertFalse($user->contact_release_maddraxikon);
         $this->assertFalse($user->contact_release_nextcloud);
         $this->assertSame('0123', $user->telefon);
-        $this->assertSame('Max Muster', $user->maddraxikon_username);
         $this->assertSame('MaxCloud', $user->nextcloud_username);
 
         Mail::assertNotQueued(ProfileContactUpdated::class);
     }
 
-    public function test_verified_link_allows_contact_release_without_legacy_username(): void
+    public function test_verified_link_allows_contact_release_and_is_rendered_read_only(): void
     {
         Mail::fake();
-        $user = $this->createMember(attributes: [
-            'maddraxikon_username' => null,
-        ]);
+        $user = $this->createMember();
         MaddraxikonAccountLink::factory()->for($user)->create([
             'wiki_username' => 'Kanonischer Wiki-Name',
         ]);
@@ -385,16 +381,63 @@ class UpdateProfileInformationFormTest extends TestCase
             ->set('state', $this->profileFormData([
                 'email' => $user->email,
                 'contact_release_maddraxikon' => true,
-                'maddraxikon_username' => null,
             ]))
             ->call('updateProfileInformation')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertSee('Kanonischer Wiki-Name')
+            ->assertSee('Verifiziert')
+            ->assertDontSee('id="maddraxikon_username"', escape: false);
 
         $user->refresh();
 
         $this->assertTrue($user->contact_release_maddraxikon);
-        $this->assertNull($user->maddraxikon_username);
         $this->assertSame('Kanonischer Wiki-Name', $user->maddraxikonDisplayUsername());
+    }
+
+    public function test_unlinked_profile_disables_release_and_has_no_username_input(): void
+    {
+        $this->actingAs($this->createMember());
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->assertSee('Verbinde dein Konto zuerst')
+            ->assertSee('disabled', escape: false)
+            ->assertDontSee('id="maddraxikon_username"', escape: false);
+    }
+
+    public function test_write_time_recheck_keeps_release_private_when_link_becomes_inactive(): void
+    {
+        Mail::fake();
+        $user = $this->createMember();
+        $link = MaddraxikonAccountLink::factory()->for($user)->create();
+        $linkChanged = false;
+
+        User::retrieved(function (User $retrievedUser) use ($user, $link, &$linkChanged): void {
+            if ($linkChanged || $retrievedUser->id !== $user->id) {
+                return;
+            }
+
+            $linkChanged = true;
+            DB::table('maddraxikon_account_links')
+                ->where('id', $link->id)
+                ->update([
+                    'status' => MaddraxikonAccountLinkStatus::Disconnected->value,
+                    'disconnected_at' => now(),
+                    'disconnected_at_epoch' => now()->getTimestamp(),
+                ]);
+        });
+
+        app(UpdateUserProfileInformation::class)->update(
+            $user,
+            $this->profileFormData([
+                'email' => $user->email,
+                'contact_release_maddraxikon' => true,
+            ]),
+        );
+
+        $this->assertTrue($linkChanged);
+        $this->assertFalse($user->refresh()->contact_release_maddraxikon);
+        $this->assertFalse($link->fresh()->isActive());
+        Mail::assertNotQueued(ProfileContactUpdated::class);
     }
 
     public function test_contact_update_notifies_board_roles(): void
@@ -403,6 +446,9 @@ class UpdateProfileInformationFormTest extends TestCase
         $user = $this->createMember(attributes: [
             'email' => 'member@example.com',
             'telefon' => '0123 456789',
+        ]);
+        MaddraxikonAccountLink::factory()->for($user)->create([
+            'wiki_username' => 'Stefan K',
         ]);
         $this->actingAs($user);
 
@@ -414,7 +460,6 @@ class UpdateProfileInformationFormTest extends TestCase
                 'contact_release_phone' => true,
                 'contact_release_maddraxikon' => true,
                 'contact_release_nextcloud' => true,
-                'maddraxikon_username' => 'Stefan K',
                 'nextcloud_username' => 'Holger',
             ]))
             ->call('updateProfileInformation')
