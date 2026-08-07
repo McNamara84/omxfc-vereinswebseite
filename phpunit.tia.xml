@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" cacheResult="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
+    <!-- Pest 5 TIA only supports functional Pest tests, not PHPUnit test classes. -->
+    <testsuites>
+        <testsuite name="Pest TIA">
+            <file>tests/Unit/MaddraxikonIdentityHmacPeppersTest.php</file>
+            <file>tests/Unit/UriSupportTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">app</directory>
+        </include>
+    </source>
+    <php>
+        <ini name="memory_limit" value="512M"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_CONFIG_CACHE" value="bootstrap/cache/config-phpunit.php" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value=":memory:" force="true"/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="SCOUT_DRIVER" value="null"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="FANTREFFEN_DISABLE_RATE_LIMIT" value="true"/>
+        <env name="MADDRAXIKON_IDENTITY_HMAC_PEPPERS" value="test-v1:0123456789abcdef0123456789abcdef" force="true"/>
+    </php>
+</phpunit>
