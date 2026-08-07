@@ -425,7 +425,10 @@ class MaddraxikonOAuthTest extends TestCase
 
         $this->actingAs($member)
             ->delete(route('maddraxikon.oauth.disconnect'))
-            ->assertSessionHas('maddraxikon_status');
+            ->assertSessionHas(
+                'maddraxikon_status',
+                'Die Maddraxikon-Verknüpfung ist getrennt und das Maddraxikon-Profil nicht freigegeben. Bereits gutgeschriebene Baxx bleiben erhalten.',
+            );
 
         $this->assertDatabaseHas('maddraxikon_account_links', [
             'id' => $link->id,
@@ -474,7 +477,10 @@ class MaddraxikonOAuthTest extends TestCase
 
         $this->actingAs($member)
             ->delete(route('maddraxikon.oauth.disconnect'))
-            ->assertSessionHas('maddraxikon_status');
+            ->assertSessionHas(
+                'maddraxikon_status',
+                'Die Maddraxikon-Verknüpfung ist getrennt und das Maddraxikon-Profil nicht freigegeben. Bereits gutgeschriebene Baxx bleiben erhalten.',
+            );
 
         $member->refresh();
         $this->assertFalse($member->contact_release_maddraxikon);
@@ -487,7 +493,10 @@ class MaddraxikonOAuthTest extends TestCase
         Carbon::setTestNow('2026-07-19 11:00:00');
         $this->actingAs($member)
             ->delete(route('maddraxikon.oauth.disconnect'))
-            ->assertSessionHas('maddraxikon_status');
+            ->assertSessionHas(
+                'maddraxikon_status',
+                'Die Maddraxikon-Verknüpfung ist getrennt und das Maddraxikon-Profil nicht freigegeben. Bereits gutgeschriebene Baxx bleiben erhalten.',
+            );
 
         $this->assertSame(
             $originalContactTime->getTimestamp(),

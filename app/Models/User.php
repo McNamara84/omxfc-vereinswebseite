@@ -525,6 +525,11 @@ class User extends Authenticatable
         return null;
     }
 
+    public function profilePhotoStorageDisk(): string
+    {
+        return (string) $this->profilePhotoDisk();
+    }
+
     public function maddraxikonProfileUrl(): ?string
     {
         $username = trim((string) $this->maddraxikonDisplayUsername());

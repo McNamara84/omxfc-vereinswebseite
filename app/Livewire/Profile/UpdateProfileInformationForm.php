@@ -151,10 +151,12 @@ class UpdateProfileInformationForm extends Component
      */
     public function render()
     {
-        $maddraxikonAccountLink = auth()->user()
+        $user = auth()->user();
+        $maddraxikonAccountLink = $user
             ?->maddraxikonAccountLink()
             ->active()
             ->first();
+        $user?->setRelation('maddraxikonAccountLink', $maddraxikonAccountLink);
 
         return view('profile.update-profile-information-form', [
             'maddraxikonAccountLink' => $maddraxikonAccountLink,

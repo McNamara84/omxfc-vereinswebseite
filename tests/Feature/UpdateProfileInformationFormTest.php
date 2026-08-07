@@ -11,6 +11,7 @@ use App\Models\MaddraxikonAccountLink;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MemberMapCacheService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -212,6 +213,77 @@ class UpdateProfileInformationFormTest extends TestCase
         $this->assertInstanceOf(TemporaryUploadedFile::class, $receivedInput['photo']);
     }
 
+    public function test_profile_photo_replacement_is_committed_with_profile_update(): void
+    {
+        Mail::fake();
+        Storage::fake('public');
+        $oldPhotoPath = UploadedFile::fake()->image('old-photo.jpg')
+            ->store('profile-photos', 'public');
+        $user = $this->createUser();
+        $user->forceFill(['profile_photo_path' => $oldPhotoPath])->save();
+
+        app(UpdateUserProfileInformation::class)->update(
+            $user,
+            $this->profileFormData([
+                'email' => $user->email,
+                'photo' => UploadedFile::fake()->image('new-photo.jpg'),
+            ]),
+        );
+
+        $newPhotoPath = $user->refresh()->profile_photo_path;
+
+        $this->assertNotNull($newPhotoPath);
+        $this->assertNotSame($oldPhotoPath, $newPhotoPath);
+        Storage::disk('public')->assertExists($newPhotoPath);
+        Storage::disk('public')->assertMissing($oldPhotoPath);
+    }
+
+    public function test_failed_profile_update_rolls_back_photo_replacement(): void
+    {
+        Mail::fake();
+        Storage::fake('public');
+        $oldPhotoPath = UploadedFile::fake()->image('old-photo.jpg')
+            ->store('profile-photos', 'public');
+        $user = $this->createUser();
+        $user->forceFill(['profile_photo_path' => $oldPhotoPath])->save();
+        $conflictingEmail = 'profile-conflict@example.com';
+        $conflictCreated = false;
+
+        User::retrieved(function (User $retrievedUser) use ($user, $conflictingEmail, &$conflictCreated): void {
+            if ($conflictCreated || $retrievedUser->id !== $user->id) {
+                return;
+            }
+
+            $conflictCreated = true;
+            User::factory()->create(['email' => $conflictingEmail]);
+        });
+
+        try {
+            app(UpdateUserProfileInformation::class)->update(
+                $user,
+                $this->profileFormData([
+                    'vorname' => 'Nicht gespeichert',
+                    'email' => $conflictingEmail,
+                    'photo' => UploadedFile::fake()->image('new-photo.jpg'),
+                ]),
+            );
+            $this->fail('The profile update should have failed due to the email conflict.');
+        } catch (QueryException) {
+            // The database failure must leave both the profile and its photo unchanged.
+        }
+
+        $user->refresh();
+
+        $this->assertTrue($conflictCreated);
+        $this->assertSame('Max', $user->vorname);
+        $this->assertSame($oldPhotoPath, $user->profile_photo_path);
+        Storage::disk('public')->assertExists($oldPhotoPath);
+        $this->assertSame(
+            [$oldPhotoPath],
+            Storage::disk('public')->allFiles('profile-photos'),
+        );
+    }
+
     public function test_member_can_store_alias_but_not_author_aliases(): void
     {
         Mail::fake();
@@ -392,6 +464,30 @@ class UpdateProfileInformationFormTest extends TestCase
 
         $this->assertTrue($user->contact_release_maddraxikon);
         $this->assertSame('Kanonischer Wiki-Name', $user->maddraxikonDisplayUsername());
+    }
+
+    public function test_verified_link_is_queried_only_once_while_rendering_profile_form(): void
+    {
+        $user = $this->createMember();
+        MaddraxikonAccountLink::factory()->for($user)->create([
+            'wiki_username' => 'Einmal geladener Wiki-Name',
+        ]);
+        $this->actingAs($user);
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->assertSee('Einmal geladener Wiki-Name');
+
+        $linkQueries = collect(DB::getQueryLog())
+            ->pluck('query')
+            ->filter(fn (string $query): bool => str_contains(
+                strtolower($query),
+                'from "maddraxikon_account_links"',
+            ));
+        DB::disableQueryLog();
+
+        $this->assertCount(1, $linkQueries);
     }
 
     public function test_unlinked_profile_disables_release_and_has_no_username_input(): void

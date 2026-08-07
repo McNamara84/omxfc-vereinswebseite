@@ -8,10 +8,14 @@ use App\Models\User;
 use App\Services\MemberMapCacheService;
 use App\Services\ProfileContactUpdateNotifier;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+use RuntimeException;
+use Throwable;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
@@ -79,10 +83,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:8192'],
         ])->validateWithBag('updateProfileInformation');
 
-        if (isset($input['photo'])) {
-            $user->updateProfilePhoto($input['photo']);
-        }
-
         $baseUpdates = [
             'vorname' => $input['vorname'],
             'nachname' => $input['nachname'],
@@ -105,56 +105,90 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'nextcloud_username' => $this->nullableString($input['nextcloud_username'] ?? null),
         ];
 
-        $result = DB::transaction(function () use ($user, $baseUpdates): array {
-            $lockedUser = User::query()
-                ->whereKey($user->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-            $contactSnapshotBefore = $this->contactSnapshot($lockedUser);
-            $updates = $baseUpdates;
+        $profilePhoto = $input['photo'] ?? null;
+        $profilePhotoDisk = null;
+        $stagedProfilePhotoPath = null;
 
-            $activeLink = $lockedUser->maddraxikonAccountLink()
-                ->active()
-                ->lockForUpdate()
-                ->first();
+        if ($profilePhoto instanceof UploadedFile) {
+            $profilePhotoDisk = $user->profilePhotoStorageDisk();
+            $storedPath = $profilePhoto->storePublicly(
+                'profile-photos',
+                ['disk' => $profilePhotoDisk],
+            );
 
-            if (! $activeLink) {
-                $updates['contact_release_maddraxikon'] = false;
+            if (! is_string($storedPath)) {
+                throw new RuntimeException('Das Profilbild konnte nicht gespeichert werden.');
             }
 
-            $changedContactLabels = $this->changedContactLabels($contactSnapshotBefore, [
-                'email' => (string) $updates['email'],
-                'telefon' => $updates['telefon'],
-                'contact_release_email' => $updates['contact_release_email'],
-                'contact_release_phone' => $updates['contact_release_phone'],
-                'contact_release_maddraxikon' => $updates['contact_release_maddraxikon'],
-                'contact_release_nextcloud' => $updates['contact_release_nextcloud'],
-                'nextcloud_username' => $updates['nextcloud_username'],
-            ]);
+            $stagedProfilePhotoPath = $storedPath;
+            $baseUpdates['profile_photo_path'] = $stagedProfilePhotoPath;
+        }
 
-            $contactChangedAt = null;
+        try {
+            $result = DB::transaction(function () use ($user, $baseUpdates, $stagedProfilePhotoPath): array {
+                $lockedUser = User::query()
+                    ->whereKey($user->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                $contactSnapshotBefore = $this->contactSnapshot($lockedUser);
+                $previousProfilePhotoPath = $stagedProfilePhotoPath !== null
+                    ? $lockedUser->profile_photo_path
+                    : null;
+                $updates = $baseUpdates;
 
-            if ($changedContactLabels !== []) {
-                $contactChangedAt = now();
-                $updates['contact_released_at'] = $contactChangedAt;
-            }
+                $activeLink = $lockedUser->maddraxikonAccountLink()
+                    ->active()
+                    ->lockForUpdate()
+                    ->first();
 
-            $requiresEmailVerification = $updates['email'] !== $lockedUser->email
-                && $lockedUser instanceof MustVerifyEmail;
+                if (! $activeLink) {
+                    $updates['contact_release_maddraxikon'] = false;
+                }
 
-            if ($requiresEmailVerification) {
-                $updates['email_verified_at'] = null;
-            }
+                $changedContactLabels = $this->changedContactLabels($contactSnapshotBefore, [
+                    'email' => (string) $updates['email'],
+                    'telefon' => $updates['telefon'],
+                    'contact_release_email' => $updates['contact_release_email'],
+                    'contact_release_phone' => $updates['contact_release_phone'],
+                    'contact_release_maddraxikon' => $updates['contact_release_maddraxikon'],
+                    'contact_release_nextcloud' => $updates['contact_release_nextcloud'],
+                    'nextcloud_username' => $updates['nextcloud_username'],
+                ]);
 
-            $lockedUser->forceFill($updates)->save();
+                $contactChangedAt = null;
 
-            return [
-                'changed_contact_labels' => $changedContactLabels,
-                'contact_changed_at' => $contactChangedAt,
-                'map_cache_changed' => $lockedUser->wasChanged(self::MEMBER_MAP_CACHE_FIELDS),
-                'requires_email_verification' => $requiresEmailVerification,
-            ];
-        }, attempts: 3);
+                if ($changedContactLabels !== []) {
+                    $contactChangedAt = now();
+                    $updates['contact_released_at'] = $contactChangedAt;
+                }
+
+                $requiresEmailVerification = $updates['email'] !== $lockedUser->email
+                    && $lockedUser instanceof MustVerifyEmail;
+
+                if ($requiresEmailVerification) {
+                    $updates['email_verified_at'] = null;
+                }
+
+                $lockedUser->forceFill($updates)->save();
+
+                return [
+                    'changed_contact_labels' => $changedContactLabels,
+                    'contact_changed_at' => $contactChangedAt,
+                    'map_cache_changed' => $lockedUser->wasChanged(self::MEMBER_MAP_CACHE_FIELDS),
+                    'requires_email_verification' => $requiresEmailVerification,
+                    'previous_profile_photo_path' => $previousProfilePhotoPath,
+                ];
+            }, attempts: 3);
+        } catch (Throwable $exception) {
+            $this->deleteStoredProfilePhoto($profilePhotoDisk, $stagedProfilePhotoPath);
+
+            throw $exception;
+        }
+
+        $this->deleteStoredProfilePhoto(
+            $profilePhotoDisk,
+            $result['previous_profile_photo_path'],
+        );
 
         $user->refresh();
 
@@ -172,6 +206,19 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 $result['changed_contact_labels'],
                 $result['contact_changed_at'],
             );
+        }
+    }
+
+    private function deleteStoredProfilePhoto(?string $disk, ?string $path): void
+    {
+        if ($disk === null || blank($path)) {
+            return;
+        }
+
+        try {
+            Storage::disk($disk)->delete($path);
+        } catch (Throwable $exception) {
+            report($exception);
         }
     }
 
