@@ -146,12 +146,12 @@ const completeValidTechnoExport = async (page) => {
         }
 
         state.clothing = 'kleidung-einfach';
-        state.setEquipmentQuantity('messer-dolch', 1);
+        state.setEquipmentQuantity('fernglas', 1);
+        state.setEquipmentQuantity('funkgeraet', 1);
+        state.setEquipmentQuantity('gasmaske', 1);
+        state.setEquipmentQuantity('atemgeraet', 1);
         state.setEquipmentQuantity('seil', 1);
         state.setEquipmentQuantity('rucksack', 1);
-        state.setEquipmentQuantity('wasserschlauch', 1);
-        state.setEquipmentQuantity('wochenration', 1);
-        state.setEquipmentQuantity('bogen', 1);
     });
 
     await expect(page.getByText('Verteilt: 12 / 12')).toBeVisible();
@@ -598,7 +598,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.skills.filter((skill) => skill.value && !skill.name)).toEqual([]);
     });
 
-    test('zeigt Besonderheiten als Checkbox-Listen und begrenzt freie Vorteile', async ({ page }) => {
+    test('zeigt Besonderheiten als Checkbox-Listen und die Niveau-3-Bilanz', async ({ page }) => {
         await openAdvancedEditor(page);
 
         await expect(page.locator('select[name="advantages[]"]')).toHaveCount(0);
@@ -616,8 +616,11 @@ test.describe('RPG Charakter-Editor', () => {
         await checkbox(page, 'advantages[]', 'Schnell').check();
         await checkbox(page, 'advantages[]', 'Kampfreflexe').check();
 
+        await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeEnabled();
+        await checkbox(page, 'advantages[]', 'Kiemen').check();
         await expect(checkbox(page, 'advantages[]', 'Nachtsicht')).toBeDisabled();
-        await expect(page.getByText('Freie Vorteile: 0')).toBeVisible();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('1 frei');
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('2 zusätzlich');
 
         await checkbox(page, 'disadvantages[]', 'Auffällig').check();
 
@@ -633,6 +636,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.advantages).toContain('Zäh');
         expect(payload.advantages).toContain('Schnell');
         expect(payload.advantages).toContain('Kampfreflexe');
+        expect(payload.advantages).toContain('Kiemen');
         expect(payload.disadvantages).toContain('Auffällig');
 
         await page.getByTestId('char-editor-form').evaluate((form) => {
@@ -644,6 +648,65 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(page.getByTestId('char-editor-roll-result')).toContainText('Verpflichtung wurde übernommen');
         await expect(checkbox(page, 'disadvantages[]', 'Verpflichtung')).toBeChecked();
+    });
+
+    test('verrechnet Gestaltwandler, zwei Nachteile und den zusätzlichen AP getrennt', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        await checkbox(page, 'advantages[]', 'Gestaltwandler').check();
+        await checkbox(page, 'disadvantages[]', 'Auffällig').check();
+        await checkbox(page, 'disadvantages[]', 'Blutdurst').check();
+        await page.locator('#extra-ap-attribute').selectOption('au');
+
+        for (const [attribute, value] of [['st', '2'], ['ge', '1'], ['ro', '1']]) {
+            await page.locator(`#${attribute}`).fill(value);
+            await page.locator(`#${attribute}`).press('Tab');
+        }
+
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('2 zusätzlich');
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('Ausgeglichen');
+        await expect(page.locator('#au')).toHaveValue('-1');
+        await expect(page.getByText('AP: 0', { exact: true })).toBeVisible();
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                advantages: data.getAll('advantages[]'),
+                disadvantages: data.getAll('disadvantages[]'),
+                extraApAttribute: data.get('extra_ap_attribute'),
+                auAdjustment: data.get('attribute_adjustments[au]'),
+            };
+        });
+
+        expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Gestaltwandler']));
+        expect(payload.disadvantages).toEqual(expect.arrayContaining(['Auffällig', 'Blutdurst']));
+        expect(payload.extraApAttribute).toBe('au');
+        expect(payload.auAdjustment).toBe('-1');
+    });
+
+    test('negiert einen Rassennachteil mit genau einem Vorteilswert', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Wulfane', culture: 'Stadtbewohner' });
+
+        const negation = page.locator('label')
+            .filter({ hasText: 'Mit einem Vorteilswert negieren' })
+            .locator('input[type="checkbox"]');
+        await negation.check();
+
+        await expect(checkbox(page, 'disadvantages[]', 'Ehrenkodex')).not.toBeChecked();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('0 zusätzlich');
+
+        const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const data = new FormData(form);
+
+            return {
+                disadvantages: data.getAll('disadvantages[]'),
+                negated: data.getAll('negated_racial_disadvantages[]'),
+            };
+        });
+
+        expect(payload.disadvantages).not.toContain('Ehrenkodex');
+        expect(payload.negated).toEqual(['Ehrenkodex']);
     });
 
     test('zeigt Guul-Pflichtmerkmale ausgewählt, gesperrt und submitbar', async ({ page }) => {
@@ -700,8 +763,8 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.advantages).toContain('Natürliche Waffen');
         expect(payload.disadvantages).toContain('Primitiv');
         expect(payload.disadvantages).toContain('Gejagt');
-        expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Natürliche Waffen', value: '1' }),
+        expect(payload.skills).not.toEqual(expect.arrayContaining([
+            expect.objectContaining({ name: 'Natürliche Waffen' }),
         ]));
     });
 
@@ -821,7 +884,7 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(checkbox(page, 'disadvantages[]', 'Lichtscheu')).toBeDisabled();
         await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeChecked();
         await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeDisabled();
-        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('1 frei');
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
@@ -967,7 +1030,7 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(checkbox(page, 'advantages[]', 'Natürliche Waffen')).toBeDisabled();
         await expect(checkbox(page, 'disadvantages[]', 'Anfälligkeit gegen Wahnsinn')).toBeChecked();
         await expect(checkbox(page, 'disadvantages[]', 'Anfälligkeit gegen Wahnsinn')).toBeDisabled();
-        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('1 frei');
 
         await page.locator('#sea-profession-select').selectOption('Beruf: Künstler');
         await page.locator('#sea-knowledge-combat-select').selectOption('Nahkampf');
@@ -1004,7 +1067,6 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Athletik', value: '2' }),
             expect.objectContaining({ name: 'Bildung', value: '1' }),
-            expect.objectContaining({ name: 'Natürliche Waffen', value: '1' }),
             expect.objectContaining({ name: 'Beruf: Künstler', value: '1' }),
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
         ]));
@@ -1071,7 +1133,7 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeChecked();
         await expect(checkbox(page, 'advantages[]', 'High-Tech-Ausrüstung')).toBeDisabled();
-        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('1 frei');
         await expect(page.getByText('Verteilt: 12 / 12')).toBeVisible();
 
         await page.getByTestId('praekristofluu-skill-points-input').first().fill('4');
@@ -1139,7 +1201,8 @@ test.describe('RPG Charakter-Editor', () => {
 
         await expect(checkbox(page, 'advantages[]', 'Psychische Kraft')).toBeChecked();
         await expect(checkbox(page, 'advantages[]', 'Psychische Kraft')).toBeDisabled();
-        await expect(page.getByText('Freie Vorteile: 2')).toBeVisible();
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('1 frei');
+        await expect(page.getByTestId('advantage-budget-summary')).toContainText('0 zusätzlich');
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);
@@ -1163,6 +1226,8 @@ test.describe('RPG Charakter-Editor', () => {
                 culture: data.get('culture'),
                 advantages: data.getAll('advantages[]'),
                 skills: Object.values(skillsByIndex),
+                effects: [...data.entries()]
+                    .filter(([key]) => /^advantage_effects\[\d+]\[(name|target|justification)]$/.test(key)),
             };
         });
 
@@ -1170,6 +1235,9 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Volk der 13 Inseln');
         expect(payload.advantages).toEqual(expect.arrayContaining(['Z\u00e4h', 'Psychische Kraft']));
+        expect(payload.effects).toEqual(expect.arrayContaining([
+            expect.arrayContaining(['advantage_effects[0][target]', 'Telepathie']),
+        ]));
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Athletik', value: '1' }),
             expect.objectContaining({ name: '\u00dcberleben', value: '1' }),

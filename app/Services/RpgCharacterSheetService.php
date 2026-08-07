@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCharEditorTraining;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -193,8 +194,6 @@ class RpgCharacterSheetService
         'Wissenschaftler',
     ];
 
-    private const SPECIAL_SKILL_VALUES = ['Natürliche Waffen'];
-
     private const TECHNO_SKILL_POOL_VALUES = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 
     private const TECHNO_SKILL_POOL_POINTS = 12;
@@ -309,8 +308,6 @@ class RpgCharacterSheetService
         'Sprachen' => [
             'attributes' => ['IN'],
             'description' => 'Pro Fertigkeitspunkt spricht der Charakter eine Sprache oder einen Dialekt.',
-            'specializable' => true,
-            'specializationLabel' => 'Sprache oder Dialekt notieren',
         ],
         'Techniker' => [
             'attributes' => ['IN', 'GE'],
@@ -334,14 +331,6 @@ class RpgCharacterSheetService
         ],
     ];
 
-    private const SPECIAL_SKILL_RULES = [
-        'Natürliche Waffen' => [
-            'attributes' => ['ST', 'GE'],
-            'description' => 'Rassenbedingte Sonderregel für natürliche Angriffe; nicht frei als normale Fertigkeit wählbar.',
-            'restricted' => true,
-        ],
-    ];
-
     private const SKILL_NAME_ALIASES = [
         'Ueberleben' => 'Überleben',
         'Natuerliche Waffen' => 'Natürliche Waffen',
@@ -350,47 +339,7 @@ class RpgCharacterSheetService
         'Kunde: Kraeuter' => 'Kunde: Kräuter',
     ];
 
-    private const BASE_FREE_ADVANTAGES = 2;
-
-    private const ADVANTAGE_VALUES = [
-        'Anführer',
-        'Gestaltwandler',
-        'Gesteigertes Attribut',
-        'Gesteigerter Sinn',
-        'High-Tech-Ausrüstung',
-        'Kampfreflexe',
-        'Kaltblütig',
-        'Kiemen',
-        'Kind zweier Welten',
-        'Nachtsicht',
-        'Natürliche Waffen',
-        'Panzerung',
-        'Psychische Kraft',
-        'Psychisches Reservoir',
-        'Regeneration',
-        'Scharfschütze',
-        'Schnell',
-        'Sprachbegabt',
-        'Tiergefährte',
-        'Zäh',
-    ];
-
-    private const DISADVANTAGE_VALUES = [
-        'Abergläubisch',
-        'Abhängige',
-        'Anfälligkeit gegen Wahnsinn',
-        'Auffällig',
-        'Blutdurst',
-        'Ehrenkodex',
-        'Feind',
-        'Gejagt',
-        'Lichtscheu',
-        'Primitiv',
-        'Taratzenfutter',
-        'Tödliche Immunschwäche',
-        'Verpflichtung',
-        'Verwundbarkeit',
-    ];
+    private const LEGACY_FREE_ADVANTAGE_UNITS = 2;
 
     private const SPECIAL_NAME_ALIASES = [
         'Anfuehrer' => 'Anführer',
@@ -405,29 +354,6 @@ class RpgCharacterSheetService
         'Anfaelligkeit gegen Wahnsinn' => 'Anfälligkeit gegen Wahnsinn',
         'Auffaellig' => 'Auffällig',
         'Toedliche Immunschwaeche' => 'Tödliche Immunschwäche',
-    ];
-
-    private const ADVANTAGE_COSTS = [
-        'Gestaltwandler' => 3,
-        'Zäh' => 0,
-    ];
-
-    private const REPEATABLE_ADVANTAGES = ['Panzerung'];
-
-    private const ADVANTAGE_DETAIL_REQUIRED = [
-        'Gesteigertes Attribut',
-        'Gesteigerter Sinn',
-        'Tiergefährte',
-    ];
-
-    private const DISADVANTAGE_DETAIL_REQUIRED = [
-        'Abergläubisch',
-        'Abhängige',
-        'Ehrenkodex',
-        'Feind',
-        'Gejagt',
-        'Verpflichtung',
-        'Verwundbarkeit',
     ];
 
     private const SPECIAL_DETAIL_MAX_ITEMS = 32;
@@ -473,24 +399,15 @@ class RpgCharacterSheetService
                 self::SKILL_VALUES,
             ),
             'suggestions' => self::SKILL_SUGGESTIONS,
-            'specialSkills' => array_map(
-                fn (string $name): array => ['name' => $name] + self::SPECIAL_SKILL_RULES[$name],
-                self::SPECIAL_SKILL_VALUES,
-            ),
+            'specialSkills' => [],
         ];
     }
 
     public static function specialRuleConfig(): array
     {
-        return [
+        return RpgCharEditorSpecialRules::ruleConfig() + [
             'attributeRules' => self::attributeRuleConfig(),
             'skillRules' => self::skillRuleConfig(),
-            'advantages' => self::ADVANTAGE_VALUES,
-            'disadvantages' => self::DISADVANTAGE_VALUES,
-            'advantageCosts' => self::ADVANTAGE_COSTS,
-            'repeatableAdvantages' => self::REPEATABLE_ADVANTAGES,
-            'advantageDetailRequired' => self::ADVANTAGE_DETAIL_REQUIRED,
-            'disadvantageDetailRequired' => self::DISADVANTAGE_DETAIL_REQUIRED,
             'trainingRules' => RpgCharEditorTraining::ruleConfig(),
             'equipmentRules' => RpgCharEditorEquipment::ruleConfig(),
         ];
@@ -499,8 +416,28 @@ class RpgCharacterSheetService
     public function validatedPdfPayload(Request $request): array
     {
         $request->validate([
+            'figurenstaerke' => 'required|integer|in:'.RpgCharEditorSpecialRules::CREATION_LEVEL,
             'portrait' => 'nullable|image|max:2048',
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
+            'attribute_adjustments' => 'required_if:figurenstaerke,'.RpgCharEditorSpecialRules::CREATION_LEVEL.'|array:st,ge,ro,wi,wa,in,au',
+            'attribute_adjustments.st' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.ge' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.ro' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.wi' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.wa' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.in' => 'required|integer|min:-1|max:1',
+            'attribute_adjustments.au' => 'required|integer|min:-1|max:1',
+            'extra_ap_attribute' => 'nullable|string|in:'.implode(',', self::ATTRIBUTE_KEYS),
+            'advantage_compensation_attributes' => 'nullable|array|max:'.RpgCharEditorSpecialRules::MAX_EXTRA_ADVANTAGE_UNITS,
+            'advantage_compensation_attributes.*' => 'required|string|distinct|in:'.implode(',', self::ATTRIBUTE_KEYS),
+            'negated_racial_disadvantages' => 'nullable|array|max:10',
+            'negated_racial_disadvantages.*' => 'required|string|distinct|max:100',
+            'advantage_effects' => 'nullable|array|max:10',
+            'advantage_effects.*.name' => 'required|string|max:100',
+            'advantage_effects.*.target' => 'nullable|string|max:100',
+            'advantage_effects.*.justification' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
+            'languages' => 'nullable|array|max:12',
+            'languages.*' => 'required|string|distinct|max:100',
             'advantage_details' => 'nullable|array|max:'.self::SPECIAL_DETAIL_MAX_ITEMS,
             'advantage_details.*' => 'nullable|string|max:'.self::SPECIAL_DETAIL_MAX_CHARS,
             'disadvantage_details' => 'nullable|array|max:'.self::SPECIAL_DETAIL_MAX_ITEMS,
@@ -523,6 +460,8 @@ class RpgCharacterSheetService
 
         $character = $this->characterPayload($request);
         $this->validateCharacterPayload($character);
+        $this->validateCharacterSelection($character);
+        $usesCreationV2 = true;
         $attributes = $this->attributesPayload($request->input('attributes', []));
         $skills = $this->skillsPayload($request->input('skills', []));
         $skillPools = [
@@ -546,6 +485,45 @@ class RpgCharacterSheetService
         $equipmentItems = $this->equipmentItemsPayload($request->input('equipment_items', []));
         $activeArmorId = $this->stringPayload($request->input('active_armor_id', ''));
         $activeShieldId = $this->stringPayload($request->input('active_shield_id', ''));
+        $languages = array_values(array_unique($this->listPayload($request->input('languages', []))));
+        $creationEvaluation = null;
+
+        if ($usesCreationV2) {
+            $advantageEffects = $this->advantageEffectsPayload($request->input('advantage_effects', []));
+            $creationEvaluation = (new RpgCharacterCreationEvaluator)->evaluate([
+                'race' => $character['race'] ?? '',
+                'culture' => $character['culture'] ?? '',
+                'gender' => $character['gender'] ?? '',
+                'barbar_attribute_bonus' => $barbarAttributeBonus,
+                'attribute_adjustments' => $request->input('attribute_adjustments', []),
+                'extra_ap_attribute' => $this->stringPayload($request->input('extra_ap_attribute', '')),
+                'advantage_compensation_attributes' => $this->listPayload($request->input('advantage_compensation_attributes', [])),
+                'negated_racial_disadvantages' => $this->canonicalSpecialList($this->listPayload($request->input('negated_racial_disadvantages', []))),
+                'advantage_effects' => $advantageEffects,
+                'advantages' => $advantages,
+                'disadvantages' => $disadvantages,
+            ]);
+
+            if (! $creationEvaluation['valid']) {
+                throw ValidationException::withMessages($creationEvaluation['errors']);
+            }
+
+            foreach (self::ATTRIBUTE_KEYS as $attribute) {
+                $submitted = array_key_exists($attribute, $attributes) ? (string) $attributes[$attribute] : '0';
+                $calculated = (string) $creationEvaluation['attributes']['final'][$attribute];
+                if ($submitted !== $calculated) {
+                    throw ValidationException::withMessages([
+                        'attributes' => "Der übermittelte Endwert für {$attribute} stimmt nicht mit der serverseitigen Erschaffungsberechnung überein.",
+                    ]);
+                }
+                $attributes[$attribute] = $calculated;
+            }
+
+            $advantages = $creationEvaluation['effective_advantages'];
+            $disadvantages = $creationEvaluation['effective_disadvantages'];
+            $disadvantageDetails = $this->filterSpecialMapByNames($disadvantageDetails, $disadvantages);
+            [$advantageDetails, $advantageCounts] = $this->legacyAdvantageMaps($creationEvaluation['advantage_effects']);
+        }
 
         $this->validateCharacterRules(
             $character,
@@ -561,10 +539,27 @@ class RpgCharacterSheetService
             $cultureChoices,
             $trainings,
             $trainingAllocations,
+            $creationEvaluation,
         );
-        $this->validateEquipmentRules($clothing, $equipmentItems, $advantages, $activeArmorId, $activeShieldId);
+        $this->validateLanguages($skills, $advantages, $languages, $usesCreationV2);
+        $this->validateEquipmentRules($clothing, $equipmentItems, $advantages, $activeArmorId, $activeShieldId, $usesCreationV2);
 
-        return [
+        $payload = [
+            'rules' => $usesCreationV2 ? [
+                'edition' => 2007,
+                'creation_level' => RpgCharEditorSpecialRules::CREATION_LEVEL,
+                'payload_version' => 2,
+            ] : null,
+            'creation' => $usesCreationV2 ? [
+                'attribute_adjustments' => $creationEvaluation['attributes']['creation_adjustments'],
+                'attribute_race_modifiers' => $creationEvaluation['attributes']['race_modifiers'],
+                'attribute_advantage_bonuses' => $creationEvaluation['attributes']['advantage_bonuses'],
+                'attribute_budget' => $creationEvaluation['attribute_budget'],
+                'advantage_budget' => $creationEvaluation['advantage_budget'],
+                'extra_ap_attribute' => $this->stringPayload($request->input('extra_ap_attribute', '')),
+                'advantage_compensation_attributes' => $this->listPayload($request->input('advantage_compensation_attributes', [])),
+                'negated_racial_disadvantages' => $creationEvaluation['negated_racial_disadvantages'],
+            ] : null,
             'character' => $character,
             'attributes' => $attributes,
             'skills' => $skills,
@@ -573,11 +568,19 @@ class RpgCharacterSheetService
             'advantage_details' => $advantageDetails,
             'disadvantage_details' => $disadvantageDetails,
             'advantage_counts' => $advantageCounts,
+            'advantage_effects' => $usesCreationV2 ? $creationEvaluation['advantage_effects'] : null,
+            'languages' => $languages,
             'trainings' => $trainings,
             'training_allocations' => $trainingAllocations,
             'equipment' => $this->equipmentExportPayload($clothing, $equipmentItems, $character['equipment'], $activeArmorId, $activeShieldId),
             'portrait' => $this->portraitPayload($request),
         ];
+
+        if (! $usesCreationV2) {
+            unset($payload['rules'], $payload['creation'], $payload['advantage_effects']);
+        }
+
+        return $payload;
     }
 
     public function characterSheetPdfResponse(array $data) // @pest-ignore-profanity -- RPG domain term.
@@ -615,19 +618,11 @@ class RpgCharacterSheetService
         }
     }
 
-    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = '', array $skillPools = [], array $cultureChoices = [], array $trainings = [], array $trainingAllocations = []): void
+    private function validateCharacterSelection(array $character): void
     {
         $race = $character['race'] ?? '';
         $culture = $character['culture'] ?? '';
         $gender = $character['gender'] ?? '';
-        $canonicalAdvantages = $this->canonicalSpecialList($advantages);
-        $canonicalDisadvantages = $this->canonicalSpecialList($disadvantages);
-        $canonicalAdvantageDetails = $this->canonicalSpecialMap($advantageDetails);
-        $canonicalDisadvantageDetails = $this->canonicalSpecialMap($disadvantageDetails);
-        $canonicalAdvantageCounts = $this->canonicalSpecialMap($advantageCounts);
-
-        $this->validateSpecialLists($canonicalAdvantages, $canonicalDisadvantages);
-        $this->validateAdvantageCounts($canonicalAdvantages, $canonicalAdvantageCounts);
 
         if (! in_array($gender, self::GENDER_VALUES, true)) {
             throw ValidationException::withMessages([
@@ -694,6 +689,21 @@ class RpgCharacterSheetService
                 'culture' => 'Die Kultur Disuuslachter (Nordmann) ist laut Regelwerk nur für Barbaren zugelassen.',
             ]);
         }
+    }
+
+    private function validateCharacterRules(array $character, array $attributes, array $skills, array $advantages, array $disadvantages, array $advantageDetails = [], array $disadvantageDetails = [], array $advantageCounts = [], string $barbarAttributeBonus = '', array $skillPools = [], array $cultureChoices = [], array $trainings = [], array $trainingAllocations = [], ?array $creationEvaluation = null): void
+    {
+        $race = $character['race'] ?? '';
+        $culture = $character['culture'] ?? '';
+        $gender = $character['gender'] ?? '';
+        $canonicalAdvantages = $this->canonicalSpecialList($advantages);
+        $canonicalDisadvantages = $this->canonicalSpecialList($disadvantages);
+        $canonicalAdvantageDetails = $this->canonicalSpecialMap($advantageDetails);
+        $canonicalDisadvantageDetails = $this->canonicalSpecialMap($disadvantageDetails);
+        $canonicalAdvantageCounts = $this->canonicalSpecialMap($advantageCounts);
+
+        $this->validateSpecialLists($canonicalAdvantages, $canonicalDisadvantages);
+        $this->validateAdvantageCounts($canonicalAdvantages, $canonicalAdvantageCounts);
 
         if ($culture === 'Volk der 13 Inseln'
             && $gender === 'weiblich'
@@ -703,7 +713,13 @@ class RpgCharacterSheetService
             ]);
         }
 
-        $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
+        if ($creationEvaluation === null) {
+            $this->validateAttributes($race, $attributes, $barbarAttributeBonus);
+        } elseif ($this->exactSkillValue($skills, 'Natürliche Waffen') !== null) {
+            throw ValidationException::withMessages([
+                'skills' => 'Natürliche Waffen ist keine eigene Fertigkeit; Angriffe verwenden Nahkampf mit ST oder GE.',
+            ]);
+        }
         $this->validateSkillRules($race, $culture, $skills, $canonicalAdvantages, $skillPools, $cultureChoices);
         $this->validateTrainingRules(
             $race,
@@ -715,18 +731,36 @@ class RpgCharacterSheetService
             $trainings,
             $trainingAllocations,
         );
-        $this->validateRaceRequirements($race, $attributes, $skills, $canonicalAdvantages, $canonicalDisadvantages);
-        $this->validateCultureRequirements($culture, $skills);
-        $this->validateSpecialBudgetAndDetails(
+        $this->validateRaceRequirements(
             $race,
-            $culture,
-            $gender,
+            $attributes,
+            $skills,
             $canonicalAdvantages,
             $canonicalDisadvantages,
-            $canonicalAdvantageDetails,
-            $canonicalDisadvantageDetails,
-            $canonicalAdvantageCounts,
+            $creationEvaluation['negated_racial_disadvantages'] ?? [],
+            $creationEvaluation !== null,
         );
+        $this->validateCultureRequirements($culture, $skills);
+        if ($creationEvaluation === null) {
+            $this->validateSpecialBudgetAndDetails(
+                $race,
+                $culture,
+                $gender,
+                $canonicalAdvantages,
+                $canonicalDisadvantages,
+                $canonicalAdvantageDetails,
+                $canonicalDisadvantageDetails,
+                $canonicalAdvantageCounts,
+            );
+        } else {
+            $this->validateSpecialDetails(
+                $race,
+                $canonicalAdvantages,
+                $canonicalDisadvantages,
+                $canonicalAdvantageDetails,
+                $canonicalDisadvantageDetails,
+            );
+        }
     }
 
     private function validateSkillRules(string $race, string $culture, array $skills, array $advantages, array $skillPools = [], array $cultureChoices = []): void
@@ -767,15 +801,6 @@ class RpgCharacterSheetService
                 ]);
             }
 
-            if (in_array($name, self::SPECIAL_SKILL_VALUES, true)) {
-                $grantValue = $this->skillGrantValue($grants, $name);
-
-                if ($grantValue === null || $skillValue < $grantValue) {
-                    throw ValidationException::withMessages([
-                        'skills' => "Die Fertigkeit {$name} ist nur als rassenbedingte Sonderregel erlaubt.",
-                    ]);
-                }
-            }
         }
 
         if (! in_array('Kind zweier Welten', $advantages, true)
@@ -929,10 +954,6 @@ class RpgCharacterSheetService
     {
         if (in_array($name, self::SKILL_VALUES, true)) {
             return true;
-        }
-
-        if (in_array($name, self::SPECIAL_SKILL_VALUES, true)) {
-            return array_key_exists($name, $this->raceRequirements($race)['skills'] ?? []);
         }
 
         $baseName = $this->skillBaseName($name);
@@ -1263,7 +1284,7 @@ class RpgCharacterSheetService
             : null;
     }
 
-    private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages): void
+    private function validateRaceRequirements(string $race, array $attributes, array $skills, array $advantages, array $disadvantages, array $negatedDisadvantages = [], bool $creationV2 = false): void
     {
         $requirements = $this->raceRequirements($race);
 
@@ -1280,6 +1301,9 @@ class RpgCharacterSheetService
         }
 
         foreach ($requirements['disadvantages'] ?? [] as $disadvantage) {
+            if (in_array($disadvantage, $negatedDisadvantages, true)) {
+                continue;
+            }
             if (! in_array($disadvantage, $disadvantages, true)) {
                 throw ValidationException::withMessages([
                     'disadvantages' => "Die Rasse {$race} benötigt den Nachteil {$disadvantage}.",
@@ -1288,6 +1312,9 @@ class RpgCharacterSheetService
         }
 
         foreach ($requirements['skills'] ?? [] as $skillName => $minimumValue) {
+            if ($creationV2 && $skillName === 'Natürliche Waffen') {
+                continue;
+            }
             if ($this->skillValue($skills, $skillName) < $minimumValue) {
                 throw ValidationException::withMessages([
                     'skills' => "Die Rasse {$race} benötigt {$skillName} mindestens auf {$minimumValue}.",
@@ -1442,8 +1469,11 @@ class RpgCharacterSheetService
 
     private function validateSpecialLists(array $advantages, array $disadvantages): void
     {
+        $advantageRules = RpgCharEditorSpecialRules::advantages();
+        $disadvantageRules = RpgCharEditorSpecialRules::disadvantages();
+
         foreach ($advantages as $advantage) {
-            if (! in_array($advantage, self::ADVANTAGE_VALUES, true)) {
+            if (! array_key_exists($advantage, $advantageRules)) {
                 throw ValidationException::withMessages([
                     'advantages' => "Der Vorteil {$advantage} ist laut Regelwerk nicht erlaubt.",
                 ]);
@@ -1451,7 +1481,7 @@ class RpgCharacterSheetService
         }
 
         foreach ($disadvantages as $disadvantage) {
-            if (! in_array($disadvantage, self::DISADVANTAGE_VALUES, true)) {
+            if (! array_key_exists($disadvantage, $disadvantageRules)) {
                 throw ValidationException::withMessages([
                     'disadvantages' => "Der Nachteil {$disadvantage} ist laut Regelwerk nicht erlaubt.",
                 ]);
@@ -1461,14 +1491,16 @@ class RpgCharacterSheetService
 
     private function validateAdvantageCounts(array $advantages, array $advantageCounts): void
     {
+        $advantageRules = RpgCharEditorSpecialRules::advantages();
+
         foreach ($advantageCounts as $advantage => $count) {
-            if (! in_array($advantage, self::ADVANTAGE_VALUES, true)) {
+            if (! array_key_exists($advantage, $advantageRules)) {
                 throw ValidationException::withMessages([
                     'advantages' => "Der Vorteil {$advantage} ist laut Regelwerk nicht erlaubt.",
                 ]);
             }
 
-            if (! in_array($advantage, self::REPEATABLE_ADVANTAGES, true)) {
+            if (! in_array($advantage, RpgCharEditorSpecialRules::ruleConfig()['repeatableAdvantages'], true)) {
                 throw ValidationException::withMessages([
                     'advantages' => "Der Vorteil {$advantage} kann laut Regelwerk nicht mehrfach gewählt werden.",
                 ]);
@@ -1502,7 +1534,7 @@ class RpgCharacterSheetService
         $lockedDisadvantages = $this->lockedDisadvantages($race);
         $cost = $this->chosenAdvantageCost($advantages, $lockedAdvantages, $advantageCounts);
 
-        if ($cost > self::BASE_FREE_ADVANTAGES) {
+        if ($cost > self::LEGACY_FREE_ADVANTAGE_UNITS) {
             throw ValidationException::withMessages([
                 'advantages' => 'Die gewählten Vorteile überschreiten die verfügbaren Vorteilspunkte.',
             ]);
@@ -1514,9 +1546,10 @@ class RpgCharacterSheetService
             ]);
         }
 
-        foreach (self::ADVANTAGE_DETAIL_REQUIRED as $advantage) {
+        foreach (RpgCharEditorSpecialRules::advantages() as $advantage => $rule) {
             if (in_array($advantage, $advantages, true)
                 && ! in_array($advantage, $lockedAdvantages, true)
+                && ($rule['requires_detail'] || $rule['requires_justification'])
                 && ($advantageDetails[$advantage] ?? '') === '') {
                 throw ValidationException::withMessages([
                     'advantage_details' => "Für den Vorteil {$advantage} muss eine nähere Angabe gemacht werden.",
@@ -1524,9 +1557,41 @@ class RpgCharacterSheetService
             }
         }
 
-        foreach (self::DISADVANTAGE_DETAIL_REQUIRED as $disadvantage) {
+        foreach (RpgCharEditorSpecialRules::disadvantages() as $disadvantage => $rule) {
             if (in_array($disadvantage, $disadvantages, true)
                 && ! in_array($disadvantage, $lockedDisadvantages, true)
+                && $rule['requires_detail']
+                && ($disadvantageDetails[$disadvantage] ?? '') === '') {
+                throw ValidationException::withMessages([
+                    'disadvantage_details' => "Für den Nachteil {$disadvantage} muss eine nähere Angabe gemacht werden.",
+                ]);
+            }
+        }
+    }
+
+    private function validateSpecialDetails(
+        string $race,
+        array $advantages,
+        array $disadvantages,
+        array $advantageDetails,
+        array $disadvantageDetails,
+    ): void {
+        $lockedAdvantages = $this->raceRequirements($race)['advantages'] ?? [];
+        $rules = RpgCharEditorSpecialRules::ruleConfig();
+
+        foreach ($rules['advantageDetailRequired'] as $advantage) {
+            if (in_array($advantage, $advantages, true)
+                && ! in_array($advantage, $lockedAdvantages, true)
+                && ($advantageDetails[$advantage] ?? '') === '') {
+                throw ValidationException::withMessages([
+                    'advantage_effects' => "Für den Vorteil {$advantage} muss eine nähere Angabe gemacht werden.",
+                ]);
+            }
+        }
+
+        foreach ($rules['disadvantageDetailRequired'] as $disadvantage) {
+            if (in_array($disadvantage, $disadvantages, true)
+                && ! in_array($disadvantage, $this->lockedDisadvantages($race), true)
                 && ($disadvantageDetails[$disadvantage] ?? '') === '') {
                 throw ValidationException::withMessages([
                     'disadvantage_details' => "Für den Nachteil {$disadvantage} muss eine nähere Angabe gemacht werden.",
@@ -1544,8 +1609,9 @@ class RpgCharacterSheetService
                 continue;
             }
 
-            $baseCost = self::ADVANTAGE_COSTS[$advantage] ?? 1;
-            $count = in_array($advantage, self::REPEATABLE_ADVANTAGES, true)
+            $rule = RpgCharEditorSpecialRules::advantages()[$advantage] ?? ['cost' => 1, 'repeat' => 'none'];
+            $baseCost = (int) $rule['cost'];
+            $count = $rule['repeat'] !== 'none'
                 ? ($advantageCounts[$advantage] ?? 1)
                 : 1;
 
@@ -1686,12 +1752,12 @@ class RpgCharacterSheetService
                 ]],
             ],
             'Guul' => [
-                'skills' => ['Heimlichkeit' => 2, 'Intuition' => 1, 'Natürliche Waffen' => 1],
+                'skills' => ['Heimlichkeit' => 2, 'Intuition' => 1],
                 'advantages' => ['Natürliche Waffen'],
                 'disadvantages' => ['Primitiv', 'Gejagt'],
             ],
             'Hydrit' => [
-                'skills' => ['Athletik' => 2, 'Bildung' => 1, 'Natürliche Waffen' => 1],
+                'skills' => ['Athletik' => 2, 'Bildung' => 1],
                 'advantages' => ['Kiemen', 'Natürliche Waffen'],
                 'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
             ],
@@ -1933,6 +1999,64 @@ class RpgCharacterSheetService
         return $payload;
     }
 
+    private function advantageEffectsPayload(mixed $effects): array
+    {
+        if (! is_array($effects)) {
+            return [];
+        }
+
+        $payload = [];
+        foreach ($effects as $effect) {
+            if (! is_array($effect)) {
+                continue;
+            }
+
+            $name = $this->canonicalSpecialName($this->stringPayload($effect['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+
+            $payload[] = [
+                'name' => $name,
+                'target' => $this->stringPayload($effect['target'] ?? ''),
+                'justification' => $this->stringPayload($effect['justification'] ?? ''),
+            ];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @return array{0: array<string, string>, 1: array<string, int>}
+     */
+    private function legacyAdvantageMaps(array $effects): array
+    {
+        $details = [];
+        $counts = [];
+        $repeatable = RpgCharEditorSpecialRules::ruleConfig()['repeatableAdvantages'];
+
+        foreach ($effects as $effect) {
+            $name = (string) ($effect['name'] ?? '');
+            if ($name === '') {
+                continue;
+            }
+
+            if (in_array($name, $repeatable, true)) {
+                $counts[$name] = ($counts[$name] ?? 0) + 1;
+            }
+
+            $parts = array_values(array_filter([
+                (string) ($effect['target'] ?? ''),
+                (string) ($effect['justification'] ?? ''),
+            ], static fn (string $part): bool => $part !== '' && $part !== 'Rasse' && $part !== 'Figurenstärke 3'));
+            if ($parts !== []) {
+                $details[$name] = implode(' – ', $parts);
+            }
+        }
+
+        return [$details, $counts];
+    }
+
     private function canonicalSpecialList(array $values): array
     {
         return array_values(array_unique(array_map(
@@ -2044,7 +2168,7 @@ class RpgCharacterSheetService
         ));
     }
 
-    private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages, string $activeArmorId = '', string $activeShieldId = ''): void
+    private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages, string $activeArmorId = '', string $activeShieldId = '', bool $creationV2 = false): void
     {
         $clothingMap = RpgCharEditorEquipment::clothingMap();
         $itemMap = RpgCharEditorEquipment::itemMap();
@@ -2106,6 +2230,12 @@ class RpgCharacterSheetService
             ]);
         }
 
+        if ($creationV2 && $hasHighTechAdvantage && $highTechTotal !== RpgCharEditorEquipment::HIGH_TECH_ITEM_LIMIT) {
+            throw ValidationException::withMessages([
+                'equipment_items' => 'Mit High-Tech-Ausrüstung müssen genau '.RpgCharEditorEquipment::HIGH_TECH_ITEM_LIMIT.' High-Tech- oder Techno-Gegenstände gewählt werden.',
+            ]);
+        }
+
         $selectedIds = array_fill_keys(array_map(
             static fn (array $equipmentItem): string => (string) ($equipmentItem['id'] ?? ''),
             $equipmentItems,
@@ -2113,6 +2243,40 @@ class RpgCharacterSheetService
 
         $this->validateActiveEquipmentId($activeArmorId, 'armor', 'active_armor_id', 'Rüstung', $selectedIds, $itemMap);
         $this->validateActiveEquipmentId($activeShieldId, 'shield', 'active_shield_id', 'Schild', $selectedIds, $itemMap);
+    }
+
+    private function validateLanguages(array $skills, array $advantages, array $languages, bool $creationV2): void
+    {
+        if (! $creationV2) {
+            return;
+        }
+
+        foreach ($skills as $skill) {
+            if (str_starts_with($this->canonicalSkillName((string) ($skill['name'] ?? '')), 'Sprachen:')) {
+                throw ValidationException::withMessages([
+                    'skills' => 'Sprachen wird als eine gemeinsame Fertigkeit geführt; konkrete Sprachen gehören in die separate Sprachenliste.',
+                ]);
+            }
+        }
+
+        $languageSkill = max($this->exactSkillValue($skills, 'Sprachen') ?? 0, 0);
+        $languageCount = count($languages);
+
+        if (in_array('Sprachbegabt', $advantages, true)) {
+            if ($languageCount < $languageSkill || $languageCount > $languageSkill * 3) {
+                throw ValidationException::withMessages([
+                    'languages' => "Mit Sprachbegabt müssen bei Sprachen FW {$languageSkill} zwischen {$languageSkill} und ".($languageSkill * 3).' Sprachen oder Dialekte benannt werden.',
+                ]);
+            }
+
+            return;
+        }
+
+        if ($languageCount !== $languageSkill) {
+            throw ValidationException::withMessages([
+                'languages' => "Ohne Sprachbegabt muss bei Sprachen FW {$languageSkill} genau dieselbe Zahl an Sprachen oder Dialekten benannt werden.",
+            ]);
+        }
     }
 
     private function validateActiveEquipmentId(string $id, string $expectedKind, string $field, string $label, array $selectedIds, array $itemMap): void

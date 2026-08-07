@@ -27,6 +27,12 @@
         'advantage_details',
         'disadvantage_details',
         'advantage_counts',
+        'attribute_adjustments',
+        'extra_ap_attribute',
+        'advantage_compensation_attributes',
+        'negated_racial_disadvantages',
+        'advantage_effects',
+        'languages',
         'barbar_attribute_bonus',
         'clothing',
         'equipment_items',
@@ -88,9 +94,28 @@
                 <input type="hidden" name="culture" :value="culture" x-bind:disabled="!shouldMirrorBaseFields()">
                 <input type="hidden" name="portrait_data_url" :value="portraitPreview || ''" x-bind:disabled="!shouldSubmitPortraitPreview()">
 
-                <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints()">
-                <input type="hidden" name="figurenstaerke" value="1">
+                <input type="hidden" name="figurenstaerke" value="3">
                 <input type="hidden" name="barbar_attribute_bonus" :value="barbarAttributeBonus || ''" x-bind:disabled="race !== 'Barbar' || !advancedUnlocked">
+                <input type="hidden" name="extra_ap_attribute" :value="extraApAttribute" x-bind:disabled="!extraApAttribute || !advancedUnlocked">
+                @foreach($attributeRules as $attribute)
+                    <input type="hidden" name="attribute_adjustments[{{ $attribute['id'] }}]" :value="attributeCreationAdjustment(@js($attribute['id']))" x-bind:disabled="!advancedUnlocked">
+                @endforeach
+                <template x-for="attribute in advantageCompensationAttributes" :key="'advantage-compensation-' + attribute">
+                    <input type="hidden" name="advantage_compensation_attributes[]" :value="attribute" x-bind:disabled="!advancedUnlocked">
+                </template>
+                <template x-for="disadvantage in negatedRacialDisadvantages" :key="'negated-racial-disadvantage-' + disadvantage">
+                    <input type="hidden" name="negated_racial_disadvantages[]" :value="disadvantage" x-bind:disabled="!advancedUnlocked">
+                </template>
+                <template x-for="(effect, index) in advantageEffects" :key="'advantage-effect-hidden-' + index + '-' + effect.name">
+                    <span>
+                        <input type="hidden" :name="'advantage_effects[' + index + '][name]'" :value="effect.name" x-bind:disabled="!advancedUnlocked">
+                        <input type="hidden" :name="'advantage_effects[' + index + '][target]'" :value="effect.target" x-bind:disabled="!advancedUnlocked">
+                        <input type="hidden" :name="'advantage_effects[' + index + '][justification]'" :value="effect.justification" x-bind:disabled="!advancedUnlocked">
+                    </span>
+                </template>
+                <template x-for="(language, index) in languages" :key="'language-hidden-' + index + '-' + language">
+                    <input type="hidden" name="languages[]" :value="language" x-bind:disabled="!advancedUnlocked">
+                </template>
 
                 <nav class="mb-6 flex flex-wrap gap-2 text-sm" aria-label="Editorbereiche" data-testid="char-editor-section-nav">
                     <a href="#char-editor-basics" class="btn btn-ghost btn-sm">Charakterdaten</a>
@@ -305,6 +330,8 @@
                                     <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/60">
                                         <span x-text="'Bereich ' + attributeRangeLabel(@js($attrId))"></span>
                                         <span x-show="attributeModifier(@js($attrId)) !== 0" x-cloak class="badge badge-primary badge-outline" x-text="'Rasse ' + (attributeModifier(@js($attrId)) > 0 ? '+' : '') + attributeModifier(@js($attrId))"></span>
+                                        <span class="badge badge-ghost" x-text="'Erschaffung ' + (attributeCreationAdjustment(@js($attrId)) > 0 ? '+' : '') + attributeCreationAdjustment(@js($attrId))"></span>
+                                        <span x-show="attributeAdvantageBonus(@js($attrId)) > 0" x-cloak class="badge badge-secondary badge-outline" x-text="'Vorteil +' + attributeAdvantageBonus(@js($attrId))"></span>
                                     </div>
                                     <p
                                         id="{{ $descriptionId }}"
@@ -316,6 +343,30 @@
                                     ></p>
                                 </div>
                             @endforeach
+                        </div>
+                        <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-2" data-testid="attribute-trade-controls">
+                            <div class="rounded-md border border-base-300 bg-base-200/40 p-3">
+                                <label for="extra-ap-attribute" class="text-sm font-medium text-base-content">Zusätzlichen AP erwerben</label>
+                                <p class="mt-1 text-xs leading-5 text-base-content/70">Senkt genau ein Attribut freiwillig um 1 und erhöht das AP-Budget von 2 auf 3.</p>
+                                <select id="extra-ap-attribute" class="select select-bordered select-sm mt-2 w-full" :value="extraApAttribute" @change="setExtraApAttribute($event.target.value)">
+                                    <option value="">Kein zusätzlicher AP</option>
+                                    <template x-for="attributeOption in attributeOptions" :key="'extra-ap-option-' + attributeOption.id">
+                                        <option :value="attributeOption.id" x-text="attributeOption.label + ' um 1 senken'"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 p-3">
+                                <p class="text-sm font-medium text-base-content">Zusatzvorteile durch Attributsenkung ausgleichen</p>
+                                <p class="mt-1 text-xs leading-5 text-base-content/70">Bis zu zwei andere Attribute können je einen Ausgleich liefern. Eine Senkung kann nicht doppelt verwendet werden.</p>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    <template x-for="attributeOption in attributeOptions" :key="'advantage-compensation-option-' + attributeOption.id">
+                                        <label class="flex items-center gap-2 rounded border border-base-300 bg-base-100 px-2 py-1 text-xs" :class="{ 'opacity-50': extraApAttribute === attributeOption.id }">
+                                            <input type="checkbox" class="checkbox checkbox-xs" :checked="advantageCompensationAttributes.includes(attributeOption.id)" :disabled="extraApAttribute === attributeOption.id" @change="toggleAdvantageCompensationAttribute(attributeOption.id, $event.target.checked)">
+                                            <span x-text="attributeOption.label"></span>
+                                        </label>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -531,6 +582,27 @@
                                 <option value="{{ $skillSuggestion }}"></option>
                             @endforeach
                         </datalist>
+                        <div class="mt-4 rounded-md border border-base-300 bg-base-200/40 p-3" x-show="languageSkillValue() > 0 || languages.length" x-cloak data-testid="language-list-editor">
+                            <div class="flex flex-wrap items-baseline justify-between gap-2">
+                                <div>
+                                    <h3 class="text-sm font-medium text-base-content">Beherrschte Sprachen und Dialekte</h3>
+                                    <p class="mt-1 text-xs text-base-content/70">Sprachen werden einmal als Fertigkeit geführt; hier stehen die konkreten Sprachen.</p>
+                                </div>
+                                <span class="badge" :class="languagesComplete() ? 'badge-success' : 'badge-warning badge-outline'" x-text="languages.length + ' / ' + languageMinimum() + (languageMaximum() !== languageMinimum() ? '–' + languageMaximum() : '')"></span>
+                            </div>
+                            <div class="mt-3 flex gap-2">
+                                <input type="text" class="input input-bordered input-sm min-w-0 flex-1" x-model="languageDraft" @keydown.enter.prevent="addLanguage()" placeholder="Sprache oder Dialekt">
+                                <button type="button" class="btn btn-primary btn-sm" @click="addLanguage()" :disabled="!String(languageDraft || '').trim() || languages.length >= languageMaximum()">Hinzufügen</button>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <template x-for="(language, index) in languages" :key="'language-chip-' + language">
+                                    <span class="badge badge-outline gap-2">
+                                        <span x-text="language"></span>
+                                        <button type="button" class="font-bold" :aria-label="language + ' entfernen'" @click="removeLanguage(index)">×</button>
+                                    </span>
+                                </template>
+                            </div>
+                        </div>
                     </section>
 
                     <section id="char-editor-trainings" class="border-t border-base-300/70 pt-6" data-testid="char-editor-trainings-section">
@@ -641,7 +713,12 @@
                                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Besonderheiten</h2>
                             </div>
-                            <span class="badge badge-outline" aria-live="polite" x-text="selectedDisadvantages.length + ' / ' + chosenAdvantagesCount() + ' Nachteile'"></span>
+                            <span class="badge" :class="missingAdvantageCompensations() === 0 ? 'badge-success badge-outline' : 'badge-warning badge-outline'" aria-live="polite" x-text="'Vorteilswerte ' + chosenAdvantagesCount() + ' / ' + advantageUnitLimit() + ' · Ausgleich ' + availableAdvantageCompensations() + ' / ' + extraAdvantageUnits()"></span>
+                        </div>
+                        <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="advantage-budget-summary">
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong>1 frei</strong><span class="block text-xs text-base-content/65">auf Figurenstärke 3</span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="extraAdvantageUnits() + ' zusätzlich'"></strong><span class="block text-xs text-base-content/65">maximal 2</span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="missingAdvantageCompensations() === 0 ? 'Ausgeglichen' : missingAdvantageCompensations() + ' offen'"></strong><span class="block text-xs text-base-content/65">freiwillige Nachteile oder Senkungen</span></div>
                         </div>
                         <div class="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-base-300 bg-base-200/40 p-3">
                             <x-button type="button" label="Vorteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('advantage')" data-testid="roll-advantage-button" />
@@ -652,7 +729,7 @@
                             <div>
                                 <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                                     <h3 id="advantages-heading" class="text-sm font-medium text-base-content">Vorteile</h3>
-                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Freie Vorteile: ' + freeAdvantagePoints()"></p>
+                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Automatisch: ' + automaticAdvantages().join(', ')"></p>
                                 </div>
 
                                 <template x-for="disabledAdvantage in selectedDisabledAdvantages()" :key="'disabled-advantage-' + disabledAdvantage">
@@ -704,15 +781,33 @@
                                                     >
                                                 </div>
                                             </template>
-                                            <template x-if="advantageRequiresDetail(@js($advantage))">
-                                                <div class="border-t border-base-300 px-3 py-2">
-                                                    <input
-                                                        type="text"
-                                                        name="advantage_details[{{ $advantage }}]"
-                                                        class="input input-bordered input-sm w-full"
-                                                        x-model="advantageDetails[@js($advantage)]"
-                                                        :placeholder="advantageDetailPlaceholder(@js($advantage))"
-                                                    >
+                                            <template x-if="isAdvantageSelected(@js($advantage)) && advantageEffectNeedsEditor(@js($advantage)) && !raceLocked.advantages.includes(@js($advantage))">
+                                                <div class="space-y-2 border-t border-base-300 px-3 py-2">
+                                                    <template x-for="effect in advantageEffectEntries(@js($advantage))" :key="'advantage-effect-editor-' + effect.index">
+                                                        <div class="grid grid-cols-1 gap-2 rounded border border-base-300 bg-base-200/40 p-2">
+                                                            <p class="text-xs font-medium text-base-content/70" x-show="advantageEffectEntries(@js($advantage)).length > 1" x-text="'Instanz ' + (advantageEffectEntries(@js($advantage)).findIndex(item => item.index === effect.index) + 1)"></p>
+                                                            <select
+                                                                x-show="advantageTargetOptions(@js($advantage)).length"
+                                                                class="select select-bordered select-sm w-full"
+                                                                :value="effect.target"
+                                                                :disabled="@js($advantage) === 'Psychische Kraft' && culture === 'Volk der 13 Inseln' && gender === 'weiblich'"
+                                                                @change="setAdvantageEffectField(effect.index, 'target', $event.target.value)"
+                                                            >
+                                                                <option value="">Ziel wählen</option>
+                                                                <template x-for="target in advantageTargetOptions(@js($advantage))" :key="'advantage-target-' + effect.index + '-' + target">
+                                                                    <option :value="target" x-text="attributeOptions.find(item => item.id === target)?.label || target"></option>
+                                                                </template>
+                                                            </select>
+                                                            <input
+                                                                x-show="advantageRule(@js($advantage))?.requiresJustification || advantageRule(@js($advantage))?.requiresDetail"
+                                                                type="text"
+                                                                class="input input-bordered input-sm w-full"
+                                                                :value="effect.justification"
+                                                                @input="setAdvantageEffectField(effect.index, 'justification', $event.target.value)"
+                                                                :placeholder="advantageDetailPlaceholder(@js($advantage))"
+                                                            >
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </template>
                                         </div>
@@ -722,7 +817,7 @@
                             <div>
                                 <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
                                     <h3 id="disadvantages-heading" class="text-sm font-medium text-base-content">Nachteile</h3>
-                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Gewählte Nachteile: ' + selectedDisadvantages.length + ' / benötigt: ' + chosenAdvantagesCount()"></p>
+                                    <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Frei gewählt: ' + voluntaryDisadvantages().length + ' · rassengegeben: ' + (raceLocked.disadvantages.length - negatedRacialDisadvantages.length)"></p>
                                 </div>
 
                                 <template x-for="lockedDisadvantage in selectedLockedDisadvantages()" :key="'locked-disadvantage-' + lockedDisadvantage">
@@ -755,6 +850,17 @@
                                                 </template>
                                             </label>
                                             <span id="{{ $disadvantageDescriptionId }}" class="sr-only" x-text="disadvantageTooltip(@js($disadvantage))"></span>
+                                            <template x-if="raceLocked.disadvantages.includes(@js($disadvantage))">
+                                                <label class="flex items-center gap-2 border-t border-base-300 px-3 py-2 text-xs text-base-content/75">
+                                                    <input
+                                                        type="checkbox"
+                                                        class="checkbox checkbox-secondary checkbox-xs"
+                                                        :checked="negatedRacialDisadvantages.includes(@js($disadvantage))"
+                                                        @change="toggleRacialDisadvantageNegation(@js($disadvantage), $event.target.checked)"
+                                                    >
+                                                    <span>Mit einem Vorteilswert negieren</span>
+                                                </label>
+                                            </template>
                                             <template x-if="disadvantageRequiresDetail(@js($disadvantage))">
                                                 <div class="border-t border-base-300 px-3 py-2">
                                                     <input

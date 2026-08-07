@@ -149,19 +149,19 @@ const RACE_RULE_SUMMARIES = {
         name: 'Guul',
         description: RACE_DESCRIPTIONS.Guul,
         attributes: 'AU -1',
-        skills: 'Heimlichkeit +2, Intuition +1, Natürliche Waffen +1',
+        skills: 'Heimlichkeit +2, Intuition +1',
         advantages: 'Natürliche Waffen',
         disadvantages: 'Primitiv, Gejagt',
-        note: 'Natürliche Waffen steht für den Fersendorn.',
+        note: 'Der Fersendorn ist eine Natürliche Waffe; Angriffe verwenden Nahkampf und verursachen +1 S.',
     },
     Hydrit: {
         name: 'Hydrit',
         description: RACE_DESCRIPTIONS.Hydrit,
         attributes: 'Keine Attributsmodifikatoren',
-        skills: 'Athletik +2, Bildung +1, Natürliche Waffen +1',
+        skills: 'Athletik +2, Bildung +1',
         advantages: 'Kiemen, Natürliche Waffen',
         disadvantages: 'Anfälligkeit gegen Wahnsinn',
-        note: 'Natürliche Waffen steht für Klauen.',
+        note: 'Die Klauen sind Natürliche Waffen; Angriffe verwenden Nahkampf und verursachen +1 S.',
     },
     Nosfera: {
         name: 'Nosfera',
@@ -207,7 +207,7 @@ const RACE_RULE_SUMMARIES = {
 const specialRuleConfig = () => (typeof window === 'undefined' ? {} : (window.rpgCharEditorRules || {}));
 const ADVANTAGE_RULE_METADATA = {
     "Anführer": { w66: "11-12", ranges: [[11, 12]], description: "Natürlicher Anführer; +2 auf Proben, um Leute zu befehligen oder zu überzeugen." },
-    "Gestaltwandler": { w66: "13", ranges: [[13, 13]], description: "Kann Gestalt und Stimme verändern; zählt bei der Erschaffung wie drei Vorteile." },
+    "Gestaltwandler": { w66: "13", ranges: [[13, 13]], description: "Kann Gestalt und Stimme verändern (Statur und Größe ±20 %, Haarfarbe und -länge, Augenfarbe, Hautfarbe und Geschlecht); zählt bei der Erschaffung wie drei Vorteile." },
     "Gesteigertes Attribut": { w66: "14-24", ranges: [[14, 24]], detailPlaceholder: "Attribut notieren", description: "+1 auf ein Attribut nach Wahl; ein bereits erhöhtes Attribut darf nur einmal gewählt werden." },
     "Gesteigerter Sinn": { w66: "25-26", ranges: [[25, 26]], detailPlaceholder: "Sinn notieren", description: "+3 auf Wahrnehmungsproben mit einem gewählten Sinn." },
     "High-Tech-Ausrüstung": { w66: "31-32", ranges: [[31, 32]], description: "Besitzt vier High-Tech-Gegenstände; SL-Zustimmung erforderlich." },
@@ -216,7 +216,7 @@ const ADVANTAGE_RULE_METADATA = {
     "Kiemen": { w66: "41", ranges: [[41, 41]], description: "Kann beliebig lange unter Wasser atmen." },
     "Kind zweier Welten": { w66: "42", ranges: [[42, 42]], description: "Kann sowohl Bildung als auch Intuition lernen." },
     "Nachtsicht": { w66: "43-44", ranges: [[43, 44]], description: "Kann ohne Abzüge im Dunkeln sehen." },
-    "Natürliche Waffen": { w66: "45", ranges: [[45, 45]], description: "+1 auf Nahkampf durch natürliche Waffen." },
+    "Natürliche Waffen": { w66: "45", ranges: [[45, 45]], description: "Verwendet Nahkampf mit ST/GE und verursacht +1 S Schaden." },
     "Panzerung": { w66: "46", ranges: [[46, 46]], description: "Besitzt Schutzfaktor 1; mehrfach wählbar und additiv." },
     "Psychische Kraft": { w66: "51", ranges: [[51, 51]], description: "Erhält eine besondere Kraft." },
     "Psychisches Reservoir": { w66: "52", ranges: [[52, 52]], description: "Höchster psychischer FW zählt bei der PEP-Ermittlung doppelt." },
@@ -232,14 +232,14 @@ const DISADVANTAGE_RULE_METADATA = {
     "Abhängige": { w66: "21", ranges: [[21, 21]], detailPlaceholder: "Person oder Familie notieren", description: "Muss ständig Verwandte oder Familie beschützen." },
     "Anfälligkeit gegen Wahnsinn": { w66: "22", ranges: [[22, 22]], description: "Wahnsinn tritt bei bestimmten Bedingungen ein; die Dauer des Anfalls wird vom SL bestimmt." },
     "Auffällig": { w66: "23-24", ranges: [[23, 24]], description: "Ist wegen ungewöhnlichen Aussehens oder Verhaltens leicht zu erkennen." },
-    "Blutdurst": { w66: "25", ranges: [[25, 25]], description: "Benötigt alle 24 Stunden frisches Blut oder erleidet kumulative Abzüge." },
+    "Blutdurst": { w66: "25", ranges: [[25, 25]], description: "Benötigt alle 24 Stunden frisches Blut oder erleidet einen kumulativen Abzug von -1 auf alle Proben." },
     "Ehrenkodex": { w66: "26-36", ranges: [[26, 36]], detailPlaceholder: "Kodex notieren", description: "Folgt einem definierenden Ehrenkodex, der das tägliche Handeln einschränkt." },
     "Feind": { w66: "41-44", ranges: [[41, 44]], detailPlaceholder: "Volk, Gruppe oder Person notieren", description: "Ist mit einem Volk oder einer mächtigen Person verfeindet." },
     "Gejagt": { w66: "45-46", ranges: [[45, 46]], detailPlaceholder: "Verfolger notieren", description: "Wird von fast allen Völkern gehasst und gejagt." },
-    "Lichtscheu": { w66: "51", ranges: [[51, 51]], description: "Erleidet bei ungeschützter Haut unter Licht Abzüge auf alle Proben." },
+    "Lichtscheu": { w66: "51", ranges: [[51, 51]], description: "Erleidet -2 auf alle Proben, wenn die Haut hellem Licht ausgesetzt ist." },
     "Primitiv": { w66: "52-53", ranges: [[52, 53]], description: "Kann niemals Bildung lernen und keine technischen Gerätschaften benutzen." },
     "Taratzenfutter": { w66: "54-63", ranges: [[54, 63]], description: "Alle Schadenswürfe werden um 1 erhöht." },
-    "Tödliche Immunschwäche": { w66: "64", ranges: [[64, 64]], description: "Ohne Schutzanzug treten nach Oberflächenkontakt regelmäßig schwere Symptome ein." },
+    "Tödliche Immunschwäche": { w66: "64", ranges: [[64, 64]], description: "Stirbt in 1W6 Stunden, wenn ohne Schutzanzug Kontakt mit der Oberflächenwelt besteht." },
     "Verpflichtung": { w66: "65", ranges: [[65, 65]], detailPlaceholder: "Organisation, Gruppe oder Person notieren", description: "Ist einer Organisation, Gruppe oder Person verpflichtet, die den Charakter beansprucht." },
     "Verwundbarkeit": { w66: "66", ranges: [[66, 66]], detailPlaceholder: "Mittel oder Quelle notieren", description: "Wird durch ein bestimmtes Mittel besonders schwer verwundet; Robustheit zählt nicht gegen Schaden." },
 };
@@ -254,6 +254,12 @@ const objectFromSpecialRuleConfig = (key) => {
     const value = specialRuleConfig()[key];
 
     return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+
+const creationRuleConfig = () => objectFromSpecialRuleConfig('creation');
+const numericCreationRule = (key, fallback) => {
+    const parsed = Number(creationRuleConfig()[key]);
+    return Number.isFinite(parsed) ? parsed : fallback;
 };
 
 const numericRuleCost = (value) => {
@@ -306,14 +312,11 @@ const SKILL_RULE_METADATA = {
     Nahkampf: { attributes: ['ST', 'GE'], description: 'Unbewaffneter Kampf und Nahkampfwaffen.' },
     Pilot: { attributes: ['GE', 'WA'], description: 'Umgang mit Fluggeräten, je nach Bildung vom Segelflieger bis zum Kampfjet.' },
     Reiten: { attributes: ['GE'], description: 'Gezähmte Reittiere steuern und wilde Reittiere zureiten.' },
-    Sprachen: { attributes: ['IN'], description: 'Pro Fertigkeitspunkt eine Sprache oder einen Dialekt.', specializable: true, specializationLabel: 'Sprache oder Dialekt notieren' },
+    Sprachen: { attributes: ['IN'], description: 'Pro Fertigkeitspunkt eine Sprache oder einen Dialekt.' },
     Techniker: { attributes: ['IN', 'GE'], description: 'Technische Geräte bedienen, warten und reparieren.' },
     Unterhalten: { attributes: ['AU', 'IN', 'GE'], description: 'Erzählen, Tanzen, Singen, Musizieren, Gaukeln und ähnliche Gebiete.', specializable: true, specializationLabel: 'Unterhaltungsgebiet notieren' },
     Überleben: { attributes: ['RO', 'WA'], description: 'Orientierung und Versorgung in der Wildnis.' },
     Wissenschaftler: { attributes: ['IN'], description: 'Pro Fertigkeitspunkt eine Wissenschaft; der FW darf den Bildungswert nicht übersteigen.', specializable: true, specializationLabel: 'Wissenschaft notieren' },
-};
-const SPECIAL_SKILL_RULE_METADATA = {
-    'Natürliche Waffen': { attributes: ['ST', 'GE'], description: 'Rassenbedingte Sonderregel für natürliche Angriffe; nicht frei als normale Fertigkeit wählbar.', restricted: true },
 };
 const DEFAULT_SKILL_SUGGESTIONS = [
     'Athletik', 'Beruf', 'Beruf: Bauer', 'Beruf: Bergmann', 'Beruf: Farmer', 'Beruf: Fischer', 'Beruf: Künstler', 'Beruf: Landwirt', 'Beruf: Seemann', 'Beruf: Viehzüchter',
@@ -326,7 +329,7 @@ const defaultSkillRuleConfig = () => ({
     creationPoints: 20,
     skills: Object.entries(SKILL_RULE_METADATA).map(([name, rule]) => ({ name, ...rule })),
     suggestions: DEFAULT_SKILL_SUGGESTIONS,
-    specialSkills: Object.entries(SPECIAL_SKILL_RULE_METADATA).map(([name, rule]) => ({ name, ...rule })),
+    specialSkills: [],
 });
 const skillRuleConfig = () => {
     const config = objectFromSpecialRuleConfig('skillRules');
@@ -390,31 +393,41 @@ const trainingRuleConfig = () => {
 const trainingRules = () => trainingRuleConfig().trainings || [];
 const trainingRulesByName = () => Object.fromEntries(trainingRules().map(training => [training.name, training]));
 const trainingLimit = () => Number(trainingRuleConfig().maxTrainings) || 10;
-const SPECIALIZABLE_TRAINING_SKILLS = new Set(['Beruf', 'Kunde', 'Sprachen', 'Unterhalten', 'Wissenschaftler']);
+const SPECIALIZABLE_TRAINING_SKILLS = new Set(['Beruf', 'Kunde', 'Unterhalten', 'Wissenschaftler']);
 const buildAdvantageRules = () => {
     const costs = objectFromSpecialRuleConfig('advantageCosts');
     const repeatableAdvantages = new Set(listFromSpecialRuleConfig('repeatableAdvantages'));
     const detailRequiredAdvantages = new Set(listFromSpecialRuleConfig('advantageDetailRequired'));
+    const configuredRules = objectFromSpecialRuleConfig('advantageRules');
 
     return listFromSpecialRuleConfig('advantages', Object.keys(ADVANTAGE_RULE_METADATA))
         .map((name) => ({
             name,
             ...(ADVANTAGE_RULE_METADATA[name] || {}),
-            cost: numericRuleCost(costs[name]),
-            repeatable: repeatableAdvantages.has(name),
-            requiresDetail: detailRequiredAdvantages.has(name),
+            ...(configuredRules[name] || {}),
+            cost: numericRuleCost(configuredRules[name]?.cost ?? costs[name]),
+            repeatable: configuredRules[name]?.repeat
+                ? configuredRules[name].repeat !== 'none'
+                : repeatableAdvantages.has(name),
+            repeatMode: configuredRules[name]?.repeat || (repeatableAdvantages.has(name) ? 'stack' : 'none'),
+            requiresDetail: Boolean(configuredRules[name]?.requires_detail ?? detailRequiredAdvantages.has(name)),
+            requiresJustification: Boolean(configuredRules[name]?.requires_justification),
+            detailPlaceholder: configuredRules[name]?.detail_placeholder || ADVANTAGE_RULE_METADATA[name]?.detailPlaceholder || '',
         }))
         .filter((rule) => Array.isArray(rule.ranges));
 };
 
 const buildDisadvantageRules = () => {
     const detailRequiredDisadvantages = new Set(listFromSpecialRuleConfig('disadvantageDetailRequired'));
+    const configuredRules = objectFromSpecialRuleConfig('disadvantageRules');
 
     return listFromSpecialRuleConfig('disadvantages', Object.keys(DISADVANTAGE_RULE_METADATA))
         .map((name) => ({
             name,
             ...(DISADVANTAGE_RULE_METADATA[name] || {}),
-            requiresDetail: detailRequiredDisadvantages.has(name),
+            ...(configuredRules[name] || {}),
+            requiresDetail: Boolean(configuredRules[name]?.requires_detail ?? detailRequiredDisadvantages.has(name)),
+            detailPlaceholder: configuredRules[name]?.detail_placeholder || DISADVANTAGE_RULE_METADATA[name]?.detailPlaceholder || '',
         }))
         .filter((rule) => Array.isArray(rule.ranges));
 };
@@ -575,6 +588,12 @@ function oldHasAdvancedPayload(input) {
         'bunkermensch_bonus_skill',
         'mensch_21_first_bonus_skill',
         'mensch_21_second_bonus_skill',
+        'attribute_adjustments',
+        'extra_ap_attribute',
+        'advantage_compensation_attributes',
+        'negated_racial_disadvantages',
+        'advantage_effects',
+        'languages',
     ].some((key) => {
         const value = input[key];
 
@@ -610,7 +629,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     equipmentCategoryFilter: 'all',
 
     // Game constants
-    base: { AP: attributeCreationPoints(), FP: skillCreationPoints(), maxFW: skillMaxValue(), freeAdvantages: 2 },
+    base: {
+        AP: numericCreationRule('baseAttributePoints', attributeCreationPoints()),
+        FP: skillCreationPoints(),
+        maxFW: skillMaxValue(),
+        freeAdvantages: numericCreationRule('freeAdvantageUnits', 1),
+        maxExtraAdvantages: numericCreationRule('maxExtraAdvantageUnits', 2),
+        maxExtraAP: numericCreationRule('maxExtraAttributePoints', 1),
+    },
 
     // Race/culture state
     raceAPBonus: 0,
@@ -651,11 +677,19 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     selectedAdvantages: ['Zäh'],
     selectedDisadvantages: [],
     raceLocked: { advantages: [], disadvantages: [] },
+    raceAutoSelectedAdvantages: [],
     cultureLocked: { advantages: [], disadvantages: [] },
     cultureAutoSelectedAdvantages: [],
     advantageDetails: {},
     disadvantageDetails: {},
-    advantageCounts: { Panzerung: 1 },
+    advantageCounts: { Panzerung: 1, Regeneration: 1, 'Gesteigertes Attribut': 1, 'Gesteigerter Sinn': 1 },
+    advantageEffects: [],
+    suspendedRaceAdvantageEffects: {},
+    extraApAttribute: '',
+    advantageCompensationAttributes: [],
+    negatedRacialDisadvantages: [],
+    languages: [],
+    languageDraft: '',
     lastRoll: null,
 
     // UI state
@@ -687,17 +721,25 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     attributeCost(id, value = this.attributes[id]) {
-        return Math.max(value - this.attributeModifier(id), 0);
+        return Math.max(value - this.attributeModifier(id) - this.attributeAdvantageBonus(id), 0);
+    },
+
+    attributeCreationAdjustment(id, value = this.attributes[id]) {
+        return value - this.attributeModifier(id) - this.attributeAdvantageBonus(id);
+    },
+
+    attributeAdvantageBonus(id) {
+        return this.advantageEffects.filter(effect => effect.name === 'Gesteigertes Attribut' && effect.target === id).length;
     },
 
     getAttributeMin(id) {
-        return Math.max(this.attributeAbsoluteMin(), this.attributeBaseMin() + this.attributeModifier(id));
+        return Math.max(this.attributeAbsoluteMin(), this.attributeBaseMin() + this.attributeModifier(id) + this.attributeAdvantageBonus(id));
     },
 
     getAttributeMax(id) {
         return Math.min(
             this.attributeAbsoluteMax(),
-            Math.max(this.getAttributeMin(id), this.attributeBaseMax() + this.attributeModifier(id)),
+            Math.max(this.getAttributeMin(id), this.attributeBaseMax() + this.attributeModifier(id) + this.attributeAdvantageBonus(id)),
         );
     },
 
@@ -706,7 +748,45 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     apRemaining() {
-        return this.base.AP + this.raceAPBonus - this.apUsed();
+        return this.base.AP + this.raceAPBonus + (this.hasValidExtraApTrade() ? 1 : 0) - this.apUsed();
+    },
+
+    hasValidExtraApTrade() {
+        return this.extraApAttribute !== ''
+            && this.attributeCreationAdjustment(this.extraApAttribute) === -1
+            && !this.advantageCompensationAttributes.includes(this.extraApAttribute);
+    },
+
+    setExtraApAttribute(value) {
+        const attribute = ATTRIBUTE_IDS.includes(value) ? value : '';
+        this.extraApAttribute = attribute;
+        if (!attribute) return;
+
+        this.advantageCompensationAttributes = this.advantageCompensationAttributes.filter(id => id !== attribute);
+        this.attributes[attribute] = this.attributeModifier(attribute) + this.attributeAdvantageBonus(attribute) - 1;
+        this.clampAttribute(attribute);
+    },
+
+    toggleAdvantageCompensationAttribute(attribute, selected) {
+        if (!ATTRIBUTE_IDS.includes(attribute)) return;
+
+        const next = this.advantageCompensationAttributes.filter(id => id !== attribute && id !== this.extraApAttribute);
+        if (attribute === this.extraApAttribute) {
+            this.advantageCompensationAttributes = next;
+            return;
+        }
+        if (selected && next.length < this.base.maxExtraAdvantages) {
+            next.push(attribute);
+            this.attributes[attribute] = this.attributeModifier(attribute) + this.attributeAdvantageBonus(attribute) - 1;
+            this.clampAttribute(attribute);
+        }
+        this.advantageCompensationAttributes = next;
+    },
+
+    hasValidAdvantageAttributeCompensation(attribute) {
+        return this.advantageCompensationAttributes.includes(attribute)
+            && attribute !== this.extraApAttribute
+            && this.attributeCreationAdjustment(attribute) === -1;
     },
 
     fpUsed() {
@@ -723,8 +803,40 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.base.FP - this.fpUsed();
     },
 
+    languageSkillValue() {
+        const skill = this.skills.find(entry => normalizeSkillName(entry.name) === 'Sprachen');
+        return Math.max(Number(skill?.value) || 0, 0);
+    },
+
+    languageMinimum() {
+        return this.languageSkillValue();
+    },
+
+    languageMaximum() {
+        return this.languageSkillValue() * (this.selectedAdvantages.includes('Sprachbegabt') ? 3 : 1);
+    },
+
+    languagesComplete() {
+        return this.languages.length >= this.languageMinimum() && this.languages.length <= this.languageMaximum();
+    },
+
+    addLanguage() {
+        const language = String(this.languageDraft || '').trim();
+        if (!language || this.languages.includes(language) || this.languages.length >= this.languageMaximum()) return;
+        this.languages = [...this.languages, language];
+        this.languageDraft = '';
+    },
+
+    removeLanguage(index) {
+        this.languages = this.languages.filter((_, languageIndex) => languageIndex !== index);
+    },
+
     lockedAdvantages() {
         return [...new Set([...this.raceLocked.advantages, ...this.cultureLocked.advantages])];
+    },
+
+    automaticAdvantages() {
+        return [...new Set(['Zäh', ...this.raceLocked.advantages])];
     },
 
     advantageRule(value) {
@@ -1202,7 +1314,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return Boolean(this.selectedClothing())
             && this.equipmentCount() === this.equipmentLimit()
             && this.highTechEquipmentCount() <= this.highTechEquipmentLimit()
-            && (this.hasHighTechAdvantage() || this.highTechEquipmentCount() === 0);
+            && (this.hasHighTechAdvantage()
+                ? this.highTechEquipmentCount() === this.highTechEquipmentLimit()
+                : this.highTechEquipmentCount() === 0);
     },
 
     formatGrantList(grants) {
@@ -1271,12 +1385,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             issues.push(`Präkristofluu-Rassenpunkte: ${this.praekristofluuPoolUsed()} / ${this.praekristofluuSkillPoolPoints}`);
         }
 
-        if (this.selectedDisadvantages.length < this.chosenAdvantagesCount()) {
-            issues.push(`Nachteile: ${this.selectedDisadvantages.length} / ${this.chosenAdvantagesCount()} gewählt`);
+        if (this.missingAdvantageCompensations() > 0) {
+            issues.push(`Vorteile: ${this.missingAdvantageCompensations()} Ausgleich${this.missingAdvantageCompensations() === 1 ? '' : 'e'} offen`);
         }
 
         if (!this.requiredSpecialDetailsFilled()) {
             issues.push('Details für Besonderheiten fehlen');
+        }
+
+        if (!this.languagesComplete()) {
+            issues.push('Sprachen: Zahl der benannten Sprachen passt nicht zum Fertigkeitswert');
         }
 
         if (!this.equipmentComplete()) {
@@ -1335,7 +1453,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     advantageCost(value) {
-        if (!value || value === 'Zäh' || this.lockedAdvantages().includes(value)) return 0;
+        if (!value || value === 'Zäh' || this.raceLocked.advantages.includes(value)) return 0;
 
         const rule = this.advantageRule(value);
         const baseCost = rule?.cost ?? 1;
@@ -1343,11 +1461,46 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     chosenAdvantagesCount() {
-        return this.selectedAdvantages.reduce((sum, value) => sum + this.advantageCost(value), 0);
+        return this.selectedAdvantages.reduce((sum, value) => sum + this.advantageCost(value), 0)
+            + this.negatedRacialDisadvantages.length;
     },
 
     freeAdvantagePoints() {
-        return this.base.freeAdvantages - this.chosenAdvantagesCount();
+        return Math.max(this.base.freeAdvantages - this.chosenAdvantagesCount(), 0);
+    },
+
+    advantageUnitLimit() {
+        return this.base.freeAdvantages + this.base.maxExtraAdvantages;
+    },
+
+    extraAdvantageUnits() {
+        return Math.max(this.chosenAdvantagesCount() - this.base.freeAdvantages, 0);
+    },
+
+    voluntaryDisadvantages() {
+        return this.selectedDisadvantages.filter(value => !this.raceLocked.disadvantages.includes(value));
+    },
+
+    availableAdvantageCompensations() {
+        return this.voluntaryDisadvantages().length
+            + this.advantageCompensationAttributes.filter(attribute => this.hasValidAdvantageAttributeCompensation(attribute)).length;
+    },
+
+    missingAdvantageCompensations() {
+        return Math.max(this.extraAdvantageUnits() - this.availableAdvantageCompensations(), 0);
+    },
+
+    toggleRacialDisadvantageNegation(value, negated) {
+        if (!this.raceLocked.disadvantages.includes(value)) return;
+
+        if (negated) {
+            this.negatedRacialDisadvantages = [...new Set([...this.negatedRacialDisadvantages, value])];
+            this.selectedDisadvantages = this.selectedDisadvantages.filter(item => item !== value);
+        } else {
+            this.negatedRacialDisadvantages = this.negatedRacialDisadvantages.filter(item => item !== value);
+            this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, value])];
+        }
+        this.enforceAdvantageLimit();
     },
 
     hasKindZweierWelten() {
@@ -1362,9 +1515,107 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.selectedDisadvantages.includes(value);
     },
 
+    paidSelectedAdvantages() {
+        return this.selectedAdvantages.filter(value => !this.automaticAdvantages().includes(value));
+    },
+
+    advantageEffectEntries(value = null) {
+        return this.advantageEffects
+            .map((effect, index) => ({ ...effect, index }))
+            .filter(effect => value === null || effect.name === value);
+    },
+
+    advantageTargetOptions(value) {
+        const targets = this.advantageRule(value)?.targets;
+        return Array.isArray(targets) ? targets : [];
+    },
+
+    advantageEffectNeedsEditor(value) {
+        const rule = this.advantageRule(value);
+        return this.advantageTargetOptions(value).length > 0
+            || Boolean(rule?.requiresJustification)
+            || Boolean(rule?.requiresDetail);
+    },
+
+    synchronizeAdvantageEffects() {
+        const previousBonuses = Object.fromEntries(ATTRIBUTE_IDS.map(id => [id, this.attributeAdvantageBonus(id)]));
+        const next = [];
+        const suspended = { ...this.suspendedRaceAdvantageEffects };
+
+        this.raceLocked.advantages.forEach((name) => {
+            const existing = this.advantageEffects.filter(effect => effect.name === name);
+            if (existing.length) suspended[name] = existing;
+        });
+
+        this.paidSelectedAdvantages().forEach((name) => {
+            const wanted = this.advantageIsRepeatable(name) ? this.advantageCount(name) : 1;
+            const existing = this.advantageEffects.filter(effect => effect.name === name).slice(0, wanted);
+            if (existing.length === 0 && Array.isArray(suspended[name])) {
+                existing.push(...suspended[name].slice(0, wanted));
+                delete suspended[name];
+            }
+            while (existing.length < wanted) {
+                existing.push({ name, target: '', justification: '' });
+            }
+
+            if (name === VOLK_DER_13_INSELN_REQUIRED_ADVANTAGE
+                && this.culture === VOLK_DER_13_INSELN_CULTURE
+                && this.gender === FEMALE_GENDER) {
+                existing[0].target = 'Telepathie';
+            }
+            next.push(...existing);
+        });
+
+        this.suspendedRaceAdvantageEffects = suspended;
+        this.advantageEffects = next;
+        this.reconcileAttributeAdvantageBonuses(previousBonuses);
+    },
+
+    setAdvantageEffectField(index, field, value) {
+        if (!['target', 'justification'].includes(field) || !this.advantageEffects[index]) return;
+        const previousBonuses = Object.fromEntries(ATTRIBUTE_IDS.map(id => [id, this.attributeAdvantageBonus(id)]));
+        const next = this.advantageEffects.map((effect, effectIndex) => effectIndex === index
+            ? { ...effect, [field]: String(value || '').trim() }
+            : effect);
+        this.advantageEffects = next;
+        this.reconcileAttributeAdvantageBonuses(previousBonuses);
+    },
+
+    reconcileAttributeAdvantageBonuses(previousBonuses) {
+        ATTRIBUTE_IDS.forEach((id) => {
+            const previous = Number(previousBonuses[id]) || 0;
+            const next = this.attributeAdvantageBonus(id);
+            if (previous === next) return;
+
+            const adjustment = this.attributes[id] - this.attributeModifier(id) - previous;
+            this.attributes[id] = this.attributeModifier(id) + adjustment + next;
+            this.clampAttribute(id);
+        });
+    },
+
+    advantageEffectsComplete() {
+        return this.paidSelectedAdvantages().every((name) => {
+            const rule = this.advantageRule(name);
+            const effects = this.advantageEffects.filter(effect => effect.name === name);
+            const wanted = this.advantageIsRepeatable(name) ? this.advantageCount(name) : 1;
+            if (effects.length !== wanted) return false;
+
+            const targets = this.advantageTargetOptions(name);
+            const selectedTargets = effects.map(effect => effect.target);
+            if (targets.length && selectedTargets.some(target => !targets.includes(target))) return false;
+            if (rule?.repeatMode === 'unique_target' && new Set(selectedTargets).size !== selectedTargets.length) return false;
+            if ((rule?.requiresJustification || rule?.requiresDetail)
+                && effects.some(effect => !String(effect.justification || '').trim())) return false;
+
+            return true;
+        });
+    },
+
     advantageRequiresDetail(value) {
         const rule = this.advantageRule(value);
-        return this.isAdvantageSelected(value) && Boolean(rule?.requiresDetail) && !this.lockedAdvantages().includes(value);
+        return this.isAdvantageSelected(value)
+            && (Boolean(rule?.requiresDetail) || Boolean(rule?.requiresJustification))
+            && !this.raceLocked.advantages.includes(value);
     },
 
     disadvantageRequiresDetail(value) {
@@ -1381,12 +1632,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     requiredSpecialDetailsFilled() {
-        const missingAdvantageDetail = this.selectedAdvantages.some(value => this.advantageRequiresDetail(value)
-            && !String(this.advantageDetails[value] || '').trim());
         const missingDisadvantageDetail = this.selectedDisadvantages.some(value => this.disadvantageRequiresDetail(value)
             && !String(this.disadvantageDetails[value] || '').trim());
 
-        return !missingAdvantageDetail && !missingDisadvantageDetail;
+        return this.advantageEffectsComplete() && !missingDisadvantageDetail;
     },
 
     formValid() {
@@ -1395,8 +1644,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             && this.trainingRulesComplete()
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
-            && this.selectedDisadvantages.length >= this.chosenAdvantagesCount()
+            && this.chosenAdvantagesCount() <= this.advantageUnitLimit()
+            && this.missingAdvantageCompensations() === 0
             && this.requiredSpecialDetailsFilled()
+            && this.languagesComplete()
             && this.equipmentComplete();
     },
 
@@ -1575,11 +1826,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             this.setBarbarAttributeBonus(barbarAttributeBonus);
         }
 
-        this.applyOldAttributeInput(oldInput.attributes);
         this.applyOldSkillPoolInput(oldInput);
         this.applyOldCultureChoiceInput(oldInput);
         this.applyOldSkillInput(oldInput.skills);
         this.applyOldSpecialInput(oldInput);
+        this.applyOldAttributeInput(oldInput.attributes);
         this.applyOldTrainingInput(oldInput);
         this.applyOldEquipmentInput(oldInput);
         this.enforceAdvantageLimit();
@@ -1638,17 +1889,35 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyOldSkillInput(input) {
+        const legacyLanguages = [];
+        let legacyLanguagePoints = 0;
+
         oldArray(input).forEach((entry) => {
             const skillInput = oldRecord(entry);
-            const name = oldString(skillInput.name).trim();
+            const name = normalizeSkillName(oldString(skillInput.name));
 
             if (!name) return;
+
+            if (name.startsWith('Sprachen:')) {
+                const language = name.slice('Sprachen:'.length).trim();
+                if (language) legacyLanguages.push(language);
+                legacyLanguagePoints += Math.max(oldInteger(skillInput.value, 0), 0);
+                return;
+            }
 
             const skill = this.ensureSkill(name);
             skill.value = oldInteger(skillInput.value, skill.value);
             this.applyGrantToSkill(skill);
             this.clampSkillValue(skill);
         });
+
+        if (legacyLanguages.length) {
+            const skill = this.ensureSkill('Sprachen');
+            skill.value = Math.max(skill.value, legacyLanguagePoints);
+            this.applyGrantToSkill(skill);
+            this.clampSkillValue(skill);
+            this.languages = [...new Set([...this.languages, ...legacyLanguages])];
+        }
     },
 
     applyOldSpecialInput(input) {
@@ -1680,6 +1949,40 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             Object.entries({ ...this.advantageCounts, ...advantageCounts })
                 .map(([key, value]) => [key, oldInteger(value, 1)]),
         );
+
+        const submittedEffects = oldArray(input.advantage_effects)
+            .map((entry) => oldRecord(entry))
+            .map((effect) => ({
+                name: oldString(effect.name).trim(),
+                target: oldString(effect.target).trim(),
+                justification: oldString(effect.justification).trim(),
+            }))
+            .filter(effect => this.paidSelectedAdvantages().includes(effect.name));
+
+        this.synchronizeAdvantageEffects();
+        if (submittedEffects.length) {
+            this.advantageEffects = submittedEffects;
+            this.synchronizeAdvantageEffects();
+        } else {
+            this.advantageEffects = this.advantageEffects.map(effect => ({
+                ...effect,
+                justification: oldString(advantageDetails[effect.name]).trim(),
+            }));
+        }
+
+        this.extraApAttribute = ATTRIBUTE_IDS.includes(oldString(input.extra_ap_attribute))
+            ? oldString(input.extra_ap_attribute)
+            : '';
+        this.advantageCompensationAttributes = [...new Set(oldArray(input.advantage_compensation_attributes)
+            .map(value => oldString(value).trim())
+            .filter(value => ATTRIBUTE_IDS.includes(value) && value !== this.extraApAttribute))]
+            .slice(0, this.base.maxExtraAdvantages);
+        this.negatedRacialDisadvantages = [...new Set(oldArray(input.negated_racial_disadvantages)
+            .map(value => oldString(value).trim())
+            .filter(value => this.raceLocked.disadvantages.includes(value)))];
+        this.selectedDisadvantages = this.selectedDisadvantages.filter(value => !this.negatedRacialDisadvantages.includes(value));
+        this.languages = [...new Set([...this.languages, ...oldArray(input.languages).map(value => oldString(value).trim()).filter(Boolean)])]
+            .slice(0, 12);
     },
 
     applyOldTrainingInput(input) {
@@ -1744,6 +2047,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.$watch('gender', () => this.handleGenderChange());
         this.$watch('selectedAdvantages', () => {
             this.enforceAdvantageLimit();
+            this.synchronizeAdvantageEffects();
             this.enforceEquipmentLimits();
         });
     },
@@ -1758,8 +2062,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             if (otherId === id) return sum;
             return sum + this.attributeCost(otherId);
         }, 0);
-        const availableForThis = Math.max(0, this.base.AP + this.raceAPBonus - othersUsed);
-        const maxForThis = Math.min(this.getAttributeMax(id), this.attributeModifier(id) + availableForThis);
+        const availableForThis = Math.max(
+            0,
+            this.base.AP + this.raceAPBonus + (this.hasValidExtraApTrade() ? 1 : 0) - othersUsed,
+        );
+        const maxForThis = Math.min(
+            this.getAttributeMax(id),
+            this.attributeModifier(id) + this.attributeAdvantageBonus(id) + availableForThis,
+        );
         val = Math.min(val, Math.max(this.getAttributeMin(id), maxForThis));
 
         this.attributes[id] = val;
@@ -2107,8 +2417,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         Object.entries(previousModifiers).forEach(([id, modifier]) => {
             if (!ATTRIBUTE_IDS.includes(id)) return;
             const modifiedValue = Number.isFinite(Number(this.attributes[id])) ? Number(this.attributes[id]) : modifier;
-            const paidValue = modifiedValue - modifier;
-            this.attributes[id] = Math.max(this.attributeBaseMin(), Math.min(paidValue, this.attributeBaseMax()));
+            const valueWithoutRaceModifier = modifiedValue - modifier;
+            this.attributes[id] = Math.max(this.getAttributeMin(id), Math.min(valueWithoutRaceModifier, this.getAttributeMax(id)));
         });
     },
 
@@ -2187,7 +2497,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     clearRace() {
         const previousRaceSkills = Object.keys(this.raceGrants);
-        const previousLockedAdvantages = [...this.raceLocked.advantages];
+        const previousAutoSelectedAdvantages = [...this.raceAutoSelectedAdvantages];
         const previousLockedDisadvantages = [...this.raceLocked.disadvantages];
 
         this.raceAPBonus = 0;
@@ -2198,10 +2508,20 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.resetPraekristofluuSkillPoints(0);
         this.clearRaceAttributeModifiers();
         previousRaceSkills.forEach(name => this.refreshGrantedSkill(name));
-        this.selectedAdvantages = this.selectedAdvantages.filter(value => value === 'Zäh' || !previousLockedAdvantages.includes(value));
+        this.selectedAdvantages = this.selectedAdvantages.filter(value => !previousAutoSelectedAdvantages.includes(value));
         this.selectedDisadvantages = this.selectedDisadvantages.filter(value => !previousLockedDisadvantages.includes(value));
+        this.negatedRacialDisadvantages = [];
         this.raceLocked.advantages = [];
+        this.raceAutoSelectedAdvantages = [];
         this.raceLocked.disadvantages = [];
+    },
+
+    setRaceLockedAdvantages(advantages) {
+        const next = [...new Set(advantages)];
+        const newlyAutoSelected = next.filter(value => !this.selectedAdvantages.includes(value));
+        this.raceLocked.advantages = next;
+        this.raceAutoSelectedAdvantages = newlyAutoSelected;
+        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, ...next])];
     },
 
     applyRaceBarbar() {
@@ -2215,20 +2535,16 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setRaceAttributeModifiers({ au: -1 });
         this.setFreeMin('Heimlichkeit', 2, 'Rasse');
         this.setFreeMin('Intuition', 1, 'Rasse');
-        this.setFreeMin('Natürliche Waffen', 1, 'Rasse');
-        this.raceLocked.advantages = ['Natürliche Waffen'];
+        this.setRaceLockedAdvantages(['Natürliche Waffen']);
         this.raceLocked.disadvantages = ['Primitiv', 'Gejagt'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Natürliche Waffen'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Primitiv', 'Gejagt'])];
     },
 
     applyRaceHydrit() {
         this.setFreeMin('Athletik', 2, 'Rasse');
         this.setFreeMin('Bildung', 1, 'Rasse');
-        this.setFreeMin('Natürliche Waffen', 1, 'Rasse');
-        this.raceLocked.advantages = ['Kiemen', 'Natürliche Waffen'];
+        this.setRaceLockedAdvantages(['Kiemen', 'Natürliche Waffen']);
         this.raceLocked.disadvantages = ['Anfälligkeit gegen Wahnsinn'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Kiemen', 'Natürliche Waffen'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Anfälligkeit gegen Wahnsinn'])];
     },
 
@@ -2236,9 +2552,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setRaceAttributeModifiers({ ge: 1, au: -1 });
         this.setFreeMin('Intuition', 2, 'Rasse');
         this.setFreeMin('Heimlichkeit', 2, 'Rasse');
-        this.raceLocked.advantages = ['Nachtsicht'];
+        this.setRaceLockedAdvantages(['Nachtsicht']);
         this.raceLocked.disadvantages = ['Blutdurst', 'Lichtscheu', 'Gejagt'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'Nachtsicht'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Blutdurst', 'Lichtscheu', 'Gejagt'])];
     },
 
@@ -2264,9 +2579,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Bildung', 3, 'Rasse');
         this.resetTechnoSkillPoints(2);
         this.refreshAllTechnoSkillGrants();
-        this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
+        this.setRaceLockedAdvantages(['High-Tech-Ausrüstung']);
         this.raceLocked.disadvantages = ['Tödliche Immunschwäche'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'High-Tech-Ausrüstung'])];
         this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, 'Tödliche Immunschwäche'])];
     },
 
@@ -2274,8 +2588,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.setFreeMin('Beruf', 3, 'Rasse');
         this.resetPraekristofluuSkillPoints(2);
         this.refreshAllPraekristofluuSkillGrants();
-        this.raceLocked.advantages = ['High-Tech-Ausrüstung'];
-        this.selectedAdvantages = [...new Set([...this.selectedAdvantages, 'High-Tech-Ausrüstung'])];
+        this.setRaceLockedAdvantages(['High-Tech-Ausrüstung']);
     },
 
     setBarbarAttributeBonus(attributeId) {
@@ -2641,12 +2954,13 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     // --- Advantages / disadvantages ---
     enforceAdvantageLimit() {
-        const max = this.base.freeAdvantages;
+        const max = this.advantageUnitLimit();
         const lockedAdvantages = this.lockedAdvantages();
         const locked = this.selectedAdvantages.filter(value => lockedAdvantages.includes(value));
         const chosen = this.selectedAdvantages.filter(value => value !== 'Zäh' && !lockedAdvantages.includes(value));
         const kept = [];
-        let used = 0;
+        let used = this.negatedRacialDisadvantages.length
+            + locked.reduce((sum, value) => sum + this.advantageCost(value), 0);
 
         chosen.forEach((value) => {
             const cost = this.advantageCost(value);
@@ -2665,6 +2979,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
 
         this.clampRepeatableAdvantageCounts();
+        this.synchronizeAdvantageEffects();
     },
 
     clampRepeatableAdvantageCounts() {
@@ -2686,7 +3001,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         const selectedWithoutThis = this.selectedAdvantages.filter(selected => selected !== value);
         const usedWithoutThis = selectedWithoutThis.reduce((sum, selected) => sum + this.advantageCost(selected), 0);
-        const affordable = Math.max(1, this.base.freeAdvantages - usedWithoutThis);
+        const affordable = Math.max(1, this.advantageUnitLimit() - this.negatedRacialDisadvantages.length - usedWithoutThis);
         this.advantageCounts[value] = Math.min(normalized, affordable);
 
         if (this.advantageCounts[value] !== previous) {
@@ -2709,7 +3024,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         const rule = this.advantageRule(value);
         const cost = rule?.cost ?? 1;
-        return this.chosenAdvantagesCount() + cost > this.base.freeAdvantages;
+        return this.chosenAdvantagesCount() + cost > this.advantageUnitLimit();
     },
 
     isDisadvantageDisabled(value) {

@@ -35,6 +35,7 @@ class RpgCharEditorPdfTest extends TestCase
     private function validPdfPayload(array $overrides = []): array
     {
         $payload = array_replace_recursive([
+            'figurenstaerke' => 3,
             'player_name' => 'Spieler Eins',
             'character_name' => 'Foo Bar',
             'gender' => 'maennlich',
@@ -56,6 +57,11 @@ class RpgCharEditorPdfTest extends TestCase
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Auffällig'],
+            'advantage_details' => [],
+            'disadvantage_details' => [],
+            'advantage_counts' => [],
+            'advantage_effects' => [],
+            'languages' => [],
             'clothing' => 'kleidung-einfach',
             'equipment_items' => [
                 ['id' => 'messer-dolch', 'quantity' => 1],
@@ -72,13 +78,132 @@ class RpgCharEditorPdfTest extends TestCase
             $payload['attributes'] = $this->validAttributesForRace((string) ($payload['race'] ?? ''));
         }
 
-        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'equipment_items'] as $listKey) {
+        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'advantage_details', 'disadvantage_details', 'advantage_counts', 'advantage_effects', 'languages', 'equipment_items'] as $listKey) {
             if (array_key_exists($listKey, $overrides)) {
                 $payload[$listKey] = $overrides[$listKey];
             }
         }
 
+        if (! array_key_exists('advantage_effects', $overrides)) {
+            $payload['advantage_effects'] = $this->advantageEffectsForPayload($payload);
+        }
+
+        if (! array_key_exists('attribute_adjustments', $overrides)) {
+            $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
+        }
+
+        if (! array_key_exists('languages', $overrides)) {
+            $languageValue = collect($payload['skills'])->firstWhere('name', 'Sprachen')['value'] ?? 0;
+            $payload['languages'] = (int) $languageValue > 0
+                ? array_map(static fn (int $index): string => 'Testsprache '.$index, range(1, (int) $languageValue))
+                : [];
+        }
+
+        if (! array_key_exists('equipment_items', $overrides)
+            && (in_array($payload['race'], ['Techno', 'Präkristofluu'], true)
+                || in_array('High-Tech-Ausrüstung', $this->canonicalAdvantages($payload['advantages']), true))) {
+            $payload['equipment_items'] = [
+                ['id' => 'fernglas', 'quantity' => 1],
+                ['id' => 'funkgeraet', 'quantity' => 1],
+                ['id' => 'gasmaske', 'quantity' => 1],
+                ['id' => 'atemgeraet', 'quantity' => 1],
+                ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1],
+            ];
+        }
+
         return $payload;
+    }
+
+    private function canonicalAdvantages(array $advantages): array
+    {
+        $aliases = [
+            'Zaeh' => 'Zäh',
+            'Natuerliche Waffen' => 'Natürliche Waffen',
+            'High-Tech-Ausruestung' => 'High-Tech-Ausrüstung',
+        ];
+
+        return array_map(static fn (string $name): string => $aliases[$name] ?? $name, $advantages);
+    }
+
+    private function advantageEffectsForPayload(array $payload): array
+    {
+        $advantages = $this->canonicalAdvantages($payload['advantages'] ?? []);
+        $racial = match ($payload['race'] ?? '') {
+            'Guul' => ['Natürliche Waffen'],
+            'Hydrit' => ['Kiemen', 'Natürliche Waffen'],
+            'Nosfera' => ['Nachtsicht'],
+            'Techno', 'Präkristofluu' => ['High-Tech-Ausrüstung'],
+            default => [],
+        };
+        $details = $payload['advantage_details'] ?? [];
+        $counts = $payload['advantage_counts'] ?? [];
+        $effects = [];
+
+        foreach (array_diff($advantages, ['Zäh', ...$racial]) as $advantage) {
+            $count = in_array($advantage, ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Panzerung', 'Regeneration'], true)
+                ? max(1, (int) ($counts[$advantage] ?? 1))
+                : 1;
+            $detail = trim((string) ($details[$advantage] ?? $details[str_replace(' ', '_', $advantage)] ?? ''));
+
+            for ($index = 0; $index < $count; $index++) {
+                $target = match ($advantage) {
+                    'Gesteigertes Attribut' => $this->attributeTargetFromDetail($detail),
+                    'Gesteigerter Sinn' => in_array($detail, ['Sehen', 'Hören', 'Riechen', 'Schmecken', 'Tasten'], true) ? $detail : 'Sehen',
+                    'Psychische Kraft' => 'Telepathie',
+                    default => '',
+                };
+                $requiresReason = in_array($advantage, ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Nachtsicht', 'Natürliche Waffen', 'Panzerung', 'Regeneration', 'Schnell', 'Tiergefährte'], true);
+                $effects[] = [
+                    'name' => $advantage,
+                    'target' => $target,
+                    'justification' => $requiresReason ? ($detail !== '' ? $detail : 'Testbegründung') : '',
+                ];
+            }
+        }
+
+        return $effects;
+    }
+
+    private function attributeTargetFromDetail(string $detail): string
+    {
+        $labels = ['ST' => 'st', 'GE' => 'ge', 'RO' => 'ro', 'WI' => 'wi', 'WA' => 'wa', 'IN' => 'in', 'AU' => 'au'];
+        foreach ($labels as $label => $target) {
+            if (str_contains(mb_strtoupper($detail), $label)) {
+                return $target;
+            }
+        }
+
+        return 'wi';
+    }
+
+    private function attributeAdjustmentsForPayload(array $payload): array
+    {
+        $modifiers = match ($payload['race'] ?? '') {
+            'Guul' => ['au' => -1],
+            'Nosfera' => ['ge' => 1, 'au' => -1],
+            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
+            'Wulfane' => ['ro' => 1, 'au' => -1],
+            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
+            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
+            default => [],
+        };
+        $bonuses = [];
+        foreach ($payload['advantage_effects'] ?? [] as $effect) {
+            if (($effect['name'] ?? '') === 'Gesteigertes Attribut') {
+                $target = (string) ($effect['target'] ?? '');
+                $bonuses[$target] = ($bonuses[$target] ?? 0) + 1;
+            }
+        }
+
+        $adjustments = [];
+        foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
+            $adjustments[$attribute] = max(-1, min(1, (int) ($payload['attributes'][$attribute] ?? 0)
+                - (int) ($modifiers[$attribute] ?? 0)
+                - (int) ($bonuses[$attribute] ?? 0)));
+        }
+
+        return $adjustments;
     }
 
     private function validAttributesForRace(string $race): array
@@ -548,7 +673,15 @@ class RpgCharEditorPdfTest extends TestCase
                     'description' => 'Beschreibung aus dem Editor',
                     'equipment' => 'Seil und Messer',
                 ]
-                    && $data['attributes'] === ['st' => '2', 'ge' => '1']
+                    && $data['attributes'] === [
+                        'st' => '2',
+                        'ge' => '1',
+                        'ro' => '0',
+                        'wi' => '0',
+                        'wa' => '0',
+                        'in' => '0',
+                        'au' => '0',
+                    ]
                     && $data['skills'] === [
                         ['name' => 'Nahkampf', 'value' => '4'],
                         ['name' => 'Überleben', 'value' => '1'],
@@ -570,6 +703,7 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
             '_token' => 'ignored by payload whitelist',
+            'figurenstaerke' => 3,
             'player_name' => 'Holger',
             'character_name' => 'Holli',
             'gender' => 'weiblich',
@@ -581,6 +715,16 @@ class RpgCharEditorPdfTest extends TestCase
                 'ge' => '1',
                 'unknown' => '99',
             ],
+            'attribute_adjustments' => [
+                'st' => 1,
+                'ge' => 1,
+                'ro' => 0,
+                'wi' => 0,
+                'wa' => 0,
+                'in' => 0,
+                'au' => 0,
+            ],
+            'barbar_attribute_bonus' => 'st',
             'skills' => [
                 ['value' => '4'],
                 ['name' => 'Nahkampf', 'value' => '4'],
@@ -591,8 +735,12 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => '', 'value' => '4'],
             ],
             'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
+            'advantage_effects' => [
+                ['name' => 'Anführer', 'target' => '', 'justification' => ''],
+            ],
             'disadvantages' => ['Aberglaeubisch', ''],
             'disadvantage_details' => ['Aberglaeubisch' => 'Salz, Omen, dreimal klopfen'],
+            'languages' => [],
             'clothing' => 'kleidung-einfach',
             'equipment_items' => [
                 ['id' => 'messer-dolch', 'quantity' => 1],
@@ -678,7 +826,7 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Nahkampf', 'value' => 1],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
@@ -720,9 +868,7 @@ class RpgCharEditorPdfTest extends TestCase
             ],
         ]));
 
-        $response->assertSessionHasErrors([
-            'attributes' => 'Das Attribut Geschicklichkeit (GE) muss im Bereich von -1 bis 1 liegen.',
-        ]);
+        $response->assertSessionHasErrors('attributes');
     }
 
     public function test_pdf_export_rejects_attribute_point_budget_overflow(): void
@@ -740,12 +886,10 @@ class RpgCharEditorPdfTest extends TestCase
             ],
         ]));
 
-        $response->assertSessionHasErrors([
-            'attributes' => 'Die gewählten Attribute überschreiten die verfügbaren Attributspunkte.',
-        ]);
+        $response->assertSessionHasErrors('attributes');
     }
 
-    public function test_pdf_export_accepts_guul_with_natural_weapons_requirement(): void
+    public function test_pdf_export_derives_guul_natural_weapons_without_a_separate_skill(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
@@ -757,7 +901,8 @@ class RpgCharEditorPdfTest extends TestCase
                 return $data['character']['race'] === 'Guul'
                     && $data['character']['culture'] === 'Stadtbewohner'
                     && ($data['attributes']['au'] ?? null) === '-1'
-                    && (($skills['Natürliche Waffen'] ?? [])['value'] ?? null) === '2'
+                    && ! $skills->has('Natürliche Waffen')
+                    && (($skills['Nahkampf'] ?? [])['value'] ?? null) === '2'
                     && in_array('Natürliche Waffen', $data['advantages'], true)
                     && in_array('Primitiv', $data['disadvantages'], true)
                     && in_array('Gejagt', $data['disadvantages'], true);
@@ -782,7 +927,7 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 2],
+            ['name' => 'Nahkampf', 'value' => 2],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
@@ -793,11 +938,20 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_pdf_export_rejects_guul_without_natural_weapons_advantage(): void
+    public function test_pdf_export_adds_missing_automatic_guul_advantage_server_side(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Natürliche Waffen', $data['advantages'], true)))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
         $payload = $this->validPdfPayload([
             'race' => 'Guul',
@@ -811,22 +965,31 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Nahkampf', 'value' => 1],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors('advantages');
+        $response->assertOk();
     }
 
-    public function test_pdf_export_rejects_guul_without_au_modifier(): void
+    public function test_pdf_export_accepts_creation_adjustment_that_cancels_guul_modifier(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '0'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
         $payload = $this->validPdfPayload([
             'race' => 'Guul',
@@ -838,17 +1001,15 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Nahkampf', 'value' => 1],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors([
-            'attributes' => 'Das Attribut Auftreten (AU) muss für die Rasse Guul übermittelt werden.',
-        ]);
+        $response->assertOk();
     }
 
     public function test_pdf_export_rejects_guul_with_invalid_au_modifier_label(): void
@@ -869,7 +1030,7 @@ class RpgCharEditorPdfTest extends TestCase
         $payload['skills'] = [
             ['name' => 'Heimlichkeit', 'value' => 2],
             ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Natürliche Waffen', 'value' => 1],
+            ['name' => 'Nahkampf', 'value' => 1],
             ['name' => 'Beruf', 'value' => 1],
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
@@ -877,16 +1038,23 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors([
-            'attributes' => 'Das Attribut Auftreten (AU) passt nicht zu den Rassenmodifikatoren von Guul.',
-        ]);
+        $response->assertSessionHasErrors('attributes');
     }
 
-    public function test_pdf_export_rejects_nosfera_without_ge_modifier_label(): void
+    public function test_pdf_export_accepts_creation_adjustment_that_cancels_nosfera_ge_bonus(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['ge'] ?? null) === '0'))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
         $payload = $this->validPdfPayload([
             'race' => 'Nosfera',
@@ -908,18 +1076,25 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Unterhalten', 'value' => 1],
         ];
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors([
-            'attributes' => 'Das Attribut Geschicklichkeit (GE) muss für die Rasse Nosfera übermittelt werden.',
-        ]);
+        $response->assertOk();
     }
 
-    public function test_pdf_export_rejects_nosfera_without_nachtsicht_advantage(): void
+    public function test_pdf_export_adds_missing_automatic_nosfera_advantage_server_side(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Nachtsicht', $data['advantages'], true)))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
         $payload = $this->validPdfPayload([
             'race' => 'Nosfera',
@@ -940,9 +1115,9 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Unterhalten', 'value' => 1],
         ];
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
-        $response->assertSessionHasErrors('advantages');
+        $response->assertOk();
     }
 
     public function test_pdf_export_rejects_techno_without_bildung_race_bonus(): void
@@ -1000,7 +1175,7 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Athletik', 'value' => 2],
                 ['name' => 'Bildung', 'value' => 1],
-                ['name' => 'Natürliche Waffen', 'value' => 1],
+                ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Beruf: Farmer', 'value' => 1],
                 ['name' => 'Wissenschaftler', 'value' => 1],
             ],
@@ -1070,7 +1245,6 @@ class RpgCharEditorPdfTest extends TestCase
                 'skills' => [
                     ['name' => 'Athletik', 'value' => 2],
                     ['name' => 'Bildung', 'value' => 1],
-                    ['name' => 'Natürliche Waffen', 'value' => 1],
                     ['name' => 'Wissenschaftler', 'value' => 1],
                 ],
                 'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'],
@@ -1805,10 +1979,10 @@ class RpgCharEditorPdfTest extends TestCase
             'advantages' => ['Zaeh'],
         ]));
 
-        $response->assertSessionHasErrors('advantages');
+        $response->assertSessionHasErrors('advantage_effects');
     }
 
-    public function test_pdf_normalizes_collection_payloads_to_trimmed_scalar_strings(): void
+    public function test_pdf_normalizes_skill_and_special_collection_payloads_to_trimmed_scalar_strings(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
@@ -1817,12 +1991,12 @@ class RpgCharEditorPdfTest extends TestCase
             ->with('rpg.char-sheet', \Mockery::on(function ($data) {
                 return $data['attributes'] === [
                     'st' => '2',
-                    'ge' => '',
-                    'ro' => '',
+                    'ge' => '1',
+                    'ro' => '0',
                     'wi' => '0',
-                    'wa' => '',
-                    'in' => '1',
-                    'au' => '-1',
+                    'wa' => '0',
+                    'in' => '0',
+                    'au' => '0',
                 ]
                     && $data['skills'] === [
                         ['name' => 'Nahkampf', 'value' => '1'],
@@ -1844,19 +2018,30 @@ class RpgCharEditorPdfTest extends TestCase
             });
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
+            'figurenstaerke' => 3,
             'character_name' => 'Collection Payload',
             'gender' => 'maennlich',
             'race' => 'Barbar',
             'culture' => 'Landbewohner',
             'attributes' => [
                 'st' => ' 2 ',
-                'ge' => ['manipuliert'],
-                'ro' => false,
+                'ge' => 1,
+                'ro' => 0,
                 'wi' => 0,
-                'wa' => null,
-                'in' => true,
-                'au' => ' -1 ',
+                'wa' => 0,
+                'in' => 0,
+                'au' => 0,
             ],
+            'attribute_adjustments' => [
+                'st' => 1,
+                'ge' => 1,
+                'ro' => 0,
+                'wi' => 0,
+                'wa' => 0,
+                'in' => 0,
+                'au' => 0,
+            ],
+            'barbar_attribute_bonus' => 'st',
             'skills' => [
                 ['name' => ['manipuliert'], 'value' => '4'],
                 ['name' => ' Nahkampf ', 'value' => 1],
@@ -1868,8 +2053,12 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => false, 'value' => '3'],
             ],
             'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
+            'advantage_effects' => [
+                ['name' => 'Anfuehrer', 'target' => '', 'justification' => ''],
+            ],
             'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
             'disadvantage_details' => [' Aberglaeubisch ' => ' Salz, Omen, dreimal klopfen '],
+            'languages' => [],
             'clothing' => 'kleidung-einfach',
             'equipment_items' => [
                 ['id' => 'messer-dolch', 'quantity' => 1],
@@ -2128,6 +2317,7 @@ class RpgCharEditorPdfTest extends TestCase
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'advantages' => ['Zäh', 'Panzerung'],
             'advantage_counts' => ['Panzerung' => 2],
+            'advantage_details' => ['Panzerung' => 'Mutierte Hornplatten'],
             'disadvantages' => ['Auffällig', 'Taratzenfutter'],
         ]));
 
@@ -2142,7 +2332,13 @@ class RpgCharEditorPdfTest extends TestCase
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantages'] === ['Zäh', 'Gesteigertes Attribut']
                 && $data['disadvantages'] === ['Auffällig']
-                && $data['advantage_details'] === ['Gesteigertes Attribut' => 'ST +1']
+                && $data['advantage_details'] === ['Gesteigertes Attribut' => 'st – ST +1']
+                && $data['advantage_counts'] === ['Gesteigertes Attribut' => 1]
+                && collect($data['advantage_effects'])->contains(fn ($effect) => $effect === [
+                    'name' => 'Gesteigertes Attribut',
+                    'target' => 'st',
+                    'justification' => 'ST +1',
+                ])
                 && $data['disadvantage_details'] === []))
             ->andReturn(new class extends PdfBuilder
             {
@@ -2165,18 +2361,28 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_pdf_export_rejects_too_expensive_advantage_selection(): void
+    public function test_pdf_export_accepts_three_unit_advantage_with_two_compensations(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['creation']['advantage_budget']['used'] === 3
+                && $data['creation']['advantage_budget']['required_compensations'] === 2))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'advantages' => ['Zäh', 'Gestaltwandler'],
             'disadvantages' => ['Auffällig', 'Taratzenfutter', 'Blutdurst'],
         ]));
 
-        $response->assertSessionHasErrors('advantages');
+        $response->assertOk();
     }
 
     public function test_pdf_export_rejects_missing_required_special_details(): void
@@ -2212,19 +2418,28 @@ class RpgCharEditorPdfTest extends TestCase
         ]);
     }
 
-    public function test_pdf_export_rejects_counts_for_non_repeatable_advantages(): void
+    public function test_pdf_export_ignores_legacy_counts_for_non_repeatable_advantages(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
 
-        Pdf::shouldReceive('view')->never();
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantage_counts'] === []))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'advantages' => ['Zäh', 'Anführer'],
             'advantage_counts' => ['Anführer' => 2],
             'disadvantages' => ['Auffällig'],
         ]));
 
-        $response->assertSessionHasErrors('advantages');
+        $response->assertOk();
     }
 
     public function test_portrait_data_url_payload_ignores_non_scalar_values(): void

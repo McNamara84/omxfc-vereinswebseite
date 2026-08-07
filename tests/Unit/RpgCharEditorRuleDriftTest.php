@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Services\RpgCharacterSheetService;
 use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCharEditorTraining;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -15,25 +16,34 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $config = RpgCharacterSheetService::specialRuleConfig();
 
         $this->assertSame([
-            'attributeRules',
-            'skillRules',
+            'creation',
             'advantages',
             'disadvantages',
+            'advantageRules',
+            'disadvantageRules',
             'advantageCosts',
             'repeatableAdvantages',
             'advantageDetailRequired',
             'disadvantageDetailRequired',
+            'attributeRules',
+            'skillRules',
             'trainingRules',
             'equipmentRules',
         ], array_keys($config));
+        $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['creation'], $config['creation']);
         $this->assertSame(RpgCharacterSheetService::attributeRuleConfig(), $config['attributeRules']);
         $this->assertSame(RpgCharacterSheetService::skillRuleConfig(), $config['skillRules']);
-        $this->assertSame($this->controllerConstant('ADVANTAGE_VALUES'), $config['advantages']);
-        $this->assertSame($this->controllerConstant('DISADVANTAGE_VALUES'), $config['disadvantages']);
-        $this->assertSame($this->controllerConstant('ADVANTAGE_COSTS'), $config['advantageCosts']);
-        $this->assertSame($this->controllerConstant('REPEATABLE_ADVANTAGES'), $config['repeatableAdvantages']);
-        $this->assertSame($this->controllerConstant('ADVANTAGE_DETAIL_REQUIRED'), $config['advantageDetailRequired']);
-        $this->assertSame($this->controllerConstant('DISADVANTAGE_DETAIL_REQUIRED'), $config['disadvantageDetailRequired']);
+        $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['advantages'], $config['advantages']);
+        $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['disadvantages'], $config['disadvantages']);
+        $this->assertSame(RpgCharEditorSpecialRules::advantages(), $config['advantageRules']);
+        $this->assertSame(RpgCharEditorSpecialRules::disadvantages(), $config['disadvantageRules']);
+        $this->assertSame(3, $config['advantageCosts']['Gestaltwandler']);
+        $this->assertSame(
+            ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Panzerung', 'Regeneration'],
+            $config['repeatableAdvantages'],
+        );
+        $this->assertTrue($config['advantageRules']['Schnell']['requires_justification']);
+        $this->assertTrue($config['disadvantageRules']['Anfälligkeit gegen Wahnsinn']['requires_detail']);
         $this->assertSame(RpgCharEditorTraining::ruleConfig(), $config['trainingRules']);
         $this->assertSame(RpgCharEditorEquipment::ruleConfig(), $config['equipmentRules']);
     }
@@ -51,6 +61,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringContainsString("listFromSpecialRuleConfig('advantages'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantages'", $source);
         $this->assertStringContainsString("objectFromSpecialRuleConfig('advantageCosts'", $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('advantageRules'", $source);
+        $this->assertStringContainsString("objectFromSpecialRuleConfig('disadvantageRules'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('repeatableAdvantages'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('advantageDetailRequired'", $source);
         $this->assertStringContainsString("listFromSpecialRuleConfig('disadvantageDetailRequired'", $source);
@@ -73,15 +85,74 @@ class RpgCharEditorRuleDriftTest extends TestCase
             array_column($config['skillRules']['skills'], 'name'),
             $this->frontendSkillMetadataNames(),
         );
-        $this->assertSame(
-            array_column($config['skillRules']['specialSkills'], 'name'),
-            $this->frontendMetadataNames('SPECIAL_SKILL_RULE_METADATA'),
-        );
+        $this->assertSame([], $config['skillRules']['specialSkills']);
+        $this->assertStringNotContainsString('SPECIAL_SKILL_RULE_METADATA', $source);
         $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
         $this->assertNotEmpty($config['equipmentRules']['items']);
         $this->assertCount(10, $config['trainingRules']['trainings']);
         $this->assertSame(6, $config['equipmentRules']['limits']['items']);
+    }
+
+    public function test_w66_ranges_targets_and_detail_rules_match_the_rulebook_tables(): void
+    {
+        $advantages = RpgCharEditorSpecialRules::advantages();
+        $disadvantages = RpgCharEditorSpecialRules::disadvantages();
+
+        $this->assertSame([
+            'Anführer' => '11-12',
+            'Gestaltwandler' => '13',
+            'Gesteigertes Attribut' => '14-24',
+            'Gesteigerter Sinn' => '25-26',
+            'High-Tech-Ausrüstung' => '31-32',
+            'Kampfreflexe' => '33-34',
+            'Kaltblütig' => '35-36',
+            'Kiemen' => '41',
+            'Kind zweier Welten' => '42',
+            'Nachtsicht' => '43-44',
+            'Natürliche Waffen' => '45',
+            'Panzerung' => '46',
+            'Psychische Kraft' => '51',
+            'Psychisches Reservoir' => '52',
+            'Regeneration' => '53',
+            'Scharfschütze' => '54',
+            'Schnell' => '55-56',
+            'Sprachbegabt' => '61',
+            'Tiergefährte' => '62-64',
+            'Zäh' => '65-66',
+        ], array_map(static fn (array $rule): string => $rule['w66'], $advantages));
+        $this->assertSame([
+            'Abergläubisch' => '11-16',
+            'Abhängige' => '21',
+            'Anfälligkeit gegen Wahnsinn' => '22',
+            'Auffällig' => '23-24',
+            'Blutdurst' => '25',
+            'Ehrenkodex' => '26-36',
+            'Feind' => '41-44',
+            'Gejagt' => '45-46',
+            'Lichtscheu' => '51',
+            'Primitiv' => '52-53',
+            'Taratzenfutter' => '54-63',
+            'Tödliche Immunschwäche' => '64',
+            'Verpflichtung' => '65',
+            'Verwundbarkeit' => '66',
+        ], array_map(static fn (array $rule): string => $rule['w66'], $disadvantages));
+
+        $this->assertSame(
+            ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Nachtsicht', 'Natürliche Waffen', 'Panzerung', 'Regeneration', 'Schnell'],
+            array_keys(array_filter($advantages, static fn (array $rule): bool => $rule['requires_justification'])),
+        );
+        $this->assertSame(RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS, $advantages['Gesteigertes Attribut']['targets']);
+        $this->assertSame(RpgCharEditorSpecialRules::SENSE_TARGETS, $advantages['Gesteigerter Sinn']['targets']);
+        $this->assertSame(RpgCharEditorSpecialRules::PSYCHIC_POWER_TARGETS, $advantages['Psychische Kraft']['targets']);
+        $this->assertSame(3, $advantages['Gestaltwandler']['cost']);
+        $this->assertSame(0, $advantages['Zäh']['cost']);
+        $this->assertStringContainsString('dauerhaften und loyalen Begleiter', $advantages['Tiergefährte']['description']);
+        $this->assertStringContainsString('SL übernimmt den Charakter', $disadvantages['Anfälligkeit gegen Wahnsinn']['description']);
+        $this->assertStringContainsString('-4 auf alle Verkleiden-Proben', $disadvantages['Auffällig']['description']);
+        $this->assertStringContainsString('kontinuierlich bedroht', $disadvantages['Feind']['description']);
+        $this->assertStringContainsString('kaum frei in Städten und Dörfern', $disadvantages['Gejagt']['description']);
+        $this->assertStringContainsString('nennenswerten Teil der eigenen Zeit', $disadvantages['Verpflichtung']['description']);
     }
 
     public function test_skill_help_rows_use_stable_keys_and_non_toggle_clicks(): void
@@ -94,23 +165,16 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringNotContainsString('@click="skillHelpOpen = !skillHelpOpen"', $source);
     }
 
-    public function test_special_skill_value_helpers_handle_skills_without_base_rule(): void
+    public function test_legacy_natural_weapon_skill_is_not_advertised_as_a_skill_rule(): void
     {
-        $skills = [
-            ['name' => 'Natürliche Waffen', 'value' => '1'],
-            ['name' => 'Beruf: Bauer', 'value' => '2'],
-        ];
-
-        $this->assertSame(
-            1,
-            $this->invokeControllerMethod('skillValue', [$skills, 'Natürliche Waffen']),
-        );
-        $this->assertSame(
-            'Natürliche Waffen',
-            $this->invokeControllerMethod('grantableSkillName', [$skills, 'Natürliche Waffen', 1]),
-        );
+        $this->assertNotContains('Natürliche Waffen', array_column(RpgCharacterSheetService::skillRuleConfig()['skills'], 'name'));
+        $this->assertSame([], RpgCharacterSheetService::skillRuleConfig()['specialSkills']);
+        $this->assertFalse(RpgCharacterSheetService::skillRuleConfig()['skills'][array_search(
+            'Sprachen',
+            array_column(RpgCharacterSheetService::skillRuleConfig()['skills'], 'name'),
+            true,
+        )]['specializable'] ?? false);
         $this->assertFalse($this->invokeControllerMethod('isSpecializableBaseSkill', ['Natürliche Waffen']));
-        $this->assertTrue($this->invokeControllerMethod('isSpecializableBaseSkill', ['Beruf']));
     }
 
     private function controllerConstant(string $name): array
