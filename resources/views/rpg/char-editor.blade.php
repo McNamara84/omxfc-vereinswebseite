@@ -591,7 +591,7 @@
                                 <span class="badge" :class="languagesComplete() ? 'badge-success' : 'badge-warning badge-outline'" x-text="languages.length + ' / ' + languageMinimum() + (languageMaximum() !== languageMinimum() ? '–' + languageMaximum() : '')"></span>
                             </div>
                             <div class="mt-3 flex gap-2">
-                                <input type="text" class="input input-bordered input-sm min-w-0 flex-1" x-model="languageDraft" @keydown.enter.prevent="addLanguage()" placeholder="Sprache oder Dialekt">
+                                <input type="text" class="input input-bordered input-sm min-w-0 flex-1" x-model="languageDraft" @keydown.enter.prevent="addLanguage()" aria-label="Sprache oder Dialekt" placeholder="Sprache oder Dialekt">
                                 <button type="button" class="btn btn-primary btn-sm" @click="addLanguage()" :disabled="!String(languageDraft || '').trim() || languages.length >= languageMaximum()">Hinzufügen</button>
                             </div>
                             <div class="mt-3 flex flex-wrap gap-2">
@@ -804,6 +804,7 @@
                                                                 class="input input-bordered input-sm w-full"
                                                                 :value="effect.justification"
                                                                 @input="setAdvantageEffectField(effect.index, 'justification', $event.target.value)"
+                                                                :aria-label="@js($advantage) + ': ' + advantageDetailPlaceholder(@js($advantage))"
                                                                 :placeholder="advantageDetailPlaceholder(@js($advantage))"
                                                             >
                                                         </div>

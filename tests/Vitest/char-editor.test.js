@@ -2120,6 +2120,21 @@ describe('charEditor – Computed Properties', () => {
 describe('charEditor - Laravel Old Input', () => {
     const tinyPngDataUrl = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
 
+    it('stellt das Tausch-Attribut vor den damit finanzierten Attributspunkten wieder her', () => {
+        window.rpgCharEditorOldInput = {
+            attributes: { st: '1', ge: '1', ro: '1', au: '-1' },
+            extra_ap_attribute: 'au',
+        };
+
+        const e = createEditor();
+        e.init();
+
+        expect(e.extraApAttribute).toBe('au');
+        expect(e.attributes).toMatchObject({ st: 1, ge: 1, ro: 1, au: -1 });
+        expect(e.hasValidExtraApTrade()).toBe(true);
+        expect(e.apRemaining()).toBe(0);
+    });
+
     it('stellt einen serverseitig abgelehnten Editor-Submit wieder her', () => {
         const portraitDataUrl = tinyPngDataUrl;
         window.rpgCharEditorOldInput = {

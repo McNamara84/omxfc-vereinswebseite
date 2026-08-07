@@ -165,6 +165,20 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertStringNotContainsString('@click="skillHelpOpen = !skillHelpOpen"', $source);
     }
 
+    public function test_dynamic_text_inputs_have_accessible_names_beyond_their_placeholders(): void
+    {
+        $source = $this->charEditorViewSource();
+
+        $this->assertMatchesRegularExpression(
+            '/<input(?=[^>]*x-model="languageDraft")(?=[^>]*aria-label="Sprache oder Dialekt")[^>]*>/s',
+            $source,
+        );
+        $this->assertStringContainsString(
+            ':aria-label="@js($advantage) + \': \' + advantageDetailPlaceholder(@js($advantage))"',
+            $source,
+        );
+    }
+
     public function test_legacy_natural_weapon_skill_is_not_advertised_as_a_skill_rule(): void
     {
         $this->assertNotContains('Natürliche Waffen', array_column(RpgCharacterSheetService::skillRuleConfig()['skills'], 'name'));

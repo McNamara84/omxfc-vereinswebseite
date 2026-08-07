@@ -1842,8 +1842,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     applyOldAttributeInput(input) {
         const attributes = oldRecord(input);
+        const orderedAttributeIds = ATTRIBUTE_IDS.includes(this.extraApAttribute)
+            ? [this.extraApAttribute, ...ATTRIBUTE_IDS.filter(id => id !== this.extraApAttribute)]
+            : ATTRIBUTE_IDS;
 
-        ATTRIBUTE_IDS.forEach((id) => {
+        orderedAttributeIds.forEach((id) => {
             if (!Object.prototype.hasOwnProperty.call(attributes, id)) return;
 
             this.attributes[id] = oldInteger(attributes[id], this.attributes[id]);
