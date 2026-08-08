@@ -39,10 +39,14 @@ class RpgCharacterStorageTest extends TestCase
             'skills' => [
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Ueberleben', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 4],
                 ['name' => 'Intuition', 'value' => 1],
                 ['name' => 'Beruf: Viehzuechter', 'value' => 2],
                 ['name' => 'Kunde: Wetter', 'value' => 1],
+                ['name' => 'Fernkampf', 'value' => 4],
+                ['name' => 'Handeln', 'value' => 4],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Feuerwaffen', 'value' => 4],
             ],
             'advantages' => ['Zaeh'],
             'disadvantages' => ['Auffaellig'],
@@ -206,6 +210,26 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertSame($member->id, $character->user_id);
         $this->assertSame('Techno Vollbudget', $character->character_name);
         $this->assertSame('Techno', $character->payload['character']['race']);
+    }
+
+    public function test_store_rejects_unspent_level_dependent_ap_and_fp_budgets(): void
+    {
+        $this->actingAgMember();
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'figurenstaerke' => 4,
+        ]))->assertSessionHasErrors('attributes');
+
+        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
+            'figurenstaerke' => 4,
+            'attributes' => [
+                'st' => 2,
+                'ge' => 1,
+                'ro' => 1,
+            ],
+        ]))->assertSessionHasErrors('skills');
+
+        $this->assertSame(0, RpgCharacter::query()->count());
     }
 
     public function test_non_editor_member_cannot_use_character_storage_routes(): void

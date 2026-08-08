@@ -4,7 +4,10 @@ namespace App\Support;
 
 final class RpgCharEditorSpecialRules
 {
-    public const CREATION_LEVEL = 3;
+    public const DEFAULT_CREATION_LEVEL = 3;
+
+    /** @deprecated Use DEFAULT_CREATION_LEVEL or creationLevel() for level-dependent rules. */
+    public const CREATION_LEVEL = self::DEFAULT_CREATION_LEVEL;
 
     public const BASE_ATTRIBUTE_POINTS = 2;
 
@@ -13,6 +16,59 @@ final class RpgCharEditorSpecialRules
     public const FREE_ADVANTAGE_UNITS = 1;
 
     public const MAX_EXTRA_ADVANTAGE_UNITS = 2;
+
+    /**
+     * Figurenstärken according to Regelwerk 2007, page 15.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public const CREATION_LEVELS = [
+        1 => [
+            'level' => 1,
+            'attributePoints' => 0,
+            'skillPoints' => 10,
+            'skillMax' => 3,
+            'freeAdvantageUnits' => 0,
+            'automaticAdvantages' => [],
+            'automaticDisadvantages' => ['Taratzenfutter'],
+        ],
+        2 => [
+            'level' => 2,
+            'attributePoints' => 1,
+            'skillPoints' => 15,
+            'skillMax' => 3,
+            'freeAdvantageUnits' => 0,
+            'automaticAdvantages' => [],
+            'automaticDisadvantages' => [],
+        ],
+        3 => [
+            'level' => 3,
+            'attributePoints' => 2,
+            'skillPoints' => 20,
+            'skillMax' => 4,
+            'freeAdvantageUnits' => 1,
+            'automaticAdvantages' => ['Zäh'],
+            'automaticDisadvantages' => [],
+        ],
+        4 => [
+            'level' => 4,
+            'attributePoints' => 3,
+            'skillPoints' => 40,
+            'skillMax' => 5,
+            'freeAdvantageUnits' => 2,
+            'automaticAdvantages' => ['Zäh'],
+            'automaticDisadvantages' => [],
+        ],
+        5 => [
+            'level' => 5,
+            'attributePoints' => 4,
+            'skillPoints' => 60,
+            'skillMax' => 6,
+            'freeAdvantageUnits' => 3,
+            'automaticAdvantages' => ['Zäh'],
+            'automaticDisadvantages' => [],
+        ],
+    ];
 
     public const ATTRIBUTE_TARGETS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
@@ -52,7 +108,7 @@ final class RpgCharEditorSpecialRules
             'Schnell' => self::advantage('55-56', [[55, 56]], '+2 auf Grundbewegungsweite und +1 auf Initiative.', requiresJustification: true, detailPlaceholder: 'Ursprung der Schnelligkeit begründen', effect: 'speed'),
             'Sprachbegabt' => self::advantage('61', [[61, 61]], 'Kann Sprachen und Dialekte ohne Hilfe lernen und beherrscht bis zu drei pro Fertigkeitspunkt.', effect: 'language_capacity'),
             'Tiergefährte' => self::advantage('62-64', [[62, 64]], 'Erhält mit SL-Zustimmung ein Tier als dauerhaften und loyalen Begleiter; empathische Verständigung ist möglich.', requiresDetail: true, detailPlaceholder: 'Tier und Besonderheit notieren', effect: 'animal_companion'),
-            'Zäh' => self::advantage('65-66', [[65, 66]], 'Schutzfaktor +1 durch Zähigkeit und Heldentum; auf Niveau 3 automatisch.', cost: 0, effect: 'toughness'),
+            'Zäh' => self::advantage('65-66', [[65, 66]], 'Schutzfaktor +1 durch Zähigkeit und Heldentum; ab Figurenstärke 3 automatisch.', effect: 'toughness'),
         ];
     }
 
@@ -83,13 +139,18 @@ final class RpgCharEditorSpecialRules
     {
         $advantages = self::advantages();
         $disadvantages = self::disadvantages();
+        $defaultLevel = self::creationLevel(self::DEFAULT_CREATION_LEVEL);
 
         return [
             'creation' => [
-                'level' => self::CREATION_LEVEL,
-                'baseAttributePoints' => self::BASE_ATTRIBUTE_POINTS,
+                // Keep the former level-3 fields for clients that have not yet
+                // switched to the level table.
+                'level' => self::DEFAULT_CREATION_LEVEL,
+                'defaultLevel' => self::DEFAULT_CREATION_LEVEL,
+                'levels' => array_values(self::CREATION_LEVELS),
+                'baseAttributePoints' => $defaultLevel['attributePoints'],
                 'maxExtraAttributePoints' => self::MAX_EXTRA_ATTRIBUTE_POINTS,
-                'freeAdvantageUnits' => self::FREE_ADVANTAGE_UNITS,
+                'freeAdvantageUnits' => $defaultLevel['freeAdvantageUnits'],
                 'maxExtraAdvantageUnits' => self::MAX_EXTRA_ADVANTAGE_UNITS,
             ],
             'advantages' => array_keys($advantages),
@@ -101,6 +162,18 @@ final class RpgCharEditorSpecialRules
             'advantageDetailRequired' => array_keys(array_filter($advantages, static fn (array $rule): bool => $rule['requires_detail'])),
             'disadvantageDetailRequired' => array_keys(array_filter($disadvantages, static fn (array $rule): bool => $rule['requires_detail'])),
         ];
+    }
+
+    /** @return list<int> */
+    public static function validCreationLevels(): array
+    {
+        return array_keys(self::CREATION_LEVELS);
+    }
+
+    /** @return array<string, mixed> */
+    public static function creationLevel(int $level): array
+    {
+        return self::CREATION_LEVELS[$level] ?? self::CREATION_LEVELS[self::DEFAULT_CREATION_LEVEL];
     }
 
     private static function advantage(

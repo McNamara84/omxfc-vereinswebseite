@@ -31,6 +31,8 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'equipmentRules',
         ], array_keys($config));
         $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['creation'], $config['creation']);
+        $this->assertSame(3, $config['creation']['defaultLevel']);
+        $this->assertSame(array_values(RpgCharEditorSpecialRules::CREATION_LEVELS), $config['creation']['levels']);
         $this->assertSame(RpgCharacterSheetService::attributeRuleConfig(), $config['attributeRules']);
         $this->assertSame(RpgCharacterSheetService::skillRuleConfig(), $config['skillRules']);
         $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['advantages'], $config['advantages']);
@@ -146,13 +148,32 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame(RpgCharEditorSpecialRules::SENSE_TARGETS, $advantages['Gesteigerter Sinn']['targets']);
         $this->assertSame(RpgCharEditorSpecialRules::PSYCHIC_POWER_TARGETS, $advantages['Psychische Kraft']['targets']);
         $this->assertSame(3, $advantages['Gestaltwandler']['cost']);
-        $this->assertSame(0, $advantages['Zäh']['cost']);
+        $this->assertSame(1, $advantages['Zäh']['cost']);
         $this->assertStringContainsString('dauerhaften und loyalen Begleiter', $advantages['Tiergefährte']['description']);
         $this->assertStringContainsString('SL übernimmt den Charakter', $disadvantages['Anfälligkeit gegen Wahnsinn']['description']);
         $this->assertStringContainsString('-4 auf alle Verkleiden-Proben', $disadvantages['Auffällig']['description']);
         $this->assertStringContainsString('kontinuierlich bedroht', $disadvantages['Feind']['description']);
         $this->assertStringContainsString('kaum frei in Städten und Dörfern', $disadvantages['Gejagt']['description']);
         $this->assertStringContainsString('nennenswerten Teil der eigenen Zeit', $disadvantages['Verpflichtung']['description']);
+    }
+
+    public function test_all_creation_levels_match_the_rulebook_table(): void
+    {
+        $this->assertSame([
+            1 => [1, 0, 10, 3, 0, [], ['Taratzenfutter']],
+            2 => [2, 1, 15, 3, 0, [], []],
+            3 => [3, 2, 20, 4, 1, ['Zäh'], []],
+            4 => [4, 3, 40, 5, 2, ['Zäh'], []],
+            5 => [5, 4, 60, 6, 3, ['Zäh'], []],
+        ], array_map(static fn (array $rule): array => [
+            $rule['level'],
+            $rule['attributePoints'],
+            $rule['skillPoints'],
+            $rule['skillMax'],
+            $rule['freeAdvantageUnits'],
+            $rule['automaticAdvantages'],
+            $rule['automaticDisadvantages'],
+        ], RpgCharEditorSpecialRules::CREATION_LEVELS));
     }
 
     public function test_skill_help_rows_use_stable_keys_and_non_toggle_clicks(): void

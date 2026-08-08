@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\RpgCharEditorSpecialRules;
 use Illuminate\Support\Str;
 
 final class RpgCharacterSheetPresenter
@@ -53,12 +54,18 @@ final class RpgCharacterSheetPresenter
         $character = is_array($data['character'] ?? null) ? $data['character'] : [];
         $skills = is_array($data['skills'] ?? null) ? $data['skills'] : [];
         $equipment = is_array($data['equipment'] ?? null) ? $data['equipment'] : [];
+        $rules = is_array($data['rules'] ?? null) ? $data['rules'] : [];
+        $creationLevel = (int) ($rules['creation_level'] ?? RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL);
+        if (! in_array($creationLevel, RpgCharEditorSpecialRules::validCreationLevels(), true)) {
+            $creationLevel = RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL;
+        }
 
         return [
             'character_name' => $this->short($character['character_name'] ?? '', 70),
             'player_name' => $this->short($character['player_name'] ?? '', 60),
             'gender' => $this->genderLabel((string) ($character['gender'] ?? '')),
             'race_culture' => $this->short(trim((string) ($character['race'] ?? '').' · '.(string) ($character['culture'] ?? ''), ' ·'), 85),
+            'creation_level' => $creationLevel,
             'trainings' => $this->short($this->trainingText($data['trainings'] ?? []), 100),
             'professions' => $this->short($this->specializationText($skills, 'Beruf'), 100),
             'description' => $this->short($character['description'] ?? '', 230),
@@ -249,7 +256,7 @@ final class RpgCharacterSheetPresenter
                 $justification = trim((string) ($instance['justification'] ?? ''));
                 $detail = implode(' – ', array_values(array_filter([
                     $target,
-                    in_array($justification, ['Rasse', 'Figurenstärke 3'], true) ? '' : $justification,
+                    $justification === 'Rasse' || preg_match('/^Figurenstärke [1-5]$/u', $justification) ? '' : $justification,
                 ])));
                 if ($detail !== '') {
                     $instanceParts[] = $detail;

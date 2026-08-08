@@ -103,8 +103,8 @@ const completeValidBarbarExport = async (page) => {
             }
         }
 
-        state.skills.push({ name: 'Fahren', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
-        state.skills.push({ name: 'Handeln', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+        state.ensureSkill('Fahren').value = 4;
+        state.ensureSkill('Handeln').value = 4;
 
         state.clothing = 'kleidung-einfach';
         state.setEquipmentQuantity('messer-dolch', 1);
@@ -115,6 +115,28 @@ const completeValidBarbarExport = async (page) => {
         state.setEquipmentQuantity('bogen', 1);
     });
 
+    await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => {
+        const data = new FormData(form);
+        const skillsByIndex = {};
+
+        for (const [key, value] of data.entries()) {
+            const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+            if (!match) {
+                continue;
+            }
+
+            const [, index, field] = match;
+            skillsByIndex[index] ??= {};
+            skillsByIndex[index][field] = value;
+        }
+
+        return Object.values(skillsByIndex)
+            .filter((skill) => ['Fahren', 'Handeln'].includes(skill.name));
+    })).toEqual([
+        { name: 'Fahren', value: '4' },
+        { name: 'Handeln', value: '4' },
+    ]);
     await expect(page.getByTestId('pdf-button')).toBeEnabled();
 };
 
@@ -227,6 +249,67 @@ test.describe('RPG Charakter-Editor', () => {
 
         expect(pageErrors).toEqual([]);
         expect(consoleErrors.filter((message) => /\$persist|Cannot redefine property: \$persist/i.test(message))).toEqual([]);
+    });
+
+    test('wechselt Figurenstärke regelkonform ohne bestehende Eingaben zu löschen', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+        await page.locator('input[name="player_name"]:not([type="hidden"])').fill('Playwright Spieler');
+        await page.locator('input[name="character_name"]:not([type="hidden"])').fill('Wudan');
+        await page.locator('#gender').selectOption('maennlich');
+        await page.locator('#race').selectOption('Barbar');
+        await page.locator('#culture').selectOption('Landbewohner');
+        await page.getByTestId('char-editor-continue-button').click();
+        await expect(page.getByTestId('char-editor-advantages-list')).toBeVisible();
+
+        const levelSelect = page.getByTestId('creation-level-select');
+        const initialLevelState = await page.getByTestId('char-editor-form').evaluate((form) => ({
+            defaultLevel: window.rpgCharEditorRules?.creation?.defaultLevel,
+            creationLevel: window.Alpine?.$data(form)?.creationLevel,
+            initialCreationLevel: window.Alpine?.$data(form)?.initialCreationLevel,
+        }));
+        expect(initialLevelState).toEqual({ defaultLevel: 3, creationLevel: 3, initialCreationLevel: 3 });
+        await expect(levelSelect).toHaveValue('3');
+
+        await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine?.$data(form);
+            const skill = state.skills.find(entry => entry.name === 'Überleben');
+            skill.value = 4;
+            state.attributes.ge = 1;
+            state.selectedAdvantages = [...new Set([...state.selectedAdvantages, 'Kampfreflexe'])];
+        });
+
+        await levelSelect.selectOption('1');
+
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).toBeChecked();
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).toBeDisabled();
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).not.toBeChecked();
+        await expect(page.getByTestId('char-editor-completion-issues')).toContainText('Höchstwert der Figurenstärke 1 überschritten');
+
+        const levelOneState = await page.getByTestId('char-editor-form').evaluate((form) => {
+            const state = window.Alpine.$data(form);
+            return {
+                attribute: state.attributes.ge,
+                skill: state.skills.find(entry => entry.name === 'Überleben')?.value,
+                advantage: state.selectedAdvantages.includes('Kampfreflexe'),
+                base: state.base,
+            };
+        });
+        expect(levelOneState).toMatchObject({
+            attribute: 1,
+            skill: 4,
+            advantage: true,
+            base: { AP: 0, FP: 10, maxFW: 3, freeAdvantages: 0 },
+        });
+
+        await levelSelect.selectOption('5');
+
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).toBeChecked();
+        await expect(checkbox(page, 'advantages[]', 'Zäh')).toBeDisabled();
+        await expect(checkbox(page, 'disadvantages[]', 'Taratzenfutter')).not.toBeChecked();
+
+        const submittedLevel = await page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).get('figurenstaerke'));
+        expect(submittedLevel).toBe('5');
     });
 
 
@@ -729,12 +812,13 @@ test.describe('RPG Charakter-Editor', () => {
             return {
                 pflicht: labelTexts.filter((text) => text.includes('Pflicht')).length,
                 rasse: labelTexts.filter((text) => text.includes('Rasse')).length,
+                figurenstaerke: labelTexts.filter((text) => text.includes('Figurenstärke')).length,
             };
         });
         const disadvantagePflichtBadges = await page.getByTestId('char-editor-disadvantages-list').evaluate((list) => [...list.querySelectorAll('label')]
             .filter((label) => label.textContent.includes('Pflicht')).length);
 
-        expect(advantageBadges).toEqual({ pflicht: 1, rasse: 1 });
+        expect(advantageBadges).toEqual({ pflicht: 0, rasse: 1, figurenstaerke: 1 });
         expect(disadvantagePflichtBadges).toBe(2);
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
@@ -970,8 +1054,8 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Disuuslachter (Nordmann)');
         expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
-            expect.objectContaining({ name: 'Überleben', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '2' }),
+            expect.objectContaining({ name: 'Überleben', value: '2' }),
             expect.objectContaining({ name: 'Beruf: Seemann', value: '1' }),
         ]));
     });
@@ -1065,7 +1149,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'Kiemen', 'Natürliche Waffen']));
         expect(payload.disadvantages).toContain('Anfälligkeit gegen Wahnsinn');
         expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Athletik', value: '2' }),
+            expect.objectContaining({ name: 'Athletik', value: '3' }),
             expect.objectContaining({ name: 'Bildung', value: '1' }),
             expect.objectContaining({ name: 'Beruf: Künstler', value: '1' }),
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
@@ -1169,7 +1253,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.culture).toBe('Mensch des 21. Jahrhunderts');
         expect(payload.advantages).toEqual(expect.arrayContaining(['Zäh', 'High-Tech-Ausrüstung']));
         expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Beruf', value: '3' }),
+            expect.objectContaining({ name: 'Beruf', value: '4' }),
             expect.objectContaining({ name: 'Bildung', value: '4' }),
             expect.objectContaining({ name: 'Fahren', value: '2' }),
             expect.objectContaining({ name: 'Pilot', value: '2' }),
@@ -1240,7 +1324,7 @@ test.describe('RPG Charakter-Editor', () => {
         ]));
         expect(payload.skills).toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Athletik', value: '1' }),
-            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '2' }),
             expect.objectContaining({ name: 'Beruf: Bauer', value: '1' }),
         ]));
     });
@@ -1277,10 +1361,10 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Nomade');
         expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '2' }),
             expect.objectContaining({ name: 'Fernkampf', value: '1' }),
             expect.objectContaining({ name: 'Athletik', value: '1' }),
-            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '2' }),
         ]));
         expect(payload.skills).not.toEqual(expect.arrayContaining([
             expect.objectContaining({ name: 'Fernwaffen' }),
@@ -1319,7 +1403,7 @@ test.describe('RPG Charakter-Editor', () => {
         expect(payload.race).toBe('Barbar');
         expect(payload.culture).toBe('Ruinenbewohner');
         expect(payload.skills).toEqual(expect.arrayContaining([
-            expect.objectContaining({ name: 'Nahkampf', value: '1' }),
+            expect.objectContaining({ name: 'Nahkampf', value: '2' }),
             expect.objectContaining({ name: 'Diebeskunst', value: '1' }),
             expect.objectContaining({ name: 'Heimlichkeit', value: '1' }),
             expect.objectContaining({ name: 'Fernkampf', value: '1' }),
@@ -1363,7 +1447,7 @@ test.describe('RPG Charakter-Editor', () => {
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
             expect.objectContaining({ name: 'Athletik', value: '1' }),
             expect.objectContaining({ name: 'Beruf: Bergmann', value: '1' }),
-            expect.objectContaining({ name: '\u00dcberleben', value: '1' }),
+            expect.objectContaining({ name: '\u00dcberleben', value: '2' }),
         ]));
         expect(payload.skills.filter((skill) => skill.name === '\u00dcberleben')).toHaveLength(1);
     });
@@ -1552,7 +1636,7 @@ test.describe('RPG Charakter-Editor', () => {
             expect.objectContaining({ name: 'Pilot', value: '3' }),
             expect.objectContaining({ name: 'Techniker', value: '2' }),
             expect.objectContaining({ name: 'Wissenschaftler', value: '2' }),
-            expect.objectContaining({ name: 'Bildung', value: '3' }),
+            expect.objectContaining({ name: 'Bildung', value: '4' }),
             expect.objectContaining({ name: 'Nahkampf', value: '1' }),
         ]));
         expect(payload.skills).not.toEqual(expect.arrayContaining([

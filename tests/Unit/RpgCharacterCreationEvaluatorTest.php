@@ -9,7 +9,8 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
 {
     private function evaluate(array $overrides = []): array
     {
-        return (new RpgCharacterCreationEvaluator)->evaluate(array_replace_recursive([
+        $input = array_replace_recursive([
+            'creation_level' => 3,
             'race' => 'Barbar',
             'culture' => 'Landbewohner',
             'gender' => 'maennlich',
@@ -21,7 +22,96 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
             'advantage_effects' => [],
             'advantages' => ['Zäh'],
             'disadvantages' => [],
-        ], $overrides));
+        ], $overrides);
+
+        foreach (['advantage_compensation_attributes', 'negated_racial_disadvantages', 'advantage_effects', 'advantages', 'disadvantages'] as $key) {
+            if (array_key_exists($key, $overrides)) {
+                $input[$key] = $overrides[$key];
+            }
+        }
+
+        return (new RpgCharacterCreationEvaluator)->evaluate($input);
+    }
+
+    public function test_all_five_creation_levels_apply_their_budgets_and_automatic_traits(): void
+    {
+        $expectations = [
+            1 => [0, 0, [], ['Taratzenfutter']],
+            2 => [1, 0, [], []],
+            3 => [2, 1, ['Zäh'], []],
+            4 => [3, 2, ['Zäh'], []],
+            5 => [4, 3, ['Zäh'], []],
+        ];
+
+        foreach ($expectations as $level => [$attributePoints, $freeAdvantages, $automaticAdvantages, $automaticDisadvantages]) {
+            $adjustments = ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
+            foreach (array_slice(array_keys($adjustments), 0, $attributePoints) as $attribute) {
+                $adjustments[$attribute] = 1;
+            }
+
+            $result = $this->evaluate([
+                'creation_level' => $level,
+                'attribute_adjustments' => $adjustments,
+                'advantages' => [],
+                'disadvantages' => [],
+            ]);
+
+            $this->assertTrue($result['valid'], "Figurenstärke {$level} wurde abgelehnt.");
+            $this->assertSame($level, $result['creation_level']);
+            $this->assertSame($attributePoints, $result['attribute_budget']['base']);
+            $this->assertSame($freeAdvantages, $result['advantage_budget']['free']);
+            $this->assertSame($automaticAdvantages, $result['automatic_advantages']);
+            $this->assertSame($automaticDisadvantages, $result['automatic_disadvantages']);
+            $this->assertEqualsCanonicalizing($automaticDisadvantages, $result['effective_disadvantages']);
+        }
+    }
+
+    public function test_unspent_attribute_points_are_rejected_for_the_selected_level(): void
+    {
+        $result = $this->evaluate([
+            'creation_level' => 4,
+        ]);
+
+        $this->assertFalse($result['valid']);
+        $this->assertSame(1, $result['attribute_budget']['remaining']);
+        $this->assertContains(
+            'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.',
+            $result['errors']['attributes'],
+        );
+    }
+
+    public function test_level_one_toughness_is_paid_and_automatic_taratzenfutter_does_not_compensate_it(): void
+    {
+        $withoutCompensation = $this->evaluate([
+            'creation_level' => 1,
+            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            'advantages' => ['Zäh'],
+            'advantage_effects' => [['name' => 'Zäh', 'target' => '', 'justification' => '']],
+            'disadvantages' => [],
+        ]);
+        $withCompensation = $this->evaluate([
+            'creation_level' => 1,
+            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            'advantages' => ['Zäh'],
+            'advantage_effects' => [['name' => 'Zäh', 'target' => '', 'justification' => '']],
+            'disadvantages' => ['Auffällig'],
+        ]);
+
+        $this->assertFalse($withoutCompensation['valid']);
+        $this->assertSame(['Taratzenfutter'], $withoutCompensation['effective_disadvantages']);
+        $this->assertSame(0, $withoutCompensation['advantage_budget']['available_compensations']);
+        $this->assertTrue($withCompensation['valid']);
+        $this->assertSame(1, $withCompensation['advantage_budget']['required_compensations']);
+    }
+
+    public function test_invalid_creation_level_is_rejected(): void
+    {
+        foreach ([0, 6, 'drei'] as $level) {
+            $result = $this->evaluate(['creation_level' => $level]);
+
+            $this->assertFalse($result['valid']);
+            $this->assertArrayHasKey('creation_level', $result['errors']);
+        }
     }
 
     public function test_one_advantage_unit_is_free_without_a_disadvantage(): void
@@ -345,7 +435,7 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
             'Nosfera' => [
                 'advantages' => ['Nachtsicht'],
                 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-                'final' => ['ge' => 1, 'au' => -1],
+                'final' => ['ge' => 2, 'au' => -1],
             ],
             'Taratze' => [
                 'advantages' => [],
@@ -374,7 +464,7 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
                 'race' => $race,
                 'culture' => 'Landbewohner',
                 'barbar_attribute_bonus' => '',
-                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attribute_adjustments' => ['st' => 0, 'ge' => 1, 'ro' => 0, 'wi' => 1, 'wa' => 0, 'in' => 0, 'au' => 0],
                 'advantages' => ['Zäh'],
                 'disadvantages' => $expected['disadvantages'],
             ]);

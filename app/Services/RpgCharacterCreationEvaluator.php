@@ -36,7 +36,7 @@ final class RpgCharacterCreationEvaluator
     ];
 
     /**
-     * Evaluate normalized level-3 creation input without reading request or session state.
+     * Evaluate normalized creation input without reading request or session state.
      *
      * @param  array<string, mixed>  $input
      * @return array<string, mixed>
@@ -44,6 +44,8 @@ final class RpgCharacterCreationEvaluator
     public function evaluate(array $input): array
     {
         $errors = [];
+        $creationLevel = $this->normalizeCreationLevel($input['creation_level'] ?? null, $errors);
+        $levelRules = RpgCharEditorSpecialRules::creationLevel($creationLevel);
         $race = (string) ($input['race'] ?? '');
         $culture = (string) ($input['culture'] ?? '');
         $gender = (string) ($input['gender'] ?? '');
@@ -62,9 +64,20 @@ final class RpgCharacterCreationEvaluator
         $this->validateNegations($negatedRacialDisadvantages, $racialDisadvantages, $errors);
         $this->validateTradeAttributes($adjustments, $extraApAttribute, $compensationAttributes, $errors);
 
-        $automaticAdvantages = array_values(array_unique(['Zäh', ...$racialAdvantages]));
+        $levelAutomaticAdvantages = $levelRules['automaticAdvantages'];
+        $levelAutomaticDisadvantages = $levelRules['automaticDisadvantages'];
+        $automaticAdvantages = array_values(array_unique([...$levelAutomaticAdvantages, ...$racialAdvantages]));
         $freeAdvantages = array_values(array_diff($selectedAdvantages, $automaticAdvantages));
-        $effectInstances = $this->validateAndCompleteEffects($freeAdvantages, $racialAdvantages, $effects, $culture, $gender, $errors);
+        $effectInstances = $this->validateAndCompleteEffects(
+            $freeAdvantages,
+            $racialAdvantages,
+            $levelAutomaticAdvantages,
+            $effects,
+            $culture,
+            $gender,
+            $creationLevel,
+            $errors,
+        );
 
         $advantageBonuses = array_fill_keys(RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS, 0);
         foreach ($effectInstances as $effect) {
@@ -88,9 +101,11 @@ final class RpgCharacterCreationEvaluator
         }
 
         $extraAttributePoints = $extraApAttribute === '' ? 0 : 1;
-        $availableAttributePoints = RpgCharEditorSpecialRules::BASE_ATTRIBUTE_POINTS + $extraAttributePoints;
+        $availableAttributePoints = $levelRules['attributePoints'] + $extraAttributePoints;
         if ($attributePointsUsed > $availableAttributePoints) {
             $errors['attributes'][] = 'Die Erschaffungsänderungen überschreiten die verfügbaren Attributspunkte.';
+        } elseif ($attributePointsUsed < $availableAttributePoints) {
+            $errors['attributes'][] = 'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.';
         }
 
         $usedAdvantageUnits = count($negatedRacialDisadvantages);
@@ -109,10 +124,10 @@ final class RpgCharacterCreationEvaluator
             $usedAdvantageUnits += (int) $rule['cost'] * max($instanceCount, 1);
         }
 
-        $maxAdvantageUnits = RpgCharEditorSpecialRules::FREE_ADVANTAGE_UNITS
+        $maxAdvantageUnits = $levelRules['freeAdvantageUnits']
             + RpgCharEditorSpecialRules::MAX_EXTRA_ADVANTAGE_UNITS;
         if ($usedAdvantageUnits > $maxAdvantageUnits) {
-            $errors['advantages'][] = 'Auf Figurenstärke 3 sind höchstens drei Vorteilswerte (einer frei und zwei zusätzliche) verfügbar.';
+            $errors['advantages'][] = "Auf Figurenstärke {$creationLevel} sind höchstens {$maxAdvantageUnits} Vorteilswerte verfügbar.";
         }
 
         $activeRacialDisadvantages = array_values(array_diff($racialDisadvantages, $negatedRacialDisadvantages));
@@ -127,8 +142,12 @@ final class RpgCharacterCreationEvaluator
             }
         }
 
-        $voluntaryDisadvantages = array_values(array_diff($selectedDisadvantages, $racialDisadvantages));
-        $requiredCompensations = max($usedAdvantageUnits - RpgCharEditorSpecialRules::FREE_ADVANTAGE_UNITS, 0);
+        $voluntaryDisadvantages = array_values(array_diff(
+            $selectedDisadvantages,
+            $racialDisadvantages,
+            $levelAutomaticDisadvantages,
+        ));
+        $requiredCompensations = max($usedAdvantageUnits - $levelRules['freeAdvantageUnits'], 0);
         $availableCompensations = count($voluntaryDisadvantages) + count($compensationAttributes);
         if ($availableCompensations < $requiredCompensations) {
             $errors['disadvantages'][] = "Für {$requiredCompensations} zusätzliche Vorteilswerte fehlen ".($requiredCompensations - $availableCompensations).' Ausgleiche durch freiwillige Nachteile oder Attributsenkungen.';
@@ -137,6 +156,8 @@ final class RpgCharacterCreationEvaluator
         return [
             'valid' => $errors === [],
             'errors' => $errors,
+            'creation_level' => $creationLevel,
+            'level_rules' => $levelRules,
             'attributes' => [
                 'final' => $finalAttributes,
                 'creation_adjustments' => $adjustments,
@@ -144,25 +165,47 @@ final class RpgCharacterCreationEvaluator
                 'advantage_bonuses' => $advantageBonuses,
             ],
             'attribute_budget' => [
-                'base' => RpgCharEditorSpecialRules::BASE_ATTRIBUTE_POINTS,
+                'base' => $levelRules['attributePoints'],
                 'extra' => $extraAttributePoints,
                 'used' => $attributePointsUsed,
                 'remaining' => $availableAttributePoints - $attributePointsUsed,
             ],
             'advantage_budget' => [
-                'free' => RpgCharEditorSpecialRules::FREE_ADVANTAGE_UNITS,
+                'free' => $levelRules['freeAdvantageUnits'],
                 'used' => $usedAdvantageUnits,
-                'extra' => max($usedAdvantageUnits - RpgCharEditorSpecialRules::FREE_ADVANTAGE_UNITS, 0),
+                'extra' => max($usedAdvantageUnits - $levelRules['freeAdvantageUnits'], 0),
                 'required_compensations' => $requiredCompensations,
                 'available_compensations' => $availableCompensations,
             ],
             'automatic_advantages' => $automaticAdvantages,
+            'automatic_disadvantages' => $levelAutomaticDisadvantages,
             'effective_advantages' => array_values(array_unique([...$automaticAdvantages, ...$freeAdvantages])),
-            'effective_disadvantages' => array_values(array_unique([...$activeRacialDisadvantages, ...$voluntaryDisadvantages])),
+            'effective_disadvantages' => array_values(array_unique([
+                ...$levelAutomaticDisadvantages,
+                ...$activeRacialDisadvantages,
+                ...$voluntaryDisadvantages,
+            ])),
             'voluntary_disadvantages' => $voluntaryDisadvantages,
             'negated_racial_disadvantages' => $negatedRacialDisadvantages,
             'advantage_effects' => $effectInstances,
         ];
+    }
+
+    /** @param array<string, list<string>> $errors */
+    private function normalizeCreationLevel(mixed $value, array &$errors): int
+    {
+        if ($value === null || $value === '') {
+            return RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL;
+        }
+
+        $level = filter_var($value, FILTER_VALIDATE_INT);
+        if ($level === false || ! in_array((int) $level, RpgCharEditorSpecialRules::validCreationLevels(), true)) {
+            $errors['creation_level'][] = 'Die Figurenstärke muss zwischen 1 und 5 liegen.';
+
+            return RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL;
+        }
+
+        return (int) $level;
     }
 
     /** @param array<string, list<string>> $errors */
@@ -265,8 +308,16 @@ final class RpgCharacterCreationEvaluator
     }
 
     /** @param array<string, list<string>> $errors */
-    private function validateAndCompleteEffects(array $freeAdvantages, array $racialAdvantages, array $effects, string $culture, string $gender, array &$errors): array
-    {
+    private function validateAndCompleteEffects(
+        array $freeAdvantages,
+        array $racialAdvantages,
+        array $levelAutomaticAdvantages,
+        array $effects,
+        string $culture,
+        string $gender,
+        int $creationLevel,
+        array &$errors,
+    ): array {
         $rules = RpgCharEditorSpecialRules::advantages();
         $result = [];
 
@@ -330,7 +381,9 @@ final class RpgCharacterCreationEvaluator
         foreach ($racialAdvantages as $advantage) {
             $result[] = ['name' => $advantage, 'target' => '', 'justification' => 'Rasse'];
         }
-        $result[] = ['name' => 'Zäh', 'target' => '', 'justification' => 'Figurenstärke 3'];
+        foreach (array_diff($levelAutomaticAdvantages, $racialAdvantages) as $advantage) {
+            $result[] = ['name' => $advantage, 'target' => '', 'justification' => "Figurenstärke {$creationLevel}"];
+        }
 
         return $result;
     }

@@ -10,6 +10,14 @@ let editorFactory;
 const specialRuleConfig = {
     creation: {
         level: 3,
+        defaultLevel: 3,
+        levels: [
+            { level: 1, attributePoints: 0, skillPoints: 10, skillMax: 3, freeAdvantageUnits: 0, automaticAdvantages: [], automaticDisadvantages: ['Taratzenfutter'] },
+            { level: 2, attributePoints: 1, skillPoints: 15, skillMax: 3, freeAdvantageUnits: 0, automaticAdvantages: [], automaticDisadvantages: [] },
+            { level: 3, attributePoints: 2, skillPoints: 20, skillMax: 4, freeAdvantageUnits: 1, automaticAdvantages: ['Zäh'], automaticDisadvantages: [] },
+            { level: 4, attributePoints: 3, skillPoints: 40, skillMax: 5, freeAdvantageUnits: 2, automaticAdvantages: ['Zäh'], automaticDisadvantages: [] },
+            { level: 5, attributePoints: 4, skillPoints: 60, skillMax: 6, freeAdvantageUnits: 3, automaticAdvantages: ['Zäh'], automaticDisadvantages: [] },
+        ],
         baseAttributePoints: 2,
         maxExtraAttributePoints: 1,
         freeAdvantageUnits: 1,
@@ -55,7 +63,7 @@ const specialRuleConfig = {
     ],
     advantageCosts: {
         Gestaltwandler: 3,
-        Zäh: 0,
+        Zäh: 1,
     },
     advantageRules: {
         'Gesteigertes Attribut': { repeat: 'unique_target', targets: ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'], requires_justification: true, detail_placeholder: 'Ursprung begründen' },
@@ -234,6 +242,7 @@ describe('charEditor – Attribut-Clamping', () => {
             attributes: [],
         };
         window.rpgCharEditorRules.creation.baseAttributePoints = 3;
+        window.rpgCharEditorRules.creation.levels.find(rule => rule.level === 3).attributePoints = 3;
 
         vi.resetModules();
         await import('@/alpine/char-editor.js');
@@ -357,6 +366,88 @@ describe('charEditor – Attribut-Clamping', () => {
         e.attributes.ro = 1;
         e.clampAttribute('ro');
         expect(e.attributes.ro).toBe(0);
+    });
+});
+
+describe('charEditor – Figurenstärke', () => {
+    it('startet abwärtskompatibel auf Figurenstärke 3', () => {
+        const e = createEditor();
+
+        expect(e.creationLevel).toBe(3);
+        expect(e.base).toMatchObject({ AP: 2, FP: 20, maxFW: 4, freeAdvantages: 1 });
+        expect(e.selectedAdvantages).toContain('Zäh');
+        expect(e.automaticAdvantages()).toContain('Zäh');
+        expect(e.selectedDisadvantages).not.toContain('Taratzenfutter');
+    });
+
+    it('wendet alle fünf Stufentabellen an und erhält bestehende Eingaben', () => {
+        const e = createEditor();
+        e.attributes.ge = 1;
+        e.skills = [{ name: 'Handeln', value: 4 }];
+        e.selectedAdvantages = [...e.selectedAdvantages, 'Kampfreflexe'];
+
+        e.creationLevel = 1;
+        e.handleCreationLevelChange();
+
+        expect(e.base).toMatchObject({ AP: 0, FP: 10, maxFW: 3, freeAdvantages: 0 });
+        expect(e.attributes.ge).toBe(1);
+        expect(e.skills).toEqual([{ name: 'Handeln', value: 4 }]);
+        expect(e.selectedAdvantages).toEqual(['Kampfreflexe']);
+        expect(e.selectedDisadvantages).toContain('Taratzenfutter');
+        expect(e.voluntaryDisadvantages()).not.toContain('Taratzenfutter');
+        expect(e.skillsWithinLevelLimit()).toBe(false);
+
+        e.creationLevel = 5;
+        e.handleCreationLevelChange();
+
+        expect(e.base).toMatchObject({ AP: 4, FP: 60, maxFW: 6, freeAdvantages: 3 });
+        expect(e.skills).toEqual([{ name: 'Handeln', value: 4 }]);
+        expect(e.selectedAdvantages).toEqual(['Kampfreflexe', 'Zäh']);
+        expect(e.selectedDisadvantages).not.toContain('Taratzenfutter');
+        expect(e.skillsWithinLevelLimit()).toBe(true);
+    });
+
+    it('behandelt Zäh auf Stufe 1 und 2 als regulär bezahlten Vorteil', () => {
+        const e = createEditor();
+        e.creationLevel = 2;
+        e.handleCreationLevelChange();
+        e.selectedAdvantages = ['Zäh'];
+        e.synchronizeAdvantageEffects();
+
+        expect(e.automaticAdvantages()).not.toContain('Zäh');
+        expect(e.advantageCost('Zäh')).toBe(1);
+        expect(e.chosenAdvantagesCount()).toBe(1);
+        expect(e.missingAdvantageCompensations()).toBe(1);
+        expect(e.advantageEffectEntries('Zäh')).toHaveLength(1);
+    });
+
+    it('entfernt die bezahlte Zäh-Instanz wenn der Vorteil automatisch wird', () => {
+        const e = createEditor();
+        e.creationLevel = 2;
+        e.handleCreationLevelChange();
+        e.selectedAdvantages = ['Zäh'];
+        e.synchronizeAdvantageEffects();
+
+        expect(e.advantageEffectEntries('Zäh')).toHaveLength(1);
+
+        e.creationLevel = 3;
+        e.handleCreationLevelChange();
+
+        expect(e.selectedAdvantages).toContain('Zäh');
+        expect(e.automaticAdvantages()).toContain('Zäh');
+        expect(e.advantageEffectEntries('Zäh')).toHaveLength(0);
+    });
+
+    it('markiert zu hohe Rassenpoolwerte nach einem Stufenwechsel ohne sie zu kürzen', () => {
+        const e = createEditor({ race: 'Techno' });
+        e.applyRaceTechno();
+        e.setTechnoSkillPoints('Fahren', 4);
+
+        e.creationLevel = 1;
+        e.handleCreationLevelChange();
+
+        expect(e.technoSkillPoints.Fahren).toBe(4);
+        expect(e.technoSkillPoolComplete()).toBe(false);
     });
 });
 
@@ -788,7 +879,8 @@ describe('charEditor – Rassen-Logik', () => {
 
         e.attributes.st = 1;
         e.attributes.ge = 1;
-        e.skills = [{ name: 'Athletik', value: 20 }];
+        e.skills = ['Handeln', 'Fahren', 'Feuerwaffen', 'Heiler', 'Heimlichkeit']
+            .map(name => ({ name, value: 4 }));
         e.clothing = 'kleidung-einfach';
         e.setEquipmentQuantity('messer-dolch', 1);
         e.setEquipmentQuantity('seil', 1);
@@ -1177,7 +1269,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.cultureGrants['Beruf: Farmer']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Wissenschaftler).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
 
     it('direkter Kulturwechsel verhindert ungueltige Hydrit-Kultur', () => {
@@ -1192,7 +1284,7 @@ describe('charEditor – Kultur-Logik', () => {
         e.handleCultureChange();
 
         expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Athletik')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
 
     it('Techno erzwingt Bunkermensch und nur der Auto-Lock sperrt Rassen auf Techno', () => {
@@ -1251,7 +1343,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
-        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 1 });
     });
 
     it('Präkristofluu erlaubt nur Mensch des 21. Jahrhunderts als Kultur', () => {
@@ -1283,9 +1375,9 @@ describe('charEditor – Kultur-Logik', () => {
         e.handleCultureChange();
 
         expect(e.cultureGrants.Beruf).toEqual({ type: 'min', value: 1 });
-        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
-        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
-        expect(e.skills.find(s => s.name === 'Beruf')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 1 });
+        expect(e.skills.find(s => s.name === 'Beruf')).toMatchObject({ value: 4, badge: 'Rasse/Kultur' });
     });
 
     it('Kulturwechsel auf Bunkermensch setzt Techno automatisch und ersetzt alte Rassen-Grants', () => {
@@ -1300,12 +1392,12 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.raceLockedByBunkermenschCulture).toBe(true);
         expect(e.raceGrants['\u00dcberleben']).toBeUndefined();
         expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
-        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 4, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
-        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 1 });
         expect(e.isRaceSelectable('Barbar')).toBe(false);
         expect(e.isRaceSelectable('Techno')).toBe(true);
     });
@@ -1346,7 +1438,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.race).toBe('Techno');
         expect(clearRace).not.toHaveBeenCalled();
         expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
-        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 4, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.isRaceSelectable('Barbar')).toBe(false);
@@ -1382,7 +1474,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(clearRace).not.toHaveBeenCalled();
         expect(e.race).toBe('Techno');
         expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 3 });
-        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 4, badge: 'Rasse/Kultur' });
         expect(e.raceGrants.Fahren).toEqual({ type: 'min', value: 2 });
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
     });
@@ -1394,7 +1486,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
-        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 1 });
         expect(e.bunkermenschBonusSkill).toBe('Feuerwaffen');
         expect(e.skills.find(s => s.name === 'Feuerwaffen')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
@@ -1412,21 +1504,21 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.skills.find(s => s.name === 'Feuerwaffen')).toMatchObject({ value: 2, badge: 'Rasse' });
     });
 
-    it('Bunkermensch-Zusatzbonus ersetzt alte Optionen und addiert auf Techno-Poolpunkte bis zum Maximum', () => {
+    it('Bunkermensch-Zusatzbonus addiert auch oberhalb des gekauften Höchstwerts auf Techno-Poolpunkte', () => {
         const e = createEditor({ race: 'Techno', culture: 'Bunkermensch' });
         e.applyRaceTechno();
         e.applyCultureBunkermensch();
 
         e.setTechnoSkillPoints('Feuerwaffen', 4);
 
-        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 4 });
-        expect(e.getGrant('Feuerwaffen')).toEqual({ type: 'min', value: 4 });
+        expect(e.cultureGrants.Feuerwaffen).toEqual({ type: 'min', value: 1 });
+        expect(e.getGrant('Feuerwaffen')).toEqual({ type: 'min', value: 5 });
 
         e.setBunkermenschBonusSkill('Pilot');
 
         expect(e.cultureGrants.Feuerwaffen).toBeUndefined();
         expect(e.raceGrants.Feuerwaffen).toEqual({ type: 'min', value: 4 });
-        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === 'Pilot')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
     });
 
@@ -1436,8 +1528,8 @@ describe('charEditor – Kultur-Logik', () => {
         e.applyCultureMensch21();
 
         expect(e.cultureGrants.Beruf).toEqual({ type: 'min', value: 1 });
-        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
-        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 1 });
         expect(e.mensch21FirstBonusSkill).toBe('Bildung');
         expect(e.mensch21SecondBonusSkill).toBe('Pilot');
         expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
@@ -1447,26 +1539,26 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Bildung).toBeUndefined();
         expect(e.raceGrants.Bildung).toEqual({ type: 'min', value: 2 });
         expect(e.skills.find(s => s.name === 'Bildung')).toMatchObject({ value: 2, badge: 'Rasse' });
-        expect(e.cultureGrants.Techniker).toEqual({ type: 'min', value: 3 });
-        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Techniker).toEqual({ type: 'min', value: 1 });
+        expect(e.cultureGrants.Pilot).toEqual({ type: 'min', value: 1 });
 
         e.setMensch21SecondBonusSkill('Techniker');
 
         expect(e.mensch21FirstBonusSkill).toBe('Techniker');
         expect(e.mensch21SecondBonusSkill).toBe('Bildung');
         expect(e.cultureGrants.Pilot).toBeUndefined();
-        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 3 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
     });
 
-    it('Mensch-des-21-Jahrhunderts-Boni addieren auf Präkristofluu-Poolpunkte bis zum Maximum', () => {
+    it('Mensch-des-21-Jahrhunderts-Boni addieren oberhalb des gekauften Höchstwerts auf Poolpunkte', () => {
         const e = createEditor({ race: 'Präkristofluu', culture: 'Mensch des 21. Jahrhunderts' });
         e.applyRacePraekristofluu();
         e.applyCultureMensch21();
 
         e.setPraekristofluuSkillPoints('Bildung', 4);
 
-        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 4 });
-        expect(e.getGrant('Bildung')).toEqual({ type: 'min', value: 4 });
+        expect(e.cultureGrants.Bildung).toEqual({ type: 'min', value: 1 });
+        expect(e.getGrant('Bildung')).toEqual({ type: 'min', value: 5 });
     });
 
     it('Landbewohner erhält einen steigerbaren Beruf-Wahlbonus und Kunde Wetter', () => {
@@ -1554,15 +1646,15 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
     });
 
-    it('kombiniert überlappende Rassen- und Kultur-Grants über den höchsten Mindestwert', () => {
+    it('addiert überlappende Rassen- und Kultur-Grants', () => {
         const e = createEditor();
         e.applyRaceHydrit();
         e.applyCultureMeeresbewohner();
 
         const athletik = e.skills.find(s => s.name === 'Athletik');
 
-        expect(e.getGrant('Athletik')).toEqual({ type: 'min', value: 2 });
-        expect(athletik).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+        expect(e.getGrant('Athletik')).toEqual({ type: 'min', value: 3 });
+        expect(athletik).toMatchObject({ value: 3, badge: 'Rasse/Kultur' });
         expect(e.fpUsed()).toBe(0);
     });
 
@@ -1574,7 +1666,8 @@ describe('charEditor – Kultur-Logik', () => {
 
         const athletik = e.skills.find(s => s.name === 'Athletik');
 
-        expect(athletik).toMatchObject({ value: 2, badge: 'Rasse' });
+        expect(athletik).toMatchObject({ value: 3, badge: 'Rasse' });
+        expect(e.fpUsed()).toBe(1);
         expect(e.cultureGrants).toEqual({});
         expect(e.skills.find(s => s.name === 'Beruf: Farmer')).toBeUndefined();
         expect(e.skills.find(s => s.name === 'Wissenschaftler')).toBeUndefined();
@@ -1590,7 +1683,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Reiten).toEqual({ type: 'min', value: 1 });
         expect(e.nomadeCombatSkill).toBe('Nahkampf');
         expect(e.nomadeMovementSkill).toBe('Reiten');
-        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
     });
 
     it('Nomade-Wahlboni ersetzen alte Optionen ohne Rassen-Grants zu entfernen', () => {
@@ -1607,7 +1700,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Reiten).toBeUndefined();
         expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === 'Reiten')).toBeUndefined();
-        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 2, badge: 'Rasse' });
     });
 
     it('Ruinenbewohner setzt Diebeskunst, Heimlichkeit und den Standard-Wahlbonus', () => {
@@ -1619,7 +1712,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Heimlichkeit).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
         expect(e.ruinenbewohnerBonusSkill).toBe('Nahkampf');
-        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
         expect(e.skills.find(s => s.name === 'Fernwaffen')).toBeUndefined();
     });
 
@@ -1632,7 +1725,7 @@ describe('charEditor – Kultur-Logik', () => {
 
         expect(e.cultureGrants.Nahkampf).toBeUndefined();
         expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 2, badge: 'Rasse' });
         expect(e.cultureGrants.Fernkampf).toEqual({ type: 'min', value: 1 });
 
         e.setRuinenbewohnerBonusSkill('Athletik');
@@ -1657,7 +1750,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Athletik).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants['Beruf: Bergmann']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
         expect(e.skills.find(s => s.name === 'Beruf: Bergmann')).toMatchObject({ value: 1, badge: 'Kultur' });
     });
 
@@ -1680,7 +1773,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(invalid.skills.find(s => s.name === 'Beruf: Seemann')).toBeUndefined();
     });
 
-    it('Disuuslachter setzt Nahkampf, Ueberleben und Seemann ohne Rassenboni zu verdoppeln', () => {
+    it('Disuuslachter addiert Kulturboni auf überlappende Rassenboni', () => {
         const e = createEditor({ race: 'Barbar', culture: 'Disuuslachter (Nordmann)' });
         e.applyRaceBarbar();
         e.applyCultureDisuuslachter();
@@ -1688,10 +1781,10 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants['Beruf: Seemann']).toEqual({ type: 'min', value: 1 });
-        expect(e.getGrant('Nahkampf')).toEqual({ type: 'min', value: 1 });
-        expect(e.getGrant('\u00dcberleben')).toEqual({ type: 'min', value: 1 });
-        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
-        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.getGrant('Nahkampf')).toEqual({ type: 'min', value: 2 });
+        expect(e.getGrant('\u00dcberleben')).toEqual({ type: 'min', value: 2 });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
         expect(e.skills.find(s => s.name === 'Beruf: Seemann')).toMatchObject({ value: 1, badge: 'Kultur' });
         expect(e.fpUsed()).toBe(0);
 
@@ -1701,7 +1794,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.raceGrants.Nahkampf).toEqual({ type: 'min', value: 1 });
         expect(e.raceGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
         expect(e.skills.find(s => s.name === 'Beruf: Seemann')).toBeUndefined();
-        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 1, badge: 'Rasse' });
+        expect(e.skills.find(s => s.name === 'Nahkampf')).toMatchObject({ value: 2, badge: 'Rasse' });
     });
 
     it('Volk der 13 Inseln ist nur für Barbaren auswählbar', () => {
@@ -1732,7 +1825,7 @@ describe('charEditor – Kultur-Logik', () => {
         expect(e.cultureGrants['\u00dcberleben']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureGrants['Beruf: Bauer']).toEqual({ type: 'min', value: 1 });
         expect(e.cultureLocked.advantages).toEqual([]);
-        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 1, badge: 'Rasse/Kultur' });
+        expect(e.skills.find(s => s.name === '\u00dcberleben')).toMatchObject({ value: 2, badge: 'Rasse/Kultur' });
 
         e.setVolkDer13InselnProfessionSkill('Beruf: Fischer');
 
@@ -2138,6 +2231,7 @@ describe('charEditor - Laravel Old Input', () => {
     it('stellt einen serverseitig abgelehnten Editor-Submit wieder her', () => {
         const portraitDataUrl = tinyPngDataUrl;
         window.rpgCharEditorOldInput = {
+            figurenstaerke: '5',
             player_name: 'Playwright Spieler',
             character_name: 'Wudan Reload',
             gender: 'maennlich',
@@ -2164,6 +2258,8 @@ describe('charEditor - Laravel Old Input', () => {
         const e = createEditor();
         e.init();
 
+        expect(e.creationLevel).toBe(5);
+        expect(e.base).toMatchObject({ AP: 4, FP: 60, maxFW: 6, freeAdvantages: 3 });
         expect(e.advancedUnlocked).toBe(true);
         expect(e.playerName).toBe('Playwright Spieler');
         expect(e.characterName).toBe('Wudan Reload');

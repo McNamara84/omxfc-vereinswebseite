@@ -11,6 +11,7 @@ class RpgCharacterSheetPresenterTest extends TestCase
     public function test_it_maps_character_data_into_the_fixed_sheet_structure(): void
     {
         $data = [
+            'rules' => ['creation_level' => 5],
             'character' => [
                 'character_name' => 'Aruula',
                 'player_name' => 'Spielerin',
@@ -47,6 +48,7 @@ class RpgCharacterSheetPresenterTest extends TestCase
         $this->assertSame('Aruula', $sheet['character_name']);
         $this->assertSame('weiblich', $sheet['gender']);
         $this->assertSame('Barbar · Landbewohner', $sheet['race_culture']);
+        $this->assertSame(5, $sheet['creation_level']);
         $this->assertSame('Krieger, Arbeiter', $sheet['trainings']);
         $this->assertSame('Jägerin 2', $sheet['professions']);
         $this->assertStringContainsString('Panzerung (2×)', $sheet['advantages']);
@@ -80,11 +82,12 @@ class RpgCharacterSheetPresenterTest extends TestCase
     public function test_it_formats_structured_advantage_instances_and_languages(): void
     {
         $data = [
+            'rules' => ['creation_level' => 5],
             'skills' => [['name' => 'Sprachen', 'value' => 2]],
             'languages' => ['Deutsch', 'Englisch', 'Schwedisch'],
             'advantages' => ['Zäh', 'Gesteigerter Sinn', 'Psychische Kraft', 'Regeneration'],
             'advantage_effects' => [
-                ['name' => 'Zäh', 'target' => '', 'justification' => 'Figurenstärke 3'],
+                ['name' => 'Zäh', 'target' => '', 'justification' => 'Figurenstärke 5'],
                 ['name' => 'Gesteigerter Sinn', 'target' => 'Sehen', 'justification' => 'Implantat'],
                 ['name' => 'Gesteigerter Sinn', 'target' => 'Hören', 'justification' => 'Mutation'],
                 ['name' => 'Psychische Kraft', 'target' => 'Telepathie', 'justification' => ''],
@@ -98,6 +101,7 @@ class RpgCharacterSheetPresenterTest extends TestCase
         $this->assertStringContainsString('Gesteigerter Sinn (2×): Sehen – Implantat; Hören – Mutation', $sheet['advantages']);
         $this->assertStringContainsString('Psychische Kraft: Telepathie', $sheet['advantages']);
         $this->assertStringContainsString('Regeneration (2×): Naniten; Mutation', $sheet['advantages']);
+        $this->assertStringNotContainsString('Figurenstärke 5', $sheet['advantages']);
         $this->assertStringContainsString('Sprachen: Deutsch, Englisch, Schwedisch', $sheet['specializations']);
         $this->assertContains('Regeneration: Heilung mit Faktor 100.', $combat['situational_notes']);
     }

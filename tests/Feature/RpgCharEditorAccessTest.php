@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
 class RpgCharEditorAccessTest extends TestCase
@@ -93,6 +94,18 @@ class RpgCharEditorAccessTest extends TestCase
             ->assertSee('aria-describedby="disadvantage-description-0"', false)
             ->assertSee('id="disadvantage-description-0"', false)
             ->assertSee('x-text="disadvantageTooltip(', false);
+    }
+
+    public function test_editor_base_text_inputs_have_accessible_names(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $response = $this->actingAs($member)->get('/rpg/char-editor');
+
+        $response->assertOk();
+        $crawler = new Crawler($response->getContent());
+
+        $this->assertCount(1, $crawler->filter('input[name="player_name"]:not([type="hidden"])[aria-label="Spielername"]'));
+        $this->assertCount(1, $crawler->filter('input[name="character_name"]:not([type="hidden"])[aria-label="Charaktername"]'));
     }
 
     public function test_editor_only_exposes_whitelisted_old_input_to_javascript(): void
