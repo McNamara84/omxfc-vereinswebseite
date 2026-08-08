@@ -140,11 +140,11 @@
                         <div class="min-w-0">
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div :class="{ 'opacity-50': advancedUnlocked }">
-                                    <x-input label="Spielername" name="player_name" x-model="playerName" x-bind:disabled="advancedUnlocked" />
+                                    <x-input label="Spielername" name="player_name" aria-label="Spielername" x-model="playerName" x-bind:disabled="advancedUnlocked" />
                                 </div>
 
                                 <div :class="{ 'opacity-50': advancedUnlocked }">
-                                    <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
+                                    <x-input label="Charaktername" name="character_name" aria-label="Charaktername" x-model="characterName" x-bind:disabled="advancedUnlocked" />
                                 </div>
 
                                 <div :class="{ 'opacity-50': advancedUnlocked }">
