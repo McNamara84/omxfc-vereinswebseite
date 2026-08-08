@@ -6,10 +6,12 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\RpgCharacterSheetService;
+use App\Support\RpgCharEditorSpecialRules;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Tests\TestCase;
@@ -50,10 +52,14 @@ class RpgCharEditorPdfTest extends TestCase
             'skills' => [
                 ['name' => 'Nahkampf', 'value' => 1],
                 ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 4],
                 ['name' => 'Intuition', 'value' => 1],
                 ['name' => 'Beruf: Viehzüchter', 'value' => 2],
                 ['name' => 'Kunde: Wetter', 'value' => 1],
+                ['name' => 'Fernkampf', 'value' => 4],
+                ['name' => 'Handeln', 'value' => 4],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Feuerwaffen', 'value' => 4],
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Auffällig'],
@@ -89,8 +95,11 @@ class RpgCharEditorPdfTest extends TestCase
         }
 
         if (! array_key_exists('attribute_adjustments', $overrides)) {
+            $payload['attributes'] = $this->completeAttributeBudgetForPayload($payload);
             $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
         }
+
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         if (! array_key_exists('languages', $overrides)) {
             $languageValue = collect($payload['skills'])->firstWhere('name', 'Sprachen')['value'] ?? 0;
@@ -113,6 +122,120 @@ class RpgCharEditorPdfTest extends TestCase
         }
 
         return $payload;
+    }
+
+    /** @return array<string, int> */
+    private function completeAttributeBudgetForPayload(array $payload): array
+    {
+        $attributes = is_array($payload['attributes'] ?? null) ? $payload['attributes'] : [];
+        $levelRules = RpgCharEditorSpecialRules::creationLevel((int) ($payload['figurenstaerke'] ?? 3));
+        $requiredPoints = (int) $levelRules['attributePoints'] + (trim((string) ($payload['extra_ap_attribute'] ?? '')) === '' ? 0 : 1);
+        $modifiers = match ($payload['race'] ?? '') {
+            'Guul' => ['au' => -1],
+            'Nosfera' => ['ge' => 1, 'au' => -1],
+            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
+            'Wulfane' => ['ro' => 1, 'au' => -1],
+            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
+            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
+            default => [],
+        };
+        $bonuses = [];
+
+        foreach ($payload['advantage_effects'] ?? [] as $effect) {
+            if (($effect['name'] ?? '') === 'Gesteigertes Attribut') {
+                $target = (string) ($effect['target'] ?? '');
+                $bonuses[$target] = ($bonuses[$target] ?? 0) + 1;
+            }
+        }
+
+        $usedPoints = 0;
+        foreach (RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS as $attribute) {
+            $adjustment = (int) ($attributes[$attribute] ?? 0)
+                - (int) ($modifiers[$attribute] ?? 0)
+                - (int) ($bonuses[$attribute] ?? 0);
+            $usedPoints += max($adjustment, 0);
+        }
+
+        foreach (RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS as $attribute) {
+            if ($usedPoints >= $requiredPoints) {
+                break;
+            }
+            if (array_key_exists($attribute, $attributes)) {
+                continue;
+            }
+
+            $attributes[$attribute] = (int) ($modifiers[$attribute] ?? 0)
+                + (int) ($bonuses[$attribute] ?? 0)
+                + 1;
+            $usedPoints++;
+        }
+
+        return $attributes;
+    }
+
+    /** @return list<array{name: string, value: int}> */
+    private function completeSkillBudgetForPayload(array $payload): array
+    {
+        $skills = is_array($payload['skills'] ?? null) ? array_values($payload['skills']) : [];
+        $levelRules = RpgCharEditorSpecialRules::creationLevel((int) ($payload['figurenstaerke'] ?? 3));
+        $skillBudget = (int) $levelRules['skillPoints'];
+        $skillMax = (int) $levelRules['skillMax'];
+        $service = app(RpgCharacterSheetService::class);
+        $validateCultureRequirements = new \ReflectionMethod($service, 'validateCultureRequirements');
+        $freeSkillGrants = new \ReflectionMethod($service, 'freeSkillGrants');
+        $skillPointsUsed = new \ReflectionMethod($service, 'skillPointsUsed');
+        $skillPools = [
+            'techno' => $payload['techno_skill_points'] ?? [],
+            'praekristofluu' => $payload['praekristofluu_skill_points'] ?? [],
+        ];
+        $cultureChoices = [
+            'bunkermensch_bonus_skill' => $payload['bunkermensch_bonus_skill'] ?? '',
+            'mensch_21_first_bonus_skill' => $payload['mensch_21_first_bonus_skill'] ?? '',
+            'mensch_21_second_bonus_skill' => $payload['mensch_21_second_bonus_skill'] ?? '',
+        ];
+
+        try {
+            $validateCultureRequirements->invoke(
+                $service,
+                (string) ($payload['culture'] ?? ''),
+                $skills,
+            );
+        } catch (ValidationException) {
+            return $skills;
+        }
+
+        $fillers = ['Handeln', 'Heiler', 'Reiten', 'Unterhalten', 'Diebeskunst', 'Heimlichkeit', 'Fernkampf', 'Athletik', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker'];
+
+        foreach ($fillers as $filler) {
+            try {
+                $grants = $freeSkillGrants->invoke(
+                    $service,
+                    (string) ($payload['race'] ?? ''),
+                    (string) ($payload['culture'] ?? ''),
+                    $skills,
+                    $skillPools,
+                    $cultureChoices,
+                    $skillMax,
+                );
+            } catch (ValidationException) {
+                return $skills;
+            }
+
+            $usedPoints = $skillPointsUsed->invoke($service, $skills, $grants);
+            if ($usedPoints >= $skillBudget) {
+                break;
+            }
+            if (in_array($filler, array_column($skills, 'name'), true)) {
+                continue;
+            }
+
+            $skills[] = [
+                'name' => $filler,
+                'value' => min($skillMax, $skillBudget - $usedPoints),
+            ];
+        }
+
+        return $skills;
     }
 
     private function canonicalAdvantages(array $advantages): array
@@ -210,12 +333,12 @@ class RpgCharEditorPdfTest extends TestCase
     {
         return match (trim($race)) {
             'Barbar' => ['st' => 2, 'ge' => 1],
-            'Guul' => ['au' => -1],
-            'Nosfera' => ['ge' => 1, 'au' => -1],
-            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-            'Wulfane' => ['ro' => 1, 'au' => -1],
-            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-            default => [],
+            'Guul' => ['st' => 1, 'ge' => 1, 'au' => -1],
+            'Nosfera' => ['st' => 1, 'ge' => 2, 'au' => -1],
+            'Taratze' => ['st' => 2, 'ge' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
+            'Wulfane' => ['st' => 1, 'ge' => 1, 'ro' => 1, 'au' => -1],
+            'Techno' => ['st' => 0, 'ge' => 1, 'ro' => -1, 'in' => 1],
+            default => ['st' => 1, 'ge' => 1],
         };
     }
 
@@ -690,6 +813,11 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Intuition', 'value' => '1'],
                         ['name' => 'Beruf: Landwirt', 'value' => '2'],
                         ['name' => 'Kunde: Wetter', 'value' => '1'],
+                        ['name' => 'Diebeskunst', 'value' => '4'],
+                        ['name' => 'Fernkampf', 'value' => '4'],
+                        ['name' => 'Handeln', 'value' => '4'],
+                        ['name' => 'Fahren', 'value' => '4'],
+                        ['name' => 'Heiler', 'value' => '1'],
                     ]
                     && $data['advantages'] === ['Zäh', 'Anführer']
                     && $data['disadvantages'] === ['Abergläubisch']
@@ -734,6 +862,11 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => 'Intuition', 'value' => '1'],
                 ['name' => 'Beruf: Landwirt', 'value' => '2'],
                 ['name' => 'Kunde: Wetter', 'value' => '1'],
+                ['name' => 'Diebeskunst', 'value' => '4'],
+                ['name' => 'Fernkampf', 'value' => '4'],
+                ['name' => 'Handeln', 'value' => '4'],
+                ['name' => 'Fahren', 'value' => '4'],
+                ['name' => 'Heiler', 'value' => '1'],
                 ['name' => '', 'value' => '4'],
             ],
             'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
@@ -833,6 +966,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -934,6 +1068,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -972,6 +1107,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -1008,6 +1144,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -1067,9 +1204,8 @@ class RpgCharEditorPdfTest extends TestCase
             'advantages' => ['Zäh', 'Nachtsicht'],
             'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
         ]);
-        $payload['attributes'] = [
-            'au' => -1,
-        ];
+        $payload['attributes'] = ['st' => 1, 'ge' => 0, 'ro' => 1, 'au' => -1];
+        $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
         $payload['skills'] = [
             ['name' => 'Intuition', 'value' => 2],
             ['name' => 'Heimlichkeit', 'value' => 2],
@@ -1077,6 +1213,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -1116,6 +1253,7 @@ class RpgCharEditorPdfTest extends TestCase
             ['name' => 'Kunde', 'value' => 1],
             ['name' => 'Unterhalten', 'value' => 1],
         ];
+        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
 
         $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
 
@@ -2007,6 +2145,10 @@ class RpgCharEditorPdfTest extends TestCase
                         ['name' => 'Beruf: Viehzüchter', 'value' => '2'],
                         ['name' => 'Kunde: Wetter', 'value' => '1'],
                         ['name' => 'Diebeskunst', 'value' => '4'],
+                        ['name' => 'Fernkampf', 'value' => '4'],
+                        ['name' => 'Handeln', 'value' => '4'],
+                        ['name' => 'Fahren', 'value' => '4'],
+                        ['name' => 'Heiler', 'value' => '4'],
                     ]
                     && $data['advantages'] === ['Zäh', 'Anführer']
                     && $data['disadvantages'] === ['Abergläubisch'];
@@ -2052,6 +2194,10 @@ class RpgCharEditorPdfTest extends TestCase
                 ['name' => ' Beruf: Viehzüchter ', 'value' => 2],
                 ['name' => ' Kunde: Wetter ', 'value' => 1],
                 ['name' => ' Diebeskunst ', 'value' => 4],
+                ['name' => ' Fernkampf ', 'value' => 4],
+                ['name' => ' Handeln ', 'value' => 4],
+                ['name' => ' Fahren ', 'value' => 4],
+                ['name' => ' Heiler ', 'value' => 4],
                 ['name' => false, 'value' => '3'],
             ],
             'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
@@ -2686,9 +2832,15 @@ class RpgCharEditorPdfTest extends TestCase
     public function test_pdf_export_accepts_training_allocations_and_calculates_active_combat_values(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
-        $skills = $this->validPdfPayload()['skills'];
-        $skills[] = ['name' => 'Fahren', 'value' => 4];
-        $skills[] = ['name' => 'Unterhalten: Geschichten', 'value' => 1];
+        $skills = [
+            ['name' => 'Nahkampf', 'value' => 1],
+            ['name' => 'Überleben', 'value' => 1],
+            ['name' => 'Intuition', 'value' => 1],
+            ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+            ['name' => 'Kunde: Wetter', 'value' => 1],
+            ['name' => 'Fahren', 'value' => 4],
+            ['name' => 'Unterhalten: Geschichten', 'value' => 1],
+        ];
 
         Pdf::shouldReceive('view')
             ->once()
@@ -2760,9 +2912,15 @@ class RpgCharEditorPdfTest extends TestCase
             ],
         ]))->assertSessionHasErrors('training_allocations');
 
-        $seherSkills = $this->validPdfPayload()['skills'];
-        $seherSkills[] = ['name' => 'Kunde', 'value' => 4];
-        $seherSkills[] = ['name' => 'Sprachen', 'value' => 1];
+        $seherSkills = [
+            ['name' => 'Nahkampf', 'value' => 1],
+            ['name' => 'Überleben', 'value' => 1],
+            ['name' => 'Intuition', 'value' => 1],
+            ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+            ['name' => 'Kunde: Wetter', 'value' => 1],
+            ['name' => 'Kunde', 'value' => 4],
+            ['name' => 'Sprachen', 'value' => 1],
+        ];
         $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
             'skills' => $seherSkills,
             'trainings' => ['Seher'],

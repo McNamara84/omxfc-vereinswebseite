@@ -12,8 +12,87 @@ class RpgCharacterCreationV2Test extends TestCase
 {
     use RefreshDatabase;
 
+    /** @return array<string, int> */
+    private function completeAttributeAdjustmentsForLevel(int $level): array
+    {
+        $adjustments = ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
+        $budgets = [1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4];
+
+        foreach (array_slice(array_keys($adjustments), 0, $budgets[$level]) as $attribute) {
+            $adjustments[$attribute] = 1;
+        }
+
+        return $adjustments;
+    }
+
+    /**
+     * Complete paid FP fixture for the default Barbar/Landbewohner selection.
+     *
+     * @param  list<array{name: string, value: int}>  $requestedSkills
+     * @return list<array{name: string, value: int}>
+     */
+    private function completeSkillsForLevel(int $level, array $requestedSkills = []): array
+    {
+        $budgets = [1 => 10, 2 => 15, 3 => 20, 4 => 40, 5 => 60];
+        $maximums = [1 => 3, 2 => 3, 3 => 4, 4 => 5, 5 => 6];
+        $grants = [
+            'Nahkampf' => 1,
+            'Überleben' => 1,
+            'Intuition' => 1,
+            'Beruf: Viehzüchter' => 2,
+            'Kunde: Wetter' => 1,
+        ];
+        $skills = array_map(
+            static fn (string $name, int $value): array => ['name' => $name, 'value' => $value],
+            array_keys($grants),
+            array_values($grants),
+        );
+
+        foreach ($requestedSkills as $requestedSkill) {
+            $index = array_search($requestedSkill['name'], array_column($skills, 'name'), true);
+            if ($index === false) {
+                $skills[] = $requestedSkill;
+            } else {
+                $skills[$index] = $requestedSkill;
+            }
+        }
+
+        $used = array_reduce(
+            $skills,
+            static fn (int $sum, array $skill): int => $sum + max(
+                $skill['value'] - ($grants[$skill['name']] ?? 0),
+                0,
+            ),
+            0,
+        );
+        $remaining = $budgets[$level] - $used;
+
+        foreach (['Athletik', 'Fernkampf', 'Handeln', 'Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Reiten', 'Techniker', 'Unterhalten'] as $name) {
+            if ($remaining <= 0 || in_array($name, array_column($skills, 'name'), true)) {
+                continue;
+            }
+
+            $points = min($maximums[$level], $remaining);
+            $skills[] = ['name' => $name, 'value' => $points];
+            $remaining -= $points;
+        }
+
+        if ($remaining !== 0) {
+            throw new \RuntimeException("Das Test-Fixture für Figurenstärke {$level} konnte nicht vollständig verteilt werden.");
+        }
+
+        return $skills;
+    }
+
     private function payload(array $overrides = []): array
     {
+        $requestedLevel = $overrides['figurenstaerke'] ?? 3;
+        $fixtureLevel = filter_var($requestedLevel, FILTER_VALIDATE_INT);
+        $fixtureLevel = in_array($fixtureLevel, [1, 2, 3, 4, 5], true) ? $fixtureLevel : 3;
+        $attributeAdjustments = $this->completeAttributeAdjustmentsForLevel($fixtureLevel);
+        $attributes = $attributeAdjustments;
+        $attributes['st']++;
+
         $payload = array_replace_recursive([
             'figurenstaerke' => 3,
             'player_name' => 'Regeltest',
@@ -23,15 +102,9 @@ class RpgCharacterCreationV2Test extends TestCase
             'culture' => 'Landbewohner',
             'description' => '',
             'barbar_attribute_bonus' => 'st',
-            'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                ['name' => 'Kunde: Wetter', 'value' => 1],
-            ],
+            'attribute_adjustments' => $attributeAdjustments,
+            'attributes' => $attributes,
+            'skills' => $this->completeSkillsForLevel($fixtureLevel),
             'advantages' => ['Zäh'],
             'disadvantages' => [],
             'advantage_effects' => [],
@@ -126,7 +199,7 @@ class RpgCharacterCreationV2Test extends TestCase
 
     public function test_v2_validates_language_capacity_with_and_without_sprachbegabt(): void
     {
-        $skills = [...$this->payload()['skills'], ['name' => 'Sprachen', 'value' => 2]];
+        $skills = $this->completeSkillsForLevel(3, [['name' => 'Sprachen', 'value' => 2]]);
 
         try {
             $this->validate($this->payload(['skills' => $skills, 'languages' => ['Deutsch', 'Englisch', 'Französisch']]));
@@ -201,6 +274,11 @@ class RpgCharacterCreationV2Test extends TestCase
             ['name' => 'Intuition', 'value' => 1],
             ['name' => 'Athletik', 'value' => 1],
             ['name' => 'Beruf: Bauer', 'value' => 1],
+            ['name' => 'Handeln', 'value' => 4],
+            ['name' => 'Fahren', 'value' => 4],
+            ['name' => 'Feuerwaffen', 'value' => 4],
+            ['name' => 'Heiler', 'value' => 4],
+            ['name' => 'Pilot', 'value' => 4],
         ];
 
         try {
@@ -280,6 +358,36 @@ class RpgCharacterCreationV2Test extends TestCase
         }
     }
 
+    public function test_v2_rejects_unspent_level_dependent_ap_and_fp_budgets(): void
+    {
+        try {
+            $this->validate($this->payload([
+                'figurenstaerke' => 4,
+                'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+            ]));
+            $this->fail('Ein nicht vollständig verteiltes AP-Budget wurde akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertContains(
+                'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.',
+                $exception->errors()['attributes'] ?? [],
+            );
+        }
+
+        try {
+            $this->validate($this->payload([
+                'figurenstaerke' => 4,
+                'skills' => $this->completeSkillsForLevel(3),
+            ]));
+            $this->fail('Ein nicht vollständig verteiltes FP-Budget wurde akzeptiert.');
+        } catch (ValidationException $exception) {
+            $this->assertContains(
+                'Die verfügbaren Fertigkeitspunkte müssen vollständig verteilt werden.',
+                $exception->errors()['skills'] ?? [],
+            );
+        }
+    }
+
     public function test_v2_applies_level_dependent_skill_caps_and_point_budgets(): void
     {
         $levelOneBase = [
@@ -315,11 +423,11 @@ class RpgCharacterCreationV2Test extends TestCase
 
         $levelFour = $this->validate($this->payload([
             'figurenstaerke' => 4,
-            'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 5]],
+            'skills' => $this->completeSkillsForLevel(4, [['name' => 'Handeln', 'value' => 5]]),
         ]));
         $levelFive = $this->validate($this->payload([
             'figurenstaerke' => 5,
-            'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 6]],
+            'skills' => $this->completeSkillsForLevel(5, [['name' => 'Handeln', 'value' => 6]]),
         ]));
 
         $this->assertSame('5', collect($levelFour['skills'])->firstWhere('name', 'Handeln')['value']);
@@ -382,6 +490,10 @@ class RpgCharacterCreationV2Test extends TestCase
                 ['name' => 'Pilot', 'value' => 2],
                 ['name' => 'Techniker', 'value' => 2],
                 ['name' => 'Wissenschaftler', 'value' => 2],
+                ['name' => 'Athletik', 'value' => 3],
+                ['name' => 'Fernkampf', 'value' => 3],
+                ['name' => 'Handeln', 'value' => 3],
+                ['name' => 'Unterhalten', 'value' => 1],
             ],
             'advantages' => [],
             'disadvantages' => ['Tödliche Immunschwäche'],
@@ -435,6 +547,11 @@ class RpgCharacterCreationV2Test extends TestCase
                 ['name' => 'Beruf', 'value' => 1],
                 ['name' => 'Kunde', 'value' => 1],
                 ['name' => 'Unterhalten', 'value' => 1],
+                ['name' => 'Athletik', 'value' => 4],
+                ['name' => 'Fernkampf', 'value' => 4],
+                ['name' => 'Handeln', 'value' => 4],
+                ['name' => 'Fahren', 'value' => 4],
+                ['name' => 'Feuerwaffen', 'value' => 4],
             ],
             'advantages' => ['Zäh'],
             'disadvantages' => ['Gejagt'],

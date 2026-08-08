@@ -763,6 +763,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             Array.isArray(rule.automaticAdvantages) ? rule.automaticAdvantages : [],
             Array.isArray(rule.automaticDisadvantages) ? rule.automaticDisadvantages : [],
         );
+        this.synchronizeAdvantageEffects();
     },
 
     syncLevelAutomaticSelections(advantages, disadvantages) {

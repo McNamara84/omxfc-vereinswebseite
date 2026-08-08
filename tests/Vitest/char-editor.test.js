@@ -421,6 +421,23 @@ describe('charEditor – Figurenstärke', () => {
         expect(e.advantageEffectEntries('Zäh')).toHaveLength(1);
     });
 
+    it('entfernt die bezahlte Zäh-Instanz wenn der Vorteil automatisch wird', () => {
+        const e = createEditor();
+        e.creationLevel = 2;
+        e.handleCreationLevelChange();
+        e.selectedAdvantages = ['Zäh'];
+        e.synchronizeAdvantageEffects();
+
+        expect(e.advantageEffectEntries('Zäh')).toHaveLength(1);
+
+        e.creationLevel = 3;
+        e.handleCreationLevelChange();
+
+        expect(e.selectedAdvantages).toContain('Zäh');
+        expect(e.automaticAdvantages()).toContain('Zäh');
+        expect(e.advantageEffectEntries('Zäh')).toHaveLength(0);
+    });
+
     it('markiert zu hohe Rassenpoolwerte nach einem Stufenwechsel ohne sie zu kürzen', () => {
         const e = createEditor({ race: 'Techno' });
         e.applyRaceTechno();

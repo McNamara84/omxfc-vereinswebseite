@@ -104,6 +104,8 @@ final class RpgCharacterCreationEvaluator
         $availableAttributePoints = $levelRules['attributePoints'] + $extraAttributePoints;
         if ($attributePointsUsed > $availableAttributePoints) {
             $errors['attributes'][] = 'Die Erschaffungsänderungen überschreiten die verfügbaren Attributspunkte.';
+        } elseif ($attributePointsUsed < $availableAttributePoints) {
+            $errors['attributes'][] = 'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.';
         }
 
         $usedAdvantageUnits = count($negatedRacialDisadvantages);

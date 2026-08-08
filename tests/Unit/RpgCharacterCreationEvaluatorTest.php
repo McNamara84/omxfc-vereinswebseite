@@ -44,9 +44,14 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
         ];
 
         foreach ($expectations as $level => [$attributePoints, $freeAdvantages, $automaticAdvantages, $automaticDisadvantages]) {
+            $adjustments = ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
+            foreach (array_slice(array_keys($adjustments), 0, $attributePoints) as $attribute) {
+                $adjustments[$attribute] = 1;
+            }
+
             $result = $this->evaluate([
                 'creation_level' => $level,
-                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attribute_adjustments' => $adjustments,
                 'advantages' => [],
                 'disadvantages' => [],
             ]);
@@ -59,6 +64,20 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
             $this->assertSame($automaticDisadvantages, $result['automatic_disadvantages']);
             $this->assertEqualsCanonicalizing($automaticDisadvantages, $result['effective_disadvantages']);
         }
+    }
+
+    public function test_unspent_attribute_points_are_rejected_for_the_selected_level(): void
+    {
+        $result = $this->evaluate([
+            'creation_level' => 4,
+        ]);
+
+        $this->assertFalse($result['valid']);
+        $this->assertSame(1, $result['attribute_budget']['remaining']);
+        $this->assertContains(
+            'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.',
+            $result['errors']['attributes'],
+        );
     }
 
     public function test_level_one_toughness_is_paid_and_automatic_taratzenfutter_does_not_compensate_it(): void
@@ -416,7 +435,7 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
             'Nosfera' => [
                 'advantages' => ['Nachtsicht'],
                 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-                'final' => ['ge' => 1, 'au' => -1],
+                'final' => ['ge' => 2, 'au' => -1],
             ],
             'Taratze' => [
                 'advantages' => [],
@@ -445,7 +464,7 @@ class RpgCharacterCreationEvaluatorTest extends TestCase
                 'race' => $race,
                 'culture' => 'Landbewohner',
                 'barbar_attribute_bonus' => '',
-                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
+                'attribute_adjustments' => ['st' => 0, 'ge' => 1, 'ro' => 0, 'wi' => 1, 'wa' => 0, 'in' => 0, 'au' => 0],
                 'advantages' => ['Zäh'],
                 'disadvantages' => $expected['disadvantages'],
             ]);

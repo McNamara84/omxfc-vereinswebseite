@@ -843,9 +843,15 @@ class RpgCharacterSheetService
             ]);
         }
 
-        if ($this->skillPointsUsed($skills, $grants) > $skillPoints) {
+        $usedSkillPoints = $this->skillPointsUsed($skills, $grants);
+        if ($usedSkillPoints > $skillPoints) {
             throw ValidationException::withMessages([
                 'skills' => 'Die gewählten Fertigkeiten überschreiten die verfügbaren Fertigkeitspunkte.',
+            ]);
+        }
+        if ($usedSkillPoints < $skillPoints) {
+            throw ValidationException::withMessages([
+                'skills' => 'Die verfügbaren Fertigkeitspunkte müssen vollständig verteilt werden.',
             ]);
         }
     }
