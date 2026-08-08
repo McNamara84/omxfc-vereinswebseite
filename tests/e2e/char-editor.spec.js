@@ -103,8 +103,8 @@ const completeValidBarbarExport = async (page) => {
             }
         }
 
-        state.skills.push({ name: 'Fahren', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
-        state.skills.push({ name: 'Handeln', value: 4, source: null, locked: false, nameDisabled: false, valueDisabled: false, badge: null });
+        state.ensureSkill('Fahren').value = 4;
+        state.ensureSkill('Handeln').value = 4;
 
         state.clothing = 'kleidung-einfach';
         state.setEquipmentQuantity('messer-dolch', 1);
@@ -115,6 +115,28 @@ const completeValidBarbarExport = async (page) => {
         state.setEquipmentQuantity('bogen', 1);
     });
 
+    await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => {
+        const data = new FormData(form);
+        const skillsByIndex = {};
+
+        for (const [key, value] of data.entries()) {
+            const match = key.match(/^skills\[(\d+)]\[(name|value)]$/);
+
+            if (!match) {
+                continue;
+            }
+
+            const [, index, field] = match;
+            skillsByIndex[index] ??= {};
+            skillsByIndex[index][field] = value;
+        }
+
+        return Object.values(skillsByIndex)
+            .filter((skill) => ['Fahren', 'Handeln'].includes(skill.name));
+    })).toEqual([
+        { name: 'Fahren', value: '4' },
+        { name: 'Handeln', value: '4' },
+    ]);
     await expect(page.getByTestId('pdf-button')).toBeEnabled();
 };
 
