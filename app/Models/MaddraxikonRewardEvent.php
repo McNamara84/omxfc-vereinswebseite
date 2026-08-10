@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use App\Enums\MaddraxikonRewardEventStatus;
+use Carbon\CarbonImmutable;
 use Database\Factories\MaddraxikonRewardEventFactory;
+use DateTimeInterface;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,9 +32,17 @@ class MaddraxikonRewardEvent extends Model
         'activity_date',
         'sequence_number',
         'baxx_earning_rule_id',
+        'maddraxikon_reward_policy_id',
+        'maddraxikon_reward_policy_tier_id',
         'rule_points',
         'rule_every_count',
         'rule_updated_at',
+        'policy_effective_from',
+        'policy_effective_from_epoch',
+        'measured_added_bytes',
+        'matched_minimum_added_bytes',
+        'policy_new_article_minimum_bytes',
+        'calculation_mode',
         'candidate_points',
         'awarded_points',
         'capped_points',
@@ -56,6 +67,10 @@ class MaddraxikonRewardEvent extends Model
             'rule_points' => 'integer',
             'rule_every_count' => 'integer',
             'rule_updated_at' => 'datetime',
+            'policy_effective_from_epoch' => 'integer',
+            'measured_added_bytes' => 'integer',
+            'matched_minimum_added_bytes' => 'integer',
+            'policy_new_article_minimum_bytes' => 'integer',
             'candidate_points' => 'integer',
             'awarded_points' => 'integer',
             'capped_points' => 'integer',
@@ -86,6 +101,22 @@ class MaddraxikonRewardEvent extends Model
         return $this->belongsTo(BaxxEarningRule::class, 'baxx_earning_rule_id');
     }
 
+    public function rewardPolicy(): BelongsTo
+    {
+        return $this->belongsTo(
+            MaddraxikonRewardPolicy::class,
+            'maddraxikon_reward_policy_id'
+        );
+    }
+
+    public function rewardPolicyTier(): BelongsTo
+    {
+        return $this->belongsTo(
+            MaddraxikonRewardPolicyTier::class,
+            'maddraxikon_reward_policy_tier_id'
+        );
+    }
+
     public function userPoint(): BelongsTo
     {
         return $this->belongsTo(UserPoint::class, 'user_point_id');
@@ -99,5 +130,45 @@ class MaddraxikonRewardEvent extends Model
     public function reversedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reversed_by');
+    }
+
+    protected function policyEffectiveFrom(): Attribute
+    {
+        return Attribute::make(
+            get: function (mixed $value, array $attributes): ?CarbonImmutable {
+                if (isset($attributes['policy_effective_from_epoch'])) {
+                    return CarbonImmutable::createFromTimestampUTC(
+                        (int) $attributes['policy_effective_from_epoch']
+                    );
+                }
+
+                return $value === null
+                    ? null
+                    : CarbonImmutable::parse(
+                        $value,
+                        (string) config('app.timezone', 'UTC')
+                    )->utc();
+            },
+            set: function (mixed $value): array {
+                if ($value === null) {
+                    return [
+                        'policy_effective_from' => null,
+                        'policy_effective_from_epoch' => null,
+                    ];
+                }
+
+                $instant = $value instanceof DateTimeInterface
+                    ? CarbonImmutable::instance($value)
+                    : CarbonImmutable::parse(
+                        $value,
+                        (string) config('app.timezone', 'UTC')
+                    );
+
+                return [
+                    'policy_effective_from' => $instant->utc()->format('Y-m-d H:i:s'),
+                    'policy_effective_from_epoch' => $instant->getTimestamp(),
+                ];
+            },
+        );
     }
 }

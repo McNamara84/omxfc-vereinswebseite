@@ -7,6 +7,8 @@ use App\Livewire\Profile\MaddraxikonAccountPanel;
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonRewardEvent;
+use App\Models\MaddraxikonRewardPolicy;
+use App\Models\MaddraxikonRewardPolicyTier;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,6 +94,48 @@ class MaddraxikonProfileHardeningTest extends TestCase
             '[data-tour-profile-key="profile-maddraxikon-baxx"]',
             $step['selectors']['desktop'] ?? null,
         );
+    }
+
+    public function test_panel_displays_current_byte_tiers_and_upcoming_change(): void
+    {
+        $member = $this->createMember();
+        MaddraxikonAccountLink::factory()->for($member)->create();
+        $current = MaddraxikonRewardPolicy::factory()->create([
+            'name' => 'Aktuelle Staffel',
+            'effective_from' => now()->subDay(),
+            'new_article_minimum_bytes' => 800,
+            'new_article_points' => 6,
+        ]);
+        MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $current->id,
+            'minimum_added_bytes' => 250,
+            'points' => 2,
+        ]);
+        $current->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_at' => now()->subDay(),
+        ]);
+        $next = MaddraxikonRewardPolicy::factory()->create([
+            'name' => 'Winterstaffel',
+            'effective_from' => now()->addDay(),
+        ]);
+        MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $next->id,
+            'minimum_added_bytes' => 500,
+            'points' => 3,
+        ]);
+        $next->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class)
+            ->assertSee('30-Minuten-Sitzungen')
+            ->assertSee('ab 250 Bytes 2 Baxx')
+            ->assertSee('mindestens 800 Byte ergibt 6 Baxx')
+            ->assertSee('Winterstaffel')
+            ->assertDontSee('qualifizierte Bearbeitungssitzungen ergeben');
     }
 
     private function createMember(Role $role = Role::Mitglied): User

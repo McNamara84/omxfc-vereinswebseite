@@ -26,6 +26,151 @@
         </x-ui.page-header>
 
         <x-ui.panel
+            title="Maddraxikon-Baxx-Regeln"
+            description="Versionierte Regeln nach Netto-Zuwachs pro 30-Minuten-Sitzung. Maßgeblich ist der Zeitpunkt der letzten Bearbeitung."
+        >
+            <div class="grid gap-4 lg:grid-cols-2">
+                <div class="rounded-2xl border border-base-300 bg-base-100 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">Aktuell gültig</p>
+                    @if ($currentPolicy)
+                        <h3 class="mt-2 font-semibold text-primary">{{ $currentPolicy->name }}</h3>
+                        <p class="mt-1 text-sm text-base-content/70">
+                            Seit {{ $currentPolicy->effective_from->setTimezone($timezone)->format('d.m.Y H:i') }} Uhr
+                        </p>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @if ($currentPolicy->edit_sessions_enabled)
+                                @foreach ($currentPolicy->tiers as $tier)
+                                    <x-badge
+                                        :value="number_format($tier->minimum_added_bytes, 0, ',', '.').' Bytes → '.$tier->points.' Baxx'"
+                                        class="badge-outline"
+                                    />
+                                @endforeach
+                            @else
+                                <x-badge value="Bearbeitungssitzungen deaktiviert" class="badge-ghost" />
+                            @endif
+                        </div>
+                    @else
+                        <h3 class="mt-2 font-semibold">Legacy-Regeln aktiv</h3>
+                        <p class="mt-1 text-sm text-base-content/70">
+                            Bis zum ersten veröffentlichten Gültigkeitszeitpunkt gelten die bisherigen festen Regeln.
+                        </p>
+                    @endif
+                </div>
+
+                <div class="rounded-2xl border border-base-300 bg-base-100 p-4">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">Nächster Wechsel</p>
+                    @if ($nextPolicy)
+                        <h3 class="mt-2 font-semibold text-secondary">{{ $nextPolicy->name }}</h3>
+                        <p class="mt-1 text-sm text-base-content/70">
+                            Gültig ab {{ $nextPolicy->effective_from->setTimezone($timezone)->format('d.m.Y H:i') }} Uhr
+                        </p>
+                    @else
+                        <p class="mt-2 text-sm text-base-content/70">Keine zukünftige Regelversion geplant.</p>
+                    @endif
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-end">
+                <x-button
+                    label="Neue Regelversion"
+                    icon="o-plus"
+                    class="btn-primary"
+                    wire:click="openCreatePolicy"
+                    data-testid="maddraxikon-policy-create"
+                />
+            </div>
+
+            @if ($rewardPolicies->isNotEmpty())
+                <div class="mt-5 overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Version</th>
+                                <th>Gültig ab</th>
+                                <th>Bearbeitungsstaffel</th>
+                                <th>Neue Artikel</th>
+                                <th>Status</th>
+                                <th>Aktionen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($rewardPolicies as $policy)
+                                <tr wire:key="maddraxikon-policy-{{ $policy->id }}">
+                                    <td>
+                                        <div class="font-medium">{{ $policy->name }}</div>
+                                        <div class="text-xs text-base-content/55">
+                                            {{ $policy->publisher?->name ?? $policy->creator?->name ?? 'System' }}
+                                        </div>
+                                    </td>
+                                    <td class="whitespace-nowrap">
+                                        {{ $policy->effective_from?->setTimezone($timezone)->format('d.m.Y H:i') ?? 'Noch offen' }}
+                                    </td>
+                                    <td>
+                                        @if ($policy->edit_sessions_enabled)
+                                            <div class="flex min-w-52 flex-wrap gap-1">
+                                                @foreach ($policy->tiers as $tier)
+                                                    <x-badge
+                                                        :value="number_format($tier->minimum_added_bytes, 0, ',', '.').' → '.$tier->points"
+                                                        class="badge-outline badge-sm"
+                                                    />
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span class="text-sm text-base-content/55">Deaktiviert</span>
+                                        @endif
+                                    </td>
+                                    <td class="whitespace-nowrap text-sm">
+                                        @if ($policy->new_articles_enabled)
+                                            {{ number_format($policy->new_article_minimum_bytes, 0, ',', '.') }} Bytes →
+                                            {{ $policy->new_article_points }} Baxx
+                                        @else
+                                            Deaktiviert
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($policy->status === \App\Models\MaddraxikonRewardPolicy::STATUS_DRAFT)
+                                            <x-badge value="Entwurf" class="badge-warning" />
+                                        @elseif ($policy->effective_from->isFuture())
+                                            <x-badge value="Geplant" class="badge-info" />
+                                        @else
+                                            <x-badge value="Veröffentlicht" class="badge-success" />
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <div class="flex gap-1">
+                                            @if ($policy->status === \App\Models\MaddraxikonRewardPolicy::STATUS_DRAFT)
+                                                <x-ui.icon-action
+                                                    icon="o-pencil"
+                                                    class="btn-ghost btn-xs"
+                                                    wire:click="openEditPolicy({{ $policy->id }})"
+                                                    tooltip="Entwurf bearbeiten"
+                                                />
+                                                <x-ui.icon-action
+                                                    icon="o-trash"
+                                                    class="btn-ghost btn-xs text-error"
+                                                    wire:click="deletePolicyDraft({{ $policy->id }})"
+                                                    wire:confirm="Diesen Regelentwurf wirklich löschen?"
+                                                    tooltip="Entwurf löschen"
+                                                />
+                                            @else
+                                                <x-ui.icon-action
+                                                    icon="o-document-duplicate"
+                                                    class="btn-ghost btn-xs"
+                                                    wire:click="copyPolicy({{ $policy->id }})"
+                                                    tooltip="Als neue Version kopieren"
+                                                />
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </x-ui.panel>
+
+        <x-ui.panel
             title="Betriebszustand"
             description="Die Schalter werden ausschließlich über die Serverkonfiguration geändert."
         >
@@ -528,6 +673,19 @@
                                     @endphp
                                     <td>
                                         {{ $rewardActionLabels[$event->action_key] ?? $event->action_key }}
+                                        @if ($event->measured_added_bytes !== null)
+                                            <span class="block text-xs text-base-content/55">
+                                                Netto +{{ number_format($event->measured_added_bytes, 0, ',', '.') }} Bytes
+                                                @if ($event->matched_minimum_added_bytes !== null)
+                                                    · Stufe ab {{ number_format($event->matched_minimum_added_bytes, 0, ',', '.') }}
+                                                @endif
+                                            </span>
+                                        @endif
+                                        @if ($event->rewardPolicy)
+                                            <span class="block text-xs text-base-content/55">
+                                                Regel: {{ $event->rewardPolicy->name }}
+                                            </span>
+                                        @endif
                                         <a
                                             href="{{ $rewardDiffUrl }}"
                                             target="_blank"
@@ -588,6 +746,127 @@
                 </div>
             @endif
         </x-ui.panel>
+
+        <x-modal
+            wire:model="showPolicyModal"
+            title="Maddraxikon-Regelversion"
+            class="backdrop-blur"
+            box-class="max-w-4xl"
+        >
+            <div class="space-y-5">
+                <x-alert icon="o-information-circle" class="alert-info">
+                    Nach der Veröffentlichung ist diese Version unveränderlich. Sie gilt nur für Aktivitäten ab dem angegebenen Zeitpunkt; bestehende Gutschriften werden nicht neu berechnet.
+                </x-alert>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-input wire:model="policyName" label="Bezeichnung" required />
+                    <x-input
+                        wire:model="policyEffectiveFrom"
+                        label="Gültig ab ({{ $timezone }})"
+                        type="datetime-local"
+                        required
+                    />
+                </div>
+
+                <div class="rounded-2xl border border-base-300 p-4">
+                    <x-checkbox
+                        wire:model.live="policyEditSessionsEnabled"
+                        label="Bearbeitungssitzungen belohnen"
+                    />
+
+                    @if ($policyEditSessionsEnabled)
+                        <div class="mt-4 space-y-3">
+                            @foreach ($policyTiers as $index => $tier)
+                                <div class="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]" wire:key="policy-tier-{{ $index }}">
+                                    <x-input
+                                        wire:model.live.debounce.300ms="policyTiers.{{ $index }}.minimum_added_bytes"
+                                        label="Mindest-Nettozuwachs (Bytes)"
+                                        type="number"
+                                        min="0"
+                                    />
+                                    <x-input
+                                        wire:model.live.debounce.300ms="policyTiers.{{ $index }}.points"
+                                        label="Baxx"
+                                        type="number"
+                                        min="0"
+                                    />
+                                    <x-ui.icon-action
+                                        icon="o-trash"
+                                        class="btn-ghost text-error"
+                                        wire:click="removePolicyTier({{ $index }})"
+                                        tooltip="Stufe entfernen"
+                                    />
+                                </div>
+                            @endforeach
+                            @error('policyTiers')
+                                <p class="text-sm text-error" role="alert">{{ $message }}</p>
+                            @enderror
+                            <x-button
+                                label="Stufe hinzufügen"
+                                icon="o-plus"
+                                class="btn-ghost btn-sm"
+                                wire:click="addPolicyTier"
+                            />
+                        </div>
+
+                        <div class="mt-4 rounded-xl bg-base-200/70 p-4">
+                            <div class="grid items-end gap-3 sm:grid-cols-[1fr_auto]">
+                                <x-input
+                                    wire:model.live.debounce.300ms="policyPreviewBytes"
+                                    label="Vorschau: Netto-Zuwachs (Bytes)"
+                                    type="number"
+                                    min="0"
+                                />
+                                <p class="pb-3 font-semibold text-primary">
+                                    Anspruch: {{ $policyPreviewPoints }} Baxx
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="rounded-2xl border border-base-300 p-4">
+                    <x-checkbox
+                        wire:model.live="policyNewArticlesEnabled"
+                        label="Neue Artikel belohnen"
+                    />
+                    @if ($policyNewArticlesEnabled)
+                        <div class="mt-4 grid gap-4 md:grid-cols-2">
+                            <x-input
+                                wire:model="policyNewArticleMinimumBytes"
+                                label="Mindestgröße (Bytes)"
+                                type="number"
+                                min="0"
+                            />
+                            <x-input
+                                wire:model="policyNewArticlePoints"
+                                label="Baxx"
+                                type="number"
+                                min="0"
+                            />
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <x-slot:actions>
+                <x-button label="Abbrechen" wire:click="$set('showPolicyModal', false)" />
+                <x-button
+                    label="Als Entwurf speichern"
+                    class="btn-ghost"
+                    wire:click="savePolicyDraft"
+                    spinner="savePolicyDraft"
+                />
+                <x-button
+                    label="Veröffentlichen"
+                    icon="o-check"
+                    class="btn-primary"
+                    wire:click="publishPolicy"
+                    wire:confirm="Diese Regelversion wird unveränderlich veröffentlicht. Fortfahren?"
+                    spinner="publishPolicy"
+                />
+            </x-slot:actions>
+        </x-modal>
 
         <x-modal
             wire:model="showLinkCorrectionModal"

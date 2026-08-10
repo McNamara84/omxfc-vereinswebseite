@@ -12,6 +12,7 @@ use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
+use App\Models\MaddraxikonRewardPolicy;
 use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\User;
@@ -34,12 +35,22 @@ class MaddraxikonRewardService
     public function __construct(
         private readonly MaddraxikonApiClient $apiClient,
         ?MembersTeamMembershipLock $membershipLock = null,
+        ?MaddraxikonRewardPolicyResolver $policyResolver = null,
+        ?MaddraxikonEditSessionRewardCalculator $editSessionCalculator = null,
     ) {
         $this->membershipLock = $membershipLock
             ?? app(MembersTeamMembershipLock::class);
+        $this->policyResolver = $policyResolver
+            ?? app(MaddraxikonRewardPolicyResolver::class);
+        $this->editSessionCalculator = $editSessionCalculator
+            ?? app(MaddraxikonEditSessionRewardCalculator::class);
     }
 
     private readonly MembersTeamMembershipLock $membershipLock;
+
+    private readonly MaddraxikonRewardPolicyResolver $policyResolver;
+
+    private readonly MaddraxikonEditSessionRewardCalculator $editSessionCalculator;
 
     /**
      * Evaluate every currently due contribution once.
@@ -568,7 +579,17 @@ class MaddraxikonRewardService
         }
 
         $page = $pageDetails[$contribution->page_id];
-        $pageFailure = $this->newArticlePageFailureReason($page);
+        $activityAt = $contribution->occurredAtUtc();
+        $policy = $this->policyResolver->resolve($activityAt);
+        $minimumArticleBytes = $policy
+            ? ($policy->new_articles_enabled
+                ? max(0, (int) ($policy->new_article_minimum_bytes ?? 0))
+                : 0)
+            : max(0, (int) config('maddraxikon.minimum_article_bytes', 500));
+        $pageFailure = $this->newArticlePageFailureReason(
+            $page,
+            $minimumArticleBytes
+        );
 
         if ($pageFailure !== null) {
             return $this->reject(
@@ -584,7 +605,10 @@ class MaddraxikonRewardService
             MaddraxikonRewardEvent::ACTION_NEW_ARTICLE,
             $sourceKey,
             $contribution,
-            $contribution->occurredAtUtc()
+            $activityAt,
+            [],
+            $policy,
+            null
         );
     }
 
@@ -660,14 +684,21 @@ class MaddraxikonRewardService
         }
 
         $lastContribution = $session->last();
+        $activityAt = $lastContribution->occurredAtUtc();
+        $policy = $this->policyResolver->resolve($activityAt);
+        $calculation = $policy
+            ? $this->editSessionCalculator->calculate($valid, $policy)
+            : null;
 
         return $this->awardQualifiedSource(
             $valid,
             MaddraxikonRewardEvent::ACTION_EDIT_SESSION,
             $sourceKey,
             $valid->first(),
-            $lastContribution->occurredAtUtc(),
-            $invalid->all()
+            $activityAt,
+            $invalid->all(),
+            $policy,
+            $calculation
         );
     }
 
@@ -714,7 +745,9 @@ class MaddraxikonRewardService
         string $sourceKey,
         MaddraxikonContribution $source,
         CarbonImmutable $activityAt,
-        array $invalidReasons = []
+        array $invalidReasons = [],
+        ?MaddraxikonRewardPolicy $policy = null,
+        ?MaddraxikonEditSessionRewardCalculation $editCalculation = null,
     ): int {
         return $this->withRewardDecisionLocks(
             [$source->user_id],
@@ -725,7 +758,9 @@ class MaddraxikonRewardService
                 $sourceKey,
                 $source,
                 $activityAt,
-                $invalidReasons
+                $invalidReasons,
+                $policy,
+                $editCalculation,
             ): int {
                 if ($this->rewardExists($source->wiki_key, $sourceKey, true)) {
                     return 0;
@@ -793,27 +828,54 @@ class MaddraxikonRewardService
                     );
                 }
 
-                $rule = BaxxEarningRule::query()
-                    ->where('action_key', $actionKey)
-                    ->lockForUpdate()
-                    ->first();
-
-                if (! $rule) {
-                    throw new LogicException(
-                        "Die Baxx-Regel {$actionKey} fehlt; der Beitrag bleibt zur späteren Prüfung offen."
-                    );
-                }
-
                 $sequenceNumber = ((int) MaddraxikonRewardEvent::query()
                     ->where('user_id', $source->user_id)
                     ->where('action_key', $actionKey)
                     ->max('sequence_number')) + 1;
-                $rulePoints = max(0, (int) ($rule?->points ?? 0));
-                $ruleEveryCount = max(1, (int) ($rule?->every_count ?? 1));
-                $candidatePoints = $rule?->is_active === true
-                    && $sequenceNumber % $ruleEveryCount === 0
-                    ? $rulePoints
-                    : 0;
+                $rule = null;
+                $policyStatusReason = null;
+
+                if ($policy) {
+                    if ($actionKey === MaddraxikonRewardEvent::ACTION_EDIT_SESSION) {
+                        if (! $editCalculation) {
+                            throw new LogicException(
+                                'Die Bearbeitungssitzung besitzt keine Größenberechnung.'
+                            );
+                        }
+
+                        $rulePoints = $editCalculation->candidatePoints;
+                        $candidatePoints = $editCalculation->candidatePoints;
+                        $policyStatusReason = $editCalculation->statusReason;
+                    } else {
+                        $rulePoints = max(0, (int) ($policy->new_article_points ?? 0));
+                        $candidatePoints = $policy->new_articles_enabled
+                            ? $rulePoints
+                            : 0;
+                        $policyStatusReason = ! $policy->new_articles_enabled
+                            ? 'new_articles_disabled'
+                            : ($candidatePoints > 0 ? null : 'policy_has_no_points');
+                    }
+
+                    $ruleEveryCount = 1;
+                } else {
+                    $rule = BaxxEarningRule::query()
+                        ->where('action_key', $actionKey)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (! $rule) {
+                        throw new LogicException(
+                            "Die Baxx-Regel {$actionKey} fehlt; der Beitrag bleibt zur späteren Prüfung offen."
+                        );
+                    }
+
+                    $rulePoints = max(0, (int) $rule->points);
+                    $ruleEveryCount = max(1, (int) $rule->every_count);
+                    $candidatePoints = $rule->is_active === true
+                        && $sequenceNumber % $ruleEveryCount === 0
+                        ? $rulePoints
+                        : 0;
+                }
                 $activityDate = $activityAt
                     ->setTimezone((string) config('maddraxikon.timezone', 'Europe/Berlin'))
                     ->toDateString();
@@ -827,12 +889,18 @@ class MaddraxikonRewardService
                     max(0, $dailyCap - $alreadyAwarded)
                 );
                 $cappedPoints = $candidatePoints - $awardedPoints;
-                $statusReason = $this->awardStatusReason(
-                    $rule,
-                    $candidatePoints,
-                    $awardedPoints,
-                    $cappedPoints
-                );
+                $statusReason = $policy
+                    ? $this->policyAwardStatusReason(
+                        $policyStatusReason,
+                        $awardedPoints,
+                        $cappedPoints
+                    )
+                    : $this->awardStatusReason(
+                        $rule,
+                        $candidatePoints,
+                        $awardedPoints,
+                        $cappedPoints
+                    );
                 $userPoint = null;
 
                 if ($awardedPoints > 0) {
@@ -877,9 +945,17 @@ class MaddraxikonRewardService
                     'activity_date' => $activityDate,
                     'sequence_number' => $sequenceNumber,
                     'baxx_earning_rule_id' => $rule?->id,
+                    'maddraxikon_reward_policy_id' => $policy?->id,
+                    'maddraxikon_reward_policy_tier_id' => $editCalculation?->tier?->id,
                     'rule_points' => $rulePoints,
                     'rule_every_count' => $ruleEveryCount,
                     'rule_updated_at' => $rule?->updated_at,
+                    'policy_effective_from' => $policy?->effective_from,
+                    'policy_effective_from_epoch' => $policy?->effective_from?->getTimestamp(),
+                    'measured_added_bytes' => $editCalculation?->addedBytes,
+                    'matched_minimum_added_bytes' => $editCalculation?->tier?->minimum_added_bytes,
+                    'policy_new_article_minimum_bytes' => $policy?->new_article_minimum_bytes,
+                    'calculation_mode' => $policy ? 'byte_tier' : 'legacy',
                     'candidate_points' => $candidatePoints,
                     'awarded_points' => $awardedPoints,
                     'capped_points' => $cappedPoints,
@@ -1101,8 +1177,10 @@ class MaddraxikonRewardService
     /**
      * @param  array<string, mixed>|null  $page
      */
-    private function newArticlePageFailureReason(?array $page): ?string
-    {
+    private function newArticlePageFailureReason(
+        ?array $page,
+        int $minimumArticleBytes,
+    ): ?string {
         if (! ($page['exists'] ?? false)) {
             return 'page_missing';
         }
@@ -1120,7 +1198,7 @@ class MaddraxikonRewardService
 
         if (
             (int) ($page['size'] ?? 0)
-            < max(0, (int) config('maddraxikon.minimum_article_bytes', 500))
+            < max(0, $minimumArticleBytes)
         ) {
             return 'article_too_short';
         }
@@ -1351,5 +1429,21 @@ class MaddraxikonRewardService
         }
 
         return null;
+    }
+
+    private function policyAwardStatusReason(
+        ?string $baseReason,
+        int $awardedPoints,
+        int $cappedPoints,
+    ): ?string {
+        if ($awardedPoints === 0 && $cappedPoints > 0) {
+            return 'daily_cap_reached';
+        }
+
+        if ($cappedPoints > 0) {
+            return 'daily_cap_partially_applied';
+        }
+
+        return $baseReason;
     }
 }

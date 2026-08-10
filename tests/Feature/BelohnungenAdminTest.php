@@ -6,12 +6,14 @@ use App\Enums\Role;
 use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
 use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Services\RewardService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
@@ -282,6 +284,28 @@ class BelohnungenAdminTest extends TestCase
             'points' => 7,
             'every_count' => 3,
         ]);
+    }
+
+    public function test_maddraxikon_legacy_rules_cannot_be_changed_in_generic_editor(): void
+    {
+        $this->actingAdmin();
+        $rule = BaxxEarningRule::query()
+            ->where('action_key', MaddraxikonRewardEvent::ACTION_EDIT_SESSION)
+            ->firstOrFail();
+        $originalPoints = $rule->points;
+        $originalEveryCount = $rule->every_count;
+
+        try {
+            Livewire::test(BelohnungenAdmin::class)
+                ->call('openEditRule', $rule->id);
+            $this->fail('Maddraxikon-Legacy-Regeln dürfen hier nicht bearbeitet werden.');
+        } catch (ModelNotFoundException) {
+            $this->assertSame($originalPoints, $rule->fresh()->points);
+            $this->assertSame($originalEveryCount, $rule->fresh()->every_count);
+        }
+
+        $this->assertSame(1, $originalPoints);
+        $this->assertSame(5, $originalEveryCount);
     }
 
     public function test_create_review_special_offer(): void
