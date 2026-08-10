@@ -12,6 +12,8 @@ use App\Livewire\MaddraxikonAdmin;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
+use App\Models\MaddraxikonRewardPolicy;
+use App\Models\MaddraxikonRewardPolicyTier;
 use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\UserPoint;
@@ -547,6 +549,140 @@ class MaddraxikonAdminTest extends TestCase
             ->set('rewardStatusFilter', 'reversed')
             ->assertSee('NurReversedGrund')
             ->assertDontSee('NurAwardedGrund');
+    }
+
+    public function test_admin_can_save_sorted_policy_draft_with_tiers(): void
+    {
+        $admin = $this->actingAdmin();
+        $effectiveFrom = now(config('maddraxikon.timezone', 'Europe/Berlin'))
+            ->addDay()
+            ->startOfHour();
+
+        Livewire::actingAs($admin)
+            ->test(MaddraxikonAdmin::class)
+            ->call('openCreatePolicy')
+            ->set('policyName', 'Sommerstaffel')
+            ->set('policyEffectiveFrom', $effectiveFrom->format('Y-m-d\TH:i'))
+            ->set('policyTiers', [
+                ['minimum_added_bytes' => 500, 'points' => 3],
+                ['minimum_added_bytes' => 100, 'points' => 1],
+            ])
+            ->set('policyNewArticleMinimumBytes', 750)
+            ->set('policyNewArticlePoints', 6)
+            ->call('savePolicyDraft')
+            ->assertHasNoErrors()
+            ->assertSet('showPolicyModal', false);
+
+        $policy = MaddraxikonRewardPolicy::query()->sole();
+        $this->assertSame(MaddraxikonRewardPolicy::STATUS_DRAFT, $policy->status);
+        $this->assertSame('Sommerstaffel', $policy->name);
+        $this->assertSame($admin->id, $policy->created_by);
+        $this->assertSame(
+            $effectiveFrom->utc()->getTimestamp(),
+            $policy->effective_from_epoch
+        );
+        $this->assertSame(
+            [100, 500],
+            $policy->tiers()->pluck('minimum_added_bytes')->all()
+        );
+    }
+
+    public function test_admin_can_publish_future_policy_and_ui_shows_planned_version(): void
+    {
+        $admin = $this->actingAdmin();
+        $effectiveFrom = now(config('maddraxikon.timezone', 'Europe/Berlin'))
+            ->addDay()
+            ->startOfHour();
+
+        Livewire::actingAs($admin)
+            ->test(MaddraxikonAdmin::class)
+            ->set('policyName', 'Geplante Staffel')
+            ->set('policyEffectiveFrom', $effectiveFrom->format('Y-m-d\TH:i'))
+            ->set('policyTiers', [
+                ['minimum_added_bytes' => 250, 'points' => 2],
+            ])
+            ->set('policyNewArticleMinimumBytes', 500)
+            ->set('policyNewArticlePoints', 5)
+            ->call('publishPolicy')
+            ->assertHasNoErrors()
+            ->assertSet('showPolicyModal', false)
+            ->assertSee('Geplante Staffel')
+            ->assertSee('Geplant');
+
+        $policy = MaddraxikonRewardPolicy::query()->sole();
+        $this->assertSame(MaddraxikonRewardPolicy::STATUS_PUBLISHED, $policy->status);
+        $this->assertSame($admin->id, $policy->published_by);
+        $this->assertNotNull($policy->published_at);
+    }
+
+    public function test_policy_form_rejects_duplicate_tiers_and_past_publication(): void
+    {
+        $admin = $this->actingAdmin();
+
+        Livewire::actingAs($admin)
+            ->test(MaddraxikonAdmin::class)
+            ->set('policyName', 'Doppelte Staffel')
+            ->set(
+                'policyEffectiveFrom',
+                now(config('maddraxikon.timezone', 'Europe/Berlin'))
+                    ->addDay()
+                    ->format('Y-m-d\TH:i')
+            )
+            ->set('policyTiers', [
+                ['minimum_added_bytes' => 100, 'points' => 1],
+                ['minimum_added_bytes' => 100, 'points' => 2],
+            ])
+            ->call('savePolicyDraft')
+            ->assertHasErrors([
+                'policyTiers.0.minimum_added_bytes',
+                'policyTiers.1.minimum_added_bytes',
+            ]);
+
+        Livewire::actingAs($admin)
+            ->test(MaddraxikonAdmin::class)
+            ->set('policyName', 'Vergangene Staffel')
+            ->set(
+                'policyEffectiveFrom',
+                now(config('maddraxikon.timezone', 'Europe/Berlin'))
+                    ->subHour()
+                    ->format('Y-m-d\TH:i')
+            )
+            ->set('policyTiers', [
+                ['minimum_added_bytes' => 100, 'points' => 1],
+            ])
+            ->call('publishPolicy')
+            ->assertHasErrors(['policyEffectiveFrom']);
+    }
+
+    public function test_admin_can_copy_published_policy_without_mutating_original(): void
+    {
+        $admin = $this->actingAdmin();
+        $policy = MaddraxikonRewardPolicy::factory()->create([
+            'name' => 'Originalstaffel',
+            'effective_from' => now()->subDay(),
+            'created_by' => $admin->id,
+        ]);
+        MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $policy->id,
+            'minimum_added_bytes' => 400,
+            'points' => 4,
+        ]);
+        $policy->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_by' => $admin->id,
+            'published_at' => now()->subDay(),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(MaddraxikonAdmin::class)
+            ->call('copyPolicy', $policy->id)
+            ->assertSet('editingPolicyId', null)
+            ->assertSet('policyName', 'Kopie von Originalstaffel')
+            ->assertSet('policyTiers.0.minimum_added_bytes', 400)
+            ->assertSet('policyTiers.0.points', 4)
+            ->assertSet('showPolicyModal', true);
+
+        $this->assertSame('Originalstaffel', $policy->fresh()->name);
     }
 
     private function awardedRewardEvent(): MaddraxikonRewardEvent

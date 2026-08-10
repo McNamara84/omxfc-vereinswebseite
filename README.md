@@ -22,6 +22,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Klassische Host-Entwicklung (optional)](#klassische-host-entwicklung-optional)
     - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
     - [Datenbank seeden](#datenbank-seeden)
+  - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
     - [Funktionen](#funktionen)
     - [Konfiguration](#konfiguration)
@@ -148,6 +149,40 @@ php artisan db:seed
 ```
 
 Spezielle Seeder wie `TodoPlaywrightSeeder` und `FantreffenPlaywrightSeeder` bereiten End-to-End-Tests vor und sollten nur in Testumgebungen ausgeführt werden.
+
+## Maddraxikon-Baxx-Regeln verwalten
+
+Administratoren verwalten die versionierten Regeln unter
+`/belohnungen/admin/maddraxikon` über den Bereich „Maddraxikon-Baxx-Regeln“.
+Für normale Bearbeitungen wird der Netto-Zuwachs in Bytes innerhalb einer
+30-minütigen Sitzung auf derselben Seite bewertet. Neue Artikel besitzen eine
+separate Mindestgröße und Baxx-Zahl. Das bestehende Tageslimit von 10 Baxx und
+das 24-Stunden-Prüffenster bleiben davon unberührt.
+
+Für die erste Konfiguration in einer bestehenden Installation:
+
+1. Das Deployment einschließlich `php artisan migrate --force` abschließen.
+2. In der Maddraxikon-Administration eine leere Regelversion anlegen oder die
+   aktuell gültige Version kopieren.
+3. Eindeutige Byte-Mindestgrenzen und die zugehörigen Baxx-Werte eintragen.
+4. Den Gültigkeitszeitpunkt bewusst in die Zukunft setzen und die Vorschau
+   prüfen.
+5. Die Version veröffentlichen. Veröffentlichte Versionen sind anschließend
+   unveränderlich; Korrekturen erfolgen durch eine neue zukünftige Version.
+
+Bis zum Gültigkeitszeitpunkt der ersten veröffentlichten Version verarbeitet
+die Anwendung Beiträge weiterhin mit den bisherigen Legacy-Regeln. Der
+fachliche Zeitpunkt der Bearbeitung entscheidet über die anzuwendende Version,
+nicht der spätere Auswertungslauf. Bereits abgeschlossene Buchungen werden
+nicht rückwirkend verändert.
+
+Nach der Veröffentlichung sind in der Administration die aktuelle und die
+nächste geplante Version sowie die Historie zu kontrollieren. Nach Eintritt
+des Gültigkeitszeitpunkts sollte außerdem ein Reward-Event geprüft werden: Es
+muss die verwendete Policy, den Netto-Zuwachs, die erreichte Stufe und die
+resultierenden Baxx als Snapshot enthalten. Eine Vergabe lässt sich bei Bedarf
+durch eine neue, global deaktivierte Policy mit zukünftigem Zeitpunkt stoppen,
+ohne historische Regeln oder Buchungen zu löschen.
 
 ## Maddrax-Fantreffen 2026 Event-System
 
@@ -287,7 +322,7 @@ docker compose --env-file .env.production exec -T app php artisan maddraxikon:st
 docker compose --env-file .env.production logs --tail=100 scheduler queue
 ```
 
-`schedule:list` muss insbesondere `maddraxikon:heartbeat`,
+`schedule:list` muss insbesondere `maddraxikon:scheduler-heartbeat`,
 `maddraxikon:sync-job` und `maddraxikon:evaluate-job` enthalten. Meldet der
 Status `Recovery nötig: ja`, darf der Rückstand nicht mit einem erzwungenen
 normalen Sync übersprungen werden. In diesem Fall ist das gemeldete Zeitfenster

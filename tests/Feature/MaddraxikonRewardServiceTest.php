@@ -13,6 +13,8 @@ use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
+use App\Models\MaddraxikonRewardPolicy;
+use App\Models\MaddraxikonRewardPolicyTier;
 use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\User;
@@ -1229,6 +1231,302 @@ class MaddraxikonRewardServiceTest extends TestCase
         );
     }
 
+    public function test_versioned_edit_policy_awards_highest_net_byte_tier_and_snapshots_decision(): void
+    {
+        [$user, $link] = $this->linkedMember();
+        $policy = $this->publishedPolicyWithTiers([
+            [100, 1],
+            [500, 3],
+            [1000, 5],
+        ]);
+        $contribution = $this->contribution($link, [
+            'old_size' => 600,
+            'new_size' => 1350,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+
+        $event = MaddraxikonRewardEvent::query()->sole();
+        $this->assertSame($policy->id, $event->maddraxikon_reward_policy_id);
+        $this->assertSame(750, $event->measured_added_bytes);
+        $this->assertSame(500, $event->matched_minimum_added_bytes);
+        $this->assertSame(3, $event->candidate_points);
+        $this->assertSame(3, $event->awarded_points);
+        $this->assertSame('byte_tier', $event->calculation_mode);
+        $this->assertSame(
+            $policy->effective_from?->getTimestamp(),
+            $event->policy_effective_from_epoch
+        );
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 3,
+        ]);
+    }
+
+    public function test_versioned_edit_policy_counts_only_valid_member_revision_deltas(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers([
+            [200, 2],
+            [500, 5],
+        ]);
+        $first = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1000,
+            'new_size' => 1100,
+            'occurred_at' => now()->subHours(30),
+        ]);
+        $reverted = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1100,
+            'new_size' => 1600,
+            'occurred_at' => now()->subHours(30)->addMinutes(10),
+            'session_anchor_revision_id' => $first->revision_id,
+        ]);
+        $last = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1600,
+            'new_size' => 1700,
+            'occurred_at' => now()->subHours(30)->addMinutes(20),
+            'session_anchor_revision_id' => $first->revision_id,
+        ]);
+        $first->update(['session_anchor_revision_id' => $first->revision_id]);
+        $this->completeWatermark();
+
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldReceive('revisionDetails')->once()->andReturn([
+            $first->revision_id => $this->revisionFor($first),
+            $reverted->revision_id => $this->revisionFor(
+                $reverted,
+                ['tags' => ['mw-reverted']]
+            ),
+            $last->revision_id => $this->revisionFor($last),
+        ]);
+
+        $this->assertSame(1, $this->service($api)->evaluate());
+
+        $event = MaddraxikonRewardEvent::query()->sole();
+        $this->assertSame(200, $event->measured_added_bytes);
+        $this->assertSame(200, $event->matched_minimum_added_bytes);
+        $this->assertSame(2, $event->candidate_points);
+        $this->assertSame(2, $event->awarded_points);
+        $this->assertDatabaseHas('maddraxikon_contributions', [
+            'id' => $reverted->id,
+            'status' => MaddraxikonContributionStatus::Rejected->value,
+            'status_reason' => 'revision_reverted',
+        ]);
+    }
+
+    public function test_versioned_edit_policy_records_below_threshold_without_award(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers([[100, 2]]);
+        $contribution = $this->contribution($link, [
+            'old_size' => 600,
+            'new_size' => 699,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'measured_added_bytes' => 99,
+            'candidate_points' => 0,
+            'awarded_points' => 0,
+            'status' => MaddraxikonRewardEventStatus::EvaluatedNoAward->value,
+            'status_reason' => 'below_minimum_edit_size',
+            'calculation_mode' => 'byte_tier',
+        ]);
+    }
+
+    public function test_policy_published_after_activity_does_not_reclassify_legacy_session(): void
+    {
+        [, $link] = $this->linkedMember();
+        BaxxEarningRule::query()
+            ->where('action_key', MaddraxikonRewardEvent::ACTION_EDIT_SESSION)
+            ->update([
+                'points' => 1,
+                'every_count' => 1,
+                'is_active' => true,
+            ]);
+        $this->publishedPolicyWithTiers(
+            [[0, 9]],
+            ['effective_from' => now()->subHour()]
+        );
+        $contribution = $this->contribution($link, [
+            'occurred_at' => now()->subHours(30),
+            'old_size' => 100,
+            'new_size' => 5000,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'source_key' => 'edit-session:'.$contribution->revision_id,
+            'maddraxikon_reward_policy_id' => null,
+            'candidate_points' => 1,
+            'awarded_points' => 1,
+            'calculation_mode' => 'legacy',
+        ]);
+    }
+
+    public function test_daily_cap_is_applied_after_byte_tier_calculation(): void
+    {
+        [, $link] = $this->linkedMember();
+        config(['maddraxikon.daily_point_cap' => 10]);
+        $this->publishedPolicyWithTiers([[0, 15]]);
+        $contribution = $this->contribution($link, [
+            'old_size' => 100,
+            'new_size' => 200,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'candidate_points' => 15,
+            'awarded_points' => 10,
+            'capped_points' => 5,
+            'status_reason' => 'daily_cap_partially_applied',
+        ]);
+    }
+
+    public function test_versioned_policy_can_disable_edit_sessions_without_rejecting_contribution(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers(
+            [[0, 5]],
+            ['edit_sessions_enabled' => false]
+        );
+        $contribution = $this->contribution($link, [
+            'old_size' => 100,
+            'new_size' => 5000,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'status' => MaddraxikonRewardEventStatus::EvaluatedNoAward->value,
+            'status_reason' => 'edit_sessions_disabled',
+        ]);
+        $this->assertDatabaseHas('maddraxikon_contributions', [
+            'id' => $contribution->id,
+            'status' => MaddraxikonContributionStatus::Qualified->value,
+        ]);
+    }
+
+    public function test_versioned_new_article_policy_controls_minimum_size_and_points(): void
+    {
+        [$user, $link] = $this->linkedMember();
+        $policy = $this->publishedPolicyWithTiers([[100, 1]], [
+            'new_article_minimum_bytes' => 900,
+            'new_article_points' => 7,
+        ]);
+        $article = $this->contribution($link, [
+            'type' => MaddraxikonContributionType::New,
+            'parent_revision_id' => 0,
+        ]);
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiForNewArticle(
+                $article,
+                pageOverrides: ['size' => 900]
+            ))->evaluate()
+        );
+
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'maddraxikon_reward_policy_id' => $policy->id,
+            'policy_new_article_minimum_bytes' => 900,
+            'candidate_points' => 7,
+            'awarded_points' => 7,
+            'calculation_mode' => 'byte_tier',
+        ]);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 7,
+        ]);
+    }
+
+    public function test_disabled_new_article_policy_records_qualified_no_award_regardless_of_size(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers([[100, 1]], [
+            'new_articles_enabled' => false,
+            'new_article_minimum_bytes' => 10_000,
+            'new_article_points' => 9,
+        ]);
+        $article = $this->contribution($link, [
+            'type' => MaddraxikonContributionType::New,
+            'parent_revision_id' => 0,
+        ]);
+
+        $this->assertSame(
+            1,
+            $this->service($this->apiForNewArticle(
+                $article,
+                pageOverrides: ['size' => 50]
+            ))->evaluate()
+        );
+
+        $this->assertDatabaseHas('maddraxikon_reward_events', [
+            'source_key' => 'new:'.$article->revision_id,
+            'status' => MaddraxikonRewardEventStatus::EvaluatedNoAward->value,
+            'status_reason' => 'new_articles_disabled',
+            'candidate_points' => 0,
+        ]);
+        $this->assertDatabaseHas('maddraxikon_contributions', [
+            'id' => $article->id,
+            'status' => MaddraxikonContributionStatus::Qualified->value,
+        ]);
+    }
+
+    public function test_missing_edit_boundary_size_stays_pending_as_technical_failure(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers([[0, 1]]);
+        $contribution = $this->contribution($link, [
+            'old_size' => null,
+            'new_size' => 700,
+        ]);
+        $this->completeWatermark();
+
+        $this->assertSame(
+            0,
+            $this->service($this->apiWithValidRevisions(collect([$contribution])))
+                ->evaluate()
+        );
+
+        $contribution->refresh();
+        $this->assertSame(MaddraxikonContributionStatus::Pending, $contribution->status);
+        $this->assertSame(1, $contribution->evaluation_attempts);
+        $this->assertStringContainsString(
+            'revision_size_unavailable',
+            (string) $contribution->last_evaluation_error
+        );
+        $this->assertDatabaseCount('maddraxikon_reward_events', 0);
+    }
+
     /**
      * @return array{User, MaddraxikonAccountLink}
      */
@@ -1299,6 +1597,35 @@ class MaddraxikonRewardServiceTest extends TestCase
             ['wiki_key' => config('maddraxikon.wiki_key')],
             ['watermark_at' => now()]
         );
+    }
+
+    /**
+     * @param  list<array{int, int}>  $tiers
+     * @param  array<string, mixed>  $overrides
+     */
+    private function publishedPolicyWithTiers(
+        array $tiers,
+        array $overrides = [],
+    ): MaddraxikonRewardPolicy {
+        $policy = MaddraxikonRewardPolicy::factory()->create([
+            'effective_from' => now()->subDays(2),
+            ...$overrides,
+        ]);
+
+        foreach ($tiers as [$minimumAddedBytes, $points]) {
+            MaddraxikonRewardPolicyTier::factory()->create([
+                'maddraxikon_reward_policy_id' => $policy->id,
+                'minimum_added_bytes' => $minimumAddedBytes,
+                'points' => $points,
+            ]);
+        }
+
+        $policy->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_at' => now()->subDays(2),
+        ]);
+
+        return $policy->fresh('tiers');
     }
 
     private function service(MaddraxikonApiClient $api): MaddraxikonRewardService

@@ -6,7 +6,10 @@ use App\Enums\Role;
 use App\Livewire\Profile\MaddraxikonAccountPanel;
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxikonAccountLink;
+use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
+use App\Models\MaddraxikonRewardPolicy;
+use App\Models\MaddraxikonRewardPolicyTier;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,6 +95,87 @@ class MaddraxikonProfileHardeningTest extends TestCase
             '[data-tour-profile-key="profile-maddraxikon-baxx"]',
             $step['selectors']['desktop'] ?? null,
         );
+    }
+
+    public function test_panel_displays_current_byte_tiers_and_upcoming_change(): void
+    {
+        $member = $this->createMember();
+        MaddraxikonAccountLink::factory()->for($member)->create();
+        $current = MaddraxikonRewardPolicy::factory()->create([
+            'name' => 'Aktuelle Staffel',
+            'effective_from' => now()->subDay(),
+            'new_article_minimum_bytes' => 800,
+            'new_article_points' => 6,
+        ]);
+        MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $current->id,
+            'minimum_added_bytes' => 250,
+            'points' => 2,
+        ]);
+        $current->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_at' => now()->subDay(),
+        ]);
+        $next = MaddraxikonRewardPolicy::factory()->create([
+            'name' => 'Winterstaffel',
+            'effective_from' => now()->addDay(),
+            'new_article_minimum_bytes' => 1200,
+            'new_article_points' => 8,
+        ]);
+        MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $next->id,
+            'minimum_added_bytes' => 500,
+            'points' => 3,
+        ]);
+        $next->update([
+            'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class)
+            ->assertSee('30-Minuten-Sitzungen')
+            ->assertSee('ab 250 Bytes 2 Baxx')
+            ->assertSee('mindestens 800 Byte ergibt 6 Baxx')
+            ->assertSee('Winterstaffel')
+            ->assertSee('ab 500 Bytes 3 Baxx')
+            ->assertSee('Neue Artikel erhalten dann ab 1.200 Byte 8 Baxx')
+            ->assertDontSee('qualifizierte Bearbeitungssitzungen ergeben');
+    }
+
+    public function test_panel_translates_internal_reward_reasons_for_members(): void
+    {
+        $member = $this->createMember();
+        $link = MaddraxikonAccountLink::factory()->for($member)->create();
+        $reasons = [
+            'below_minimum_edit_size' => 'Netto-Zuwachs unter der kleinsten Stufe',
+            'daily_cap_partially_applied' => 'Durch den Tageshöchstwert teilweise gutgeschrieben',
+            'new_articles_disabled' => 'Neue Artikel waren nicht aktiviert',
+        ];
+
+        foreach ($reasons as $reason => $label) {
+            $contribution = MaddraxikonContribution::factory()
+                ->for($member)
+                ->create([
+                    'account_link_id' => $link->id,
+                ]);
+            MaddraxikonRewardEvent::factory()
+                ->for($member)
+                ->create([
+                    'account_link_id' => $link->id,
+                    'source_contribution_id' => $contribution->id,
+                    'status_reason' => $reason,
+                ]);
+        }
+
+        $component = Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class);
+
+        foreach ($reasons as $reason => $label) {
+            $component
+                ->assertSee($label)
+                ->assertDontSee($reason);
+        }
     }
 
     private function createMember(Role $role = Role::Mitglied): User

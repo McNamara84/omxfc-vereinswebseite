@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
 use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
@@ -150,7 +151,10 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function earningRules(): \Illuminate\Database\Eloquent\Collection
     {
-        return BaxxEarningRule::orderBy('action_key')->get();
+        return BaxxEarningRule::query()
+            ->whereNotIn('action_key', $this->managedMaddraxikonActionKeys())
+            ->orderBy('action_key')
+            ->get();
     }
 
     #[Computed]
@@ -424,7 +428,9 @@ class BelohnungenAdmin extends Component
 
     public function openEditRule(int $ruleId): void
     {
-        $rule = BaxxEarningRule::findOrFail($ruleId);
+        $rule = BaxxEarningRule::query()
+            ->whereNotIn('action_key', $this->managedMaddraxikonActionKeys())
+            ->findOrFail($ruleId);
         $this->editingRuleId = $rule->id;
         $this->ruleLabel = $rule->label;
         $this->ruleDescription = $rule->description ?? '';
@@ -443,7 +449,9 @@ class BelohnungenAdmin extends Component
         ]);
 
         if ($this->editingRuleId) {
-            $rule = BaxxEarningRule::findOrFail($this->editingRuleId);
+            $rule = BaxxEarningRule::query()
+                ->whereNotIn('action_key', $this->managedMaddraxikonActionKeys())
+                ->findOrFail($this->editingRuleId);
             $rule->update([
                 'label' => $this->ruleLabel,
                 'description' => $this->ruleDescription ?: null,
@@ -467,7 +475,9 @@ class BelohnungenAdmin extends Component
 
     public function toggleRuleActive(int $ruleId): void
     {
-        $rule = BaxxEarningRule::findOrFail($ruleId);
+        $rule = BaxxEarningRule::query()
+            ->whereNotIn('action_key', $this->managedMaddraxikonActionKeys())
+            ->findOrFail($ruleId);
         $rule->update(['is_active' => ! $rule->is_active]);
         $status = $rule->is_active ? 'aktiviert' : 'deaktiviert';
         $this->dispatch('toast', type: 'success', title: "Vergaberegel {$status}");
@@ -477,6 +487,15 @@ class BelohnungenAdmin extends Component
             $this->maddraxiversumRewardConfiguration,
             $this->romantauschRewardConfiguration,
         );
+    }
+
+    /** @return list<string> */
+    private function managedMaddraxikonActionKeys(): array
+    {
+        return [
+            MaddraxikonRewardEvent::ACTION_EDIT_SESSION,
+            MaddraxikonRewardEvent::ACTION_NEW_ARTICLE,
+        ];
     }
 
     public function openCreateReviewSpecialOffer(): void
