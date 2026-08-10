@@ -272,7 +272,29 @@ Die Datei wird unter `public/sitemap.xml` gespeichert. Aktualisieren Sie die Sit
 
 ### Scheduler in Produktion
 
-Der Laravel-Scheduler sollte auf Produktionssystemen jede Minute aufgerufen werden, um Hintergrundaufgaben (u. a. `member-map:refresh`) auszuführen:
+Im produktiven Docker-Deployment ist der Compose-Dienst `scheduler` mit
+`php artisan schedule:work` der verbindliche Scheduler. Der Compose-Dienst
+`queue` arbeitet die dabei erzeugten Queue-Jobs ab. Es darf nicht zusätzlich
+ein Host-Cronjob mit `schedule:run` oder ein zweiter, abweichend konfigurierter
+Queue-Worker aktiv sein.
+
+Nach jedem Deployment muss die Anwendung selbst – nicht nur der laufende
+Container – geprüft werden:
+
+```bash
+docker compose --env-file .env.production exec -T app php artisan schedule:list
+docker compose --env-file .env.production exec -T app php artisan maddraxikon:status --skip-api
+docker compose --env-file .env.production logs --tail=100 scheduler queue
+```
+
+`schedule:list` muss insbesondere `maddraxikon:heartbeat`,
+`maddraxikon:sync-job` und `maddraxikon:evaluate-job` enthalten. Meldet der
+Status `Recovery nötig: ja`, darf der Rückstand nicht mit einem erzwungenen
+normalen Sync übersprungen werden. In diesem Fall ist das gemeldete Zeitfenster
+zu prüfen und `maddraxikon:recover` erst anschließend bewusst freizugeben.
+
+Bei Installationen ohne den Compose-Scheduler kann alternativ genau ein
+minütlicher Cronjob verwendet werden:
 
 ```bash
 * * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1

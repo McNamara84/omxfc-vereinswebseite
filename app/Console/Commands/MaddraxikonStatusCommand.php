@@ -4,12 +4,15 @@ namespace App\Console\Commands;
 
 use App\Enums\MaddraxikonContributionStatus;
 use App\Enums\MaddraxikonRewardEventStatus;
+use App\Jobs\EvaluateMaddraxikonContributions;
+use App\Jobs\SyncMaddraxikonContributions;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxikonSyncState;
 use App\Services\Maddraxikon\MaddraxikonMonitoring;
 use App\Services\Maddraxikon\MaddraxikonNamespaceHealthService;
 use Illuminate\Console\Command;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
@@ -396,19 +399,13 @@ class MaddraxikonStatusCommand extends Command
 
         try {
             $queued = Schema::hasTable($jobsTable)
-                ? DB::table($jobsTable)
-                    ->where('payload', 'like', '%Maddraxikon%')
-                    ->count()
+                ? $this->maddraxikonJobsQuery($jobsTable)->count()
                 : null;
             $oldestCreatedAt = Schema::hasTable($jobsTable)
-                ? DB::table($jobsTable)
-                    ->where('payload', 'like', '%Maddraxikon%')
-                    ->min('created_at')
+                ? $this->maddraxikonJobsQuery($jobsTable)->min('created_at')
                 : null;
             $failed = Schema::hasTable($failedTable)
-                ? DB::table($failedTable)
-                    ->where('payload', 'like', '%Maddraxikon%')
-                    ->count()
+                ? $this->maddraxikonJobsQuery($failedTable)->count()
                 : null;
         } catch (Throwable) {
             $queued = null;
@@ -426,6 +423,14 @@ class MaddraxikonStatusCommand extends Command
             'oldest_age_minutes' => $oldestAgeMinutes,
             'connection' => $connection,
         ];
+    }
+
+    private function maddraxikonJobsQuery(string $table): Builder
+    {
+        return DB::table($table)->whereIn('payload->displayName', [
+            SyncMaddraxikonContributions::class,
+            EvaluateMaddraxikonContributions::class,
+        ]);
     }
 
     private function queueMetricLabel(

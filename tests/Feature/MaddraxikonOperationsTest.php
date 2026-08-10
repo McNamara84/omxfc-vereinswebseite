@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Console\Kernel;
 use App\Enums\MaddraxikonContributionStatus;
 use App\Enums\MaddraxikonRewardEventStatus;
+use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Mockery;
-use ReflectionMethod;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -444,6 +443,104 @@ class MaddraxikonOperationsTest extends TestCase
             ->assertFailed();
     }
 
+    public function test_status_ignores_unrelated_jobs_that_only_mention_maddraxikon_in_their_payload(): void
+    {
+        $now = CarbonImmutable::parse('2026-07-18T12:00:00Z');
+        $this->travelTo($now);
+        config([
+            'maddraxikon.features.sync_enabled' => true,
+            'maddraxikon.features.awards_enabled' => false,
+            'queue.default' => 'database',
+        ]);
+        MaddraxikonSyncState::factory()->create([
+            'wiki_key' => 'maddraxikon-de',
+            'last_succeeded_at' => $now,
+        ]);
+        Cache::forever(
+            MaddraxikonMonitoring::SCHEDULER_HEARTBEAT_CACHE_KEY,
+            $now->toIso8601String()
+        );
+        $mailPayload = json_encode([
+            'displayName' => 'App\\Mail\\ReviewCommentNotification',
+            'data' => ['recipient' => 'info@maddraxikon.com'],
+        ], JSON_THROW_ON_ERROR);
+
+        DB::table('jobs')->insert([
+            'queue' => 'default',
+            'payload' => $mailPayload,
+            'attempts' => 0,
+            'reserved_at' => null,
+            'available_at' => $now->subMinutes(31)->timestamp,
+            'created_at' => $now->subMinutes(31)->timestamp,
+        ]);
+        DB::table('failed_jobs')->insert([
+            'uuid' => 'unrelated-maddraxikon-mail-job',
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => $mailPayload,
+            'exception' => 'Test exception',
+            'failed_at' => $now,
+        ]);
+
+        $this->artisan('maddraxikon:status', ['--skip-api' => true])
+            ->doesntExpectOutputToContain(
+                'Maddraxikon-Jobs sind endgültig fehlgeschlagen.'
+            )
+            ->doesntExpectOutputToContain(
+                'Der älteste wartende Maddraxikon-Job ist'
+            )
+            ->assertSuccessful();
+    }
+
+    public function test_status_counts_only_exact_failed_maddraxikon_job_classes(): void
+    {
+        $now = CarbonImmutable::parse('2026-07-18T12:00:00Z');
+        $this->travelTo($now);
+        config([
+            'maddraxikon.features.sync_enabled' => true,
+            'maddraxikon.features.awards_enabled' => false,
+            'queue.default' => 'database',
+        ]);
+        MaddraxikonSyncState::factory()->create([
+            'wiki_key' => 'maddraxikon-de',
+            'last_succeeded_at' => $now,
+        ]);
+        Cache::forever(
+            MaddraxikonMonitoring::SCHEDULER_HEARTBEAT_CACHE_KEY,
+            $now->toIso8601String()
+        );
+
+        DB::table('failed_jobs')->insert([
+            [
+                'uuid' => 'actual-maddraxikon-job',
+                'connection' => 'database',
+                'queue' => 'default',
+                'payload' => json_encode([
+                    'displayName' => EvaluateMaddraxikonContributions::class,
+                ], JSON_THROW_ON_ERROR),
+                'exception' => 'Test exception',
+                'failed_at' => $now,
+            ],
+            [
+                'uuid' => 'unrelated-mail-job',
+                'connection' => 'database',
+                'queue' => 'default',
+                'payload' => json_encode([
+                    'displayName' => 'App\\Mail\\ReviewCommentNotification',
+                    'data' => ['recipient' => 'info@maddraxikon.com'],
+                ], JSON_THROW_ON_ERROR),
+                'exception' => 'Test exception',
+                'failed_at' => $now,
+            ],
+        ]);
+
+        $this->artisan('maddraxikon:status', ['--skip-api' => true])
+            ->expectsOutput(
+                'Betriebsalarm: 1 Maddraxikon-Jobs sind endgültig fehlgeschlagen.'
+            )
+            ->assertFailed();
+    }
+
     public function test_status_reports_recovery_alarm_as_failure_without_api_check(): void
     {
         $now = CarbonImmutable::parse('2026-07-18 12:00:00', 'UTC');
@@ -557,44 +654,79 @@ class MaddraxikonOperationsTest extends TestCase
         );
     }
 
-    public function test_scheduler_queues_sync_and_evaluation_without_overlap(): void
+    public function test_application_registers_the_complete_scheduler_configuration(): void
     {
+        $this->assertSame(0, Artisan::call('schedule:list', [
+            '--no-ansi' => true,
+        ]));
+        $this->assertStringNotContainsString(
+            'No scheduled tasks have been defined',
+            Artisan::output()
+        );
+
         $schedule = app(Schedule::class);
-        $method = new ReflectionMethod(Kernel::class, 'schedule');
-        $method->invoke(app(Kernel::class), $schedule);
-        $events = collect($schedule->events())
+        $events = collect($schedule->events());
+        $namedEvents = $events
             ->whereIn('description', [
+                'maddraxikon:prune-audit',
+                'maddraxikon:scheduler-heartbeat',
                 'maddraxikon:sync-job',
                 'maddraxikon:evaluate-job',
             ])
             ->keyBy('description');
 
-        $this->assertCount(2, $events);
+        $this->assertCount(4, $namedEvents);
         $this->assertSame(
             '*/15 * * * *',
-            $events->get('maddraxikon:sync-job')->expression
+            $namedEvents->get('maddraxikon:sync-job')->expression
         );
         $this->assertSame(
             '0 * * * *',
-            $events->get('maddraxikon:evaluate-job')->expression
+            $namedEvents->get('maddraxikon:evaluate-job')->expression
         );
         $this->assertTrue(
-            $events->get('maddraxikon:sync-job')->withoutOverlapping
+            $namedEvents->get('maddraxikon:sync-job')->withoutOverlapping
         );
         $this->assertTrue(
-            $events->get('maddraxikon:evaluate-job')->withoutOverlapping
+            $namedEvents->get('maddraxikon:evaluate-job')->withoutOverlapping
         );
-        $this->assertFalse($events->get('maddraxikon:sync-job')->onOneServer);
-        $this->assertFalse($events->get('maddraxikon:evaluate-job')->onOneServer);
+        $this->assertSame(
+            15,
+            $namedEvents->get('maddraxikon:sync-job')->expiresAt
+        );
+        $this->assertSame(
+            60,
+            $namedEvents->get('maddraxikon:evaluate-job')->expiresAt
+        );
+        $this->assertFalse(
+            $namedEvents->get('maddraxikon:sync-job')->onOneServer
+        );
+        $this->assertFalse(
+            $namedEvents->get('maddraxikon:evaluate-job')->onOneServer
+        );
 
-        $heartbeat = collect($schedule->events())
-            ->firstWhere('description', 'maddraxikon:scheduler-heartbeat');
-        $this->assertNotNull($heartbeat);
+        $heartbeat = $namedEvents->get('maddraxikon:scheduler-heartbeat');
         $this->assertSame('* * * * *', $heartbeat->expression);
 
-        $prune = collect($schedule->events())
-            ->firstWhere('description', 'maddraxikon:prune-audit');
-        $this->assertNotNull($prune);
+        $prune = $namedEvents->get('maddraxikon:prune-audit');
         $this->assertSame('30 3 1 * *', $prune->expression);
+        $this->assertTrue($prune->withoutOverlapping);
+        $this->assertSame(30, $prune->expiresAt);
+
+        foreach ([
+            'member-map:refresh' => '0 * * * *',
+            'polls:archive-ended' => '0 * * * *',
+            'database-maintenance:cleanup' => '0 0 * * *',
+        ] as $command => $expression) {
+            $event = $events->first(
+                static fn (object $event): bool => str_contains(
+                    (string) ($event->command ?? ''),
+                    $command
+                )
+            );
+
+            $this->assertNotNull($event, "Scheduled command {$command} fehlt.");
+            $this->assertSame($expression, $event->expression);
+        }
     }
 }

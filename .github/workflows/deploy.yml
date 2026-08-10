@@ -152,6 +152,28 @@ jobs:
 
             # Gesundheitschecks
             echo "Running health checks..."
+
+            echo "=== Verifying registered Laravel schedule ==="
+            SCHEDULE_OUTPUT="$(docker exec maddrax-app php artisan schedule:list --no-ansi)"
+            echo "$SCHEDULE_OUTPUT"
+
+            for REQUIRED_SCHEDULE in \
+              "member-map:refresh" \
+              "polls:archive-ended" \
+              "database-maintenance:cleanup" \
+              "maddraxikon:prune-audit" \
+              "maddraxikon:heartbeat" \
+              "maddraxikon:sync-job" \
+              "maddraxikon:evaluate-job"; do
+              if ! echo "$SCHEDULE_OUTPUT" | grep -Fq "$REQUIRED_SCHEDULE"; then
+                echo "❌ Laravel schedule is missing: ${REQUIRED_SCHEDULE}"
+                echo "=== Scheduler logs ==="
+                $COMPOSE logs --tail=50 scheduler || true
+                exit 1
+              fi
+            done
+
+            echo "✅ Laravel schedule: ALL REQUIRED TASKS REGISTERED"
             
             echo "=== Container Status ==="
             docker ps
