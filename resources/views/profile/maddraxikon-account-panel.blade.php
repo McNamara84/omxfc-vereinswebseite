@@ -100,9 +100,11 @@
 
         <x-alert icon="o-information-circle" class="alert-info" role="note">
             Beim Trennen enden zukünftige Gutschriften sofort. Bereits
-            gutgeschriebene Baxx bleiben bestehen und die Profilfreigabe wird
-            deaktiviert. Eine spätere Reaktivierung erfordert eine neue Anmeldung
-            im Maddraxikon und eine erneute bewusste Profilfreigabe.
+            gutgeschriebene Baxx bleiben bestehen. Persönliche Maddraxikon-
+            Bewertungen werden an deinen Rezensionen sofort ausgeblendet und
+            die Profilfreigabe wird deaktiviert. Eine spätere Reaktivierung
+            erfordert eine neue Anmeldung im Maddraxikon und eine erneute
+            bewusste Profilfreigabe.
         </x-alert>
 
         @if (! $eligible)
@@ -129,7 +131,11 @@
             <p class="text-sm leading-relaxed text-base-content/75">
                 Verbinde freiwillig dein Maddraxikon-Konto, damit zukünftige,
                 qualifizierte Wiki-Beiträge deinem Vereinskonto zugeordnet und
-                mit Baxx belohnt werden können. Beim OAuth-Profilabruf werden
+                mit Baxx belohnt werden können. Wenn du Rezensionen auf der
+                Vereinswebsite veröffentlichst, wird deine jeweils aktuelle
+                persönliche Romanbewertung aus dem Maddraxikon automatisch im
+                geschützten Rezensionenbereich angezeigt. Die Bewertung wird
+                ungefähr alle 15 Minuten aktualisiert. Beim OAuth-Profilabruf werden
                 die vom Wiki gelieferten Identitätsdaten einschließlich
                 Subject-ID, Benutzername und Sperrstatus nur kurzzeitig
                 verarbeitet. Der Benutzername wird zusätzlich über die
@@ -161,7 +167,11 @@
                             OAuth-Subject-ID, lokaler Wiki-Nutzer-ID und
                             kanonischem Benutzernamen sowie der Verarbeitung
                             meiner öffentlichen Maddraxikon-Beiträge für das
-                            Baxx-Belohnungssystem zu. Die Hinweise in der
+                            Baxx-Belohnungssystem zu. Ich stimme außerdem dem
+                            lesenden Abruf und der lokalen Zwischenspeicherung
+                            meiner persönlichen Romanbewertungen sowie ihrer
+                            automatischen Anzeige an meinen Vereinsrezensionen
+                            für eingeloggte, berechtigte Mitglieder zu. Die Hinweise in der
                             <a href="{{ route('datenschutz') }}" class="link link-primary">Datenschutzerklärung</a>
                             habe ich zur Kenntnis genommen.
                         </span>

@@ -8,6 +8,13 @@
     @forelse($this->reviews as $review)
         <x-ui.panel class="mb-6" wire:key="review-{{ $review->id }}">
             <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
+            @if($maddraxikonRating = $review->visibleMaddraxikonRating())
+                <x-maddraxikon-comet-rating
+                    :rating="$maddraxikonRating->rating"
+                    :page-title="$review->book->maddraxikon_page_title"
+                    :instance="'review-'.$review->id"
+                />
+            @endif
             <p class="text-sm text-base-content">
                 von
                 <a href="{{ route('profile.view', $review->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $review->user->nicknameOrName() }}</a>

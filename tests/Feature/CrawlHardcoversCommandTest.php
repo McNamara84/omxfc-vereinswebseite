@@ -110,6 +110,7 @@ class CrawlHardcoversCommandTest extends TestCase
             ['P1', 'P2'],
             ['S1', 'S2'],
             ['O1', 'O2'],
+            null,
         ], $info);
     }
 
@@ -159,6 +160,7 @@ class CrawlHardcoversCommandTest extends TestCase
             5,
             'Unrated Title',
             '2024-01',
+            null,
             null,
             null,
             null,

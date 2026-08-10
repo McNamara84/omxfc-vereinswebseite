@@ -77,7 +77,12 @@ class ImportMaddraxBooksCommandTest extends TestCase
             ['nummer' => 2, 'titel' => null, 'text' => 'Author2'],
             ['titel' => 'Roman3', 'text' => ['Author3']],
             ['nummer' => 1, 'titel' => 'Roman1 new', 'text' => 'Author1 new'],
-            ['nummer' => 4, 'titel' => 'Roman4', 'text' => 'Author4'],
+            [
+                'nummer' => 4,
+                'titel' => 'Roman4',
+                'text' => 'Author4',
+                'maddraxikon_seitentitel' => 'MX 4 – Testroman',
+            ],
         ];
         File::put(storage_path('app/private/maddrax.json'), json_encode($data));
 
@@ -131,6 +136,7 @@ class ImportMaddraxBooksCommandTest extends TestCase
             'title' => 'Roman4',
             'author' => 'Author4',
             'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'maddraxikon_page_title' => 'MX 4 – Testroman',
         ]);
         $this->assertDatabaseHas('books', [
             'roman_number' => 1,
@@ -170,16 +176,5 @@ class ImportMaddraxBooksCommandTest extends TestCase
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::DieAbenteurer->value]);
         $this->assertSame(7, Book::count());
-    }
-
-    protected function migrateFreshUsing(): array
-    {
-        return [
-            '--path' => [
-                'database/migrations/2025_05_18_065853_create_books_table.php',
-                'database/migrations/2025_09_19_000000_add_type_to_books_table.php',
-                'database/migrations/2025_10_01_000000_update_book_type_enum.php',
-            ],
-        ];
     }
 }

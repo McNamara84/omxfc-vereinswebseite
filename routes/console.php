@@ -2,6 +2,7 @@
 
 use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonContributions;
+use App\Jobs\SyncMaddraxikonReviewRatings;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -13,6 +14,10 @@ Artisan::command('inspire', function () {
 $syncMinutes = max(
     1,
     min(59, (int) config('maddraxikon.sync.interval_minutes', 15))
+);
+$ratingSyncMinutes = max(
+    1,
+    min(59, (int) config('maddraxikon.ratings.sync_interval_minutes', 15))
 );
 
 Schedule::command('member-map:refresh')->hourly();
@@ -33,3 +38,7 @@ Schedule::job(new EvaluateMaddraxikonContributions)
     ->hourly()
     ->name('maddraxikon:evaluate-job')
     ->withoutOverlapping(60);
+Schedule::job(new SyncMaddraxikonReviewRatings)
+    ->cron("*/{$ratingSyncMinutes} * * * *")
+    ->name('maddraxikon:review-ratings-sync-job')
+    ->withoutOverlapping(15);

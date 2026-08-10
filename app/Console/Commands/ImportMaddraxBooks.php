@@ -71,6 +71,7 @@ class ImportMaddraxBooks extends Command
             $title = $item['titel'] ?? null;
             $authorData = $item['text'] ?? null;
             $author = is_array($authorData) ? implode(', ', $authorData) : $authorData;
+            $maddraxikonPageTitle = $item['maddraxikon_seitentitel'] ?? null;
 
             if (! $romanNumber || ! $title) {
                 $this->warn('Skipping invalid entry: '.json_encode($item));
@@ -79,10 +80,27 @@ class ImportMaddraxBooks extends Command
                 continue;
             }
 
-            Book::updateOrCreate(
-                ['roman_number' => $romanNumber, 'type' => $type->value],
-                ['title' => $title, 'author' => $author, 'type' => $type->value]
-            );
+            $book = Book::firstOrNew([
+                'roman_number' => $romanNumber,
+                'type' => $type->value,
+            ]);
+            $updates = [
+                'title' => $title,
+                'author' => $author,
+                'type' => $type->value,
+            ];
+
+            if (is_string($maddraxikonPageTitle) && trim($maddraxikonPageTitle) !== '') {
+                $normalizedPageTitle = trim($maddraxikonPageTitle);
+                $updates['maddraxikon_page_title'] = $normalizedPageTitle;
+
+                if ($book->maddraxikon_page_title !== $normalizedPageTitle) {
+                    $updates['maddraxikon_page_id'] = null;
+                    $updates['maddraxikon_page_verified_at'] = null;
+                }
+            }
+
+            $book->fill($updates)->save();
 
             $bar->advance();
         }

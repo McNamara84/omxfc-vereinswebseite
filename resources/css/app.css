@@ -83,6 +83,93 @@
     display: none !important;
 }
 
+.maddraxikon-comet-rating {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    width: fit-content;
+    color: color-mix(in oklab, var(--color-base-content) 72%, transparent);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+}
+
+.maddraxikon-comet-rating__label {
+    font-weight: 600;
+}
+
+.maddraxikon-comet-rating__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 0.45rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.maddraxikon-comet-rating__link:focus-visible {
+    outline: 2px solid #22c55e;
+    outline-offset: 3px;
+}
+
+.maddraxikon-comet-rating__comets {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.08rem;
+}
+
+.maddraxikon-comet {
+    display: block;
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: none;
+}
+
+.maddraxikon-comet--filled {
+    animation: maddraxikon-comet-shimmer 5.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 2px rgb(34 197 94 / 0.42));
+}
+
+.maddraxikon-comet--empty {
+    color: color-mix(in oklab, var(--color-base-content) 30%, transparent);
+    opacity: 0.72;
+}
+
+.maddraxikon-comet-rating__value {
+    min-width: 2rem;
+    color: color-mix(in oklab, #15803d 78%, var(--color-base-content));
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+[data-theme="coffee"] .maddraxikon-comet--filled {
+    filter: drop-shadow(0 0 2.5px rgb(74 222 128 / 0.5));
+}
+
+[data-theme="coffee"] .maddraxikon-comet--empty {
+    opacity: 0.58;
+}
+
+[data-theme="coffee"] .maddraxikon-comet-rating__value {
+    color: #86efac;
+}
+
+@keyframes maddraxikon-comet-shimmer {
+    0%, 70%, 100% {
+        filter: drop-shadow(0 0 2px rgb(34 197 94 / 0.4)) brightness(1);
+    }
+    82% {
+        filter: drop-shadow(0 0 4px rgb(74 222 128 / 0.62)) brightness(1.12);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .maddraxikon-comet--filled {
+        animation: none;
+    }
+}
+
 /* Cross-Document-Transitions bleiben bewusst deaktiviert: Livewire `wire:navigate`
    startet Same-Document-Transitions selbst. Eine parallele `@view-transition`-
    Aktivierung lässt Chromium überlappende Transitions als unbehandelte

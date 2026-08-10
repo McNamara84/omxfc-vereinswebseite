@@ -23,6 +23,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
     - [Datenbank seeden](#datenbank-seeden)
   - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
+  - [Maddraxikon-Bewertungen in Rezensionen](#maddraxikon-bewertungen-in-rezensionen)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
     - [Funktionen](#funktionen)
     - [Konfiguration](#konfiguration)
@@ -184,6 +185,31 @@ resultierenden Baxx als Snapshot enthalten. Eine Vergabe lässt sich bei Bedarf
 durch eine neue, global deaktivierte Policy mit zukünftigem Zeitpunkt stoppen,
 ohne historische Regeln oder Buchungen zu löschen.
 
+## Maddraxikon-Bewertungen in Rezensionen
+
+Bei aktiver Maddraxikon-Verknüpfung kann die persönliche VoteNY-Bewertung des
+Rezensionsautors direkt unter der Überschrift seiner Rezension erscheinen. Die
+Anwendung liest dazu ausschließlich die Tabellen `Vote`, `actor`, `page` und
+`redirect` über die separate Verbindung `maddraxikon` und speichert lokal einen
+höchstens 60 Minuten sichtbaren Snapshot. Der Datenbankbenutzer muss auf diese
+Tabellen beschränkte `SELECT`-Rechte besitzen.
+
+Vor der ersten Aktivierung bleiben `MADDRAXIKON_RATINGS_ENABLED=false` und das
+Feature damit unsichtbar. Nach Migration und Konfiguration erfolgt der
+kontrollierte Erstlauf mit:
+
+```bash
+php artisan maddraxikon:map-review-books --dry-run
+php artisan maddraxikon:map-review-books
+php artisan maddraxikon:sync-review-ratings --dry-run --force
+php artisan maddraxikon:sync-review-ratings --force
+php artisan maddraxikon:status --skip-api
+```
+
+Erst nach erfolgreicher Zuordnung und Synchronisation wird das Feature-Flag
+aktiviert. Das Trennen eines Kontos oder Deaktivieren des Flags blendet die
+Bewertung sofort aus; der 15-minütige Queue-Job bereinigt den Snapshot danach.
+
 ## Maddrax-Fantreffen 2026 Event-System
 
 Das Anmeldesystem für das Maddrax-Fantreffen am 9. Mai 2026 bietet:
@@ -323,7 +349,8 @@ docker compose --env-file .env.production logs --tail=100 scheduler queue
 ```
 
 `schedule:list` muss insbesondere `maddraxikon:scheduler-heartbeat`,
-`maddraxikon:sync-job` und `maddraxikon:evaluate-job` enthalten. Meldet der
+`maddraxikon:sync-job`, `maddraxikon:evaluate-job` und
+`maddraxikon:review-ratings-sync-job` enthalten. Meldet der
 Status `Recovery nötig: ja`, darf der Rückstand nicht mit einem erzwungenen
 normalen Sync übersprungen werden. In diesem Fall ist das gemeldete Zeitfenster
 zu prüfen und `maddraxikon:recover` erst anschließend bewusst freizugeben.

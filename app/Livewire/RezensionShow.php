@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\Review;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -49,7 +50,7 @@ class RezensionShow extends Component
                 Auth::user(),
                 app(MembersTeamProvider::class)->getMembersTeamOrAbort()
             );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             abort(403);
         }
     }
@@ -64,9 +65,14 @@ class RezensionShow extends Component
     public function reviews()
     {
         return $this->book->reviews()
-            ->with(['user', 'comments' => function ($query) {
-                $query->with(['user', 'children.user'])->orderBy('created_at');
-            }])
+            ->with([
+                'book',
+                'user.maddraxikonAccountLink',
+                'maddraxikonRating',
+                'comments' => function ($query) {
+                    $query->with(['user', 'children.user'])->orderBy('created_at');
+                },
+            ])
             ->get();
     }
 

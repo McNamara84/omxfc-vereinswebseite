@@ -7,6 +7,7 @@ use App\Enums\MaddraxikonRewardEventStatus;
 use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
+use App\Models\MaddraxikonRatingSyncState;
 use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxikonSyncState;
 use App\Services\Maddraxikon\MaddraxikonContributionImporter;
@@ -285,6 +286,34 @@ class MaddraxikonOperationsTest extends TestCase
         $this->artisan('maddraxikon:status', ['--skip-api' => true])
             ->expectsOutput('Namespace-Prüfung übersprungen.')
             ->assertSuccessful();
+    }
+
+    public function test_status_reports_rating_sync_health_and_operational_alarms(): void
+    {
+        config([
+            'maddraxikon.wiki_key' => 'test-wiki',
+            'maddraxikon.features.sync_enabled' => false,
+            'maddraxikon.features.awards_enabled' => false,
+            'maddraxikon.features.ratings_enabled' => true,
+            'maddraxikon.ratings.stale_after_minutes' => 60,
+            'maddraxikon.monitoring.consecutive_failure_limit' => 3,
+        ]);
+        MaddraxikonRatingSyncState::factory()->create([
+            'wiki_key' => 'test-wiki',
+            'last_succeeded_at' => now()->subMinutes(61),
+            'last_error_category' => 'PDOException',
+            'consecutive_failures' => 3,
+        ]);
+        Cache::forever(
+            MaddraxikonMonitoring::SCHEDULER_HEARTBEAT_CACHE_KEY,
+            now('UTC')->toIso8601String()
+        );
+
+        $this->artisan('maddraxikon:status', ['--skip-api' => true])
+            ->expectsOutput('Letzter Bewertungssync-Fehlertyp: PDOException')
+            ->expectsOutput('Betriebsalarm: Der letzte erfolgreiche Bewertungssync ist 61 Minuten alt.')
+            ->expectsOutput('Betriebsalarm: Der Bewertungssync ist 3-mal in Folge fehlgeschlagen.')
+            ->assertFailed();
     }
 
     public function test_status_fails_if_awards_are_enabled_without_import(): void
@@ -672,10 +701,11 @@ class MaddraxikonOperationsTest extends TestCase
                 'maddraxikon:scheduler-heartbeat',
                 'maddraxikon:sync-job',
                 'maddraxikon:evaluate-job',
+                'maddraxikon:review-ratings-sync-job',
             ])
             ->keyBy('description');
 
-        $this->assertCount(4, $namedEvents);
+        $this->assertCount(5, $namedEvents);
         $this->assertSame(
             '*/15 * * * *',
             $namedEvents->get('maddraxikon:sync-job')->expression
@@ -684,11 +714,18 @@ class MaddraxikonOperationsTest extends TestCase
             '0 * * * *',
             $namedEvents->get('maddraxikon:evaluate-job')->expression
         );
+        $this->assertSame(
+            '*/15 * * * *',
+            $namedEvents->get('maddraxikon:review-ratings-sync-job')->expression
+        );
         $this->assertTrue(
             $namedEvents->get('maddraxikon:sync-job')->withoutOverlapping
         );
         $this->assertTrue(
             $namedEvents->get('maddraxikon:evaluate-job')->withoutOverlapping
+        );
+        $this->assertTrue(
+            $namedEvents->get('maddraxikon:review-ratings-sync-job')->withoutOverlapping
         );
         $this->assertSame(
             15,
@@ -698,11 +735,18 @@ class MaddraxikonOperationsTest extends TestCase
             60,
             $namedEvents->get('maddraxikon:evaluate-job')->expiresAt
         );
+        $this->assertSame(
+            15,
+            $namedEvents->get('maddraxikon:review-ratings-sync-job')->expiresAt
+        );
         $this->assertFalse(
             $namedEvents->get('maddraxikon:sync-job')->onOneServer
         );
         $this->assertFalse(
             $namedEvents->get('maddraxikon:evaluate-job')->onOneServer
+        );
+        $this->assertFalse(
+            $namedEvents->get('maddraxikon:review-ratings-sync-job')->onOneServer
         );
 
         $heartbeat = $namedEvents->get('maddraxikon:scheduler-heartbeat');

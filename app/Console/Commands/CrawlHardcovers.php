@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Support\MaddraxikonPageTitle;
+use App\Support\UriSupport;
 use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
@@ -84,15 +86,34 @@ class CrawlHardcovers extends Command
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = self::BASE_URL.$article->getAttribute('href');
+            $resolved = UriSupport::resolve(
+                self::BASE_URL,
+                $article->getAttribute('href')
+            );
+
+            if ($resolved !== null && UriSupport::isAbsoluteUrlForHost(
+                $resolved,
+                'https',
+                'de.maddraxikon.com'
+            )) {
+                $urls[] = $resolved;
+            }
         }
 
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
-            $urls = array_merge(
-                $urls,
-                $this->getArticleUrls(self::BASE_URL.$nextPage->item(0)->getAttribute('href'))
+            $nextUrl = UriSupport::resolve(
+                self::BASE_URL,
+                $nextPage->item(0)->getAttribute('href')
             );
+
+            if ($nextUrl !== null && UriSupport::isAbsoluteUrlForHost(
+                $nextUrl,
+                'https',
+                'de.maddraxikon.com'
+            )) {
+                $urls = array_merge($urls, $this->getArticleUrls($nextUrl));
+            }
         }
 
         return $urls;
@@ -168,7 +189,7 @@ class CrawlHardcovers extends Command
 
         // Bedingung wie im Legacy-Code
         if ($title !== null || $rating !== null) {
-            return [$number, $title, $evt, $serie, $rating, $votes, $text, $personen, $schlagworte, $handlungsort];
+            return [$number, $title, $evt, $serie, $rating, $votes, $text, $personen, $schlagworte, $handlungsort, MaddraxikonPageTitle::fromUrl($url)];
         }
 
         return null;
@@ -226,6 +247,7 @@ class CrawlHardcovers extends Command
             $obj->personen = $row[7];            // Position 7
             $obj->schlagworte = $row[8];         // Position 8
             $obj->orte = $row[9];               // Position 9
+            $obj->maddraxikon_seitentitel = $row[10] ?? null;
 
             $jsonData[] = $obj;
         }

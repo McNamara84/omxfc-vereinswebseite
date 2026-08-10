@@ -113,6 +113,7 @@ class CrawlVolkDerTiefeCommandTest extends TestCase
             'personen' => ['Person 1', 'Person 2'],
             'schlagworte' => ['Signal', 'Tiefe'],
             'orte' => ['Atlantis', 'Kueste'],
+            'maddraxikon_seitentitel' => 'DVT 01',
         ], $data[0]);
     }
 }
