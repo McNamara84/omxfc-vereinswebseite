@@ -10,7 +10,7 @@ RUN npm run build
 FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS composer-bin
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5-fpm@sha256:f56f4a81de6cd33ddfd6e99352889a53c94c3ffccce89e494563845a1c8ba75a AS php-base
+FROM php:8.5-fpm@sha256:32ef9f35b567a741f24c5d2c3312f803fe6c9e34b7db46212f95fce675e1d13f AS php-base
 
 # Install required system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
