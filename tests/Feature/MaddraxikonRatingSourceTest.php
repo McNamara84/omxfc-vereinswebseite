@@ -28,19 +28,15 @@ class MaddraxikonRatingSourceTest extends TestCase
             'database.connections.maddraxikon' => [
                 'driver' => 'sqlite',
                 'database' => ':memory:',
-                'prefix' => '',
+                'prefix' => 'mw_',
                 'foreign_key_constraints' => true,
             ],
         ]);
         DB::purge('maddraxikon');
 
-        Schema::connection('maddraxikon')->create('actor', function (Blueprint $table): void {
-            $table->unsignedBigInteger('actor_id')->primary();
-            $table->unsignedBigInteger('actor_user')->nullable();
-        });
-        Schema::connection('maddraxikon')->create('Vote', function (Blueprint $table): void {
+        Schema::connection('maddraxikon')->create('vote', function (Blueprint $table): void {
             $table->unsignedBigInteger('vote_id')->primary();
-            $table->unsignedBigInteger('vote_actor');
+            $table->unsignedBigInteger('vote_user_id')->nullable();
             $table->unsignedBigInteger('vote_page_id');
             $table->string('vote_value');
             $table->string('vote_date')->nullable();
@@ -68,43 +64,38 @@ class MaddraxikonRatingSourceTest extends TestCase
     public function test_source_returns_only_requested_user_page_pairs_and_the_latest_vote(): void
     {
         config(['maddraxikon.ratings.source_batch_size' => 1]);
-        DB::connection('maddraxikon')->table('actor')->insert([
-            ['actor_id' => 1, 'actor_user' => 42],
-            ['actor_id' => 2, 'actor_user' => 43],
-            ['actor_id' => 3, 'actor_user' => null],
-        ]);
-        DB::connection('maddraxikon')->table('Vote')->insert([
+        DB::connection('maddraxikon')->table('vote')->insert([
             [
                 'vote_id' => 1,
-                'vote_actor' => 1,
+                'vote_user_id' => 42,
                 'vote_page_id' => 100,
                 'vote_value' => '2',
                 'vote_date' => '20260809100000',
             ],
             [
                 'vote_id' => 2,
-                'vote_actor' => 1,
+                'vote_user_id' => 42,
                 'vote_page_id' => 100,
                 'vote_value' => '5',
                 'vote_date' => '20260810100000',
             ],
             [
                 'vote_id' => 3,
-                'vote_actor' => 2,
+                'vote_user_id' => 43,
                 'vote_page_id' => 200,
                 'vote_value' => '3',
                 'vote_date' => '20260810110000',
             ],
             [
                 'vote_id' => 4,
-                'vote_actor' => 1,
+                'vote_user_id' => 42,
                 'vote_page_id' => 200,
                 'vote_value' => '4',
                 'vote_date' => '20260810120000',
             ],
             [
                 'vote_id' => 5,
-                'vote_actor' => 3,
+                'vote_user_id' => null,
                 'vote_page_id' => 100,
                 'vote_value' => '5',
                 'vote_date' => '20260810130000',
@@ -126,21 +117,17 @@ class MaddraxikonRatingSourceTest extends TestCase
 
     public function test_source_tolerates_missing_and_malformed_vote_dates(): void
     {
-        DB::connection('maddraxikon')->table('actor')->insert([
-            'actor_id' => 1,
-            'actor_user' => 42,
-        ]);
-        DB::connection('maddraxikon')->table('Vote')->insert([
+        DB::connection('maddraxikon')->table('vote')->insert([
             [
                 'vote_id' => 1,
-                'vote_actor' => 1,
+                'vote_user_id' => 42,
                 'vote_page_id' => 100,
                 'vote_value' => '4',
                 'vote_date' => null,
             ],
             [
                 'vote_id' => 2,
-                'vote_actor' => 1,
+                'vote_user_id' => 42,
                 'vote_page_id' => 101,
                 'vote_value' => '5',
                 'vote_date' => 'not-a-date',
@@ -161,13 +148,9 @@ class MaddraxikonRatingSourceTest extends TestCase
     public function test_source_discards_invalid_values_without_leaking_row_data_to_logs(): void
     {
         Log::spy();
-        DB::connection('maddraxikon')->table('actor')->insert([
-            'actor_id' => 1,
-            'actor_user' => 42,
-        ]);
-        DB::connection('maddraxikon')->table('Vote')->insert([
+        DB::connection('maddraxikon')->table('vote')->insert([
             'vote_id' => 1,
-            'vote_actor' => 1,
+            'vote_user_id' => 42,
             'vote_page_id' => 100,
             'vote_value' => '9-secret-marker',
             'vote_date' => 'not-a-date',

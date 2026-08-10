@@ -189,10 +189,11 @@ ohne historische Regeln oder Buchungen zu löschen.
 
 Bei aktiver Maddraxikon-Verknüpfung kann die persönliche VoteNY-Bewertung des
 Rezensionsautors direkt unter der Überschrift seiner Rezension erscheinen. Die
-Anwendung liest dazu ausschließlich die Tabellen `Vote`, `actor`, `page` und
-`redirect` über die separate Verbindung `maddraxikon` und speichert lokal einen
-höchstens 60 Minuten sichtbaren Snapshot. Der Datenbankbenutzer muss auf diese
-Tabellen beschränkte `SELECT`-Rechte besitzen.
+Anwendung liest dazu ausschließlich `vote.vote_user_id` sowie die Tabellen
+`page` und `redirect` über die separate Verbindung `maddraxikon` und speichert
+lokal einen höchstens 60 Minuten sichtbaren Snapshot. Ein vorhandenes
+MediaWiki-Tabellenpräfix wird über `MADDRAXIKON_DB_PREFIX` konfiguriert. Der
+Datenbankbenutzer muss auf diese Tabellen beschränkte `SELECT`-Rechte besitzen.
 
 Vor der ersten Aktivierung bleiben `MADDRAXIKON_RATINGS_ENABLED=false` und das
 Feature damit unsichtbar. Nach Migration und Konfiguration erfolgt der

@@ -39,14 +39,13 @@ class MaddraxikonRatingSource
 
         foreach (array_chunk(array_values($unique), $batchSize) as $batch) {
             $rows = DB::connection('maddraxikon')
-                ->table('Vote as votes')
-                ->join('actor as actors', 'actors.actor_id', '=', 'votes.vote_actor')
-                ->whereNotNull('actors.actor_user')
+                ->table('vote as votes')
+                ->whereNotNull('votes.vote_user_id')
                 ->where(function (Builder $query) use ($batch): void {
                     foreach ($batch as $lookup) {
                         $query->orWhere(function (Builder $pair) use ($lookup): void {
                             $pair
-                                ->where('actors.actor_user', $lookup->wikiUserId)
+                                ->where('votes.vote_user_id', $lookup->wikiUserId)
                                 ->where('votes.vote_page_id', $lookup->pageId);
                         });
                     }
@@ -58,11 +57,11 @@ class MaddraxikonRatingSource
                     'votes.vote_page_id',
                     'votes.vote_value',
                     'votes.vote_date',
-                    'actors.actor_user',
+                    'votes.vote_user_id',
                 ]);
 
             foreach ($rows as $row) {
-                $wikiUserId = (int) $row->actor_user;
+                $wikiUserId = (int) $row->vote_user_id;
                 $pageId = (int) $row->vote_page_id;
                 $rating = filter_var(
                     $row->vote_value,
