@@ -17,6 +17,35 @@ use Livewire\Component;
 
 final class MaddraxikonAccountPanel extends Component
 {
+    /** @var array<string, string> */
+    private const REWARD_REASON_LABELS = [
+        'account_link_inactive' => 'Maddraxikon-Verknüpfung nicht aktiv',
+        'membership_inactive' => 'Vereinsmitgliedschaft nicht aktiv',
+        'source_namespace_not_article' => 'Beitrag stammt nicht aus dem Artikelnamensraum',
+        'revision_missing' => 'Revision nicht mehr verfügbar',
+        'revision_identity_mismatch' => 'Revision konnte dem Konto nicht eindeutig zugeordnet werden',
+        'revision_hidden' => 'Revisionsdaten nicht einsehbar',
+        'revision_reverted' => 'Bearbeitung wurde zurückgesetzt',
+        'revision_not_eligible' => 'Bearbeitung erfüllt die Voraussetzungen nicht',
+        'page_missing' => 'Seite nicht mehr verfügbar',
+        'not_an_article' => 'Seite ist kein Artikel',
+        'page_is_redirect' => 'Seite ist eine Weiterleitung',
+        'article_too_short' => 'Artikel unterschreitet die Mindestgröße',
+        'article_too_small' => 'Artikel unterschreitet die Mindestgröße',
+        'rule_missing' => 'Belohnungsregel nicht verfügbar',
+        'rule_inactive' => 'Belohnungsregel war deaktiviert',
+        'rule_has_no_points' => 'Belohnungsregel vergibt keine Baxx',
+        'interval_not_reached' => 'Erforderliche Anzahl noch nicht erreicht',
+        'sequence_not_payable' => 'Erforderliche Anzahl noch nicht erreicht',
+        'daily_cap_reached' => 'Tageshöchstwert bereits erreicht',
+        'daily_cap_partially_applied' => 'Durch den Tageshöchstwert teilweise gutgeschrieben',
+        'below_minimum_edit_size' => 'Netto-Zuwachs unter der kleinsten Stufe',
+        'edit_sessions_disabled' => 'Bearbeitungssitzungen waren nicht aktiviert',
+        'new_articles_disabled' => 'Neue Artikel waren nicht aktiviert',
+        'policy_has_no_points' => 'Regelversion vergibt keine Baxx',
+        'qualified' => 'Beitrag qualifiziert',
+    ];
+
     public function render(
         AccountEligibility $eligibility,
         MaddraxikonRewardPolicyResolver $policyResolver,
@@ -105,6 +134,27 @@ final class MaddraxikonAccountPanel extends Component
                 'next' => $nextPolicy ? [
                     'name' => $nextPolicy->name,
                     'effective_from' => $nextPolicy->effective_from,
+                    'edit' => [
+                        'is_active' => $nextPolicy->edit_sessions_enabled,
+                        'tiers' => $nextPolicy->tiers
+                            ->map(fn ($tier): array => [
+                                'minimum_added_bytes' => $tier->minimum_added_bytes,
+                                'points' => $tier->points,
+                            ])
+                            ->values()
+                            ->all(),
+                    ],
+                    'new_article' => [
+                        'is_active' => $nextPolicy->new_articles_enabled,
+                        'minimum_article_bytes' => max(
+                            0,
+                            (int) ($nextPolicy->new_article_minimum_bytes ?? 0)
+                        ),
+                        'points' => max(
+                            0,
+                            (int) ($nextPolicy->new_article_points ?? 0)
+                        ),
+                    ],
                 ] : null,
             ],
             'statusLabels' => [
@@ -119,6 +169,7 @@ final class MaddraxikonAccountPanel extends Component
                 MaddraxikonContributionStatus::Rejected->value => 'badge-error',
                 MaddraxikonContributionStatus::Awarded->value => 'badge-success',
             ],
+            'rewardReasonLabels' => self::REWARD_REASON_LABELS,
         ]);
     }
 }

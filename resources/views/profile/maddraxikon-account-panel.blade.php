@@ -58,10 +58,27 @@
                     Pro Aktivitätstag werden höchstens {{ $rewardPolicy['daily_point_cap'] }} Baxx gutgeschrieben.
                 </p>
                 @if ($rewardPolicy['next'])
-                    <p class="text-sm leading-relaxed text-base-content/70">
-                        Die Regel „{{ $rewardPolicy['next']['name'] }}“ gilt ab
-                        {{ $rewardPolicy['next']['effective_from']->setTimezone(config('maddraxikon.timezone', 'Europe/Berlin'))->locale('de')->isoFormat('D. MMMM YYYY, HH:mm [Uhr]') }}.
-                    </p>
+                    <div class="space-y-1 text-sm leading-relaxed text-base-content/70">
+                        <p>
+                            Die Regel „{{ $rewardPolicy['next']['name'] }}“ gilt ab
+                            {{ $rewardPolicy['next']['effective_from']->setTimezone(config('maddraxikon.timezone', 'Europe/Berlin'))->locale('de')->isoFormat('D. MMMM YYYY, HH:mm [Uhr]') }}.
+                        </p>
+                        <p>
+                            @if ($rewardPolicy['next']['edit']['is_active'])
+                                Bearbeitungssitzungen werden dann nach folgenden Stufen bewertet:
+                                @foreach ($rewardPolicy['next']['edit']['tiers'] as $tier)
+                                    ab {{ number_format($tier['minimum_added_bytes'], 0, ',', '.') }} Bytes {{ $tier['points'] }} Baxx{{ $loop->last ? '.' : ',' }}
+                                @endforeach
+                            @else
+                                Bearbeitungssitzungen werden dann nicht mit Baxx belohnt.
+                            @endif
+                            @if ($rewardPolicy['next']['new_article']['is_active'])
+                                Neue Artikel erhalten dann ab {{ number_format($rewardPolicy['next']['new_article']['minimum_article_bytes'], 0, ',', '.') }} Byte {{ $rewardPolicy['next']['new_article']['points'] }} Baxx.
+                            @else
+                                Neue Artikel werden dann nicht mit Baxx belohnt.
+                            @endif
+                        </p>
+                    </div>
                 @endif
                 <p class="text-sm leading-relaxed text-base-content/70">
                     Ob dein verifizierter Maddraxikon-Benutzername für andere Mitglieder sichtbar ist,
@@ -250,7 +267,7 @@
                                             <span class="block text-xs text-base-content/55">
                                                 {{ $event->awarded_points }} Baxx
                                                 @if ($event->status_reason)
-                                                    · {{ $event->status_reason }}
+                                                    · {{ $rewardReasonLabels[$event->status_reason] ?? 'Prüfgrund nicht näher angegeben' }}
                                                 @endif
                                             </span>
                                         @endif

@@ -35,11 +35,21 @@ class MaddraxikonRewardPolicyTier extends Model
     protected static function booted(): void
     {
         $rejectPublishedPolicyMutation = static function (self $tier): void {
-            $policy = $tier->relationLoaded('policy')
-                ? $tier->policy
-                : MaddraxikonRewardPolicy::query()->find($tier->maddraxikon_reward_policy_id);
+            $policyIds = collect([
+                $tier->getRawOriginal('maddraxikon_reward_policy_id'),
+                $tier->maddraxikon_reward_policy_id,
+            ])
+                ->filter(fn (mixed $policyId): bool => $policyId !== null)
+                ->map(fn (mixed $policyId): int => (int) $policyId)
+                ->unique()
+                ->values();
 
-            if ($policy?->isPublished()) {
+            if (
+                MaddraxikonRewardPolicy::query()
+                    ->whereKey($policyIds->all())
+                    ->published()
+                    ->exists()
+            ) {
                 throw new LogicException('Stufen einer veröffentlichten Maddraxikon-Regel sind unveränderlich.');
             }
         };

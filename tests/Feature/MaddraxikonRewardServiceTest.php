@@ -1268,6 +1268,60 @@ class MaddraxikonRewardServiceTest extends TestCase
         ]);
     }
 
+    public function test_versioned_edit_policy_counts_only_valid_member_revision_deltas(): void
+    {
+        [, $link] = $this->linkedMember();
+        $this->publishedPolicyWithTiers([
+            [200, 2],
+            [500, 5],
+        ]);
+        $first = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1000,
+            'new_size' => 1100,
+            'occurred_at' => now()->subHours(30),
+        ]);
+        $reverted = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1100,
+            'new_size' => 1600,
+            'occurred_at' => now()->subHours(30)->addMinutes(10),
+            'session_anchor_revision_id' => $first->revision_id,
+        ]);
+        $last = $this->contribution($link, [
+            'page_id' => 123,
+            'old_size' => 1600,
+            'new_size' => 1700,
+            'occurred_at' => now()->subHours(30)->addMinutes(20),
+            'session_anchor_revision_id' => $first->revision_id,
+        ]);
+        $first->update(['session_anchor_revision_id' => $first->revision_id]);
+        $this->completeWatermark();
+
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldReceive('revisionDetails')->once()->andReturn([
+            $first->revision_id => $this->revisionFor($first),
+            $reverted->revision_id => $this->revisionFor(
+                $reverted,
+                ['tags' => ['mw-reverted']]
+            ),
+            $last->revision_id => $this->revisionFor($last),
+        ]);
+
+        $this->assertSame(1, $this->service($api)->evaluate());
+
+        $event = MaddraxikonRewardEvent::query()->sole();
+        $this->assertSame(200, $event->measured_added_bytes);
+        $this->assertSame(200, $event->matched_minimum_added_bytes);
+        $this->assertSame(2, $event->candidate_points);
+        $this->assertSame(2, $event->awarded_points);
+        $this->assertDatabaseHas('maddraxikon_contributions', [
+            'id' => $reverted->id,
+            'status' => MaddraxikonContributionStatus::Rejected->value,
+            'status_reason' => 'revision_reverted',
+        ]);
+    }
+
     public function test_versioned_edit_policy_records_below_threshold_without_award(): void
     {
         [, $link] = $this->linkedMember();

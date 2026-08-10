@@ -19,7 +19,7 @@ class MaddraxikonRewardPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_calculator_uses_session_net_growth_and_highest_matching_tier(): void
+    public function test_calculator_sums_supplied_revision_deltas_and_uses_highest_matching_tier(): void
     {
         $policy = MaddraxikonRewardPolicy::factory()->create();
         MaddraxikonRewardPolicyTier::factory()->create([
@@ -44,8 +44,8 @@ class MaddraxikonRewardPolicyTest extends TestCase
             'revision_id' => 10,
         ]);
         $last = MaddraxikonContribution::factory()->make([
-            'old_size' => 1200,
-            'new_size' => 1350,
+            'old_size' => 1500,
+            'new_size' => 1650,
             'occurred_at' => now()->subHour(),
             'revision_id' => 11,
         ]);
@@ -54,7 +54,7 @@ class MaddraxikonRewardPolicyTest extends TestCase
             ->calculate(collect([$last, $first]), $policy);
 
         $this->assertSame(600, $result->startSize);
-        $this->assertSame(1350, $result->endSize);
+        $this->assertSame(1650, $result->endSize);
         $this->assertSame(750, $result->addedBytes);
         $this->assertSame($expectedTier->id, $result->tier?->id);
         $this->assertSame(3, $result->candidatePoints);
@@ -83,19 +83,33 @@ class MaddraxikonRewardPolicyTest extends TestCase
         $this->assertSame('below_minimum_edit_size', $result->statusReason);
     }
 
-    public function test_calculator_fails_closed_when_a_boundary_size_is_missing(): void
+    public function test_calculator_fails_closed_when_any_contribution_size_is_missing(): void
     {
         $policy = MaddraxikonRewardPolicy::factory()->create();
-        $contribution = MaddraxikonContribution::factory()->make([
-            'old_size' => null,
-            'new_size' => 700,
+        $first = MaddraxikonContribution::factory()->make([
+            'old_size' => 500,
+            'new_size' => 600,
+            'occurred_at' => now()->subHours(2),
+            'revision_id' => 10,
+        ]);
+        $middle = MaddraxikonContribution::factory()->make([
+            'old_size' => 600,
+            'new_size' => null,
+            'occurred_at' => now()->subMinutes(90),
+            'revision_id' => 11,
+        ]);
+        $last = MaddraxikonContribution::factory()->make([
+            'old_size' => 700,
+            'new_size' => 800,
+            'occurred_at' => now()->subHour(),
+            'revision_id' => 12,
         ]);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('revision_size_unavailable');
 
         app(MaddraxikonEditSessionRewardCalculator::class)
-            ->calculate(collect([$contribution]), $policy);
+            ->calculate(collect([$last, $middle, $first]), $policy);
     }
 
     public function test_resolver_uses_the_activity_instant_including_exact_boundary(): void
@@ -182,6 +196,39 @@ class MaddraxikonRewardPolicyTest extends TestCase
         $this->expectException(ValidationException::class);
         app(MaddraxikonRewardPolicyPublisher::class)
             ->publish($policy, $admin, $now);
+    }
+
+    public function test_tier_cannot_be_moved_from_a_published_policy_to_a_draft(): void
+    {
+        $now = CarbonImmutable::parse('2026-08-10T12:00:00Z');
+        $admin = User::factory()->create();
+        $publishedPolicy = MaddraxikonRewardPolicy::factory()->create([
+            'effective_from' => $now->addHour(),
+        ]);
+        $tier = MaddraxikonRewardPolicyTier::factory()->create([
+            'maddraxikon_reward_policy_id' => $publishedPolicy->id,
+            'minimum_added_bytes' => 100,
+            'points' => 2,
+        ]);
+        app(MaddraxikonRewardPolicyPublisher::class)
+            ->publish($publishedPolicy, $admin, $now);
+        $draftPolicy = MaddraxikonRewardPolicy::factory()->create([
+            'effective_from' => $now->addHours(2),
+        ]);
+
+        try {
+            $tier->update([
+                'maddraxikon_reward_policy_id' => $draftPolicy->id,
+            ]);
+            $this->fail('Stufen dürfen eine veröffentlichte Policy nicht verlassen.');
+        } catch (LogicException $exception) {
+            $this->assertStringContainsString('unveränderlich', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('maddraxikon_reward_policy_tiers', [
+            'id' => $tier->id,
+            'maddraxikon_reward_policy_id' => $publishedPolicy->id,
+        ]);
     }
 
     public function test_legacy_rules_are_present_without_running_a_manual_seeder(): void

@@ -30,13 +30,22 @@ final class MaddraxikonEditSessionRewardCalculator
         $first = $ordered->first();
         $last = $ordered->last();
 
-        if ($first->old_size === null || $last->new_size === null) {
+        if ($ordered->contains(
+            fn (MaddraxikonContribution $contribution): bool => (
+                $contribution->old_size === null
+                || $contribution->new_size === null
+            )
+        )) {
             throw new LogicException('revision_size_unavailable');
         }
 
         $startSize = max(0, (int) $first->old_size);
         $endSize = max(0, (int) $last->new_size);
-        $addedBytes = max(0, $endSize - $startSize);
+        $addedBytes = max(0, (int) $ordered->sum(
+            fn (MaddraxikonContribution $contribution): int => (
+                (int) $contribution->new_size - (int) $contribution->old_size
+            )
+        ));
 
         if (! $policy->edit_sessions_enabled) {
             return new MaddraxikonEditSessionRewardCalculation(
