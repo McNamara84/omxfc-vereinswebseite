@@ -447,8 +447,13 @@ final class MaddraxikonAdmin extends Component
         MaddraxikonRewardPolicyPublisher $publisher,
     ): void {
         $admin = $this->adminUser();
-        $policy = $this->persistPolicyDraft();
-        $publisher->publish($policy, $admin);
+        $draft = $this->validatedPolicyDraftData();
+        $publisher->publishDraft(
+            $this->editingPolicyId,
+            $draft['attributes'],
+            $draft['tiers'],
+            $admin,
+        );
         $this->resetPolicyForm();
         $this->dispatch(
             'toast',
@@ -702,6 +707,53 @@ final class MaddraxikonAdmin extends Component
     private function persistPolicyDraft(): MaddraxikonRewardPolicy
     {
         $admin = $this->adminUser();
+        $draft = $this->validatedPolicyDraftData();
+
+        return DB::transaction(function () use (
+            $admin,
+            $draft,
+        ): MaddraxikonRewardPolicy {
+            $policy = $this->editingPolicyId
+                ? MaddraxikonRewardPolicy::query()
+                    ->where('status', MaddraxikonRewardPolicy::STATUS_DRAFT)
+                    ->lockForUpdate()
+                    ->findOrFail($this->editingPolicyId)
+                : new MaddraxikonRewardPolicy([
+                    'created_by' => $admin->id,
+                ]);
+
+            $policy->fill([
+                ...$draft['attributes'],
+                'status' => MaddraxikonRewardPolicy::STATUS_DRAFT,
+            ]);
+            $policy->save();
+            $policy->tiers()->delete();
+
+            foreach ($draft['tiers'] as $tier) {
+                $policy->tiers()->create($tier);
+            }
+
+            $this->editingPolicyId = $policy->id;
+
+            return $policy->fresh('tiers');
+        }, 3);
+    }
+
+    /**
+     * @return array{
+     *     attributes: array{
+     *         name: string,
+     *         effective_from: CarbonImmutable,
+     *         edit_sessions_enabled: bool,
+     *         new_articles_enabled: bool,
+     *         new_article_minimum_bytes: int,
+     *         new_article_points: int
+     *     },
+     *     tiers: list<array{minimum_added_bytes: int, points: int}>
+     * }
+     */
+    private function validatedPolicyDraftData(): array
+    {
         $validated = $this->validate([
             'policyName' => ['required', 'string', 'max:255'],
             'policyEffectiveFrom' => ['required', 'date_format:Y-m-d\\TH:i'],
@@ -739,7 +791,8 @@ final class MaddraxikonAdmin extends Component
                 'points' => (int) $tier['points'],
             ])
             ->sortBy('minimum_added_bytes')
-            ->values();
+            ->values()
+            ->all();
 
         $duplicateEffectiveFrom = MaddraxikonRewardPolicy::query()
             ->where('effective_from_epoch', $effectiveFrom->getTimestamp())
@@ -755,40 +808,17 @@ final class MaddraxikonAdmin extends Component
             ]);
         }
 
-        return DB::transaction(function () use (
-            $admin,
-            $effectiveFrom,
-            $tiers,
-        ): MaddraxikonRewardPolicy {
-            $policy = $this->editingPolicyId
-                ? MaddraxikonRewardPolicy::query()
-                    ->where('status', MaddraxikonRewardPolicy::STATUS_DRAFT)
-                    ->lockForUpdate()
-                    ->findOrFail($this->editingPolicyId)
-                : new MaddraxikonRewardPolicy([
-                    'created_by' => $admin->id,
-                ]);
-
-            $policy->fill([
-                'name' => trim($this->policyName),
-                'status' => MaddraxikonRewardPolicy::STATUS_DRAFT,
+        return [
+            'attributes' => [
+                'name' => trim((string) $validated['policyName']),
                 'effective_from' => $effectiveFrom,
-                'edit_sessions_enabled' => $this->policyEditSessionsEnabled,
-                'new_articles_enabled' => $this->policyNewArticlesEnabled,
-                'new_article_minimum_bytes' => $this->policyNewArticleMinimumBytes,
-                'new_article_points' => $this->policyNewArticlePoints,
-            ]);
-            $policy->save();
-            $policy->tiers()->delete();
-
-            foreach ($tiers as $tier) {
-                $policy->tiers()->create($tier);
-            }
-
-            $this->editingPolicyId = $policy->id;
-
-            return $policy->fresh('tiers');
-        }, 3);
+                'edit_sessions_enabled' => (bool) $validated['policyEditSessionsEnabled'],
+                'new_articles_enabled' => (bool) $validated['policyNewArticlesEnabled'],
+                'new_article_minimum_bytes' => (int) $validated['policyNewArticleMinimumBytes'],
+                'new_article_points' => (int) $validated['policyNewArticlePoints'],
+            ],
+            'tiers' => $tiers,
+        ];
     }
 
     private function resetPolicyForm(): void
