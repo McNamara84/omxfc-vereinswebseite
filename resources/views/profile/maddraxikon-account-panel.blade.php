@@ -98,11 +98,79 @@
             </form>
         </div>
 
+        @if ($ratingsReconsentRequired)
+            <div class="space-y-4">
+                <x-alert icon="o-exclamation-triangle" class="alert-warning" role="status">
+                    Deine bestehende Maddraxikon-Verknüpfung bleibt für das
+                    Baxx-Belohnungssystem aktiv. Für den Abruf und die Anzeige
+                    deiner persönlichen Romanbewertungen benötigen wir jedoch
+                    deine erneute ausdrückliche Zustimmung. Bis dahin werden
+                    keine Bewertungen abgerufen, gespeichert oder angezeigt.
+                </x-alert>
+
+                @if ($linkingEnabled && $eligible)
+                    <form method="POST" action="{{ route('maddraxikon.oauth.start') }}" class="space-y-4">
+                        @csrf
+
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input
+                                id="maddraxikon-ratings-reconsent"
+                                type="checkbox"
+                                name="consent"
+                                value="1"
+                                required
+                                class="checkbox checkbox-primary mt-0.5"
+                            >
+                            <span class="text-sm leading-relaxed text-base-content/75">
+                                Ich stimme dem lesenden Abruf und der lokalen
+                                Zwischenspeicherung meiner persönlichen
+                                Romanbewertungen sowie ihrer automatischen
+                                Anzeige an meinen Vereinsrezensionen für
+                                eingeloggte, berechtigte Mitglieder zu. Zur
+                                sicheren Bestätigung derselben Wiki-Identität
+                                melde ich mich erneut im Maddraxikon an. Die
+                                Hinweise in der
+                                <a href="{{ route('datenschutz') }}" class="link link-primary">Datenschutzerklärung</a>
+                                habe ich zur Kenntnis genommen.
+                            </span>
+                        </label>
+
+                        @error('consent')
+                            <p class="text-sm text-error" role="alert">{{ $message }}</p>
+                        @enderror
+
+                        <x-button
+                            type="submit"
+                            label="Zustimmung zu Romanbewertungen aktualisieren"
+                            icon="o-arrow-path"
+                            class="btn-primary"
+                        />
+                    </form>
+                @else
+                    <x-alert icon="o-wrench-screwdriver" class="alert-info" role="status">
+                        Die erneute Zustimmung ist momentan nicht möglich. Deine
+                        persönlichen Romanbewertungen bleiben bis zur Freischaltung
+                        deaktiviert.
+                    </x-alert>
+                @endif
+            </div>
+        @elseif ($ratingsWikiMismatch)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning" role="status">
+                Diese Verknüpfung gehört nicht zur aktuell konfigurierten
+                Maddraxikon-Instanz. Deshalb werden keine persönlichen
+                Romanbewertungen abgerufen, gespeichert oder angezeigt. Eine
+                solche Identitätszuordnung kann aus Sicherheitsgründen nur durch
+                den Vorstand geklärt werden.
+            </x-alert>
+        @endif
+
         <x-alert icon="o-information-circle" class="alert-info" role="note">
             Beim Trennen enden zukünftige Gutschriften sofort. Bereits
-            gutgeschriebene Baxx bleiben bestehen und die Profilfreigabe wird
-            deaktiviert. Eine spätere Reaktivierung erfordert eine neue Anmeldung
-            im Maddraxikon und eine erneute bewusste Profilfreigabe.
+            gutgeschriebene Baxx bleiben bestehen. Persönliche Maddraxikon-
+            Bewertungen werden an deinen Rezensionen sofort ausgeblendet und
+            die Profilfreigabe wird deaktiviert. Eine spätere Reaktivierung
+            erfordert eine neue Anmeldung im Maddraxikon und eine erneute
+            bewusste Profilfreigabe.
         </x-alert>
 
         @if (! $eligible)
@@ -129,7 +197,11 @@
             <p class="text-sm leading-relaxed text-base-content/75">
                 Verbinde freiwillig dein Maddraxikon-Konto, damit zukünftige,
                 qualifizierte Wiki-Beiträge deinem Vereinskonto zugeordnet und
-                mit Baxx belohnt werden können. Beim OAuth-Profilabruf werden
+                mit Baxx belohnt werden können. Wenn du Rezensionen auf der
+                Vereinswebsite veröffentlichst, wird deine jeweils aktuelle
+                persönliche Romanbewertung aus dem Maddraxikon automatisch im
+                geschützten Rezensionenbereich angezeigt. Die Bewertung wird
+                ungefähr alle 15 Minuten aktualisiert. Beim OAuth-Profilabruf werden
                 die vom Wiki gelieferten Identitätsdaten einschließlich
                 Subject-ID, Benutzername und Sperrstatus nur kurzzeitig
                 verarbeitet. Der Benutzername wird zusätzlich über die
@@ -161,7 +233,11 @@
                             OAuth-Subject-ID, lokaler Wiki-Nutzer-ID und
                             kanonischem Benutzernamen sowie der Verarbeitung
                             meiner öffentlichen Maddraxikon-Beiträge für das
-                            Baxx-Belohnungssystem zu. Die Hinweise in der
+                            Baxx-Belohnungssystem zu. Ich stimme außerdem dem
+                            lesenden Abruf und der lokalen Zwischenspeicherung
+                            meiner persönlichen Romanbewertungen sowie ihrer
+                            automatischen Anzeige an meinen Vereinsrezensionen
+                            für eingeloggte, berechtigte Mitglieder zu. Die Hinweise in der
                             <a href="{{ route('datenschutz') }}" class="link link-primary">Datenschutzerklärung</a>
                             habe ich zur Kenntnis genommen.
                         </span>

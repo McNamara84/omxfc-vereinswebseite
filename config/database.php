@@ -83,6 +83,25 @@ return [
             ]) : [],
         ],
 
+        'maddraxikon' => [
+            'driver' => 'mariadb',
+            'host' => env('MADDRAXIKON_DB_HOST', '127.0.0.1'),
+            'port' => env('MADDRAXIKON_DB_PORT', '3306'),
+            'database' => env('MADDRAXIKON_DB_NAME', ''),
+            'username' => env('MADDRAXIKON_DB_USER', ''),
+            'password' => env('MADDRAXIKON_DB_PASSWORD', ''),
+            'unix_socket' => env('MADDRAXIKON_DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => env('MADDRAXIKON_DB_PREFIX', ''),
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (defined('Pdo\\Mysql::ATTR_SSL_CA') ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MADDRAXIKON_DB_SSL_CA'),
+            ]) : [],
+        ],
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),

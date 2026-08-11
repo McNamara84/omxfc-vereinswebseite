@@ -11,7 +11,7 @@ return [
     'wiki_key' => env('MADDRAXIKON_WIKI_KEY', 'maddraxikon-de'),
     'base_url' => $baseUrl,
     'api_url' => $baseUrl.'/api.php',
-    'consent_version' => env('MADDRAXIKON_CONSENT_VERSION', '2026-07-18'),
+    'consent_version' => env('MADDRAXIKON_CONSENT_VERSION', '2026-08-10-ratings'),
     'identity_hmac_peppers' => $identityHmacPeppers,
 
     'oauth' => [
@@ -31,6 +31,10 @@ return [
         ),
         'awards_enabled' => filter_var(
             env('MADDRAXIKON_AWARDS_ENABLED', false),
+            FILTER_VALIDATE_BOOLEAN
+        ),
+        'ratings_enabled' => filter_var(
+            env('MADDRAXIKON_RATINGS_ENABLED', false),
             FILTER_VALIDATE_BOOLEAN
         ),
     ],
@@ -88,6 +92,21 @@ return [
         'usercontribs_batch_size' => min(
             50,
             max(1, (int) env('MADDRAXIKON_USERCONTRIBS_BATCH_SIZE', 50))
+        ),
+    ],
+
+    'ratings' => [
+        'sync_interval_minutes' => min(
+            59,
+            max(1, (int) env('MADDRAXIKON_RATINGS_SYNC_INTERVAL_MINUTES', 15))
+        ),
+        'stale_after_minutes' => max(
+            15,
+            (int) env('MADDRAXIKON_RATINGS_STALE_AFTER_MINUTES', 60)
+        ),
+        'source_batch_size' => min(
+            500,
+            max(1, (int) env('MADDRAXIKON_RATINGS_SOURCE_BATCH_SIZE', 100))
         ),
     ],
 

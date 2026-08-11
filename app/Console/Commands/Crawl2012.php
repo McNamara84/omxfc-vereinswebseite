@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\MaddraxikonPageTitle;
 use App\Support\UriSupport;
 use Carbon\Carbon;
 use DOMDocument;
@@ -157,7 +158,7 @@ class Crawl2012 extends Command
         $handlungsort = $handlungsortNode->length > 0 ? explode(', ', trim($handlungsortNode->item(0)->textContent)) : null;
 
         if ($number !== null && $rating !== null) {
-            return [$number, $evt, $zyklus, $rating, $votes, $title, $text, $personen, $schlagworte, $handlungsort];
+            return [$number, $evt, $zyklus, $rating, $votes, $title, $text, $personen, $schlagworte, $handlungsort, MaddraxikonPageTitle::fromUrl($url)];
         }
 
         return null;
@@ -182,6 +183,7 @@ class Crawl2012 extends Command
             $obj->personen = $row[7];
             $obj->schlagworte = $row[8];
             $obj->orte = $row[9];
+            $obj->maddraxikon_seitentitel = $row[10] ?? null;
             $jsonData[] = $obj;
         }
         usort($jsonData, fn ($a, $b) => $a->nummer <=> $b->nummer);

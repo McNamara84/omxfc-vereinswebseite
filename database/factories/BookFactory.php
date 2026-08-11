@@ -25,6 +25,18 @@ class BookFactory extends Factory
             'title' => $this->faker->sentence(3),
             'author' => $this->faker->name(),
             'type' => $this->faker->randomElement(BookType::cases()),
+            'maddraxikon_page_id' => null,
+            'maddraxikon_page_title' => null,
+            'maddraxikon_page_verified_at' => null,
         ];
+    }
+
+    public function mapped(?int $pageId = null, ?string $pageTitle = null): static
+    {
+        return $this->state(fn (): array => [
+            'maddraxikon_page_id' => $pageId ?? fake()->unique()->numberBetween(1, 2_000_000_000),
+            'maddraxikon_page_title' => $pageTitle ?? fake()->unique()->words(3, true),
+            'maddraxikon_page_verified_at' => now(),
+        ]);
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -60,6 +61,64 @@ class Review extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(ReviewComment::class);
+    }
+
+    public function maddraxikonRating(): HasOne
+    {
+        return $this->hasOne(MaddraxikonReviewRating::class);
+    }
+
+    public function visibleMaddraxikonRating(): ?MaddraxikonReviewRating
+    {
+        if (! config('maddraxikon.features.ratings_enabled', false)) {
+            return null;
+        }
+
+        $rating = $this->relationLoaded('maddraxikonRating')
+            ? $this->getRelation('maddraxikonRating')
+            : $this->maddraxikonRating()->first();
+
+        if (! $rating instanceof MaddraxikonReviewRating) {
+            return null;
+        }
+
+        $user = $this->relationLoaded('user')
+            ? $this->getRelation('user')
+            : $this->user()->first();
+        $book = $this->relationLoaded('book')
+            ? $this->getRelation('book')
+            : $this->book()->first();
+
+        if (! $user instanceof User || ! $book instanceof Book) {
+            return null;
+        }
+
+        $link = $user->relationLoaded('maddraxikonAccountLink')
+            ? $user->getRelation('maddraxikonAccountLink')
+            : $user->maddraxikonAccountLink()->first();
+        $wikiKey = (string) config('maddraxikon.wiki_key', 'maddraxikon-de');
+        $consentVersion = (string) config('maddraxikon.consent_version');
+        $staleAfter = max(
+            15,
+            (int) config('maddraxikon.ratings.stale_after_minutes', 60)
+        );
+
+        if (
+            ! $link?->isActiveForWikiAndConsent($wikiKey, $consentVersion)
+            || $rating->rating < 1
+            || $rating->rating > 5
+            || $rating->synced_at === null
+            || $rating->synced_at->isBefore(now()->subMinutes($staleAfter))
+            || $rating->user_id !== $this->user_id
+            || $rating->book_id !== $this->book_id
+            || $rating->account_link_id !== $link->id
+            || $rating->wiki_user_id !== $link->wiki_user_id
+            || $rating->maddraxikon_page_id !== $book->maddraxikon_page_id
+        ) {
+            return null;
+        }
+
+        return $rating;
     }
 
     /**

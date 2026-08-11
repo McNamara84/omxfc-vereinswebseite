@@ -6,7 +6,10 @@ use App\Enums\MaddraxikonContributionStatus;
 use App\Enums\MaddraxikonRewardEventStatus;
 use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonContributions;
+use App\Jobs\SyncMaddraxikonReviewRatings;
 use App\Models\MaddraxikonContribution;
+use App\Models\MaddraxikonRatingSyncState;
+use App\Models\MaddraxikonReviewRating;
 use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxikonSyncState;
 use App\Services\Maddraxikon\MaddraxikonMonitoring;
@@ -32,6 +35,10 @@ class MaddraxikonStatusCommand extends Command
         $state = MaddraxikonSyncState::query()
             ->where('wiki_key', $wikiKey)
             ->first();
+        $ratingState = MaddraxikonRatingSyncState::query()
+            ->where('wiki_key', $wikiKey)
+            ->first();
+        $ratingSnapshots = MaddraxikonReviewRating::query()->count();
         $pending = MaddraxikonContribution::query()
             ->where('wiki_key', $wikiKey)
             ->where('status', MaddraxikonContributionStatus::Pending)
@@ -129,6 +136,9 @@ class MaddraxikonStatusCommand extends Command
         $lastSuccessAgeMinutes = $state?->last_succeeded_at
             ? (int) $state->last_succeeded_at->diffInMinutes(now(), true)
             : null;
+        $ratingSuccessAgeMinutes = $ratingState?->last_succeeded_at
+            ? (int) $ratingState->last_succeeded_at->diffInMinutes(now(), true)
+            : null;
         $queue = $this->queueMetrics();
         $recoveryRequired = $state?->recovery_required_at !== null;
         $recoveryWindow = $recoveryRequired
@@ -140,6 +150,7 @@ class MaddraxikonStatusCommand extends Command
             : 'kein offenes Fenster';
         $alarms = $this->operationalAlarms(
             state: $state,
+            ratingState: $ratingState,
             stalePending: $stalePending,
             technicalFailures: $technicalFailures,
             heartbeatAgeMinutes: $heartbeatAgeMinutes,
@@ -151,6 +162,7 @@ class MaddraxikonStatusCommand extends Command
             ['Verknüpfung', $this->switchStatus('linking_enabled')],
             ['Synchronisation', $this->switchStatus('sync_enabled')],
             ['Baxx-Auswertung', $this->switchStatus('awards_enabled')],
+            ['Rezensionsbewertungen', $this->switchStatus('ratings_enabled')],
             ['Watermark (UTC)', $state?->watermark_at?->utc()->toIso8601String() ?? 'noch nicht gesetzt'],
             ['Go-live-Watermark (UTC)', $state?->initial_watermark_at?->utc()->toIso8601String() ?? 'noch nicht gesetzt'],
             ['Letzter Erfolg (UTC)', $state?->last_succeeded_at?->utc()->toIso8601String() ?? 'noch keiner'],
@@ -160,6 +172,10 @@ class MaddraxikonStatusCommand extends Command
             ['Recovery nötig', $recoveryRequired ? 'ja' : 'nein'],
             ['Recovery-Fenster (UTC)', $recoveryWindow],
             ['Fehler in Folge', (string) ($state?->consecutive_failures ?? 0)],
+            ['Letzter Bewertungssync (UTC)', $ratingState?->last_succeeded_at?->utc()->toIso8601String() ?? 'noch keiner'],
+            ['Alter Bewertungssync', $ratingSuccessAgeMinutes === null ? 'unbekannt' : $ratingSuccessAgeMinutes.' Minuten'],
+            ['Fehler Bewertungssync in Folge', (string) ($ratingState?->consecutive_failures ?? 0)],
+            ['Lokale Bewertungssnapshots', (string) $ratingSnapshots],
             ['Wartende Beiträge', (string) $pending],
             ['Davon fällig', (string) $overdue],
             ["Älter als {$pendingStaleHours} Stunden", (string) $stalePending],
@@ -176,6 +192,10 @@ class MaddraxikonStatusCommand extends Command
 
         if ($state?->last_error) {
             $this->warn('Letzter Sync-Fehler: '.$state->last_error);
+        }
+
+        if ($ratingState?->last_error_category) {
+            $this->warn('Letzter Bewertungssync-Fehlertyp: '.$ratingState->last_error_category);
         }
 
         if ($recoveryRequired) {
@@ -242,6 +262,7 @@ class MaddraxikonStatusCommand extends Command
      */
     private function operationalAlarms(
         ?MaddraxikonSyncState $state,
+        ?MaddraxikonRatingSyncState $ratingState,
         int $stalePending,
         int $technicalFailures,
         ?int $heartbeatAgeMinutes,
@@ -255,7 +276,11 @@ class MaddraxikonStatusCommand extends Command
             'maddraxikon.features.awards_enabled',
             false
         );
-        $operationsEnabled = $syncEnabled || $awardsEnabled;
+        $ratingsEnabled = (bool) config(
+            'maddraxikon.features.ratings_enabled',
+            false
+        );
+        $operationsEnabled = $syncEnabled || $awardsEnabled || $ratingsEnabled;
         $alarms = [];
 
         if ($awardsEnabled && ! $syncEnabled) {
@@ -294,6 +319,37 @@ class MaddraxikonStatusCommand extends Command
                 $alarms[] = sprintf(
                     'Der Import ist %d-mal in Folge fehlgeschlagen.',
                     $state?->consecutive_failures ?? 0
+                );
+            }
+        }
+
+        if ($ratingsEnabled) {
+            $staleAfter = max(
+                15,
+                (int) config('maddraxikon.ratings.stale_after_minutes', 60)
+            );
+            $lastSuccessAge = $ratingState?->last_succeeded_at
+                ? (int) $ratingState->last_succeeded_at->diffInMinutes(now(), true)
+                : null;
+
+            if ($lastSuccessAge === null) {
+                $alarms[] = 'Es wurde noch kein erfolgreicher Bewertungssync registriert.';
+            } elseif ($lastSuccessAge > $staleAfter) {
+                $alarms[] = "Der letzte erfolgreiche Bewertungssync ist {$lastSuccessAge} Minuten alt.";
+            }
+
+            $failureLimit = max(
+                1,
+                (int) config(
+                    'maddraxikon.monitoring.consecutive_failure_limit',
+                    3
+                )
+            );
+
+            if (($ratingState?->consecutive_failures ?? 0) >= $failureLimit) {
+                $alarms[] = sprintf(
+                    'Der Bewertungssync ist %d-mal in Folge fehlgeschlagen.',
+                    $ratingState?->consecutive_failures ?? 0
                 );
             }
         }
@@ -430,6 +486,7 @@ class MaddraxikonStatusCommand extends Command
         return DB::table($table)->whereIn('payload->displayName', [
             SyncMaddraxikonContributions::class,
             EvaluateMaddraxikonContributions::class,
+            SyncMaddraxikonReviewRatings::class,
         ]);
     }
 

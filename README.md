@@ -23,6 +23,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
     - [Datenbank seeden](#datenbank-seeden)
   - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
+  - [Maddraxikon-Bewertungen in Rezensionen](#maddraxikon-bewertungen-in-rezensionen)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
     - [Funktionen](#funktionen)
     - [Konfiguration](#konfiguration)
@@ -184,6 +185,41 @@ resultierenden Baxx als Snapshot enthalten. Eine Vergabe lässt sich bei Bedarf
 durch eine neue, global deaktivierte Policy mit zukünftigem Zeitpunkt stoppen,
 ohne historische Regeln oder Buchungen zu löschen.
 
+## Maddraxikon-Bewertungen in Rezensionen
+
+Bei aktiver Maddraxikon-Verknüpfung kann die persönliche VoteNY-Bewertung des
+Rezensionsautors direkt unter der Überschrift seiner Rezension erscheinen. Die
+Anwendung liest dazu aus `vote` ausschließlich `vote_id`, `vote_user_id`,
+`vote_page_id`, `vote_value` und `vote_date`. Für die exakte Romanzuordnung
+liest sie zusätzlich `page_id`, `page_namespace`, `page_title` und
+`page_is_redirect` aus `page` sowie `rd_from`, `rd_namespace` und `rd_title`
+aus `redirect`. Die Zugriffe erfolgen über die separate Verbindung
+`maddraxikon`; lokal wird ein höchstens 60 Minuten sichtbarer Snapshot ohne
+`vote_id` gespeichert. Ein vorhandenes MediaWiki-Tabellenpräfix wird über
+`MADDRAXIKON_DB_PREFIX` konfiguriert. Der Datenbankbenutzer muss auf diese
+Tabellen beschränkte `SELECT`-Rechte besitzen.
+
+Vor der ersten Aktivierung bleiben `MADDRAXIKON_RATINGS_ENABLED=false` und das
+Feature damit unsichtbar. Nach Migration und Konfiguration erfolgt der
+kontrollierte Erstlauf mit:
+
+```bash
+php artisan maddraxikon:map-review-books --dry-run
+php artisan maddraxikon:map-review-books
+php artisan maddraxikon:sync-review-ratings --dry-run --force
+php artisan maddraxikon:sync-review-ratings --force
+php artisan maddraxikon:status --skip-api
+```
+
+Erst nach erfolgreicher Zuordnung und Synchronisation wird das Feature-Flag
+aktiviert. Das Trennen eines Kontos blendet die Bewertung sofort aus; der
+nächste erfolgreiche Synchronisationslauf entfernt den Snapshot. Das
+Deaktivieren des Flags blendet alle Bewertungen ebenfalls sofort aus und
+stoppt Quellabgleich und Bereinigung. Bereits vorhandene Snapshots bleiben für
+eine mögliche Reaktivierung lokal gespeichert, sind bei deaktiviertem Flag
+jedoch nie sichtbar und werden nach einer Reaktivierung regulär aktualisiert
+oder bereinigt.
+
 ## Maddrax-Fantreffen 2026 Event-System
 
 Das Anmeldesystem für das Maddrax-Fantreffen am 9. Mai 2026 bietet:
@@ -323,7 +359,8 @@ docker compose --env-file .env.production logs --tail=100 scheduler queue
 ```
 
 `schedule:list` muss insbesondere `maddraxikon:scheduler-heartbeat`,
-`maddraxikon:sync-job` und `maddraxikon:evaluate-job` enthalten. Meldet der
+`maddraxikon:sync-job`, `maddraxikon:evaluate-job` und
+`maddraxikon:review-ratings-sync-job` enthalten. Meldet der
 Status `Recovery nötig: ja`, darf der Rückstand nicht mit einem erzwungenen
 normalen Sync übersprungen werden. In diesem Fall ist das gemeldete Zeitfenster
 zu prüfen und `maddraxikon:recover` erst anschließend bewusst freizugeben.

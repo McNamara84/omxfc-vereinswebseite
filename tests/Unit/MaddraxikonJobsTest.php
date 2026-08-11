@@ -2,10 +2,13 @@
 
 namespace Tests\Unit;
 
+use App\Data\MaddraxikonRatingSyncResult;
 use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonContributions;
+use App\Jobs\SyncMaddraxikonReviewRatings;
 use App\Models\MaddraxikonSyncState;
 use App\Services\Maddraxikon\MaddraxikonContributionImporter;
+use App\Services\Maddraxikon\MaddraxikonRatingSynchronizer;
 use App\Services\Maddraxikon\MaddraxikonRewardService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -47,6 +50,24 @@ class MaddraxikonJobsTest extends TestCase
         $this->assertInstanceOf(ShouldBeUnique::class, $job);
         $this->assertSame('test-wiki', $job->uniqueId());
         $this->assertSame(3600, $job->uniqueFor);
+    }
+
+    public function test_rating_job_runs_the_synchronizer_and_has_its_own_wiki_scoped_lock(): void
+    {
+        config(['maddraxikon.wiki_key' => 'test-wiki']);
+        $synchronizer = Mockery::mock(MaddraxikonRatingSynchronizer::class);
+        $synchronizer->expects('sync')
+            ->with()
+            ->once()
+            ->andReturn(new MaddraxikonRatingSyncResult);
+        $job = new SyncMaddraxikonReviewRatings;
+
+        $job->handle($synchronizer);
+
+        $this->assertInstanceOf(ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldBeUnique::class, $job);
+        $this->assertSame('test-wiki:review-ratings', $job->uniqueId());
+        $this->assertSame(900, $job->uniqueFor);
     }
 
     public function test_targeted_evaluation_job_forwards_contribution_and_has_own_lock(): void
@@ -121,5 +142,22 @@ class MaddraxikonJobsTest extends TestCase
                 $message === 'Maddraxikon-Sync-Job endgültig fehlgeschlagen.'
                 && $context['exception'] === null
             ));
+    }
+
+    public function test_rating_job_logs_only_the_final_exception_category(): void
+    {
+        config(['maddraxikon.wiki_key' => 'test-wiki']);
+        Log::spy();
+
+        (new SyncMaddraxikonReviewRatings)->failed(
+            new RuntimeException('secret-database-host')
+        );
+
+        Log::shouldHaveReceived('error')
+            ->once()
+            ->with('Maddraxikon-Bewertungssync-Job endgültig fehlgeschlagen.', [
+                'wiki_key' => 'test-wiki',
+                'exception_category' => 'RuntimeException',
+            ]);
     }
 }

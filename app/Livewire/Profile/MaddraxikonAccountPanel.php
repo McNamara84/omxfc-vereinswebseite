@@ -94,6 +94,8 @@ final class MaddraxikonAccountPanel extends Component
         $newArticleRule = $rules->get(MaddraxikonRewardEvent::ACTION_NEW_ARTICLE);
         $currentPolicy = $policyResolver->current();
         $nextPolicy = $policyResolver->next();
+        $wikiKey = (string) config('maddraxikon.wiki_key', 'maddraxikon-de');
+        $consentVersion = (string) config('maddraxikon.consent_version');
 
         return view('profile.maddraxikon-account-panel', [
             'link' => $link,
@@ -101,6 +103,11 @@ final class MaddraxikonAccountPanel extends Component
             'counts' => $counts,
             'eligible' => $eligibility->isEligible($user),
             'linkingEnabled' => (bool) config('maddraxikon.features.linking_enabled'),
+            'ratingsReconsentRequired' => $link?->isActive()
+                && $link->wiki_key === $wikiKey
+                && $link->consent_version !== $consentVersion,
+            'ratingsWikiMismatch' => $link?->isActive()
+                && $link->wiki_key !== $wikiKey,
             'rewardPolicy' => [
                 'mode' => $currentPolicy ? 'byte_tier' : 'legacy',
                 'evaluation_delay_hours' => max(1, (int) config('maddraxikon.evaluation_delay_hours', 24)),
