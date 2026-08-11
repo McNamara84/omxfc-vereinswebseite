@@ -26,6 +26,8 @@ class MaddraxikonReviewRatingUiTest extends TestCase
             'maddraxikon.features.ratings_enabled' => true,
             'maddraxikon.ratings.stale_after_minutes' => 60,
             'maddraxikon.base_url' => 'https://de.maddraxikon.com',
+            'maddraxikon.wiki_key' => 'test-wiki',
+            'maddraxikon.consent_version' => 'ratings-consent-v2',
         ]);
     }
 
@@ -92,6 +94,25 @@ class MaddraxikonReviewRatingUiTest extends TestCase
         $snapshot->update([
             'wiki_user_id' => $link->wiki_user_id,
             'maddraxikon_page_id' => $book->maddraxikon_page_id + 1,
+        ]);
+
+        Livewire::actingAs($review->user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertDontSee('Bewertung im Maddraxikon');
+    }
+
+    public function test_wrong_wiki_or_outdated_consent_is_never_rendered(): void
+    {
+        [$review, $book, $link] = $this->createReviewWithRating(3);
+        $link->update(['wiki_key' => 'another-wiki']);
+
+        Livewire::actingAs($review->user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertDontSee('Bewertung im Maddraxikon');
+
+        $link->update([
+            'wiki_key' => 'test-wiki',
+            'consent_version' => 'legacy-consent',
         ]);
 
         Livewire::actingAs($review->user)

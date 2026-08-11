@@ -90,9 +90,29 @@ class MaddraxikonAccountLink extends Model
             ->whereNull('disconnected_at');
     }
 
+    public function scopeActiveForWikiAndConsent(
+        Builder $query,
+        string $wikiKey,
+        string $consentVersion,
+    ): Builder {
+        return $query
+            ->active()
+            ->where('wiki_key', $wikiKey)
+            ->where('consent_version', $consentVersion);
+    }
+
     public function isActive(): bool
     {
         return $this->status === MaddraxikonAccountLinkStatus::Active
             && $this->disconnected_at === null;
+    }
+
+    public function isActiveForWikiAndConsent(
+        string $wikiKey,
+        string $consentVersion,
+    ): bool {
+        return $this->isActive()
+            && $this->wiki_key === $wikiKey
+            && $this->consent_version === $consentVersion;
     }
 }

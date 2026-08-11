@@ -29,6 +29,8 @@ class MaddraxikonProfilePanelTest extends TestCase
             'maddraxikon.features.linking_enabled' => true,
             'maddraxikon.base_url' => 'https://de.maddraxikon.com',
             'maddraxikon.timezone' => 'Europe/Berlin',
+            'maddraxikon.wiki_key' => 'test-wiki',
+            'maddraxikon.consent_version' => 'ratings-consent-v2',
         ]);
     }
 
@@ -99,6 +101,42 @@ class MaddraxikonProfilePanelTest extends TestCase
             ->assertSee('Profilfreigabe wird')
             ->assertSee('https://de.maddraxikon.com/index.php?diff=1234', escape: false)
             ->assertDontSee('Fremder privater Artikel');
+    }
+
+    public function test_legacy_active_link_offers_explicit_ratings_reconsent(): void
+    {
+        $member = $this->createMember();
+        MaddraxikonAccountLink::factory()->for($member)->create([
+            'consent_version' => 'legacy-consent',
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class)
+            ->assertSee('erneute ausdrückliche Zustimmung')
+            ->assertSee('keine Bewertungen abgerufen, gespeichert oder angezeigt')
+            ->assertSee('Zustimmung zu Romanbewertungen aktualisieren')
+            ->assertSeeHtml('action="'.route('maddraxikon.oauth.start').'"')
+            ->assertSeeHtml('id="maddraxikon-ratings-reconsent"')
+            ->assertSeeHtml('name="consent"');
+    }
+
+    public function test_current_consent_needs_no_reconsent_and_wrong_wiki_is_blocked(): void
+    {
+        $member = $this->createMember();
+        $link = MaddraxikonAccountLink::factory()->for($member)->create();
+
+        Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class)
+            ->assertDontSee('Zustimmung zu Romanbewertungen aktualisieren');
+
+        $link->update(['wiki_key' => 'another-wiki']);
+
+        Livewire::actingAs($member)
+            ->test(MaddraxikonAccountPanel::class)
+            ->assertSee('aktuell konfigurierten')
+            ->assertSee('Maddraxikon-Instanz. Deshalb')
+            ->assertSee('Romanbewertungen abgerufen, gespeichert oder angezeigt')
+            ->assertDontSee('Zustimmung zu Romanbewertungen aktualisieren');
     }
 
     public function test_external_wiki_values_are_escaped_in_panel(): void

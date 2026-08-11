@@ -189,11 +189,15 @@ ohne historische Regeln oder Buchungen zu löschen.
 
 Bei aktiver Maddraxikon-Verknüpfung kann die persönliche VoteNY-Bewertung des
 Rezensionsautors direkt unter der Überschrift seiner Rezension erscheinen. Die
-Anwendung liest dazu ausschließlich `vote.vote_user_id` sowie die Tabellen
-`page` und `redirect` über die separate Verbindung `maddraxikon` und speichert
-lokal einen höchstens 60 Minuten sichtbaren Snapshot. Ein vorhandenes
-MediaWiki-Tabellenpräfix wird über `MADDRAXIKON_DB_PREFIX` konfiguriert. Der
-Datenbankbenutzer muss auf diese Tabellen beschränkte `SELECT`-Rechte besitzen.
+Anwendung liest dazu aus `vote` ausschließlich `vote_id`, `vote_user_id`,
+`vote_page_id`, `vote_value` und `vote_date`. Für die exakte Romanzuordnung
+liest sie zusätzlich `page_id`, `page_namespace`, `page_title` und
+`page_is_redirect` aus `page` sowie `rd_from`, `rd_namespace` und `rd_title`
+aus `redirect`. Die Zugriffe erfolgen über die separate Verbindung
+`maddraxikon`; lokal wird ein höchstens 60 Minuten sichtbarer Snapshot ohne
+`vote_id` gespeichert. Ein vorhandenes MediaWiki-Tabellenpräfix wird über
+`MADDRAXIKON_DB_PREFIX` konfiguriert. Der Datenbankbenutzer muss auf diese
+Tabellen beschränkte `SELECT`-Rechte besitzen.
 
 Vor der ersten Aktivierung bleiben `MADDRAXIKON_RATINGS_ENABLED=false` und das
 Feature damit unsichtbar. Nach Migration und Konfiguration erfolgt der
@@ -208,8 +212,13 @@ php artisan maddraxikon:status --skip-api
 ```
 
 Erst nach erfolgreicher Zuordnung und Synchronisation wird das Feature-Flag
-aktiviert. Das Trennen eines Kontos oder Deaktivieren des Flags blendet die
-Bewertung sofort aus; der 15-minütige Queue-Job bereinigt den Snapshot danach.
+aktiviert. Das Trennen eines Kontos blendet die Bewertung sofort aus; der
+nächste erfolgreiche Synchronisationslauf entfernt den Snapshot. Das
+Deaktivieren des Flags blendet alle Bewertungen ebenfalls sofort aus und
+stoppt Quellabgleich und Bereinigung. Bereits vorhandene Snapshots bleiben für
+eine mögliche Reaktivierung lokal gespeichert, sind bei deaktiviertem Flag
+jedoch nie sichtbar und werden nach einer Reaktivierung regulär aktualisiert
+oder bereinigt.
 
 ## Maddrax-Fantreffen 2026 Event-System
 

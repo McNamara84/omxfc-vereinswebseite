@@ -26,6 +26,7 @@ class MaddraxikonRatingSynchronizer
         }
 
         $wikiKey = (string) config('maddraxikon.wiki_key', 'maddraxikon-de');
+        $consentVersion = (string) config('maddraxikon.consent_version');
         $state = $dryRun ? null : MaddraxikonRatingSyncState::query()->firstOrCreate([
             'wiki_key' => $wikiKey,
         ]);
@@ -37,8 +38,8 @@ class MaddraxikonRatingSynchronizer
 
         try {
             Review::query()
-                ->whereHas('user.maddraxikonAccountLink', function (Builder $query): void {
-                    $query->active();
+                ->whereHas('user.maddraxikonAccountLink', function (Builder $query) use ($consentVersion, $wikiKey): void {
+                    $query->activeForWikiAndConsent($wikiKey, $consentVersion);
                 })
                 ->whereHas('book', function (Builder $query): void {
                     $query->whereNotNull('maddraxikon_page_id');
@@ -55,6 +56,8 @@ class MaddraxikonRatingSynchronizer
                     &$updated,
                     &$removed,
                     &$skipped,
+                    $consentVersion,
+                    $wikiKey,
                 ): void {
                     $lookups = [];
 
@@ -62,7 +65,11 @@ class MaddraxikonRatingSynchronizer
                         $link = $review->user->maddraxikonAccountLink;
                         $pageId = $review->book->maddraxikon_page_id;
 
-                        if (! $link?->isActive() || ! is_int($pageId) || $pageId < 1) {
+                        if (
+                            ! $link?->isActiveForWikiAndConsent($wikiKey, $consentVersion)
+                            || ! is_int($pageId)
+                            || $pageId < 1
+                        ) {
                             $skipped++;
 
                             continue;
@@ -81,7 +88,11 @@ class MaddraxikonRatingSynchronizer
                         $link = $review->user->maddraxikonAccountLink;
                         $pageId = $review->book->maddraxikon_page_id;
 
-                        if (! $link?->isActive() || ! is_int($pageId) || $pageId < 1) {
+                        if (
+                            ! $link?->isActiveForWikiAndConsent($wikiKey, $consentVersion)
+                            || ! is_int($pageId)
+                            || $pageId < 1
+                        ) {
                             continue;
                         }
 
@@ -129,7 +140,11 @@ class MaddraxikonRatingSynchronizer
                     }
                 });
 
-            $removed += $this->cleanupInvalidSnapshots($dryRun);
+            $removed += $this->cleanupInvalidSnapshots(
+                $dryRun,
+                $wikiKey,
+                $consentVersion,
+            );
 
             $state?->update([
                 'last_succeeded_at' => now(),
@@ -160,8 +175,11 @@ class MaddraxikonRatingSynchronizer
         );
     }
 
-    private function cleanupInvalidSnapshots(bool $dryRun): int
-    {
+    private function cleanupInvalidSnapshots(
+        bool $dryRun,
+        string $wikiKey,
+        string $consentVersion,
+    ): int {
         $removed = 0;
 
         MaddraxikonReviewRating::query()
@@ -170,14 +188,27 @@ class MaddraxikonRatingSynchronizer
                 'review.user.maddraxikonAccountLink',
             ])
             ->orderBy('id')
-            ->chunkById(100, function ($snapshots) use ($dryRun, &$removed): void {
+            ->chunkById(100, function ($snapshots) use (
+                $consentVersion,
+                $dryRun,
+                &$removed,
+                $wikiKey,
+            ): void {
                 foreach ($snapshots as $snapshot) {
                     $review = $snapshot->review;
                     $user = $review?->user;
                     $book = $review?->book;
                     $link = $user?->maddraxikonAccountLink;
 
-                    if ($this->snapshotMatches($snapshot, $review, $user, $book, $link)) {
+                    if ($this->snapshotMatches(
+                        $snapshot,
+                        $review,
+                        $user,
+                        $book,
+                        $link,
+                        $wikiKey,
+                        $consentVersion,
+                    )) {
                         continue;
                     }
 
@@ -198,11 +229,13 @@ class MaddraxikonRatingSynchronizer
         ?User $user,
         ?Book $book,
         ?MaddraxikonAccountLink $link,
+        string $wikiKey,
+        string $consentVersion,
     ): bool {
         return $review !== null
             && $user !== null
             && $book !== null
-            && $link?->isActive()
+            && $link?->isActiveForWikiAndConsent($wikiKey, $consentVersion)
             && $book->maddraxikon_page_id !== null
             && $snapshot->review_id === $review->id
             && $snapshot->book_id === $book->id

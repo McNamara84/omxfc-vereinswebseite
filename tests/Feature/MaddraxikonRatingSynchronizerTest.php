@@ -32,6 +32,7 @@ class MaddraxikonRatingSynchronizerTest extends TestCase
         config([
             'maddraxikon.features.ratings_enabled' => true,
             'maddraxikon.wiki_key' => 'test-wiki',
+            'maddraxikon.consent_version' => 'ratings-consent-v2',
         ]);
     }
 
@@ -142,6 +143,39 @@ class MaddraxikonRatingSynchronizerTest extends TestCase
         ]);
     }
 
+    public function test_force_sync_gates_candidates_and_cleanup_on_wiki_and_consent(): void
+    {
+        [$review, $book, $link] = $this->createCandidate();
+        $this->createSnapshot($review, $book, $link);
+        $link->update(['wiki_key' => 'another-wiki']);
+        $source = Mockery::mock(MaddraxikonRatingSource::class);
+        $source->shouldNotReceive('ratingsFor');
+
+        $wrongWiki = (new MaddraxikonRatingSynchronizer($source))->sync(force: true);
+
+        $this->assertSame(0, $wrongWiki->candidates);
+        $this->assertSame(1, $wrongWiki->removed);
+        $this->assertDatabaseMissing('maddraxikon_review_ratings', [
+            'review_id' => $review->id,
+        ]);
+
+        $link->update([
+            'wiki_key' => 'test-wiki',
+            'consent_version' => 'legacy-consent',
+        ]);
+        $this->createSnapshot($review, $book, $link);
+        $source = Mockery::mock(MaddraxikonRatingSource::class);
+        $source->shouldNotReceive('ratingsFor');
+
+        $outdatedConsent = (new MaddraxikonRatingSynchronizer($source))->sync(force: true);
+
+        $this->assertSame(0, $outdatedConsent->candidates);
+        $this->assertSame(1, $outdatedConsent->removed);
+        $this->assertDatabaseMissing('maddraxikon_review_ratings', [
+            'review_id' => $review->id,
+        ]);
+    }
+
     public function test_inconsistent_snapshot_is_removed_even_when_no_candidate_remains(): void
     {
         [$review, $book, $link] = $this->createCandidate();
@@ -216,17 +250,18 @@ class MaddraxikonRatingSynchronizerTest extends TestCase
         $this->assertDatabaseCount('maddraxikon_rating_sync_states', 0);
     }
 
-    public function test_disabled_feature_is_a_noop_unless_force_is_used(): void
+    public function test_disabled_feature_retains_snapshots_unless_force_is_used(): void
     {
         config(['maddraxikon.features.ratings_enabled' => false]);
         [$review, $book, $link] = $this->createCandidate();
+        $this->createSnapshot($review, $book, $link);
         $source = Mockery::mock(MaddraxikonRatingSource::class);
         $source->shouldNotReceive('ratingsFor');
 
         $disabled = (new MaddraxikonRatingSynchronizer($source))->sync();
 
         $this->assertTrue($disabled->disabled);
-        $this->assertDatabaseCount('maddraxikon_review_ratings', 0);
+        $this->assertDatabaseCount('maddraxikon_review_ratings', 1);
         $this->assertDatabaseCount('maddraxikon_rating_sync_states', 0);
 
         $source = Mockery::mock(MaddraxikonRatingSource::class);

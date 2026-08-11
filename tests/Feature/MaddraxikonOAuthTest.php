@@ -207,12 +207,16 @@ class MaddraxikonOAuthTest extends TestCase
         $this->assertDatabaseCount('maddraxikon_account_links', 1);
     }
 
-    public function test_reauth_of_active_link_does_not_duplicate_link_activity(): void
+    public function test_reauth_of_active_link_updates_consent_without_duplicate_link_activity(): void
     {
         $member = $this->createMember();
         $this->fakeSuccessfulIdentity();
 
         foreach (['first-code', 'reauth-code'] as $code) {
+            if ($code === 'reauth-code') {
+                config(['maddraxikon.consent_version' => '2026-08-10-ratings']);
+            }
+
             $attempt = $this->beginLink($member);
 
             $this->get(route('maddraxikon.oauth.callback', [
@@ -225,6 +229,7 @@ class MaddraxikonOAuthTest extends TestCase
             ->where('user_id', $member->id)
             ->sole();
 
+        $this->assertSame('2026-08-10-ratings', $link->consent_version);
         $this->assertSame(
             1,
             Activity::query()

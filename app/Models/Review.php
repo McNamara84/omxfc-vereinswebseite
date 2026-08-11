@@ -96,13 +96,15 @@ class Review extends Model
         $link = $user->relationLoaded('maddraxikonAccountLink')
             ? $user->getRelation('maddraxikonAccountLink')
             : $user->maddraxikonAccountLink()->first();
+        $wikiKey = (string) config('maddraxikon.wiki_key', 'maddraxikon-de');
+        $consentVersion = (string) config('maddraxikon.consent_version');
         $staleAfter = max(
             15,
             (int) config('maddraxikon.ratings.stale_after_minutes', 60)
         );
 
         if (
-            ! $link?->isActive()
+            ! $link?->isActiveForWikiAndConsent($wikiKey, $consentVersion)
             || $rating->rating < 1
             || $rating->rating > 5
             || $rating->synced_at === null
