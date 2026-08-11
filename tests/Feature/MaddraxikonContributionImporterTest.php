@@ -737,6 +737,10 @@ class MaddraxikonContributionImporterTest extends TestCase
             ->firstOrFail();
 
         $this->assertNull($edit->rc_id);
+        $this->assertSame(MaddraxikonContributionType::Edit, $edit->type);
+        $this->assertFalse($edit->minor);
+        $this->assertFalse($edit->bot);
+        $this->assertFalse($edit->redirect);
         $this->assertSame(600, $edit->old_size);
         $this->assertSame(650, $edit->new_size);
         $this->assertSame(MaddraxikonContributionType::New, $article->type);
@@ -1218,7 +1222,10 @@ class MaddraxikonContributionImporterTest extends TestCase
             'size' => 650,
             'sizediff' => $isNew ? 650 : 50,
             'tags' => [],
-            ...($isNew ? ['new' => true] : []),
+            'new' => $isNew,
+            'minor' => false,
+            'bot' => false,
+            'redirect' => false,
         ];
     }
 
@@ -1251,6 +1258,11 @@ class MaddraxikonContributionImporterTest extends TestCase
             'oldlen' => $oldSize,
             'newlen' => $newSize,
             'timestamp' => $timestamp,
+            'minor' => false,
+            'bot' => false,
+            'anon' => false,
+            'redirect' => false,
+            'userhidden' => false,
             'tags' => [],
         ];
     }

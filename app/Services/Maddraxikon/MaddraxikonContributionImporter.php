@@ -558,8 +558,8 @@ class MaddraxikonContributionImporter
     private function normalizeUserContribution(array $contribution): ?array
     {
         if (
-            array_key_exists('userhidden', $contribution)
-            || array_key_exists('suppressed', $contribution)
+            $this->mediaWikiFlag($contribution, 'userhidden')
+            || $this->mediaWikiFlag($contribution, 'suppressed')
         ) {
             return null;
         }
@@ -650,14 +650,14 @@ class MaddraxikonContributionImporter
             'page_title' => (string) $contribution['title'],
             'wiki_user_id' => (int) $contribution['userid'],
             'wiki_username' => (string) $contribution['user'],
-            'type' => array_key_exists('new', $contribution)
+            'type' => $this->mediaWikiFlag($contribution, 'new')
                 || $parentRevisionId === 0
                     ? MaddraxikonContributionType::New
                     : MaddraxikonContributionType::Edit,
-            'minor' => array_key_exists('minor', $contribution),
-            'bot' => array_key_exists('bot', $contribution),
+            'minor' => $this->mediaWikiFlag($contribution, 'minor'),
+            'bot' => $this->mediaWikiFlag($contribution, 'bot'),
             'anonymous' => false,
-            'redirect' => array_key_exists('redirect', $contribution),
+            'redirect' => $this->mediaWikiFlag($contribution, 'redirect'),
             'user_hidden' => false,
             'old_size' => $oldSize,
             'new_size' => $newSize,
@@ -920,11 +920,11 @@ class MaddraxikonContributionImporter
             'wiki_user_id' => (int) ($change['userid'] ?? 0),
             'wiki_username' => (string) ($change['user'] ?? ''),
             'type' => MaddraxikonContributionType::from((string) $change['type']),
-            'minor' => array_key_exists('minor', $change),
-            'bot' => array_key_exists('bot', $change),
-            'anonymous' => array_key_exists('anon', $change),
-            'redirect' => array_key_exists('redirect', $change),
-            'user_hidden' => array_key_exists('userhidden', $change),
+            'minor' => $this->mediaWikiFlag($change, 'minor'),
+            'bot' => $this->mediaWikiFlag($change, 'bot'),
+            'anonymous' => $this->mediaWikiFlag($change, 'anon'),
+            'redirect' => $this->mediaWikiFlag($change, 'redirect'),
+            'user_hidden' => $this->mediaWikiFlag($change, 'userhidden'),
             'old_size' => isset($change['oldlen']) ? (int) $change['oldlen'] : null,
             'new_size' => isset($change['newlen']) ? (int) $change['newlen'] : null,
             'tags' => collect($change['tags'] ?? [])
@@ -1118,5 +1118,12 @@ class MaddraxikonContributionImporter
         }
 
         return $membersTeam;
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function mediaWikiFlag(array $payload, string $key): bool
+    {
+        return array_key_exists($key, $payload)
+            && ! in_array($payload[$key], [false, null, 0, '0'], true);
     }
 }

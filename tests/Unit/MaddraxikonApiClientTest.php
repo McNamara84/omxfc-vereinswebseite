@@ -381,7 +381,11 @@ class MaddraxikonApiClientTest extends TestCase
                             [
                                 'revid' => 10,
                                 'userid' => 5,
+                                'userhidden' => false,
+                                'suppressed' => false,
                                 'sha1' => 'visible-revision-sha1',
+                                'sha1hidden' => false,
+                                'texthidden' => false,
                                 'size' => 700,
                                 'tags' => [],
                             ],
@@ -435,14 +439,17 @@ class MaddraxikonApiClientTest extends TestCase
                             'pageid' => 80,
                             'ns' => 0,
                             'title' => 'Weiterleitung',
+                            'missing' => false,
                             'redirect' => true,
-                            'revisions' => [['revid' => 800, 'size' => 510]],
+                            'length' => 510,
                         ],
                         [
                             'pageid' => 81,
                             'ns' => 10,
                             'title' => 'Vorlage:Info',
-                            'revisions' => [['revid' => 801, 'size' => 42]],
+                            'missing' => false,
+                            'redirect' => false,
+                            'length' => 42,
                         ],
                     ],
                 ],
@@ -457,6 +464,15 @@ class MaddraxikonApiClientTest extends TestCase
         $this->assertFalse($details[81]['redirect']);
         $this->assertSame(10, $details[81]['namespace_id']);
         $this->assertFalse($details[82]['exists']);
+
+        Http::assertSent(function (Request $request): bool {
+            parse_str($request->url(), $parameters);
+
+            return ($parameters['prop'] ?? null) === 'info'
+                && ($parameters['pageids'] ?? null) === '80|81|82'
+                && ! array_key_exists('rvlimit', $parameters)
+                && ! array_key_exists('rvprop', $parameters);
+        });
     }
 
     public function test_namespaces_use_localized_names_and_sort_by_id(): void

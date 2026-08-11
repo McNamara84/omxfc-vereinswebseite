@@ -199,13 +199,13 @@ class MaddraxikonApiClient
                         'page_id' => $pageId,
                         'namespace_id' => $namespaceId,
                         'user_id' => isset($revision['userid']) ? (int) $revision['userid'] : null,
-                        'user_hidden' => array_key_exists('userhidden', $revision),
-                        'suppressed' => array_key_exists('suppressed', $revision),
+                        'user_hidden' => $this->mediaWikiFlag($revision, 'userhidden'),
+                        'suppressed' => $this->mediaWikiFlag($revision, 'suppressed'),
                         'sha1' => isset($revision['sha1']) && trim((string) $revision['sha1']) !== ''
                             ? (string) $revision['sha1']
                             : null,
-                        'sha1_hidden' => array_key_exists('sha1hidden', $revision),
-                        'text_hidden' => array_key_exists('texthidden', $revision),
+                        'sha1_hidden' => $this->mediaWikiFlag($revision, 'sha1hidden'),
+                        'text_hidden' => $this->mediaWikiFlag($revision, 'texthidden'),
                         'size' => isset($revision['size']) ? (int) $revision['size'] : null,
                         'tags' => $this->stringList($revision['tags'] ?? []),
                     ];
@@ -259,10 +259,8 @@ class MaddraxikonApiClient
         foreach (array_chunk($pageIds, 50) as $chunk) {
             $payload = $this->request([
                 'action' => 'query',
-                'prop' => 'info|revisions',
+                'prop' => 'info',
                 'pageids' => implode('|', $chunk),
-                'rvlimit' => 1,
-                'rvprop' => 'ids|size',
             ]);
 
             $pages = data_get($payload, 'query.pages');
@@ -279,19 +277,14 @@ class MaddraxikonApiClient
                 }
 
                 $pageId = (int) $page['pageid'];
-                $latestRevision = is_array($page['revisions'] ?? null)
-                    ? ($page['revisions'][0] ?? null)
-                    : null;
 
                 $details[$pageId] = [
-                    'exists' => ! array_key_exists('missing', $page) && $pageId > 0,
+                    'exists' => ! $this->mediaWikiFlag($page, 'missing') && $pageId > 0,
                     'page_id' => $pageId,
                     'namespace_id' => isset($page['ns']) ? (int) $page['ns'] : null,
                     'title' => isset($page['title']) ? (string) $page['title'] : null,
-                    'size' => is_array($latestRevision) && isset($latestRevision['size'])
-                        ? (int) $latestRevision['size']
-                        : (isset($page['length']) ? (int) $page['length'] : null),
-                    'redirect' => array_key_exists('redirect', $page),
+                    'size' => isset($page['length']) ? (int) $page['length'] : null,
+                    'redirect' => $this->mediaWikiFlag($page, 'redirect'),
                 ];
             }
         }
@@ -568,5 +561,12 @@ class MaddraxikonApiClient
             ->filter(static fn (mixed $value): bool => is_string($value))
             ->values()
             ->all();
+    }
+
+    /** @param array<string, mixed> $payload */
+    private function mediaWikiFlag(array $payload, string $key): bool
+    {
+        return array_key_exists($key, $payload)
+            && ! in_array($payload[$key], [false, null, 0, '0'], true);
     }
 }
