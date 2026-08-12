@@ -36,11 +36,23 @@ class MaddraxikonRatingSourceTest extends TestCase
 
         Schema::connection('maddraxikon')->create('Vote', function (Blueprint $table): void {
             $table->unsignedBigInteger('vote_id')->primary();
+            $table->unsignedBigInteger('vote_actor')->nullable();
             $table->unsignedBigInteger('vote_user_id')->nullable();
             $table->unsignedBigInteger('vote_page_id');
             $table->string('vote_value');
             $table->string('vote_date')->nullable();
         });
+        Schema::connection('maddraxikon')->create('actor', function (Blueprint $table): void {
+            $table->unsignedBigInteger('actor_id')->primary();
+            $table->unsignedBigInteger('actor_user')->nullable();
+            $table->string('actor_name');
+        });
+        DB::connection('maddraxikon')->table('actor')->insert([
+            ['actor_id' => 1001, 'actor_user' => 42, 'actor_name' => 'User 42'],
+            ['actor_id' => 1002, 'actor_user' => 43, 'actor_name' => 'User 43'],
+            ['actor_id' => 1003, 'actor_user' => null, 'actor_name' => '192.0.2.1'],
+            ['actor_id' => 1004, 'actor_user' => 99, 'actor_name' => 'User 99'],
+        ]);
         Schema::connection('maddraxikon')->create('page', function (Blueprint $table): void {
             $table->unsignedBigInteger('page_id')->primary();
             $table->integer('page_namespace');
@@ -67,38 +79,51 @@ class MaddraxikonRatingSourceTest extends TestCase
         DB::connection('maddraxikon')->table('Vote')->insert([
             [
                 'vote_id' => 1,
-                'vote_user_id' => 42,
+                'vote_actor' => 1001,
+                'vote_user_id' => 999,
                 'vote_page_id' => 100,
                 'vote_value' => '2',
                 'vote_date' => '20260809100000',
             ],
             [
                 'vote_id' => 2,
-                'vote_user_id' => 42,
+                'vote_actor' => 1001,
+                'vote_user_id' => 999,
                 'vote_page_id' => 100,
                 'vote_value' => '5',
                 'vote_date' => '20260810100000',
             ],
             [
                 'vote_id' => 3,
-                'vote_user_id' => 43,
+                'vote_actor' => 1002,
+                'vote_user_id' => 999,
                 'vote_page_id' => 200,
                 'vote_value' => '3',
                 'vote_date' => '20260810110000',
             ],
             [
                 'vote_id' => 4,
-                'vote_user_id' => 42,
+                'vote_actor' => 1001,
+                'vote_user_id' => 999,
                 'vote_page_id' => 200,
                 'vote_value' => '4',
                 'vote_date' => '20260810120000',
             ],
             [
                 'vote_id' => 5,
-                'vote_user_id' => null,
+                'vote_actor' => 1003,
+                'vote_user_id' => 42,
                 'vote_page_id' => 100,
                 'vote_value' => '5',
                 'vote_date' => '20260810130000',
+            ],
+            [
+                'vote_id' => 6,
+                'vote_actor' => 1004,
+                'vote_user_id' => 42,
+                'vote_page_id' => 100,
+                'vote_value' => '1',
+                'vote_date' => '20260810140000',
             ],
         ]);
 
@@ -120,14 +145,16 @@ class MaddraxikonRatingSourceTest extends TestCase
         DB::connection('maddraxikon')->table('Vote')->insert([
             [
                 'vote_id' => 1,
-                'vote_user_id' => 42,
+                'vote_actor' => 1001,
+                'vote_user_id' => 999,
                 'vote_page_id' => 100,
                 'vote_value' => '4',
                 'vote_date' => null,
             ],
             [
                 'vote_id' => 2,
-                'vote_user_id' => 42,
+                'vote_actor' => 1001,
+                'vote_user_id' => 999,
                 'vote_page_id' => 101,
                 'vote_value' => '5',
                 'vote_date' => 'not-a-date',
@@ -150,7 +177,8 @@ class MaddraxikonRatingSourceTest extends TestCase
         Log::spy();
         DB::connection('maddraxikon')->table('Vote')->insert([
             'vote_id' => 1,
-            'vote_user_id' => 42,
+            'vote_actor' => 1001,
+            'vote_user_id' => 999,
             'vote_page_id' => 100,
             'vote_value' => '9-secret-marker',
             'vote_date' => 'not-a-date',

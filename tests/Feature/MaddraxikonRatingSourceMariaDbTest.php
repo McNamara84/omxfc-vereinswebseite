@@ -37,8 +37,14 @@ class MaddraxikonRatingSourceMariaDbTest extends TestCase
 
         Schema::connection('maddraxikon')->dropIfExists('Vote');
         Schema::connection('maddraxikon')->dropIfExists('vote');
+        Schema::connection('maddraxikon')->dropIfExists('actor');
         $this->sourceTablesCreated = true;
 
+        Schema::connection('maddraxikon')->create('actor', function (Blueprint $table): void {
+            $table->unsignedBigInteger('actor_id')->primary();
+            $table->unsignedBigInteger('actor_user')->nullable();
+            $table->string('actor_name');
+        });
         Schema::connection('maddraxikon')->create('Vote', function (Blueprint $table): void {
             $this->createVoteColumns($table);
         });
@@ -53,6 +59,7 @@ class MaddraxikonRatingSourceMariaDbTest extends TestCase
             if ($this->sourceTablesCreated) {
                 Schema::connection('maddraxikon')->dropIfExists('Vote');
                 Schema::connection('maddraxikon')->dropIfExists('vote');
+                Schema::connection('maddraxikon')->dropIfExists('actor');
             }
 
             DB::purge('maddraxikon');
@@ -63,16 +70,32 @@ class MaddraxikonRatingSourceMariaDbTest extends TestCase
 
     public function test_source_reads_case_sensitive_uppercase_vote_table(): void
     {
+        DB::connection('maddraxikon')->table('actor')->insert([
+            ['actor_id' => 1001, 'actor_user' => 42, 'actor_name' => 'Expected actor'],
+            ['actor_id' => 1002, 'actor_user' => 99, 'actor_name' => 'Legacy-field decoy'],
+        ]);
         DB::connection('maddraxikon')->table('Vote')->insert([
-            'vote_id' => 1,
-            'vote_user_id' => 42,
-            'vote_page_id' => 100,
-            'vote_value' => '5',
-            'vote_date' => '20260810100000',
+            [
+                'vote_id' => 1,
+                'vote_actor' => 1001,
+                'vote_user_id' => 99,
+                'vote_page_id' => 100,
+                'vote_value' => '5',
+                'vote_date' => '20260810100000',
+            ],
+            [
+                'vote_id' => 2,
+                'vote_actor' => 1002,
+                'vote_user_id' => 42,
+                'vote_page_id' => 100,
+                'vote_value' => '1',
+                'vote_date' => '20260810110000',
+            ],
         ]);
         DB::connection('maddraxikon')->table('vote')->insert([
             'vote_id' => 1,
-            'vote_user_id' => 42,
+            'vote_actor' => 1001,
+            'vote_user_id' => 99,
             'vote_page_id' => 100,
             'vote_value' => '1',
             'vote_date' => '20260810100000',
@@ -117,6 +140,7 @@ class MaddraxikonRatingSourceMariaDbTest extends TestCase
     private function createVoteColumns(Blueprint $table): void
     {
         $table->unsignedBigInteger('vote_id')->primary();
+        $table->unsignedBigInteger('vote_actor')->nullable();
         $table->unsignedBigInteger('vote_user_id')->nullable();
         $table->unsignedBigInteger('vote_page_id');
         $table->string('vote_value');
