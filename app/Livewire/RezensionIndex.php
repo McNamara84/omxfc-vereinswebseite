@@ -11,6 +11,7 @@ use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -35,7 +36,7 @@ class RezensionIndex extends Component
     {
         try {
             $role = app(UserRoleService::class)->getRole(Auth::user(), app(MembersTeamProvider::class)->getMembersTeamOrAbort());
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             abort(403);
         }
 

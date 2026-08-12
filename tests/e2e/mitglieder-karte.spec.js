@@ -1,11 +1,6 @@
 import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
-    await Promise.all([
-        page.route('https://fonts.bunny.net/**', route => route.abort()),
-        page.route('https://cdnjs.cloudflare.com/**', route => route.abort()),
-    ]);
-
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Locked;
@@ -35,7 +36,7 @@ class RezensionForm extends Component
         try {
             $membersTeam = app(MembersTeamProvider::class)->getMembersTeamOrAbort();
             $role = app(UserRoleService::class)->getRole($user, $membersTeam);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+        } catch (ModelNotFoundException) {
             abort(403);
         }
 

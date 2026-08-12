@@ -14,9 +14,6 @@
     <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="theme-color" content="#ffffff">
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <!-- Styles -->
     @php($isMinimalTestLayout = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
     @php($shouldSkipViteAssets = $isMinimalTestLayout && config('app.testing_skip_vite_assets', true))

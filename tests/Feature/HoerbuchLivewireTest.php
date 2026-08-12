@@ -724,7 +724,7 @@ class HoerbuchLivewireTest extends TestCase
             ->set('status', '')
             ->set('progress', 0)
             ->call('save')
-            ->assertHasErrors(['episode_number', 'title', 'author', 'planned_release_date', 'status']);
+            ->assertOnlyHasErrors(['episode_number', 'title', 'author', 'planned_release_date', 'status']);
     }
 
     public function test_contact_email_must_be_valid(): void
@@ -748,7 +748,7 @@ class HoerbuchLivewireTest extends TestCase
                 ],
             ])
             ->call('save')
-            ->assertHasErrors(['roles.0.contact_email']);
+            ->assertOnlyHasErrors(['roles.0.contact_email']);
     }
 
     public function test_invalid_planned_release_date_is_rejected(): void

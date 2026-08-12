@@ -109,8 +109,6 @@
         data-members-center-lon="{{ $membersCenterLon }}"
     ></div>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
     <style>
         .marker-icon {
             width: 20px;
@@ -122,6 +120,11 @@
             justify-content: center;
             align-items: center;
             color: white;
+        }
+
+        .marker-icon svg {
+            display: block;
+            flex: none;
         }
         
         .marker-icon.vorstand {

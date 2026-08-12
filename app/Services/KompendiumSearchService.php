@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\RomanExcerpt;
 use Illuminate\Support\Facades\Log;
-use Laravel\Scout\Engines\TypesenseEngine;
 use Laravel\Scout\EngineManager;
+use Laravel\Scout\Engines\TypesenseEngine;
 use Typesense\Exceptions\ObjectNotFound;
 
 /**
@@ -70,8 +70,8 @@ class KompendiumSearchService
      * Zerlegt den Suchbegriff in Phrasen (in Anführungszeichen) und freie Begriffe.
      *
      * Beispiel: '"Matthew Drax" OR Abenteuer NOT Mutation'
-      * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
-      *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
+     * → positive Operanden werden als ("Matthew Drax") OR (Abenteuer) gruppiert;
+     *   NOT/-Ausschlüsse wirken global auf die gesamte Suchanfrage.
      *
      * @return array{
      *     groups: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
@@ -231,15 +231,15 @@ class KompendiumSearchService
         return ! empty($parsed['phrases']) || ! empty($parsed['terms']);
     }
 
-     /**
-      * @param  array{
-      *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
-      *     terms?: list<string>,
-      *     phrases?: list<string>,
-      *     excludedTerms?: list<string>,
-      *     excludedPhrases?: list<string>
-      * }  $parsed
-      */
+    /**
+     * @param  array{
+     *     groups?: list<array{requiredTerms: list<string>, requiredPhrases: list<string>, excludedTerms: list<string>, excludedPhrases: list<string>}>,
+     *     terms?: list<string>,
+     *     phrases?: list<string>,
+     *     excludedTerms?: list<string>,
+     *     excludedPhrases?: list<string>
+     * }  $parsed
+     */
     public function matchesText(string $text, array $parsed): bool
     {
         if (! $this->hasPositiveOperands($parsed)) {

@@ -16,10 +16,10 @@ use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
 use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use LogicException;
 

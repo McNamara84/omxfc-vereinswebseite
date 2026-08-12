@@ -77,7 +77,7 @@ return new class extends Migration
             Schema::table($tableName, function (Blueprint $table) use ($indexName) {
                 $table->dropUnique($indexName);
             });
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             if (! $this->isMissingIndexException($exception)) {
                 throw $exception;
             }
@@ -90,7 +90,7 @@ return new class extends Migration
             Schema::table($tableName, function (Blueprint $table) use ($indexName) {
                 $table->dropIndex($indexName);
             });
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             if (! $this->isMissingIndexException($exception)) {
                 throw $exception;
             }
@@ -103,7 +103,7 @@ return new class extends Migration
             Schema::table($tableName, function (Blueprint $table) use ($columns, $indexName) {
                 $table->index($columns, $indexName);
             });
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             if (! $this->isDuplicateIndexException($exception)) {
                 throw $exception;
             }
@@ -116,14 +116,14 @@ return new class extends Migration
             Schema::table($tableName, function (Blueprint $table) use ($columns, $indexName) {
                 $table->unique($columns, $indexName);
             });
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             if (! $this->isDuplicateIndexException($exception)) {
                 throw $exception;
             }
         }
     }
 
-    private function isMissingIndexException(\Throwable $exception): bool
+    private function isMissingIndexException(Throwable $exception): bool
     {
         $message = strtolower($exception->getMessage());
 
@@ -133,7 +133,7 @@ return new class extends Migration
             || str_contains($message, 'does not exist');
     }
 
-    private function isDuplicateIndexException(\Throwable $exception): bool
+    private function isDuplicateIndexException(Throwable $exception): bool
     {
         $message = strtolower($exception->getMessage());
 

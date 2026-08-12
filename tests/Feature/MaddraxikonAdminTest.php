@@ -633,7 +633,7 @@ class MaddraxikonAdminTest extends TestCase
                 ['minimum_added_bytes' => 100, 'points' => 2],
             ])
             ->call('savePolicyDraft')
-            ->assertHasErrors([
+            ->assertOnlyHasErrors([
                 'policyTiers.0.minimum_added_bytes',
                 'policyTiers.1.minimum_added_bytes',
             ]);
@@ -651,7 +651,7 @@ class MaddraxikonAdminTest extends TestCase
                 ['minimum_added_bytes' => 100, 'points' => 1],
             ])
             ->call('publishPolicy')
-            ->assertHasErrors(['policyEffectiveFrom']);
+            ->assertOnlyHasErrors(['policyEffectiveFrom']);
     }
 
     public function test_admin_can_copy_published_policy_without_mutating_original(): void

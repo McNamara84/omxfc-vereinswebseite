@@ -9,11 +9,12 @@ use App\Models\VeranstaltungsMerchartikel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-#[\Illuminate\Routing\Attributes\Controllers\Middleware('can:manage,App\Models\Veranstaltung')]
+#[Middleware('can:manage,App\Models\Veranstaltung')]
 #[Authorize('manage', Veranstaltung::class)]
 class VeranstaltungVerwaltungController extends Controller
 {

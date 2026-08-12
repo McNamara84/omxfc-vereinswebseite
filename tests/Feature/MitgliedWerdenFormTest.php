@@ -151,7 +151,7 @@ class MitgliedWerdenFormTest extends TestCase
         Livewire::test(MitgliedWerdenForm::class)
             ->set('satzung_check', true)
             ->call('submit')
-            ->assertHasErrors(['vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort']);
+            ->assertOnlyHasErrors(['vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort']);
     }
 
     public function test_mitgliedsbeitrag_must_be_in_range(): void
@@ -170,6 +170,6 @@ class MitgliedWerdenFormTest extends TestCase
             ->set('passwort_confirmation', 'geheim123')
             ->set('satzung_check', true)
             ->call('submit')
-            ->assertHasErrors(['mitgliedsbeitrag']);
+            ->assertOnlyHasErrors(['mitgliedsbeitrag']);
     }
 }

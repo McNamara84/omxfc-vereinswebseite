@@ -109,7 +109,7 @@ jobs:
     name: PHP 8.5 Maddraxikon (MariaDB 12.3)
     services:
       mariadb:
-        image: mariadb:12.3@sha256:628f228f0fd5913a220438693576b29b6fe4dc1fa0a1298c0e98579fae28635f
+        image: mariadb:12.3@sha256:759869cb6f003234a95c6384cdee245b4bce7de26913fe607a8110362c0c007d
         env:
           MARIADB_DATABASE: omxfc_maddraxikon_test
           MARIADB_USER: omxfc_test
@@ -294,13 +294,13 @@ jobs:
             sed -i 's/Coverage/PHP Coverage/' badge-output/php-coverage.svg
           fi
       - name: Upload PHP coverage report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: php-coverage-report
           path: coverage.xml
       - name: Upload PHP coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: php-coverage-badge
           path: badge-output/php-coverage.svg
@@ -336,13 +336,13 @@ jobs:
             sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
           fi
       - name: Upload JS coverage summary
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: js-coverage-summary
           path: coverage/coverage-summary.json
       - name: Upload JS coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: js-coverage-badge
           path: output/js-coverage.svg
@@ -366,25 +366,25 @@ jobs:
           fi
       - name: Download PHP coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: php-coverage-badge
           path: artifacts/php/badge
       - name: Download JS coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: js-coverage-badge
           path: artifacts/js/badge
       - name: Download JS coverage summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: js-coverage-summary
           path: artifacts/js/summary
       - name: Download PHP coverage report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: php-coverage-report
           path: artifacts/php/report
@@ -423,7 +423,7 @@ jobs:
           fi
       - name: Deploy coverage artifacts to image-data branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           publish_dir: ./output
           publish_branch: image-data

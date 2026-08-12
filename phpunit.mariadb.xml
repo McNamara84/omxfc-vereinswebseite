@@ -9,7 +9,7 @@
     failOnRisky="true"
     failOnEmptyTestSuite="true"
     beStrictAboutOutputDuringTests="true"
-    cacheResult="true"
+    recordTestRunHistory="true"
     cacheDirectory=".phpunit.cache/mariadb"
     backupGlobals="false"
     processIsolation="false">

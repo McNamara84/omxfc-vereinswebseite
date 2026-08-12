@@ -17,10 +17,6 @@
         <meta name="twitter:image" content="{{ $socialImage }}">
         <link rel="canonical" href="{{ request()->url() }}" />
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
         <!-- Styles -->
         @include('layouts.partials.theme-bootstrap')
         @vite(['resources/css/app.css'])

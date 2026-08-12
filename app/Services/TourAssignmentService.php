@@ -108,7 +108,7 @@ class TourAssignmentService
                 $query->whereNull('next_prompt_at')
                     ->orWhere('next_prompt_at', '<=', now());
             })
-            ->orderByRaw("case when status = ? then 0 else 1 end", [TourAssignmentStatus::InProgress->value])
+            ->orderByRaw('case when status = ? then 0 else 1 end', [TourAssignmentStatus::InProgress->value])
             ->orderBy('assigned_at')
             ->orderBy('id')
             ->get();

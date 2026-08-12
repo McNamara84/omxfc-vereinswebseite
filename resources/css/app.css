@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@fontsource-variable/figtree";
+@import "@fontsource-variable/space-grotesk";
 
 @source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
 @source "../../vendor/laravel/jetstream/**/*.blade.php";

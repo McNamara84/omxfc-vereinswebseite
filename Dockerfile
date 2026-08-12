@@ -1,11 +1,3 @@
-# Build Stage für Node/Vite
-FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS node-builder
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
 FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS composer-bin
 
@@ -46,14 +38,31 @@ RUN echo 'upload_max_filesize = 110M' > /usr/local/etc/php/conf.d/uploads.ini \
 RUN sed -i 's/^user = .*/user = www-data/' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/^group = .*/group = www-data/' /usr/local/etc/php-fpm.d/www.conf
 
-# PHP Production Stage
-FROM php-base AS production
+# Production-Abhängigkeiten werden einmal reproduzierbar aus dem Lockfile
+# installiert und sowohl vom Asset-Builder als auch vom finalen Image genutzt.
+FROM php-base AS production-vendor
 
-# Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# Build Stage für Node/Vite. Die Tailwind-Quellen aus Composer-Paketen stammen
+# aus demselben frischen Vendor-Baum, der später im Production-Image landet.
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS node-builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+
+RUN npm ci
+
+COPY . .
+COPY --from=production-vendor /var/www/html/vendor ./vendor
+
+RUN npm run build
+
+# PHP Production Stage
+FROM production-vendor AS production
 
 # Copy project files
 COPY . .

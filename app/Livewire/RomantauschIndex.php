@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -218,7 +219,7 @@ class RomantauschIndex extends Component
     {
         $user = Auth::user();
         abort_unless(
-            $user && $user->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand),
+            $user && $user->hasAnyRole(Role::Admin, Role::Vorstand),
             403
         );
 

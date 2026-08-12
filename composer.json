@@ -93,6 +93,8 @@
         ],
         "dev": "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:work --tries=1\" \"npm run dev\" --names='server,queue,vite'",
         "test": "@php vendor/bin/pest --compact",
+        "test:stability:repeat": "@php vendor/bin/phpunit --repeat=2 --no-progress",
+        "test:stability:retry": "@php vendor/bin/phpunit --retry=2 --no-progress",
         "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",
         "test:profanity": "@php vendor/bin/pest --profanity --compact",
         "test:rector": "@php vendor/bin/rector process --dry-run",

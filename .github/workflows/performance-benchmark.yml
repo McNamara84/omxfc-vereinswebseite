@@ -182,7 +182,7 @@ jobs:
 
       - name: Report homepage benchmark check run
         if: always()
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           PLAYWRIGHT_PROJECT: chromium
           BENCHMARK_TITLE: ${{ steps.publish_performance_metrics.outputs.benchmark_title }}
@@ -252,7 +252,7 @@ jobs:
 
       - name: Upload performance artifact
         if: always() && steps.publish_performance_metrics.outputs.metrics_found == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: homepage-performance
           path: playwright-performance/homepage.json

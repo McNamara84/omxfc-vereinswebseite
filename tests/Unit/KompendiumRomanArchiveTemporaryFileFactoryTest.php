@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Services\KompendiumRomanArchiveException;
 use App\Services\KompendiumRomanArchiveTemporaryFileFactory;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\WithoutErrorHandler;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(KompendiumRomanArchiveTemporaryFileFactory::class)]
@@ -45,6 +46,7 @@ class KompendiumRomanArchiveTemporaryFileFactoryTest extends TestCase
         $this->assertSame(0600, fileperms($path) & 0777);
     }
 
+    #[WithoutErrorHandler]
     public function test_it_retries_with_a_new_name_without_overwriting_a_collision(): void
     {
         $this->assertTrue(mkdir($this->temporaryDirectory, 0700, true));
@@ -59,6 +61,7 @@ class KompendiumRomanArchiveTemporaryFileFactoryTest extends TestCase
         $this->assertFileExists($expectedPath);
     }
 
+    #[WithoutErrorHandler]
     public function test_it_aborts_after_repeated_name_collisions(): void
     {
         $this->assertTrue(mkdir($this->temporaryDirectory, 0700, true));
@@ -73,6 +76,7 @@ class KompendiumRomanArchiveTemporaryFileFactoryTest extends TestCase
         $factory->create($this->temporaryDirectory);
     }
 
+    #[WithoutErrorHandler]
     public function test_it_reports_a_non_collision_creation_failure_immediately(): void
     {
         $factory = $this->factoryWithCandidates([

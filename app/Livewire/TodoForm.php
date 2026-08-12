@@ -11,7 +11,6 @@ use Livewire\Component;
 
 class TodoForm extends Component
 {
-
     #[Locked]
     public ?int $todoId = null;
 

@@ -151,7 +151,7 @@ services:
       - omxfc-dev-network
 
   vite:
-    image: node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66
+    image: node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019
     init: true
     working_dir: /workspace
     command: ['sh', '/workspace/docker/dev/start-vite.sh']
@@ -167,7 +167,7 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:12.3@sha256:628f228f0fd5913a220438693576b29b6fe4dc1fa0a1298c0e98579fae28635f
+    image: mariadb:12.3@sha256:759869cb6f003234a95c6384cdee245b4bce7de26913fe607a8110362c0c007d
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}

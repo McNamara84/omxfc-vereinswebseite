@@ -15,7 +15,6 @@ use Livewire\Component;
 
 class TodoShow extends Component
 {
-
     #[Locked]
     public int $todoId;
 
