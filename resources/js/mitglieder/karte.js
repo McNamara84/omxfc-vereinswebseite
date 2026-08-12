@@ -15,6 +15,18 @@
 
 let mapInstance = null;
 
+const USERS_ICON = `
+    <svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6.5 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM9 13c-4.42 0-8 2.24-8 5v2h11.1a6.4 6.4 0 0 1-.1-1c0-1.93.78-3.68 2.04-4.95A12.5 12.5 0 0 0 9 13Zm6.5 1c-.63 0-1.23.07-1.78.2A6.95 6.95 0 0 1 16 19c0 .34-.02.67-.07 1H23v-1.5c0-2.49-3.36-4.5-7.5-4.5Z" />
+    </svg>
+`;
+
+const STAR_ICON = `
+    <svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="m12 2.4 2.95 5.98 6.6.96-4.78 4.66 1.13 6.58L12 17.48l-5.9 3.1L7.23 14 2.45 9.34l6.6-.96L12 2.4Z" />
+    </svg>
+`;
+
 /** HTML-Zeichen escapen, um XSS bei benutzerkontrollierten Werten zu verhindern */
 function escapeHtml(str) {
     if (typeof str !== 'string') return '';
@@ -100,7 +112,7 @@ function initMitgliederKarte() {
 
     // Spezielles Icon für Regionalstammtische
     const stammtischIcon = L.divIcon({
-        html: '<div class="marker-icon stammtisch"><i class="fas fa-users"></i></div>',
+        html: `<div class="marker-icon stammtisch">${USERS_ICON}</div>`,
         className: 'custom-div-icon',
         iconSize: [40, 40],
         iconAnchor: [20, 20]
@@ -108,7 +120,7 @@ function initMitgliederKarte() {
 
     // Icon für den Schwerpunkt aller Mitglieder
     const centerIcon = L.divIcon({
-        html: '<div class="marker-icon center"><i class="fas fa-star"></i></div>',
+        html: `<div class="marker-icon center">${STAR_ICON}</div>`,
         className: 'custom-div-icon',
         iconSize: [40, 40],
         iconAnchor: [20, 20]

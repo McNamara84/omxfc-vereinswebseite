@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\ThreeDModel;
 use App\Services\ThreeDModelService;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +33,7 @@ class ThreeDModelForm extends Component
     public function mount(?ThreeDModel $threeDModel = null): void
     {
         $user = Auth::user();
-        if (! $user || ! $user->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand)) {
+        if (! $user || ! $user->hasAnyRole(Role::Admin, Role::Vorstand)) {
             abort(403);
         }
 

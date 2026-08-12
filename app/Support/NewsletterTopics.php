@@ -30,7 +30,6 @@ final class NewsletterTopics
     }
 
     /**
-     * @param  mixed  $topic
      * @return array{key: string, title: string, content: string, images: array<int, string>}
      */
     public static function normalizeTopic(mixed $topic, ?int $index = null): array

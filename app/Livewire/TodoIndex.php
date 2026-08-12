@@ -18,7 +18,6 @@ use Livewire\Component;
 
 class TodoIndex extends Component
 {
-
     #[Url]
     public string $filter = 'all';
 

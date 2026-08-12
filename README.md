@@ -50,7 +50,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 ## Technologie-Stack
 
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
-- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet.
+- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
 - **Testing:** PHPUnit 13, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
@@ -263,6 +263,8 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | Zweck                        | Befehl |
 |------------------------------|--------|
 | Vollständige Pest-Suite      | `composer test` |
+| Tests zweimal auf Instabilität prüfen | `composer test:stability:repeat` |
+| Fehlgeschlagene Tests einmal diagnostisch wiederholen | `composer test:stability:retry` |
 | PHP-Tests im Docker-Stack    | `npm run docker:dev:test:php` |
 | Frische TIA-Basis aufzeichnen | `composer test:tia:fresh` |
 | Nur betroffene Tests mit TIA | `composer test:tia` |
@@ -278,12 +280,13 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
 Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA benötigt Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Da Pest 5 TIA bei expliziten Testpfaden deaktiviert und keine PHPUnit-Testklassen unterstützt, verwenden diese Skripte `phpunit.tia.xml` mit ausschließlich funktionalen Pest-Tests. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht.
+Die PHPUnit-13.3-Diagnosen `test:stability:repeat` und `test:stability:retry` sind bewusst manuelle Zusatzprüfungen. Insbesondere Retry ersetzt keinen regulär erfolgreichen Testlauf und wird deshalb nicht als CI-Pflichtprüfung verwendet.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Der Test-Stack verwendet die stabilen Versionen Pest 5.0.2 und PHPUnit 13.2.6. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). TIA, neue Format-Expectations, PHPStan, Rector, das Agent-Plugin, erweiterte Architekturregeln und zeitbasiertes CI-Sharding sind eingeführt. Umsetzungsstand, Ausbaupfade und der derzeitige Upstream-Blocker für Mutation Testing stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
+Der Test-Stack verwendet die stabilen Versionen Pest 5.1 und PHPUnit 13.3. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). TIA, neue Format-Expectations, PHPStan, Rector, das Agent-Plugin, erweiterte Architekturregeln, exakte Livewire-Validierungsfehler und zeitbasiertes CI-Sharding sind eingeführt. Umsetzungsstand, Ausbaupfade und der derzeitige Upstream-Blocker für Mutation Testing stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
 ## Deployment
 
@@ -307,6 +310,19 @@ php artisan view:cache
 
 Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare URL zeigt und dass ein Queue-Worker für zeitkritische Prozesse aktiv ist.
 
+Der GitHub-Deployment-Workflow nutzt ab Laravel 13.25 den globalen
+Queue-Pause-Mechanismus. Vor dem Containerwechsel nimmt der Worker keine neuen
+Jobs mehr an und wird mit einem großzügigen Timeout beendet; vor dem Start der
+neuen Worker hebt der Workflow die Pause garantiert wieder auf. Beim ersten
+Deployment von einer älteren Laravel-Version wird die Pause per Feature-Check
+übersprungen.
+
+Nach erfolgreich abgeschlossenen Healthchecks entfernt der Workflow nur
+unreferenzierte Docker-Images, die älter als sieben Tage sind. So bleibt ein
+kurzer lokaler Rollback-Puffer erhalten, während alte `latest`-Versionen nicht
+dauerhaft Speicherplatz auf dem Produktionsserver belegen. Docker-Volumes und
+damit Datenbank- oder Anwendungsdaten werden dabei nicht bereinigt.
+
 ## Nützliche Artisan-Befehle
 
 | Zweck | Befehl |
@@ -329,6 +345,8 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 | Hardcover crawlen | `php artisan crawlhardcovers` |
 | Sitemap generieren | `php artisan sitemap:generate` |
 | Mitgliederkarte aktualisieren | `php artisan member-map:refresh` |
+| Alle Queues kontrolliert pausieren | `php artisan queue:pause --all` |
+| Globale Queue-Pause aufheben | `php artisan queue:resume --all` |
 
 Weitere Befehle stehen über `php artisan list` zur Verfügung.
 

@@ -706,7 +706,7 @@ class TodoLivewireTest extends TestCase
             ->set('points', 0)
             ->set('category_id', null)
             ->call('save')
-            ->assertHasErrors(['title', 'points', 'category_id']);
+            ->assertOnlyHasErrors(['title', 'points', 'category_id']);
     }
 
     public function test_creator_can_update_todo(): void
@@ -741,7 +741,7 @@ class TodoLivewireTest extends TestCase
             ->set('points', 0)
             ->set('category_id', null)
             ->call('save')
-            ->assertHasErrors(['title', 'points', 'category_id']);
+            ->assertOnlyHasErrors(['title', 'points', 'category_id']);
     }
 
     public function test_non_creator_cannot_update_todo(): void

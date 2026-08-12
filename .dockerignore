@@ -1,6 +1,5 @@
 # Git
 .git
-.gitignore
 .gitattributes
 
 # IDE
@@ -16,12 +15,18 @@ Thumbs.db
 
 # Laravel Cache and Build artifacts
 /bootstrap/cache/*.php
+/database/*.sqlite
+/database/*.sqlite-*
+/public/build
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/logs/*
 /storage/*.key
 /public/storage
+
+# Composer
+/vendor
 
 # Node
 /node_modules
@@ -30,7 +35,10 @@ yarn-error.log
 
 # Testing
 /.phpunit.cache
+/.playwright-browsers
 /coverage
+/playwright-report
+/test-results
 /phpunit.xml
 
 # Environment

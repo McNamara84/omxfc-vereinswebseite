@@ -2,8 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\ThreeDModel;
 use App\Services\RewardService;
+use App\Services\ThreeDModelService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -64,7 +66,7 @@ class ThreeDModelShow extends Component
     {
         $user = Auth::user();
 
-        return $user && $user->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand);
+        return $user && $user->hasAnyRole(Role::Admin, Role::Vorstand);
     }
 
     public function purchase(): void
@@ -99,7 +101,7 @@ class ThreeDModelShow extends Component
             abort(403);
         }
 
-        app(\App\Services\ThreeDModelService::class)->deleteModel($this->model);
+        app(ThreeDModelService::class)->deleteModel($this->model);
 
         session()->flash('toast', ['type' => 'success', 'title' => '3D-Modell erfolgreich gelöscht.']);
         $this->redirect(route('3d-modelle.index'), navigate: true);

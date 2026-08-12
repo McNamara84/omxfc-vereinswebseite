@@ -144,10 +144,10 @@ class FantreffenRegistrationService
      * @param  array  $data  Die validierten Formulardaten
      * @param  Veranstaltung  $veranstaltung  Die Veranstaltung, für die die Anmeldung erfolgt
      * @param  User|null  $user  Der eingeloggte User (falls vorhanden)
-      * @return FantreffenAnmeldung Die erstellte Anmeldung
+     * @return FantreffenAnmeldung Die erstellte Anmeldung
      *
-      * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
-      * @throws \Illuminate\Validation\ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
+     * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
+     * @throws ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
      * @throws \RuntimeException wenn die Anmeldung nicht erstellt werden konnte
      */
     public function register(array $data, Veranstaltung $veranstaltung, ?User $user = null): FantreffenAnmeldung

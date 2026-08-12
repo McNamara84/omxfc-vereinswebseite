@@ -58,7 +58,7 @@ jobs:
         id: baseline-path
         run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
       - name: Upload TIA baseline
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pest-tia-baseline
           path: ${{ steps.baseline-path.outputs.path }}
