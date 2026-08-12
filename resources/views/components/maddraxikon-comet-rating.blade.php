@@ -34,10 +34,12 @@
         @foreach(range(1, 5) as $position)
             @php
                 $filled = $position <= $value;
-                $gradientId = 'comet-gradient-'.$safeInstance.'-'.$position;
+                $nucleusGradientId = 'comet-nucleus-'.$safeInstance.'-'.$position;
+                $tailGradientId = 'comet-tail-'.$safeInstance.'-'.$position;
+                $nucleusGlowId = 'comet-glow-'.$safeInstance.'-'.$position;
             @endphp
             <svg
-                viewBox="0 0 32 32"
+                viewBox="0 0 40 32"
                 class="maddraxikon-comet {{ $filled ? 'maddraxikon-comet--filled' : 'maddraxikon-comet--empty' }}"
                 data-comet-position="{{ $position }}"
                 data-comet-filled="{{ $filled ? 'true' : 'false' }}"
@@ -45,38 +47,91 @@
             >
                 @if($filled)
                     <defs>
-                        <linearGradient id="{{ $gradientId }}" x1="2" y1="28" x2="28" y2="4" gradientUnits="userSpaceOnUse">
-                            <stop offset="0" stop-color="#15803d" />
-                            <stop offset="0.52" stop-color="#22c55e" />
-                            <stop offset="1" stop-color="#bbf7d0" />
+                        <linearGradient id="{{ $tailGradientId }}" x1="2.5" y1="28.5" x2="26" y2="12" gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#dc2626" stop-opacity="0.82" />
+                            <stop offset="0.3" stop-color="#f97316" />
+                            <stop offset="0.68" stop-color="#fbbf24" />
+                            <stop offset="1" stop-color="#fff7ed" />
                         </linearGradient>
+                        <radialGradient id="{{ $nucleusGradientId }}" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(27.4 7.4) rotate(45) scale(9.2)">
+                            <stop offset="0" stop-color="#f0fdf4" />
+                            <stop offset="0.3" stop-color="#86efac" />
+                            <stop offset="0.68" stop-color="#22c55e" />
+                            <stop offset="1" stop-color="#15803d" />
+                        </radialGradient>
+                        <filter id="{{ $nucleusGlowId }}" x="-70%" y="-70%" width="240%" height="240%" color-interpolation-filters="sRGB">
+                            <feGaussianBlur stdDeviation="1.65" />
+                        </filter>
                     </defs>
                 @endif
 
-                <path
-                    d="M3.5 26.5C9.8 24.3 11.8 19.2 15.5 15.2"
-                    fill="none"
-                    stroke="{{ $filled ? 'url(#'.$gradientId.')' : 'currentColor' }}"
-                    stroke-width="3.2"
-                    stroke-linecap="round"
-                />
-                <path
-                    d="M2.8 20.3C8.7 19.4 11.4 15.8 15.9 12.7"
-                    fill="none"
-                    stroke="{{ $filled ? 'url(#'.$gradientId.')' : 'currentColor' }}"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                />
-                <circle
-                    cx="21.5"
-                    cy="10.5"
-                    r="6.1"
-                    fill="{{ $filled ? 'url(#'.$gradientId.')' : 'none' }}"
-                    stroke="{{ $filled ? '#dcfce7' : 'currentColor' }}"
-                    stroke-width="{{ $filled ? '0.8' : '1.7' }}"
-                />
                 @if($filled)
-                    <ellipse cx="19.4" cy="8.4" rx="1.7" ry="1.1" fill="#f0fdf4" opacity="0.8" />
+                    <g class="maddraxikon-comet__tail">
+                        <path
+                            d="M2.5 28.5C7.2 21.4 13.4 16 24.1 11.5C21.8 15.1 22.5 17.9 25.9 19.2C21.2 20.4 18.1 22.1 15.2 24.3C15.4 21.8 14.4 20.1 12.9 19.9C10.4 23.8 6.6 27 2.5 28.5Z"
+                            fill="url(#{{ $tailGradientId }})"
+                        />
+                        <path
+                            d="M8.2 25.7C12.1 20.9 17 16.8 24.3 13.5C22.9 15.7 23.5 17.3 25.2 18.2C20.8 19.4 16 22.7 12.6 25.1C13 23.2 12.5 22 11.5 21.5C10.4 23.1 9.3 24.5 8.2 25.7Z"
+                            fill="#fde68a"
+                            opacity="0.95"
+                        />
+                        <path
+                            d="M14.6 21.6C17.1 18.5 20.5 16.2 24.4 14.5C23.7 16 24.1 17 25 17.7C21.5 18.4 18.1 20.3 15.4 22.2Z"
+                            fill="#fff7ed"
+                            opacity="0.92"
+                        />
+                        <path
+                            d="M5.4 25.9C8.2 23.6 10.5 21.2 12.8 17.9"
+                            fill="none"
+                            stroke="#fb923c"
+                            stroke-width="1.05"
+                            stroke-linecap="round"
+                            opacity="0.85"
+                        />
+                    </g>
+                    <circle
+                        class="maddraxikon-comet__nucleus-glow"
+                        cx="29.4"
+                        cy="9.7"
+                        r="7.2"
+                        fill="#4ade80"
+                        opacity="0.58"
+                        filter="url(#{{ $nucleusGlowId }})"
+                    />
+                    <circle
+                        class="maddraxikon-comet__nucleus"
+                        cx="29.4"
+                        cy="9.7"
+                        r="6.35"
+                        fill="url(#{{ $nucleusGradientId }})"
+                        stroke="#dcfce7"
+                        stroke-width="0.85"
+                    />
+                    <ellipse cx="27.1" cy="7.35" rx="1.85" ry="1.15" fill="#f0fdf4" opacity="0.9" />
+                @else
+                    <path
+                        d="M2.5 28.5C7.2 21.4 13.4 16 24.1 11.5C21.8 15.1 22.5 17.9 25.9 19.2C21.2 20.4 18.1 22.1 15.2 24.3C15.4 21.8 14.4 20.1 12.9 19.9C10.4 23.8 6.6 27 2.5 28.5Z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.45"
+                        stroke-linejoin="round"
+                    />
+                    <path
+                        d="M8.2 25.7C12.1 20.9 17 16.8 24.3 13.5"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="0.9"
+                        stroke-linecap="round"
+                    />
+                    <circle
+                        cx="29.4"
+                        cy="9.7"
+                        r="6.35"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                    />
                 @endif
             </svg>
         @endforeach

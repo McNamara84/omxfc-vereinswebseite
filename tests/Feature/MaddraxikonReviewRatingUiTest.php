@@ -31,7 +31,7 @@ class MaddraxikonReviewRatingUiTest extends TestCase
         ]);
     }
 
-    public function test_review_renders_the_personal_rating_as_five_accessible_green_comets(): void
+    public function test_review_renders_the_personal_rating_as_five_accessible_green_comets_with_fire_tails(): void
     {
         [$review, $book] = $this->createReviewWithRating(4);
 
@@ -50,6 +50,11 @@ class MaddraxikonReviewRatingUiTest extends TestCase
         $this->assertSame(4, substr_count($html, 'data-comet-filled="true"'));
         $this->assertSame(1, substr_count($html, 'data-comet-filled="false"'));
         $this->assertStringContainsString('#22c55e', $html);
+        $this->assertSame(4, substr_count($html, 'class="maddraxikon-comet__tail"'));
+        $this->assertSame(4, substr_count($html, 'class="maddraxikon-comet__nucleus"'));
+        $this->assertStringContainsString('#dc2626', $html);
+        $this->assertStringContainsString('#f97316', $html);
+        $this->assertStringContainsString('#fbbf24', $html);
     }
 
     public function test_stale_or_disconnected_or_disabled_ratings_are_not_rendered(): void

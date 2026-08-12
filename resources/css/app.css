@@ -121,14 +121,23 @@
 
 .maddraxikon-comet {
     display: block;
-    width: 1.35rem;
+    width: 1.7rem;
     height: 1.35rem;
     flex: none;
+    overflow: visible;
 }
 
 .maddraxikon-comet--filled {
     animation: maddraxikon-comet-shimmer 5.2s ease-in-out infinite;
-    filter: drop-shadow(0 0 2px rgb(34 197 94 / 0.42));
+    filter:
+        drop-shadow(0 0 1.5px rgb(249 115 22 / 0.28))
+        drop-shadow(0 0 2px rgb(34 197 94 / 0.42));
+}
+
+.maddraxikon-comet__tail {
+    transform-box: fill-box;
+    transform-origin: right center;
+    animation: maddraxikon-comet-fire 2.8s ease-in-out infinite alternate;
 }
 
 .maddraxikon-comet--empty {
@@ -144,7 +153,9 @@
 }
 
 [data-theme="coffee"] .maddraxikon-comet--filled {
-    filter: drop-shadow(0 0 2.5px rgb(74 222 128 / 0.5));
+    filter:
+        drop-shadow(0 0 1.8px rgb(251 146 60 / 0.36))
+        drop-shadow(0 0 2.5px rgb(74 222 128 / 0.5));
 }
 
 [data-theme="coffee"] .maddraxikon-comet--empty {
@@ -157,15 +168,33 @@
 
 @keyframes maddraxikon-comet-shimmer {
     0%, 70%, 100% {
-        filter: drop-shadow(0 0 2px rgb(34 197 94 / 0.4)) brightness(1);
+        filter:
+            drop-shadow(0 0 1.5px rgb(249 115 22 / 0.28))
+            drop-shadow(0 0 2px rgb(34 197 94 / 0.4))
+            brightness(1);
     }
     82% {
-        filter: drop-shadow(0 0 4px rgb(74 222 128 / 0.62)) brightness(1.12);
+        filter:
+            drop-shadow(0 0 2.5px rgb(251 146 60 / 0.42))
+            drop-shadow(0 0 4px rgb(74 222 128 / 0.62))
+            brightness(1.12);
+    }
+}
+
+@keyframes maddraxikon-comet-fire {
+    from {
+        opacity: 0.9;
+        transform: scaleX(0.985) scaleY(0.975);
+    }
+    to {
+        opacity: 1;
+        transform: scaleX(1.015) scaleY(1.025);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .maddraxikon-comet--filled {
+    .maddraxikon-comet--filled,
+    .maddraxikon-comet__tail {
         animation: none;
     }
 }
