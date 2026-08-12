@@ -46,4 +46,17 @@ class DependencyFeatureAdoptionTest extends TestCase
         $this->assertLessThan($resume, $stop);
         $this->assertLessThan($start, $resume);
     }
+
+    public function test_deployment_prunes_only_stale_dangling_images_after_health_checks(): void
+    {
+        $workflow = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/deploy.yml');
+        $connectivityCheck = strpos($workflow, 'curl -f http://localhost:8080');
+        $imagePrune = strpos($workflow, 'docker image prune --force --filter "until=168h"');
+
+        $this->assertNotFalse($connectivityCheck);
+        $this->assertNotFalse($imagePrune);
+        $this->assertLessThan($imagePrune, $connectivityCheck);
+        $this->assertStringNotContainsString('docker volume prune', $workflow);
+        $this->assertStringNotContainsString('docker system prune', $workflow);
+    }
 }

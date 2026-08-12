@@ -317,6 +317,12 @@ neuen Worker hebt der Workflow die Pause garantiert wieder auf. Beim ersten
 Deployment von einer älteren Laravel-Version wird die Pause per Feature-Check
 übersprungen.
 
+Nach erfolgreich abgeschlossenen Healthchecks entfernt der Workflow nur
+unreferenzierte Docker-Images, die älter als sieben Tage sind. So bleibt ein
+kurzer lokaler Rollback-Puffer erhalten, während alte `latest`-Versionen nicht
+dauerhaft Speicherplatz auf dem Produktionsserver belegen. Docker-Volumes und
+damit Datenbank- oder Anwendungsdaten werden dabei nicht bereinigt.
+
 ## Nützliche Artisan-Befehle
 
 | Zweck | Befehl |

@@ -237,6 +237,16 @@ jobs:
               echo "Re-publishing Livewire assets..."
               docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
             fi
+
+            # Repeated pulls of the mutable `latest` tag leave the previous
+            # application image dangling. Keep a seven-day rollback window,
+            # then remove only dangling images after all health checks passed.
+            echo "=== Pruning stale deployment images ==="
+            if docker image prune --force --filter "until=168h"; then
+              echo "✅ Stale deployment images: PRUNED"
+            else
+              echo "⚠️ Stale deployment images could not be pruned"
+            fi
             
             trap - EXIT
             echo "🚀 Deployment completed successfully!"
