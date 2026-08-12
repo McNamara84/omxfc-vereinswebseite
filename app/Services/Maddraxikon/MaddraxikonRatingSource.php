@@ -39,7 +39,7 @@ class MaddraxikonRatingSource
 
         foreach (array_chunk(array_values($unique), $batchSize) as $batch) {
             $rows = DB::connection('maddraxikon')
-                ->table('vote as votes')
+                ->table('Vote as votes')
                 ->whereNotNull('votes.vote_user_id')
                 ->where(function (Builder $query) use ($batch): void {
                     foreach ($batch as $lookup) {

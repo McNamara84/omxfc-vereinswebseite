@@ -189,7 +189,7 @@ ohne historische Regeln oder Buchungen zu löschen.
 
 Bei aktiver Maddraxikon-Verknüpfung kann die persönliche VoteNY-Bewertung des
 Rezensionsautors direkt unter der Überschrift seiner Rezension erscheinen. Die
-Anwendung liest dazu aus `vote` ausschließlich `vote_id`, `vote_user_id`,
+Anwendung liest dazu aus `Vote` ausschließlich `vote_id`, `vote_user_id`,
 `vote_page_id`, `vote_value` und `vote_date`. Für die exakte Romanzuordnung
 liest sie zusätzlich `page_id`, `page_namespace`, `page_title` und
 `page_is_redirect` aus `page` sowie `rd_from`, `rd_namespace` und `rd_title`

@@ -27,6 +27,7 @@
             <file>tests/Feature/MaddraxikonPipelineMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/MaddraxikonProfileHardeningTest.php</file>
             <file>tests/Feature/MaddraxikonProfilePanelTest.php</file>
+            <file>tests/Feature/MaddraxikonRatingSourceMariaDbTest.php</file>
             <file>tests/Feature/MaddraxikonRewardServiceTest.php</file>
             <file>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</file>
             <file>tests/Unit/MaddraxikonApiClientTest.php</file>

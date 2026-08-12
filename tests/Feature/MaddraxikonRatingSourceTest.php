@@ -34,7 +34,7 @@ class MaddraxikonRatingSourceTest extends TestCase
         ]);
         DB::purge('maddraxikon');
 
-        Schema::connection('maddraxikon')->create('vote', function (Blueprint $table): void {
+        Schema::connection('maddraxikon')->create('Vote', function (Blueprint $table): void {
             $table->unsignedBigInteger('vote_id')->primary();
             $table->unsignedBigInteger('vote_user_id')->nullable();
             $table->unsignedBigInteger('vote_page_id');
@@ -64,7 +64,7 @@ class MaddraxikonRatingSourceTest extends TestCase
     public function test_source_returns_only_requested_user_page_pairs_and_the_latest_vote(): void
     {
         config(['maddraxikon.ratings.source_batch_size' => 1]);
-        DB::connection('maddraxikon')->table('vote')->insert([
+        DB::connection('maddraxikon')->table('Vote')->insert([
             [
                 'vote_id' => 1,
                 'vote_user_id' => 42,
@@ -117,7 +117,7 @@ class MaddraxikonRatingSourceTest extends TestCase
 
     public function test_source_tolerates_missing_and_malformed_vote_dates(): void
     {
-        DB::connection('maddraxikon')->table('vote')->insert([
+        DB::connection('maddraxikon')->table('Vote')->insert([
             [
                 'vote_id' => 1,
                 'vote_user_id' => 42,
@@ -148,7 +148,7 @@ class MaddraxikonRatingSourceTest extends TestCase
     public function test_source_discards_invalid_values_without_leaking_row_data_to_logs(): void
     {
         Log::spy();
-        DB::connection('maddraxikon')->table('vote')->insert([
+        DB::connection('maddraxikon')->table('Vote')->insert([
             'vote_id' => 1,
             'vote_user_id' => 42,
             'vote_page_id' => 100,
