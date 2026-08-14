@@ -35,7 +35,7 @@
         "daisyui": "^5.7.13",
         "jsdom": "^30.0.1",
         "laravel-vite-plugin": "^3.2.0",
-        "puppeteer": "^25.6.0",
+        "puppeteer": "^25.7.0",
         "tailwindcss": "^4.3.3",
         "vite": "^8.1.5",
         "vitest": "^4.1.10",
@@ -54,6 +54,6 @@
         "three": "^0.185.1"
     },
     "allowScripts": {
-        "puppeteer@25.6.0": true
+        "puppeteer@25.7.0": true
     }
 }
