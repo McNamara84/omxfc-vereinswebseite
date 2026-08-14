@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.15.0",
+    "pub_date": "2026-08-14",
+    "notes": [
+      "[New] Über ein neues Feedback-Formular können Besucher und Mitglieder Rückmeldungen direkt an den Entwickler senden.",
+      "[New] Ein automatisches Fehlermeldesystem informiert Administratoren mit datenschutzfreundlich aufbereiteten Diagnosedaten über Störungen.",
+      "[New] Der Rollenspiel-Charaktereditor unterstützt jetzt Ausbildungen und frei wählbare Erfahrungsstufen mit passenden Charakterwerten.",
+      "[New] Bei verknüpften Maddraxikon-Konten erscheint die persönliche Kometenbewertung direkt an der eigenen Rezension.",
+      "[New] Durch Verknüpfung mit dem Maddraxikon können nun Baxx verdient werden bei Bearbeitung und Erstellung von Maddraxikon-Artikeln.",
+      "[New] Das Protokoll der Jahreshauptversammlung vom 15. Juli 2026 ist im Protokollarchiv verfügbar.",
+      "[Improved] Vorteile, Nachteile, Kampfwerte und der PDF-Charakterbogen wurden im Rollenspiel-Charaktereditor übersichtlicher und regelgenauer gestaltet.",
+      "[Improved] Ein verknüpfter Maddraxikon-Name wird automatisch in das Mitgliederprofil übernommen."
+    ]
+  },
+  {
     "version": "1.14.0",
     "pub_date": "2026-07-20",
     "notes": [
