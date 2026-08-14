@@ -62,8 +62,10 @@ jobs:
 
             resume_queues_on_exit() {
               if [ "$QUEUES_PAUSED" = "1" ] && [ "$($COMPOSE ps --status running --services app)" = "app" ]; then
-                echo "Resuming queues after interrupted deployment..."
-                $COMPOSE exec -T app php artisan queue:resume --all || true
+                if $COMPOSE exec -T app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+                  echo "Resuming queues after interrupted deployment..."
+                  $COMPOSE exec -T app php artisan queue:resume --all || true
+                fi
               fi
             }
 
@@ -72,13 +74,15 @@ jobs:
             echo "Pulling new images..."
             $COMPOSE pull
 
-            # Laravel 13.25 can stop workers from accepting another job while
-            # the current one is allowed to finish. The feature check keeps the
-            # first deployment from failing while Production still runs 13.24.
-            if docker exec maddrax-app php artisan list --raw | grep -Fq "queue:pause"; then
+            # Laravel 13.25 can pause all queues while the current job finishes.
+            # Laravel 13.24 already exposes queue:pause, but does not support the
+            # --all option, so detect the option itself for the first rollout.
+            if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
               echo "Pausing all queues before replacing containers..."
               docker exec maddrax-app php artisan queue:pause --all
               QUEUES_PAUSED=1
+            else
+              echo "Global queue pause is not available yet; relying on the graceful worker stop."
             fi
 
             echo "Stopping queue worker gracefully..."
@@ -166,7 +170,9 @@ jobs:
             docker exec maddrax-app chmod -R 775 /var/www/html/storage
 
             # Always clear a persisted global pause before new workers start.
-            docker exec maddrax-app php artisan queue:resume --all
+            if docker exec maddrax-app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+              docker exec maddrax-app php artisan queue:resume --all
+            fi
             QUEUES_PAUSED=0
             
             # Start long-running workers only after migrations and the

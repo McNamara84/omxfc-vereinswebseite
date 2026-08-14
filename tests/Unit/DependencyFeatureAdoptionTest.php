@@ -33,15 +33,18 @@ class DependencyFeatureAdoptionTest extends TestCase
     public function test_deployment_pauses_queues_gracefully_and_resumes_before_workers_start(): void
     {
         $workflow = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/deploy.yml');
+        $featureCheck = strpos($workflow, 'php artisan queue:pause --help --no-ansi');
         $pause = strpos($workflow, 'php artisan queue:pause --all');
         $stop = strpos($workflow, '$COMPOSE stop --timeout 360 queue');
         $resume = strpos($workflow, 'docker exec maddrax-app php artisan queue:resume --all');
         $start = strpos($workflow, '$COMPOSE up -d --force-recreate --no-deps queue scheduler');
 
+        $this->assertNotFalse($featureCheck);
         $this->assertNotFalse($pause);
         $this->assertNotFalse($stop);
         $this->assertNotFalse($resume);
         $this->assertNotFalse($start);
+        $this->assertLessThan($pause, $featureCheck);
         $this->assertLessThan($stop, $pause);
         $this->assertLessThan($resume, $stop);
         $this->assertLessThan($start, $resume);
