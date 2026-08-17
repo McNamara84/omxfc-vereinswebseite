@@ -54,4 +54,12 @@ class AuthServiceProviderTest extends TestCase
 
         $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
     }
+
+    public function test_user_without_current_team_cannot_access_dashboard_without_exception(): void
+    {
+        $user = User::factory()->create(['current_team_id' => Team::membersTeam()->id]);
+        $user->setRelation('currentTeam', null);
+
+        $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
+    }
 }

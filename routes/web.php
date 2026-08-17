@@ -40,6 +40,7 @@ use App\Http\Controllers\TourAdminController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\VeranstaltungController;
 use App\Http\Controllers\VeranstaltungVerwaltungController;
+use App\Http\Middleware\RedirectAuthenticatedMemberHome;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Livewire\BelohnungenAdmin;
@@ -82,7 +83,9 @@ use Illuminate\Support\Facades\Route;
 Route::livewire('/umfrage', UmfrageVote::class)->name('umfrage.aktuell');
 
 // Öffentliche Seiten
-Route::get('/', [PageController::class, 'home'])->name('home');
+Route::get('/', [PageController::class, 'home'])
+    ->middleware(RedirectAuthenticatedMemberHome::class)
+    ->name('home');
 Route::get('/satzung', [PageController::class, 'satzung'])->name('satzung');
 Route::get('/chronik', [PageController::class, 'chronik'])->name('chronik');
 Route::get('/ehrenmitglieder', [PageController::class, 'ehrenmitglieder'])->name('ehrenmitglieder');

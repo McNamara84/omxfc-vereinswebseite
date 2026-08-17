@@ -1,20 +1,18 @@
 <x-app-layout>
     <x-member-page>
-        <div class="space-y-8">
-            <x-ui.page-header eyebrow="Community Hub" :title="$dashboardGreeting" :description="$dashboardDescription">
-                <x-slot:actions>
-                    <x-ui.action-cluster align="end">
-                        @foreach($dashboardHeaderBadges as $badge)
-                            <span class="{{ $badge['class'] }}">{{ $badge['label'] }}</span>
-                        @endforeach
-                    </x-ui.action-cluster>
-
-                    <x-ui.action-cluster align="end">
-                        <a href="{{ route('todos.index') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Baxx verdienen</a>
-                        <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Aktuelle Veranstaltung</a>
-                    </x-ui.action-cluster>
-                </x-slot:actions>
-            </x-ui.page-header>
+        <div class="space-y-6">
+            <header class="flex flex-col gap-3 border-b border-base-content/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/75">Community Hub</p>
+                    <h1 class="mt-1 font-display text-3xl font-semibold tracking-tight text-base-content sm:text-4xl">{{ $dashboardGreeting }}</h1>
+                    <p class="mt-1 text-sm text-base-content/65">{{ $dashboardDescription }}</p>
+                </div>
+                @if($dashboardPrimaryAction)
+                    <a href="{{ $dashboardPrimaryAction['href'] }}" wire:navigate class="btn btn-primary btn-sm rounded-full self-start sm:self-auto">
+                        {{ $dashboardPrimaryAction['title'] }}
+                    </a>
+                @endif
+            </header>
 
             @if(session('status'))
                 <x-alert icon="o-check-circle" class="alert-success" dismissible>
@@ -24,7 +22,8 @@
 
             @if($walletWarning)
                 <x-alert icon="o-exclamation-triangle" class="alert-warning" dismissible>
-                    {{ $walletWarning }}
+                    <span class="font-semibold">Baxx-Guthaben wird geprüft</span>
+                    <span class="block text-sm">{{ $walletWarning }}</span>
                 </x-alert>
             @endif
 
@@ -32,29 +31,20 @@
                 <x-review-baxx-special-offer :offer="$prominentReviewSpecialOffer" />
             @endif
 
-            <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(22rem,0.95fr)] xl:items-start">
-                <div class="space-y-8">
-                    <x-ui.panel title="Dein Fokus heute" description="Die wichtigsten Kennzahlen und Einstiege für deinen nächsten Schritt in der Community.">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen" data-testid="dashboard-focus-cards">
-                            @foreach($focusCards as $card)
-                                <x-bento-card :href="$card['href']" :title="$card['title']" :sr-text="$card['sr_text']" :icon="$card['icon']" wire:navigate>
-                                    <x-slot:description>{{ $card['description'] }}</x-slot:description>
-                                    <x-slot:value>{{ $card['value'] }}</x-slot:value>
-                                </x-bento-card>
-                            @endforeach
-                        </div>
-                    </x-ui.panel>
+            <x-dashboard.tasks-panel :tasks="$tasks" />
 
-                    @include('dashboard.partials.applicants-panel')
-                    @include('dashboard.partials.pending-verification-panel')
-                    @include('dashboard.partials.activity-feed')
-                </div>
+            @foreach($metricGroups as $metricGroup)
+                <x-dashboard.metric-group :group="$metricGroup" />
+            @endforeach
 
-                <aside class="space-y-8">
-                    @include('dashboard.partials.quick-actions-panel')
-                    @include('dashboard.partials.top-users-panel')
-                </aside>
+            <div class="grid gap-4 lg:grid-cols-2 lg:items-start">
+                @include('dashboard.partials.quick-actions-panel')
+                @include('dashboard.partials.top-users-panel')
             </div>
+
+            @include('dashboard.partials.applicants-panel')
+
+            <livewire:dashboard-activity-feed />
         </div>
     </x-member-page>
 </x-app-layout>
