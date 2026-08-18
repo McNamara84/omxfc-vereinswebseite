@@ -258,7 +258,7 @@ class NavigationMenuTest extends TestCase
     {
         $user = $this->createUserWithRole(Role::Mitglied);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
 
@@ -331,7 +331,7 @@ class NavigationMenuTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Admin->value]);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertSee(route('admin.statistiken.index'));
         $response->assertSee('Newsletter versenden');
@@ -360,7 +360,7 @@ class NavigationMenuTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertDontSee(route('admin.statistiken.index'));
         // Admin menu should not appear in navigation for non-admin users
@@ -373,7 +373,7 @@ class NavigationMenuTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Admin->value]);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
         $response->assertDontSee(route('hoerbuecher.create'));
     }
 
@@ -383,7 +383,7 @@ class NavigationMenuTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertDontSee(route('hoerbuecher.create'));
     }
