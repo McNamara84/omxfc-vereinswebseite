@@ -619,16 +619,13 @@ class DashboardControllerTest extends TestCase
         $this->assertFalse(Cache::has("open_todos_{$team->id}_{$user->id}"));
     }
 
-    public function test_redirect_when_membership_missing(): void
+    public function test_dashboard_is_forbidden_when_membership_is_missing(): void
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $this->actingAs($user);
 
-        $response = $this->get('/dashboard');
-
-        $response->assertRedirect('/');
-        $response->assertSessionHas('error');
+        $this->get('/dashboard')->assertForbidden();
     }
 
     public function test_index_uses_members_team_provider(): void

@@ -206,12 +206,15 @@ jobs:
         run: npx playwright install-deps chromium
       - name: Install Playwright Chromium
         run: npx playwright install chromium
+      - name: Prepare Pest browser screenshot directories
+        # Pest Browser cleans these internal directories unconditionally when tracked screenshots exist.
+        run: mkdir -p tests/Browser/Screenshots/Sliders tests/Browser/Screenshots/ImageDiffView
       - name: Execute Pest browser preview regression
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         # Keep the Pest/PHPUnit order explicit and reproducible for this browser regression.
-        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random --random-order-seed=1
+        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random --random-order-seed=1 --display-all-issues
 
   coverage:
     needs:

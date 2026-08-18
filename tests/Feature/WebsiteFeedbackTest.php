@@ -50,7 +50,7 @@ class WebsiteFeedbackTest extends TestCase
         $this->flushSession();
         $member = $this->createUserWithRole(Role::Mitglied);
         $this->actingAs($member)
-            ->get('/')
+            ->get('/dashboard')
             ->assertOk()
             ->assertSee('website-feedback-trigger');
     }

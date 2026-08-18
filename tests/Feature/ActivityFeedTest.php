@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\BookType;
 use App\Enums\Role;
 use App\Enums\TodoStatus;
+use App\Livewire\DashboardActivityFeed;
 use App\Livewire\RezensionForm;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
@@ -604,7 +605,7 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('MeilensteinNick');
-        $response->assertSeeText('100 Baxx erreicht');
+        $response->assertSeeText('3 Baxx-Meilensteine erreicht: 1, 25 und 100 Baxx');
         $response->assertSeeText('Meilenstein');
     }
 
@@ -698,10 +699,8 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $requestModel->id,
         ]);
 
-        $response = $this->get('/dashboard');
-
-        $response->assertOk();
-        $this->assertCount(3, $response->viewData('activities'));
+        Livewire::test(DashboardActivityFeed::class)
+            ->assertCount('activityIds', 3);
     }
 
     public function test_dashboard_displays_fantreffen_registration_activity_without_profile_link(): void

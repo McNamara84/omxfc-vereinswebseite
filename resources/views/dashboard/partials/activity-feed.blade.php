@@ -9,63 +9,68 @@
         </div>
     </x-slot:header>
 
-    <ul class="space-y-3" role="list">
+    <div class="mb-5 flex flex-wrap gap-2" aria-label="Aktivitäten filtern" data-testid="activity-filters">
+        @foreach($filters as $filterKey => $filterLabel)
+            <button
+                type="button"
+                wire:click="selectFilter('{{ $filterKey }}')"
+                wire:loading.attr="disabled"
+                @class([
+                    'btn btn-sm rounded-full',
+                    'btn-primary' => $activeFilter === $filterKey,
+                    'btn-ghost bg-base-200/70' => $activeFilter !== $filterKey,
+                ])
+                aria-pressed="{{ $activeFilter === $filterKey ? 'true' : 'false' }}"
+            >
+                {{ $filterLabel }}
+            </button>
+        @endforeach
+    </div>
+
+    @php
+        $currentActivityDate = null;
+    @endphp
+    <ul class="space-y-3" role="list" aria-live="polite" aria-busy="false" wire:loading.attr="aria-busy">
         @forelse($activities as $activity)
             @php
-                $subject = $activity->subject;
-                $missingSubjectMessages = [
-                    \App\Models\ReviewComment::class => 'Kommentar – Bezug nicht mehr verfügbar',
-                    \App\Models\FanfictionComment::class => 'Kommentar – Bezug nicht mehr verfügbar',
-                ];
-                $missingSubjectMessage = $missingSubjectMessages[$activity->subject_type]
-                    ?? 'Gelöschter Eintrag – nicht mehr verfügbar';
-                $isFantreffenRegistration = $activity->subject_type === \App\Models\FantreffenAnmeldung::class;
-                $isSwapCompletion = $activity->subject_type === \App\Models\BookSwap::class && $activity->action === 'swap_completed';
-                $activityUser = $activity->user;
-                $activityUserName = $activityUser?->nicknameOrName();
-                $showProfileLink = ! $isFantreffenRegistration && ! $isSwapCompletion && $activityUser;
-                $typeLabels = [
-                    \App\Models\Review::class => 'Rezension',
-                    \App\Models\Fanfiction::class => 'Fanfiction',
-                    \App\Models\ReviewComment::class => 'Kommentar',
-                    \App\Models\FanfictionComment::class => 'Kommentar',
-                    \App\Models\BookOffer::class => 'Tausch',
-                    \App\Models\BookRequest::class => 'Gesuch',
-                    \App\Models\BookSwap::class => 'Tausch',
-                    \App\Models\RewardPurchase::class => 'Belohnung',
-                    \App\Models\AdminMessage::class => 'Hinweis',
-                    \App\Models\FantreffenAnmeldung::class => 'Fantreffen',
-                    \App\Models\Todo::class => 'Challenge',
-                    \App\Models\User::class => 'Mitglied',
-                    \App\Models\MaddraxikonAccountLink::class => 'Maddraxikon',
-                ];
-                if ($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, 'baxx_milestone_reached_')) {
-                    $typeLabels[\App\Models\User::class] = 'Meilenstein';
-                }
-                if ($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, \App\Models\Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX)) {
-                    $typeLabels[\App\Models\User::class] = 'Maddraxikon';
-                }
-                $activityLabel = $typeLabels[$activity->subject_type] ?? 'Aktivität';
+                $activityDate = $activity->dashboard_date_key;
+                $activityDateLabel = $activity->dashboard_date_label;
             @endphp
-            <li class="relative rounded-lg border border-base-200 bg-base-200/50 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}">
-                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-base-content">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 text-primary shadow-sm ring-1 ring-primary/20">
-                        <span class="sr-only">Zeitpunkt</span>
-                        <x-icon name="o-clock" class="w-3.5 h-3.5" />
-                        {{ $activity->created_at->format('d.m.Y H:i') }}
-                    </span>
-                    <x-badge :value="$activityLabel" class="badge-primary badge-outline" icon="o-tag" />
+            @if($activityDate !== $currentActivityDate)
+                <li class="sticky top-16 z-10 py-1" role="presentation" data-testid="activity-day-heading">
+                    <h3 class="inline-flex rounded-full bg-base-100/95 px-3 py-1 text-xs font-bold uppercase tracking-wider text-base-content/65 shadow-sm ring-1 ring-base-200">
+                        {{ $activityDateLabel }}
+                    </h3>
+                </li>
+                @php
+                    $currentActivityDate = $activityDate;
+                @endphp
+            @endif
+            @php
+                $subject = $activity->subject;
+                $missingSubjectMessage = $activity->dashboard_missing_subject_message;
+                $isFantreffenRegistration = $activity->dashboard_is_registration;
+                $isSwapCompletion = $activity->dashboard_is_swap_completion;
+                $activityUser = $activity->user;
+                $activityUserName = $activity->dashboard_actor_name;
+                $showProfileLink = $activity->dashboard_show_profile_link;
+                $activityLabel = $activity->dashboard_label;
+            @endphp
+            <li class="relative rounded-lg border border-base-200 bg-base-200/50 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}" data-testid="dashboard-activity">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/60">
+                    <time datetime="{{ $activity->created_at->toIso8601String() }}" title="{{ $activity->created_at->format('d.m.Y H:i') }}" class="font-medium tabular-nums">
+                        <span class="sr-only">Zeitpunkt:</span>
+                        {{ $activity->created_at->format('H:i') }} Uhr
+                    </time>
+                    <span aria-hidden="true">&middot;</span>
+                    <span class="font-bold uppercase tracking-wide text-primary/80">{{ $activityLabel }}</span>
                     @if($showProfileLink)
-                        <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
-                            <span class="sr-only">von Nutzer</span>
-                            <x-icon name="o-user" class="w-3.5 h-3.5" />
-                            <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="font-semibold text-primary hover:underline">{{ $activityUserName }}</a>
-                        </span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span class="sr-only">von Nutzer</span>
+                        <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="font-semibold text-primary hover:underline">{{ $activityUserName }}</a>
                     @elseif(! $isFantreffenRegistration && ! $isSwapCompletion)
-                        <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
-                            <x-icon name="o-user" class="w-3.5 h-3.5" />
-                            Unbekannter Nutzer
-                        </span>
+                        <span aria-hidden="true">&middot;</span>
+                        <span>Unbekannter Nutzer</span>
                     @endif
                 </div>
 
@@ -228,8 +233,12 @@
                     @elseif($activity->subject_type === \App\Models\User::class && str_starts_with((string) $activity->action, 'baxx_milestone_reached_'))
                         @php
                             $milestoneValue = (int) str_replace('baxx_milestone_reached_', '', (string) $activity->action);
+                            $milestoneGroupCount = (int) ($activity->dashboard_group_count ?? 1);
+                            $milestoneValues = collect($activity->dashboard_milestone_values ?? [$milestoneValue])->sort()->values();
                         @endphp
-                        @if($milestoneValue === 1)
+                        @if($milestoneGroupCount > 1)
+                            <span>hat {{ $milestoneGroupCount }} Baxx-Meilensteine erreicht: {{ $milestoneValues->join(', ', ' und ') }} Baxx</span>
+                        @elseif($milestoneValue === 1)
                             <span>hat die ersten Baxx verdient</span>
                         @else
                             <span>hat {{ $milestoneValue }} Baxx erreicht</span>
@@ -245,4 +254,22 @@
             </li>
         @endforelse
     </ul>
+
+    <div class="mt-5 flex min-h-12 flex-col items-center justify-center gap-2 text-center" aria-live="polite">
+        @if($hasMore)
+            <button
+                type="button"
+                class="btn btn-outline btn-sm rounded-full"
+                wire:click="loadMore"
+                wire:loading.attr="disabled"
+                data-dashboard-feed-load-more
+            >
+                <span wire:loading.remove wire:target="loadMore">Weitere Aktivitäten laden</span>
+                <span wire:loading wire:target="loadMore">Aktivitäten werden geladen …</span>
+            </button>
+            <span class="block h-px w-full" data-dashboard-feed-sentinel aria-hidden="true"></span>
+        @elseif($activities->isNotEmpty())
+            <p class="text-sm text-base-content/60" data-testid="activity-feed-end">Du hast das Ende des Aktivitätsverlaufs erreicht.</p>
+        @endif
+    </div>
 </x-ui.panel>

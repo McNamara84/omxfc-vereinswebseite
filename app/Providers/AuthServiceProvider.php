@@ -56,8 +56,9 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        Gate::define('access-dashboard', function ($user) {
-            return $user->hasTeamPermission($user->currentTeam, 'read');
+        Gate::define('access-dashboard', function (User $user) {
+            return $user->currentTeam !== null
+                && $user->hasTeamPermission($user->currentTeam, 'read');
         });
 
         Gate::define('access-rpg-char-editor', function (User $user) {

@@ -1,6 +1,16 @@
 @php
     $featuredNavigation = $navigation['featured'] ?? [];
     $sectionNavigation = $navigation['sections'] ?? [];
+    $navigationUser = auth()->user();
+    $membersTeamRole = $navigationUser?->mitgliederTeamRole();
+    $brandHref = $navigationUser
+        && $navigationUser->hasVerifiedEmail()
+        && $navigationUser->currentTeam
+        && $membersTeamRole instanceof \App\Enums\Role
+        && $membersTeamRole !== \App\Enums\Role::Anwaerter
+        && \Illuminate\Support\Facades\Gate::forUser($navigationUser)->allows('access-dashboard')
+            ? route('dashboard')
+            : route('home');
 @endphp
 
 <div x-data="{ mobileOpen: false }">
@@ -8,7 +18,7 @@
         <x-nav sticky>
             <x-slot:brand>
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('home') }}" wire:navigate class="shrink-0 rounded-full bg-base-100/80 p-1 ring-1 ring-base-content/10 transition hover:ring-primary/30">
+                    <a href="{{ $brandHref }}" wire:navigate class="shrink-0 rounded-full bg-base-100/80 p-1 ring-1 ring-base-content/10 transition hover:ring-primary/30" data-testid="navigation-brand-link">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
 

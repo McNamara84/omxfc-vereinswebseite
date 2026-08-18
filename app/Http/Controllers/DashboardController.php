@@ -3,33 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
-use App\Enums\TodoStatus;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Activity;
-use App\Models\BookOffer;
-use App\Models\BookSwap;
-use App\Models\Fanfiction;
-use App\Models\FanfictionComment;
-use App\Models\Review;
-use App\Models\ReviewComment;
-use App\Models\RewardPurchase;
-use App\Models\Todo;
 use App\Models\User;
-use App\Models\UserPoint;
-use App\Services\FanfictionAccessService;
+use App\Services\Dashboard\DashboardMetricsService;
 use App\Services\LockedMembersTeamMemberships;
 use App\Services\MembersTeamMembershipLock;
 use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
-use App\Services\RewardService;
 use App\Services\TourAssignmentService;
 use App\Services\UserRoleService;
-use App\Support\PreviewText;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 
 class DashboardController extends Controller
@@ -38,8 +24,7 @@ class DashboardController extends Controller
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider,
         private ReviewBaxxService $reviewBaxxService,
-        private RewardService $rewardService,
-        private FanfictionAccessService $fanfictionAccessService,
+        private DashboardMetricsService $dashboardMetricsService,
         private TourAssignmentService $tourAssignmentService,
         private MembersTeamMembershipLock $membershipLock,
     ) {}
@@ -47,25 +32,23 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        abort_unless($user instanceof User, 403);
+
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $cacheFor = now()->addMinutes(10);
-
-        // Anwärter abrufen, nur für Kassenwart, Vorstand, Admin
-        $anwaerter = collect();
         $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
 
-        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         try {
             $userRole = $this->userRoleService->getRole($user, $team);
         } catch (ModelNotFoundException) {
             return redirect()->route('home')->with('error', 'Teamzugehörigkeit nicht gefunden.');
         }
 
+        $anwaerter = collect();
+
         if (in_array($userRole, $allowedRoles, true)) {
             $cachedApplicants = Cache::remember(
                 self::applicantsCacheKey($team->id),
-                $cacheFor,
+                now()->addMinutes(10),
                 fn () => $team->users()
                     ->wherePivot('role', Role::Anwaerter->value)
                     ->get(['users.id', 'users.name', 'users.email', 'users.mitgliedsbeitrag'])
@@ -75,513 +58,134 @@ class DashboardController extends Controller
             );
 
             if (is_array($cachedApplicants)) {
-                $anwaerter = User::hydrate(array_values(array_filter($cachedApplicants, static fn (mixed $applicant): bool => is_array($applicant))));
+                $anwaerter = User::hydrate(array_values(array_filter(
+                    $cachedApplicants,
+                    static fn (mixed $applicant): bool => is_array($applicant),
+                )));
             }
         }
 
-        // ToDo-Statistiken abrufen
-
-        // Initialisierung der Variablen
-        $openTodos = 0;
-        $availableBaxx = 0;
-        $pendingVerification = 0;
-        $topUsers = [];
-        $myReviews = 0;
-        $myReviewComments = 0;
-        $romantauschMatches = 0;
-        $romantauschOffers = 0;
-        $fanfictionCount = 0;
-
-        // Offene Aufgaben
-        $openTodosByTeam = Cache::remember(
-            "open_todos_{$user->id}",
-            $cacheFor,
-            fn () => Todo::query()
-                ->select('team_id', DB::raw('COUNT(*) as total'))
-                ->where('assigned_to', $user->id)
-                ->where('status', TodoStatus::Assigned->value)
-                ->groupBy('team_id')
-                ->pluck('total', 'team_id')
-                ->all()
-        );
-
-        $openTodos = $openTodosByTeam[$team->id] ?? 0;
-
-        // Verfügbares Baxx-Guthaben bewusst nicht cachen, damit Käufe und Erstattungen
-        // auf dem Dashboard sofort sichtbar werden.
-        $walletState = $this->rewardService->getWalletState($user);
-        $availableBaxx = $walletState['availableBaxx'] ?? 0;
-        $walletWarning = $walletState['warning'];
-
-        // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
-        if (in_array($userRole, $allowedRoles, true)) {
-            $pendingVerification = Cache::remember(
-                "pending_verification_{$team->id}",
-                $cacheFor,
-                fn () => Todo::where('team_id', $team->id)
-                    ->where('status', 'completed')
-                    ->count()
-            );
-        }
-
-        // TOP3 Nutzer mit den meisten Punkten
-        $topUsers = Cache::remember(
-            "top_users_{$team->id}",
-            $cacheFor,
-            function () use ($team) {
-                return UserPoint::where('team_id', $team->id)
-                    ->select('user_id', DB::raw('SUM(points) as total_points'))
-                    ->groupBy('user_id')
-                    ->orderBy('total_points', 'desc')
-                    ->limit(3)
-                    ->get()
-                    ->map(function ($item) {
-                        $user = User::find($item->user_id);
-
-                        return [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'profile_photo_url' => $user->profile_photo_url,
-                            'points' => $item->total_points,
-                        ];
-                    })
-                    ->values()
-                    ->all();
-            }
-        );
-
-        $myReviews = Cache::remember(
-            "my_reviews_{$team->id}_{$user->id}",
-            $cacheFor,
-            fn () => Review::where('team_id', $team->id)
-                ->where('user_id', $user->id)
-                ->count()
-        );
-
-        // Eigene Kommentare auf Rezensionen
-        $myReviewComments = Cache::remember(
-            "my_review_comments_{$team->id}_{$user->id}",
-            $cacheFor,
-            fn () => ReviewComment::where('user_id', $user->id)
-                ->whereHas('review', function ($query) use ($team) {
-                    $query->where('team_id', $team->id);
-                })
-                ->count()
-        );
-
-        $romantauschMatches = Cache::remember(
-            "romantausch_matches_{$team->id}_{$user->id}",
-            $cacheFor,
-            fn () => BookSwap::query()
-                ->join('book_offers', 'book_swaps.offer_id', '=', 'book_offers.id')
-                ->join('book_requests', 'book_swaps.request_id', '=', 'book_requests.id')
-                ->whereNull('book_swaps.completed_at')
-                ->where(function ($query) use ($user) {
-                    $query->where('book_offers.user_id', $user->id)
-                        ->orWhere('book_requests.user_id', $user->id);
-                })
-                ->count()
-        );
-
-        $romantauschOffers = Cache::remember(
-            "romantausch_offers_{$user->id}",
-            $cacheFor,
-            fn () => BookOffer::query()
-                ->where('user_id', $user->id)
-                ->where('completed', false)
-                ->count()
-        );
-
-        // Anzahl veröffentlichter Fanfiction-Storys
-        $fanfictionCount = Cache::remember(
-            "fanfiction_count_{$team->id}",
-            $cacheFor,
-            fn () => Fanfiction::where('team_id', $team->id)
-                ->published()
-                ->count()
-        );
-
-        $activities = Activity::with(['user', 'subject'])
-            ->latest()
-            ->limit(10)
-            ->get()
-            ->loadMorph('subject', [
-                BookSwap::class => ['offer.user', 'request.user'],
-                Fanfiction::class => ['reward'],
-                FanfictionComment::class => ['fanfiction.reward'],
-                ReviewComment::class => ['review'],
-                RewardPurchase::class => ['reward'],
-            ]);
-        $activities = $this->prepareActivityFeed($activities, $user);
-
-        $prominentReviewSpecialOffer = $this->reviewBaxxService->getProminentSpecialOffer();
-        $focusCards = $this->buildFocusCards(
-            openTodos: $openTodos,
-            availableBaxx: $availableBaxx,
-            walletWarning: $walletWarning,
-            romantauschMatches: $romantauschMatches,
-            romantauschOffers: $romantauschOffers,
-            myReviews: $myReviews,
-            fanfictionCount: $fanfictionCount,
-        );
+        $dashboard = $this->dashboardMetricsService->build($user, $team, $userRole, $anwaerter->count());
+        $showGovernanceTools = in_array($userRole, $allowedRoles, true);
         $dashboardGreeting = $this->resolveDashboardGreeting($user);
         $dashboardDescription = $this->resolveDashboardDescription(
-            userRole: $userRole,
-            allowedRoles: $allowedRoles,
-            applicantCount: $anwaerter->count(),
-            pendingVerification: $pendingVerification,
+            $userRole,
+            $allowedRoles,
+            $anwaerter->count(),
+            $dashboard['pendingVerification'],
         );
-        $quickActions = $this->buildQuickActions(
-            userRole: $userRole,
-            allowedRoles: $allowedRoles,
-            applicantCount: $anwaerter->count(),
-            pendingVerification: $pendingVerification,
-        );
-        $showGovernanceTools = in_array($userRole, $allowedRoles, true);
-        $dashboardHeaderBadges = $this->buildDashboardHeaderBadges(
-            availableBaxx: $availableBaxx,
-            walletWarning: $walletWarning,
-            openTodos: $openTodos,
-            showGovernanceTools: $showGovernanceTools,
-            pendingVerification: $pendingVerification,
-        );
-        ['entries' => $topUsersEntries, 'summary' => $topUsersSummary, 'payload' => $topUsersPayload] = $this->buildTopUsersViewData($topUsers);
+        $dashboardPrimaryAction = collect($dashboard['tasks'])
+            ->first(fn (array $task): bool => ($task['count'] ?? 0) > 0);
+        ['entries' => $topUsersEntries, 'summary' => $topUsersSummary, 'payload' => $topUsersPayload] = $this->buildTopUsersViewData($dashboard['topUsers']);
 
-        return view('dashboard', compact(
-            'anwaerter',
-            'openTodos',
-            'availableBaxx',
-            'walletWarning',
-            'pendingVerification',
-            'userRole',
-            'allowedRoles',
-            'topUsers',
-            'myReviews',
-            'myReviewComments',
-            'romantauschMatches',
-            'romantauschOffers',
-            'fanfictionCount',
-            'activities',
-            'prominentReviewSpecialOffer',
-            'focusCards',
-            'dashboardGreeting',
-            'dashboardDescription',
-            'quickActions',
-            'showGovernanceTools',
-            'dashboardHeaderBadges',
-            'topUsersEntries',
-            'topUsersSummary',
-            'topUsersPayload',
-        ));
-    }
-
-    /**
-     * @param  Collection<int, Activity>  $activities
-     * @return Collection<int, Activity>
-     */
-    private function prepareActivityFeed(Collection $activities, User $user): Collection
-    {
-        if (! $activities->contains(fn (Activity $activity): bool => $activity->subject_type === Fanfiction::class && $activity->action === 'published')) {
-            return $activities;
-        }
-
-        $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
-
-        $activities->each(function (Activity $activity) use ($user, $unlockedRewardIds): void {
-            if ($activity->subject_type !== Fanfiction::class || $activity->action !== 'published') {
-                return;
-            }
-
-            $fanfiction = $activity->subject;
-
-            if (! $fanfiction instanceof Fanfiction) {
-                return;
-            }
-
-            $previewSource = $this->fanfictionAccessService->hasUnlocked($user, $fanfiction, $unlockedRewardIds)
-                ? $fanfiction->content
-                : $fanfiction->teaser;
-
-            $activity->forceFill([
-                'dashboard_fanfiction_preview' => (string) PreviewText::make($previewSource, 160),
-            ]);
-        });
-
-        return $activities;
-    }
-
-    private function buildDashboardHeaderBadges(int $availableBaxx, ?string $walletWarning, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array
-    {
-        $badges = [
-            [
-                'label' => $walletWarning ? 'Baxx-Guthaben wird geprüft' : "{$availableBaxx} Baxx verfügbar",
-                'class' => $walletWarning
-                    ? 'badge badge-warning badge-outline rounded-full px-3 py-3'
-                    : 'badge badge-primary badge-outline rounded-full px-3 py-3',
-            ],
-            [
-                'label' => trans_choice(':count offene Challenge|:count offene Challenges', $openTodos, ['count' => $openTodos]),
-                'class' => 'badge badge-outline rounded-full px-3 py-3',
-            ],
-        ];
-
-        if ($showGovernanceTools && $pendingVerification > 0) {
-            $badges[] = [
-                'label' => trans_choice(':count wartet auf Verifizierung|:count warten auf Verifizierung', $pendingVerification, ['count' => $pendingVerification]),
-                'class' => 'badge badge-secondary badge-outline rounded-full px-3 py-3',
-            ];
-        }
-
-        return $badges;
+        return view('dashboard', [
+            ...$dashboard,
+            'anwaerter' => $anwaerter,
+            'userRole' => $userRole,
+            'allowedRoles' => $allowedRoles,
+            'prominentReviewSpecialOffer' => $this->reviewBaxxService->getProminentSpecialOffer(),
+            'dashboardGreeting' => $dashboardGreeting,
+            'dashboardDescription' => $dashboardDescription,
+            'dashboardPrimaryAction' => $dashboardPrimaryAction,
+            'quickActions' => $this->buildQuickActions(),
+            'showGovernanceTools' => $showGovernanceTools,
+            'topUsersEntries' => $topUsersEntries,
+            'topUsersSummary' => $topUsersSummary,
+            'topUsersPayload' => $topUsersPayload,
+        ]);
     }
 
     private function buildTopUsersViewData(iterable $topUsers): array
     {
-        $entries = collect($topUsers)
-            ->values()
-            ->map(function ($user) {
-                $points = (int) $user['points'];
+        $entries = collect($topUsers)->values()->map(function ($user) {
+            $points = (int) $user['points'];
 
-                return [
-                    ...$user,
-                    'points' => $points,
-                    'formatted_points' => $this->formatDashboardPoints($points),
-                ];
-            });
-        $summary = $entries->isNotEmpty()
-            ? 'Top '.$entries->count().' Baxx-Sammler: '
-                .$entries->map(function ($user, $index) {
-                    $position = $index + 1;
-
-                    return $position.'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)';
-                })->implode(', ')
-            : null;
-        $payload = $entries->map(function ($user) {
             return [
-                'id' => $user['id'],
-                'name' => $user['name'],
-                'points' => (int) $user['points'],
-                'formatted_points' => $user['formatted_points'],
+                ...$user,
+                'points' => $points,
+                'formatted_points' => number_format($points, 0, ',', '.'),
             ];
-        })->toArray();
+        });
+        $summary = $entries->isNotEmpty()
+            ? 'Top '.$entries->count().' Baxx-Sammler: '.$entries->map(function ($user, $index) {
+                return ($index + 1).'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)';
+            })->implode(', ')
+            : null;
+        $payload = $entries->map(fn ($user): array => [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'points' => (int) $user['points'],
+            'formatted_points' => $user['formatted_points'],
+        ])->toArray();
 
-        return [
-            'entries' => $entries,
-            'summary' => $summary,
-            'payload' => $payload,
-        ];
+        return ['entries' => $entries, 'summary' => $summary, 'payload' => $payload];
     }
 
-    private function formatDashboardPoints(int $points): string
+    private function buildQuickActions(): array
     {
-        return number_format($points, 0, ',', '.');
-    }
-
-    private function buildFocusCards(
-        int $openTodos,
-        int $availableBaxx,
-        ?string $walletWarning,
-        int $romantauschMatches,
-        int $romantauschOffers,
-        int $myReviews,
-        int $fanfictionCount,
-    ): array {
         return [
-            [
-                'title' => 'Offene Challenges',
-                'description' => 'Angenommene, noch nicht abgeschlossene Challenges.',
-                'value' => $openTodos,
-                'href' => route('todos.index'),
-                'icon' => 'o-bolt',
-                'sr_text' => trans_choice('Meine offene Challenge: :count|Meine offenen Challenges: :count', $openTodos, ['count' => $openTodos]),
-            ],
-            [
-                'title' => 'Verfügbare Baxx',
-                'description' => $walletWarning
-                    ? 'Das Baxx-Guthaben wird geprüft, weil ältere Käufe noch keiner Wallet eindeutig zugeordnet sind.'
-                    : 'Aktuelles Guthaben für Freischaltungen im Mitgliederbereich.',
-                'value' => $walletWarning ? 'Prüfung nötig' : $availableBaxx,
-                'href' => null,
-                'icon' => 'o-sparkles',
-                'sr_text' => $walletWarning ?? "Verfügbare Baxx: {$availableBaxx}",
-            ],
-            [
-                'title' => 'Matches in Tauschbörse',
-                'description' => 'Offene Treffer aus Angeboten und Gesuchen in der Community.',
-                'value' => $romantauschMatches,
-                'href' => route('romantausch.index'),
-                'icon' => 'o-arrows-right-left',
-                'sr_text' => "Meine Matches in der Tauschbörse: {$romantauschMatches}",
-            ],
-            [
-                'title' => 'Angebote in der Tauschbörse',
-                'description' => 'Aktive Angebote, die du aktuell mit anderen teilst.',
-                'value' => $romantauschOffers,
-                'href' => route('romantausch.index'),
-                'icon' => 'o-archive-box',
-                'sr_text' => "Meine Angebote in der Tauschbörse: {$romantauschOffers}",
-            ],
-            [
-                'title' => 'Meine Rezensionen',
-                'description' => 'Dein veröffentlichter Beitragsstand im Rezensionsbereich.',
-                'value' => $myReviews,
-                'href' => route('reviews.index'),
-                'icon' => 'o-book-open',
-                'sr_text' => "Meine Rezensionen: {$myReviews}",
-            ],
-            [
-                'title' => 'Fanfiction',
-                'description' => 'Veröffentlichte Geschichten aus dem MADDRAX-Universum.',
-                'value' => $fanfictionCount,
-                'href' => route('fanfiction.index'),
-                'icon' => 'o-pencil-square',
-                'sr_text' => "Fanfiction: {$fanfictionCount}",
-            ],
+            ['title' => 'Baxx verdienen', 'href' => route('todos.index'), 'icon' => 'o-bolt'],
+            ['title' => 'Tauschbörse', 'href' => route('romantausch.index'), 'icon' => 'o-arrows-right-left'],
+            ['title' => 'Rezensionen', 'href' => route('reviews.index'), 'icon' => 'o-book-open'],
+            ['title' => 'Veranstaltung', 'href' => route('veranstaltungen.aktuell'), 'icon' => 'o-calendar-days'],
         ];
-    }
-
-    private function buildQuickActions(Role $userRole, array $allowedRoles, int $applicantCount, int $pendingVerification): array
-    {
-        $actions = [
-            [
-                'title' => 'Baxx verdienen',
-                'description' => 'Finde offene Aufgaben, prüfe Zusagen und springe direkt in deinen Arbeitsmodus.',
-                'href' => route('todos.index'),
-                'icon' => 'o-bolt',
-            ],
-            [
-                'title' => 'Tauschbörse öffnen',
-                'description' => 'Neue Matches prüfen oder schnell selbst Angebote und Gesuche nachziehen.',
-                'href' => route('romantausch.index'),
-                'icon' => 'o-arrows-right-left',
-            ],
-            [
-                'title' => 'Rezensionen entdecken',
-                'description' => 'Neue Rezensionen lesen, kommentieren oder eigene Beiträge weiterentwickeln.',
-                'href' => route('reviews.index'),
-                'icon' => 'o-book-open',
-            ],
-            [
-                'title' => 'Aktuelle Veranstaltung ansehen',
-                'description' => 'Programm, Anmeldung und aktuelle Informationen zur nächsten Veranstaltung im Blick behalten.',
-                'href' => route('veranstaltungen.aktuell'),
-                'icon' => 'o-calendar-days',
-            ],
-        ];
-
-        if (in_array($userRole, $allowedRoles, true)) {
-            array_unshift($actions, [
-                'title' => 'Verifizierungen prüfen',
-                'description' => 'Abgeschlossene Challenges freigeben und nächste Schritte für Teams anstoßen.',
-                'href' => route('todos.index', ['filter' => 'pending']),
-                'icon' => 'o-shield-check',
-                'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
-            ]);
-
-            $actions[] = [
-                'title' => 'Veranstaltungen verwalten',
-                'description' => 'Inhalte, Anmeldungen und operative Eventpunkte zentral pflegen.',
-                'href' => route('admin.veranstaltungen.index'),
-                'icon' => 'o-users',
-            ];
-
-            if ($applicantCount > 0) {
-                array_unshift($actions, [
-                    'title' => 'Mitgliedsanträge prüfen',
-                    'description' => 'Neue Anwärter sichten, Rückfragen beantworten und Freigaben zügig erledigen.',
-                    'href' => route('dashboard'),
-                    'icon' => 'o-user-plus',
-                    'badge' => (string) $applicantCount,
-                ]);
-            }
-        }
-
-        return $actions;
     }
 
     private function resolveDashboardGreeting(User $user): string
     {
         $preferredName = trim((string) ($user->vorname ?: str($user->name)->before(' ')));
 
-        return $preferredName !== ''
-            ? "Willkommen zurück, {$preferredName}"
-            : 'Willkommen zurück';
+        return $preferredName !== '' ? "Willkommen zurück, {$preferredName}" : 'Willkommen zurück';
     }
 
     private function resolveDashboardDescription(Role $userRole, array $allowedRoles, int $applicantCount, int $pendingVerification): string
     {
         if (! in_array($userRole, $allowedRoles, true)) {
-            return 'Dein Einstieg in Challenges, Community-Aktivität, Tauschbörse und aktuelle Vereinsinhalte.';
+            return 'Deine nächsten Schritte, dein Fortschritt und Neues aus der Community.';
         }
 
-        $segments = ['Behalte Community-Aktivität, Anträge und laufende Freigaben zentral im Blick.'];
+        $openGovernanceTasks = $applicantCount + $pendingVerification;
 
-        if ($applicantCount > 0) {
-            $segments[] = $applicantCount === 1
-                ? 'Gerade wartet ein neuer Mitgliedsantrag auf deine Rückmeldung.'
-                : "Gerade warten {$applicantCount} neue Mitgliedsanträge auf deine Rückmeldung.";
-        }
-
-        if ($pendingVerification > 0) {
-            $segments[] = $pendingVerification === 1
-                ? 'Zusätzlich ist eine Challenge zur Verifizierung offen.'
-                : "Zusätzlich sind {$pendingVerification} Challenges zur Verifizierung offen.";
-        }
-
-        return implode(' ', $segments);
+        return $openGovernanceTasks > 0
+            ? trans_choice(':count Verwaltungsaufgabe wartet auf dich.|:count Verwaltungsaufgaben warten auf dich.', $openGovernanceTasks, ['count' => $openGovernanceTasks])
+            : 'Deine nächsten Schritte und der aktuelle Stand im Verein.';
     }
 
     public function approveAnwaerter(User $user)
     {
         $this->membersTeamProvider->getMembersTeamOrAbort();
-
         $actor = Auth::user();
         abort_unless($actor instanceof User, 403);
 
         $locked = $this->membershipLock->run(
             [$actor->id, $user->id],
-            function (LockedMembersTeamMemberships $memberships) use (
-                $actor,
-                $user,
-            ): ?array {
-                abort_unless(
-                    $memberships->hasRole(
-                        $actor->id,
-                        Role::Kassenwart,
-                        Role::Vorstand,
-                        Role::Admin,
-                    ),
-                    403,
-                );
+            function (LockedMembersTeamMemberships $memberships) use ($actor, $user): ?array {
+                abort_unless($memberships->hasRole(
+                    $actor->id,
+                    Role::Kassenwart,
+                    Role::Vorstand,
+                    Role::Admin,
+                ), 403);
 
                 if ($memberships->role($user->id) !== Role::Anwaerter) {
                     return null;
                 }
 
-                $memberships->team->users()->updateExistingPivot(
-                    $user->id,
-                    ['role' => Role::Mitglied->value],
-                );
+                $memberships->team->users()->updateExistingPivot($user->id, ['role' => Role::Mitglied->value]);
                 $lockedUser = $memberships->user($user->id);
-                $lockedUser->forceFill([
-                    'mitglied_seit' => now()->toDateString(),
-                ])->save();
+                $lockedUser->forceFill(['mitglied_seit' => now()->toDateString()])->save();
 
                 return [$memberships->team, $lockedUser];
             },
         );
 
         if ($locked === null) {
-            return back()->with(
-                'error',
-                'Der Antrag wurde bereits anderweitig bearbeitet.',
-            );
+            return back()->with('error', 'Der Antrag wurde bereits anderweitig bearbeitet.');
         }
 
         [$team, $user] = $locked;
         $this->tourAssignmentService->assignAutoToursForApprovedMember($user, $actor);
         Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
-
         Activity::create([
             'user_id' => $actor->id,
             'subject_type' => User::class,
@@ -599,25 +203,18 @@ class DashboardController extends Controller
     public function rejectAnwaerter(User $user)
     {
         $this->membersTeamProvider->getMembersTeamOrAbort();
-
         $actor = Auth::user();
         abort_unless($actor instanceof User, 403);
 
         $team = $this->membershipLock->run(
             [$actor->id, $user->id],
-            function (LockedMembersTeamMemberships $memberships) use (
-                $actor,
-                $user,
-            ) {
-                abort_unless(
-                    $memberships->hasRole(
-                        $actor->id,
-                        Role::Kassenwart,
-                        Role::Vorstand,
-                        Role::Admin,
-                    ),
-                    403,
-                );
+            function (LockedMembersTeamMemberships $memberships) use ($actor, $user) {
+                abort_unless($memberships->hasRole(
+                    $actor->id,
+                    Role::Kassenwart,
+                    Role::Vorstand,
+                    Role::Admin,
+                ), 403);
 
                 if ($memberships->role($user->id) !== Role::Anwaerter) {
                     return null;
@@ -631,10 +228,7 @@ class DashboardController extends Controller
         );
 
         if ($team === null) {
-            return back()->with(
-                'error',
-                'Der Antrag wurde bereits anderweitig bearbeitet.',
-            );
+            return back()->with('error', 'Der Antrag wurde bereits anderweitig bearbeitet.');
         }
 
         Cache::forget("member_count_{$team->id}");

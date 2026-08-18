@@ -1,9 +1,17 @@
 import { setupDashboardAccessibility } from './dashboard/accessibility';
+import { setupDashboardActivityFeed } from './dashboard/activity-feed';
+
+const setupDashboard = () => {
+    setupDashboardAccessibility();
+    setupDashboardActivityFeed();
+};
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupDashboardAccessibility();
+    setupDashboard();
 });
 
 document.addEventListener('livewire:navigated', () => {
-    setupDashboardAccessibility();
+    setupDashboard();
 });
+
+window.addEventListener('dashboard-feed-updated', setupDashboardActivityFeed);

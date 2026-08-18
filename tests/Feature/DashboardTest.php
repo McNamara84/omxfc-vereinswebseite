@@ -35,7 +35,7 @@ class DashboardTest extends TestCase
         return $user;
     }
 
-    public function test_dashboard_renders_cards_with_screenreader_texts(): void
+    public function test_dashboard_renders_three_compact_metric_groups_with_four_metrics_each(): void
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
@@ -45,31 +45,22 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
 
-        $expectedTitles = [
-            'Offene Challenges',
-            'Verfügbare Baxx',
-            'Matches in Tauschbörse',
-            'Angebote in der Tauschbörse',
-            'Meine Rezensionen',
-            'Fanfiction',
+        $expectedGroups = [
+            'important' => 'Jetzt wichtig',
+            'progress' => 'Mein Fortschritt',
+            'community' => 'Community',
         ];
 
         $crawler = new Crawler($response->getContent());
-        $cardsContainer = $crawler->filter('div[aria-label="Überblick wichtiger Community-Kennzahlen"]');
-        $this->assertCount(1, $cardsContainer, 'Dashboard card container missing');
-        $this->assertStringContainsString('md:grid-cols-2', $cardsContainer->attr('class'));
-        $this->assertStringContainsString('grid-flow-row-dense', $cardsContainer->attr('class'));
-        $cards = $cardsContainer->filter('[role="region"]');
-        $this->assertCount(count($expectedTitles), $cards, 'Unexpected number of dashboard cards rendered');
-        foreach ($expectedTitles as $title) {
-            $card = $cards->reduce(function (Crawler $node) use ($title) {
-                return $node->filter('h2')->count() && trim($node->filter('h2')->text()) === $title;
-            });
-            $this->assertCount(1, $card, "Card {$title} missing");
-            $headingId = $card->filter('h2')->attr('id');
-            $this->assertNotEmpty($headingId);
-            $this->assertEquals($headingId, $card->attr('aria-labelledby'));
-            $this->assertGreaterThan(0, $card->filter('.sr-only')->count());
+        $groups = $crawler->filter('[data-testid^="dashboard-metric-group-"]');
+        $this->assertCount(3, $groups);
+
+        foreach ($expectedGroups as $key => $title) {
+            $group = $crawler->filter("[data-testid=\"dashboard-metric-group-{$key}\"]");
+            $this->assertCount(1, $group);
+            $this->assertSame($title, trim($group->filter('h2')->text()));
+            $this->assertSame($group->filter('h2')->attr('id'), $group->attr('aria-labelledby'));
+            $this->assertCount(4, $group->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
         }
     }
 
@@ -113,7 +104,7 @@ class DashboardTest extends TestCase
     #[TestWith([Role::Admin])]
     #[TestWith([Role::Vorstand])]
     #[TestWith([Role::Kassenwart])]
-    public function test_dashboard_shows_pending_verification_card(Role $role): void
+    public function test_dashboard_shows_pending_verification_task(Role $role): void
     {
         $user = $this->createUserWithRole($role);
         $team = Team::membersTeam();
@@ -131,13 +122,13 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText('Auf Verifizierung wartende Challenges');
-        $response->assertSeeText('Es gibt 1 Challenge, die auf Bestätigung wartet.');
+        $response->assertSeeText('1 Verifizierung');
+        $response->assertSeeText('Abgeschlossene Challenges warten auf Freigabe.');
 
         $crawler = new Crawler($response->getContent());
-        $pendingPanel = $crawler->filter('[data-testid="dashboard-pending-panel"]');
-        $this->assertCount(1, $pendingPanel);
-        $this->assertSame(route('todos.index', ['filter' => 'pending']), $pendingPanel->attr('href'));
+        $verificationTask = $crawler->filter('[data-testid="dashboard-task-verification"]');
+        $this->assertCount(1, $verificationTask);
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationTask->attr('href'));
     }
 
     public function test_dashboard_hides_pending_verification_card_for_members(): void
@@ -158,7 +149,7 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertOk();
-        $response->assertDontSee('Auf Verifizierung wartende Challenges');
+        $response->assertDontSee('dashboard-task-verification');
     }
 
     public function test_dashboard_displays_top_user_summary(): void
@@ -198,7 +189,7 @@ class DashboardTest extends TestCase
         $this->assertSame(1, $srSummary->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
         $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
-        $this->assertSame('Top Klarname', $payload[0]['name']);
+        $this->assertSame('TopNickname', $payload[0]['name']);
         $this->assertSame('1.234', $payload[0]['formatted_points']);
         $this->assertSame(1234, $payload[0]['points']);
     }
@@ -243,11 +234,11 @@ class DashboardTest extends TestCase
         $response->assertDontSeeText('Willkommen zurück, DashboardNick');
         $response->assertSeeText('Schnellstart');
         $response->assertSeeText('Baxx verdienen');
-        $response->assertSeeText('Aktuelle Veranstaltung ansehen');
+        $response->assertSeeText('Veranstaltung');
         $response->assertDontSeeText('Fantreffen verwalten');
     }
 
-    public function test_dashboard_shows_governance_quick_actions_for_privileged_users(): void
+    public function test_dashboard_prioritizes_governance_work_in_tasks_instead_of_quick_actions(): void
     {
         $user = $this->createUserWithRole(Role::Admin);
         $team = Team::membersTeam();
@@ -266,16 +257,18 @@ class DashboardTest extends TestCase
 
         $response = $this->actingAs($user)->get('/dashboard');
         $quickActions = collect($response->viewData('quickActions'));
+        $tasks = collect($response->viewData('tasks'));
         $earnBaxxAction = $quickActions->firstWhere('title', 'Baxx verdienen');
-        $verificationAction = $quickActions->firstWhere('title', 'Verifizierungen prüfen');
+        $verificationTask = $tasks->firstWhere('key', 'verification');
+        $applicantTask = $tasks->firstWhere('key', 'applicants');
 
         $response->assertOk();
-        $response->assertSeeText('Mitgliedsanträge prüfen');
-        $response->assertSeeText('Verifizierungen prüfen');
-        $response->assertSeeText('Veranstaltungen verwalten');
+        $response->assertSeeText('1 Mitgliedsantrag');
+        $response->assertSeeText('1 Verifizierung');
         $this->assertNotNull($earnBaxxAction);
-        $this->assertArrayNotHasKey('badge', $earnBaxxAction);
-        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationAction['href'] ?? null);
-        $this->assertSame('1', $verificationAction['badge'] ?? null);
+        $this->assertNull($quickActions->firstWhere('title', 'Verifizierungen prüfen'));
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationTask['href'] ?? null);
+        $this->assertSame(1, $verificationTask['count'] ?? null);
+        $this->assertSame('#dashboard-applicants', $applicantTask['href'] ?? null);
     }
 }

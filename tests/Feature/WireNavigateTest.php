@@ -63,7 +63,7 @@ class WireNavigateTest extends TestCase
     {
         $user = $this->actingMember();
 
-        $html = $this->actingAs($user)->get('/')->getContent();
+        $html = $this->actingAs($user)->get('/dashboard')->getContent();
 
         $this->assertLinkHasWireNavigate($html, route('dashboard'), 'Dashboard-Link');
     }
@@ -72,7 +72,7 @@ class WireNavigateTest extends TestCase
     {
         $user = $this->actingMember();
 
-        $html = $this->actingAs($user)->get('/')->getContent();
+        $html = $this->actingAs($user)->get('/dashboard')->getContent();
 
         // Logout-Formular extrahieren und sicherstellen, dass kein wire:navigate darin vorkommt
         preg_match('/<form[^>]*logout[^>]*>.*?<\/form>/si', $html, $logoutForm);
@@ -125,14 +125,14 @@ class WireNavigateTest extends TestCase
         $this->assertLinkHasWireNavigate($html, route('todos.create'), 'Todo-erstellen-Link');
     }
 
-    public function test_reviews_index_has_wire_navigate_on_navigation_links(): void
+    public function test_reviews_index_has_wire_navigate_on_dashboard_navigation_link(): void
     {
         $user = $this->actingMember();
 
         $html = $this->actingAs($user)->get(route('reviews.index'))->getContent();
 
         // Die Seite enthält mindestens einen wire:navigate-Link (z.B. im Navigationsmenü)
-        $this->assertLinkHasWireNavigate($html, route('home'), 'Home-Link in Reviews-Navigation');
+        $this->assertLinkHasWireNavigate($html, route('dashboard'), 'Dashboard-Link in Reviews-Navigation');
     }
 
     public function test_hoerbuecher_index_has_wire_navigate_in_navigation(): void

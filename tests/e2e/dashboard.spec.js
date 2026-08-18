@@ -9,16 +9,25 @@ const login = async (page, email, password = 'password') => {
 };
 
 test.describe('Dashboard overview', () => {
-    test('admin sees dashboard insights, applicants and verification card', async ({ page }) => {
+    const expectDashboardMetrics = async (page) => {
+        const metricGroups = page.locator('[data-testid^="dashboard-metric-group-"]');
+        const metrics = page.locator(
+            '[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])',
+        );
+
+        await expect(metricGroups).toHaveCount(3);
+        await expect(metrics).toHaveCount(12);
+    };
+
+    test('admin sees dashboard insights, applicants and verification task', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
 
         await expect(page).toHaveURL(/\/dashboard$/);
-        const cards = page.getByTestId('dashboard-focus-cards').locator('[role="region"]');
-        await expect(cards).toHaveCount(6);
+        await expectDashboardMetrics(page);
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toBeVisible();
         await expect(page.getByTestId('dashboard-applicant-row').first()).toBeVisible();
-        await expect(page.getByTestId('dashboard-pending-panel')).toBeVisible();
+        await expect(page.getByTestId('dashboard-task-verification')).toBeVisible();
         await expect(page.getByTestId('dashboard-quick-actions')).toContainText(/Schnellstart/i);
 
         const topUsers = page.locator('[data-dashboard-top-users]');
@@ -32,11 +41,10 @@ test.describe('Dashboard overview', () => {
         await expect(page).toHaveURL(/\/dashboard$/);
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toHaveCount(0);
-        await expect(page.getByTestId('dashboard-pending-panel')).toHaveCount(0);
+        await expect(page.getByTestId('dashboard-task-verification')).toHaveCount(0);
         await expect(page.getByTestId('dashboard-quick-actions')).not.toContainText(/Fantreffen verwalten/i);
 
-        const cards = page.getByTestId('dashboard-focus-cards').locator('[role="region"]');
-        await expect(cards).toHaveCount(6);
+        await expectDashboardMetrics(page);
         await expect(page.locator('[data-dashboard-top-summary]')).toContainText(/Top 3 Baxx-Sammler/i);
     });
 });
