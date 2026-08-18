@@ -167,7 +167,7 @@ class MitgliederKarteFeatureTest extends TestCase
         $responses = [
             '11111' => ['lat' => '50.0', 'lon' => '8.0'],
             '22222' => ['lat' => '52.0', 'lon' => '10.0'],
-            '12345' => ['lat' => '53.0', 'lon' => '11.0'],
+            '12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON],
         ];
         Http::swap(new Factory);
         Http::fake([
