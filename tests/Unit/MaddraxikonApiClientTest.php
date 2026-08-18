@@ -495,4 +495,120 @@ class MaddraxikonApiClientTest extends TestCase
             14 => 'Kategorie',
         ], app(MaddraxikonApiClient::class)->namespaces());
     }
+
+    public function test_cover_images_resolve_page_image_file_metadata_and_missing_pages(): void
+    {
+        Http::fakeSequence()
+            ->push([
+                'query' => [
+                    'pages' => [
+                        [
+                            'pageid' => 10,
+                            'pageimage' => 'Cover_10.jpg',
+                            'original' => [
+                                'source' => 'https://wiki.example.test/original.jpg',
+                                'width' => 1400,
+                                'height' => 2000,
+                            ],
+                        ],
+                        ['pageid' => 11],
+                    ],
+                ],
+            ])
+            ->push([
+                'query' => [
+                    'pages' => [[
+                        'pageid' => 99,
+                        'title' => 'Datei:Cover_10.jpg',
+                        'imageinfo' => [[
+                            'thumburl' => 'https://wiki.example.test/thumb/cover.jpg',
+                            'descriptionurl' => 'https://wiki.example.test/wiki/Datei:Cover_10.jpg',
+                            'thumbwidth' => 720,
+                            'thumbheight' => 1029,
+                            'width' => 1400,
+                            'height' => 2000,
+                            'sha1' => str_repeat('a', 40),
+                            'mime' => 'image/jpeg',
+                            'extmetadata' => [
+                                'Artist' => ['value' => '<b>Jane Artist</b>'],
+                                'Credit' => ['value' => 'Bastei &amp; Test'],
+                                'LicenseShortName' => ['value' => 'CC BY-SA 4.0'],
+                                'LicenseUrl' => ['value' => 'https://creativecommons.org/licenses/by-sa/4.0/'],
+                            ],
+                        ]],
+                    ]],
+                ],
+            ]);
+
+        $details = app(MaddraxikonApiClient::class)->coverImages([10, 11, 10, 0]);
+
+        $this->assertSame([10, 11], array_keys($details));
+        $this->assertTrue($details[10]['exists']);
+        $this->assertSame('Datei:Cover_10.jpg', $details[10]['file_title']);
+        $this->assertSame('https://wiki.example.test/thumb/cover.jpg', $details[10]['url']);
+        $this->assertSame(str_repeat('a', 40), $details[10]['sha1']);
+        $this->assertSame(720, $details[10]['width']);
+        $this->assertSame(1029, $details[10]['height']);
+        $this->assertSame('Jane Artist', $details[10]['artist']);
+        $this->assertSame('Bastei & Test', $details[10]['credit']);
+        $this->assertSame('CC BY-SA 4.0', $details[10]['license']);
+        $this->assertFalse($details[11]['exists']);
+        $this->assertNull($details[11]['url']);
+
+        $requests = collect(Http::recorded())->map(function (array $record): array {
+            parse_str($record[0]->url(), $parameters);
+
+            return $parameters;
+        });
+        $this->assertSame('pageimages', $requests[0]['prop']);
+        $this->assertSame('10|11', $requests[0]['pageids']);
+        $this->assertSame('imageinfo', $requests[1]['prop']);
+        $this->assertSame('File:Cover_10.jpg', $requests[1]['titles']);
+        $this->assertSame('720', $requests[1]['iiurlwidth']);
+    }
+
+    public function test_cover_metadata_drops_non_https_public_links(): void
+    {
+        Http::fakeSequence()
+            ->push([
+                'query' => [
+                    'pages' => [[
+                        'pageid' => 20,
+                        'pageimage' => 'Unsafe.jpg',
+                    ]],
+                ],
+            ])
+            ->push([
+                'query' => [
+                    'pages' => [[
+                        'title' => 'File:Unsafe.jpg',
+                        'imageinfo' => [[
+                            'url' => 'https://wiki.example.test/unsafe.jpg',
+                            'descriptionurl' => 'javascript:alert(1)',
+                            'sha1' => 'abc',
+                            'mime' => 'image/jpeg',
+                            'width' => 10,
+                            'height' => 20,
+                            'extmetadata' => [
+                                'LicenseUrl' => ['value' => 'http://license.example.test'],
+                            ],
+                        ]],
+                    ]],
+                ],
+            ]);
+
+        $detail = app(MaddraxikonApiClient::class)->coverImages([20])[20];
+
+        $this->assertTrue($detail['exists']);
+        $this->assertNull($detail['description_url']);
+        $this->assertNull($detail['license_url']);
+    }
+
+    public function test_cover_images_avoid_api_calls_for_an_empty_id_list(): void
+    {
+        Http::fake();
+
+        $this->assertSame([], app(MaddraxikonApiClient::class)->coverImages([]));
+        Http::assertNothingSent();
+    }
 }

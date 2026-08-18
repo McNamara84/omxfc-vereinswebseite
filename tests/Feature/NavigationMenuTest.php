@@ -367,6 +367,24 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSee('Newsletter versenden');
     }
 
+    public function test_cover_ratings_navigation_link_follows_its_feature_flag(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied)->load('teams', 'ownedTeams');
+        $builder = app(NavigationBuilder::class);
+
+        config(['cover-ratings.enabled' => false]);
+        $this->assertNotContains(
+            'Cover-Bewertungen',
+            $this->sectionItemTitles($builder->build($member), 'Community'),
+        );
+
+        config(['cover-ratings.enabled' => true]);
+        $this->assertContains(
+            'Cover-Bewertungen',
+            $this->sectionItemTitles($builder->build($member), 'Community'),
+        );
+    }
+
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void
     {
         $team = Team::membersTeam();

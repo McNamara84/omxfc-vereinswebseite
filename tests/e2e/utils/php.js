@@ -8,6 +8,7 @@ const explicitForwardedEnvironmentKeys = [
     'APP_ENV',
     'APP_DEBUG',
     'APP_KEY',
+    'APP_CONFIG_CACHE',
     'DB_CONNECTION',
     'DB_DATABASE',
     'SESSION_DRIVER',
@@ -25,7 +26,7 @@ const explicitForwardedEnvironmentKeys = [
     'DOCKER_DEV_PLAYWRIGHT_PORT',
     'PLAYWRIGHT_RUN_TOKEN',
 ];
-const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_'];
+const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_', 'COVER_RATINGS_'];
 
 export function shouldUseDockerPhp() {
     return process.env.PLAYWRIGHT_USE_DOCKER === '1';

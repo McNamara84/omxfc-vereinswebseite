@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\Auktion;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
+use App\Models\CoverRating;
 use App\Models\KassenbuchEntry;
 use App\Models\Poll;
 use App\Models\RpgCharacter;
@@ -17,6 +18,7 @@ use App\Models\Veranstaltung;
 use App\Policies\AuktionPolicy;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
+use App\Policies\CoverRatingPolicy;
 use App\Policies\KassenbuchEntryPolicy;
 use App\Policies\PollPolicy;
 use App\Policies\RpgCharacterPolicy;
@@ -39,6 +41,7 @@ class AuthServiceProvider extends ServiceProvider
         Team::class => TeamPolicy::class,
         BookOffer::class => BookOfferPolicy::class,
         BookRequest::class => BookRequestPolicy::class,
+        CoverRating::class => CoverRatingPolicy::class,
         Auktion::class => AuktionPolicy::class,
         Todo::class => TodoPolicy::class,
         KassenbuchEntry::class => KassenbuchEntryPolicy::class,

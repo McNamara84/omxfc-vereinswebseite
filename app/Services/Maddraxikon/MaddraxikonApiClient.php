@@ -341,6 +341,235 @@ class MaddraxikonApiClient
     }
 
     /**
+     * Resolve the representative image and its file metadata for article page IDs.
+     *
+     * @param  array<int, mixed>  $pageIds
+     * @return array<int, array{
+     *     exists: bool,
+     *     page_id: int,
+     *     file_title: ?string,
+     *     url: ?string,
+     *     description_url: ?string,
+     *     sha1: ?string,
+     *     mime_type: ?string,
+     *     width: ?int,
+     *     height: ?int,
+     *     artist: ?string,
+     *     credit: ?string,
+     *     license: ?string,
+     *     license_url: ?string
+     * }>
+     */
+    public function coverImages(array $pageIds): array
+    {
+        $pageIds = $this->positiveUniqueIds($pageIds);
+
+        if ($pageIds === []) {
+            return [];
+        }
+
+        $pageImages = [];
+        $fileTitles = [];
+
+        foreach (array_chunk($pageIds, 50) as $chunk) {
+            $payload = $this->request([
+                'action' => 'query',
+                'prop' => 'pageimages',
+                'pageids' => implode('|', $chunk),
+                'piprop' => 'name|original',
+                'pilicense' => 'any',
+            ]);
+            $pages = data_get($payload, 'query.pages');
+
+            if (! is_array($pages)) {
+                throw new MaddraxikonApiException(
+                    'Die Maddraxikon-API lieferte keine gültigen Coverdaten.'
+                );
+            }
+
+            foreach ($pages as $page) {
+                if (! is_array($page) || ! isset($page['pageid'])) {
+                    continue;
+                }
+
+                $pageId = (int) $page['pageid'];
+                $fileName = isset($page['pageimage']) ? trim((string) $page['pageimage']) : '';
+                $original = is_array($page['original'] ?? null) ? $page['original'] : [];
+                $pageImages[$pageId] = [
+                    'file_name' => $fileName !== '' ? $fileName : null,
+                    'fallback_url' => isset($original['source']) ? (string) $original['source'] : null,
+                    'fallback_width' => isset($original['width']) ? (int) $original['width'] : null,
+                    'fallback_height' => isset($original['height']) ? (int) $original['height'] : null,
+                ];
+
+                if ($fileName !== '') {
+                    $fileTitles[] = 'File:'.$fileName;
+                }
+            }
+        }
+
+        $fileDetails = $this->imageDetails($fileTitles);
+        $resolved = [];
+
+        foreach ($pageIds as $pageId) {
+            $pageImage = $pageImages[$pageId] ?? null;
+            $fileName = is_array($pageImage) ? $pageImage['file_name'] : null;
+            $detail = is_string($fileName)
+                ? ($fileDetails[$this->normalizeFileKey($fileName)] ?? null)
+                : null;
+            $fallbackUrl = is_array($pageImage) ? $pageImage['fallback_url'] : null;
+            $url = is_array($detail) ? ($detail['url'] ?? null) : $fallbackUrl;
+
+            $resolved[$pageId] = [
+                'exists' => is_string($fileName) && is_string($url) && $url !== '',
+                'page_id' => $pageId,
+                'file_title' => is_array($detail) ? $detail['file_title'] : $fileName,
+                'url' => is_string($url) && $url !== '' ? $url : null,
+                'description_url' => is_array($detail) ? $detail['description_url'] : null,
+                'sha1' => is_array($detail) ? $detail['sha1'] : null,
+                'mime_type' => is_array($detail) ? $detail['mime_type'] : null,
+                'width' => is_array($detail) ? $detail['width'] : ($pageImage['fallback_width'] ?? null),
+                'height' => is_array($detail) ? $detail['height'] : ($pageImage['fallback_height'] ?? null),
+                'artist' => is_array($detail) ? $detail['artist'] : null,
+                'credit' => is_array($detail) ? $detail['credit'] : null,
+                'license' => is_array($detail) ? $detail['license'] : null,
+                'license_url' => is_array($detail) ? $detail['license_url'] : null,
+            ];
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * @param  list<string>  $fileTitles
+     * @return array<string, array<string, mixed>>
+     */
+    private function imageDetails(array $fileTitles): array
+    {
+        $details = [];
+        $targetWidth = max(720, (int) config('cover-ratings.images.large_width', 720));
+
+        foreach (array_chunk(array_values(array_unique($fileTitles)), 50) as $chunk) {
+            $payload = $this->request([
+                'action' => 'query',
+                'prop' => 'imageinfo',
+                'titles' => implode('|', $chunk),
+                'iiprop' => 'url|size|sha1|mime|extmetadata',
+                'iiurlwidth' => $targetWidth,
+            ]);
+            $pages = data_get($payload, 'query.pages');
+
+            if (! is_array($pages)) {
+                throw new MaddraxikonApiException(
+                    'Die Maddraxikon-API lieferte keine gültigen Cover-Dateidaten.'
+                );
+            }
+
+            foreach ($pages as $page) {
+                if (! is_array($page)) {
+                    continue;
+                }
+
+                $imageInfo = is_array($page['imageinfo'][0] ?? null)
+                    ? $page['imageinfo'][0]
+                    : null;
+
+                if (! is_array($imageInfo)) {
+                    continue;
+                }
+
+                $title = trim((string) ($page['title'] ?? ''));
+                $fileName = str_contains($title, ':')
+                    ? explode(':', $title, 2)[1]
+                    : $title;
+                $metadata = is_array($imageInfo['extmetadata'] ?? null)
+                    ? $imageInfo['extmetadata']
+                    : [];
+
+                $details[$this->normalizeFileKey($fileName)] = [
+                    'file_title' => $title !== '' ? $title : $fileName,
+                    'url' => (string) ($imageInfo['thumburl'] ?? $imageInfo['url'] ?? ''),
+                    'description_url' => $this->safePublicUrl($imageInfo['descriptionurl'] ?? null),
+                    'sha1' => $this->nullableString($imageInfo['sha1'] ?? null),
+                    'mime_type' => $this->nullableString($imageInfo['mime'] ?? null),
+                    'width' => isset($imageInfo['thumbwidth'])
+                        ? (int) $imageInfo['thumbwidth']
+                        : (isset($imageInfo['width']) ? (int) $imageInfo['width'] : null),
+                    'height' => isset($imageInfo['thumbheight'])
+                        ? (int) $imageInfo['thumbheight']
+                        : (isset($imageInfo['height']) ? (int) $imageInfo['height'] : null),
+                    'artist' => $this->metadataText($metadata, 'Artist'),
+                    'credit' => $this->metadataText($metadata, 'Credit'),
+                    'license' => $this->metadataText($metadata, 'LicenseShortName')
+                        ?? $this->metadataText($metadata, 'UsageTerms'),
+                    'license_url' => $this->metadataUrl($metadata, 'LicenseUrl'),
+                ];
+            }
+        }
+
+        return $details;
+    }
+
+    private function metadataText(array $metadata, string $key): ?string
+    {
+        $value = data_get($metadata, $key.'.value');
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $text = trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(
+            strip_tags($value),
+            ENT_QUOTES | ENT_HTML5,
+            'UTF-8',
+        )));
+
+        return $text === '' ? null : mb_substr($text, 0, 4000);
+    }
+
+    private function metadataUrl(array $metadata, string $key): ?string
+    {
+        $value = data_get($metadata, $key.'.value');
+
+        return $this->safePublicUrl($value);
+    }
+
+    private function normalizeFileKey(string $fileName): string
+    {
+        return mb_strtolower(str_replace('_', ' ', trim($fileName)));
+    }
+
+    private function nullableString(mixed $value): ?string
+    {
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
+    }
+
+    private function safePublicUrl(mixed $value): ?string
+    {
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+        $parts = parse_url($value);
+
+        if (
+            $value === ''
+            || ! filter_var($value, FILTER_VALIDATE_URL)
+            || ! is_array($parts)
+            || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+            || ! isset($parts['host'])
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['fragment'])
+        ) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
      * @param  array<string, int|string>  $parameters
      * @return array<string, mixed>
      */

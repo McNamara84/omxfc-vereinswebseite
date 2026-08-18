@@ -199,6 +199,11 @@ class User extends Authenticatable
         return $this->hasMany(Todo::class, 'created_by');
     }
 
+    public function coverRatings(): HasMany
+    {
+        return $this->hasMany(CoverRating::class);
+    }
+
     /**
      * Get the todos assigned to the user.
      */

@@ -70,7 +70,7 @@ describe('php utils', () => {
         expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/var/www/html/database/playwright.sqlite');
     });
 
-    it('reicht zusaetzliche Test-Credentials mit E2E- oder TEST-Prefix an Docker weiter', async () => {
+    it('reicht zusaetzliche Test-Credentials und Cover-Feature-Flags an Docker weiter', async () => {
         vi.stubEnv('PLAYWRIGHT_USE_DOCKER', '1');
 
         const { createPhpProcess } = await importPhpUtils();
@@ -79,12 +79,15 @@ describe('php utils', () => {
             env: {
                 E2E_SANDBOX_USERNAME: 'demo-user',
                 TEST_API_TOKEN: 'top-secret',
+                COVER_RATINGS_ENABLED: 'true',
             },
         }).args).toEqual(expect.arrayContaining([
             '-e',
             'E2E_SANDBOX_USERNAME=demo-user',
             '-e',
             'TEST_API_TOKEN=top-secret',
+            '-e',
+            'COVER_RATINGS_ENABLED=true',
         ]));
     });
 

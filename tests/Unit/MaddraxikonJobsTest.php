@@ -4,14 +4,17 @@ namespace Tests\Unit;
 
 use App\Data\MaddraxikonRatingSyncResult;
 use App\Jobs\EvaluateMaddraxikonContributions;
+use App\Jobs\SyncCoverRatingCovers;
 use App\Jobs\SyncMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonReviewRatings;
 use App\Models\MaddraxikonSyncState;
+use App\Services\CoverRatings\BookCoverSyncRunner;
 use App\Services\Maddraxikon\MaddraxikonContributionImporter;
 use App\Services\Maddraxikon\MaddraxikonRatingSynchronizer;
 use App\Services\Maddraxikon\MaddraxikonRewardService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Mockery;
@@ -68,6 +71,30 @@ class MaddraxikonJobsTest extends TestCase
         $this->assertInstanceOf(ShouldBeUnique::class, $job);
         $this->assertSame('test-wiki:review-ratings', $job->uniqueId());
         $this->assertSame(900, $job->uniqueFor);
+    }
+
+    public function test_cover_job_is_unique_and_honors_the_sync_feature_flag(): void
+    {
+        $runner = Mockery::mock(BookCoverSyncRunner::class);
+        $runner->shouldNotReceive('run');
+        $job = new SyncCoverRatingCovers;
+
+        config(['cover-ratings.sync_enabled' => false]);
+        $job->handle($runner);
+
+        $this->assertInstanceOf(ShouldQueue::class, $job);
+        $this->assertInstanceOf(ShouldBeUnique::class, $job);
+        $this->assertSame('cover-ratings:sync-covers', $job->uniqueId());
+        $this->assertSame(7200, $job->uniqueFor);
+
+        config(['cover-ratings.sync_enabled' => true]);
+        $runner = Mockery::mock(BookCoverSyncRunner::class);
+        $runner->expects('run')
+            ->with(Mockery::type(Builder::class))
+            ->once()
+            ->andReturn(['ready' => 0, 'unchanged' => 0, 'missing' => 0, 'changed' => 0, 'failed' => 0]);
+
+        $job->handle($runner);
     }
 
     public function test_targeted_evaluation_job_forwards_contribution_and_has_own_lock(): void

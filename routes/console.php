@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\EvaluateMaddraxikonContributions;
+use App\Jobs\SyncCoverRatingCovers;
 use App\Jobs\SyncMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonReviewRatings;
 use Illuminate\Foundation\Inspiring;
@@ -42,3 +43,17 @@ Schedule::job(new SyncMaddraxikonReviewRatings)
     ->cron("*/{$ratingSyncMinutes} * * * *")
     ->name('maddraxikon:review-ratings-sync-job')
     ->withoutOverlapping(15);
+
+$coverSyncHours = min(
+    24,
+    max(1, (int) config('cover-ratings.sync.interval_hours', 24))
+);
+$coverSchedule = Schedule::job(new SyncCoverRatingCovers)
+    ->name('cover-ratings:sync-job')
+    ->withoutOverlapping(120);
+
+if ($coverSyncHours >= 24) {
+    $coverSchedule->dailyAt('03:15');
+} else {
+    $coverSchedule->cron("15 */{$coverSyncHours} * * *");
+}
