@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Http\Middleware\UpdateLastActivity;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,6 +62,19 @@ class DashboardHomeRedirectTest extends TestCase
             ->actingAs($user)
             ->get('/')
             ->assertOk();
+    }
+
+    public function test_verified_member_without_current_team_cannot_open_dashboard_directly(): void
+    {
+        $this->withoutMiddleware(UpdateLastActivity::class);
+
+        $user = $this->member(Role::Mitglied);
+        $user->forceFill(['current_team_id' => null]);
+        $user->setRelation('currentTeam', null);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertForbidden();
     }
 
     public function test_user_without_members_team_membership_cannot_enter_a_redirect_loop(): void

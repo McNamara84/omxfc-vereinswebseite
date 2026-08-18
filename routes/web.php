@@ -217,7 +217,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::controller(DashboardController::class)->group(function () {
-        Route::get('/dashboard', 'index')->name('dashboard');
+        Route::get('/dashboard', 'index')->middleware('can:access-dashboard')->name('dashboard');
         Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');
         Route::post('/anwaerter/{user}/ablehnen', 'rejectAnwaerter')->name('anwaerter.reject');
     });
