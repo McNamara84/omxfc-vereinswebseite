@@ -211,7 +211,12 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         # Keep the Pest/PHPUnit order explicit and reproducible for this browser regression.
-        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random --random-order-seed=1 --display-all-issues --log-events-verbose-text /dev/stdout
+        run: |
+          set +e
+          ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php --order-by=random --random-order-seed=1 --display-all-issues --log-events-text phpunit-events.log --with-telemetry
+          test_exit_code=$?
+          cat phpunit-events.log
+          exit "$test_exit_code"
 
   coverage:
     needs:
