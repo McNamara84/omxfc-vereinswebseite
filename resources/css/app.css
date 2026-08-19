@@ -201,6 +201,91 @@
     }
 }
 
+/* Cover-Bewertungen: Ein einziges Brina-Asset bildet alle Zustände ab. */
+.brina-rating-option {
+    display: inline-flex;
+    min-width: 3.25rem;
+    min-height: 3.25rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    transition: transform 140ms ease, border-color 140ms ease, background-color 140ms ease;
+}
+
+.brina-rating-option:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--color-primary) 38%, transparent);
+    background: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+
+.peer:focus-visible + .brina-rating-option {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
+}
+
+.brina-rating-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    transition: filter 140ms ease, opacity 140ms ease, transform 140ms ease;
+}
+
+.brina-rating-icon--empty {
+    filter: grayscale(1);
+    opacity: 0.3;
+}
+
+.brina-rating-icon--filled {
+    filter: none;
+    opacity: 1;
+}
+
+.brina-result-icon {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+}
+
+.brina-edit-option {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid transparent;
+}
+
+.brina-edit-option:hover,
+.brina-edit-option--selected {
+    border-color: color-mix(in oklab, var(--color-primary) 45%, transparent);
+    background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+}
+
+.brina-edit-option:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.brina-edit-icon {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brina-rating-option,
+    .brina-rating-icon {
+        transition: none;
+    }
+
+    .brina-rating-option:hover {
+        transform: none;
+    }
+}
+
 /* Cross-Document-Transitions bleiben bewusst deaktiviert: Livewire `wire:navigate`
    startet Same-Document-Transitions selbst. Eine parallele `@view-transition`-
    Aktivierung lässt Chromium überlappende Transitions als unbehandelte

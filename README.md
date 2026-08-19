@@ -24,6 +24,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Datenbank seeden](#datenbank-seeden)
   - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
   - [Maddraxikon-Bewertungen in Rezensionen](#maddraxikon-bewertungen-in-rezensionen)
+  - [Cover-Bewertungen](#cover-bewertungen)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
     - [Funktionen](#funktionen)
     - [Konfiguration](#konfiguration)
@@ -45,7 +46,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Interaktive Mitgliederkarte** (Leaflet + MarkerCluster) mit aktualisiertem Cache via Scheduler.
 - **Arbeitsgruppen-Management** mit Rollen, Teamverwaltung und CSV-Export der Mitgliederlisten.
 - **Meeting- und Kassenbuchmodule** zur Organisation von Vereinstreffen und Finanzverwaltung.
-- **Maddraxiversum-Minispiele** und weitere Community-Features (Rezensionen, Romantausch, Hörbücher).
+- **Maddraxiversum-Minispiele** und weitere Community-Features (Cover-Bewertungen, Rezensionen, Romantausch, Hörbücher).
 
 ## Technologie-Stack
 
@@ -220,6 +221,65 @@ stoppt Quellabgleich und Bereinigung. Bereits vorhandene Snapshots bleiben für
 eine mögliche Reaktivierung lokal gespeichert, sind bei deaktiviertem Flag
 jedoch nie sichtbar und werden nach einer Reaktivierung regulär aktualisiert
 oder bereinigt.
+
+## Cover-Bewertungen
+
+Verifizierte Vereinsmitglieder können die Cover aller sechs gepflegten
+Heftreihen unter `/cover-bewertungen` mit 1 bis 5 Brinas bewerten. Nach jeder
+Stimme wird unmittelbar ein noch nicht bewertetes Cover angeboten. „Später
+bewerten“ gilt nur für die aktuelle Sitzung; eigene Stimmen lassen sich unter
+`/cover-bewertungen/meine` ändern oder per Soft Delete zurücknehmen.
+
+Die Ergebnisse bleiben anonym. Ein Mitglied sieht ein Cover dort erst nach
+der eigenen Stimme und den Durchschnitt erst ab der konfigurierten
+Mindestanzahl von Bewertungen (standardmäßig drei). Für je 100 erstmals
+bewertete unterschiedliche Cover wird einmalig 1 Baxx vergeben. Änderungen,
+Löschen und erneutes Bewerten desselben Covers erhöhen diesen Lebenszeitstand
+nicht.
+
+Cover werden über die MediaWiki-API des Maddraxikons ermittelt, geprüft, in
+zwei WebP-Größen umgewandelt und ausschließlich im privaten Laravel-Storage
+gespeichert. Die Anwendung liefert sie über eine autorisierte Mitgliederroute
+aus; ein Hotlink zum Maddraxikon wird nicht verwendet.
+
+Für einen kontrollierten Rollout bleiben beide Feature-Flags zunächst aus:
+
+```bash
+php artisan migrate --force
+php artisan db:seed --class=BaxxEarningRuleSeeder --force
+php artisan maddraxikon:map-review-books --dry-run --all
+php artisan maddraxikon:map-review-books --all
+php artisan cover-ratings:sync-covers --dry-run
+```
+
+Danach `COVER_RATINGS_SYNC_ENABLED=true` setzen, Konfiguration cachen und den
+ersten echten Abgleich ausführen. Nach Prüfung der Bilder wird
+`COVER_RATINGS_ENABLED=true` aktiviert:
+
+```bash
+php artisan config:cache
+php artisan cover-ratings:sync-covers
+```
+
+Der Befehl unterstützt gezielte Läufe mit `--book=<lokale-id>` und
+`--series=maddrax|hardcovers|missionmars|volkdertiefe|2012|abenteurer`.
+`--force` ist bewusst erforderlich, wenn eine bereits bewertete Ausgabe im
+Maddraxikon auf eine andere Titelbilddatei umgestellt wurde.
+
+Die wichtigsten Umgebungsvariablen sind:
+
+```env
+COVER_RATINGS_ENABLED=false
+COVER_RATINGS_SYNC_ENABLED=false
+COVER_RATINGS_RESULTS_MIN_VOTES=3
+COVER_RATINGS_SYNC_INTERVAL_HOURS=24
+COVER_RATINGS_ALLOWED_MEDIA_ORIGINS=https://de.maddraxikon.com
+COVER_RATINGS_IMAGE_DISK=private
+```
+
+Das Synchronisationsintervall akzeptiert ausschließlich echte Teiler eines
+Tages: `1`, `2`, `3`, `4`, `6`, `8`, `12` oder `24`. Andere Werte fallen aus
+Sicherheitsgründen auf den täglichen Lauf zurück.
 
 ## Maddrax-Fantreffen 2026 Event-System
 

@@ -18,6 +18,7 @@
             <file>tests/Feature/MaddraxikonAccountLinkCorrectionTest.php</file>
             <file>tests/Feature/MaddraxikonAdminTest.php</file>
             <file>tests/Feature/MaddraxikonContributionImporterTest.php</file>
+            <file>tests/Feature/CoverRatingMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/MaddraxikonDataModelTest.php</file>
             <file>tests/Feature/MaddraxikonOAuthClientSecurityTest.php</file>
             <file>tests/Feature/MaddraxikonOAuthHardeningTest.php</file>

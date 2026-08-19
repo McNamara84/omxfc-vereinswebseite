@@ -80,6 +80,14 @@ class BaxxEarningRuleSeeder extends Seeder
                 'every_count' => 1,
                 'is_active' => true,
             ],
+            [
+                'action_key' => 'cover_rating',
+                'label' => 'Cover-Bewertungs-Meilenstein',
+                'description' => '1 Baxx für je 100 erstmals bewertete unterschiedliche Cover.',
+                'points' => 1,
+                'every_count' => 100,
+                'is_active' => true,
+            ],
         ];
 
         foreach ($rules as $rule) {

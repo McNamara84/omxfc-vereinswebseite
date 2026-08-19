@@ -40,6 +40,14 @@ return [
             'items' => [
                 ['title' => 'Mitgliederliste', 'route' => 'mitglieder.index', 'tour_key' => 'community-members'],
                 ['title' => 'Mitgliederkarte', 'route' => 'mitglieder.karte', 'tour_key' => 'community-map'],
+                [
+                    'title' => 'Cover-Bewertungen',
+                    'route' => 'cover-ratings.index',
+                    'tour_key' => 'community-cover-ratings',
+                    'active_patterns' => ['cover-ratings.*'],
+                    'icon' => 'o-photo',
+                    'config_enabled' => 'cover-ratings.enabled',
+                ],
                 ['title' => 'Rezensionen', 'route' => 'reviews.index', 'tour_key' => 'community-reviews'],
                 ['title' => 'Fanfiction', 'route' => 'fanfiction.index', 'tour_key' => 'community-fanfiction'],
                 ['title' => 'Tauschbörse', 'route' => 'romantausch.index', 'tour_key' => 'community-swap'],

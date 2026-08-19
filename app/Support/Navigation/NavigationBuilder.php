@@ -125,6 +125,14 @@ class NavigationBuilder
      */
     private function matchesPredicate(array $predicate, ?User $user, array $context, array $visibilityState): bool
     {
+        if (isset($predicate['config_enabled'])) {
+            $configKey = $predicate['config_enabled'];
+
+            if (! is_string($configKey) || ! (bool) config($configKey, false)) {
+                return false;
+            }
+        }
+
         if (isset($predicate['visibility_flag']) && ! (bool) data_get($context, $predicate['visibility_flag'], false)) {
             return false;
         }

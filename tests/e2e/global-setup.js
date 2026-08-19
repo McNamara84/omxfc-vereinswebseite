@@ -17,6 +17,7 @@ export default async function globalSetup() {
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
     process.env.APP_KEY = process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=';
+    process.env.APP_CONFIG_CACHE = 'bootstrap/cache/config-playwright.php';
     process.env.DB_CONNECTION = 'sqlite';
     process.env.DB_DATABASE = runtimeDatabasePath;
     process.env.SESSION_DRIVER = 'file';
@@ -24,6 +25,8 @@ export default async function globalSetup() {
     process.env.CACHE_DRIVER = 'array';
     process.env.QUEUE_CONNECTION = 'database';
     process.env.MAIL_MAILER = 'array';
+    process.env.COVER_RATINGS_ENABLED = 'true';
+    process.env.COVER_RATINGS_SYNC_ENABLED = 'false';
 
     if (fs.existsSync(databasePath)) {
         fs.rmSync(databasePath);
@@ -82,6 +85,7 @@ export default async function globalSetup() {
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FanfictionPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\KompendiumPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FantreffenPlaywrightSeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\CoverRatingPlaywrightSeeder']);
 
     fs.writeFileSync(readyFilePath, 'ready\n');
 }

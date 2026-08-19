@@ -9,6 +9,7 @@ use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\AuktionController;
 use App\Http\Controllers\AuktionVerwaltungController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
+use App\Http\Controllers\CoverImageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\FanfictionAdminController;
@@ -45,6 +46,8 @@ use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Livewire\BelohnungenAdmin;
 use App\Livewire\BelohnungenIndex;
+use App\Livewire\CoverRatingIndex;
+use App\Livewire\CoverRatingResults;
 use App\Livewire\FanfictionCreate;
 use App\Livewire\FanfictionEdit;
 use App\Livewire\FantreffenAdminDashboard;
@@ -58,6 +61,7 @@ use App\Livewire\KompendiumSearchAnalyticsDashboard;
 use App\Livewire\MaddraxikonAdmin;
 use App\Livewire\MeetingAdmin;
 use App\Livewire\MitgliederIndex;
+use App\Livewire\MyCoverRatings;
 use App\Livewire\RezensionForm;
 use App\Livewire\RezensionIndex;
 use App\Livewire\RezensionShow;
@@ -256,6 +260,15 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::get('/all-emails', 'getAllEmails')->name('all-emails');
             Route::delete('/{user}', 'removeMember')->name('remove');
         });
+    });
+
+    Route::prefix('cover-bewertungen')->name('cover-ratings.')->group(function () {
+        Route::get('cover/{bookCover}/{variant}', CoverImageController::class)
+            ->whereIn('variant', ['small', 'large'])
+            ->name('image');
+        Route::livewire('ergebnisse', CoverRatingResults::class)->name('results');
+        Route::livewire('meine', MyCoverRatings::class)->name('mine');
+        Route::livewire('/', CoverRatingIndex::class)->name('index');
     });
 
     Route::prefix('profil')->name('profile.')->group(function () {

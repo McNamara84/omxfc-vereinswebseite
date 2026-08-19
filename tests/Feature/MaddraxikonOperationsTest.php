@@ -702,10 +702,11 @@ class MaddraxikonOperationsTest extends TestCase
                 'maddraxikon:sync-job',
                 'maddraxikon:evaluate-job',
                 'maddraxikon:review-ratings-sync-job',
+                'cover-ratings:sync-job',
             ])
             ->keyBy('description');
 
-        $this->assertCount(5, $namedEvents);
+        $this->assertCount(6, $namedEvents);
         $this->assertSame(
             '*/15 * * * *',
             $namedEvents->get('maddraxikon:sync-job')->expression
@@ -718,6 +719,10 @@ class MaddraxikonOperationsTest extends TestCase
             '*/15 * * * *',
             $namedEvents->get('maddraxikon:review-ratings-sync-job')->expression
         );
+        $this->assertSame(
+            '15 3 * * *',
+            $namedEvents->get('cover-ratings:sync-job')->expression
+        );
         $this->assertTrue(
             $namedEvents->get('maddraxikon:sync-job')->withoutOverlapping
         );
@@ -726,6 +731,9 @@ class MaddraxikonOperationsTest extends TestCase
         );
         $this->assertTrue(
             $namedEvents->get('maddraxikon:review-ratings-sync-job')->withoutOverlapping
+        );
+        $this->assertTrue(
+            $namedEvents->get('cover-ratings:sync-job')->withoutOverlapping
         );
         $this->assertSame(
             15,
@@ -738,6 +746,10 @@ class MaddraxikonOperationsTest extends TestCase
         $this->assertSame(
             15,
             $namedEvents->get('maddraxikon:review-ratings-sync-job')->expiresAt
+        );
+        $this->assertSame(
+            120,
+            $namedEvents->get('cover-ratings:sync-job')->expiresAt
         );
         $this->assertFalse(
             $namedEvents->get('maddraxikon:sync-job')->onOneServer

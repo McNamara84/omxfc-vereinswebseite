@@ -54,6 +54,25 @@ class TourControllerTest extends TestCase
             ->assertJsonCount(35, 'tour.steps');
     }
 
+    public function test_current_conditionally_includes_cover_ratings_navigation_step(): void
+    {
+        config(['cover-ratings.enabled' => true]);
+        $member = $this->createMember();
+        $assignment = $this->createPendingAssignment($member);
+
+        $response = $this->actingAs($member)
+            ->getJson(route('touren.current'))
+            ->assertOk()
+            ->assertJsonPath('tour.assignment_id', $assignment->id)
+            ->assertJsonCount(36, 'tour.steps');
+
+        $coverStep = collect($response->json('tour.steps'))
+            ->firstWhere('key', 'community-cover-ratings');
+
+        $this->assertSame('Cover-Bewertungen', $coverStep['title'] ?? null);
+        $this->assertArrayNotHasKey('config_enabled', $coverStep ?? []);
+    }
+
     public function test_current_upgrades_outdated_assignment_before_returning_payload(): void
     {
         $member = $this->createMember();
