@@ -2,7 +2,7 @@
 
 return [
     'hauptmenue' => [
-        'version' => 3,
+        'version' => 4,
         'title' => 'Hauptmenü entdecken',
         'description' => 'Fuehrt neue Mitglieder durch Schnellzugriff, Bereiche und Profil-Einstieg des Hauptmenues.',
         'self_service_enabled' => true,
@@ -85,6 +85,20 @@ return [
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="community-map"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="community-map"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-community"]'],
+                ],
+            ],
+            [
+                'key' => 'community-cover-ratings',
+                'title' => 'Cover-Bewertungen',
+                'description' => 'Bewerte Titelbilder mit Brinas und entdecke anschließend die anonymisierten Ergebnisse der Community.',
+                'config_enabled' => 'cover-ratings.enabled',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-cover-ratings"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-cover-ratings"]',
                 ],
                 'reveal' => [
                     'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-community"]'],

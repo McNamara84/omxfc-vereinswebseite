@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\CoverRatings\CoverSyncInterval;
+
 $maddraxikonBaseUrl = rtrim((string) env(
     'MADDRAXIKON_BASE_URL',
     'https://de.maddraxikon.com'
@@ -27,9 +29,11 @@ return [
             50,
             max(1, (int) env('COVER_RATINGS_SYNC_BATCH_SIZE', 25)),
         ),
-        'interval_hours' => max(
-            1,
-            (int) env('COVER_RATINGS_SYNC_INTERVAL_HOURS', 24),
+        'interval_hours' => CoverSyncInterval::normalize(
+            (int) env(
+                'COVER_RATINGS_SYNC_INTERVAL_HOURS',
+                CoverSyncInterval::DEFAULT_HOURS,
+            ),
         ),
     ],
     'images' => [

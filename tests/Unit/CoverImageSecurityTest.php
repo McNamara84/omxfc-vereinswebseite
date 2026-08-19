@@ -136,16 +136,56 @@ class CoverImageSecurityTest extends TestCase
         $this->assertSame(128, $processed['height']);
         Storage::disk('private')->assertExists($processed['small_path']);
         Storage::disk('private')->assertExists($processed['large_path']);
-        $this->assertStringEndsWith('-32.webp', $processed['small_path']);
-        $this->assertStringEndsWith('-64.webp', $processed['large_path']);
+        $this->assertStringEndsWith('-small-32.webp', $processed['small_path']);
+        $this->assertStringEndsWith('-large-64.webp', $processed['large_path']);
         $this->assertNotSame($processed['small_path'], $secondPass['small_path']);
         $this->assertNotSame($processed['large_path'], $secondPass['large_path']);
         $this->assertCount(4, Storage::disk('private')->allFiles());
 
+        config([
+            'cover-ratings.images.small_width' => 32,
+            'cover-ratings.images.large_width' => 32,
+        ]);
+        $equalWidthVariants = app(CoverImageProcessor::class)
+            ->process($book, $binary, str_repeat('b', 40));
+
+        $this->assertNotSame($equalWidthVariants['small_path'], $equalWidthVariants['large_path']);
+        $this->assertStringEndsWith('-small-32.webp', $equalWidthVariants['small_path']);
+        $this->assertStringEndsWith('-large-32.webp', $equalWidthVariants['large_path']);
+        Storage::disk('private')->assertExists($equalWidthVariants['small_path']);
+        Storage::disk('private')->assertExists($equalWidthVariants['large_path']);
+
         config(['cover-ratings.images.max_pixels' => 100]);
         $this->expectException(CoverImageException::class);
         app(CoverImageProcessor::class)
-            ->process($book, $binary, str_repeat('b', 40));
+            ->process($book, $binary, str_repeat('c', 40));
+    }
+
+    public function test_processor_rejects_oversized_declared_dimensions_before_decoding(): void
+    {
+        Storage::fake('private');
+        config(['cover-ratings.images.max_pixels' => 1_000_000]);
+        $book = Book::factory()->create();
+        $oversizedPngHeader = "\x89PNG\r\n\x1a\n"
+            .pack('N', 13)
+            .'IHDR'
+            .pack('NNCCCCC', 50_000, 50_000, 8, 2, 0, 0, 0)
+            .pack('N', 0);
+
+        try {
+            app(CoverImageProcessor::class)->process(
+                $book,
+                $oversizedPngHeader,
+                str_repeat('d', 40),
+            );
+            $this->fail('An image with oversized declared dimensions was accepted.');
+        } catch (CoverImageException $exception) {
+            $this->assertSame(
+                'Das Coverbild besitzt unzulässige Abmessungen.',
+                $exception->getMessage(),
+            );
+            $this->assertSame([], Storage::disk('private')->allFiles());
+        }
     }
 
     public function test_processor_rejects_undecodable_content_without_leaving_files(): void

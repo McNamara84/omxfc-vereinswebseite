@@ -257,8 +257,8 @@ ersten echten Abgleich ausführen. Nach Prüfung der Bilder wird
 `COVER_RATINGS_ENABLED=true` aktiviert:
 
 ```bash
-php artisan cover-ratings:sync-covers
 php artisan config:cache
+php artisan cover-ratings:sync-covers
 ```
 
 Der Befehl unterstützt gezielte Läufe mit `--book=<lokale-id>` und
@@ -276,6 +276,10 @@ COVER_RATINGS_SYNC_INTERVAL_HOURS=24
 COVER_RATINGS_ALLOWED_MEDIA_ORIGINS=https://de.maddraxikon.com
 COVER_RATINGS_IMAGE_DISK=private
 ```
+
+Das Synchronisationsintervall akzeptiert ausschließlich echte Teiler eines
+Tages: `1`, `2`, `3`, `4`, `6`, `8`, `12` oder `24`. Andere Werte fallen aus
+Sicherheitsgründen auf den täglichen Lauf zurück.
 
 ## Maddrax-Fantreffen 2026 Event-System
 

@@ -4,6 +4,7 @@ use App\Jobs\EvaluateMaddraxikonContributions;
 use App\Jobs\SyncCoverRatingCovers;
 use App\Jobs\SyncMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonReviewRatings;
+use App\Support\CoverRatings\CoverSyncInterval;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -44,9 +45,11 @@ Schedule::job(new SyncMaddraxikonReviewRatings)
     ->name('maddraxikon:review-ratings-sync-job')
     ->withoutOverlapping(15);
 
-$coverSyncHours = min(
-    24,
-    max(1, (int) config('cover-ratings.sync.interval_hours', 24))
+$coverSyncHours = CoverSyncInterval::normalize(
+    (int) config(
+        'cover-ratings.sync.interval_hours',
+        CoverSyncInterval::DEFAULT_HOURS,
+    ),
 );
 $coverSchedule = Schedule::job(new SyncCoverRatingCovers)
     ->name('cover-ratings:sync-job')

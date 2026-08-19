@@ -1,9 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { clickAndWaitForLivewireUpdate, expect, test } from './test-support.js';
 
-const loginAsMember = async (page) => {
+const coverMemberEmail = (flow, browserName, retry) => (
+  `playwright-cover-${flow}-${browserName}-retry-${retry}@example.com`
+);
+
+const loginAsMember = async (page, email) => {
   await page.goto('/login');
-  await page.fill('input[name="email"]', 'playwright-member@example.com');
+  await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', 'password');
   await page.click('button[type="submit"]');
   await page.waitForURL((url) => !url.pathname.endsWith('/login'));
@@ -21,8 +25,8 @@ const assertAccessible = async (page) => {
   expect(accessibility.violations).toEqual([]);
 };
 
-test('member rates, skips and reviews private cover ratings accessibly', async ({ page }) => {
-  await loginAsMember(page);
+test('member rates, skips and reviews private cover ratings accessibly', async ({ page, browserName }, testInfo) => {
+  await loginAsMember(page, coverMemberEmail('mobile', browserName, testInfo.retry));
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/cover-bewertungen');
@@ -61,10 +65,10 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   await expect(page.getByText('Noch nicht genügend Bewertungen', { exact: false })).toBeVisible();
 });
 
-test('desktop keyboard flow loads only the large current cover and all views pass axe', async ({ page }) => {
+test('desktop keyboard flow loads only the large current cover and all views pass axe', async ({ page, browserName }, testInfo) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
-  await loginAsMember(page);
+  await loginAsMember(page, coverMemberEmail('desktop', browserName, testInfo.retry));
 
   const coverRequests = [];
   page.on('request', (request) => {

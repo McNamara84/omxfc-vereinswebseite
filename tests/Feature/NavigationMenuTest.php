@@ -373,16 +373,29 @@ class NavigationMenuTest extends TestCase
         $builder = app(NavigationBuilder::class);
 
         config(['cover-ratings.enabled' => false]);
+        $disabledNavigation = $builder->build($member);
         $this->assertNotContains(
             'Cover-Bewertungen',
-            $this->sectionItemTitles($builder->build($member), 'Community'),
+            $this->sectionItemTitles($disabledNavigation, 'Community'),
         );
+        $this->actingAs($member)
+            ->get(route('dashboard'))
+            ->assertDontSee('data-tour-key="community-cover-ratings"', false);
 
         config(['cover-ratings.enabled' => true]);
+        $enabledNavigation = $builder->build($member);
         $this->assertContains(
             'Cover-Bewertungen',
-            $this->sectionItemTitles($builder->build($member), 'Community'),
+            $this->sectionItemTitles($enabledNavigation, 'Community'),
         );
+        $coverRatingsItem = collect($enabledNavigation['sections'])
+            ->firstWhere('title', 'Community')['items'] ?? [];
+        $coverRatingsItem = collect($coverRatingsItem)->firstWhere('title', 'Cover-Bewertungen');
+
+        $this->assertSame('community-cover-ratings', $coverRatingsItem['tour_key'] ?? null);
+        $this->actingAs($member)
+            ->get(route('dashboard'))
+            ->assertSee('data-tour-key="community-cover-ratings"', false);
     }
 
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void

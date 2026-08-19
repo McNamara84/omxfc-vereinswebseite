@@ -12,12 +12,41 @@ use RuntimeException;
 
 class CoverRatingPlaywrightSeeder extends Seeder
 {
+    private const BROWSERS = ['chromium', 'firefox', 'webkit'];
+
+    private const FLOWS = ['mobile', 'desktop'];
+
+    private const RETRIES = [0, 1, 2];
+
     public function run(): void
     {
         $member = User::query()->where('email', 'playwright-member@example.com')->first();
 
         if (! $member) {
             throw new RuntimeException('Run TodoPlaywrightSeeder before CoverRatingPlaywrightSeeder.');
+        }
+
+        $membersTeam = $member->currentTeam;
+
+        if (! $membersTeam) {
+            throw new RuntimeException('The Playwright member team is missing.');
+        }
+
+        foreach (self::BROWSERS as $browser) {
+            foreach (self::FLOWS as $flow) {
+                foreach (self::RETRIES as $retry) {
+                    $email = "playwright-cover-{$flow}-{$browser}-retry-{$retry}@example.com";
+                    $testMember = User::factory()->create([
+                        'name' => "Playwright Cover {$flow} {$browser} {$retry}",
+                        'email' => $email,
+                        'current_team_id' => $membersTeam->id,
+                    ]);
+
+                    $membersTeam->users()->syncWithoutDetaching([
+                        $testMember->id => ['role' => 'Mitglied'],
+                    ]);
+                }
+            }
         }
 
         $image = file_get_contents(public_path('images/brina-rating.webp'));

@@ -18,40 +18,63 @@ class CoverImageProcessor
      */
     public function process(Book $book, string $binary, string $fingerprint): array
     {
-        try {
-            $manager = new ImageManager(new Driver);
-            $source = $manager->decodeBinary($binary);
-            $width = $source->width();
-            $height = $source->height();
-        } catch (Throwable $exception) {
-            throw new CoverImageException('Das Coverbild konnte nicht sicher dekodiert werden.', previous: $exception);
-        }
+        $dimensions = @getimagesizefromstring($binary);
+        $width = is_array($dimensions) ? (int) ($dimensions[0] ?? 0) : 0;
+        $height = is_array($dimensions) ? (int) ($dimensions[1] ?? 0) : 0;
+        $maximumPixels = max(
+            1,
+            (int) config('cover-ratings.images.max_pixels', 40_000_000),
+        );
 
-        if ($width < 1 || $height < 1 || $width * $height > (int) config('cover-ratings.images.max_pixels', 40_000_000)) {
+        if (
+            $width < 1
+            || $height < 1
+            || $width > intdiv($maximumPixels, $height)
+        ) {
             throw new CoverImageException('Das Coverbild besitzt unzulässige Abmessungen.');
         }
 
+        $manager = new ImageManager(new Driver);
         $diskName = (string) config('cover-ratings.images.disk', 'private');
         $directory = trim((string) config('cover-ratings.images.directory', 'cover-ratings'), '/');
         $safeFingerprint = Str::lower(preg_replace('/[^a-f0-9]/i', '', $fingerprint) ?: sha1($binary));
         $quality = (int) config('cover-ratings.images.webp_quality', 82);
-        $widths = [
-            'small_path' => (int) config('cover-ratings.images.small_width', 360),
-            'large_path' => (int) config('cover-ratings.images.large_width', 720),
+        $variants = [
+            'small_path' => [
+                'name' => 'small',
+                'width' => (int) config('cover-ratings.images.small_width', 360),
+            ],
+            'large_path' => [
+                'name' => 'large',
+                'width' => (int) config('cover-ratings.images.large_width', 720),
+            ],
         ];
         $variantToken = Str::lower((string) Str::uuid());
         $paths = [];
         $temporaryPaths = [];
 
         try {
-            foreach ($widths as $key => $targetWidth) {
-                $variant = $manager->decodeBinary($binary);
+            foreach ($variants as $key => $configuration) {
+                try {
+                    $variant = $manager->decodeBinary($binary);
+                } catch (Throwable $exception) {
+                    throw new CoverImageException(
+                        'Das Coverbild konnte nicht sicher dekodiert werden.',
+                        previous: $exception,
+                    );
+                }
+
+                if ($variant->width() !== $width || $variant->height() !== $height) {
+                    throw new CoverImageException('Das Coverbild besitzt widersprüchliche Abmessungen.');
+                }
+
+                $targetWidth = $configuration['width'];
                 $variant->scaleDown(width: $targetWidth);
                 $encoded = (string) $variant->encode(new WebpEncoder(
                     quality: $quality,
                     strip: true,
                 ));
-                $path = "{$directory}/{$book->id}/{$safeFingerprint}-{$variantToken}-{$targetWidth}.webp";
+                $path = "{$directory}/{$book->id}/{$safeFingerprint}-{$variantToken}-{$configuration['name']}-{$targetWidth}.webp";
                 $temporaryPath = $path.'.tmp-'.Str::uuid();
 
                 if (! Storage::disk($diskName)->put($temporaryPath, $encoded)) {

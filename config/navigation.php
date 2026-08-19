@@ -43,6 +43,7 @@ return [
                 [
                     'title' => 'Cover-Bewertungen',
                     'route' => 'cover-ratings.index',
+                    'tour_key' => 'community-cover-ratings',
                     'active_patterns' => ['cover-ratings.*'],
                     'icon' => 'o-photo',
                     'config_enabled' => 'cover-ratings.enabled',
