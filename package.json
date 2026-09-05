@@ -54,6 +54,7 @@
         "three": "^0.185.1"
     },
     "allowScripts": {
+        "fsevents@2.3.3": true,
         "puppeteer@25.10.0": true
     }
 }

@@ -57,4 +57,31 @@ class RedactSensitiveLogContextTest extends TestCase
         expect($content)->toContain('Login for member@example.test failed with [REDACTED].')
             ->toContain('"operation":"login"')->not->toContain('top-secret-token')->not->toContain('second-secret');
     }
+
+    public function test_it_redacts_short_sensitive_placeholders_without_masking_the_same_normal_value(): void
+    {
+        config([
+            'logging.channels.redaction-test' => [
+                'driver' => 'single',
+                'path' => $this->logPath,
+                'level' => 'debug',
+                'replace_placeholders' => true,
+                'tap' => [RedactSensitiveLogContext::class],
+            ],
+        ]);
+
+        Log::channel('redaction-test')->warning(
+            'Request used token {token}; status {status}.',
+            [
+                'token' => '1234',
+                'status' => '1234',
+            ],
+        );
+
+        $content = File::get($this->logPath);
+
+        expect($content)->toContain('Request used token [REDACTED]; status 1234.')
+            ->toContain('"token":"[REDACTED]"')
+            ->toContain('"status":"1234"');
+    }
 }

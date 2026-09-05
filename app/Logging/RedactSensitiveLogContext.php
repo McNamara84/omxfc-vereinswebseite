@@ -31,6 +31,10 @@ class RedactSensitiveLogContext
             }
         }
 
+        // Monolog runs processors in stack order. Pushing this processor from
+        // the tap places it before Laravel's PSR placeholder interpolation.
+        $monolog->pushProcessor(new RedactSensitivePlaceholders($sensitiveKeys));
+
         foreach ($monolog->getHandlers() as $handler) {
             if (! $handler instanceof FormattableHandlerInterface) {
                 continue;

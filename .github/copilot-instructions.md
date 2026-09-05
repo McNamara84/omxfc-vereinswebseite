@@ -15,7 +15,7 @@
 | Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.5 | `app/` |
 | Frontend | Vite 8, Tailwind 4, Alpine.js | `resources/` |
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
-| CI | PHPUnit, Vitest 4, Playwright | `.github/workflows/` |
+| CI | PHPUnit, Vitest 5, Playwright | `.github/workflows/` |
 
 **Kern-Packages:** Jetstream (Teams/Auth), Scout+TNTSearch (Volltextsuche), Spatie PDF/Sitemap
 
