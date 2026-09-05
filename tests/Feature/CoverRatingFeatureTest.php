@@ -41,27 +41,22 @@ class CoverRatingFeatureTest extends TestCase
         RateLimiter::clear('cover-ratings:submit:1');
     }
 
-    public function test_routes_are_limited_to_verified_non_applicant_members_and_feature_flag(): void
+    public function test_routes_are_limited_to_approved_non_applicant_members_and_feature_flag(): void
     {
         $this->get(route('cover-ratings.index'))
             ->assertRedirect(route('login'));
 
-        $unverified = $this->createUserWithRole(Role::Mitglied);
-        $unverified->forceFill(['email_verified_at' => null])->save();
-        $this->actingAs($unverified)
+        $member = $this->createUserWithRole(Role::Mitglied);
+        $member->forceFill(['email_verified_at' => null])->save();
+        $this->actingAs($member)
             ->get(route('cover-ratings.index'))
-            ->assertForbidden();
+            ->assertOk()
+            ->assertSeeText('Cover-Bewertungen');
 
         $applicant = $this->createUserWithRole(Role::Anwaerter);
         $this->actingAs($applicant)
             ->get(route('cover-ratings.index'))
             ->assertRedirect();
-
-        $member = $this->createUserWithRole(Role::Mitglied);
-        $this->actingAs($member)
-            ->get(route('cover-ratings.index'))
-            ->assertOk()
-            ->assertSeeText('Cover-Bewertungen');
 
         config(['cover-ratings.enabled' => false]);
         $this->actingAs($member)
@@ -190,15 +185,21 @@ class CoverRatingFeatureTest extends TestCase
         $this->assertSame(1, CoverRating::query()->withTrashed()->count());
     }
 
-    public function test_unverified_members_cannot_use_the_rating_service_directly(): void
+    public function test_approved_members_can_rate_without_a_legacy_email_verification_timestamp(): void
     {
         $member = $this->createUserWithRole(Role::Mitglied);
         $member->forceFill(['email_verified_at' => null])->save();
         $cover = $this->readyCover(BookType::MaddraxDieDunkleZukunftDerErde, 31);
 
-        $this->expectException(AuthorizationException::class);
+        $result = app(CoverRatingService::class)->rate($member, $cover->id, 5);
 
-        app(CoverRatingService::class)->rate($member, $cover->id, 5);
+        $this->assertTrue($result['first_rating']);
+        $this->assertSame(5, $result['rating']->rating);
+        $this->assertDatabaseHas('cover_ratings', [
+            'user_id' => $member->id,
+            'book_cover_id' => $cover->id,
+            'rating' => 5,
+        ]);
     }
 
     public function test_every_hundred_first_time_cover_ratings_awards_exactly_one_baxx(): void

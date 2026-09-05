@@ -12,8 +12,7 @@ class CoverRatingPolicy
     {
         $role = $user->mitgliederTeamRole();
 
-        return $user->hasVerifiedEmail()
-            && $role instanceof Role
+        return $role instanceof Role
             && $role !== Role::Anwaerter;
     }
 
