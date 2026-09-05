@@ -60,6 +60,18 @@ const shouldReuseExistingServerByDefault = !isCI && !shouldUseDockerPhp();
 const shouldReuseExistingServer = process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === undefined
   ? shouldReuseExistingServerByDefault
   : process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1';
+const playwrightTrace = isCI
+  ? {
+      // CI retries every failed test once. Capture the expensive enhanced
+      // snapshots only for that diagnostic retry, not for every passing test.
+      mode: 'on-first-retry',
+      snapshots: {
+        dom: true,
+        aria: true,
+        screen: true,
+      },
+    }
+  : 'retain-on-failure-and-retries';
 
 export default defineConfig({
   testDir: 'tests/e2e',
@@ -97,13 +109,6 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${playwrightPort}`,
     reducedMotion: 'reduce',
-    trace: {
-      mode: 'retain-on-failure-and-retries',
-      snapshots: {
-        dom: true,
-        aria: true,
-        screen: true,
-      },
-    },
+    trace: playwrightTrace,
   },
 });
