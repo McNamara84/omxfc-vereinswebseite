@@ -13,7 +13,7 @@ class CoverRatingAccessService
         abort_unless((bool) config('cover-ratings.enabled'), 404);
 
         $user = Auth::user();
-        abort_unless($user instanceof User && $user->hasVerifiedEmail(), 403);
+        abort_unless($user instanceof User, 403);
 
         $role = $user->mitgliederTeamRole();
         abort_unless($role instanceof Role && $role !== Role::Anwaerter, 403);

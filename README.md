@@ -233,7 +233,7 @@ oder bereinigt.
 
 ## Cover-Bewertungen
 
-Verifizierte Vereinsmitglieder können die Cover aller sechs gepflegten
+Freigeschaltete Vereinsmitglieder können die Cover aller sechs gepflegten
 Heftreihen unter `/cover-bewertungen` mit 1 bis 5 Brinas bewerten. Nach jeder
 Stimme wird unmittelbar ein noch nicht bewertetes Cover angeboten. „Später
 bewerten“ gilt nur für die aktuelle Sitzung; eigene Stimmen lassen sich unter
