@@ -52,7 +52,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
-- **Testing:** PHPUnit 13, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
+- **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
 ## Voraussetzungen
@@ -102,6 +102,15 @@ Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus un
   composer install
   npm install
    ```
+
+  Die mit Node 26 verwendeten aktuellen npm-Versionen führen Installationsskripte
+  nur aus, wenn sie in `package.json` unter
+  `allowScripts` für die exakt aufgelöste Paketversion freigegeben sind. Die
+  Projektoption `strict-allow-scripts=true` lässt eine Installation bei einer
+  fehlenden Freigabe bewusst fehlschlagen. Nach einem Puppeteer-Update muss
+  deshalb dessen Versionsschlüssel geprüft und zusammen mit dem Lockfile
+  aktualisiert werden.
+
 2. Beispiel-Environment kopieren und Applikationsschlüssel erzeugen:
    ```bash
   cp .env.example .env

@@ -12,7 +12,7 @@
         "docker:dev:up": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build",
         "docker:dev:down": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml down --remove-orphans",
         "docker:dev:logs": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200",
-        "docker:dev:test:php": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T app php artisan test",
+        "docker:dev:test:php": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T -e APP_ENV=testing -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync -e SCOUT_DRIVER=null -e MADDRAXIKON_IDENTITY_HMAC_PEPPERS=test-v1:0123456789abcdef0123456789abcdef app php artisan test",
         "docker:dev:test:vitest": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T vite npm run test:vitest",
         "test": "vitest run --config vitest.config.js --maxWorkers=1",
         "test:coverage": "vitest run --config vitest.config.js --maxWorkers=1 --coverage",
@@ -26,34 +26,34 @@
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.13.0",
-        "@playwright/test": "^1.61.1",
+        "@playwright/test": "^1.63.0",
         "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.3.3",
-        "@vitest/coverage-v8": "^4.1.10",
+        "@vitest/coverage-v8": "^5.0.0",
         "chart.js": "^4.5.1",
-        "concurrently": "^10.0.3",
-        "daisyui": "^5.7.22",
+        "concurrently": "^10.0.5",
+        "daisyui": "^5.7.28",
         "jsdom": "^30.0.1",
         "laravel-vite-plugin": "^3.2.0",
-        "puppeteer": "^25.9.0",
+        "puppeteer": "^25.10.0",
         "tailwindcss": "^4.3.3",
         "vite": "^8.2.2",
-        "vitest": "^4.1.10",
-        "zod": "^4.4.3"
+        "vitest": "^5.0.0",
+        "zod": "^4.5.4"
     },
     "dependencies": {
-        "@alpinejs/anchor": "^3.16.3",
-        "@alpinejs/collapse": "^3.16.3",
-        "@alpinejs/focus": "^3.16.3",
-        "@alpinejs/persist": "^3.16.3",
+        "@alpinejs/anchor": "^3.17.1",
+        "@alpinejs/collapse": "^3.17.1",
+        "@alpinejs/focus": "^3.17.1",
+        "@alpinejs/persist": "^3.17.1",
         "@fontsource-variable/figtree": "^5.3.0",
         "@fontsource-variable/space-grotesk": "^5.3.0",
-        "alpinejs": "^3.16.3",
+        "alpinejs": "^3.17.1",
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3",
         "three": "^0.185.1"
     },
     "allowScripts": {
-        "puppeteer@25.8.0": true
+        "puppeteer@25.10.0": true
     }
 }

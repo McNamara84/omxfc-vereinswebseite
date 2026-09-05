@@ -97,6 +97,13 @@ export default defineConfig({
   use: {
     baseURL: `http://127.0.0.1:${playwrightPort}`,
     reducedMotion: 'reduce',
-    trace: 'retain-on-failure-and-retries',
+    trace: {
+      mode: 'retain-on-failure-and-retries',
+      snapshots: {
+        dom: true,
+        aria: true,
+        screen: true,
+      },
+    },
   },
 });
