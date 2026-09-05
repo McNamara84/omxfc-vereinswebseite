@@ -29,6 +29,8 @@ class ErrorReportingIntegrationTest extends TestCase
 
     public function test_unhandled_http_exception_dispatches_report_with_request_context(): void
     {
+        $expectedUrl = rtrim((string) config('app.url'), '/').'/_test/error-reporting';
+
         Route::get('/_test/error-reporting', function (): never {
             throw new RuntimeException('Kontrollierter Integrationsfehler');
         })->name('test.error-reporting');
@@ -39,10 +41,10 @@ class ErrorReportingIntegrationTest extends TestCase
         )->get('/_test/error-reporting?token=must-not-be-collected');
 
         $response->assertStatus(500);
-        Queue::assertPushed(SendErrorIncidentReport::class, function (SendErrorIncidentReport $job): bool {
+        Queue::assertPushed(SendErrorIncidentReport::class, function (SendErrorIncidentReport $job) use ($expectedUrl): bool {
             return $job->incident->executionType === 'http'
                 && $job->incident->route === 'test.error-reporting'
-                && $job->incident->url === 'http://localhost/_test/error-reporting'
+                && $job->incident->url === $expectedUrl
                 && $job->incident->method === 'GET'
                 && $job->incident->browser === 'Google Chrome'
                 && $job->incident->browserVersion === '126.0.6478.57'
@@ -65,7 +67,7 @@ class ErrorReportingIntegrationTest extends TestCase
 
         $response->assertOk();
         $header = $response->headers->get('X-Request-ID');
-        $this->assertIsString($header);
-        $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/', $header);
+        expect($header)->toBeString()
+            ->toMatch('/^[0-9a-f-]{36}$/');
     }
 }
