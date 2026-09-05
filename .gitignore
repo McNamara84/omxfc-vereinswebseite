@@ -40,3 +40,4 @@ docker-compose.yml
 .tmp-playwright-ax-debug.mjs
 .tmp-playwright-debug.mjs
 docs/server.env
+/tmp
