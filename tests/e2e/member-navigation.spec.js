@@ -18,6 +18,7 @@ test('member shell exposes a collapsible desktop sidebar with one active link', 
 
   await expect(sidebar).toBeVisible();
   await expect(drawerToggle).toBeHidden();
+  await expect(sidebar.getByRole('link', { name: /Profil von .+ öffnen/ })).toBeVisible();
   await expect(sidebar.locator('[aria-current="page"]')).toHaveCount(1);
   await expect(sidebar.locator('[aria-current="page"]')).toContainText('Dashboard');
 

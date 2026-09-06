@@ -25,8 +25,8 @@
         <a
             href="{{ route('profile.show') }}"
             wire:navigate
-            aria-label="Profil von {{ $sidebarUserSummary['name'] }} Ã¶ffnen"
-            title="Profil von {{ $sidebarUserSummary['name'] }} Ã¶ffnen"
+            aria-label="Profil von {{ $sidebarUserSummary['name'] }} öffnen"
+            title="Profil von {{ $sidebarUserSummary['name'] }} öffnen"
             class="mx-2 mt-2 block rounded-2xl bg-base-200/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
             <x-mary-list-item

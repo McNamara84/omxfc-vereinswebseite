@@ -561,7 +561,9 @@ $tours = [
 
 // Desktop und mobiler Drawer verwenden im Mitgliederbereich dieselbe
 // Sidebar-Struktur. Die historischen gerätespezifischen Selektoren werden hier
-// normalisiert, damit die Tour nur noch einen DOM-Vertrag pflegt.
+// normalisiert, damit die Tour nur noch einen DOM-Vertrag pflegt. Die öffentliche
+// Navbar rendert weiterhin beide Varianten; der Runner wählt dort den sichtbaren
+// Treffer aus.
 $stripDeviceConstraint = static fn (string $selector): string => preg_replace(
     '/\[data-tour-device="(?:desktop|mobile)"\]/',
     '',

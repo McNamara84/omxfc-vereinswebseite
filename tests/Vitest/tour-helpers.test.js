@@ -1,11 +1,13 @@
 import {
     TOUR_DESKTOP_BREAKPOINT,
+    TOUR_PUBLIC_DESKTOP_BREAKPOINT,
     detectTourDevice,
     filterReachableSteps,
     isElementVisible,
     revealSelectorsForStep,
     resolveCurrentStepIndex,
     selectorForStep,
+    visibleElementForSelector,
 } from '@/tours/helpers';
 
 describe('tour helpers', () => {
@@ -32,8 +34,14 @@ describe('tour helpers', () => {
         document.body.innerHTML = '';
     });
 
-    it('erkennt den Desktop-Breakpoint wie die Navigation', () => {
+    it('erkennt die unterschiedlichen Breakpoints von Member-Sidebar und Public-Navbar', () => {
         expect(TOUR_DESKTOP_BREAKPOINT).toBe(1024);
+        expect(TOUR_PUBLIC_DESKTOP_BREAKPOINT).toBe(1280);
+        expect(detectTourDevice(TOUR_PUBLIC_DESKTOP_BREAKPOINT)).toBe('desktop');
+        expect(detectTourDevice(TOUR_PUBLIC_DESKTOP_BREAKPOINT - 1)).toBe('mobile');
+
+        document.body.innerHTML = '<nav data-testid="member-sidebar-navigation"></nav>';
+
         expect(detectTourDevice(TOUR_DESKTOP_BREAKPOINT)).toBe('desktop');
         expect(detectTourDevice(TOUR_DESKTOP_BREAKPOINT - 1)).toBe('mobile');
     });
@@ -74,5 +82,19 @@ describe('tour helpers', () => {
 
         expect(isElementVisible(document.getElementById('tour-summary'))).toBe(true);
         expect(isElementVisible(document.getElementById('tour-hidden-link'))).toBe(false);
+    });
+
+    it('findet bei identischen Tour-Keys den sichtbaren Treffer statt eines versteckten Vorgängers', () => {
+        document.body.innerHTML = `
+            <nav style="display: none;">
+                <a id="desktop-target" data-tour-key="dashboard">Desktop</a>
+            </nav>
+            <nav>
+                <a id="mobile-target" data-tour-key="dashboard">Mobil</a>
+            </nav>
+        `;
+
+        expect(isElementVisible(document.getElementById('desktop-target'))).toBe(false);
+        expect(visibleElementForSelector('[data-tour-key="dashboard"]')?.id).toBe('mobile-target');
     });
 });

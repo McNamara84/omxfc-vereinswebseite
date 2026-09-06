@@ -362,6 +362,12 @@ class NavigationMenuTest extends TestCase
         $this->assertCount(0, $crawler->filter('nav[aria-label="Hauptnavigation"]'));
 
         $sidebar = $crawler->filter('[data-testid="member-sidebar-navigation"]');
+        $profileLink = $sidebar->filter('a[aria-label^="Profil von "]');
+        $expectedProfileLabel = "Profil von {$member->nicknameOrName()} öffnen";
+
+        $this->assertCount(1, $profileLink);
+        $this->assertSame($expectedProfileLabel, $profileLink->attr('aria-label'));
+        $this->assertSame($expectedProfileLabel, $profileLink->attr('title'));
         $this->assertCount(0, $sidebar->filter('ul.menu > hr'));
         $this->assertGreaterThanOrEqual(2, $sidebar->filter('ul.menu > li[role="separator"]')->count());
         $this->assertCount(0, $sidebar->filter('ul.menu a:not([aria-label])'));
