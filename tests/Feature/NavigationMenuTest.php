@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
@@ -111,6 +112,15 @@ class NavigationMenuTest extends TestCase
         Livewire::test(NavigationMenu::class, ['variant' => 'unknown'])
             ->assertSet('variant', 'public-navbar')
             ->assertSee('aria-label="Hauptnavigation"', false);
+    }
+
+    public function test_navigation_variant_cannot_be_changed_by_the_client(): void
+    {
+        $component = Livewire::test(NavigationMenu::class, ['variant' => 'public-navbar']);
+
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        $component->set('variant', 'member-sidebar');
     }
 
     public function test_guest_navigation_renders_without_polls_table(): void

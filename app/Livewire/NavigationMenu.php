@@ -3,10 +3,12 @@
 namespace App\Livewire;
 
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class NavigationMenu extends Component
 {
+    #[Locked]
     public string $variant = 'public-navbar';
 
     /** @var array<string, string> */
@@ -23,10 +25,6 @@ class NavigationMenu extends Component
 
     public function render(): View
     {
-        if (! in_array($this->variant, $this->allowedVariants(), true)) {
-            $this->variant = 'public-navbar';
-        }
-
         return view('navigation-menu');
     }
 
