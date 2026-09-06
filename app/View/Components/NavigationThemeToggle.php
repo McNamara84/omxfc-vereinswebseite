@@ -60,8 +60,21 @@ class NavigationThemeToggle extends ThemeToggle
                     </label>
                 </div>
                 <script>
-                    document.documentElement.setAttribute("data-theme", localStorage.getItem("mary-theme")?.replaceAll("\"", ""))
-                    document.documentElement.setAttribute("class", localStorage.getItem("mary-class")?.replaceAll("\"", ""))
+                    (() => {
+                        try {
+                            const root = document.documentElement
+                            const storedTheme = window.localStorage.getItem("mary-theme")
+                            const storedClass = window.localStorage.getItem("mary-class")
+
+                            if (root && storedTheme !== null) {
+                                root.setAttribute("data-theme", storedTheme.replaceAll("\"", ""))
+                            }
+
+                            if (root && storedClass !== null) {
+                                root.setAttribute("class", storedClass.replaceAll("\"", ""))
+                            }
+                        } catch {}
+                    })()
                 </script>
             HTML;
     }

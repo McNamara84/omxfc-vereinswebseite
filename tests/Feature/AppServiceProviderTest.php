@@ -151,6 +151,18 @@ class AppServiceProviderTest extends TestCase
         $this->assertStringNotContainsString('aria-label="close sidebar"', $template);
     }
 
+    public function test_navigation_theme_toggle_guards_its_inline_storage_bootstrap(): void
+    {
+        $template = (new NavigationThemeToggle)->render();
+
+        $this->assertIsString($template);
+        $this->assertStringContainsString('try {', $template);
+        $this->assertStringContainsString('if (root && storedTheme !== null)', $template);
+        $this->assertStringContainsString('if (root && storedClass !== null)', $template);
+        $this->assertStringContainsString('} catch {}', $template);
+        $this->assertStringNotContainsString('setAttribute("data-theme", localStorage.getItem', $template);
+    }
+
     public function test_testing_environment_ignores_standard_vite_hot_file(): void
     {
         $hotPath = public_path('hot');
