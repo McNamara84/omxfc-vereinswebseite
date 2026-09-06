@@ -93,7 +93,7 @@ function renderRunnerDomWithMemberSidebar() {
     renderRunnerDom();
 
     document.body.insertAdjacentHTML('beforeend', `
-        <button data-tour-key="mobile-menu-toggle" data-tour-open="false">Menue</button>
+        <button data-tour-key="mobile-menu-toggle" data-tour-open="false">Menü</button>
         <ul>
             <li data-tour-key="section-community" data-tour-open="false">
                 <details>
@@ -130,7 +130,7 @@ function renderRunnerDomWithDuplicatePublicTargets() {
             <button id="desktop-community" data-tour-key="section-community" data-tour-open="false">Community Desktop</button>
             <a id="desktop-members" data-tour-key="community-members">Mitglieder Desktop</a>
         </nav>
-        <button id="mobile-menu-toggle" data-tour-key="mobile-menu-toggle" data-tour-open="false">Menue</button>
+        <button id="mobile-menu-toggle" data-tour-key="mobile-menu-toggle" data-tour-open="false">Menü</button>
         <nav id="mobile-navigation" style="display: none;">
             <button id="mobile-community" data-tour-key="section-community" data-tour-open="false">Community Mobil</button>
             <a id="mobile-members" data-tour-key="community-members" style="display: none;">Mitglieder Mobil</a>
