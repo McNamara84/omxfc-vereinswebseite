@@ -60,4 +60,36 @@ describe('pre-paint theme bootstrap', () => {
     expect(window.__omxfcApplyStoredTheme()).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('coffee');
   });
+
+  it.each([
+    {
+      systemIsDark: true,
+      storedTheme: 'caramellatte',
+      storedClass: '',
+      expectedTheme: 'coffee',
+      expectedClass: 'dark',
+    },
+    {
+      systemIsDark: false,
+      storedTheme: 'coffee',
+      storedClass: 'dark',
+      expectedTheme: 'caramellatte',
+      expectedClass: '',
+    },
+  ])(
+    'refreshes an automatically persisted $storedTheme theme from the current system preference',
+    async ({ systemIsDark, storedTheme, storedClass, expectedTheme, expectedClass }) => {
+      await runBootstrap(systemIsDark, {
+        'mary-theme': JSON.stringify(storedTheme),
+        'mary-class': JSON.stringify(storedClass),
+        'omxfc-theme-explicit': '0',
+      });
+
+      expect(document.documentElement.dataset.theme).toBe(expectedTheme);
+      expect(document.documentElement.classList.contains('dark')).toBe(systemIsDark);
+      expect(window.localStorage.getItem('mary-theme')).toBe(JSON.stringify(expectedTheme));
+      expect(window.localStorage.getItem('mary-class')).toBe(JSON.stringify(expectedClass));
+      expect(window.localStorage.getItem('omxfc-theme-explicit')).toBe('0');
+    },
+  );
 });

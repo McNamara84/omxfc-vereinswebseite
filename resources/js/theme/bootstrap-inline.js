@@ -71,9 +71,11 @@
             window.localStorage.setItem(EXPLICIT_THEME_KEY, '1');
         }
 
-        // maryUI's inline controller reads both values directly. Persist the
-        // system default to prevent it from briefly assigning a null theme.
-        if (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME) {
+        // maryUI's inline controller reads both values directly. Keep
+        // automatically managed values aligned with the current system theme
+        // on every page load so its persisted state cannot restore a stale
+        // preference after the bootstrap has run.
+        if (marker === '0' || (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME)) {
             const systemIsDark = getSystemPrefersDark();
             window.localStorage.setItem('mary-theme', JSON.stringify(systemIsDark ? DARK_THEME : LIGHT_THEME));
             window.localStorage.setItem('mary-class', JSON.stringify(systemIsDark ? 'dark' : ''));
