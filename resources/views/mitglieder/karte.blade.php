@@ -2,7 +2,7 @@
     ? 'Die Vereinskarte zeigt Wohnorte bewusst nur angenähert und bündelt Mitglieder sowie Regionalstammtische in einer gemeinsamen Kartenansicht.'
     : 'Schalte die Mitgliederkarte mit Baxx frei, um die geschützte Kartenansicht des Vereins vollständig zu nutzen.')
 
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <x-ui.page-header
             eyebrow="Mitgliederbereich"
@@ -188,4 +188,4 @@
         }
     </style>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

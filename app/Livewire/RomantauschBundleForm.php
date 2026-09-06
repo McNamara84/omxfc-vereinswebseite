@@ -310,6 +310,6 @@ class RomantauschBundleForm extends Component
     public function render()
     {
         return view('livewire.romantausch-bundle-form')
-            ->layout('layouts.app', ['title' => $this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen']);
+            ->layout('layouts.member', ['title' => $this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen']);
     }
 }

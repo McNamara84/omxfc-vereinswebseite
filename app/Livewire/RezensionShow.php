@@ -98,7 +98,7 @@ class RezensionShow extends Component
 
         return view('livewire.rezension-show', [
             'role' => $this->userRole,
-        ])->layout('layouts.app', [
+        ])->layout('layouts.member', [
             'title' => 'Rezensionen zu '.$book->title.' – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Leserrezensionen zum Roman "'.$book->title.'".',
         ]);

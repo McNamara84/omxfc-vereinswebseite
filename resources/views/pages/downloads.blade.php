@@ -1,4 +1,4 @@
-<x-app-layout title="Downloads – Offizieller MADDRAX Fanclub e. V." description="Exklusive Dateien wie Bauanleitungen und Fanstories für Vereinsmitglieder.">
+<x-member-layout title="Downloads – Offizieller MADDRAX Fanclub e. V." description="Exklusive Dateien wie Bauanleitungen und Fanstories für Vereinsmitglieder.">
     <x-member-page class="max-w-6xl space-y-8">
         @php
             $allDownloads = $downloads->flatMap(fn ($files) => $files)->values();
@@ -130,4 +130,4 @@
             </div>
         </section>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

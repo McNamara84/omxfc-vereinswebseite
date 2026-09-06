@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-6xl">
         <x-ui.page-header
             eyebrow="RPG"
@@ -130,4 +130,4 @@
             </aside>
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

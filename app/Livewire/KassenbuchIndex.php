@@ -138,6 +138,6 @@ class KassenbuchIndex extends Component
     public function render()
     {
         return view('livewire.kassenbuch-index')
-            ->layout('layouts.app', ['title' => 'Kassenbuch']);
+            ->layout('layouts.member', ['title' => 'Kassenbuch']);
     }
 }

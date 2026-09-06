@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <div class="space-y-6">
             <header class="flex flex-col gap-3 border-b border-base-content/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -47,4 +47,4 @@
             <livewire:dashboard-activity-feed />
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

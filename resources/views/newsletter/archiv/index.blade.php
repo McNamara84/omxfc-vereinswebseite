@@ -1,4 +1,4 @@
-<x-app-layout title="Newsletter-Archiv – Offizieller MADDRAX Fanclub e. V." description="Archivierte Vereinsnewsletter für Mitglieder.">
+<x-member-layout title="Newsletter-Archiv – Offizieller MADDRAX Fanclub e. V." description="Archivierte Vereinsnewsletter für Mitglieder.">
     <x-member-page class="max-w-6xl space-y-8">
         <x-ui.page-header
             eyebrow="Verein"
@@ -68,4 +68,4 @@
             </div>
         @endif
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

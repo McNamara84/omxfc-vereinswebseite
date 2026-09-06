@@ -1,4 +1,4 @@
-<x-app-layout :title="$auktion->titel" description="Transparenter Verlauf einer Vereinsauktion mit allen sichtbaren Geboten.">
+<x-member-layout :title="$auktion->titel" description="Transparenter Verlauf einer Vereinsauktion mit allen sichtbaren Geboten.">
     <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="space-y-2">
@@ -137,4 +137,4 @@
             @endif
         </section>
     </div>
-</x-app-layout>
+</x-member-layout>

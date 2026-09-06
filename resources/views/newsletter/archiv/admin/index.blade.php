@@ -1,4 +1,4 @@
-<x-app-layout title="Newsletter-Archiv verwalten">
+<x-member-layout title="Newsletter-Archiv verwalten">
     <x-member-page class="max-w-6xl space-y-8">
         @if (session('status'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
@@ -67,4 +67,4 @@
             </div>
         @endif
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

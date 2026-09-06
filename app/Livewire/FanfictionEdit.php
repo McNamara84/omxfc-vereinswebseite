@@ -219,6 +219,6 @@ class FanfictionEdit extends Component
     public function render()
     {
         return view('livewire.fanfiction-edit')
-            ->layout('layouts.app', ['title' => 'Fanfiction bearbeiten']);
+            ->layout('layouts.member', ['title' => 'Fanfiction bearbeiten']);
     }
 }

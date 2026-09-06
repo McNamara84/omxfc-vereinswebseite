@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-5xl">
         <x-ui.page-header
             :title="$model->name"
@@ -142,4 +142,4 @@
             @endcan
         </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

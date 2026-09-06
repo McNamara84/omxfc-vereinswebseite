@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-4xl">
         @php
             $pageDescription = 'von '.$fanfiction->memberAuthorDisplayName();
@@ -160,4 +160,4 @@
             </x-ui.panel>
         @endif
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

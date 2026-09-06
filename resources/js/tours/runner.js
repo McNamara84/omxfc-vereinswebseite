@@ -5,6 +5,7 @@ import {
     resolveCurrentStepIndex,
     revealSelectorsForStep,
     selectorForStep,
+    visibleElementForSelector,
 } from './helpers';
 
 const TOAST_CLASSES = {
@@ -224,7 +225,7 @@ function waitForFrame() {
 async function resolveStepTarget(step, device) {
     const selector = selectorForStep(step, device);
     const revealSelectors = revealSelectorsForStep(step, device);
-    let target = document.querySelector(selector);
+    let target = visibleElementForSelector(selector);
 
     if (revealSelectors.length === 0) {
         return target;
@@ -234,7 +235,7 @@ async function resolveStepTarget(step, device) {
     await waitForFrame();
     await waitForFrame();
 
-    target = document.querySelector(selector);
+    target = visibleElementForSelector(selector);
 
     if (target instanceof HTMLElement && isElementVisible(target)) {
         return target;
@@ -244,7 +245,7 @@ async function resolveStepTarget(step, device) {
     await waitForFrame();
     await waitForFrame();
 
-    target = document.querySelector(selector);
+    target = visibleElementForSelector(selector);
 
     if (target instanceof HTMLElement && isElementVisible(target)) {
         return target;
@@ -273,7 +274,7 @@ function resolveRevealTrigger(toggle) {
 
 async function revealStep(step) {
     for (const selector of revealSelectorsForStep(step, detectTourDevice())) {
-        const toggle = document.querySelector(selector);
+        const toggle = visibleElementForSelector(selector);
         const trigger = resolveRevealTrigger(toggle);
 
         if (!(toggle instanceof HTMLElement) || !(trigger instanceof HTMLElement)) {

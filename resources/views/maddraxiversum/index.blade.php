@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <div class="py-4 flex flex-col h-[calc(100vh-4rem)]">
         <div class="flex-grow mx-auto w-full px-4 lg:px-6">
             <div class="bg-base-100 overflow-hidden shadow-xl rounded-lg h-full flex flex-col">
@@ -52,5 +52,4 @@
             <x-button id="start-mission" label="Starte Mission" class="btn-primary w-full" />
         </x-slot:actions>
     </x-modal>
-</x-app-layout>
-
+</x-member-layout>

@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="space-y-8">
         <x-ui.page-header
             title="Seitenaufrufe"
@@ -291,4 +291,4 @@
         data-browser-usage-by-family="{{ $browserUsageByFamily->toJson() }}"
         data-device-usage="{{ $deviceUsage->toJson() }}"
     ></div>
-</x-app-layout>
+</x-member-layout>

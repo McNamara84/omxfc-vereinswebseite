@@ -91,7 +91,7 @@ class TodoForm extends Component
             'categories' => $categories,
             'formTitle' => $title,
             'backRoute' => $backRoute,
-        ])->layout('layouts.app', ['title' => $title]);
+        ])->layout('layouts.member', ['title' => $title]);
     }
 
     public function placeholder()

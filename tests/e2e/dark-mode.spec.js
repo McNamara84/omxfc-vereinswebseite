@@ -57,6 +57,7 @@ test.describe('system preference change handling', () => {
     await page.addInitScript(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
+      window.localStorage.removeItem('omxfc-theme-explicit');
     });
 
     await page.goto('/');
@@ -69,6 +70,7 @@ test.describe('system preference change handling', () => {
     await page.evaluate(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
+      window.localStorage.removeItem('omxfc-theme-explicit');
     });
 
     // Systempräferenz auf Dark ändern via Playwright
@@ -100,6 +102,7 @@ test.describe('system preference change handling', () => {
     const applied = await page.evaluate(() => {
       window.localStorage.setItem('mary-theme', JSON.stringify('coffee'));
       window.localStorage.setItem('mary-class', JSON.stringify('dark'));
+      window.localStorage.setItem('omxfc-theme-explicit', '1');
       return window.__omxfcApplyStoredTheme?.();
     });
 
@@ -124,6 +127,7 @@ test.describe('system preference change handling', () => {
     await page.evaluate(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
+      window.localStorage.removeItem('omxfc-theme-explicit');
     });
   });
 

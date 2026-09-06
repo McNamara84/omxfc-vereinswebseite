@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     @php
         $formatBytes = fn (?int $bytes): string => \App\Services\DatabaseMaintenance\DatabaseMaintenanceLimitService::formatBytes($bytes);
         $effectiveUploadBytes = $limits['effective_upload_bytes'] ?? null;
@@ -173,4 +173,4 @@
             @endif
         </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

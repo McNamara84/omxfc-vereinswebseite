@@ -1,4 +1,4 @@
-<x-app-layout title="Veranstaltungen verwalten" description="Verwalte öffentliche Veranstaltungen, Inhalte und Module zentral im Admin-Bereich.">
+<x-member-layout title="Veranstaltungen verwalten" description="Verwalte öffentliche Veranstaltungen, Inhalte und Module zentral im Admin-Bereich.">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <x-ui.page-header
             eyebrow="Adminbereich"
@@ -70,4 +70,4 @@
             @endforeach
         </div>
     </div>
-</x-app-layout>
+</x-member-layout>

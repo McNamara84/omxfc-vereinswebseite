@@ -54,6 +54,6 @@ class ThreeDModelIndex extends Component
     public function render()
     {
         return view('livewire.three-d-model-index')
-            ->layout('layouts.app', ['title' => '3D-Modelle']);
+            ->layout('layouts.member', ['title' => '3D-Modelle']);
     }
 }

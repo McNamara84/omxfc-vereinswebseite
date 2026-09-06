@@ -141,15 +141,21 @@ class AdminMessageControllerTest extends TestCase
     public function test_index_orders_messages_by_latest(): void
     {
         $admin = $this->actingAdmin();
-        AdminMessage::create([
+        $oldMessage = AdminMessage::create([
             'user_id' => $admin->id,
             'message' => 'Old',
-            'created_at' => now()->subDay(),
         ]);
+        $oldMessage->forceFill([
+            'created_at' => now()->subDay(),
+            'updated_at' => now()->subDay(),
+        ])->save();
         AdminMessage::create(['user_id' => $admin->id, 'message' => 'New']);
 
         $response = $this->actingAs($admin)->get(route('admin.messages.index'));
 
-        $response->assertSeeInOrder(['New', 'Old']);
+        $response->assertViewHas(
+            'messages',
+            fn ($messages): bool => $messages->pluck('message')->values()->all() === ['New', 'Old'],
+        );
     }
 }

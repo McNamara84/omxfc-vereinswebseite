@@ -17,6 +17,7 @@ scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);
 
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';
+const EXPLICIT_THEME_KEY = 'omxfc-theme-explicit';
 
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 window.__omxfcPrefersDark = prefersDark;
@@ -33,38 +34,34 @@ const currentThemeIsDark = () => {
 };
 
 const syncThemeToggleState = () => {
-    const pressed = currentThemeIsDark() ? 'true' : 'false';
+    const dark = currentThemeIsDark();
+    const pressed = dark ? 'true' : 'false';
+    const label = dark ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren';
 
-    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+    document.querySelectorAll('[data-theme-toggle-trigger]').forEach((toggle) => {
         toggle.setAttribute('aria-pressed', pressed);
+        toggle.setAttribute('aria-label', label);
+        toggle.setAttribute('data-tip', label);
     });
 };
 
-const applyDark = (isDark) => {
+const applyDark = (isDark, notify = true) => {
     const root = document.documentElement;
     const nextIsDark = Boolean(isDark);
-
-    root.classList.toggle('dark', nextIsDark);
-    root.dataset.theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
-    syncThemeToggleState();
-
-    return nextIsDark;
-};
-
-const applyAndStoreTheme = (isDark) => {
-    const nextIsDark = applyDark(isDark);
     const theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
     const themeClass = nextIsDark ? 'dark' : '';
 
-    try {
-        window.localStorage.setItem('mary-theme', JSON.stringify(theme));
-        window.localStorage.setItem('mary-class', JSON.stringify(themeClass));
-    } catch {
-        // localStorage can be unavailable in private or locked-down browser contexts; the DOM theme is already applied.
-    }
+    root.classList.toggle('dark', nextIsDark);
+    root.dataset.theme = theme;
+    syncThemeToggleState();
 
-    window.dispatchEvent(new CustomEvent('theme-changed', { detail: theme }));
-    window.dispatchEvent(new CustomEvent('theme-changed-class', { detail: themeClass }));
+    if (notify) {
+        window.dispatchEvent(new CustomEvent('omxfc-theme-sync', {
+            detail: { theme, class: themeClass },
+        }));
+        window.dispatchEvent(new CustomEvent('theme-changed', { detail: theme }));
+        window.dispatchEvent(new CustomEvent('theme-changed-class', { detail: themeClass }));
+    }
 
     return nextIsDark;
 };
@@ -80,12 +77,17 @@ const getStoredTheme = () => {
 
 const applyStoredOrSystemTheme = () => {
     const storedTheme = getStoredTheme();
+    let hasExplicitTheme = false;
 
-    if (storedTheme === DARK_THEME) {
+    try {
+        hasExplicitTheme = window.localStorage.getItem(EXPLICIT_THEME_KEY) === '1';
+    } catch {}
+
+    if (hasExplicitTheme && storedTheme === DARK_THEME) {
         return applyDark(true);
     }
 
-    if (storedTheme === LIGHT_THEME) {
+    if (hasExplicitTheme && storedTheme === LIGHT_THEME) {
         return applyDark(false);
     }
 
@@ -95,9 +97,11 @@ const applyStoredOrSystemTheme = () => {
 window.__omxfcApplyStoredTheme = applyStoredOrSystemTheme;
 
 const applySystemPreferenceChange = (event) => {
-    // Nur reagieren wenn kein explizites Theme gespeichert ist
-    const storedTheme = getStoredTheme();
-    if (!storedTheme || (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME)) {
+    try {
+        if (window.localStorage.getItem(EXPLICIT_THEME_KEY) !== '1') {
+            applyDark(resolveSystemPreference(event));
+        }
+    } catch {
         applyDark(resolveSystemPreference(event));
     }
 };
@@ -109,7 +113,7 @@ if (typeof prefersDark.addEventListener === 'function') {
 }
 
 window.addEventListener('storage', (event) => {
-    if (! ['mary-theme', 'mary-class', null].includes(event.key)) {
+    if (! ['mary-theme', 'mary-class', EXPLICIT_THEME_KEY, null].includes(event.key)) {
         return;
     }
 
@@ -123,19 +127,7 @@ if (document.readyState === 'loading') {
 }
 
 document.addEventListener('livewire:navigated', syncThemeToggleState);
-
-document.addEventListener('click', (event) => {
-    if (!(event.target instanceof Element)) {
-        return;
-    }
-
-    if (! event.target.closest('[data-theme-toggle]')) {
-        return;
-    }
-
-    event.preventDefault();
-    applyAndStoreTheme(! currentThemeIsDark());
-});
+window.addEventListener('theme-changed', syncThemeToggleState);
 
 // Leaflet importieren
 import L from 'leaflet';

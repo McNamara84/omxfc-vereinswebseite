@@ -342,7 +342,7 @@ class FantreffenAdminDashboard extends Component
             'bearbeitenUrl' => route('admin.veranstaltungen.edit', ['veranstaltung' => $veranstaltung]),
             'vipAutorenUrl' => route('admin.veranstaltungen.vip-authors', ['veranstaltung' => $veranstaltung]),
         ])
-            ->layout('layouts.app', [
+            ->layout('layouts.member', [
                 'title' => $veranstaltung->titel.' - Anmeldungen',
             ]);
     }

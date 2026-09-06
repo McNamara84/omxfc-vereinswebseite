@@ -265,6 +265,6 @@ class RomantauschOfferForm extends Component
     public function render()
     {
         return view('livewire.romantausch-offer-form')
-            ->layout('layouts.app', ['title' => $this->isEditing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen']);
+            ->layout('layouts.member', ['title' => $this->isEditing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen']);
     }
 }

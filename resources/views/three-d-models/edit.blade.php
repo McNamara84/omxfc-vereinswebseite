@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-2xl">
         <x-ui.page-header
             eyebrow="Sammlerbereich"
@@ -101,4 +101,4 @@
             </form>
         </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

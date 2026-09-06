@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.app')]
+#[Layout('layouts.member')]
 #[Title('Kompendium-Suchstatistik')]
 class KompendiumSearchAnalyticsDashboard extends Component
 {

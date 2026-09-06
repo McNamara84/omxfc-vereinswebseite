@@ -245,6 +245,6 @@ class HoerbuchForm extends Component
     public function render()
     {
         return view('livewire.hoerbuch-form')
-            ->layout('layouts.app', ['title' => $this->isEditing ? 'Hörbuchfolge bearbeiten' : 'Neue Hörbuchfolge']);
+            ->layout('layouts.member', ['title' => $this->isEditing ? 'Hörbuchfolge bearbeiten' : 'Neue Hörbuchfolge']);
     }
 }

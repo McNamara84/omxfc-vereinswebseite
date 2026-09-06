@@ -115,6 +115,6 @@ class ThreeDModelShow extends Component
     public function render()
     {
         return view('livewire.three-d-model-show')
-            ->layout('layouts.app', ['title' => $this->model->name]);
+            ->layout('layouts.member', ['title' => $this->model->name]);
     }
 }

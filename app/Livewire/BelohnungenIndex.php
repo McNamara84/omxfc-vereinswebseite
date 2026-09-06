@@ -156,6 +156,6 @@ class BelohnungenIndex extends Component
     public function render()
     {
         return view('livewire.belohnungen-index')
-            ->layout('layouts.app', ['title' => 'Belohnungen']);
+            ->layout('layouts.member', ['title' => 'Belohnungen']);
     }
 }

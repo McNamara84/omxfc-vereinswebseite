@@ -1,6 +1,6 @@
 @php($basisFelderGesperrt = $auktion->exists && $auktion->basisFelderGesperrt())
 
-<x-app-layout :title="$isCreate ? 'Auktion anlegen' : 'Auktion bearbeiten'" description="Titel, Markdown-Beschreibung und Bietregeln der Auktion verwalten.">
+<x-member-layout :title="$isCreate ? 'Auktion anlegen' : 'Auktion bearbeiten'" description="Titel, Markdown-Beschreibung und Bietregeln der Auktion verwalten.">
     <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
@@ -171,4 +171,4 @@
             </section>
         @endif
     </div>
-</x-app-layout>
+</x-member-layout>

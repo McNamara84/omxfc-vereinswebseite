@@ -1,4 +1,4 @@
-<x-app-layout title="Newsletter versenden">
+<x-member-layout title="Newsletter versenden">
     <x-member-page class="max-w-4xl">
         @php
             $initialTopics = \App\Support\NewsletterTopics::normalize(old('topics', []));
@@ -95,7 +95,7 @@
             </form>
         </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>
 
 <script>
 function newsletterForm(initialTopics) {

@@ -41,9 +41,7 @@
     <x-banner />
     <div class="omxfc-app-shell min-h-screen bg-base-200">
         @unless($isMinimalTestLayout)
-            @persist('navigation')
-                @livewire('navigation-menu')
-            @endpersist
+            @livewire('navigation-menu')
         @endunless
 
         {{-- Main Content --}}

@@ -158,7 +158,7 @@ class RezensionForm extends Component
             'book' => $book,
             'isEdit' => $isEdit,
             'formTitle' => $formTitle,
-        ])->layout('layouts.app', [
+        ])->layout('layouts.member', [
             'title' => ($isEdit ? 'Rezension bearbeiten' : 'Rezension verfassen').' – Offizieller MADDRAX Fanclub e. V.',
             'description' => ($isEdit ? 'Überarbeite' : 'Schreibe').' deine Rezension zum Roman "'.$book->title.'".',
         ]);

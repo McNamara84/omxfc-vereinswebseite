@@ -1,4 +1,4 @@
-<x-app-layout :title="$isCreate ? 'Veranstaltung anlegen' : $veranstaltung->titel" description="Pflege strukturierte Veranstaltungsdaten und freie Markdown-Abschnitte.">
+<x-member-layout :title="$isCreate ? 'Veranstaltung anlegen' : $veranstaltung->titel" description="Pflege strukturierte Veranstaltungsdaten und freie Markdown-Abschnitte.">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <x-ui.page-header
             eyebrow="Adminbereich"
@@ -352,4 +352,4 @@
             </x-ui.panel>
         @endunless
     </div>
-</x-app-layout>
+</x-member-layout>

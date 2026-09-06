@@ -94,32 +94,46 @@ describe('app module', () => {
 
   test('syncs theme toggle pressed state on initial load', async () => {
     await loadApp(true, {
-      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+      bodyHtml: '<button data-theme-toggle-trigger aria-pressed="false"></button>',
     });
 
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+    const trigger = document.querySelector('[data-theme-toggle-trigger]');
+    expect(trigger.getAttribute('aria-pressed')).toBe('true');
+    expect(trigger.getAttribute('aria-label')).toBe('Helles Design aktivieren');
+    expect(trigger.getAttribute('data-tip')).toBe('Helles Design aktivieren');
   });
 
   test('syncs theme toggle pressed state when system preference changes', async () => {
     const { handler } = await loadApp(false, {
-      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+      bodyHtml: '<button data-theme-toggle-trigger aria-pressed="false"></button>',
     });
 
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('false');
+    expect(document.querySelector('[data-theme-toggle-trigger]').getAttribute('aria-pressed')).toBe('false');
 
     handler({ matches: true });
 
     expect(document.documentElement.dataset.theme).toBe('coffee');
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+    expect(document.querySelector('[data-theme-toggle-trigger]').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  test('keeps maryUI internal state aligned with system preference changes', async () => {
+    const syncEvents = [];
+    window.addEventListener('omxfc-theme-sync', (event) => syncEvents.push(event.detail), { once: true });
+
+    const { handler } = await loadApp(false);
+    handler({ matches: true });
+
+    expect(syncEvents).toEqual([{ theme: 'coffee', class: 'dark' }]);
   });
 
   test('syncs theme toggle pressed state after storage theme updates', async () => {
     await loadApp(false, {
-      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+      bodyHtml: '<button data-theme-toggle-trigger aria-pressed="false"></button>',
     });
 
     window.localStorage.setItem('mary-theme', JSON.stringify('coffee'));
     window.localStorage.setItem('mary-class', JSON.stringify('dark'));
+    window.localStorage.setItem('omxfc-theme-explicit', '1');
 
     const event = new Event('storage');
     Object.defineProperty(event, 'key', { value: 'mary-theme' });
@@ -127,7 +141,7 @@ describe('app module', () => {
 
     expect(document.documentElement.dataset.theme).toBe('coffee');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+    expect(document.querySelector('[data-theme-toggle-trigger]').getAttribute('aria-pressed')).toBe('true');
   });
 
   test('syncs newly rendered theme toggles after livewire navigation', async () => {
@@ -135,27 +149,37 @@ describe('app module', () => {
 
     document.documentElement.dataset.theme = 'coffee';
     document.documentElement.classList.add('dark');
-    document.body.innerHTML = '<button data-theme-toggle aria-pressed="false"></button>';
+    document.body.innerHTML = '<button data-theme-toggle-trigger aria-pressed="false"></button>';
     document.dispatchEvent(new Event('livewire:navigated'));
 
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('true');
+    expect(document.querySelector('[data-theme-toggle-trigger]').getAttribute('aria-pressed')).toBe('true');
   });
 
-  test('toggles from class-only dark state back to light mode', async () => {
+  test('syncs the visible trigger when maryUI announces a theme change', async () => {
     await loadApp(false, {
-      bodyHtml: '<button data-theme-toggle aria-pressed="false"></button>',
+      bodyHtml: '<button data-theme-toggle-trigger aria-pressed="false"></button>',
     });
 
-    document.documentElement.dataset.theme = '';
+    document.documentElement.dataset.theme = 'coffee';
     document.documentElement.classList.add('dark');
+    window.dispatchEvent(new CustomEvent('theme-changed', { detail: 'coffee' }));
 
-    document.querySelector('[data-theme-toggle]').click();
+    const trigger = document.querySelector('[data-theme-toggle-trigger]');
+    expect(trigger.getAttribute('aria-pressed')).toBe('true');
+    expect(trigger.getAttribute('aria-label')).toBe('Helles Design aktivieren');
+  });
+
+  test('does not register a second click writer beside maryUI', async () => {
+    await loadApp(false, {
+      bodyHtml: '<button data-theme-toggle-trigger aria-pressed="false"></button>',
+    });
+
+    document.querySelector('[data-theme-toggle-trigger]').click();
 
     expect(document.documentElement.dataset.theme).toBe('caramellatte');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(document.querySelector('[data-theme-toggle]').getAttribute('aria-pressed')).toBe('false');
-    expect(window.localStorage.getItem('mary-theme')).toBe('"caramellatte"');
-    expect(window.localStorage.getItem('mary-class')).toBe('""');
+    expect(window.localStorage.getItem('mary-theme')).toBeNull();
+    expect(window.localStorage.getItem('mary-class')).toBeNull();
   });
 
   test('exposes Leaflet globally', async () => {
