@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.16.0",
+    "pub_date": "2026-09-06",
+    "notes": [
+      "[New] Freigeschaltete Mitglieder können die Cover aller sechs Heftreihen mit 1 bis 5 Brinas bewerten und ihre Stimmen später ändern oder löschen.",
+      "[New] Anonyme Cover-Ergebnisse werden nach der eigenen Bewertung sichtbar.",
+      "[New] Für je 100 erstmals bewertete unterschiedliche Cover gibt es 1 Baxx.",
+      "[Improved] Das neu gestaltete Dashboard bündelt persönliche Aufgaben, Baxx-Fortschritt, Community-Kennzahlen und wichtige Aktionen in einer übersichtlichen Startansicht.",
+      "[Improved] Ein filterbarer Live-Aktivitätsfeed lädt weitere Einträge automatisch nach und fasst erreichte Meilensteine übersichtlich zusammen.",
+      "[Improved] Die Navigation im Mitglieder- und Administrationsbereich wurde mit gemeinsamer Seitenleiste, Profilmenü und optimierter Mobilansicht grundlegend vereinheitlicht.",
+      "[Improved] Angemeldete freigeschaltete Mitglieder gelangen von der Startseite direkt zu ihrem Dashboard.",
+      "[Improved] Der Hell-/Dunkelmodus folgt ohne eigene Auswahl zuverlässig der Systemeinstellung und merkt sich eine ausdrücklich gewählte Darstellung.",
+      "[Improved] Sensible Angaben werden in technischen Protokollen konsequenter maskiert und damit besser vor unbeabsichtigter Offenlegung geschützt.",
+      "[Fixed] Cover-Bewertungen stehen allen freigeschalteten Mitgliedern unabhängig vom Status ihrer E-Mail-Bestätigung zur Verfügung."
+    ]
+  },
+  {
     "version": "1.15.0",
     "pub_date": "2026-08-14",
     "notes": [
