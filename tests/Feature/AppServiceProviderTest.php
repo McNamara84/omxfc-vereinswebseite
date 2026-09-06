@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\View\Components\NavigationDropdown;
+use App\View\Components\NavigationMain;
 use App\View\Components\NavigationMenuSeparator;
 use App\View\Components\NavigationMenuSub;
 use App\View\Components\NavigationThemeToggle;
@@ -127,7 +128,7 @@ class AppServiceProviderTest extends TestCase
         $this->assertSame(NavigationDropdown::class, $aliases['mary-dropdown'] ?? null);
         $this->assertSame(Icon::class, $aliases['mary-icon'] ?? null);
         $this->assertSame(ListItem::class, $aliases['mary-list-item'] ?? null);
-        $this->assertSame(MaryMain::class, $aliases['mary-main'] ?? null);
+        $this->assertSame(NavigationMain::class, $aliases['mary-main'] ?? null);
         $this->assertSame(MaryMenu::class, $aliases['mary-menu'] ?? null);
         $this->assertSame(MenuItem::class, $aliases['mary-menu-item'] ?? null);
         $this->assertSame(NavigationMenuSeparator::class, $aliases['mary-menu-separator'] ?? null);
@@ -135,9 +136,19 @@ class AppServiceProviderTest extends TestCase
         $this->assertSame(MaryNav::class, $aliases['mary-nav'] ?? null);
         $this->assertSame(NavigationThemeToggle::class, $aliases['mary-theme-toggle'] ?? null);
         $this->assertTrue(is_subclass_of(NavigationDropdown::class, Dropdown::class));
+        $this->assertTrue(is_subclass_of(NavigationMain::class, MaryMain::class));
         $this->assertTrue(is_subclass_of(NavigationMenuSeparator::class, MenuSeparator::class));
         $this->assertTrue(is_subclass_of(NavigationThemeToggle::class, ThemeToggle::class));
         $this->assertFalse(view()->exists('layouts.admin'));
+    }
+
+    public function test_navigation_main_removes_the_invalid_drawer_overlay_aria_label(): void
+    {
+        $template = (new NavigationMain)->render();
+
+        $this->assertIsString($template);
+        $this->assertStringContainsString('class="drawer-overlay"', $template);
+        $this->assertStringNotContainsString('aria-label="close sidebar"', $template);
     }
 
     public function test_testing_environment_ignores_standard_vite_hot_file(): void

@@ -168,7 +168,9 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         await expect(page.getByRole('button', { name: 'Speichern' })).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Aktivieren' })).toBeVisible();
+        await expect(
+            page.getByTestId('poll-selection-card').getByRole('button', { name: 'Aktivieren', exact: true }),
+        ).toBeVisible();
         await expect(page.getByRole('button', { name: 'Archivieren' })).toBeVisible();
     });
 
