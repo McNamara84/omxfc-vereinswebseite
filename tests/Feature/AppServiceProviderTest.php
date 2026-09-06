@@ -151,6 +151,15 @@ class AppServiceProviderTest extends TestCase
         $this->assertStringNotContainsString('aria-label="close sidebar"', $template);
     }
 
+    public function test_navigation_menu_sub_does_not_rely_on_the_global_str_alias(): void
+    {
+        $template = (new NavigationMenuSub)->render();
+
+        $this->assertIsString($template);
+        $this->assertStringContainsString('\Illuminate\Support\Str::contains', $template);
+        $this->assertStringNotContainsString('$submenuActive = Str::contains', $template);
+    }
+
     public function test_navigation_theme_toggle_guards_its_inline_storage_bootstrap(): void
     {
         $template = (new NavigationThemeToggle)->render();

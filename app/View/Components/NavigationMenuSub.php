@@ -25,7 +25,7 @@ class NavigationMenuSub extends MenuSub
                 @aware(['horizontal' => false, 'activeBgColor' => 'bg-base-300'])
 
                 @php
-                    $submenuActive = Str::contains($slot, 'mary-active-menu');
+                    $submenuActive = \Illuminate\Support\Str::contains($slot, 'mary-active-menu');
                 @endphp
 
                 @if ($slot->isNotEmpty())
