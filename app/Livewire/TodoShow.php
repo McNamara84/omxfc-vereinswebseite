@@ -229,6 +229,6 @@ class TodoShow extends Component
     public function render()
     {
         return view('livewire.todo-show')
-            ->layout('layouts.app', ['title' => $this->todo->title]);
+            ->layout('layouts.member', ['title' => $this->todo->title]);
     }
 }

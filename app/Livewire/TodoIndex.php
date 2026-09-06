@@ -304,6 +304,6 @@ class TodoIndex extends Component
     public function render()
     {
         return view('livewire.todo-index')
-            ->layout('layouts.app', ['title' => 'Challenges & Baxx']);
+            ->layout('layouts.member', ['title' => 'Challenges & Baxx']);
     }
 }

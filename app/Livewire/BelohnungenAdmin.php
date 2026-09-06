@@ -1117,6 +1117,6 @@ class BelohnungenAdmin extends Component
             : 'livewire.belohnungen-admin';
 
         return view($view)
-            ->layout('layouts.app', ['title' => 'Belohnungen - Admin']);
+            ->layout('layouts.member', ['title' => 'Belohnungen - Admin']);
     }
 }

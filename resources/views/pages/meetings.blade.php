@@ -1,4 +1,4 @@
-<x-app-layout title="Meetings – Offizieller MADDRAX Fanclub e. V." description="Übersicht regelmäßiger AG-Termine und Stammtische.">
+<x-member-layout title="Meetings – Offizieller MADDRAX Fanclub e. V." description="Übersicht regelmäßiger AG-Termine und Stammtische.">
     <x-member-page class="max-w-6xl space-y-8">
         @php
             $regularMeetingCount = $meetings->filter(fn ($meeting) => $meeting->next_occurrence !== null)->count();
@@ -103,4 +103,4 @@
             </div>
         </section>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

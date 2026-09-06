@@ -75,7 +75,7 @@ class CoverRatingResults extends Component
     {
         return view('livewire.cover-rating-results', [
             'minimumVotes' => (int) config('cover-ratings.results_min_votes', 3),
-        ])->layout('layouts.app', ['title' => 'Cover-Ergebnisse']);
+        ])->layout('layouts.member', ['title' => 'Cover-Ergebnisse']);
     }
 
     private function validateSort(string $sort): void

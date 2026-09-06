@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Livewire\NavigationMenu;
 use App\Models\Team;
 use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
@@ -75,6 +77,42 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSeeText('Admin');
     }
 
+    public function test_navigation_component_renders_member_sidebar_variant(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        Livewire::actingAs($member)
+            ->test(NavigationMenu::class, ['variant' => 'member-sidebar'])
+            ->assertSet('variant', 'member-sidebar')
+            ->assertSee('data-testid="member-sidebar-navigation"', false)
+            ->assertDontSee('aria-label="Hauptnavigation"', false);
+    }
+
+    public function test_navigation_component_renders_member_profile_variant(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        Livewire::actingAs($member)
+            ->test(NavigationMenu::class, ['variant' => 'member-profile'])
+            ->assertSet('variant', 'member-profile')
+            ->assertSee('data-testid="profile-menu-trigger"', false)
+            ->assertDontSee('data-testid="member-sidebar-navigation"', false);
+    }
+
+    public function test_navigation_view_renders_guest_profile_placeholder(): void
+    {
+        $html = view('navigation-menu', ['variant' => 'member-profile'])->render();
+
+        $this->assertStringContainsString('data-testid="profile-menu-guest-placeholder"', $html);
+    }
+
+    public function test_navigation_component_falls_back_to_public_variant_for_unknown_input(): void
+    {
+        Livewire::test(NavigationMenu::class, ['variant' => 'unknown'])
+            ->assertSet('variant', 'public-navbar')
+            ->assertSee('aria-label="Hauptnavigation"', false);
+    }
+
     public function test_guest_navigation_renders_without_polls_table(): void
     {
         Schema::drop('polls');
@@ -118,7 +156,7 @@ class NavigationMenuTest extends TestCase
 
         $response = $this->actingAs($member)->get(route('dashboard'));
         $crawler = new Crawler($response->getContent());
-        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('nav[aria-label="Hauptnavigation"]')->text());
+        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('[data-testid="member-sidebar-navigation"]')->text());
 
         $response->assertOk();
         $response->assertSeeText('Dashboard');
@@ -162,8 +200,8 @@ class NavigationMenuTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('dashboard'));
         $crawler = new Crawler($response->getContent());
-        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('nav[aria-label="Hauptnavigation"]')->text());
-        $navigationHtml = $crawler->filter('nav[aria-label="Hauptnavigation"]')->html();
+        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('[data-testid="member-sidebar-navigation"]')->text());
+        $navigationHtml = $crawler->filter('[data-testid="member-sidebar-navigation"]')->html();
 
         $response->assertOk();
         $this->assertIsString($navigationText);
@@ -205,6 +243,31 @@ class NavigationMenuTest extends TestCase
         $this->assertNotNull($teamsSection);
         $this->assertSame(['EARDRAX Dashboard', 'Kompendium', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
         $this->assertLessThanOrEqual(2, count($queries));
+    }
+
+    public function test_member_sidebar_entries_have_explicit_icons(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied)->load('teams', 'ownedTeams');
+        $navigation = app(NavigationBuilder::class)->build($member);
+
+        $items = collect($navigation['featured'])
+            ->concat(collect($navigation['sections'])->flatMap(fn (array $section): array => $section['items']))
+            ->all();
+
+        $this->assertNotEmpty($items);
+
+        foreach ($items as $item) {
+            $this->assertIsString($item['icon'] ?? null, "Navigation entry [{$item['title']}] has no icon.");
+            $this->assertNotSame('', $item['icon']);
+        }
+
+        foreach (config('navigation.auth') as $entry) {
+            $this->assertIsString($entry['icon'] ?? null, "Navigation group [{$entry['title']}] has no icon.");
+
+            foreach (($entry['items'] ?? []) as $item) {
+                $this->assertIsString($item['icon'] ?? null, "Navigation entry [{$item['title']}] has no icon.");
+            }
+        }
     }
 
     public function test_ag_rollenspiel_member_sees_character_editor_in_teams_section(): void
@@ -267,6 +330,44 @@ class NavigationMenuTest extends TestCase
         $this->assertCount(0, $crawler->filter('ul.menu > form'));
     }
 
+    public function test_public_route_keeps_public_navbar_for_authenticated_member(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        $response = $this->actingAs($member)->get(route('satzung'));
+        $crawler = new Crawler($response->getContent());
+
+        $response->assertOk();
+        $this->assertCount(1, $crawler->filter('nav[aria-label="Hauptnavigation"]'));
+        $this->assertCount(0, $crawler->filter('#member-drawer'));
+        $this->assertCount(0, $crawler->filter('[data-testid="member-sidebar-navigation"]'));
+    }
+
+    public function test_protected_route_uses_single_member_shell_navigation_and_theme_controller(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        $response = $this->actingAs($member)->get(route('dashboard'));
+        $crawler = new Crawler($response->getContent());
+
+        $response->assertOk();
+        $response->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+        $this->assertCount(1, $crawler->filter('nav[aria-label="Kopfleiste des Mitgliederbereichs"]'));
+        $this->assertCount(1, $crawler->filter('input#member-drawer.drawer-toggle'));
+        $this->assertCount(1, $crawler->filter('[data-testid="member-sidebar-navigation"]'));
+        $this->assertCount(1, $crawler->filter('[data-testid="theme-toggle"]'));
+        $this->assertCount(1, $crawler->filter('input[id*="omxfc-theme-controller"]'));
+        $response->assertSee('@omxfc-theme-sync.window="syncExternal($event.detail)"', false);
+        $this->assertCount(1, $crawler->filter('[data-tour-key="dashboard"][aria-current="page"]'));
+        $this->assertCount(0, $crawler->filter('nav[aria-label="Hauptnavigation"]'));
+
+        $sidebar = $crawler->filter('[data-testid="member-sidebar-navigation"]');
+        $this->assertCount(0, $sidebar->filter('ul.menu > hr'));
+        $this->assertGreaterThanOrEqual(2, $sidebar->filter('ul.menu > li[role="separator"]')->count());
+        $this->assertCount(0, $sidebar->filter('ul.menu a:not([aria-label])'));
+        $this->assertCount(0, $sidebar->filter('summary:not([aria-label])'));
+    }
+
     public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
@@ -318,11 +419,13 @@ class NavigationMenuTest extends TestCase
 
         $this->assertCount(1, $trigger);
         $this->assertSame('Profilmenü von Ada Beispiel öffnen', $trigger->attr('aria-label'));
-        $this->assertSame('menu', $trigger->attr('aria-haspopup'));
+        $this->assertNull($trigger->attr('aria-haspopup'));
         $this->assertSame('false', $trigger->attr('aria-expanded'));
         $this->assertSame('open.toString()', $trigger->attr('x-bind:aria-expanded'));
         $this->assertStringContainsString('open = false', $trigger->attr('x-on:keydown.escape.window'));
         $this->assertCount(0, $trigger->filter('button, a, input, select, textarea'));
+        $this->assertCount(0, $crawler->filter('nav details > ul > div'));
+        $this->assertGreaterThan(0, $crawler->filter('nav details > ul > li')->count());
     }
 
     public function test_admin_users_see_admin_menu_with_statistik_link(): void

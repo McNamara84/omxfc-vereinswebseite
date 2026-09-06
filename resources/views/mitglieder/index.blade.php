@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
     @if(session('status'))
     <x-alert class="alert-success mb-4">
@@ -523,4 +523,4 @@
     </div>
     </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

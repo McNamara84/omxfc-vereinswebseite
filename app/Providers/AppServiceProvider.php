@@ -6,6 +6,7 @@ use App\Enums\PollVisibility;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureMaddraxikonAdmin;
 use App\Jobs\SendErrorIncidentReport;
+use App\Livewire\NavigationMenu;
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
 use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Profile\UpdateProfileInformationForm;
@@ -16,6 +17,10 @@ use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
 use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\Alert;
+use App\View\Components\NavigationDropdown;
+use App\View\Components\NavigationMenuSeparator;
+use App\View\Components\NavigationMenuSub;
+use App\View\Components\NavigationThemeToggle;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Queue\Events\JobProcessing;
@@ -35,7 +40,13 @@ use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-use Mary\View\Components\Dropdown as MaryDropdown;
+use Mary\View\Components\Button as MaryButton;
+use Mary\View\Components\Icon as MaryIcon;
+use Mary\View\Components\ListItem as MaryListItem;
+use Mary\View\Components\Main as MaryMain;
+use Mary\View\Components\Menu as MaryMenu;
+use Mary\View\Components\MenuItem as MaryMenuItem;
+use Mary\View\Components\Nav as MaryNav;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -170,7 +181,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::share('appVersion', $version);
 
-        View::composer(['layouts.app', 'layouts.guest'], function ($view) {
+        View::composer(['layouts.app', 'layouts.guest', 'layouts.member'], function ($view) {
             try {
                 $defaultImagePath = Vite::asset('resources/images/omxfc-logo.png');
             } catch (\Throwable $e) {
@@ -244,9 +255,19 @@ class AppServiceProvider extends ServiceProvider
         // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
 
-        // Der lokale <x-dropdown> bleibt während der schrittweisen Migration verfügbar.
-        // Über diesen Alias können einzelne Aufrufer bereits MaryUI verwenden.
-        Blade::component('mary-dropdown', MaryDropdown::class);
+        // Die App-Shell verwendet explizite Aliasse, damit ihre maryUI-Auflösung
+        // unabhängig von gleichnamigen lokalen Legacy-Komponenten bleibt.
+        Blade::component('mary-button', MaryButton::class);
+        Blade::component('mary-dropdown', NavigationDropdown::class);
+        Blade::component('mary-icon', MaryIcon::class);
+        Blade::component('mary-list-item', MaryListItem::class);
+        Blade::component('mary-main', MaryMain::class);
+        Blade::component('mary-menu', MaryMenu::class);
+        Blade::component('mary-menu-item', MaryMenuItem::class);
+        Blade::component('mary-menu-separator', NavigationMenuSeparator::class);
+        Blade::component('mary-menu-sub', NavigationMenuSub::class);
+        Blade::component('mary-nav', MaryNav::class);
+        Blade::component('mary-theme-toggle', NavigationThemeToggle::class);
 
         Livewire::addPersistentMiddleware([
             EnsureAdmin::class,
@@ -254,6 +275,7 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Override Jetstream Livewire components with maryUI Toast support
+        Livewire::component('navigation-menu', NavigationMenu::class);
         Livewire::component('profile.update-profile-information-form', UpdateProfileInformationForm::class);
         Livewire::component('profile.update-password-form', UpdatePasswordForm::class);
         Livewire::component('profile.logout-other-browser-sessions-form', LogoutOtherBrowserSessionsForm::class);

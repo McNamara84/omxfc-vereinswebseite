@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
             @if(session('status'))
                 <x-alert class="alert-success mb-4" role="status" aria-live="polite">
@@ -412,4 +412,4 @@
             </x-ui.panel>
             </div>{{-- /x-data filter --}}
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

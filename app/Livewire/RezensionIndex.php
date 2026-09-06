@@ -163,7 +163,7 @@ class RezensionIndex extends Component
             'miniSeries2012' => $miniSeries2012,
             'volkDerTiefe' => $volkDerTiefe,
             'abenteurer' => $abenteurer,
-        ])->layout('layouts.app', [
+        ])->layout('layouts.member', [
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);

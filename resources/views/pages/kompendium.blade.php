@@ -1,4 +1,4 @@
-<x-app-layout title="Kompendium – Offizieller MADDRAX Fanclub e. V." description="Volltextsuche durch Maddrax-Romane für Mitglieder.">
+<x-member-layout title="Kompendium – Offizieller MADDRAX Fanclub e. V." description="Volltextsuche durch Maddrax-Romane für Mitglieder.">
     <x-member-page class="max-w-6xl space-y-8">
         @php
             $indexedSeriesCount = $indexierteRomaneSummary->count();
@@ -145,4 +145,4 @@
             </x-slot:actions>
         </x-mary-modal>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

@@ -1,4 +1,4 @@
-<x-app-layout title="Protokolle – Offizieller MADDRAX Fanclub e. V." description="Versammlungsprotokolle als PDF zum Download.">
+<x-member-layout title="Protokolle – Offizieller MADDRAX Fanclub e. V." description="Versammlungsprotokolle als PDF zum Download.">
     <x-member-page class="max-w-6xl space-y-8">
         @php
             $documentCount = collect($protokolle)->sum(fn ($dokumente) => count($dokumente));
@@ -102,4 +102,4 @@
             </div>
         </section>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

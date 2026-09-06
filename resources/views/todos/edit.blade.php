@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-3xl">
         <x-ui.page-header
             eyebrow="Mitgliederbereich"
@@ -60,4 +60,4 @@
             </form>
         </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

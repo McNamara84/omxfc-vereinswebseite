@@ -259,7 +259,7 @@ class RomantauschIndex extends Component
             'activeSwaps' => $this->activeSwaps,
             'completedSwaps' => $this->completedSwaps,
             'romantauschInfo' => $this->romantauschInfo,
-        ])->layout('layouts.app', ['title' => 'Romantauschbörse']);
+        ])->layout('layouts.member', ['title' => 'Romantauschbörse']);
     }
 
     public function placeholder()

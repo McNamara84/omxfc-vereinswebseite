@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-3xl">
 
             @if(session('status'))
@@ -157,4 +157,4 @@
                 </div>
             </x-ui.panel>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

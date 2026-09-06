@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <div class="space-y-6">
             <x-ui.page-header
@@ -129,4 +129,4 @@
             @endif
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

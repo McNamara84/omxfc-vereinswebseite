@@ -1,4 +1,4 @@
-<x-app-layout title="Newsletter-Archiv bearbeiten">
+<x-member-layout title="Newsletter-Archiv bearbeiten">
     <x-member-page class="max-w-5xl space-y-8">
         @php
             $initialTopics = \App\Support\NewsletterTopics::normalize(old('topics', $newsletterAusgabe->topics ?? []));
@@ -172,4 +172,4 @@
             };
         }
     </script>
-</x-app-layout>
+</x-member-layout>

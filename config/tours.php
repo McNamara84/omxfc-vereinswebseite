@@ -1,10 +1,10 @@
 <?php
 
-return [
+$tours = [
     'hauptmenue' => [
-        'version' => 4,
+        'version' => 5,
         'title' => 'Hauptmenü entdecken',
-        'description' => 'Fuehrt neue Mitglieder durch Schnellzugriff, Bereiche und Profil-Einstieg des Hauptmenues.',
+        'description' => 'Führt neue Mitglieder durch Navbar, Sidebar, aktuelle Hinweise und das Profilmenü.',
         'self_service_enabled' => true,
         'auto_assign_on_member_approval' => true,
         'audience' => ['mitglied'],
@@ -558,3 +558,31 @@ return [
         ],
     ],
 ];
+
+// Desktop und mobiler Drawer verwenden im Mitgliederbereich dieselbe
+// Sidebar-Struktur. Die historischen gerätespezifischen Selektoren werden hier
+// normalisiert, damit die Tour nur noch einen DOM-Vertrag pflegt.
+$stripDeviceConstraint = static fn (string $selector): string => preg_replace(
+    '/\[data-tour-device="(?:desktop|mobile)"\]/',
+    '',
+    $selector,
+) ?? $selector;
+
+foreach ($tours['hauptmenue']['steps'] as &$step) {
+    foreach (($step['selectors'] ?? []) as $device => $selector) {
+        $step['selectors'][$device] = $stripDeviceConstraint($selector);
+    }
+
+    foreach (($step['reveal'] ?? []) as $device => $selectors) {
+        $step['reveal'][$device] = array_map($stripDeviceConstraint, $selectors);
+    }
+
+    if (($step['key'] ?? null) === 'profile-settings') {
+        $profileTrigger = '[data-tour-key="profile-menu"]';
+        $step['reveal']['desktop'] = [$profileTrigger];
+        $step['reveal']['mobile'] = [$profileTrigger];
+    }
+}
+unset($step);
+
+return $tours;

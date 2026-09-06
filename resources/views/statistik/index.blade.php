@@ -1,5 +1,5 @@
 {{-- resources/views/statistik/index.blade.php --}}
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="space-y-8">
 
         @php
@@ -1171,4 +1171,4 @@
             @vite(['resources/js/statistik.js'])
         @endassets
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

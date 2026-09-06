@@ -74,6 +74,6 @@ class MyCoverRatings extends Component
     public function render()
     {
         return view('livewire.my-cover-ratings')
-            ->layout('layouts.app', ['title' => 'Meine Cover-Bewertungen']);
+            ->layout('layouts.member', ['title' => 'Meine Cover-Bewertungen']);
     }
 }

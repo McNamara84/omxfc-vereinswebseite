@@ -3,11 +3,25 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\View\Components\NavigationDropdown;
+use App\View\Components\NavigationMenuSeparator;
+use App\View\Components\NavigationMenuSub;
+use App\View\Components\NavigationThemeToggle;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Vite;
+use Mary\View\Components\Button as MaryButton;
+use Mary\View\Components\Dropdown;
+use Mary\View\Components\Icon;
+use Mary\View\Components\ListItem;
+use Mary\View\Components\Main as MaryMain;
+use Mary\View\Components\Menu as MaryMenu;
+use Mary\View\Components\MenuItem;
+use Mary\View\Components\MenuSeparator;
+use Mary\View\Components\Nav as MaryNav;
+use Mary\View\Components\ThemeToggle;
 use Tests\TestCase;
 
 class AppServiceProviderTest extends TestCase
@@ -91,6 +105,39 @@ class AppServiceProviderTest extends TestCase
             $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET, $html);
             $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_SCRIPT_ASSET, $html);
         });
+    }
+
+    public function test_member_layout_skips_vite_assets_for_minimal_test_layout(): void
+    {
+        Config::set('app.testing_minimal_layout', true);
+
+        $html = view('layouts.member', ['slot' => 'Interner Testinhalt'])->render();
+
+        $this->assertStringContainsString('Interner Testinhalt', $html);
+        $this->assertStringContainsString('noindex, nofollow', $html);
+        $this->assertStringNotContainsString('resources/css/app.css', $html);
+        $this->assertStringNotContainsString('resources/js/app.js', $html);
+    }
+
+    public function test_navigation_shell_uses_explicit_maryui_component_aliases(): void
+    {
+        $aliases = app('blade.compiler')->getClassComponentAliases();
+
+        $this->assertSame(MaryButton::class, $aliases['mary-button'] ?? null);
+        $this->assertSame(NavigationDropdown::class, $aliases['mary-dropdown'] ?? null);
+        $this->assertSame(Icon::class, $aliases['mary-icon'] ?? null);
+        $this->assertSame(ListItem::class, $aliases['mary-list-item'] ?? null);
+        $this->assertSame(MaryMain::class, $aliases['mary-main'] ?? null);
+        $this->assertSame(MaryMenu::class, $aliases['mary-menu'] ?? null);
+        $this->assertSame(MenuItem::class, $aliases['mary-menu-item'] ?? null);
+        $this->assertSame(NavigationMenuSeparator::class, $aliases['mary-menu-separator'] ?? null);
+        $this->assertSame(NavigationMenuSub::class, $aliases['mary-menu-sub'] ?? null);
+        $this->assertSame(MaryNav::class, $aliases['mary-nav'] ?? null);
+        $this->assertSame(NavigationThemeToggle::class, $aliases['mary-theme-toggle'] ?? null);
+        $this->assertTrue(is_subclass_of(NavigationDropdown::class, Dropdown::class));
+        $this->assertTrue(is_subclass_of(NavigationMenuSeparator::class, MenuSeparator::class));
+        $this->assertTrue(is_subclass_of(NavigationThemeToggle::class, ThemeToggle::class));
+        $this->assertFalse(view()->exists('layouts.admin'));
     }
 
     public function test_testing_environment_ignores_standard_vite_hot_file(): void

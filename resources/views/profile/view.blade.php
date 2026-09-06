@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         @php
             $activityLabel = $isOnline
@@ -285,4 +285,4 @@
             }
         </script>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

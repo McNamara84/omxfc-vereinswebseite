@@ -89,6 +89,39 @@ function renderRunnerDomWithDesktopDropdown() {
     }
 }
 
+function renderRunnerDomWithMemberSidebar() {
+    renderRunnerDom();
+
+    document.body.insertAdjacentHTML('beforeend', `
+        <button data-tour-key="mobile-menu-toggle" data-tour-open="false">Menue</button>
+        <ul>
+            <li data-tour-key="section-community" data-tour-open="false">
+                <details>
+                    <summary>Community</summary>
+                    <a href="/mitglieder" data-tour-key="community-members">Mitgliederliste</a>
+                </details>
+            </li>
+        </ul>
+    `);
+
+    const drawerToggle = document.querySelector('[data-tour-key="mobile-menu-toggle"]');
+    const section = document.querySelector('[data-tour-key="section-community"]');
+    const details = section?.querySelector('details');
+
+    if (drawerToggle instanceof HTMLElement) {
+        drawerToggle.click = vi.fn(() => {
+            drawerToggle.dataset.tourOpen = 'true';
+        });
+    }
+
+    if (section instanceof HTMLElement && details instanceof HTMLDetailsElement) {
+        section.click = vi.fn(() => {
+            details.open = true;
+            section.dataset.tourOpen = 'true';
+        });
+    }
+}
+
 function openDesktopDropdown() {
     const dropdown = document.getElementById('community-dropdown');
     const trigger = document.querySelector('[data-tour-device="desktop"][data-tour-key="section-community"]');
@@ -317,6 +350,47 @@ describe('tour runner', () => {
         await bootRunner();
 
         expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
+        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Mitgliederliste');
+    });
+
+    it('oeffnet im mobilen Member-Shell zuerst Drawer und Sidebar-Bereich', async () => {
+        vi.resetModules();
+        renderRunnerDomWithMemberSidebar();
+        Object.defineProperty(window, 'innerWidth', {
+            configurable: true,
+            value: 390,
+        });
+
+        HTMLElement.prototype.scrollIntoView = vi.fn();
+        window.toast = vi.fn();
+
+        stubHttp({
+            assignment_id: 11,
+            status: 'open',
+            current_step_key: 'community-members',
+            steps: [
+                {
+                    key: 'community-members',
+                    title: 'Mitgliederliste',
+                    description: 'Unterpunkt der gemeinsamen Sidebar',
+                    selectors: {
+                        desktop: '[data-tour-key="community-members"]',
+                        mobile: '[data-tour-key="community-members"]',
+                    },
+                    reveal: {
+                        mobile: [
+                            '[data-tour-key="mobile-menu-toggle"]',
+                            '[data-tour-key="section-community"]',
+                        ],
+                    },
+                },
+            ],
+        });
+
+        await bootRunner();
+
+        expect(document.querySelector('[data-tour-key="mobile-menu-toggle"]')?.dataset.tourOpen).toBe('true');
+        expect(document.querySelector('[data-tour-key="section-community"]')?.dataset.tourOpen).toBe('true');
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Mitgliederliste');
     });
 

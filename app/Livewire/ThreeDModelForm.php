@@ -129,6 +129,6 @@ class ThreeDModelForm extends Component
     public function render()
     {
         return view('livewire.three-d-model-form')
-            ->layout('layouts.app', ['title' => $this->isEditing ? '3D-Modell bearbeiten' : '3D-Modell hochladen']);
+            ->layout('layouts.member', ['title' => $this->isEditing ? '3D-Modell bearbeiten' : '3D-Modell hochladen']);
     }
 }

@@ -179,6 +179,6 @@ class RomantauschRequestForm extends Component
     public function render()
     {
         return view('livewire.romantausch-request-form')
-            ->layout('layouts.app', ['title' => $this->isEditing ? 'Gesuch bearbeiten' : 'Neues Gesuch erstellen']);
+            ->layout('layouts.member', ['title' => $this->isEditing ? 'Gesuch bearbeiten' : 'Neues Gesuch erstellen']);
     }
 }

@@ -33,6 +33,7 @@ describe('tour helpers', () => {
     });
 
     it('erkennt den Desktop-Breakpoint wie die Navigation', () => {
+        expect(TOUR_DESKTOP_BREAKPOINT).toBe(1024);
         expect(detectTourDevice(TOUR_DESKTOP_BREAKPOINT)).toBe('desktop');
         expect(detectTourDevice(TOUR_DESKTOP_BREAKPOINT - 1)).toBe('mobile');
     });

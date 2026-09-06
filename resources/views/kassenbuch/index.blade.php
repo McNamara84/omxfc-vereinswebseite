@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         {{-- Flash Messages --}}
         @if(session('status'))
@@ -664,4 +664,4 @@
             </div>
         @endif
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

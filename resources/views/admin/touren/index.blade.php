@@ -1,4 +1,4 @@
-<x-app-layout title="Touren verwalten" description="Weise Einführungstouren neu zu und behalte den Status je Mitglied zentral im Blick.">
+<x-member-layout title="Touren verwalten" description="Weise Einführungstouren neu zu und behalte den Status je Mitglied zentral im Blick.">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8" data-testid="tour-admin-page">
         <x-ui.page-header
             eyebrow="Vorstand & Admin"
@@ -131,4 +131,4 @@
             </div>
         @endif
     </div>
-</x-app-layout>
+</x-member-layout>

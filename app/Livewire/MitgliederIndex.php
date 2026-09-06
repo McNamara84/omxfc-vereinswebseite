@@ -160,6 +160,6 @@ class MitgliederIndex extends Component
         return view('livewire.mitglieder-index', [
             'roleRanks' => self::ROLE_RANKS,
             'currentUser' => Auth::user(),
-        ])->layout('layouts.app', ['title' => 'Mitgliederliste']);
+        ])->layout('layouts.member', ['title' => 'Mitgliederliste']);
     }
 }

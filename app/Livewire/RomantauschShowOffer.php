@@ -41,6 +41,6 @@ class RomantauschShowOffer extends Component
     {
         return view('livewire.romantausch-show-offer', [
             'offer' => $this->offer,
-        ])->layout('layouts.app', ['title' => 'Angebotsdetails']);
+        ])->layout('layouts.member', ['title' => 'Angebotsdetails']);
     }
 }

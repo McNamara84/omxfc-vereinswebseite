@@ -23,7 +23,7 @@ use Livewire\WithPagination;
  *
  * Ermöglicht das Hochladen, Indexieren, De-Indexieren, Bearbeiten und Löschen von Romantexten.
  */
-#[Layout('layouts.app')]
+#[Layout('layouts.member')]
 #[Title('Kompendium-Administration')]
 class KompendiumAdminDashboard extends Component
 {

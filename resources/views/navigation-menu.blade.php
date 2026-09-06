@@ -1,3 +1,8 @@
+@if (($variant ?? 'public-navbar') === 'member-sidebar')
+    @include('navigation.member-sidebar')
+@elseif (($variant ?? 'public-navbar') === 'member-profile')
+    @include('navigation.profile-menu')
+@else
 @php
     $featuredNavigation = $navigation['featured'] ?? [];
     $sectionNavigation = $navigation['sections'] ?? [];
@@ -15,7 +20,7 @@
 
 <div x-data="{ mobileOpen: false }">
     <nav aria-label="Hauptnavigation">
-        <x-nav sticky>
+        <x-mary-nav sticky>
             <x-slot:brand>
                 <div class="flex items-center gap-3">
                     <a href="{{ $brandHref }}" wire:navigate class="shrink-0 rounded-full bg-base-100/80 p-1 ring-1 ring-base-content/10 transition hover:ring-primary/30" data-testid="navigation-brand-link">
@@ -48,7 +53,7 @@
                                     ])
                                 >
                                     @if($item['icon'])
-                                        <x-icon :name="$item['icon']" class="h-4 w-4" />
+                                        <x-mary-icon :name="$item['icon']" class="h-4 w-4" />
                                     @endif
                                     <span>{{ $item['title'] }}</span>
                                 </a>
@@ -60,7 +65,7 @@
                         <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
-                                <x-dropdown as="menu" :right="$loop->last" class="shrink-0">
+                                <x-mary-dropdown :right="$loop->last" class="shrink-0">
                                     <x-slot:trigger>
                                         <div
                                             class="btn btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}"
@@ -88,13 +93,13 @@
                                                 class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
                                             >
                                                 @if($item['icon'] ?? null)
-                                                    <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                                                    <x-mary-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
                                                 @endif
                                                 <span class="whitespace-nowrap">{{ $item['title'] }}</span>
                                             </a>
                                         </li>
                                     @endforeach
-                                </x-dropdown>
+                                </x-mary-dropdown>
                             @endforeach
                         </x-ui.action-cluster>
                     </div>
@@ -102,18 +107,7 @@
             </x-slot:brand>
 
             <x-slot:actions>
-                {{-- Theme-Toggle --}}
-                <button
-                    type="button"
-                    data-testid="theme-toggle"
-                    data-theme-toggle
-                    aria-label="Dark Mode umschalten"
-                    aria-pressed="false"
-                    class="btn btn-ghost btn-sm btn-circle"
-                >
-                    <x-icon name="o-sun" class="h-5 w-5 dark:hidden" aria-hidden="true" />
-                    <x-icon name="o-moon" class="hidden h-5 w-5 dark:inline-flex" aria-hidden="true" />
-                </button>
+                <x-ui.theme-trigger />
 
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">
@@ -125,7 +119,6 @@
                                 data-tour-device="desktop"
                                 data-tour-key="profile-menu"
                                 aria-label="Profilmenü von {{ Auth::user()->name }} öffnen"
-                                aria-haspopup="menu"
                                 aria-expanded="false"
                                 x-bind:aria-expanded="open.toString()"
                                 x-bind:data-tour-open="open ? 'true' : 'false'"
@@ -133,13 +126,13 @@
                             >
                                 <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="" />
                             </x-slot:trigger>
-                            <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
-                            <x-menu-separator />
+                            <x-mary-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
+                            <x-mary-menu-separator />
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80">
-                                        <x-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
+                                        <x-mary-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
                                         <span>Ausloggen</span>
                                     </button>
                                 </form>
@@ -148,7 +141,7 @@
                     @endauth
 
                     @guest
-                        <x-button label="Login" link="{{ route('login') }}" wire:navigate class="btn-ghost btn-sm" />
+                        <x-mary-button label="Login" link="{{ route('login') }}" wire:navigate class="btn-ghost btn-sm" />
                     @endguest
                 </div>
 
@@ -165,14 +158,14 @@
                         aria-controls="mobile-navigation"
                         class="btn btn-ghost btn-sm"
                     >
-                        <x-icon x-show="!mobileOpen" name="o-bars-3" class="w-6 h-6" aria-hidden="true" />
-                        <x-icon x-show="mobileOpen" x-cloak name="o-x-mark" class="w-6 h-6" aria-hidden="true" />
+                        <x-mary-icon x-show="!mobileOpen" name="o-bars-3" class="w-6 h-6" aria-hidden="true" />
+                        <x-mary-icon x-show="mobileOpen" x-cloak name="o-x-mark" class="w-6 h-6" aria-hidden="true" />
                         <span class="text-sm" aria-hidden="true" x-text="mobileOpen ? 'Schließen' : 'Menü'">Menü</span>
                         <span class="sr-only" x-text="mobileOpen ? 'Menü schließen' : 'Menü öffnen'">Menü öffnen</span>
                     </button>
                 </div>
             </x-slot:actions>
-        </x-nav>
+        </x-mary-nav>
 
         {{-- Mobile-Menü --}}
         <div id="mobile-navigation"
@@ -180,10 +173,10 @@
             x-cloak
             x-collapse
             class="xl:hidden border-b border-base-content/10 bg-base-100/95 backdrop-blur">
-            <x-menu class="p-2" data-testid="mobile-navigation-menu">
+            <x-mary-menu class="p-2" data-testid="mobile-navigation-menu">
                 <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-featured-heading">Schnellzugriff</li>
                 @foreach($featuredNavigation as $item)
-                    <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
+                    <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                 @endforeach
 
                 <li role="separator" aria-hidden="true">
@@ -204,13 +197,13 @@
                                 :aria-expanded="open"
                             >
                                 @if($section['icon'] ?? null)
-                                    <x-icon :name="$section['icon']" class="inline-flex my-0.5 h-4 w-4" />
+                                    <x-mary-icon :name="$section['icon']" class="inline-flex my-0.5 h-4 w-4" />
                                 @endif
                                 <span class="mary-hideable whitespace-nowrap truncate">{{ $section['title'] }}</span>
                             </summary>
                             <ul class="mary-hideable">
                         @foreach($section['items'] as $item)
-                                <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
+                                <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                         @endforeach
                             </ul>
                         </details>
@@ -222,12 +215,12 @@
                 </li>
 
                 @auth
-                    <x-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" data-tour-device="mobile" data-tour-key="profile-settings" />
+                    <x-mary-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" data-tour-device="mobile" data-tour-key="profile-settings" />
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap">
-                                <x-icon name="o-arrow-right-on-rectangle" class="h-5 w-5 shrink-0" />
+                                <x-mary-icon name="o-arrow-right-on-rectangle" class="h-5 w-5 shrink-0" />
                                 <span>Ausloggen</span>
                             </button>
                         </form>
@@ -235,9 +228,10 @@
                 @endauth
 
                 @guest
-                    <x-menu-item title="Login" :link="route('login')" wire:navigate icon="o-arrow-right-on-rectangle" />
+                    <x-mary-menu-item title="Login" :link="route('login')" wire:navigate icon="o-arrow-right-on-rectangle" />
                 @endguest
-            </x-menu>
+            </x-mary-menu>
         </div>
     </nav>
 </div>
+@endif

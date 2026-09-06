@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         {{-- Header --}}
         <x-ui.page-header
@@ -12,4 +12,4 @@
             @include('kassenbuch.partials.mitgliedsbeitrag-kassenstand')
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

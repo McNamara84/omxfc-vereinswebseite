@@ -1,4 +1,5 @@
-export const TOUR_DESKTOP_BREAKPOINT = 1280;
+// Keep this aligned with Tailwind's/maryUI's `lg` sidebar breakpoint.
+export const TOUR_DESKTOP_BREAKPOINT = 1024;
 
 export function detectTourDevice(width = window.innerWidth) {
     return width >= TOUR_DESKTOP_BREAKPOINT ? 'desktop' : 'mobile';

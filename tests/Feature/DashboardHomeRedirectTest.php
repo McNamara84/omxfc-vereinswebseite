@@ -102,7 +102,7 @@ class DashboardHomeRedirectTest extends TestCase
 
         $response->assertOk();
         $crawler = new Crawler($response->getContent());
-        $brandLink = $crawler->filter('[data-testid="navigation-brand-link"]');
+        $brandLink = $crawler->filter('[data-testid="member-navigation-brand-link"]');
 
         $this->assertCount(1, $brandLink);
         $this->assertSame(route('dashboard'), $brandLink->attr('href'));

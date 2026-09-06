@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <x-ui.page-header
             eyebrow="Community"
@@ -197,4 +197,4 @@
             </div>
         @endif
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

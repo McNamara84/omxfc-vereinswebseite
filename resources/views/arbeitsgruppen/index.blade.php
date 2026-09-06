@@ -1,4 +1,4 @@
-<x-app-layout title="Arbeitsgruppen – Offizieller MADDRAX Fanclub e. V." description="Tabellarische Übersicht aller Arbeitsgruppen.">
+<x-member-layout title="Arbeitsgruppen – Offizieller MADDRAX Fanclub e. V." description="Tabellarische Übersicht aller Arbeitsgruppen.">
     <x-member-page>
         @php
             $isLeaderIndex = request()->routeIs('ag.index');
@@ -66,4 +66,4 @@
             </x-ui.panel>
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

@@ -1,4 +1,4 @@
-<x-app-layout title="Fotogalerie – Offizieller MADDRAX Fanclub e. V." description="Bilder von Veranstaltungen und Treffen des Fanclubs.">
+<x-member-layout title="Fotogalerie – Offizieller MADDRAX Fanclub e. V." description="Bilder von Veranstaltungen und Treffen des Fanclubs.">
     <x-member-page class="max-w-7xl space-y-8">
         @php
             $totalPhotos = collect($photos)->sum(fn ($items) => count($items));
@@ -157,4 +157,4 @@
             </div>
         </section>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

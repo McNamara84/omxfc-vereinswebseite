@@ -161,7 +161,7 @@ class CoverRatingIndex extends Component
     public function render()
     {
         return view('livewire.cover-rating-index')
-            ->layout('layouts.app', [
+            ->layout('layouts.member', [
                 'title' => 'Cover-Bewertungen – Offizieller MADDRAX Fanclub e. V.',
                 'description' => 'Bewerte die Cover der Maddrax-Serien mit 1 bis 5 Brinas.',
             ]);

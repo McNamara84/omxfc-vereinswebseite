@@ -42,8 +42,13 @@ class KompendiumRomanArchiveTemporaryFileFactoryTest extends TestCase
 
         $this->assertFileExists($path);
         $this->assertSame(realpath($this->temporaryDirectory), realpath(dirname($path)));
-        $this->assertMatchesRegularExpression('/\/romane-[a-f0-9]{32}\.zip$/', $path);
-        $this->assertSame(0600, fileperms($path) & 0777);
+        $this->assertMatchesRegularExpression(
+            '/\/romane-[a-f0-9]{32}\.zip$/',
+            str_replace('\\', '/', $path),
+        );
+        if (PHP_OS_FAMILY !== 'Windows') {
+            $this->assertSame(0600, fileperms($path) & 0777);
+        }
     }
 
     #[WithoutErrorHandler]

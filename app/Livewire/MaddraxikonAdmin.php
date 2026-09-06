@@ -648,7 +648,7 @@ final class MaddraxikonAdmin extends Component
                 ->latest('id')
                 ->get(),
             'policyPreviewPoints' => max(0, (int) $policyPreviewPoints),
-        ])->layout('layouts.app', [
+        ])->layout('layouts.member', [
             'title' => 'Maddraxikon-Baxx - Admin',
         ]);
     }

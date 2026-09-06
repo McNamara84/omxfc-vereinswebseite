@@ -258,7 +258,7 @@ class FantreffenVipAuthors extends Component
             'anmeldungenUrl' => route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => $veranstaltung]),
             'authors' => $authors,
             'activeAuthors' => $activeAuthors,
-        ])->layout('layouts.admin', [
+        ])->layout('layouts.member', [
             'title' => $veranstaltung->titel.' - VIP-Autoren',
         ]);
     }

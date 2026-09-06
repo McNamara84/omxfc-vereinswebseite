@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <x-ui.page-header
             title="{{ __('API Tokens') }}"
@@ -9,4 +9,4 @@
             @livewire('api.api-token-manager')
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

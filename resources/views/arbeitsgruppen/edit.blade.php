@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page class="max-w-3xl">
         @php
             $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
@@ -146,4 +146,4 @@
             </x-ui.panel>
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

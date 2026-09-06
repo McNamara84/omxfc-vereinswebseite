@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-member-layout>
     <x-member-page>
         <div class="space-y-6">
             <x-ui.page-header
@@ -12,4 +12,4 @@
             </x-ui.panel>
         </div>
     </x-member-page>
-</x-app-layout>
+</x-member-layout>

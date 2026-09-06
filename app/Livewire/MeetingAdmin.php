@@ -209,7 +209,7 @@ class MeetingAdmin extends Component
             'rhythmTypeOptions' => $this->rhythmTypeOptions(),
             'weekdayOptions' => $this->weekdayOptions(),
             'weekOfMonthOptions' => $this->weekOfMonthOptions(),
-        ])->layout('layouts.admin', [
+        ])->layout('layouts.member', [
             'title' => 'Treffen - Admin',
         ]);
     }
