@@ -19,7 +19,7 @@
         x-bind:aria-label="dark ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'"
         x-bind:aria-pressed="dark.toString()"
         x-bind:data-tip="dark ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'"
-        x-on:click="try { localStorage.setItem('omxfc-theme-explicit', '1') } catch {} finally { $dispatch('mary-toggle-theme') }"
+        x-on:click="(() => { try { localStorage.setItem('omxfc-theme-explicit', '1') } catch {} $dispatch('mary-toggle-theme') })()"
     >
         <x-mary-icon x-show="!dark" name="o-moon" class="h-5 w-5" aria-hidden="true" />
         <x-mary-icon x-show="dark" x-cloak name="o-sun" class="h-5 w-5" aria-hidden="true" />
