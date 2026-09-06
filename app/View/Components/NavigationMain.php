@@ -19,7 +19,7 @@ class NavigationMain extends Main
     {
         $template = parent::render();
 
-        if (!is_string($template)) {
+        if (! is_string($template)) {
             return $template;
         }
 
