@@ -143,6 +143,44 @@ class RezensionLivewireTest extends TestCase
             ->assertSee('(2 Rezensionen)');
     }
 
+    public function test_index_prefers_persisted_cycle_over_stale_json_mapping(): void
+    {
+        Storage::fake('private');
+        Storage::disk('private')->put('maddrax.json', json_encode([
+            ['nummer' => 695, 'titel' => 'Roman', 'zyklus' => 'Veraltet'],
+        ]));
+        Book::create([
+            'roman_number' => 695,
+            'title' => 'Roman',
+            'author' => 'Autor',
+            'cycle' => 'Weltrat',
+        ]);
+        $user = $this->actingMember();
+
+        Livewire::actingAs($user)
+            ->test(RezensionIndex::class)
+            ->assertSee('Weltrat-Zyklus')
+            ->assertDontSee('Veraltet-Zyklus');
+    }
+
+    public function test_index_marks_missing_cycle_as_data_error_instead_of_unknown_cycle(): void
+    {
+        Storage::fake('private');
+        Storage::disk('private')->put('maddrax.json', '[]');
+        Book::create([
+            'roman_number' => 695,
+            'title' => 'Roman',
+            'author' => 'Autor',
+            'cycle' => null,
+        ]);
+        $user = $this->actingMember();
+
+        Livewire::actingAs($user)
+            ->test(RezensionIndex::class)
+            ->assertSee('Datenfehler-Zyklus')
+            ->assertDontSee('Unbekannt-Zyklus');
+    }
+
     public function test_index_shows_dynamic_review_reward_text(): void
     {
         $user = $this->actingMember();

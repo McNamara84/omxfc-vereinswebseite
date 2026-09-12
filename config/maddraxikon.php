@@ -159,4 +159,16 @@ return [
         ),
         'maxlag' => (int) env('MADDRAXIKON_API_MAXLAG', 5),
     ],
+
+    'crawler' => [
+        'max_pages' => max(1, (int) env('MADDRAXIKON_CRAWLER_MAX_PAGES', 50)),
+        'candidate_ttl_minutes' => max(
+            1,
+            (int) env('MADDRAXIKON_CRAWLER_CANDIDATE_TTL_MINUTES', 360)
+        ),
+        'lock_seconds' => max(
+            60,
+            (int) env('MADDRAXIKON_CRAWLER_LOCK_SECONDS', 3600)
+        ),
+    ],
 ];

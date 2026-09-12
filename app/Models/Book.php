@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
  * @property int $roman_number
  * @property string $title
  * @property string $author
+ * @property string|null $cycle
  * @property BookType $type
  * @property int|null $maddraxikon_page_id
  * @property string|null $maddraxikon_page_title
@@ -30,6 +31,7 @@ class Book extends Model
         'roman_number',
         'title',
         'author',
+        'cycle',
         'type',
         'maddraxikon_page_id',
         'maddraxikon_page_title',

@@ -27,6 +27,13 @@ class ChangelogTest extends TestCase
             ->assertDontSee('Keine Release-Notes');
     }
 
+    public function test_version_1_16_1_explains_the_cycle_assignment_fix(): void
+    {
+        Livewire::test(Changelog::class)
+            ->assertSee('1.16.1')
+            ->assertSee('zuverlässig dem richtigen Zyklus zugeordnet');
+    }
+
     public function test_renders_without_error_when_changelog_missing(): void
     {
         // Point config to a non-existent temp path instead of renaming real file
