@@ -16,6 +16,7 @@ class MaddraxikonCandidateStore
         private readonly Filesystem $files,
         private readonly MaddraxikonDatasetValidator $validator,
         private readonly AtomicFileWriter $writer,
+        private readonly MaddraxikonSnapshotRepository $snapshots,
     ) {}
 
     /**
@@ -24,6 +25,8 @@ class MaddraxikonCandidateStore
      */
     public function stage(array $datasets): array
     {
+        $this->pruneExpired();
+
         if ($datasets === []) {
             throw new MaddraxikonCrawlException('Es wurden keine Kandidatendaten erzeugt.');
         }
@@ -100,11 +103,22 @@ class MaddraxikonCandidateStore
         }
 
         $manifest = $this->decode($this->files->get($manifestPath), 'Kandidatenmanifest');
-        $expiresAt = isset($manifest['expires_at'])
-            ? Carbon::parse((string) $manifest['expires_at'])
-            : null;
+        try {
+            $expiresAt = isset($manifest['expires_at'])
+                ? Carbon::parse((string) $manifest['expires_at'])
+                : null;
+        } catch (\Throwable $exception) {
+            $this->files->deleteDirectory($directory);
+
+            throw new MaddraxikonCrawlException(
+                "Kandidat {$id} enthält kein gültiges Ablaufdatum.",
+                previous: $exception,
+            );
+        }
 
         if ($expiresAt === null || $expiresAt->isPast()) {
+            $this->files->deleteDirectory($directory);
+
             throw new MaddraxikonCrawlException("Kandidat {$id} ist abgelaufen.");
         }
 
@@ -157,11 +171,48 @@ class MaddraxikonCandidateStore
         ];
     }
 
+    public function delete(string $id): bool
+    {
+        $this->assertCandidateId($id);
+        $directory = $this->candidateDirectory($id);
+
+        return ! $this->files->isDirectory($directory)
+            || $this->files->deleteDirectory($directory);
+    }
+
+    public function pruneExpired(): int
+    {
+        $root = Storage::disk('private')->path('maddrax-candidates');
+
+        if (! $this->files->isDirectory($root)) {
+            return 0;
+        }
+
+        $deleted = 0;
+
+        foreach ($this->files->directories($root) as $directory) {
+            if (! $this->isCandidateId(basename($directory)) || ! $this->isExpired($directory)) {
+                continue;
+            }
+
+            if ($this->files->deleteDirectory($directory)) {
+                $deleted++;
+            }
+        }
+
+        return $deleted;
+    }
+
     private function assertCandidateId(string $id): void
     {
-        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $id) !== 1) {
+        if (! $this->isCandidateId($id)) {
             throw new MaddraxikonCrawlException('Ungültige Kandidaten-ID.');
         }
+    }
+
+    private function isCandidateId(string $id): bool
+    {
+        return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $id) === 1;
     }
 
     private function candidateDirectory(string $id): string
@@ -172,6 +223,12 @@ class MaddraxikonCandidateStore
     /** @return array<int, mixed>|null */
     private function activeDataset(BookType $type): ?array
     {
+        $snapshot = $this->snapshots->activeDataset($type);
+
+        if ($snapshot !== null) {
+            return $snapshot['rows'];
+        }
+
         $path = Storage::disk('private')->path(MaddraxikonSeries::filename($type));
 
         if (! $this->files->isFile($path)) {
@@ -183,6 +240,29 @@ class MaddraxikonCandidateStore
         } catch (MaddraxikonCrawlException) {
             return null;
         }
+    }
+
+    private function isExpired(string $directory): bool
+    {
+        $manifestPath = $directory.DIRECTORY_SEPARATOR.'manifest.json';
+
+        if ($this->files->isFile($manifestPath)) {
+            try {
+                $manifest = $this->decode($this->files->get($manifestPath), 'Kandidatenmanifest');
+
+                if (isset($manifest['expires_at'])) {
+                    return Carbon::parse((string) $manifest['expires_at'])->isPast();
+                }
+            } catch (\Throwable) {
+                // Beschädigte Kandidaten werden nach ihrem Dateialter entfernt.
+            }
+        }
+
+        $ttlMinutes = max(1, (int) config('maddraxikon.crawler.candidate_ttl_minutes', 360));
+
+        return Carbon::createFromTimestamp($this->files->lastModified($directory))
+            ->addMinutes($ttlMinutes)
+            ->isPast();
     }
 
     /**

@@ -78,7 +78,7 @@ class RefreshMaddraxBooks extends Command
             $this->line("SHA-256: {$candidate['hash']}");
 
             if ($this->option('dry-run')) {
-                $this->info('Dry-Run erfolgreich: Aktive Dateien, Datenbank und Cache blieben unverändert.');
+                $this->info('Dry-Run erfolgreich: Aktiver Datenbank-Snapshot, Buchdaten und Cache blieben unverändert.');
 
                 return self::SUCCESS;
             }

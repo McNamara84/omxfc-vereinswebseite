@@ -166,6 +166,10 @@ return [
             1,
             (int) env('MADDRAXIKON_CRAWLER_CANDIDATE_TTL_MINUTES', 360)
         ),
+        'snapshot_retention_hours' => max(
+            24,
+            (int) env('MADDRAXIKON_CRAWLER_SNAPSHOT_RETENTION_HOURS', 48)
+        ),
         'lock_seconds' => max(
             60,
             (int) env('MADDRAXIKON_CRAWLER_LOCK_SECONDS', 3600)

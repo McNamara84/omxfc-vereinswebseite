@@ -6,6 +6,7 @@ use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonBookImporter;
 use App\Services\Maddraxikon\MaddraxikonDatasetValidator;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Console\Command;
 use JsonException;
 
@@ -19,11 +20,12 @@ class ImportMaddraxBooks extends Command
         {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app}
         {--abenteurer-path=private/abenteurer.json : Path to Die Abenteurer novels JSON file relative to storage/app}';
 
-    protected $description = 'Validate and transactionally import all Maddraxikon book files';
+    protected $description = 'Validate and transactionally import all active Maddraxikon book datasets';
 
     public function handle(
         MaddraxikonDatasetValidator $validator,
         MaddraxikonBookImporter $importer,
+        MaddraxikonSnapshotRepository $snapshots,
     ): int {
         $definitions = [
             'path' => BookType::MaddraxDieDunkleZukunftDerErde,
@@ -38,7 +40,7 @@ class ImportMaddraxBooks extends Command
 
         foreach ($definitions as $option => $type) {
             try {
-                $rows = $this->read((string) $this->option($option), $type);
+                $rows = $this->read($option, (string) $this->option($option), $type, $snapshots);
                 $validator->validate($rows, $type);
                 $datasets[$type->key()] = $rows;
             } catch (MaddraxikonCrawlException $exception) {
@@ -70,8 +72,20 @@ class ImportMaddraxBooks extends Command
     }
 
     /** @return array<int, array<string, mixed>> */
-    private function read(string $path, BookType $type): array
-    {
+    private function read(
+        string $option,
+        string $path,
+        BookType $type,
+        MaddraxikonSnapshotRepository $snapshots,
+    ): array {
+        if (! $this->input->hasParameterOption('--'.$option)) {
+            $snapshot = $snapshots->activeDataset($type);
+
+            if ($snapshot !== null) {
+                return $snapshot['rows'];
+            }
+        }
+
         $fullPath = storage_path("app/{$path}");
 
         if (! is_file($fullPath) || ! is_readable($fullPath)) {

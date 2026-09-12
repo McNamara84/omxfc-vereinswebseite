@@ -26,7 +26,7 @@ class MaddraxDataServiceTest extends TestCase
         $this->app->useStoragePath($this->testStoragePath);
         File::ensureDirectoryExists($this->testStoragePath.'/app/private');
 
-        $this->service = new MaddraxDataService;
+        $this->service = app(MaddraxDataService::class);
     }
 
     protected function tearDown(): void

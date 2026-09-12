@@ -4,7 +4,7 @@ namespace App\Services\Maddraxikon;
 
 use App\Enums\BookType;
 use App\Models\Book;
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 
 class MaddraxikonCrawler
@@ -13,6 +13,7 @@ class MaddraxikonCrawler
         private readonly MaddraxikonCategoryPaginator $paginator,
         private readonly MaddraxikonCrawlerHttpClient $http,
         private readonly MaddraxikonArticleParser $parser,
+        private readonly MaddraxikonReleaseDateParser $releaseDates,
     ) {}
 
     /**
@@ -72,17 +73,16 @@ class MaddraxikonCrawler
             return false;
         }
 
-        try {
-            if (! Carbon::parse($releasedAt)->isAfter(Carbon::today())) {
-                return false;
-            }
+        $releasedOn = $this->releaseDates->parse($releasedAt);
+        $today = CarbonImmutable::today((string) config('maddraxikon.timezone', 'Europe/Berlin'));
 
-            return ! Book::query()
-                ->where('roman_number', $number)
-                ->where('type', $type)
-                ->exists();
-        } catch (\Throwable) {
+        if (! $releasedOn->isAfter($today)) {
             return false;
         }
+
+        return ! Book::query()
+            ->where('roman_number', $number)
+            ->where('type', $type)
+            ->exists();
     }
 }

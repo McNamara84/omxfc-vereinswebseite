@@ -18,6 +18,7 @@
             <file>tests/Feature/MaddraxikonAccountLinkCorrectionTest.php</file>
             <file>tests/Feature/MaddraxikonAdminTest.php</file>
             <file>tests/Feature/MaddraxikonContributionImporterTest.php</file>
+            <file>tests/Feature/ImportMaddraxBooksCommandTest.php</file>
             <file>tests/Feature/CoverRatingMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/MaddraxikonDataModelTest.php</file>
             <file>tests/Feature/MaddraxikonOAuthClientSecurityTest.php</file>
@@ -29,7 +30,9 @@
             <file>tests/Feature/MaddraxikonProfileHardeningTest.php</file>
             <file>tests/Feature/MaddraxikonProfilePanelTest.php</file>
             <file>tests/Feature/MaddraxikonRatingSourceMariaDbTest.php</file>
+            <file>tests/Feature/MaddraxikonRefreshTest.php</file>
             <file>tests/Feature/MaddraxikonRewardServiceTest.php</file>
+            <file>tests/Feature/MaddraxikonSnapshotRepositoryTest.php</file>
             <file>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</file>
             <file>tests/Unit/MaddraxikonApiClientTest.php</file>
             <file>tests/Unit/MaddraxikonJobsTest.php</file>

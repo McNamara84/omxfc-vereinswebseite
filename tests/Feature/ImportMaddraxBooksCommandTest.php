@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Models\Book;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
@@ -97,6 +99,48 @@ class ImportMaddraxBooksCommandTest extends TestCase
             ->assertFailed();
 
         $this->assertSame(0, Book::count());
+    }
+
+    public function test_default_import_uses_active_database_snapshots_instead_of_stale_files(): void
+    {
+        $this->writeValidFiles();
+        $datasets = collect(BookType::cases())
+            ->mapWithKeys(fn (BookType $type): array => [
+                $type->key() => [
+                    $this->row(
+                        1,
+                        $type === BookType::MaddraxDieDunkleZukunftDerErde ? 'Weltrat' : null,
+                        'Snapshot '.$type->key(),
+                    ),
+                ],
+            ])
+            ->all();
+        $json = collect($datasets)
+            ->map(static fn (array $rows): string => (string) json_encode($rows, JSON_THROW_ON_ERROR))
+            ->all();
+
+        DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate(
+            '33333333-3333-4333-8333-333333333333',
+            $json,
+        ));
+
+        $this->artisan('books:import')->assertSuccessful();
+
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'title' => 'Snapshot maddrax',
+            'cycle' => 'Weltrat',
+        ]);
+
+        $this->artisan('books:import', ['--path' => 'private/maddrax.json'])->assertSuccessful();
+
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'title' => 'Maddrax',
+            'cycle' => 'Euree',
+        ]);
     }
 
     private function writeValidFiles(): void

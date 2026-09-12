@@ -2,15 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\BookType;
+use App\Exceptions\MaddraxikonCrawlException;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Service zum Laden von Maddrax-Serien-Daten aus JSON-Dateien.
+ * Service zum Laden von Maddrax-Serien-Daten aus versionierten Datenbank-Snapshots.
  *
- * Stellt gecachte Zugriffe auf alle Romanserien bereit:
+ * Bis zum ersten aktivierten Snapshot dienen die bisherigen JSON-Dateien als
+ * abwärtskompatibler Rollout-Fallback. Stellt gecachte Zugriffe bereit für:
  * - Maddrax-Hauptserie
  * - Hardcovers
  * - Mission Mars
@@ -20,6 +24,10 @@ use Illuminate\Support\Facades\Storage;
  */
 class MaddraxDataService
 {
+    public function __construct(
+        private readonly MaddraxikonSnapshotRepository $snapshots,
+    ) {}
+
     /**
      * Cache-TTL in Sekunden (24 Stunden).
      */
@@ -42,6 +50,31 @@ class MaddraxDataService
      */
     public function getSeries(string $seriesKey): Collection
     {
+        $type = BookType::fromKey($seriesKey);
+
+        if ($type !== null) {
+            try {
+                $snapshotId = $this->snapshots->activeId($type);
+
+                if ($snapshotId !== null) {
+                    $series = Cache::remember(
+                        "maddrax_series_{$seriesKey}_snapshot_{$snapshotId}",
+                        self::CACHE_TTL,
+                        fn (): array => $this->snapshots->dataset($snapshotId, $type),
+                    );
+
+                    return collect($series);
+                }
+            } catch (MaddraxikonCrawlException $exception) {
+                Log::critical('MaddraxDataService: Aktiver Datenbank-Snapshot ist nicht lesbar.', [
+                    'series' => $seriesKey,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return collect();
+            }
+        }
+
         $cacheKey = "maddrax_series_{$seriesKey}";
 
         $series = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($seriesKey) {
@@ -58,18 +91,13 @@ class MaddraxDataService
      */
     public function getAllSeries(): array
     {
-        $series = Cache::remember('maddrax_all_series', self::CACHE_TTL, function () {
-            $result = [];
-            foreach (array_keys(self::SERIES_FILES) as $key) {
-                $result[$key] = $this->loadSeriesFromFile($key)->all();
-            }
+        $result = [];
 
-            return $result;
-        });
+        foreach (array_keys(self::SERIES_FILES) as $key) {
+            $result[$key] = $this->getSeries($key);
+        }
 
-        return collect($series)
-            ->map(fn ($items) => collect($items))
-            ->all();
+        return $result;
     }
 
     /**
@@ -135,6 +163,11 @@ class MaddraxDataService
      */
     public function clearCache(?string $seriesKey = null): void
     {
+        if ($seriesKey === null || $seriesKey === 'maddrax') {
+            self::$data = null;
+            self::$dataSnapshotId = null;
+        }
+
         if ($seriesKey) {
             Cache::forget("maddrax_series_{$seriesKey}");
         } else {
@@ -186,6 +219,8 @@ class MaddraxDataService
 
     protected static $data = null;
 
+    protected static ?string $dataSnapshotId = null;
+
     /**
      * JSON-Daten aus Datei laden (Lazy Loading).
      *
@@ -193,6 +228,31 @@ class MaddraxDataService
      */
     public static function loadData(): array
     {
+        try {
+            $snapshots = app(MaddraxikonSnapshotRepository::class);
+            $type = BookType::MaddraxDieDunkleZukunftDerErde;
+            $snapshotId = $snapshots->activeId($type);
+
+            if ($snapshotId !== null) {
+                if (self::$data === null || self::$dataSnapshotId !== $snapshotId) {
+                    self::$data = $snapshots->dataset($snapshotId, $type);
+                    self::$dataSnapshotId = $snapshotId;
+                }
+
+                return self::$data;
+            }
+        } catch (MaddraxikonCrawlException $exception) {
+            Log::critical('MaddraxDataService: Aktiver Datenbank-Snapshot ist nicht lesbar.', [
+                'series' => 'maddrax',
+                'message' => $exception->getMessage(),
+            ]);
+
+            self::$data = [];
+            self::$dataSnapshotId = null;
+
+            return self::$data;
+        }
+
         if (is_null(self::$data)) {
             try {
                 if (Storage::disk('local')->exists('maddrax.json')) {
