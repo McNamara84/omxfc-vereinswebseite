@@ -133,6 +133,72 @@ class MaddraxikonRefreshTest extends TestCase
         $this->assertSame('Neuer Titel', app(MaddraxDataService::class)->getMaddraxRomane()->first()['titel']);
     }
 
+    public function test_promotion_retry_cleans_up_an_already_active_candidate_without_reapplying_it(): void
+    {
+        $old = [$this->row(1, 'Alter Zyklus', 'Alter Titel')];
+        $new = [$this->row(1, 'Euree', 'Neuer Titel')];
+        $oldSnapshotId = '33333333-3333-4333-8333-333333333333';
+        $this->activateSnapshot($oldSnapshotId, ['maddrax' => $old]);
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Alter Titel',
+            'author' => 'Alt',
+            'cycle' => 'Alter Zyklus',
+        ]);
+        $store = app(MaddraxikonCandidateStore::class);
+        $candidate = $store->stage(['maddrax' => $new]);
+        $loaded = $store->load($candidate['id']);
+        $this->assertFalse($loaded['already_active']);
+
+        DB::transaction(function () use ($candidate, $loaded): void {
+            app(MaddraxikonSnapshotRepository::class)->storeAndActivate($candidate['id'], $loaded['json']);
+            app(MaddraxikonBookImporter::class)->import($loaded['datasets'], false);
+        });
+
+        $this->assertTrue(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
+        $this->assertTrue($store->load($candidate['id'])['already_active']);
+        $importer = Mockery::mock(MaddraxikonBookImporter::class);
+        $importer->shouldNotReceive('import');
+        $coordinator = new MaddraxikonRefreshCoordinator(
+            $store,
+            $importer,
+            app(MaddraxDataService::class),
+            app(MaddraxikonSnapshotRepository::class),
+        );
+
+        $this->assertSame(['maddrax' => 1], $coordinator->promote($candidate['id']));
+        $this->assertSame(
+            $candidate['id'],
+            app(MaddraxikonSnapshotRepository::class)->activeId(BookType::MaddraxDieDunkleZukunftDerErde),
+        );
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'title' => 'Neuer Titel',
+            'cycle' => 'Euree',
+        ]);
+        $this->assertFalse(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
+    }
+
+    public function test_promotion_retry_rejects_an_active_id_with_different_snapshot_data(): void
+    {
+        $store = app(MaddraxikonCandidateStore::class);
+        $candidate = $store->stage([
+            'maddrax' => [$this->row(1, 'Euree', 'Kandidat')],
+        ]);
+        $this->activateSnapshot($candidate['id'], [
+            'maddrax' => [$this->row(1, 'Euree', 'Abweichender Snapshot')],
+        ]);
+
+        try {
+            app(MaddraxikonRefreshCoordinator::class)->promote($candidate['id']);
+            $this->fail('Expected an active snapshot payload mismatch.');
+        } catch (MaddraxikonCrawlException $exception) {
+            $this->assertStringContainsString('stimmt nicht mit Kandidat', $exception->getMessage());
+        }
+
+        $this->assertTrue(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
+    }
+
     public function test_import_failure_rolls_back_snapshot_pointer_books_and_cache(): void
     {
         $old = [$this->row(1, 'Alter Zyklus', 'Alter Titel')];
@@ -303,6 +369,21 @@ class MaddraxikonRefreshTest extends TestCase
         $this->expectExceptionMessage('seit der Kandidatenerstellung geändert');
 
         $store->load($candidate['id']);
+    }
+
+    public function test_legacy_file_coverage_error_names_the_actual_baseline_source(): void
+    {
+        Storage::disk('private')->put('maddrax.json', json_encode([
+            $this->row(1, 'Euree', 'Roman 1'),
+            $this->row(2, 'Euree', 'Roman 2'),
+        ]));
+
+        $this->expectException(MaddraxikonCrawlException::class);
+        $this->expectExceptionMessage('gegenüber der bisherigen JSON-Datei');
+
+        app(MaddraxikonCandidateStore::class)->stage([
+            'maddrax' => [$this->row(1, 'Euree', 'Roman 1')],
+        ]);
     }
 
     public function test_promotion_reports_snapshot_and_book_updates_without_claiming_a_json_update(): void

@@ -12,12 +12,14 @@ class MaddraxikonDatasetValidator
     /**
      * @param  array<int, mixed>  $rows
      * @param  array<int, mixed>|null  $baseline
+     * @param  'database_snapshot'|'legacy_file'|'none'|null  $baselineSource
      */
     public function validate(
         array $rows,
         BookType $type,
         ?array $baseline = null,
         bool $checkDatabaseCoverage = true,
+        ?string $baselineSource = null,
     ): void {
         if ($rows === [] || ! array_is_list($rows)) {
             throw new MaddraxikonCrawlException(
@@ -67,7 +69,13 @@ class MaddraxikonDatasetValidator
 
             if ($missingFromBaseline !== []) {
                 throw new MaddraxikonCrawlException(
-                    $this->coverageMessage($type, $missingFromBaseline, 'aktiven Snapshot')
+                    $this->coverageMessage(
+                        $type,
+                        $missingFromBaseline,
+                        $baselineSource === 'legacy_file'
+                            ? 'der bisherigen JSON-Datei'
+                            : 'dem aktiven Datenbank-Snapshot',
+                    )
                 );
             }
         }
@@ -85,7 +93,7 @@ class MaddraxikonDatasetValidator
 
         if ($missingFromDatabase !== []) {
             throw new MaddraxikonCrawlException(
-                $this->coverageMessage($type, $missingFromDatabase, 'Datenbankbestand')
+                $this->coverageMessage($type, $missingFromDatabase, 'dem Datenbankbestand')
             );
         }
     }
@@ -119,7 +127,7 @@ class MaddraxikonDatasetValidator
         sort($missing);
         $sample = implode(', ', array_slice($missing, 0, 20));
 
-        return "Der Kandidat für {$type->label()} verliert gegenüber dem {$source} ".
+        return "Der Kandidat für {$type->label()} verliert gegenüber {$source} ".
             count($missing)." Roman(e), darunter: {$sample}.";
     }
 }

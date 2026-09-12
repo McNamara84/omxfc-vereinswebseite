@@ -51,12 +51,23 @@ class MaddraxikonCandidateStore
                 }
 
                 $baseline = $this->activeBaseline($type);
-                $this->validator->validate($rows, $type, $baseline['rows']);
+                $this->validator->validate(
+                    $rows,
+                    $type,
+                    $baseline['rows'],
+                    baselineSource: $baseline['source'],
+                );
                 $json = $this->encode($rows);
                 $filename = "{$seriesKey}.json";
                 $path = $directory.DIRECTORY_SEPARATOR.$filename;
                 $this->writer->write($path, $json);
-                $this->assertCandidateFile($path, $rows, $type, $baseline['rows']);
+                $this->assertCandidateFile(
+                    $path,
+                    $rows,
+                    $type,
+                    $baseline['rows'],
+                    $baseline['source'],
+                );
 
                 $manifestSeries[$seriesKey] = [
                     'type' => $type->value,
@@ -99,7 +110,8 @@ class MaddraxikonCandidateStore
      * @return array{
      *     manifest: array<string, mixed>,
      *     datasets: array<string, array<int, array<string, mixed>>>,
-     *     json: array<string, string>
+     *     json: array<string, string>,
+     *     already_active: bool
      * }
      */
     public function load(string $id): array
@@ -140,6 +152,7 @@ class MaddraxikonCandidateStore
 
         $datasets = [];
         $jsonBySeries = [];
+        $activationStates = [];
 
         foreach ($series as $seriesKey => $metadata) {
             $type = is_string($seriesKey) ? BookType::fromKey($seriesKey) : null;
@@ -169,16 +182,36 @@ class MaddraxikonCandidateStore
             $json = $this->files->get($path);
             $rows = $this->decode($json, $filename);
             $baseline = $this->activeBaseline($type);
-            $this->assertBaselineUnchanged($id, $type, $metadata, $baseline);
-            $this->validator->validate($rows, $type, $baseline['rows']);
+            $alreadyActive = $this->assertBaselineUnchanged($id, $type, $metadata, $baseline);
+
+            if ($alreadyActive && $rows !== $baseline['rows']) {
+                throw new MaddraxikonCrawlException(
+                    "Der aktive Datenbank-Snapshot für {$type->label()} stimmt nicht mit Kandidat {$id} überein."
+                );
+            }
+
+            $this->validator->validate(
+                $rows,
+                $type,
+                $baseline['rows'],
+                baselineSource: $baseline['source'],
+            );
             $datasets[$seriesKey] = $rows;
             $jsonBySeries[$seriesKey] = $json;
+            $activationStates[] = $alreadyActive;
+        }
+
+        if (in_array(true, $activationStates, true) && in_array(false, $activationStates, true)) {
+            throw new MaddraxikonCrawlException(
+                "Kandidat {$id} ist nur für einen Teil seiner Reihen aktiv und kann nicht sicher wiederholt werden."
+            );
         }
 
         return [
             'manifest' => $manifest,
             'datasets' => $datasets,
             'json' => $jsonBySeries,
+            'already_active' => ! in_array(false, $activationStates, true),
         ];
     }
 
@@ -288,7 +321,7 @@ class MaddraxikonCandidateStore
         BookType $type,
         array $metadata,
         array $current,
-    ): void {
+    ): bool {
         $expected = $metadata['baseline'] ?? null;
         $source = is_array($expected) ? ($expected['source'] ?? null) : null;
         $fingerprint = is_array($expected) ? ($expected['fingerprint'] ?? null) : null;
@@ -304,12 +337,18 @@ class MaddraxikonCandidateStore
             );
         }
 
-        if ($source !== $current['source'] || $fingerprint !== $current['fingerprint']) {
-            throw new MaddraxikonCrawlException(
-                "Die aktive Datenbasis für {$type->label()} hat sich seit der Kandidatenerstellung geändert. ".
-                'Der Kandidat muss neu erzeugt werden.'
-            );
+        if ($source === $current['source'] && $fingerprint === $current['fingerprint']) {
+            return false;
         }
+
+        if ($current['source'] === self::BASELINE_SNAPSHOT && $current['fingerprint'] === $candidateId) {
+            return true;
+        }
+
+        throw new MaddraxikonCrawlException(
+            "Die aktive Datenbasis für {$type->label()} hat sich seit der Kandidatenerstellung geändert. ".
+            'Der Kandidat muss neu erzeugt werden.'
+        );
     }
 
     private function isExpired(string $directory): bool
@@ -344,9 +383,10 @@ class MaddraxikonCandidateStore
         array $expectedRows,
         BookType $type,
         ?array $baseline,
+        string $baselineSource,
     ): void {
         $rows = $this->decode($this->files->get($path), basename($path));
-        $this->validator->validate($rows, $type, $baseline);
+        $this->validator->validate($rows, $type, $baseline, baselineSource: $baselineSource);
 
         if ($rows !== $expectedRows) {
             throw new MaddraxikonCrawlException(

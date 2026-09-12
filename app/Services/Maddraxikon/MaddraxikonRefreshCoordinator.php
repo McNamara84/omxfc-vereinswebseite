@@ -19,10 +19,13 @@ class MaddraxikonRefreshCoordinator
     public function promote(string $candidateId): array
     {
         $candidate = $this->candidates->load($candidateId);
-        DB::transaction(function () use ($candidate, $candidateId): void {
-            $this->snapshots->storeAndActivate($candidateId, $candidate['json']);
-            $this->importer->import($candidate['datasets'], false);
-        });
+
+        if (! $candidate['already_active']) {
+            DB::transaction(function () use ($candidate, $candidateId): void {
+                $this->snapshots->storeAndActivate($candidateId, $candidate['json']);
+                $this->importer->import($candidate['datasets'], false);
+            });
+        }
 
         if (! $this->candidates->delete($candidateId)) {
             Log::warning('Erfolgreich aktivierter Maddraxikon-Kandidat konnte nicht gelöscht werden.', [

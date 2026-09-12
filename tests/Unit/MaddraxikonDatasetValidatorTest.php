@@ -75,10 +75,11 @@ class MaddraxikonDatasetValidatorTest extends TestCase
                 [$this->row(1, 'Euree')],
                 BookType::MaddraxDieDunkleZukunftDerErde,
                 [$this->row(1, 'Euree'), $this->row(3, 'Meeraka')],
+                baselineSource: 'database_snapshot',
             );
             $this->fail('Expected baseline rejection.');
         } catch (MaddraxikonCrawlException $exception) {
-            $this->assertStringContainsString('aktiven Snapshot', $exception->getMessage());
+            $this->assertStringContainsString('aktiven Datenbank-Snapshot', $exception->getMessage());
         }
 
         $this->expectException(MaddraxikonCrawlException::class);
@@ -86,6 +87,20 @@ class MaddraxikonDatasetValidatorTest extends TestCase
         $validator->validate(
             [$this->row(1, 'Euree')],
             BookType::MaddraxDieDunkleZukunftDerErde,
+        );
+    }
+
+    public function test_coverage_error_identifies_a_legacy_file_baseline(): void
+    {
+        $this->expectException(MaddraxikonCrawlException::class);
+        $this->expectExceptionMessage('gegenüber der bisherigen JSON-Datei');
+
+        app(MaddraxikonDatasetValidator::class)->validate(
+            [$this->row(1, 'Euree')],
+            BookType::MaddraxDieDunkleZukunftDerErde,
+            [$this->row(1, 'Euree'), $this->row(2, 'Meeraka')],
+            checkDatabaseCoverage: false,
+            baselineSource: 'legacy_file',
         );
     }
 

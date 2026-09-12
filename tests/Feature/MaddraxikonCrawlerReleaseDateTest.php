@@ -50,6 +50,16 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
         $crawler->crawl([BookType::MaddraxHardcover]);
     }
 
+    public function test_overflow_release_date_fails_the_crawl_closed(): void
+    {
+        $crawler = $this->crawlerWithBooks([$this->book(1, '31. Februar 2026')]);
+
+        $this->expectException(MaddraxikonCrawlException::class);
+        $this->expectExceptionMessage('nicht sicher ausgewertet');
+
+        $crawler->crawl([BookType::MaddraxHardcover]);
+    }
+
     /** @param list<CrawledBook> $books */
     private function crawlerWithBooks(array $books): MaddraxikonCrawler
     {

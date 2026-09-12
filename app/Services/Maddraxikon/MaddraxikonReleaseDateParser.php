@@ -5,6 +5,7 @@ namespace App\Services\Maddraxikon;
 use App\Exceptions\MaddraxikonCrawlException;
 use Carbon\CarbonImmutable;
 use Throwable;
+use UnexpectedValueException;
 
 class MaddraxikonReleaseDateParser
 {
@@ -24,6 +25,14 @@ class MaddraxikonReleaseDateParser
         'dezember' => 'December',
     ];
 
+    private const SUPPORTED_FORMATS = [
+        '/^\d{4}-\d{2}-\d{2}$/' => '!Y-m-d',
+        '/^\d{1,2}\.\d{1,2}\.\d{4}$/' => '!j.n.Y',
+        '/^\d{1,2}\.\s+[A-Z][a-z]+\s+\d{4}$/' => '!j. F Y',
+        '/^\d{1,2}\s+[A-Z][a-z]+\s+\d{4}$/' => '!j F Y',
+        '/^[A-Z][a-z]+\s+\d{4}$/' => '!F Y',
+    ];
+
     public function parse(string $value): CarbonImmutable
     {
         $normalized = preg_replace_callback(
@@ -32,16 +41,33 @@ class MaddraxikonReleaseDateParser
             trim($value),
         );
         $normalized ??= trim($value);
+        $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
 
         try {
             $timezone = (string) config('maddraxikon.timezone', 'Europe/Berlin');
+            $format = null;
 
-            if (preg_match('/^[A-Z][a-z]+\s+\d{4}$/', $normalized) === 1) {
-                return CarbonImmutable::createFromFormat('!F Y', $normalized, $timezone)
-                    ->startOfDay();
+            foreach (self::SUPPORTED_FORMATS as $pattern => $candidateFormat) {
+                if (preg_match($pattern, $normalized) === 1) {
+                    $format = $candidateFormat;
+
+                    break;
+                }
             }
 
-            return CarbonImmutable::parse($normalized, $timezone)->startOfDay();
+            if ($format === null) {
+                throw new UnexpectedValueException('Nicht unterstütztes Datumsformat.');
+            }
+
+            $date = CarbonImmutable::createFromFormat($format, $normalized, $timezone);
+            $errors = CarbonImmutable::getLastErrors();
+
+            if ($date === false || (is_array($errors)
+                && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+                throw new UnexpectedValueException('Ungültiges Kalenderdatum.');
+            }
+
+            return $date->startOfDay();
         } catch (Throwable $exception) {
             throw new MaddraxikonCrawlException(
                 "Veröffentlichungsdatum '{$value}' konnte nicht sicher ausgewertet werden.",
