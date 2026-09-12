@@ -134,10 +134,16 @@ class MaddraxikonCategoryPaginator
             'https://de.maddraxikon.com'
         ), '/').'/';
         $resolved = UriSupport::resolve($baseUrl, $href);
-        $host = (string) (parse_url($baseUrl, PHP_URL_HOST) ?: 'de.maddraxikon.com');
+        $baseParts = parse_url($baseUrl);
+        $host = is_array($baseParts)
+            ? (string) ($baseParts['host'] ?? 'de.maddraxikon.com')
+            : 'de.maddraxikon.com';
+        $port = is_array($baseParts) && isset($baseParts['port'])
+            ? (int) $baseParts['port']
+            : 443;
 
         return $resolved !== null
-            && UriSupport::isAbsoluteUrlForHost($resolved, 'https', $host)
+            && UriSupport::isAbsoluteUrlForHost($resolved, 'https', $host, $port)
                 ? $resolved
                 : null;
     }

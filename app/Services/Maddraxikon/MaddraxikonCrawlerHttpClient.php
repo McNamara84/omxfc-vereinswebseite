@@ -78,12 +78,13 @@ class MaddraxikonCrawlerHttpClient
             'https://de.maddraxikon.com'
         ), '/');
         $parts = parse_url($baseUrl);
-        $scheme = (string) ($parts['scheme'] ?? 'https');
-        $host = (string) ($parts['host'] ?? 'de.maddraxikon.com');
+        $scheme = is_array($parts) ? (string) ($parts['scheme'] ?? 'https') : '';
+        $host = is_array($parts) ? (string) ($parts['host'] ?? 'de.maddraxikon.com') : '';
+        $port = is_array($parts) && isset($parts['port']) ? (int) $parts['port'] : 443;
 
         if (
             strtolower($scheme) !== 'https'
-            || ! UriSupport::isAbsoluteUrlForHost($url, 'https', $host)
+            || ! UriSupport::isAbsoluteUrlForHost($url, 'https', $host, $port)
         ) {
             throw new MaddraxikonCrawlException(
                 "Nicht erlaubte Maddraxikon-URL: {$url}",

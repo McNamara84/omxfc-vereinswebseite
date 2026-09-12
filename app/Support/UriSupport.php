@@ -26,16 +26,27 @@ final class UriSupport
         return (string) $parsed;
     }
 
-    public static function isAbsoluteUrlForHost(string $uri, string $scheme, string $host): bool
-    {
+    public static function isAbsoluteUrlForHost(
+        string $uri,
+        string $scheme,
+        string $host,
+        ?int $port = null,
+    ): bool {
         $parsed = self::parse($uri);
 
         if ($parsed === null || ! self::hasNonEmptyHost($parsed)) {
             return false;
         }
 
-        return strtolower((string) $parsed->getScheme()) === strtolower($scheme)
-            && strtolower((string) $parsed->getHost()) === strtolower($host);
+        $actualScheme = strtolower((string) $parsed->getScheme());
+        $expectedScheme = strtolower($scheme);
+        $defaultPorts = ['http' => 80, 'https' => 443];
+        $actualPort = $parsed->getPort() ?? ($defaultPorts[$actualScheme] ?? null);
+        $expectedPort = $port ?? ($defaultPorts[$expectedScheme] ?? null);
+
+        return $actualScheme === $expectedScheme
+            && strtolower((string) $parsed->getHost()) === strtolower($host)
+            && $actualPort === $expectedPort;
     }
 
     public static function resolve(string $base, string $reference): ?string

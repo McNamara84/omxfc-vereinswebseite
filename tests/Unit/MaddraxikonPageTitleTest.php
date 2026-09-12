@@ -49,6 +49,7 @@ class MaddraxikonPageTitleTest extends TestCase
         yield 'wrong scheme' => ['http://de.maddraxikon.com/wiki/MX_1'];
         yield 'wrong host' => ['https://example.com/wiki/MX_1'];
         yield 'lookalike host' => ['https://de.maddraxikon.com.example.org/wiki/MX_1'];
+        yield 'wrong port' => ['https://de.maddraxikon.com:8443/wiki/MX_1'];
         yield 'empty path title' => ['https://de.maddraxikon.com/wiki/'];
         yield 'unrelated route' => ['https://de.maddraxikon.com/api.php?action=query'];
         yield 'control character' => ['https://de.maddraxikon.com/index.php?title=MX%0A1'];

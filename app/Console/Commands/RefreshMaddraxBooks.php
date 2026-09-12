@@ -129,7 +129,8 @@ class RefreshMaddraxBooks extends Command
         $counts = $coordinator->promote($candidateId);
 
         foreach ($counts as $seriesKey => $count) {
-            $this->info("{$seriesKey}.json und Datenbank sicher aktualisiert ({$count} Datensätze).");
+            $unit = $count === 1 ? 'Datensatz' : 'Datensätze';
+            $this->info("Snapshot und Buchdaten für {$seriesKey} sicher aktualisiert ({$count} {$unit}).");
         }
 
         return self::SUCCESS;

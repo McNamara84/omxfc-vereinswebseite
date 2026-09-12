@@ -79,7 +79,11 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
         Http::fake();
         $client = app(MaddraxikonCrawlerHttpClient::class);
 
-        foreach (['https://evil.example/wiki/Test', 'http://de.maddraxikon.com/wiki/Test'] as $url) {
+        foreach ([
+            'https://evil.example/wiki/Test',
+            'http://de.maddraxikon.com/wiki/Test',
+            'https://de.maddraxikon.com:8443/wiki/Test',
+        ] as $url) {
             try {
                 $client->get($url);
                 $this->fail('Expected URL rejection.');
@@ -89,5 +93,19 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
         }
 
         Http::assertNothingSent();
+    }
+
+    public function test_configured_non_default_https_port_is_accepted(): void
+    {
+        config(['maddraxikon.base_url' => 'https://de.maddraxikon.com:8443']);
+        Http::fake([
+            'https://de.maddraxikon.com:8443/wiki/Test' => Http::response('<html>ok</html>'),
+        ]);
+
+        $body = app(MaddraxikonCrawlerHttpClient::class)
+            ->get('https://de.maddraxikon.com:8443/wiki/Test');
+
+        $this->assertSame('<html>ok</html>', $body);
+        Http::assertSentCount(1);
     }
 }

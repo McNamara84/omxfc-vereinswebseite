@@ -105,6 +105,25 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
         Http::assertSentCount(4);
     }
 
+    public function test_followup_link_on_a_different_port_is_rejected_without_fetching_it(): void
+    {
+        Http::fake([
+            self::CATEGORY => Http::response($this->categoryHtml([
+                '/wiki/MX_1' => 'MX 1',
+                'https://de.maddraxikon.com:8443/index.php?title=Kategorie:Maddrax-Heftromane&pagefrom=201' => 'nächste Seite',
+            ])),
+        ]);
+
+        $this->expectException(MaddraxikonCrawlException::class);
+        $this->expectExceptionMessage('Ungültiger Folgeseiten-Link');
+
+        try {
+            app(MaddraxikonCategoryPaginator::class)->articleUrls(self::CATEGORY);
+        } finally {
+            Http::assertSentCount(1);
+        }
+    }
+
     /** @param array<string, string> $links */
     private function categoryHtml(array $links): string
     {

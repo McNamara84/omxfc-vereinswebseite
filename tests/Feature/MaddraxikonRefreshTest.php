@@ -71,6 +71,10 @@ class MaddraxikonRefreshTest extends TestCase
         $manifest = json_decode(File::get($manifests[0]), true);
         $this->assertSame(1, $manifest['series']['maddrax']['count']);
         $this->assertMatchesRegularExpression('/^[a-f0-9]{64}$/', $manifest['series']['maddrax']['sha256']);
+        $this->assertSame([
+            'source' => 'none',
+            'fingerprint' => null,
+        ], $manifest['series']['maddrax']['baseline']);
     }
 
     public function test_promotion_updates_database_snapshot_books_and_cache_together(): void
@@ -218,6 +222,77 @@ class MaddraxikonRefreshTest extends TestCase
         $this->assertFalse(Storage::disk('private')->exists('maddrax-candidates/'.$expired['id']));
         $this->assertTrue(Storage::disk('private')->exists('maddrax-candidates/'.$current['id']));
         $this->assertSame(0, $store->pruneExpired());
+    }
+
+    public function test_stale_candidate_is_rejected_after_a_newer_snapshot_was_promoted(): void
+    {
+        $initial = [$this->row(1, 'Euree', 'Ausgangsstand')];
+        $this->activateSnapshot('99999999-9999-4999-8999-999999999999', ['maddrax' => $initial]);
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Ausgangsstand',
+            'author' => 'Autor',
+            'cycle' => 'Euree',
+        ]);
+        $store = app(MaddraxikonCandidateStore::class);
+        $stale = $store->stage(['maddrax' => [$this->row(1, 'Weltrat', 'Veraltet')]]);
+        $fresh = $store->stage(['maddrax' => [$this->row(1, 'Weltrat', 'Aktuell')]]);
+        $this->assertSame([
+            'source' => 'database_snapshot',
+            'fingerprint' => '99999999-9999-4999-8999-999999999999',
+        ], $stale['manifest']['series']['maddrax']['baseline']);
+
+        app(MaddraxikonRefreshCoordinator::class)->promote($fresh['id']);
+
+        try {
+            app(MaddraxikonRefreshCoordinator::class)->promote($stale['id']);
+            $this->fail('Expected stale baseline rejection.');
+        } catch (MaddraxikonCrawlException $exception) {
+            $this->assertStringContainsString('seit der Kandidatenerstellung geändert', $exception->getMessage());
+        }
+
+        $this->assertSame(
+            $fresh['id'],
+            app(MaddraxikonSnapshotRepository::class)->activeId(BookType::MaddraxDieDunkleZukunftDerErde),
+        );
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'title' => 'Aktuell',
+            'cycle' => 'Weltrat',
+        ]);
+        $this->assertTrue(Storage::disk('private')->exists('maddrax-candidates/'.$stale['id']));
+    }
+
+    public function test_candidate_is_rejected_when_its_legacy_file_baseline_changed(): void
+    {
+        $store = app(MaddraxikonCandidateStore::class);
+        Storage::disk('private')->put(
+            'maddrax.json',
+            json_encode([$this->row(1, 'Euree', 'Dateistand A')]),
+        );
+        $candidate = $store->stage([
+            'maddrax' => [$this->row(1, 'Weltrat', 'Kandidat')],
+        ]);
+        Storage::disk('private')->put(
+            'maddrax.json',
+            json_encode([$this->row(1, 'Euree', 'Dateistand B')]),
+        );
+
+        $this->expectException(MaddraxikonCrawlException::class);
+        $this->expectExceptionMessage('seit der Kandidatenerstellung geändert');
+
+        $store->load($candidate['id']);
+    }
+
+    public function test_promotion_reports_snapshot_and_book_updates_without_claiming_a_json_update(): void
+    {
+        $candidate = app(MaddraxikonCandidateStore::class)->stage([
+            'maddrax' => [$this->row(1, 'Euree', 'Titel')],
+        ]);
+
+        $this->artisan('books:refresh', ['--promote' => $candidate['id']])
+            ->expectsOutput('Snapshot und Buchdaten für maddrax sicher aktualisiert (1 Datensatz).')
+            ->assertSuccessful();
     }
 
     public function test_tampered_candidate_is_rejected(): void

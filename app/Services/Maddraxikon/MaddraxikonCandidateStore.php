@@ -12,6 +12,12 @@ use JsonException;
 
 class MaddraxikonCandidateStore
 {
+    private const BASELINE_FILE = 'legacy_file';
+
+    private const BASELINE_NONE = 'none';
+
+    private const BASELINE_SNAPSHOT = 'database_snapshot';
+
     public function __construct(
         private readonly Filesystem $files,
         private readonly MaddraxikonDatasetValidator $validator,
@@ -44,13 +50,13 @@ class MaddraxikonCandidateStore
                     throw new MaddraxikonCrawlException("Unbekannte Buchreihe: {$seriesKey}");
                 }
 
-                $baseline = $this->activeDataset($type);
-                $this->validator->validate($rows, $type, $baseline);
+                $baseline = $this->activeBaseline($type);
+                $this->validator->validate($rows, $type, $baseline['rows']);
                 $json = $this->encode($rows);
                 $filename = "{$seriesKey}.json";
                 $path = $directory.DIRECTORY_SEPARATOR.$filename;
                 $this->writer->write($path, $json);
-                $this->assertCandidateFile($path, $rows, $type, $baseline);
+                $this->assertCandidateFile($path, $rows, $type, $baseline['rows']);
 
                 $manifestSeries[$seriesKey] = [
                     'type' => $type->value,
@@ -58,6 +64,10 @@ class MaddraxikonCandidateStore
                     'sha256' => hash_file('sha256', $path),
                     'count' => count($rows),
                     'highest_number' => max(array_column($rows, 'nummer')),
+                    'baseline' => [
+                        'source' => $baseline['source'],
+                        'fingerprint' => $baseline['fingerprint'],
+                    ],
                 ];
             }
 
@@ -158,8 +168,9 @@ class MaddraxikonCandidateStore
 
             $json = $this->files->get($path);
             $rows = $this->decode($json, $filename);
-            $baseline = $this->activeDataset($type);
-            $this->validator->validate($rows, $type, $baseline);
+            $baseline = $this->activeBaseline($type);
+            $this->assertBaselineUnchanged($id, $type, $metadata, $baseline);
+            $this->validator->validate($rows, $type, $baseline['rows']);
             $datasets[$seriesKey] = $rows;
             $jsonBySeries[$seriesKey] = $json;
         }
@@ -220,25 +231,84 @@ class MaddraxikonCandidateStore
         return Storage::disk('private')->path('maddrax-candidates/'.$id);
     }
 
-    /** @return array<int, mixed>|null */
-    private function activeDataset(BookType $type): ?array
+    /**
+     * @return array{
+     *     rows: array<int, mixed>|null,
+     *     source: 'database_snapshot'|'legacy_file'|'none',
+     *     fingerprint: string|null
+     * }
+     */
+    private function activeBaseline(BookType $type): array
     {
         $snapshot = $this->snapshots->activeDataset($type);
 
         if ($snapshot !== null) {
-            return $snapshot['rows'];
+            return [
+                'rows' => $snapshot['rows'],
+                'source' => self::BASELINE_SNAPSHOT,
+                'fingerprint' => $snapshot['id'],
+            ];
         }
 
         $path = Storage::disk('private')->path(MaddraxikonSeries::filename($type));
 
         if (! $this->files->isFile($path)) {
-            return null;
+            return [
+                'rows' => null,
+                'source' => self::BASELINE_NONE,
+                'fingerprint' => null,
+            ];
         }
 
+        $json = $this->files->get($path);
+
         try {
-            return $this->decode($this->files->get($path), 'aktiver Snapshot');
+            $rows = $this->decode($json, 'aktiver Snapshot');
         } catch (MaddraxikonCrawlException) {
-            return null;
+            $rows = null;
+        }
+
+        return [
+            'rows' => $rows,
+            'source' => self::BASELINE_FILE,
+            'fingerprint' => hash('sha256', $json),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @param  array{
+     *     rows: array<int, mixed>|null,
+     *     source: 'database_snapshot'|'legacy_file'|'none',
+     *     fingerprint: string|null
+     * }  $current
+     */
+    private function assertBaselineUnchanged(
+        string $candidateId,
+        BookType $type,
+        array $metadata,
+        array $current,
+    ): void {
+        $expected = $metadata['baseline'] ?? null;
+        $source = is_array($expected) ? ($expected['source'] ?? null) : null;
+        $fingerprint = is_array($expected) ? ($expected['fingerprint'] ?? null) : null;
+        $validSource = is_string($source)
+            && in_array($source, [self::BASELINE_SNAPSHOT, self::BASELINE_FILE, self::BASELINE_NONE], true);
+        $validFingerprint = $source === self::BASELINE_NONE
+            ? $fingerprint === null
+            : is_string($fingerprint) && $fingerprint !== '';
+
+        if (! $validSource || ! $validFingerprint) {
+            throw new MaddraxikonCrawlException(
+                "Kandidat {$candidateId} enthält keine gültige Baseline für {$type->label()}."
+            );
+        }
+
+        if ($source !== $current['source'] || $fingerprint !== $current['fingerprint']) {
+            throw new MaddraxikonCrawlException(
+                "Die aktive Datenbasis für {$type->label()} hat sich seit der Kandidatenerstellung geändert. ".
+                'Der Kandidat muss neu erzeugt werden.'
+            );
         }
     }
 
