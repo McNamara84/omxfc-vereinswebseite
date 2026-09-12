@@ -26,7 +26,7 @@ class RefreshMaddraxBooks extends Command
         MaddraxikonRefreshCoordinator $coordinator,
         MaddraxikonRefreshLock $refreshLock,
     ): int {
-        set_time_limit(1800);
+        set_time_limit($refreshLock->runtimeLimitSeconds());
 
         if ($this->option('dry-run') && is_string($this->option('promote'))) {
             $this->error('--dry-run und --promote können nicht kombiniert werden.');

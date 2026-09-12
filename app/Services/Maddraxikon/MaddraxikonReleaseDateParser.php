@@ -27,6 +27,9 @@ class MaddraxikonReleaseDateParser
 
     private const SUPPORTED_FORMATS = [
         '/^\d{4}-\d{2}-\d{2}$/' => '!Y-m-d',
+        '/^\d{4}-\d{2}$/' => '!Y-m',
+        '/^\d{4}-\d$/' => '!Y-n',
+        '/^\d{4}$/' => '!Y',
         '/^\d{1,2}\.\d{1,2}\.\d{4}$/' => '!j.n.Y',
         '/^\d{1,2}\.\s+[A-Z][a-z]+\s+\d{4}$/' => '!j. F Y',
         '/^\d{1,2}\s+[A-Z][a-z]+\s+\d{4}$/' => '!j F Y',
@@ -63,11 +66,16 @@ class MaddraxikonReleaseDateParser
             $errors = CarbonImmutable::getLastErrors();
 
             if ($date === false || (is_array($errors)
-                && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))) {
+                && ($errors['warning_count'] > 0 || $errors['error_count'] > 0))
+                || $date->year < 1) {
                 throw new UnexpectedValueException('Ungültiges Kalenderdatum.');
             }
 
-            return $date->startOfDay();
+            return match ($format) {
+                '!Y' => $date->startOfYear(),
+                '!Y-m', '!Y-n' => $date->startOfMonth(),
+                default => $date->startOfDay(),
+            };
         } catch (Throwable $exception) {
             throw new MaddraxikonCrawlException(
                 "Veröffentlichungsdatum '{$value}' konnte nicht sicher ausgewertet werden.",

@@ -162,6 +162,10 @@ return [
 
     'crawler' => [
         'max_pages' => max(1, (int) env('MADDRAXIKON_CRAWLER_MAX_PAGES', 50)),
+        'max_runtime_seconds' => max(
+            60,
+            (int) env('MADDRAXIKON_CRAWLER_MAX_RUNTIME_SECONDS', 1800)
+        ),
         'candidate_ttl_minutes' => max(
             1,
             (int) env('MADDRAXIKON_CRAWLER_CANDIDATE_TTL_MINUTES', 360)

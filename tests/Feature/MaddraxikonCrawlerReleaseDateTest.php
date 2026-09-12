@@ -40,6 +40,20 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
         $this->assertSame([1], array_column($datasets['hardcovers'], 'nummer'));
     }
 
+    public function test_year_and_year_month_dates_use_the_start_of_their_period(): void
+    {
+        CarbonImmutable::setTestNow('2024-06-15 12:00:00');
+        $crawler = $this->crawlerWithBooks([
+            $this->book(1, '2024-06'),
+            $this->book(2, '2024'),
+            $this->book(3, '2025'),
+        ]);
+
+        $datasets = $crawler->crawl([BookType::MaddraxHardcover]);
+
+        $this->assertSame([1, 2], array_column($datasets['hardcovers'], 'nummer'));
+    }
+
     public function test_unparseable_release_date_fails_the_crawl_closed(): void
     {
         $crawler = $this->crawlerWithBooks([$this->book(1, 'demnächst')]);
