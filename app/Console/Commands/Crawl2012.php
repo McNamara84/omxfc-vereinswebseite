@@ -12,6 +12,6 @@ class Crawl2012 extends Command
 
     public function handle(): int
     {
-        return $this->call(RefreshMaddraxBooks::class, ['--series' => '2012']);
+        return $this->call('books:refresh', ['--series' => '2012']);
     }
 }

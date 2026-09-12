@@ -7,8 +7,8 @@ use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonCandidateStore;
 use App\Services\Maddraxikon\MaddraxikonCrawler;
 use App\Services\Maddraxikon\MaddraxikonRefreshCoordinator;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class RefreshMaddraxBooks extends Command
@@ -24,6 +24,7 @@ class RefreshMaddraxBooks extends Command
         MaddraxikonCrawler $crawler,
         MaddraxikonCandidateStore $candidates,
         MaddraxikonRefreshCoordinator $coordinator,
+        MaddraxikonRefreshLock $refreshLock,
     ): int {
         set_time_limit(1800);
 
@@ -33,16 +34,12 @@ class RefreshMaddraxBooks extends Command
             return self::INVALID;
         }
 
-        $lock = Cache::lock(
-            'maddraxikon-books-refresh',
-            max(60, (int) config('maddraxikon.crawler.lock_seconds', 3600)),
-        );
-        $lockAcquired = false;
+        $lock = null;
 
         try {
-            $lockAcquired = $lock->get();
+            $lock = $refreshLock->acquire();
 
-            if (! $lockAcquired) {
+            if ($lock === null) {
                 $this->error('Ein anderer Maddraxikon-Romandaten-Refresh läuft bereits.');
 
                 return self::FAILURE;
@@ -99,9 +96,7 @@ class RefreshMaddraxBooks extends Command
 
             return self::FAILURE;
         } finally {
-            if ($lockAcquired) {
-                $lock->release();
-            }
+            $lock?->release();
         }
     }
 

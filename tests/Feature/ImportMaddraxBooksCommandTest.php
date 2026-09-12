@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Models\Book;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -161,6 +162,23 @@ class ImportMaddraxBooksCommandTest extends TestCase
             'title' => 'Expliziter Import',
             'cycle' => 'Weltrat',
         ]);
+    }
+
+    public function test_import_is_rejected_while_a_refresh_holds_the_shared_lock(): void
+    {
+        $this->writeValidFiles();
+        $lock = app(MaddraxikonRefreshLock::class)->acquire();
+        $this->assertNotNull($lock);
+
+        try {
+            $this->artisan('books:import')
+                ->expectsOutputToContain('anderer Maddraxikon-Romandaten-Refresh')
+                ->assertFailed();
+        } finally {
+            $lock?->release();
+        }
+
+        $this->assertSame(0, Book::count());
     }
 
     private function writeValidFiles(): void

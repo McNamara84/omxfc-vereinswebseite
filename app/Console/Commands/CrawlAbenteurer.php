@@ -12,6 +12,6 @@ class CrawlAbenteurer extends Command
 
     public function handle(): int
     {
-        return $this->call(RefreshMaddraxBooks::class, ['--series' => 'abenteurer']);
+        return $this->call('books:refresh', ['--series' => 'abenteurer']);
     }
 }

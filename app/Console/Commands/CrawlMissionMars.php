@@ -12,6 +12,6 @@ class CrawlMissionMars extends Command
 
     public function handle(): int
     {
-        return $this->call(RefreshMaddraxBooks::class, ['--series' => 'missionmars']);
+        return $this->call('books:refresh', ['--series' => 'missionmars']);
     }
 }

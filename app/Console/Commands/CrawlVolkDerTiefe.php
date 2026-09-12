@@ -12,6 +12,6 @@ class CrawlVolkDerTiefe extends Command
 
     public function handle(): int
     {
-        return $this->call(RefreshMaddraxBooks::class, ['--series' => 'volkdertiefe']);
+        return $this->call('books:refresh', ['--series' => 'volkdertiefe']);
     }
 }

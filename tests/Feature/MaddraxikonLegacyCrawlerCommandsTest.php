@@ -8,7 +8,6 @@ use App\Console\Commands\CrawlHardcovers;
 use App\Console\Commands\CrawlMissionMars;
 use App\Console\Commands\CrawlNovels;
 use App\Console\Commands\CrawlVolkDerTiefe;
-use App\Console\Commands\RefreshMaddraxBooks;
 use Illuminate\Console\Command;
 use Illuminate\Console\OutputStyle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,7 +29,7 @@ class MaddraxikonLegacyCrawlerCommandsTest extends TestCase
         $command->setOutput(new OutputStyle(new ArrayInput([]), new BufferedOutput));
         $command->shouldReceive('call')
             ->once()
-            ->with(RefreshMaddraxBooks::class, ['--series' => $series])
+            ->with('books:refresh', ['--series' => $series])
             ->andReturn(Command::SUCCESS);
 
         $this->assertSame(Command::SUCCESS, $command->handle());

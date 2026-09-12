@@ -12,6 +12,6 @@ class CrawlHardcovers extends Command
 
     public function handle(): int
     {
-        return $this->call(RefreshMaddraxBooks::class, ['--series' => 'hardcovers']);
+        return $this->call('books:refresh', ['--series' => 'hardcovers']);
     }
 }

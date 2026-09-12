@@ -6,6 +6,7 @@ use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonBookImporter;
 use App\Services\Maddraxikon\MaddraxikonDatasetValidator;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Console\Command;
 use JsonException;
@@ -23,6 +24,27 @@ class ImportMaddraxBooks extends Command
     protected $description = 'Validate and transactionally import all active Maddraxikon book datasets';
 
     public function handle(
+        MaddraxikonDatasetValidator $validator,
+        MaddraxikonBookImporter $importer,
+        MaddraxikonSnapshotRepository $snapshots,
+        MaddraxikonRefreshLock $refreshLock,
+    ): int {
+        $lock = $refreshLock->acquire();
+
+        if ($lock === null) {
+            $this->error('Ein anderer Maddraxikon-Romandaten-Refresh läuft bereits.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            return $this->import($validator, $importer, $snapshots);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function import(
         MaddraxikonDatasetValidator $validator,
         MaddraxikonBookImporter $importer,
         MaddraxikonSnapshotRepository $snapshots,
