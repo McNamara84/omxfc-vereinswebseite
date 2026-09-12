@@ -87,8 +87,7 @@ class MaddraxikonCrawlerHttpClient
             || ! UriSupport::isAbsoluteUrlForHost($url, 'https', $host, $port)
         ) {
             throw new MaddraxikonCrawlException(
-                "Nicht erlaubte Maddraxikon-URL: {$url}",
-                $url,
+                'Nicht erlaubte Maddraxikon-URL.',
             );
         }
     }

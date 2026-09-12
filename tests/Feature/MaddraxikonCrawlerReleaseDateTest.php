@@ -47,11 +47,12 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
             $this->book(1, '2024-06'),
             $this->book(2, '2024'),
             $this->book(3, '2025'),
+            $this->book(4, '.2002'),
         ]);
 
         $datasets = $crawler->crawl([BookType::MaddraxHardcover]);
 
-        $this->assertSame([1, 2], array_column($datasets['hardcovers'], 'nummer'));
+        $this->assertSame([1, 2, 4], array_column($datasets['hardcovers'], 'nummer'));
     }
 
     public function test_unparseable_release_date_fails_the_crawl_closed(): void

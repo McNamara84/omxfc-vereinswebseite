@@ -45,6 +45,7 @@ class MaddraxikonReleaseDateParser
         );
         $normalized ??= trim($value);
         $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+        $normalized = preg_replace('/^\.(\d{4})$/', '$1', $normalized) ?? $normalized;
 
         try {
             $timezone = (string) config('maddraxikon.timezone', 'Europe/Berlin');

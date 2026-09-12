@@ -38,7 +38,8 @@ test('absolute host matching is case-insensitive but rejects ambiguous hosts', f
         ->and(UriSupport::isAbsoluteUrlForHost('https://maddrax-fanclub.de:443/path', 'https', 'maddrax-fanclub.de'))->toBeTrue()
         ->and(UriSupport::isAbsoluteUrlForHost('https://maddrax-fanclub.de:8443/path', 'https', 'maddrax-fanclub.de'))->toBeFalse()
         ->and(UriSupport::isAbsoluteUrlForHost('https://maddrax-fanclub.de:8443/path', 'https', 'maddrax-fanclub.de', 8443))->toBeTrue()
-        ->and(UriSupport::isAbsoluteUrlForHost('https://user@maddrax-fanclub.de', 'http', 'maddrax-fanclub.de'))->toBeFalse();
+        ->and(UriSupport::isAbsoluteUrlForHost('https://user@maddrax-fanclub.de', 'https', 'maddrax-fanclub.de'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('https://user:password@maddrax-fanclub.de/path', 'https', 'maddrax-fanclub.de'))->toBeFalse();
 });
 
 test('safe Markdown href matches the existing link policy', function () {

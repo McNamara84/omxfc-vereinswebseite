@@ -34,7 +34,11 @@ final class UriSupport
     ): bool {
         $parsed = self::parse($uri);
 
-        if ($parsed === null || ! self::hasNonEmptyHost($parsed)) {
+        if (
+            $parsed === null
+            || ! self::hasNonEmptyHost($parsed)
+            || $parsed->getUserInfo() !== ''
+        ) {
             return false;
         }
 

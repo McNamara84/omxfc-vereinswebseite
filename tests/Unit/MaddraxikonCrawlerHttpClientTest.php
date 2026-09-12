@@ -108,4 +108,21 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
         $this->assertSame('<html>ok</html>', $body);
         Http::assertSentCount(1);
     }
+
+    public function test_https_user_info_is_rejected_without_request_or_credential_exposure(): void
+    {
+        Http::fake();
+
+        try {
+            app(MaddraxikonCrawlerHttpClient::class)
+                ->get('https://user:password@de.maddraxikon.com/wiki/Test');
+            $this->fail('Expected URL rejection.');
+        } catch (MaddraxikonCrawlException $exception) {
+            $this->assertSame('Nicht erlaubte Maddraxikon-URL.', $exception->getMessage());
+            $this->assertNull($exception->url);
+            $this->assertStringNotContainsString('password', $exception->getMessage());
+        }
+
+        Http::assertNothingSent();
+    }
 }

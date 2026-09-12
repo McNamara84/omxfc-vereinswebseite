@@ -47,6 +47,7 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
                 $page3 => Http::response($this->categoryHtml([
                     '/wiki/MX_4' => 'MX 4',
                     'https://evil.example/wiki/MX_5' => 'fremd',
+                    'https://user:password@de.maddraxikon.com/wiki/MX_6' => 'mit Zugangsdaten',
                 ])),
                 default => Http::response('', 404),
             };
