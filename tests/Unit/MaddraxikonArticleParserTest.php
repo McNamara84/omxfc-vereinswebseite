@@ -5,11 +5,14 @@ namespace Tests\Unit;
 use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonArticleParser;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MaddraxikonArticleParserTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_parses_main_series_without_rating(): void
     {
         $book = app(MaddraxikonArticleParser::class)->parse(

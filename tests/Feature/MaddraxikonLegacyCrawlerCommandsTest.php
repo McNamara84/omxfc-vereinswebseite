@@ -11,6 +11,7 @@ use App\Console\Commands\CrawlVolkDerTiefe;
 use App\Console\Commands\RefreshMaddraxBooks;
 use Illuminate\Console\Command;
 use Illuminate\Console\OutputStyle;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -19,6 +20,8 @@ use Tests\TestCase;
 
 class MaddraxikonLegacyCrawlerCommandsTest extends TestCase
 {
+    use RefreshDatabase;
+
     #[DataProvider('commands')]
     public function test_legacy_command_delegates_to_safe_refresh(string $class, string $series): void
     {

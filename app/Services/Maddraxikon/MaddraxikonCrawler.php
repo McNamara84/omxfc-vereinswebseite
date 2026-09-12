@@ -46,8 +46,7 @@ class MaddraxikonCrawler
 
             usort(
                 $rows,
-                static fn (array $left, array $right): int =>
-                    ((int) $left['nummer']) <=> ((int) $right['nummer'])
+                static fn (array $left, array $right): int => ((int) $left['nummer']) <=> ((int) $right['nummer'])
             );
             $datasets[$type->key()] = $rows;
 
@@ -68,8 +67,7 @@ class MaddraxikonCrawler
         ?string $releasedAt,
         int $number,
         BookType $type,
-    ): bool
-    {
+    ): bool {
         if ($releasedAt === null || trim($releasedAt) === '') {
             return false;
         }

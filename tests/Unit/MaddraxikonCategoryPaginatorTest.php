@@ -4,12 +4,15 @@ namespace Tests\Unit;
 
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonCategoryPaginator;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class MaddraxikonCategoryPaginatorTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const CATEGORY = 'https://de.maddraxikon.com/index.php?title=Kategorie:Maddrax-Heftromane';
 
     protected function setUp(): void
@@ -111,6 +114,6 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
             $anchors .= '<a href="'.htmlspecialchars($href, ENT_QUOTES).'">'.$label.'</a>';
         }
 
-        return '<html><body><div id="mw-pages">'.$anchors.'</div></body></html>';
+        return '<html><head><meta charset="UTF-8"></head><body><div id="mw-pages">'.$anchors.'</div></body></html>';
     }
 }

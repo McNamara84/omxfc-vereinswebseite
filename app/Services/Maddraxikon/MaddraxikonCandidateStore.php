@@ -15,6 +15,7 @@ class MaddraxikonCandidateStore
     public function __construct(
         private readonly Filesystem $files,
         private readonly MaddraxikonDatasetValidator $validator,
+        private readonly AtomicFileWriter $writer,
     ) {}
 
     /**
@@ -45,8 +46,7 @@ class MaddraxikonCandidateStore
                 $json = $this->encode($rows);
                 $filename = "{$seriesKey}.json";
                 $path = $directory.DIRECTORY_SEPARATOR.$filename;
-                $this->files->replace($path, $json, 0600);
-                @chmod($path, 0600);
+                $this->writer->write($path, $json);
                 $this->assertCandidateFile($path, $rows, $type, $baseline);
 
                 $manifestSeries[$seriesKey] = [
@@ -68,8 +68,7 @@ class MaddraxikonCandidateStore
                 'series' => $manifestSeries,
             ];
             $manifestPath = $directory.DIRECTORY_SEPARATOR.'manifest.json';
-            $this->files->replace($manifestPath, $this->encode($manifest), 0600);
-            @chmod($manifestPath, 0600);
+            $this->writer->write($manifestPath, $this->encode($manifest));
 
             return [
                 'id' => $id,

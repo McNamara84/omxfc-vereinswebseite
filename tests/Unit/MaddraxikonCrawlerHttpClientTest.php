@@ -4,12 +4,15 @@ namespace Tests\Unit;
 
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\Maddraxikon\MaddraxikonCrawlerHttpClient;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class MaddraxikonCrawlerHttpClientTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -33,8 +36,7 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
 
         $this->assertSame('<html>ok</html>', $body);
         Http::assertSentCount(3);
-        Http::assertSent(fn (Request $request): bool =>
-            $request->hasHeader('User-Agent')
+        Http::assertSent(fn (Request $request): bool => $request->hasHeader('User-Agent')
             && $request->hasHeader('Accept')
         );
     }

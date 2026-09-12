@@ -5,10 +5,11 @@ namespace Tests\Feature;
 use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Models\Book;
+use App\Services\MaddraxDataService;
+use App\Services\Maddraxikon\AtomicFileWriter;
 use App\Services\Maddraxikon\MaddraxikonBookImporter;
 use App\Services\Maddraxikon\MaddraxikonCandidateStore;
 use App\Services\Maddraxikon\MaddraxikonRefreshCoordinator;
-use App\Services\MaddraxDataService;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -117,6 +118,7 @@ class MaddraxikonRefreshTest extends TestCase
             app(MaddraxikonCandidateStore::class),
             $importer,
             app(MaddraxDataService::class),
+            app(AtomicFileWriter::class),
         );
 
         try {
@@ -128,6 +130,52 @@ class MaddraxikonRefreshTest extends TestCase
 
         $this->assertSame($old, json_decode(Storage::disk('private')->get('maddrax.json'), true));
         $this->assertSame('Alter Titel', $book->fresh()->title);
+        $this->assertSame($old, Cache::get('maddrax_series_maddrax'));
+    }
+
+    public function test_file_promotion_failure_rolls_back_database_and_keeps_active_snapshot(): void
+    {
+        $old = [$this->row(1, 'Alter Zyklus', 'Alter Titel')];
+        $new = [$this->row(1, 'Euree', 'Neuer Titel')];
+        $oldJson = json_encode($old);
+        Storage::disk('private')->put('maddrax.json', $oldJson);
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Alter Titel',
+            'author' => 'Alt',
+            'cycle' => 'Alter Zyklus',
+        ]);
+        Cache::put('maddrax_series_maddrax', $old);
+        $candidate = app(MaddraxikonCandidateStore::class)->stage(['maddrax' => $new]);
+        $activePath = Storage::disk('private')->path('maddrax.json');
+        $writer = Mockery::mock(AtomicFileWriter::class);
+        $writer->shouldReceive('write')
+            ->once()
+            ->with($activePath.'.previous', $oldJson)
+            ->ordered();
+        $writer->shouldReceive('write')
+            ->once()
+            ->with($activePath, Mockery::type('string'))
+            ->ordered()
+            ->andThrow(new MaddraxikonCrawlException('Dateifreigabe kaputt'));
+        $coordinator = new MaddraxikonRefreshCoordinator(
+            app(Filesystem::class),
+            app(MaddraxikonCandidateStore::class),
+            app(MaddraxikonBookImporter::class),
+            app(MaddraxDataService::class),
+            $writer,
+        );
+
+        try {
+            $coordinator->promote($candidate['id']);
+            $this->fail('Expected file promotion failure.');
+        } catch (MaddraxikonCrawlException $exception) {
+            $this->assertSame('Dateifreigabe kaputt', $exception->getMessage());
+        }
+
+        $this->assertSame($oldJson, Storage::disk('private')->get('maddrax.json'));
+        $this->assertSame('Alter Titel', $book->fresh()->title);
+        $this->assertSame('Alter Zyklus', $book->fresh()->cycle);
         $this->assertSame($old, Cache::get('maddrax_series_maddrax'));
     }
 
@@ -160,7 +208,7 @@ class MaddraxikonRefreshTest extends TestCase
             'cycle' => 'Euree',
         ]);
         Http::fakeSequence()
-            ->push('<div id="mw-pages"><a href="/wiki/MX_1">MX 1</a><a href="'.$page2.'">nächste Seite</a></div>')
+            ->push('<meta charset="UTF-8"><div id="mw-pages"><a href="/wiki/MX_1">MX 1</a><a href="'.$page2.'">nächste Seite</a></div>')
             ->push('maintenance', 503)
             ->push('maintenance', 503)
             ->push('maintenance', 503);

@@ -67,7 +67,7 @@ class MaddraxikonDatasetValidator
 
             if ($missingFromBaseline !== []) {
                 throw new MaddraxikonCrawlException(
-                    $this->coverageMessage($type, $missingFromBaseline, 'aktivem Snapshot')
+                    $this->coverageMessage($type, $missingFromBaseline, 'aktiven Snapshot')
                 );
             }
         }

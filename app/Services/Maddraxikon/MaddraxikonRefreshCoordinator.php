@@ -17,6 +17,7 @@ class MaddraxikonRefreshCoordinator
         private readonly MaddraxikonCandidateStore $candidates,
         private readonly MaddraxikonBookImporter $importer,
         private readonly MaddraxDataService $dataService,
+        private readonly AtomicFileWriter $writer,
     ) {}
 
     /** @return array<string, int> */
@@ -54,12 +55,10 @@ class MaddraxikonRefreshCoordinator
                 $previous = $path.'.previous';
 
                 if ($originals[$path] !== null) {
-                    $this->files->replace($previous, $originals[$path], 0600);
-                    @chmod($previous, 0600);
+                    $this->writer->write($previous, $originals[$path]);
                 }
 
-                $this->files->replace($path, $json, 0600);
-                @chmod($path, 0600);
+                $this->writer->write($path, $json);
                 $updatedPaths[] = $path;
             }
 
@@ -74,9 +73,6 @@ class MaddraxikonRefreshCoordinator
             throw $exception;
         }
 
-        foreach (array_keys($candidate['datasets']) as $seriesKey) {
-            $this->dataService->clearCache($seriesKey);
-        }
         $this->dataService->clearCache();
 
         return collect($candidate['datasets'])
@@ -97,8 +93,7 @@ class MaddraxikonRefreshCoordinator
                 if ($originals[$path] === null) {
                     $this->files->delete($path);
                 } else {
-                    $this->files->replace($path, $originals[$path], 0600);
-                    @chmod($path, 0600);
+                    $this->writer->write($path, $originals[$path]);
                 }
             } catch (\Throwable $exception) {
                 $restoreErrors[] = "{$path}: {$exception->getMessage()}";
