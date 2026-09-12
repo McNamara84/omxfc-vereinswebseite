@@ -69,4 +69,20 @@ class MaddraxikonPageTitleTest extends TestCase
         $this->assertNull(MaddraxikonPageTitle::databaseKey(''));
         $this->assertNull(MaddraxikonPageTitle::databaseKey(str_repeat('A', 256)));
     }
+
+    public function test_it_accepts_only_the_configured_origin_and_effective_port(): void
+    {
+        $baseUrl = 'https://wiki.example.test:8443';
+
+        $this->assertSame(
+            'MX 1',
+            MaddraxikonPageTitle::fromUrl('https://wiki.example.test:8443/wiki/MX_1', $baseUrl),
+        );
+        $this->assertNull(
+            MaddraxikonPageTitle::fromUrl('https://wiki.example.test/wiki/MX_1', $baseUrl),
+        );
+        $this->assertNull(
+            MaddraxikonPageTitle::fromUrl('https://de.maddraxikon.com/wiki/MX_1', $baseUrl),
+        );
+    }
 }

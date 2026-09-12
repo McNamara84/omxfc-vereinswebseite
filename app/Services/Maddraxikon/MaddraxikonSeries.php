@@ -6,11 +6,14 @@ use App\Enums\BookType;
 
 final class MaddraxikonSeries
 {
-    private const BASE_URL = 'https://de.maddraxikon.com/';
-
     public static function categoryUrl(BookType $type): string
     {
-        return self::BASE_URL.match ($type) {
+        $baseUrl = rtrim((string) config(
+            'maddraxikon.base_url',
+            'https://de.maddraxikon.com',
+        ), '/').'/';
+
+        return $baseUrl.match ($type) {
             BookType::MaddraxDieDunkleZukunftDerErde => 'index.php?title=Kategorie:Maddrax-Heftromane',
             BookType::MaddraxHardcover => 'index.php?title=Kategorie:Maddrax-Hardcover',
             BookType::MissionMars => 'index.php?title=Kategorie:Mission_Mars-Heftromane',

@@ -101,7 +101,7 @@ class ImportMaddraxBooksCommandTest extends TestCase
         $this->assertSame(0, Book::count());
     }
 
-    public function test_default_import_uses_active_database_snapshots_instead_of_stale_files(): void
+    public function test_explicit_legacy_path_is_rejected_when_an_active_snapshot_exists(): void
     {
         $this->writeValidFiles();
         $datasets = collect(BookType::cases())
@@ -133,13 +133,33 @@ class ImportMaddraxBooksCommandTest extends TestCase
             'cycle' => 'Weltrat',
         ]);
 
-        $this->artisan('books:import', ['--path' => 'private/maddrax.json'])->assertSuccessful();
+        $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
+            ->expectsOutputToContain('expliziter Dateipfad')
+            ->assertFailed();
 
         $this->assertDatabaseHas('books', [
             'roman_number' => 1,
             'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'title' => 'Maddrax',
-            'cycle' => 'Euree',
+            'title' => 'Snapshot maddrax',
+            'cycle' => 'Weltrat',
+        ]);
+    }
+
+    public function test_explicit_legacy_path_remains_available_before_the_first_snapshot(): void
+    {
+        $this->writeValidFiles();
+        File::put(storage_path('app/private/custom-maddrax.json'), json_encode([
+            $this->row(1, 'Weltrat', 'Expliziter Import'),
+        ]));
+
+        $this->artisan('books:import', ['--path' => 'private/custom-maddrax.json'])
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'title' => 'Expliziter Import',
+            'cycle' => 'Weltrat',
         ]);
     }
 

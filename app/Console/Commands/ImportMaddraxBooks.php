@@ -78,12 +78,18 @@ class ImportMaddraxBooks extends Command
         BookType $type,
         MaddraxikonSnapshotRepository $snapshots,
     ): array {
-        if (! $this->input->hasParameterOption('--'.$option)) {
-            $snapshot = $snapshots->activeDataset($type);
+        $explicitPath = $this->input->hasParameterOption('--'.$option);
+        $snapshot = $snapshots->activeDataset($type);
 
-            if ($snapshot !== null) {
-                return $snapshot['rows'];
-            }
+        if ($explicitPath && $snapshot !== null) {
+            throw new MaddraxikonCrawlException(
+                "Ein expliziter Dateipfad für {$type->label()} ist nicht zulässig, solange ein aktiver ".
+                'Datenbank-Snapshot existiert. Verwende books:refresh für eine atomare Aktualisierung.'
+            );
+        }
+
+        if ($snapshot !== null) {
+            return $snapshot['rows'];
         }
 
         $fullPath = storage_path("app/{$path}");

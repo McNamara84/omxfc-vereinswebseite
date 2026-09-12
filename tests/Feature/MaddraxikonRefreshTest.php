@@ -77,6 +77,27 @@ class MaddraxikonRefreshTest extends TestCase
         ], $manifest['series']['maddrax']['baseline']);
     }
 
+    public function test_refresh_uses_the_configured_origin_for_category_and_page_title(): void
+    {
+        $origin = 'https://wiki.example.test:8443';
+        $category = $origin.'/index.php?title=Kategorie:Maddrax-Heftromane';
+        $article = $origin.'/wiki/MX_1';
+        config(['maddraxikon.base_url' => $origin]);
+        Http::fake([
+            $category => Http::response('<div id="mw-pages"><a href="/wiki/MX_1">MX 1</a></div>'),
+            $article => Http::response($this->articleHtml(1, 'Euree')),
+        ]);
+
+        $this->artisan('books:refresh', ['--series' => 'maddrax', '--dry-run' => true])
+            ->assertSuccessful();
+
+        $candidateFiles = File::glob(Storage::disk('private')->path('maddrax-candidates/*/maddrax.json'));
+        $this->assertCount(1, $candidateFiles);
+        $rows = json_decode(File::get($candidateFiles[0]), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('MX 1', $rows[0]['maddraxikon_seitentitel']);
+        Http::assertSentCount(2);
+    }
+
     public function test_promotion_updates_database_snapshot_books_and_cache_together(): void
     {
         $old = [$this->row(1, 'Alter Zyklus', 'Alter Titel')];

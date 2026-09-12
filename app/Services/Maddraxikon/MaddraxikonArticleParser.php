@@ -59,7 +59,10 @@ class MaddraxikonArticleParser
             characters: $this->listValue($xpath, 'Personen:'),
             keywords: $this->listValue($xpath, 'Schlagworte:'),
             locations: $this->listValue($xpath, 'Handlungsort:'),
-            pageTitle: MaddraxikonPageTitle::fromUrl($url),
+            pageTitle: MaddraxikonPageTitle::fromUrl(
+                $url,
+                (string) config('maddraxikon.base_url', 'https://de.maddraxikon.com'),
+            ),
         );
     }
 

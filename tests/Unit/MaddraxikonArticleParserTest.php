@@ -66,6 +66,19 @@ class MaddraxikonArticleParserTest extends TestCase
         );
     }
 
+    public function test_page_title_uses_the_configured_maddraxikon_origin(): void
+    {
+        config(['maddraxikon.base_url' => 'https://wiki.example.test:8443']);
+
+        $book = app(MaddraxikonArticleParser::class)->parse(
+            $this->articleHtml('<b>1</b>', '<th>Alternativer Ursprung</th>'),
+            'https://wiki.example.test:8443/wiki/MX_1',
+            BookType::MaddraxDieDunkleZukunftDerErde,
+        );
+
+        $this->assertSame('MX 1', $book->pageTitle);
+    }
+
     private function articleHtml(string $navigation, string $titleCell): string
     {
         return '<html><body>'.$navigation.'<table>
