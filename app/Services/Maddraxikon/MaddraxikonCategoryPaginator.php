@@ -15,14 +15,18 @@ class MaddraxikonCategoryPaginator
     ) {}
 
     /** @return list<string> */
-    public function articleUrls(string $categoryUrl): array
-    {
+    public function articleUrls(
+        string $categoryUrl,
+        ?MaddraxikonCrawlDeadline $deadline = null,
+    ): array {
         $currentUrl = $categoryUrl;
         $visitedPages = [];
         $articleUrls = [];
         $maxPages = max(1, (int) config('maddraxikon.crawler.max_pages', 50));
 
         for ($page = 1; $page <= $maxPages; $page++) {
+            $deadline?->ensureNotExpired($currentUrl);
+
             if (isset($visitedPages[$currentUrl])) {
                 throw new MaddraxikonCrawlException(
                     "Paginierungsschleife bei {$currentUrl} erkannt.",
@@ -31,7 +35,11 @@ class MaddraxikonCategoryPaginator
             }
 
             $visitedPages[$currentUrl] = true;
-            $xpath = $this->xpath($this->http->get($currentUrl), $currentUrl);
+            $xpath = $this->xpath(
+                $this->http->get($currentUrl, $deadline),
+                $currentUrl,
+            );
+            $deadline?->ensureNotExpired($currentUrl);
             $containers = $xpath->query("//div[@id='mw-pages']");
 
             if ($containers === false || $containers->length === 0) {

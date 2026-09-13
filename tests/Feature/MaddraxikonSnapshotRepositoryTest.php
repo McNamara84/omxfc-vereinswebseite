@@ -89,6 +89,34 @@ class MaddraxikonSnapshotRepositoryTest extends TestCase
         $this->assertDatabaseHas('maddraxikon_book_snapshots', ['snapshot_id' => $activeId]);
     }
 
+    public function test_schema_and_active_pointer_queries_are_cached_outside_transactions(): void
+    {
+        $testTransactionLevel = DB::transactionLevel();
+
+        for ($level = 0; $level < $testTransactionLevel; $level++) {
+            DB::rollBack();
+        }
+
+        try {
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $repository = new MaddraxikonSnapshotRepository;
+
+            foreach (BookType::cases() as $type) {
+                $this->assertNull($repository->activeId($type));
+                $this->assertNull($repository->activeId($type));
+            }
+
+            $this->assertCount(3, DB::getQueryLog());
+        } finally {
+            DB::disableQueryLog();
+
+            for ($level = 0; $level < $testTransactionLevel; $level++) {
+                DB::beginTransaction();
+            }
+        }
+    }
+
     private function datasetJson(?string $cycle): string
     {
         return (string) json_encode([[

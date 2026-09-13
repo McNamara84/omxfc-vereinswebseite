@@ -15,17 +15,36 @@ class MaddraxikonSnapshotRepository
 
     private const SNAPSHOTS_TABLE = 'maddraxikon_book_snapshots';
 
+    private ?bool $tablesAvailable = null;
+
+    /** @var array<string, string>|null */
+    private ?array $activeIds = null;
+
     public function activeId(BookType $type): ?string
     {
         if (! $this->tablesExist()) {
             return null;
         }
 
-        $id = DB::table(self::POINTERS_TABLE)
-            ->where('series_key', $type->key())
-            ->value('snapshot_id');
+        if (DB::transactionLevel() > 0) {
+            $id = DB::table(self::POINTERS_TABLE)
+                ->where('series_key', $type->key())
+                ->value('snapshot_id');
 
-        return is_string($id) && $id !== '' ? $id : null;
+            return is_string($id) && $id !== '' ? $id : null;
+        }
+
+        if ($this->activeIds === null) {
+            $this->activeIds = [];
+
+            foreach (DB::table(self::POINTERS_TABLE)->pluck('snapshot_id', 'series_key') as $seriesKey => $id) {
+                if (is_string($seriesKey) && is_string($id) && $id !== '') {
+                    $this->activeIds[$seriesKey] = $id;
+                }
+            }
+        }
+
+        return $this->activeIds[$type->key()] ?? null;
     }
 
     /** @return array{id: string, rows: array<int, array<string, mixed>>}|null */
@@ -67,6 +86,7 @@ class MaddraxikonSnapshotRepository
             throw new LogicException('Maddraxikon-Snapshots dürfen nur innerhalb einer Datenbanktransaktion aktiviert werden.');
         }
 
+        $this->activeIds = null;
         $now = now();
 
         foreach ($jsonBySeries as $seriesKey => $payload) {
@@ -139,7 +159,7 @@ class MaddraxikonSnapshotRepository
 
     private function tablesExist(): bool
     {
-        return Schema::hasTable(self::POINTERS_TABLE)
+        return $this->tablesAvailable ??= Schema::hasTable(self::POINTERS_TABLE)
             && Schema::hasTable(self::SNAPSHOTS_TABLE);
     }
 

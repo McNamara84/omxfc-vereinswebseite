@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Exceptions\MaddraxikonCrawlException;
+use App\Services\Maddraxikon\MaddraxikonCrawlDeadline;
 use App\Services\Maddraxikon\MaddraxikonCrawlerHttpClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
@@ -121,6 +122,24 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
             $this->assertSame('Nicht erlaubte Maddraxikon-URL.', $exception->getMessage());
             $this->assertNull($exception->url);
             $this->assertStringNotContainsString('password', $exception->getMessage());
+        }
+
+        Http::assertNothingSent();
+    }
+
+    public function test_expired_crawl_deadline_aborts_before_sending_a_request(): void
+    {
+        Http::fake();
+
+        try {
+            app(MaddraxikonCrawlerHttpClient::class)->get(
+                'https://de.maddraxikon.com/wiki/Test',
+                MaddraxikonCrawlDeadline::afterSeconds(0),
+            );
+            $this->fail('Expected crawl deadline exception.');
+        } catch (MaddraxikonCrawlException $exception) {
+            $this->assertStringContainsString('Laufzeit', $exception->getMessage());
+            $this->assertSame('https://de.maddraxikon.com/wiki/Test', $exception->url);
         }
 
         Http::assertNothingSent();

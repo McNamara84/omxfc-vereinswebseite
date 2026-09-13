@@ -11,14 +11,18 @@ use Illuminate\Support\Facades\Log;
 
 class MaddraxikonCrawlerHttpClient
 {
-    public function get(string $url): string
-    {
+    public function get(
+        string $url,
+        ?MaddraxikonCrawlDeadline $deadline = null,
+    ): string {
         $this->assertTrustedUrl($url);
+        $deadline?->ensureNotExpired($url);
 
         $attempts = max(1, (int) config('maddraxikon.http.attempts', 3));
         $lastException = null;
 
         for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            $deadline?->ensureNotExpired($url);
             $startedAt = microtime(true);
 
             try {
@@ -27,12 +31,22 @@ class MaddraxikonCrawlerHttpClient
                     'OMXFC-Vereinswebsite/1.0'
                 ))
                     ->accept('text/html,application/xhtml+xml')
-                    ->connectTimeout((int) config('maddraxikon.http.connect_timeout', 5))
-                    ->timeout((int) config('maddraxikon.http.timeout', 15))
+                    ->connectTimeout($this->timeoutWithinDeadline(
+                        (int) config('maddraxikon.http.connect_timeout', 5),
+                        $deadline,
+                        $url,
+                    ))
+                    ->timeout($this->timeoutWithinDeadline(
+                        (int) config('maddraxikon.http.timeout', 15),
+                        $deadline,
+                        $url,
+                    ))
                     ->withOptions(['allow_redirects' => false])
                     ->get($url);
 
                 if ($response->successful()) {
+                    $deadline?->ensureNotExpired($url);
+
                     return $response->body();
                 }
 
@@ -46,7 +60,7 @@ class MaddraxikonCrawlerHttpClient
 
                 if ($this->isTransientStatus($response->status()) && $attempt < $attempts) {
                     $lastException = $exception;
-                    $this->waitBeforeRetry($attempt, $response);
+                    $this->waitBeforeRetry($attempt, $url, $deadline, $response);
 
                     continue;
                 }
@@ -55,9 +69,10 @@ class MaddraxikonCrawlerHttpClient
             } catch (ConnectionException $exception) {
                 $lastException = $exception;
                 $this->logFailure($url, $attempt, $attempts, $startedAt);
+                $deadline?->ensureNotExpired($url);
 
                 if ($attempt < $attempts) {
-                    $this->waitBeforeRetry($attempt);
+                    $this->waitBeforeRetry($attempt, $url, $deadline);
 
                     continue;
                 }
@@ -97,8 +112,12 @@ class MaddraxikonCrawlerHttpClient
         return in_array($status, [408, 425, 429], true) || $status >= 500;
     }
 
-    private function waitBeforeRetry(int $attempt, ?Response $response = null): void
-    {
+    private function waitBeforeRetry(
+        int $attempt,
+        string $url,
+        ?MaddraxikonCrawlDeadline $deadline = null,
+        ?Response $response = null,
+    ): void {
         $baseDelayMs = max(0, (int) config('maddraxikon.http.retry_delay_ms', 500));
         $maximumDelayMs = max(0, (int) config('maddraxikon.http.retry_max_delay_ms', 5000));
 
@@ -114,8 +133,37 @@ class MaddraxikonCrawlerHttpClient
 
         if ($delayMs > 0) {
             $jitterMs = random_int(0, min(250, max(1, intdiv($delayMs, 5))));
-            usleep(min($maximumDelayMs, $delayMs + $jitterMs) * 1000);
+            $sleepMs = min($maximumDelayMs, $delayMs + $jitterMs);
+
+            if ($deadline instanceof MaddraxikonCrawlDeadline) {
+                $sleepMs = min(
+                    $sleepMs,
+                    max(0, (int) floor($deadline->remainingSeconds() * 1000)),
+                );
+            }
+
+            if ($sleepMs > 0) {
+                usleep($sleepMs * 1000);
+            }
         }
+
+        $deadline?->ensureNotExpired($url);
+    }
+
+    private function timeoutWithinDeadline(
+        int $configuredSeconds,
+        ?MaddraxikonCrawlDeadline $deadline,
+        string $url,
+    ): float {
+        $timeout = (float) max(1, $configuredSeconds);
+
+        if (! $deadline instanceof MaddraxikonCrawlDeadline) {
+            return $timeout;
+        }
+
+        $deadline->ensureNotExpired($url);
+
+        return max(0.001, min($timeout, $deadline->remainingSeconds()));
     }
 
     private function retryAfterDelayMs(Response $response): int

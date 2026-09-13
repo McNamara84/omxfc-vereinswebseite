@@ -19,6 +19,7 @@
             <file>tests/Feature/MaddraxikonAdminTest.php</file>
             <file>tests/Feature/MaddraxikonContributionImporterTest.php</file>
             <file>tests/Feature/ImportMaddraxBooksCommandTest.php</file>
+            <file>tests/Feature/MaddraxikonBookImporterTest.php</file>
             <file>tests/Feature/CoverRatingMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/MaddraxikonDataModelTest.php</file>
             <file>tests/Feature/MaddraxikonOAuthClientSecurityTest.php</file>

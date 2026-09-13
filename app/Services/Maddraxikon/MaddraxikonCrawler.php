@@ -26,22 +26,38 @@ class MaddraxikonCrawler
         array $types,
         ?callable $onSeriesStarted = null,
         ?callable $onArticleProcessed = null,
+        ?MaddraxikonCrawlDeadline $deadline = null,
     ): array {
+        $deadline ??= MaddraxikonCrawlDeadline::afterSeconds(max(
+            60,
+            (int) config('maddraxikon.crawler.max_runtime_seconds', 1800),
+        ));
         $datasets = [];
 
         foreach ($types as $type) {
+            $deadline->ensureNotExpired();
             $startedAt = microtime(true);
-            $urls = $this->paginator->articleUrls(MaddraxikonSeries::categoryUrl($type));
+            $urls = $this->paginator->articleUrls(
+                MaddraxikonSeries::categoryUrl($type),
+                $deadline,
+            );
             $onSeriesStarted?->__invoke($type, count($urls));
             $rows = [];
 
             foreach ($urls as $index => $url) {
-                $book = $this->parser->parse($this->http->get($url), $url, $type);
+                $deadline->ensureNotExpired($url);
+                $book = $this->parser->parse(
+                    $this->http->get($url, $deadline),
+                    $url,
+                    $type,
+                );
+                $deadline->ensureNotExpired($url);
 
                 if (! $this->isUnpublishedFutureBook($book->releasedAt, $book->number, $type)) {
                     $rows[] = $book->toArray();
                 }
 
+                $deadline->ensureNotExpired($url);
                 $onArticleProcessed?->__invoke($type, $index + 1, count($urls));
             }
 
