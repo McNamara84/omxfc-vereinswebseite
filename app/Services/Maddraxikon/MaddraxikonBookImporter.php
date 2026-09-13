@@ -68,7 +68,11 @@ class MaddraxikonBookImporter
             $pageId = null;
             $pageVerifiedAt = null;
 
-            if ($book instanceof Book && $book->maddraxikon_page_title === $pageTitle) {
+            if (
+                $pageTitle !== null
+                && $book instanceof Book
+                && $book->maddraxikon_page_title === $pageTitle
+            ) {
                 $pageId = $book->maddraxikon_page_id;
                 $pageVerifiedAt = $book->maddraxikon_page_verified_at;
             }

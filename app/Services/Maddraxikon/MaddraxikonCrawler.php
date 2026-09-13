@@ -44,6 +44,14 @@ class MaddraxikonCrawler
             if ($onSeriesStarted !== null) {
                 $onSeriesStarted($type, count($urls));
             }
+            $existingNumbers = array_fill_keys(
+                Book::query()
+                    ->where('type', $type)
+                    ->pluck('roman_number')
+                    ->map(static fn (mixed $number): int => (int) $number)
+                    ->all(),
+                true,
+            );
             $rows = [];
 
             foreach ($urls as $index => $url) {
@@ -55,7 +63,7 @@ class MaddraxikonCrawler
                 );
                 $deadline->ensureNotExpired($url);
 
-                if (! $this->isUnpublishedFutureBook($book->releasedAt, $book->number, $type)) {
+                if (! $this->isUnpublishedFutureBook($book->releasedAt, $book->number, $existingNumbers)) {
                     $rows[] = $book->toArray();
                 }
 
@@ -84,10 +92,11 @@ class MaddraxikonCrawler
         return $datasets;
     }
 
+    /** @param array<int, true> $existingNumbers */
     private function isUnpublishedFutureBook(
         ?string $releasedAt,
         int $number,
-        BookType $type,
+        array $existingNumbers,
     ): bool {
         if ($releasedAt === null || trim($releasedAt) === '') {
             return false;
@@ -100,9 +109,6 @@ class MaddraxikonCrawler
             return false;
         }
 
-        return ! Book::query()
-            ->where('roman_number', $number)
-            ->where('type', $type)
-            ->exists();
+        return ! isset($existingNumbers[$number]);
     }
 }

@@ -58,11 +58,11 @@ class MaddraxikonCategoryPaginator
                         continue;
                     }
 
-                    $resolved = $this->resolve($anchor->getAttribute('href'));
+                    $resolved = $this->resolve($currentUrl, $anchor->getAttribute('href'));
                     $label = $this->normalizeText($anchor->textContent);
 
                     if ($this->isNextLabel($label)) {
-                        if ($resolved === null) {
+                        if ($resolved === null || ! $this->isCategoryUrl($resolved)) {
                             throw new MaddraxikonCrawlException(
                                 "Ungültiger Folgeseiten-Link auf {$currentUrl}.",
                                 $currentUrl,
@@ -85,6 +85,7 @@ class MaddraxikonCategoryPaginator
                         $resolved === null
                         || $this->isPreviousLabel($label)
                         || $this->isCategoryUrl($resolved)
+                        || ! $this->isArticleUrl($resolved)
                     ) {
                         continue;
                     }
@@ -135,13 +136,16 @@ class MaddraxikonCategoryPaginator
         return new DOMXPath($dom);
     }
 
-    private function resolve(string $href): ?string
+    private function resolve(string $currentUrl, string $href): ?string
     {
         $baseUrl = rtrim((string) config(
             'maddraxikon.base_url',
             'https://de.maddraxikon.com'
         ), '/').'/';
-        $resolved = UriSupport::resolve($baseUrl, $href);
+        $resolved = UriSupport::resolve(
+            $currentUrl,
+            $this->inheritCategoryTitle($currentUrl, $href),
+        );
         $baseParts = parse_url($baseUrl);
         $host = is_array($baseParts)
             ? (string) ($baseParts['host'] ?? 'de.maddraxikon.com')
@@ -154,6 +158,27 @@ class MaddraxikonCategoryPaginator
             && UriSupport::isAbsoluteUrlForHost($resolved, 'https', $host, $port)
                 ? $resolved
                 : null;
+    }
+
+    private function inheritCategoryTitle(string $currentUrl, string $href): string
+    {
+        if (! str_starts_with($href, '?')) {
+            return $href;
+        }
+
+        $currentTitle = $this->queryTitle($currentUrl);
+        parse_str(substr($href, 1), $parameters);
+
+        if ($currentTitle === null || isset($parameters['title'])) {
+            return $href;
+        }
+
+        return '?'.http_build_query(
+            ['title' => $currentTitle] + $parameters,
+            '',
+            '&',
+            PHP_QUERY_RFC3986,
+        );
     }
 
     private function normalizeText(string $text): string
@@ -173,14 +198,56 @@ class MaddraxikonCategoryPaginator
 
     private function isCategoryUrl(string $url): bool
     {
-        $query = parse_url($url, PHP_URL_QUERY);
+        $path = parse_url($url, PHP_URL_PATH);
 
-        if (! is_string($query)) {
+        if (
+            is_string($path)
+            && str_starts_with(rawurldecode($path), '/wiki/Kategorie:')
+        ) {
+            return true;
+        }
+
+        $title = $this->queryTitle($url);
+
+        return $title !== null && str_starts_with($title, 'Kategorie:');
+    }
+
+    private function isArticleUrl(string $url): bool
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($path)) {
             return false;
         }
 
-        parse_str($query, $parameters);
+        $decodedPath = rawurldecode($path);
 
-        return str_starts_with((string) ($parameters['title'] ?? ''), 'Kategorie:');
+        if (str_starts_with($decodedPath, '/wiki/')) {
+            $title = substr($decodedPath, strlen('/wiki/'));
+
+            return $title !== '' && ! str_starts_with($title, 'Kategorie:');
+        }
+
+        if ($decodedPath !== '/index.php') {
+            return false;
+        }
+
+        $title = $this->queryTitle($url);
+
+        return $title !== null && ! str_starts_with($title, 'Kategorie:');
+    }
+
+    private function queryTitle(string $url): ?string
+    {
+        $query = parse_url($url, PHP_URL_QUERY);
+
+        if (! is_string($query)) {
+            return null;
+        }
+
+        parse_str($query, $parameters);
+        $title = $parameters['title'] ?? null;
+
+        return is_string($title) && trim($title) !== '' ? $title : null;
     }
 }

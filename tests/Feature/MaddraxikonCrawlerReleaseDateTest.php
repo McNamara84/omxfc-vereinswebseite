@@ -5,13 +5,16 @@ namespace Tests\Feature;
 use App\Data\Maddraxikon\CrawledBook;
 use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
+use App\Models\Book;
 use App\Services\Maddraxikon\MaddraxikonArticleParser;
 use App\Services\Maddraxikon\MaddraxikonCategoryPaginator;
 use App\Services\Maddraxikon\MaddraxikonCrawler;
 use App\Services\Maddraxikon\MaddraxikonCrawlerHttpClient;
 use App\Services\Maddraxikon\MaddraxikonReleaseDateParser;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\TestCase;
 
@@ -92,6 +95,33 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
         $this->assertSame(BookType::MaddraxHardcover, MaddraxikonCrawlerProgressListener::$articleType);
         $this->assertSame(1, MaddraxikonCrawlerProgressListener::$articleCurrent);
         $this->assertSame(1, MaddraxikonCrawlerProgressListener::$articleTotal);
+    }
+
+    public function test_existing_book_numbers_are_loaded_once_per_series_for_future_date_filtering(): void
+    {
+        CarbonImmutable::setTestNow('2024-06-15 12:00:00');
+        Book::factory()->create([
+            'roman_number' => 2,
+            'type' => BookType::MaddraxHardcover,
+        ]);
+        $bookSelects = [];
+        DB::listen(function (QueryExecuted $query) use (&$bookSelects): void {
+            $sql = strtolower($query->sql);
+
+            if (str_starts_with($sql, 'select') && str_contains($sql, 'books')) {
+                $bookSelects[] = $query->sql;
+            }
+        });
+        $crawler = $this->crawlerWithBooks([
+            $this->book(1, '2025'),
+            $this->book(2, '2025'),
+            $this->book(3, '2025'),
+        ]);
+
+        $datasets = $crawler->crawl([BookType::MaddraxHardcover]);
+
+        $this->assertSame([2], array_column($datasets['hardcovers'], 'nummer'));
+        $this->assertCount(1, $bookSelects);
     }
 
     /** @param list<CrawledBook> $books */

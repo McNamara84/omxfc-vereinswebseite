@@ -31,11 +31,19 @@ class MaddraxikonBookImporterTest extends TestCase
             'maddraxikon_page_id' => 102,
             'maddraxikon_page_verified_at' => $verifiedAt,
         ]);
+        Book::factory()->create([
+            'roman_number' => 3,
+            'type' => BookType::MaddraxHardcover,
+            'maddraxikon_page_title' => null,
+            'maddraxikon_page_id' => 103,
+            'maddraxikon_page_verified_at' => $verifiedAt,
+        ]);
 
         app(MaddraxikonBookImporter::class)->import([
             'hardcovers' => [
                 $this->row(1, '   '),
                 $this->row(2, 'HC 2'),
+                $this->row(3, null),
             ],
         ]);
 
@@ -47,6 +55,10 @@ class MaddraxikonBookImporterTest extends TestCase
             ->where('roman_number', 2)
             ->where('type', BookType::MaddraxHardcover)
             ->firstOrFail();
+        $unverifiable = Book::query()
+            ->where('roman_number', 3)
+            ->where('type', BookType::MaddraxHardcover)
+            ->firstOrFail();
 
         $this->assertNull($invalidated->maddraxikon_page_title);
         $this->assertNull($invalidated->maddraxikon_page_id);
@@ -54,6 +66,9 @@ class MaddraxikonBookImporterTest extends TestCase
         $this->assertSame('HC 2', $unchanged->maddraxikon_page_title);
         $this->assertSame(102, $unchanged->maddraxikon_page_id);
         $this->assertTrue($verifiedAt->equalTo($unchanged->maddraxikon_page_verified_at));
+        $this->assertNull($unverifiable->maddraxikon_page_title);
+        $this->assertNull($unverifiable->maddraxikon_page_id);
+        $this->assertNull($unverifiable->maddraxikon_page_verified_at);
     }
 
     public function test_full_import_uses_one_lookup_and_batched_upserts_per_series(): void

@@ -35,6 +35,7 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
                 self::CATEGORY => Http::response($this->categoryHtml([
                     '/wiki/MX_1' => 'MX 1',
                     '/wiki/MX_2' => 'MX 2',
+                    '******de.maddraxikon.com/wiki/MX_6' => 'ungültiger relativer Link',
                     self::CATEGORY.'&pageuntil=1' => 'vorherige Seite',
                     $page2 => 'nächste Seite',
                 ])),
@@ -46,6 +47,7 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
                 ])),
                 $page3 => Http::response($this->categoryHtml([
                     '/wiki/MX_4' => 'MX 4',
+                    '/index.php?title=MX_5' => 'MX 5',
                     'https://evil.example/wiki/MX_5' => 'fremd',
                     'https://user:password@de.maddraxikon.com/wiki/MX_6' => 'mit Zugangsdaten',
                 ])),
@@ -60,8 +62,29 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
             'https://de.maddraxikon.com/wiki/MX_2',
             'https://de.maddraxikon.com/wiki/MX_3',
             'https://de.maddraxikon.com/wiki/MX_4',
+            'https://de.maddraxikon.com/index.php?title=MX_5',
         ], $urls);
         Http::assertSentCount(3);
+    }
+
+    public function test_resolves_query_only_followup_against_the_current_category(): void
+    {
+        $page2 = 'https://de.maddraxikon.com/index.php?title=Kategorie%3AMaddrax-Heftromane&pagefrom=201';
+        Http::fake([
+            self::CATEGORY => Http::response($this->categoryHtml([
+                '/wiki/MX_1' => 'MX 1',
+                '?pagefrom=201' => 'nächste Seite',
+            ])),
+            $page2 => Http::response($this->categoryHtml([
+                '/wiki/MX_2' => 'MX 2',
+            ])),
+        ]);
+
+        $this->assertSame([
+            'https://de.maddraxikon.com/wiki/MX_1',
+            'https://de.maddraxikon.com/wiki/MX_2',
+        ], app(MaddraxikonCategoryPaginator::class)->articleUrls(self::CATEGORY));
+        Http::assertSentCount(2);
     }
 
     public function test_detects_pagination_loop(): void
