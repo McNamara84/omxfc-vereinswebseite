@@ -30,6 +30,7 @@ class MaddraxikonReleaseDateParser
         '/^\d{4}-\d{2}$/' => '!Y-m',
         '/^\d{4}-\d$/' => '!Y-n',
         '/^\d{4}$/' => '!Y',
+        '/^\d{1,2}\.\d{4}$/' => '!n.Y',
         '/^\d{1,2}\.\d{1,2}\.\d{4}$/' => '!j.n.Y',
         '/^\d{1,2}\.\s+[A-Z][a-z]+\s+\d{4}$/' => '!j. F Y',
         '/^\d{1,2}\s+[A-Z][a-z]+\s+\d{4}$/' => '!j F Y',
@@ -74,7 +75,7 @@ class MaddraxikonReleaseDateParser
 
             return match ($format) {
                 '!Y' => $date->startOfYear(),
-                '!Y-m', '!Y-n' => $date->startOfMonth(),
+                '!Y-m', '!Y-n', '!n.Y' => $date->startOfMonth(),
                 default => $date->startOfDay(),
             };
         } catch (Throwable $exception) {
