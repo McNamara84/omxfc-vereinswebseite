@@ -87,7 +87,7 @@
                                 ?? $activityUser?->name
                                 ?? 'Teilnehmer';
                         @endphp
-                        <span>{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
+                        <span>{{ $registrantName }} hat sich zum nächsten Fantreffen angemeldet</span>
                     @elseif($activity->subject_type === \App\Models\Review::class)
                         @php
                             $reviewPreview = \App\Support\PreviewText::make($subject->content ?? '', 160);
