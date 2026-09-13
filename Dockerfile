@@ -4,8 +4,12 @@ FROM composer:2@sha256:d8f6343d3fae98107426bc49163ccad46ef85aabd4a27d80a74401fab
 # Gemeinsame PHP-Basis für Production und Development
 FROM php:8.5-fpm@sha256:70076c1cae0cd0ba6761832417e3a1df3e5560f0544eb0fe40357373e54420fe AS php-base
 
-# Install required system packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install available security updates before adding required system packages.
+# The base image digest stays pinned, while rebuilt images still receive fixes
+# published by Debian between upstream PHP image releases.
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends \
     git \
     curl \
     libfreetype6-dev \
