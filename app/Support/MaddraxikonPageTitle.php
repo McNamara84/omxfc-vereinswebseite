@@ -4,9 +4,21 @@ namespace App\Support;
 
 final class MaddraxikonPageTitle
 {
-    public static function fromUrl(string $url): ?string
-    {
-        if (! UriSupport::isAbsoluteUrlForHost($url, 'https', 'de.maddraxikon.com')) {
+    public static function fromUrl(
+        string $url,
+        string $baseUrl = 'https://de.maddraxikon.com',
+    ): ?string {
+        $baseParts = parse_url($baseUrl);
+        $scheme = is_array($baseParts) ? (string) ($baseParts['scheme'] ?? '') : '';
+        $host = is_array($baseParts) ? (string) ($baseParts['host'] ?? '') : '';
+        $port = is_array($baseParts) && isset($baseParts['port'])
+            ? (int) $baseParts['port']
+            : 443;
+
+        if (
+            strtolower($scheme) !== 'https'
+            || ! UriSupport::isAbsoluteUrlForHost($url, 'https', $host, $port)
+        ) {
             return null;
         }
 

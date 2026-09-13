@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Models\Book;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
@@ -17,8 +20,7 @@ class ImportMaddraxBooksCommandTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->testStoragePath = base_path('storage/testing');
+        $this->testStoragePath = base_path('storage/testing-maddrax-import');
         $this->app->useStoragePath($this->testStoragePath);
         File::ensureDirectoryExists($this->testStoragePath.'/app/private');
         File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
@@ -27,154 +29,183 @@ class ImportMaddraxBooksCommandTest extends TestCase
     protected function tearDown(): void
     {
         File::deleteDirectory($this->testStoragePath);
-
         parent::tearDown();
     }
 
-    public function test_error_when_json_file_missing(): void
+    public function test_missing_file_fails_entire_import_without_partial_writes(): void
     {
-        File::put(storage_path('app/private/hardcovers.json'), '[]');
-        File::put(storage_path('app/private/missionmars.json'), '[]');
-        File::put(storage_path('app/private/volkdertiefe.json'), '[]');
-        File::put(storage_path('app/private/2012.json'), '[]');
-        File::put(storage_path('app/private/abenteurer.json'), '[]');
+        $this->writeValidFiles();
+        File::delete(storage_path('app/private/maddrax.json'));
 
-        $this->artisan('books:import', ['--path' => 'private/missing.json'])
-            ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: JSON file not found at '.storage_path('app/private/missing.json'))
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DieAbenteurer->value.' completed successfully.')
-            ->assertExitCode(0);
+        $this->artisan('books:import')
+            ->expectsOutputToContain('JSON file not found')
+            ->expectsOutputToContain('Keine Bücher wurden importiert')
+            ->assertFailed();
+
+        $this->assertSame(0, Book::count());
     }
 
-    public function test_error_with_invalid_json(): void
+    public function test_invalid_json_and_missing_cycle_fail_closed(): void
     {
-        File::put(storage_path('app/private/maddrax.json'), '{ invalid json }');
-        File::put(storage_path('app/private/hardcovers.json'), '[]');
-        File::put(storage_path('app/private/missionmars.json'), '[]');
-        File::put(storage_path('app/private/volkdertiefe.json'), '[]');
-        File::put(storage_path('app/private/2012.json'), '[]');
-        File::put(storage_path('app/private/abenteurer.json'), '[]');
+        $this->writeValidFiles();
+        File::put(storage_path('app/private/maddrax.json'), '{ kaputt');
 
-        $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: Invalid JSON - Syntax error')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DieAbenteurer->value.' completed successfully.')
-            ->assertExitCode(0);
+        $this->artisan('books:import')
+            ->expectsOutputToContain('Invalid JSON')
+            ->assertFailed();
+        $this->assertSame(0, Book::count());
+
+        $this->writeValidFiles();
+        File::put(storage_path('app/private/maddrax.json'), json_encode([
+            $this->row(1, null, 'Ohne Zyklus'),
+        ]));
+
+        $this->artisan('books:import')
+            ->expectsOutputToContain('hat keinen Zyklus')
+            ->assertFailed();
+        $this->assertSame(0, Book::count());
     }
 
-    public function test_books_are_imported_and_invalid_entries_skipped(): void
+    public function test_import_persists_cycle_and_all_supported_series(): void
     {
-        Book::create(['roman_number' => 1, 'title' => 'Existing', 'author' => 'Old']);
+        $this->writeValidFiles();
 
-        $data = [
-            ['nummer' => 1, 'titel' => 'Roman1', 'text' => ['Author1', 'Author2']],
-            ['nummer' => 2, 'titel' => null, 'text' => 'Author2'],
-            ['titel' => 'Roman3', 'text' => ['Author3']],
-            ['nummer' => 1, 'titel' => 'Roman1 new', 'text' => 'Author1 new'],
-            [
-                'nummer' => 4,
-                'titel' => 'Roman4',
-                'text' => 'Author4',
-                'maddraxikon_seitentitel' => 'MX 4 – Testroman',
-            ],
-        ];
-        File::put(storage_path('app/private/maddrax.json'), json_encode($data));
+        $this->artisan('books:import')->assertSuccessful();
 
-        $hardcovers = [
-            ['nummer' => 1, 'titel' => 'HC1', 'text' => 'AuthorHC1'],
-            ['titel' => 'HC Invalid'],
-        ];
-        File::put(storage_path('app/private/hardcovers.json'), json_encode($hardcovers));
+        foreach (BookType::cases() as $type) {
+            $this->assertDatabaseHas('books', [
+                'roman_number' => 1,
+                'type' => $type->value,
+            ]);
+        }
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'cycle' => 'Euree',
+            'maddraxikon_page_title' => 'MX 1',
+        ]);
+        $this->assertSame(6, Book::count());
+    }
 
-        $missionMars = [
-            ['nummer' => 1, 'titel' => 'MM1', 'text' => 'AuthorMM1'],
-            ['titel' => 'MM Invalid'],
-        ];
-        File::put(storage_path('app/private/missionmars.json'), json_encode($missionMars));
+    public function test_duplicate_number_rejects_every_series_before_database_write(): void
+    {
+        $this->writeValidFiles();
+        File::put(storage_path('app/private/missionmars.json'), json_encode([
+            $this->row(1, null, 'Eins'),
+            $this->row(1, null, 'Doppelt'),
+        ]));
 
-        $volkDerTiefe = [
-            ['nummer' => 1, 'titel' => 'DVT1', 'text' => ['AuthorDVT1', 'AuthorDVT2']],
-            ['titel' => 'DVT Invalid'],
-        ];
-        File::put(storage_path('app/private/volkdertiefe.json'), json_encode($volkDerTiefe));
+        $this->artisan('books:import')
+            ->expectsOutputToContain('doppelt')
+            ->assertFailed();
 
-        $year2012 = [
-            ['nummer' => 1, 'titel' => '2012-1', 'text' => 'Author2012-1'],
-            ['titel' => '2012 Invalid'],
-        ];
-        File::put(storage_path('app/private/2012.json'), json_encode($year2012));
+        $this->assertSame(0, Book::count());
+    }
 
-        $abenteurer = [
-            ['nummer' => 1, 'titel' => 'AB1', 'text' => 'AuthorAB1'],
-            ['titel' => 'AB Invalid'],
-        ];
-        File::put(storage_path('app/private/abenteurer.json'), json_encode($abenteurer));
+    public function test_explicit_legacy_path_is_rejected_when_an_active_snapshot_exists(): void
+    {
+        $this->writeValidFiles();
+        $datasets = collect(BookType::cases())
+            ->mapWithKeys(fn (BookType $type): array => [
+                $type->key() => [
+                    $this->row(
+                        1,
+                        $type === BookType::MaddraxDieDunkleZukunftDerErde ? 'Weltrat' : null,
+                        'Snapshot '.$type->key(),
+                    ),
+                ],
+            ])
+            ->all();
+        $json = collect($datasets)
+            ->map(static fn (array $rows): string => (string) json_encode($rows, JSON_THROW_ON_ERROR))
+            ->all();
+
+        DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate(
+            '33333333-3333-4333-8333-333333333333',
+            $json,
+        ));
+
+        $this->artisan('books:import')->assertSuccessful();
+
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'title' => 'Snapshot maddrax',
+            'cycle' => 'Weltrat',
+        ]);
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
-            ->expectsOutput(PHP_EOL.'Import for '.BookType::DieAbenteurer->value.' completed successfully.')
-            ->assertExitCode(0);
+            ->expectsOutputToContain('expliziter Dateipfad')
+            ->assertFailed();
 
         $this->assertDatabaseHas('books', [
             'roman_number' => 1,
-            'title' => 'Roman1 new',
-            'author' => 'Author1 new',
             'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'title' => 'Snapshot maddrax',
+            'cycle' => 'Weltrat',
         ]);
+    }
+
+    public function test_explicit_legacy_path_remains_available_before_the_first_snapshot(): void
+    {
+        $this->writeValidFiles();
+        File::put(storage_path('app/private/custom-maddrax.json'), json_encode([
+            $this->row(1, 'Weltrat', 'Expliziter Import'),
+        ]));
+
+        $this->artisan('books:import', ['--path' => 'private/custom-maddrax.json'])
+            ->assertSuccessful();
+
         $this->assertDatabaseHas('books', [
-            'roman_number' => 4,
-            'title' => 'Roman4',
-            'author' => 'Author4',
+            'roman_number' => 1,
             'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'maddraxikon_page_title' => 'MX 4 – Testroman',
+            'title' => 'Expliziter Import',
+            'cycle' => 'Weltrat',
         ]);
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'title' => 'HC1',
-            'author' => 'AuthorHC1',
-            'type' => BookType::MaddraxHardcover->value,
-        ]);
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'title' => 'MM1',
-            'author' => 'AuthorMM1',
-            'type' => BookType::MissionMars->value,
-        ]);
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'title' => 'DVT1',
-            'author' => 'AuthorDVT1, AuthorDVT2',
-            'type' => BookType::DasVolkDerTiefe->value,
-        ]);
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'title' => '2012-1',
-            'author' => 'Author2012-1',
-            'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
-        ]);
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'title' => 'AB1',
-            'author' => 'AuthorAB1',
-            'type' => BookType::DieAbenteurer->value,
-        ]);
-        $this->assertDatabaseMissing('books', ['roman_number' => 2, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => 3, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MaddraxHardcover->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MissionMars->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::DasVolkDerTiefe->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value]);
-        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::DieAbenteurer->value]);
-        $this->assertSame(7, Book::count());
+    }
+
+    public function test_import_is_rejected_while_a_refresh_holds_the_shared_lock(): void
+    {
+        $this->writeValidFiles();
+        $lock = app(MaddraxikonRefreshLock::class)->acquire();
+        $this->assertNotNull($lock);
+
+        try {
+            $this->artisan('books:import')
+                ->expectsOutputToContain('anderer Maddraxikon-Romandaten-Refresh')
+                ->assertFailed();
+        } finally {
+            $lock?->release();
+        }
+
+        $this->assertSame(0, Book::count());
+    }
+
+    private function writeValidFiles(): void
+    {
+        $rows = [
+            'maddrax.json' => [$this->row(1, 'Euree', 'Maddrax')],
+            'hardcovers.json' => [$this->row(1, null, 'Hardcover')],
+            'missionmars.json' => [$this->row(1, null, 'Mission Mars')],
+            'volkdertiefe.json' => [$this->row(1, null, 'Das Volk der Tiefe')],
+            '2012.json' => [$this->row(1, null, '2012')],
+            'abenteurer.json' => [$this->row(1, null, 'Die Abenteurer')],
+        ];
+
+        foreach ($rows as $filename => $data) {
+            File::put(storage_path('app/private/'.$filename), json_encode($data));
+        }
+    }
+
+    /** @return array<string, mixed> */
+    private function row(int $number, ?string $cycle, string $title): array
+    {
+        return [
+            'nummer' => $number,
+            'titel' => $title,
+            'zyklus' => $cycle,
+            'text' => ['Autor A', 'Autor B'],
+            'maddraxikon_seitentitel' => 'MX '.$number,
+        ];
     }
 }

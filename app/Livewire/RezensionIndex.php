@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -124,9 +125,27 @@ class RezensionIndex extends Component
         $abenteurer = $this->prepareBookQuery($abenteurerQuery, $user, $teamId, 'desc');
 
         $cycleMap = $maddraxDataService->getCycleMap();
-        $books->each(function ($book) use ($cycleMap) {
-            $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
+        $missingCycleNumbers = [];
+        $books->each(function ($book) use ($cycleMap, &$missingCycleNumbers) {
+            $persistedCycle = is_string($book->cycle) ? trim($book->cycle) : '';
+            $legacyCycle = is_string($cycleMap[$book->roman_number] ?? null)
+                ? trim($cycleMap[$book->roman_number])
+                : '';
+            $book->cycle = $persistedCycle !== ''
+                ? $persistedCycle
+                : ($legacyCycle !== '' ? $legacyCycle : 'Datenfehler');
+
+            if ($book->cycle === 'Datenfehler') {
+                $missingCycleNumbers[] = $book->roman_number;
+            }
         });
+
+        if ($missingCycleNumbers !== []) {
+            Log::error('Hauptserienromane ohne Zykluszuordnung in der Datenbank.', [
+                'roman_numbers' => $missingCycleNumbers,
+                'count' => count($missingCycleNumbers),
+            ]);
+        }
 
         $existingCycles = $books->pluck('cycle')->unique();
 

@@ -2,10 +2,13 @@
 
 namespace Tests\Unit\Services;
 
+use App\Enums\BookType;
 use App\Services\MaddraxDataService;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Mockery;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
@@ -26,7 +29,7 @@ class MaddraxDataServiceTest extends TestCase
         $this->app->useStoragePath($this->testStoragePath);
         File::ensureDirectoryExists($this->testStoragePath.'/app/private');
 
-        $this->service = new MaddraxDataService;
+        $this->service = app(MaddraxDataService::class);
     }
 
     protected function tearDown(): void
@@ -200,6 +203,79 @@ class MaddraxDataServiceTest extends TestCase
         // Zweiter Aufruf - sollte noch gecachte Daten zurückgeben
         $secondResult = $this->service->getMaddraxRomane();
         $this->assertEquals('Original', $secondResult[0]['titel']);
+    }
+
+    public function test_snapshot_cache_uses_a_stable_key_and_refreshes_the_injected_pointer_cache(): void
+    {
+        $type = BookType::MaddraxDieDunkleZukunftDerErde;
+        $oldId = '11111111-1111-4111-8111-111111111111';
+        $newId = '22222222-2222-4222-8222-222222222222';
+        $oldRows = [['nummer' => 1, 'titel' => 'Alter Snapshot']];
+        $newRows = [['nummer' => 1, 'titel' => 'Neuer Snapshot']];
+        $snapshots = Mockery::mock(MaddraxikonSnapshotRepository::class);
+        $snapshots->shouldReceive('activeId')
+            ->times(3)
+            ->with($type)
+            ->andReturn($oldId, $newId, $newId);
+        $snapshots->shouldReceive('dataset')
+            ->once()
+            ->with($oldId, $type)
+            ->andReturn($oldRows);
+        $snapshots->shouldReceive('clearActiveIdsCache')->once();
+        $snapshots->shouldReceive('dataset')
+            ->twice()
+            ->with($newId, $type)
+            ->andReturn($newRows);
+        $service = new MaddraxDataService($snapshots);
+
+        $this->assertSame($oldRows, $service->getMaddraxRomane()->all());
+        $this->assertSame([
+            'snapshot_id' => $oldId,
+            'rows' => $oldRows,
+        ], Cache::get('maddrax_series_maddrax'));
+        $this->assertFalse(Cache::has("maddrax_series_maddrax_snapshot_{$oldId}"));
+
+        $this->assertSame($newRows, $service->getMaddraxRomane()->all());
+        $this->assertSame([
+            'snapshot_id' => $newId,
+            'rows' => $newRows,
+        ], Cache::get('maddrax_series_maddrax'));
+
+        $service->clearCache('maddrax');
+
+        $this->assertNull(Cache::get('maddrax_series_maddrax'));
+        $this->assertSame($newRows, $service->getMaddraxRomane()->all());
+        $this->assertSame([
+            'snapshot_id' => $newId,
+            'rows' => $newRows,
+        ], Cache::get('maddrax_series_maddrax'));
+        $this->assertFalse(Cache::has("maddrax_series_maddrax_snapshot_{$newId}"));
+    }
+
+    public function test_clear_cache_resets_pointer_cache_before_a_cache_backend_failure(): void
+    {
+        $pointerCacheWasReset = false;
+        $snapshots = Mockery::mock(MaddraxikonSnapshotRepository::class);
+        $snapshots->shouldReceive('clearActiveIdsCache')
+            ->once()
+            ->andReturnUsing(function () use (&$pointerCacheWasReset): void {
+                $pointerCacheWasReset = true;
+            });
+        Cache::shouldReceive('forget')
+            ->once()
+            ->with('maddrax_series_hardcovers')
+            ->andReturnUsing(function () use (&$pointerCacheWasReset): void {
+                $this->assertTrue($pointerCacheWasReset);
+
+                throw new \RuntimeException('Cache nicht erreichbar');
+            });
+
+        try {
+            (new MaddraxDataService($snapshots))->clearCache('hardcovers');
+            $this->fail('Expected cache backend failure.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Cache nicht erreichbar', $exception->getMessage());
+        }
     }
 
     public function test_clear_cache_invalidates_specific_series(): void

@@ -24,6 +24,7 @@ class BookFactory extends Factory
             'roman_number' => $this->faker->unique()->numberBetween(1, 9999),
             'title' => $this->faker->sentence(3),
             'author' => $this->faker->name(),
+            'cycle' => null,
             'type' => $this->faker->randomElement(BookType::cases()),
             'maddraxikon_page_id' => null,
             'maddraxikon_page_title' => null,

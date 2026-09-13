@@ -3,111 +3,139 @@
 namespace App\Console\Commands;
 
 use App\Enums\BookType;
-use App\Models\Book;
+use App\Exceptions\MaddraxikonCrawlException;
+use App\Services\Maddraxikon\MaddraxikonBookImporter;
+use App\Services\Maddraxikon\MaddraxikonDatasetValidator;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Console\Command;
+use JsonException;
 
 class ImportMaddraxBooks extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app} {--missionmars-path=private/missionmars.json : Path to Mission Mars novels JSON file relative to storage/app} {--volkdertiefe-path=private/volkdertiefe.json : Path to Das Volk der Tiefe novels JSON file relative to storage/app} {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app} {--abenteurer-path=private/abenteurer.json : Path to Die Abenteurer novels JSON file relative to storage/app}';
+    protected $signature = 'books:import
+        {--path=private/maddrax.json : Path to novels JSON file relative to storage/app}
+        {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app}
+        {--missionmars-path=private/missionmars.json : Path to Mission Mars novels JSON file relative to storage/app}
+        {--volkdertiefe-path=private/volkdertiefe.json : Path to Das Volk der Tiefe novels JSON file relative to storage/app}
+        {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app}
+        {--abenteurer-path=private/abenteurer.json : Path to Die Abenteurer novels JSON file relative to storage/app}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Import books from maddrax.json, hardcovers.json, missionmars.json, volkdertiefe.json, 2012.json and abenteurer.json into the books table';
+    protected $description = 'Validate and transactionally import all active Maddraxikon book datasets';
 
-    /**
-     * Execute the console command.
-     */
-    public function handle()
-    {
-        $novelsPath = $this->option('path');
-        $hardcoversPath = $this->option('hardcovers-path');
-        $missionMarsPath = $this->option('missionmars-path');
-        $volkDerTiefePath = $this->option('volkdertiefe-path');
-        $year2012Path = $this->option('2012-path');
-        $abenteurerPath = $this->option('abenteurer-path');
+    public function handle(
+        MaddraxikonDatasetValidator $validator,
+        MaddraxikonBookImporter $importer,
+        MaddraxikonSnapshotRepository $snapshots,
+        MaddraxikonRefreshLock $refreshLock,
+    ): int {
+        $lock = $refreshLock->acquire();
 
-        $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
-        $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
-        $missionMarsResult = $this->importFile($missionMarsPath, BookType::MissionMars);
-        $volkDerTiefeResult = $this->importFile($volkDerTiefePath, BookType::DasVolkDerTiefe);
-        $year2012Result = $this->importFile($year2012Path, BookType::ZweiTausendZwölfDasJahrDerApokalypse);
-        $abenteurerResult = $this->importFile($abenteurerPath, BookType::DieAbenteurer);
+        if ($lock === null) {
+            $this->error('Ein anderer Maddraxikon-Romandaten-Refresh läuft bereits.');
 
-        return ($novelsResult || $hardcoversResult || $missionMarsResult || $volkDerTiefeResult || $year2012Result || $abenteurerResult) ? 0 : 1;
+            return self::FAILURE;
+        }
+
+        try {
+            return $this->import($validator, $importer, $snapshots);
+        } finally {
+            $lock->release();
+        }
     }
 
-    private function importFile(string $path, BookType $type): bool
-    {
+    private function import(
+        MaddraxikonDatasetValidator $validator,
+        MaddraxikonBookImporter $importer,
+        MaddraxikonSnapshotRepository $snapshots,
+    ): int {
+        $definitions = [
+            'path' => BookType::MaddraxDieDunkleZukunftDerErde,
+            'hardcovers-path' => BookType::MaddraxHardcover,
+            'missionmars-path' => BookType::MissionMars,
+            'volkdertiefe-path' => BookType::DasVolkDerTiefe,
+            '2012-path' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            'abenteurer-path' => BookType::DieAbenteurer,
+        ];
+        $datasets = [];
+        $failed = false;
+
+        foreach ($definitions as $option => $type) {
+            try {
+                $rows = $this->read($option, (string) $this->option($option), $type, $snapshots);
+                $validator->validate($rows, $type);
+                $datasets[$type->key()] = $rows;
+            } catch (MaddraxikonCrawlException $exception) {
+                $this->error('Import for '.$type->value.' failed: '.$exception->getMessage());
+                $failed = true;
+            }
+        }
+
+        if ($failed) {
+            $this->warn('Keine Bücher wurden importiert; der Datenbankbestand blieb unverändert.');
+
+            return self::FAILURE;
+        }
+
+        try {
+            $importer->import($datasets);
+        } catch (\Throwable $exception) {
+            report($exception);
+            $this->error('Der Bücherimport wurde vollständig zurückgerollt: '.$exception->getMessage());
+
+            return self::FAILURE;
+        }
+
+        foreach ($definitions as $type) {
+            $this->info('Import for '.$type->value.' completed successfully.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function read(
+        string $option,
+        string $path,
+        BookType $type,
+        MaddraxikonSnapshotRepository $snapshots,
+    ): array {
+        $explicitPath = $this->input->hasParameterOption('--'.$option);
+        $snapshot = $snapshots->activeDataset($type);
+
+        if ($explicitPath && $snapshot !== null) {
+            throw new MaddraxikonCrawlException(
+                "Ein expliziter Dateipfad für {$type->label()} ist nicht zulässig, solange ein aktiver ".
+                'Datenbank-Snapshot existiert. Verwende books:refresh für eine atomare Aktualisierung.'
+            );
+        }
+
+        if ($snapshot !== null) {
+            return $snapshot['rows'];
+        }
+
         $fullPath = storage_path("app/{$path}");
 
-        if (! file_exists($fullPath)) {
-            $this->error('Import for '.$type->value." failed: JSON file not found at {$fullPath}");
-
-            return false;
+        if (! is_file($fullPath) || ! is_readable($fullPath)) {
+            throw new MaddraxikonCrawlException("JSON file not found at {$fullPath}");
         }
 
         $json = file_get_contents($fullPath);
-        $data = json_decode($json, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Import for '.$type->value.' failed: Invalid JSON - '.json_last_error_msg());
-
-            return false;
+        if (! is_string($json)) {
+            throw new MaddraxikonCrawlException("JSON file could not be read at {$fullPath}");
         }
 
-        $bar = $this->output->createProgressBar(count($data));
-        $bar->start();
-
-        foreach ($data as $item) {
-            $romanNumber = $item['nummer'] ?? null;
-            $title = $item['titel'] ?? null;
-            $authorData = $item['text'] ?? null;
-            $author = is_array($authorData) ? implode(', ', $authorData) : $authorData;
-            $maddraxikonPageTitle = $item['maddraxikon_seitentitel'] ?? null;
-
-            if (! $romanNumber || ! $title) {
-                $this->warn('Skipping invalid entry: '.json_encode($item));
-                $bar->advance();
-
-                continue;
-            }
-
-            $book = Book::firstOrNew([
-                'roman_number' => $romanNumber,
-                'type' => $type->value,
-            ]);
-            $updates = [
-                'title' => $title,
-                'author' => $author,
-                'type' => $type->value,
-            ];
-
-            if (is_string($maddraxikonPageTitle) && trim($maddraxikonPageTitle) !== '') {
-                $normalizedPageTitle = trim($maddraxikonPageTitle);
-                $updates['maddraxikon_page_title'] = $normalizedPageTitle;
-
-                if ($book->maddraxikon_page_title !== $normalizedPageTitle) {
-                    $updates['maddraxikon_page_id'] = null;
-                    $updates['maddraxikon_page_verified_at'] = null;
-                }
-            }
-
-            $book->fill($updates)->save();
-
-            $bar->advance();
+        try {
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new MaddraxikonCrawlException('Invalid JSON - '.$exception->getMessage());
         }
 
-        $bar->finish();
-        $this->info(PHP_EOL.'Import for '.$type->value.' completed successfully.');
+        if (! is_array($data)) {
+            throw new MaddraxikonCrawlException("JSON for {$type->label()} is not a list");
+        }
 
-        return true;
+        return $data;
     }
 }

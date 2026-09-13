@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Console\Commands;
+
+use App\Enums\BookType;
+use App\Exceptions\MaddraxikonCrawlException;
+use App\Services\Maddraxikon\MaddraxikonCandidateStore;
+use App\Services\Maddraxikon\MaddraxikonCrawler;
+use App\Services\Maddraxikon\MaddraxikonRefreshCoordinator;
+use App\Services\Maddraxikon\MaddraxikonRefreshLock;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+
+class RefreshMaddraxBooks extends Command
+{
+    protected $signature = 'books:refresh
+        {--series=all : Serien-Key oder all}
+        {--dry-run : Kandidat erzeugen und validieren, aber nicht freigeben}
+        {--promote= : Bereits validierten Kandidaten anhand seiner ID freigeben}';
+
+    protected $description = 'Crawl, validate and atomically refresh Maddraxikon book data';
+
+    public function handle(
+        MaddraxikonCrawler $crawler,
+        MaddraxikonCandidateStore $candidates,
+        MaddraxikonRefreshCoordinator $coordinator,
+        MaddraxikonRefreshLock $refreshLock,
+    ): int {
+        set_time_limit($refreshLock->runtimeLimitSeconds());
+
+        $promoteRequested = $this->input->hasParameterOption('--promote');
+        $promote = $this->option('promote');
+
+        if ($promoteRequested && (! is_string($promote) || trim($promote) === '')) {
+            $this->error('--promote benötigt eine nicht leere Kandidaten-ID.');
+
+            return self::INVALID;
+        }
+
+        if ($this->option('dry-run') && $promoteRequested) {
+            $this->error('--dry-run und --promote können nicht kombiniert werden.');
+
+            return self::INVALID;
+        }
+
+        $lock = null;
+
+        try {
+            $lock = $refreshLock->acquire();
+
+            if ($lock === null) {
+                $this->error('Ein anderer Maddraxikon-Romandaten-Refresh läuft bereits.');
+
+                return self::FAILURE;
+            }
+
+            if ($promoteRequested) {
+                return $this->promote($coordinator, trim((string) $promote));
+            }
+
+            $types = $this->selectedTypes((string) $this->option('series'));
+            $bars = [];
+            $datasets = $crawler->crawl(
+                $types,
+                function (BookType $type, int $total) use (&$bars): void {
+                    $this->info("Crawle {$type->label()} ({$total} Artikel) …");
+                    $bars[$type->key()] = $this->output->createProgressBar($total);
+                    $bars[$type->key()]->start();
+                },
+                function (BookType $type) use (&$bars): void {
+                    $bars[$type->key()]?->advance();
+                },
+            );
+
+            foreach ($bars as $bar) {
+                $bar->finish();
+                $this->newLine();
+            }
+
+            $candidate = $candidates->stage($datasets);
+            $this->info("Kandidat: {$candidate['id']}");
+            $this->line("SHA-256: {$candidate['hash']}");
+
+            if ($this->option('dry-run')) {
+                $this->info('Dry-Run erfolgreich: Aktiver Datenbank-Snapshot, Buchdaten und Cache blieben unverändert.');
+
+                return self::SUCCESS;
+            }
+
+            return $this->promote($coordinator, $candidate['id']);
+        } catch (MaddraxikonCrawlException $exception) {
+            Log::error('Maddraxikon-Romandaten-Refresh abgelehnt.', [
+                'message' => $exception->getMessage(),
+                'url' => $exception->url,
+                'status' => $exception->statusCode,
+            ]);
+            $this->error($exception->getMessage());
+
+            return self::FAILURE;
+        } catch (\Throwable $exception) {
+            report($exception);
+            $this->error('Maddraxikon-Romandaten konnten nicht sicher aktualisiert werden: '.$exception->getMessage());
+
+            return self::FAILURE;
+        } finally {
+            $lock?->release();
+        }
+    }
+
+    /** @return list<BookType> */
+    private function selectedTypes(string $series): array
+    {
+        if ($series === 'all') {
+            return BookType::cases();
+        }
+
+        $type = BookType::fromKey($series);
+
+        if ($type === null) {
+            throw new MaddraxikonCrawlException(
+                "Unbekannte Reihe {$series}. Erlaubt: all, ".
+                implode(', ', array_map(static fn (BookType $item): string => $item->key(), BookType::cases()))
+            );
+        }
+
+        return [$type];
+    }
+
+    private function promote(MaddraxikonRefreshCoordinator $coordinator, string $candidateId): int
+    {
+        $counts = $coordinator->promote($candidateId);
+
+        foreach ($counts as $seriesKey => $count) {
+            $unit = $count === 1 ? 'Datensatz' : 'Datensätze';
+            $this->info("Snapshot und Buchdaten für {$seriesKey} sicher aktualisiert ({$count} {$unit}).");
+        }
+
+        return self::SUCCESS;
+    }
+}
