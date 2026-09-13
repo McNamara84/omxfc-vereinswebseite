@@ -1,7 +1,7 @@
 [
   {
     "version": "1.16.1",
-    "pub_date": "2026-09-12",
+    "pub_date": "2026-09-13",
     "notes": [
       "[Fixed] Romane werden nach der täglichen Aktualisierung wieder zuverlässig dem richtigen Zyklus zugeordnet; unvollständige Daten aus dem Maddraxikon ersetzen nicht länger den letzten gültigen Stand."
     ]
