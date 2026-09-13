@@ -31,6 +31,8 @@ const startRatingSession = async (page) => {
   await expect(page.getByTestId('current-cover-image')).toBeVisible();
   await expect(page.getByTestId('brina-rating-group')).toBeVisible();
   await expect(page.getByTestId('end-cover-rating')).toBeVisible();
+  await expect(page.getByTestId('cover-source-link')).toBeVisible();
+  await expect(page.getByTestId('cover-source-link')).toHaveAttribute('target', '_blank');
   await expect(page.getByTestId('website-feedback-trigger')).not.toBeVisible();
 };
 
@@ -147,6 +149,7 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   await expect(page.getByTestId('global-progress')).toContainText(`${progressBefore + 1} / 6`);
   await expect(page.getByTestId('current-cover-image')).not.toHaveAttribute('src', firstImageUrl);
   await expect(page.getByTestId('cover-rating-session')).toBeVisible();
+  await expect(page.getByTestId('brina-rating-group').locator('.brina-rating-icon--filled')).toHaveCount(0);
 
   await clickAndWaitForLivewireUpdate(page, page.getByTestId('skip-cover'));
   await expect(page.getByTestId('rating-status')).toContainText('zurückgestellt');
@@ -217,6 +220,7 @@ test('desktop keyboard flow, upscaling and all target viewports pass', async ({ 
   await update;
   await expect(page.getByTestId('rating-status')).toContainText('1 Brina bewertet');
   await expect(page.locator('[data-cover-focus]')).toBeFocused();
+  await expect(page.getByTestId('brina-rating-group').locator('.brina-rating-icon--filled')).toHaveCount(0);
   await assertAccessible(page);
 
   const nativeFullscreen = await page.evaluate(() => document.fullscreenElement !== null);

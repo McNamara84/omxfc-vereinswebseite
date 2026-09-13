@@ -20,6 +20,7 @@ export function createCoverRatingSession({
         active: false,
         nativeFullscreen: false,
         feedbackVisible: false,
+        ratingPreview: 0,
         fullscreenRequestPending: false,
         returnFocusElement: null,
         scrollX: 0,
@@ -92,7 +93,7 @@ export function createCoverRatingSession({
         start(event) {
             const overlay = this.overlayElement();
 
-            if (!overlay || this.active) {
+            if (!overlay || this.active || this.fullscreenRequestPending) {
                 return this.fullscreenPromise;
             }
 
@@ -101,6 +102,7 @@ export function createCoverRatingSession({
             this.scrollY = Number(windowRef.scrollY ?? 0);
             this.active = true;
             this.feedbackVisible = false;
+            this.ratingPreview = 0;
             this.setOverlayActive(true);
             documentRef.body?.classList.add('cover-rating-session-open');
             this.schedule(() => overlay.querySelector('[data-cover-focus]')?.focus());
@@ -122,18 +124,19 @@ export function createCoverRatingSession({
                             return this.exitOwnedFullscreen(overlay).then(() => false);
                         }
 
-                        this.fullscreenRequestPending = false;
                         this.nativeFullscreen = documentRef.fullscreenElement === overlay;
 
                         return this.nativeFullscreen;
                     })
                     .catch(() => {
                         if (requestGeneration === this.fullscreenRequestGeneration) {
-                            this.fullscreenRequestPending = false;
                             this.nativeFullscreen = false;
                         }
 
                         return false;
+                    })
+                    .finally(() => {
+                        this.fullscreenRequestPending = false;
                     });
             } catch {
                 this.fullscreenRequestPending = false;
@@ -155,8 +158,8 @@ export function createCoverRatingSession({
             this.fullscreenRequestGeneration += 1;
             this.active = false;
             this.nativeFullscreen = false;
-            this.fullscreenRequestPending = false;
             this.feedbackVisible = false;
+            this.ratingPreview = 0;
             this.clearFeedbackTimer();
             this.setOverlayActive(false);
             documentRef.body?.classList.remove('cover-rating-session-open');
@@ -242,13 +245,11 @@ export function createCoverRatingSession({
             if (overlay && documentRef.fullscreenElement === overlay) {
                 if (!this.active) {
                     this.nativeFullscreen = false;
-                    this.fullscreenRequestPending = false;
                     this.exitOwnedFullscreen(overlay);
                     return;
                 }
 
                 this.nativeFullscreen = true;
-                this.fullscreenRequestPending = false;
                 return;
             }
 
@@ -281,12 +282,14 @@ export function createCoverRatingSession({
             }
 
             const detail = eventDetail(event);
+            this.ratingPreview = 0;
             this.schedule(() => {
                 const overlay = this.overlayElement();
                 const focusSelector = detail.hasCover === false
                     ? '[data-cover-empty-focus]'
                     : '[data-cover-focus]';
 
+                this.ratingPreview = 0;
                 overlay?.querySelector(focusSelector)?.focus();
                 this.showFeedback(detail);
             });

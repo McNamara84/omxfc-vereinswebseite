@@ -108,6 +108,7 @@ class CoverRatingFeatureTest extends TestCase
             ->assertSeeText('Bewertung starten')
             ->assertSeeText('Bewertungen beenden')
             ->assertSeeText('Später bewerten')
+            ->assertSeeText('Bildquelle im Maddraxikon')
             ->assertSeeText('Vollbild-Testcover');
 
         $html = $component->html();
@@ -121,6 +122,14 @@ class CoverRatingFeatureTest extends TestCase
         $this->assertStringContainsString('data-testid="cover-rating-image-stage"', $html);
         $this->assertStringContainsString('class="cover-rating-session__image"', $html);
         $this->assertStringContainsString(route('cover-ratings.image', [$cover, 'large']), $html);
+        $this->assertStringContainsString('data-testid="cover-source-link"', $html);
+        $this->assertStringContainsString('href="'.e($cover->source_description_url).'"', $html);
+        $this->assertStringContainsString('wire:key="cover-rating-controls-'.$cover->id.'"', $html);
+        $this->assertStringContainsString('x-on:cover-rating-advanced.window="ratingPreview = 0"', $html);
+        $this->assertStringContainsString('x-on:mouseleave="ratingPreview = 0"', $html);
+        $this->assertStringContainsString('x-on:mousemove="ratingPreview = 5"', $html);
+        $this->assertStringContainsString('x-bind:class="ratingPreview >=', $html);
+        $this->assertStringContainsString('data-brina-rating-controls', $html);
         $this->assertStringNotContainsString('data-testid="cover-rating-card"', $html);
     }
 

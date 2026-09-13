@@ -22,6 +22,7 @@ const buildController = () => {
         <section data-testid="cover-rating-session" aria-hidden="true" inert>
             <h2 tabindex="-1" data-cover-focus>Testcover</h2>
             <div data-rating-feedback>Gespeichert</div>
+            <fieldset data-brina-rating-controls></fieldset>
         </section>
     `;
 
@@ -160,9 +161,46 @@ describe('cover rating fullscreen session', () => {
             expect(document.fullscreenElement).toBeNull();
             expect(controller.active).toBe(false);
             expect(controller.nativeFullscreen).toBe(false);
+            expect(controller.fullscreenRequestPending).toBe(false);
             expect(overlay.inert).toBe(true);
         },
     );
+
+    test('blocks a restart until a stopped fullscreen request has settled', async () => {
+        const { controller, overlay, startButton } = buildController();
+        let resolveFirstRequest;
+        overlay.requestFullscreen = vi.fn()
+            .mockImplementationOnce(() => new Promise((resolve) => {
+                resolveFirstRequest = resolve;
+            }))
+            .mockResolvedValueOnce();
+        document.exitFullscreen = vi.fn().mockImplementation(() => {
+            setFullscreenElement(null);
+            return Promise.resolve();
+        });
+        controller.init();
+
+        const firstRequest = controller.start({ currentTarget: startButton });
+        await controller.stop({ restoreFocus: false });
+        const blockedRestart = controller.start({ currentTarget: startButton });
+
+        expect(blockedRestart).toBe(firstRequest);
+        expect(overlay.requestFullscreen).toHaveBeenCalledOnce();
+        expect(controller.active).toBe(false);
+        expect(controller.fullscreenRequestPending).toBe(true);
+
+        setFullscreenElement(overlay);
+        document.dispatchEvent(new Event('fullscreenchange'));
+        resolveFirstRequest();
+        await firstRequest;
+
+        expect(controller.fullscreenRequestPending).toBe(false);
+        expect(controller.active).toBe(false);
+        await controller.start({ currentTarget: startButton });
+        expect(overlay.requestFullscreen).toHaveBeenCalledTimes(2);
+        expect(controller.active).toBe(true);
+        controller.destroy();
+    });
 
     test('closes the session when the browser leaves a previously active native fullscreen', async () => {
         const { controller, overlay, startButton } = buildController();
@@ -215,12 +253,14 @@ describe('cover rating fullscreen session', () => {
         const { controller } = buildController();
         controller.init();
         controller.active = true;
+        controller.ratingPreview = 5;
 
         window.dispatchEvent(new CustomEvent('cover-rating-advanced', {
             detail: { hasCover: true, awardedBaxx: 0 },
         }));
 
         expect(controller.feedbackVisible).toBe(true);
+        expect(controller.ratingPreview).toBe(0);
         expect(document.activeElement).toBe(document.querySelector('[data-cover-focus]'));
         vi.advanceTimersByTime(4499);
         expect(controller.feedbackVisible).toBe(true);

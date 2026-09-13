@@ -80,6 +80,8 @@
                     type="button"
                     x-ref="startButton"
                     x-on:click="start($event)"
+                    x-bind:aria-busy="fullscreenRequestPending ? 'true' : 'false'"
+                    x-bind:aria-disabled="fullscreenRequestPending ? 'true' : null"
                     class="btn btn-primary min-h-12 w-full px-7 md:w-auto"
                     data-testid="start-cover-rating"
                     @disabled(! $this->cover)
@@ -156,7 +158,7 @@
 
         @if($this->cover)
             @php($book = $this->cover->book)
-            <header class="cover-rating-session__header">
+            <header class="cover-rating-session__header flex items-center justify-between gap-3">
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/60">
                         <span class="badge badge-primary badge-outline badge-sm shrink-0">{{ $book->type->label() }}</span>
@@ -174,6 +176,21 @@
                         <p class="hidden truncate text-xs text-base-content/60 sm:block sm:text-sm">{{ $book->author }}</p>
                     @endif
                 </div>
+
+                @if($this->cover->source_description_url)
+                    <a
+                        href="{{ $this->cover->source_description_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Bildquelle im Maddraxikon öffnen"
+                        class="btn btn-xs btn-ghost shrink-0 sm:btn-sm"
+                        data-testid="cover-source-link"
+                    >
+                        <x-icon name="o-arrow-top-right-on-square" class="h-4 w-4" />
+                        <span class="hidden sm:inline">Bildquelle im Maddraxikon</span>
+                        <span class="sm:hidden">Quelle</span>
+                    </a>
+                @endif
             </header>
 
             <div
@@ -193,11 +210,13 @@
 
             <footer class="cover-rating-session__controls">
                 <fieldset
-                    x-data="{ preview: 0 }"
-                    x-on:mouseleave="preview = 0"
+                    wire:key="cover-rating-controls-{{ $this->cover->id }}"
+                    x-on:cover-rating-advanced.window="ratingPreview = 0"
+                    x-on:mouseleave="ratingPreview = 0"
                     class="min-w-0"
                     wire:loading.class="opacity-50"
                     wire:target="rate,skip"
+                    data-brina-rating-controls
                 >
                     <legend class="sr-only">Wie gefällt dir dieses Cover?</legend>
                     <div
@@ -222,15 +241,14 @@
                                 <label
                                     for="cover-{{ $this->cover->id }}-rating-{{ $value }}"
                                     class="brina-rating-option"
-                                    x-on:mouseenter="preview = {{ $value }}"
-                                    x-on:focusin="preview = {{ $value }}"
+                                    x-on:mousemove="ratingPreview = {{ $value }}"
                                 >
                                     <img
                                         src="{{ asset('images/brina-rating.webp') }}"
                                         alt=""
                                         aria-hidden="true"
                                         class="brina-rating-icon"
-                                        x-bind:class="preview >= {{ $value }} ? 'brina-rating-icon--filled' : 'brina-rating-icon--empty'"
+                                        x-bind:class="ratingPreview >= {{ $value }} ? 'brina-rating-icon--filled' : 'brina-rating-icon--empty'"
                                     />
                                     <span class="sr-only">{{ $value }} {{ $value === 1 ? 'Brina' : 'Brinas' }}</span>
                                 </label>
