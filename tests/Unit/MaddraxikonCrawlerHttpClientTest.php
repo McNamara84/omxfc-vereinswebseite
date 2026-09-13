@@ -42,6 +42,20 @@ class MaddraxikonCrawlerHttpClientTest extends TestCase
         );
     }
 
+    public function test_oversized_numeric_retry_after_is_bounded_before_conversion(): void
+    {
+        config(['maddraxikon.http.retry_max_delay_ms' => 1]);
+        Http::fakeSequence()
+            ->push('rate limited', 429, ['Retry-After' => str_repeat('9', 100)])
+            ->push('<html>ok</html>', 200);
+
+        $body = app(MaddraxikonCrawlerHttpClient::class)
+            ->get('https://de.maddraxikon.com/wiki/Test');
+
+        $this->assertSame('<html>ok</html>', $body);
+        Http::assertSentCount(2);
+    }
+
     public function test_connection_errors_are_retried_and_then_fail_closed(): void
     {
         Http::fakeSequence()

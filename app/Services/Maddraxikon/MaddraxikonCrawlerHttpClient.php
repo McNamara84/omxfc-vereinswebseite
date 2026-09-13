@@ -175,7 +175,12 @@ class MaddraxikonCrawlerHttpClient
         }
 
         if (ctype_digit($retryAfter)) {
-            return (int) $retryAfter * 1000;
+            $seconds = min(
+                (int) $retryAfter,
+                intdiv(PHP_INT_MAX, 1000),
+            );
+
+            return $seconds * 1000;
         }
 
         $retryAt = strtotime($retryAfter);
