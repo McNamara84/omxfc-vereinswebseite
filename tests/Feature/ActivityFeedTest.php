@@ -732,7 +732,8 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText('FantreffenNick hat sich zum Fantreffen in Coellen angemeldet');
+        $response->assertSeeText('FantreffenNick hat sich zum nächsten Fantreffen angemeldet');
+        $response->assertDontSeeText('FantreffenNick hat sich zum Fantreffen in Coellen angemeldet');
         $response->assertDontSee('<a href="'.route('profile.view', $user->id).'"', false);
     }
 
@@ -764,7 +765,8 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText('Jamie hat sich zum Fantreffen in Coellen angemeldet');
+        $response->assertSeeText('Jamie hat sich zum nächsten Fantreffen angemeldet');
+        $response->assertDontSeeText('Jamie hat sich zum Fantreffen in Coellen angemeldet');
         $response->assertDontSee('Unbekannter Nutzer', false);
     }
 
