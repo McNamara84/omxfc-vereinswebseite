@@ -402,7 +402,8 @@ class MaddraxikonCandidateStore
         try {
             return json_encode(
                 $value,
-                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+                    | JSON_PRESERVE_ZERO_FRACTION | JSON_THROW_ON_ERROR,
             ).PHP_EOL;
         } catch (JsonException $exception) {
             throw new MaddraxikonCrawlException(

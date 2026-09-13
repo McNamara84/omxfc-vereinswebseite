@@ -10,6 +10,7 @@ use App\Services\Maddraxikon\MaddraxikonBookImporter;
 use App\Services\Maddraxikon\MaddraxikonCandidateStore;
 use App\Services\Maddraxikon\MaddraxikonRefreshCoordinator;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
+use Illuminate\Console\Command;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,18 @@ class MaddraxikonRefreshTest extends TestCase
         File::deleteDirectory($this->testStoragePath);
         Mockery::close();
         parent::tearDown();
+    }
+
+    public function test_explicit_empty_promote_option_is_rejected_without_starting_a_crawl(): void
+    {
+        Http::fake();
+
+        $this->artisan('books:refresh', ['--promote' => ''])
+            ->expectsOutputToContain('--promote benötigt eine nicht leere Kandidaten-ID.')
+            ->assertExitCode(Command::INVALID);
+
+        Http::assertNothingSent();
+        $this->assertSame([], File::glob(Storage::disk('private')->path('maddrax-candidates/*')));
     }
 
     public function test_dry_run_creates_immutable_candidate_without_changing_active_state(): void
@@ -164,6 +177,52 @@ class MaddraxikonRefreshTest extends TestCase
         $this->assertFalse(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
         $this->assertNull(Cache::get('maddrax_series_maddrax'));
         $this->assertSame('Neuer Titel', app(MaddraxDataService::class)->getMaddraxRomane()->first()['titel']);
+    }
+
+    public function test_whole_number_float_rating_survives_the_candidate_round_trip(): void
+    {
+        $row = $this->row(1, 'Euree', 'Titel');
+        $row['bewertung'] = 4.0;
+        $store = app(MaddraxikonCandidateStore::class);
+
+        $candidate = $store->stage(['maddrax' => [$row]]);
+        $loaded = $store->load($candidate['id']);
+
+        $this->assertSame(4.0, $loaded['datasets']['maddrax'][0]['bewertung']);
+        $this->assertStringContainsString(
+            '"bewertung": 4.0',
+            Storage::disk('private')->get('maddrax-candidates/'.$candidate['id'].'/maddrax.json'),
+        );
+    }
+
+    public function test_cache_invalidation_failure_does_not_turn_a_committed_promotion_into_a_failure(): void
+    {
+        $store = app(MaddraxikonCandidateStore::class);
+        $candidate = $store->stage([
+            'maddrax' => [$this->row(1, 'Euree', 'Neuer Titel')],
+        ]);
+        $dataService = Mockery::mock(MaddraxDataService::class);
+        $dataService->shouldReceive('clearCache')
+            ->once()
+            ->andThrow(new \RuntimeException('Cache nicht erreichbar'));
+        $coordinator = new MaddraxikonRefreshCoordinator(
+            $store,
+            app(MaddraxikonBookImporter::class),
+            $dataService,
+            app(MaddraxikonSnapshotRepository::class),
+        );
+
+        $this->assertSame(['maddrax' => 1], $coordinator->promote($candidate['id']));
+        $this->assertSame(
+            $candidate['id'],
+            app(MaddraxikonSnapshotRepository::class)->activeId(BookType::MaddraxDieDunkleZukunftDerErde),
+        );
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'title' => 'Neuer Titel',
+            'cycle' => 'Euree',
+        ]);
+        $this->assertFalse(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
     }
 
     public function test_promotion_retry_cleans_up_an_already_active_candidate_without_reapplying_it(): void

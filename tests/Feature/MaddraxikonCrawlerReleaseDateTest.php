@@ -75,6 +75,25 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
         $crawler->crawl([BookType::MaddraxHardcover]);
     }
 
+    public function test_array_and_string_callables_receive_crawl_progress(): void
+    {
+        $crawler = $this->crawlerWithBooks([$this->book(1, '2004')]);
+        $listener = new MaddraxikonCrawlerProgressListener;
+        MaddraxikonCrawlerProgressListener::reset();
+
+        $crawler->crawl(
+            [BookType::MaddraxHardcover],
+            [$listener, 'seriesStarted'],
+            MaddraxikonCrawlerProgressListener::class.'::articleProcessed',
+        );
+
+        $this->assertSame(BookType::MaddraxHardcover, $listener->seriesType);
+        $this->assertSame(1, $listener->seriesTotal);
+        $this->assertSame(BookType::MaddraxHardcover, MaddraxikonCrawlerProgressListener::$articleType);
+        $this->assertSame(1, MaddraxikonCrawlerProgressListener::$articleCurrent);
+        $this->assertSame(1, MaddraxikonCrawlerProgressListener::$articleTotal);
+    }
+
     /** @param list<CrawledBook> $books */
     private function crawlerWithBooks(array $books): MaddraxikonCrawler
     {
@@ -118,5 +137,38 @@ class MaddraxikonCrawlerReleaseDateTest extends TestCase
             locations: null,
             pageTitle: "HC {$number}",
         );
+    }
+}
+
+final class MaddraxikonCrawlerProgressListener
+{
+    public ?BookType $seriesType = null;
+
+    public int $seriesTotal = 0;
+
+    public static ?BookType $articleType = null;
+
+    public static int $articleCurrent = 0;
+
+    public static int $articleTotal = 0;
+
+    public function seriesStarted(BookType $type, int $total): void
+    {
+        $this->seriesType = $type;
+        $this->seriesTotal = $total;
+    }
+
+    public static function articleProcessed(BookType $type, int $current, int $total): void
+    {
+        self::$articleType = $type;
+        self::$articleCurrent = $current;
+        self::$articleTotal = $total;
+    }
+
+    public static function reset(): void
+    {
+        self::$articleType = null;
+        self::$articleCurrent = 0;
+        self::$articleTotal = 0;
     }
 }

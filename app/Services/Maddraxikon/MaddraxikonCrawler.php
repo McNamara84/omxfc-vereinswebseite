@@ -41,7 +41,9 @@ class MaddraxikonCrawler
                 MaddraxikonSeries::categoryUrl($type),
                 $deadline,
             );
-            $onSeriesStarted?->__invoke($type, count($urls));
+            if ($onSeriesStarted !== null) {
+                $onSeriesStarted($type, count($urls));
+            }
             $rows = [];
 
             foreach ($urls as $index => $url) {
@@ -58,7 +60,9 @@ class MaddraxikonCrawler
                 }
 
                 $deadline->ensureNotExpired($url);
-                $onArticleProcessed?->__invoke($type, $index + 1, count($urls));
+                if ($onArticleProcessed !== null) {
+                    $onArticleProcessed($type, $index + 1, count($urls));
+                }
             }
 
             usort(

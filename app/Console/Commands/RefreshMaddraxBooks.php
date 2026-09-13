@@ -28,7 +28,16 @@ class RefreshMaddraxBooks extends Command
     ): int {
         set_time_limit($refreshLock->runtimeLimitSeconds());
 
-        if ($this->option('dry-run') && is_string($this->option('promote'))) {
+        $promoteRequested = $this->input->hasParameterOption('--promote');
+        $promote = $this->option('promote');
+
+        if ($promoteRequested && (! is_string($promote) || trim($promote) === '')) {
+            $this->error('--promote benötigt eine nicht leere Kandidaten-ID.');
+
+            return self::INVALID;
+        }
+
+        if ($this->option('dry-run') && $promoteRequested) {
             $this->error('--dry-run und --promote können nicht kombiniert werden.');
 
             return self::INVALID;
@@ -45,10 +54,8 @@ class RefreshMaddraxBooks extends Command
                 return self::FAILURE;
             }
 
-            $promote = $this->option('promote');
-
-            if (is_string($promote) && trim($promote) !== '') {
-                return $this->promote($coordinator, trim($promote));
+            if ($promoteRequested) {
+                return $this->promote($coordinator, trim((string) $promote));
             }
 
             $types = $this->selectedTypes((string) $this->option('series'));

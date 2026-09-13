@@ -42,7 +42,14 @@ class MaddraxikonRefreshCoordinator
             ]);
         }
 
-        $this->dataService->clearCache();
+        try {
+            $this->dataService->clearCache();
+        } catch (\Throwable $exception) {
+            Log::warning('Maddraxikon-Datencache konnte nach erfolgreicher Freigabe nicht invalidiert werden.', [
+                'candidate_id' => $candidateId,
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         return collect($candidate['datasets'])
             ->map(static fn (array $rows): int => count($rows))
