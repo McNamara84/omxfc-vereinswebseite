@@ -87,7 +87,11 @@ class MaddraxikonArticleParser
 
     private function number(DOMXPath $xpath, BookType $type): ?int
     {
-        if (in_array($type, [BookType::MaddraxHardcover, BookType::DieAbenteurer], true)) {
+        if (in_array($type, [
+            BookType::MaddraxHardcover,
+            BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            BookType::DieAbenteurer,
+        ], true)) {
             $navigationNumber = $this->textAt(
                 $xpath,
                 "//div[contains(concat(' ', normalize-space(@class), ' '), ' heftartikel-navigationsleiste-anfang ')]//td[@align='center']//i[not(a)][1]"
