@@ -239,6 +239,14 @@ Stimme wird unmittelbar ein noch nicht bewertetes Cover angeboten. „Später
 bewerten“ gilt nur für die aktuelle Sitzung; eigene Stimmen lassen sich unter
 `/cover-bewertungen/meine` ändern oder per Soft Delete zurücknehmen.
 
+Die Übersichtsseite zeigt den Fortschritt und lässt vor dem Start die gewünschte
+Serie auswählen. „Bewertung starten“ öffnet eine bildzentrierte Sitzung und
+fordert, soweit vom Browser unterstützt, den nativen Vollbildmodus an. Andernfalls
+steht automatisch ein browserfüllendes Overlay als Fallback bereit. Das Cover wird
+ohne Beschnitt an die verfügbare Fläche angepasst und bei Bedarf auch über seine
+natürliche Auflösung hinaus vergrößert. Eine kompakte Leiste hält Brina-Auswahl,
+„Später bewerten“ und „Bewertungen beenden“ jederzeit erreichbar.
+
 Die Ergebnisse bleiben anonym. Ein Mitglied sieht ein Cover dort erst nach
 der eigenen Stimme und den Durchschnitt erst ab der konfigurierten
 Mindestanzahl von Bewertungen (standardmäßig drei). Für je 100 erstmals

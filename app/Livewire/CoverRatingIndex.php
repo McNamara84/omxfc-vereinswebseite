@@ -122,6 +122,8 @@ class CoverRatingIndex extends Component
         } else {
             $this->forgetComputed();
         }
+
+        $this->dispatch('cover-rating-feedback', awardedBaxx: 0);
     }
 
     #[Computed]
@@ -177,7 +179,11 @@ class CoverRatingIndex extends Component
         );
         $this->currentCoverId = $cover?->id;
         $this->forgetComputed();
-        $this->dispatch('cover-rating-advanced');
+        $this->dispatch(
+            'cover-rating-advanced',
+            hasCover: $cover !== null,
+            awardedBaxx: $this->awardedBaxx,
+        );
     }
 
     private function member(): User
