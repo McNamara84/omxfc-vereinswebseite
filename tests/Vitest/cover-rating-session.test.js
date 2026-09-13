@@ -18,6 +18,7 @@ const setFullscreenElement = (element) => {
 const buildController = () => {
     document.body.innerHTML = `
         <button data-testid="start-cover-rating">Bewertung starten</button>
+        <div tabindex="-1" data-cover-return-focus>Bewertung abgeschlossen</div>
         <section data-testid="cover-rating-session" aria-hidden="true" inert>
             <h2 tabindex="-1" data-cover-focus>Testcover</h2>
             <div data-rating-feedback>Gespeichert</div>
@@ -116,6 +117,52 @@ describe('cover rating fullscreen session', () => {
         expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
         expect(document.activeElement).toBe(startButton);
     });
+
+    test('returns focus to the overview state when the saved trigger became disabled', async () => {
+        const { controller, startButton } = buildController();
+        const overviewState = document.querySelector('[data-cover-return-focus]');
+        startButton.focus();
+
+        await controller.start({ currentTarget: startButton });
+        startButton.disabled = true;
+        await controller.stop();
+
+        expect(document.activeElement).toBe(overviewState);
+    });
+
+    test.each(['stop', 'destroy'])(
+        'exits fullscreen when a stale request resolves after %s',
+        async (cleanupMethod) => {
+            const { controller, overlay, startButton } = buildController();
+            let resolveFullscreenRequest;
+            overlay.requestFullscreen = vi.fn(() => new Promise((resolve) => {
+                resolveFullscreenRequest = resolve;
+            }));
+            document.exitFullscreen = vi.fn().mockImplementation(() => {
+                setFullscreenElement(null);
+                return Promise.resolve();
+            });
+            controller.init();
+
+            const fullscreenRequest = controller.start({ currentTarget: startButton });
+            if (cleanupMethod === 'destroy') {
+                controller.destroy();
+            } else {
+                await controller.stop({ restoreFocus: false });
+            }
+
+            setFullscreenElement(overlay);
+            document.dispatchEvent(new Event('fullscreenchange'));
+            resolveFullscreenRequest();
+            await fullscreenRequest;
+
+            expect(document.exitFullscreen).toHaveBeenCalledOnce();
+            expect(document.fullscreenElement).toBeNull();
+            expect(controller.active).toBe(false);
+            expect(controller.nativeFullscreen).toBe(false);
+            expect(overlay.inert).toBe(true);
+        },
+    );
 
     test('closes the session when the browser leaves a previously active native fullscreen', async () => {
         const { controller, overlay, startButton } = buildController();

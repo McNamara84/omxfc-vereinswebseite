@@ -137,6 +137,8 @@ class CoverRatingFeatureTest extends TestCase
             $html,
         );
         $this->assertStringContainsString('data-testid="cover-rating-overview-empty-state"', $html);
+        $this->assertStringContainsString('data-cover-return-focus', $html);
+        $this->assertStringContainsString('tabindex="-1"', $html);
     }
 
     public function test_undo_announces_feedback_and_restores_the_only_cover(): void

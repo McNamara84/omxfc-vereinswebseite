@@ -90,7 +90,13 @@
             </div>
 
             @if(! $this->cover)
-                <div class="mt-5 rounded-2xl border border-base-content/10 bg-base-200/55 p-4 text-sm text-base-content/70" data-testid="cover-rating-overview-empty-state">
+                <div
+                    tabindex="-1"
+                    role="status"
+                    class="mt-5 rounded-2xl border border-base-content/10 bg-base-200/55 p-4 text-sm text-base-content/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    data-cover-return-focus
+                    data-testid="cover-rating-overview-empty-state"
+                >
                     @if($this->progress['total'] === 0)
                         Noch sind keine Cover verfügbar. Sobald der Cover-Abgleich abgeschlossen ist, kannst du hier loslegen.
                     @elseif($this->progress['remaining'] === 0)

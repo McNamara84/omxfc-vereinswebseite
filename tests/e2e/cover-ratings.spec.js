@@ -34,10 +34,15 @@ const startRatingSession = async (page) => {
   await expect(page.getByTestId('website-feedback-trigger')).not.toBeVisible();
 };
 
-const endRatingSession = async (page) => {
+const endRatingSession = async (page, { completed = false } = {}) => {
   await page.getByTestId('end-cover-rating').click();
   await expect(page.getByTestId('cover-rating-session')).not.toBeVisible();
-  await expect(page.getByTestId('start-cover-rating')).toBeFocused();
+  if (completed) {
+    await expect(page.getByTestId('start-cover-rating')).toBeDisabled();
+    await expect(page.getByTestId('cover-rating-overview-empty-state')).toBeFocused();
+  } else {
+    await expect(page.getByTestId('start-cover-rating')).toBeFocused();
+  }
   await expect(page.locator('body')).not.toHaveClass(/cover-rating-session-open/);
 };
 
@@ -149,14 +154,24 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   await assertAccessible(page);
   await endRatingSession(page);
 
+  await startRatingSession(page);
+  for (let index = 0; index < 4; index += 1) {
+    await clickAndWaitForLivewireUpdate(
+      page,
+      page.locator('label[for$="-rating-3"]'),
+    );
+  }
+  await expect(page.getByTestId('cover-rating-empty-state')).toBeVisible();
+  await endRatingSession(page, { completed: true });
+
   await page.goto('/cover-bewertungen/meine');
   await expect(page.getByRole('heading', { level: 1, name: 'Meine Bewertungen' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Auf 5 Brinas ändern' }).first())
-    .toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('button[aria-label="Auf 5 Brinas ändern"][aria-pressed="true"]'))
+    .toHaveCount(1);
 
   await page.goto('/cover-bewertungen/ergebnisse');
   await expect(page.getByRole('heading', { level: 1, name: 'Ergebnisse' })).toBeVisible();
-  await expect(page.getByText('Noch nicht genügend Bewertungen', { exact: false })).toBeVisible();
+  await expect(page.getByText('Noch nicht genügend Bewertungen', { exact: false }).first()).toBeVisible();
 });
 
 test('desktop keyboard flow, upscaling and all target viewports pass', async ({ page, browserName }, testInfo) => {

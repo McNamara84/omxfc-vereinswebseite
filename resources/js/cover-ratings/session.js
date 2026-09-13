@@ -27,6 +27,8 @@ export function createCoverRatingSession({
         feedbackTimer: null,
         initialized: false,
         fullscreenPromise: Promise.resolve(false),
+        fullscreenRequestGeneration: 0,
+        fullscreenExitPromise: null,
 
         init() {
             if (this.initialized) {
@@ -111,18 +113,25 @@ export function createCoverRatingSession({
             }
 
             this.fullscreenRequestPending = true;
+            const requestGeneration = ++this.fullscreenRequestGeneration;
 
             try {
                 this.fullscreenPromise = Promise.resolve(overlay.requestFullscreen())
                     .then(() => {
+                        if (requestGeneration !== this.fullscreenRequestGeneration || !this.active) {
+                            return this.exitOwnedFullscreen(overlay).then(() => false);
+                        }
+
                         this.fullscreenRequestPending = false;
                         this.nativeFullscreen = documentRef.fullscreenElement === overlay;
 
                         return this.nativeFullscreen;
                     })
                     .catch(() => {
-                        this.fullscreenRequestPending = false;
-                        this.nativeFullscreen = false;
+                        if (requestGeneration === this.fullscreenRequestGeneration) {
+                            this.fullscreenRequestPending = false;
+                            this.nativeFullscreen = false;
+                        }
 
                         return false;
                     });
@@ -143,6 +152,7 @@ export function createCoverRatingSession({
                 && documentRef.fullscreenElement === overlay
                 && typeof documentRef.exitFullscreen === 'function';
 
+            this.fullscreenRequestGeneration += 1;
             this.active = false;
             this.nativeFullscreen = false;
             this.fullscreenRequestPending = false;
@@ -153,11 +163,7 @@ export function createCoverRatingSession({
             let completion = Promise.resolve();
 
             if (shouldExitNative) {
-                try {
-                    completion = Promise.resolve(documentRef.exitFullscreen()).catch(() => {});
-                } catch {
-                    // The CSS overlay has already been closed; browser cleanup is best-effort.
-                }
+                completion = this.exitOwnedFullscreen(overlay);
             }
 
             this.restoreScroll();
@@ -170,18 +176,52 @@ export function createCoverRatingSession({
         },
 
         restoreFocus(focusTarget) {
-            if (!focusTarget?.isConnected) {
-                return Promise.resolve();
-            }
-
             return new Promise((resolve) => {
                 this.schedule(() => {
                     setTimer(() => {
-                        focusTarget.focus();
+                        this.resolveReturnFocus(focusTarget)?.focus();
                         resolve();
                     }, 0);
                 });
             });
+        },
+
+        resolveReturnFocus(preferredTarget) {
+            const fallbackTarget = documentRef.querySelector('[data-cover-return-focus]');
+
+            return [preferredTarget, fallbackTarget].find((target) => (
+                target?.isConnected
+                && typeof target.focus === 'function'
+                && !target.matches?.(':disabled, [aria-disabled="true"]')
+                && !target.closest?.('[inert]')
+            )) ?? null;
+        },
+
+        exitOwnedFullscreen(overlay = this.overlayElement()) {
+            if (
+                !overlay
+                || documentRef.fullscreenElement !== overlay
+                || typeof documentRef.exitFullscreen !== 'function'
+            ) {
+                return Promise.resolve();
+            }
+
+            if (this.fullscreenExitPromise) {
+                return this.fullscreenExitPromise;
+            }
+
+            try {
+                this.fullscreenExitPromise = Promise.resolve(documentRef.exitFullscreen())
+                    .catch(() => {})
+                    .finally(() => {
+                        this.fullscreenExitPromise = null;
+                    });
+            } catch {
+                // The CSS overlay has already been closed; browser cleanup is best-effort.
+                return Promise.resolve();
+            }
+
+            return this.fullscreenExitPromise;
         },
 
         restoreScroll() {
@@ -200,6 +240,13 @@ export function createCoverRatingSession({
             const overlay = this.overlayElement();
 
             if (overlay && documentRef.fullscreenElement === overlay) {
+                if (!this.active) {
+                    this.nativeFullscreen = false;
+                    this.fullscreenRequestPending = false;
+                    this.exitOwnedFullscreen(overlay);
+                    return;
+                }
+
                 this.nativeFullscreen = true;
                 this.fullscreenRequestPending = false;
                 return;
