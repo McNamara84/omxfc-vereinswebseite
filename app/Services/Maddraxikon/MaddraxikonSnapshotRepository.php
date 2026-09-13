@@ -49,6 +49,11 @@ class MaddraxikonSnapshotRepository
         return $this->activeIds[$type->key()] ?? null;
     }
 
+    public function clearActiveIdsCache(): void
+    {
+        $this->activeIds = null;
+    }
+
     /** @return array{id: string, rows: array<int, array<string, mixed>>}|null */
     public function activeDataset(BookType $type): ?array
     {
@@ -88,7 +93,7 @@ class MaddraxikonSnapshotRepository
             throw new LogicException('Maddraxikon-Snapshots dürfen nur innerhalb einer Datenbanktransaktion aktiviert werden.');
         }
 
-        $this->activeIds = null;
+        $this->clearActiveIdsCache();
         $now = now();
 
         foreach ($jsonBySeries as $seriesKey => $payload) {

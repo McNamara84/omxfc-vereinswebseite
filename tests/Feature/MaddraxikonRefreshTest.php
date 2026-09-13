@@ -156,9 +156,17 @@ class MaddraxikonRefreshTest extends TestCase
             'cycle' => 'Alter Zyklus',
         ]);
         Cache::put('maddrax_series_maddrax', $old);
+        $dataService = app(MaddraxDataService::class);
+        $this->assertSame('Alter Titel', $dataService->getMaddraxRomane()->first()['titel']);
         $candidate = app(MaddraxikonCandidateStore::class)->stage(['maddrax' => $new]);
+        $coordinator = new MaddraxikonRefreshCoordinator(
+            app(MaddraxikonCandidateStore::class),
+            app(MaddraxikonBookImporter::class),
+            $dataService,
+            app(MaddraxikonSnapshotRepository::class),
+        );
 
-        $counts = app(MaddraxikonRefreshCoordinator::class)->promote($candidate['id']);
+        $counts = $coordinator->promote($candidate['id']);
 
         $this->assertSame(['maddrax' => 1], $counts);
         $this->assertDatabaseHas('books', [
@@ -176,7 +184,11 @@ class MaddraxikonRefreshTest extends TestCase
         $this->assertSame($old, json_decode(Storage::disk('private')->get('maddrax.json'), true));
         $this->assertFalse(Storage::disk('private')->exists('maddrax-candidates/'.$candidate['id']));
         $this->assertNull(Cache::get('maddrax_series_maddrax'));
-        $this->assertSame('Neuer Titel', app(MaddraxDataService::class)->getMaddraxRomane()->first()['titel']);
+        $this->assertSame('Neuer Titel', $dataService->getMaddraxRomane()->first()['titel']);
+        $this->assertSame(
+            $candidate['id'],
+            Cache::get('maddrax_series_maddrax')['snapshot_id'],
+        );
     }
 
     public function test_whole_number_float_rating_survives_the_candidate_round_trip(): void

@@ -129,6 +129,48 @@ class MaddraxikonSnapshotRepositoryTest extends TestCase
         }
     }
 
+    public function test_active_pointer_cache_can_be_reset_on_a_long_lived_repository(): void
+    {
+        $testTransactionLevel = DB::transactionLevel();
+        $oldId = '31313131-3131-4131-8131-313131313131';
+        $newId = '32323232-3232-4232-8232-323232323232';
+        $type = BookType::MaddraxDieDunkleZukunftDerErde;
+
+        for ($level = 0; $level < $testTransactionLevel; $level++) {
+            DB::rollBack();
+        }
+
+        try {
+            $repository = new MaddraxikonSnapshotRepository;
+            DB::transaction(fn () => $repository->storeAndActivate(
+                $oldId,
+                ['maddrax' => $this->datasetJson('Euree')],
+            ));
+            $this->assertSame($oldId, $repository->activeId($type));
+
+            DB::transaction(fn () => (new MaddraxikonSnapshotRepository)->storeAndActivate(
+                $newId,
+                ['maddrax' => $this->datasetJson('Weltrat')],
+            ));
+            $this->assertSame($oldId, $repository->activeId($type));
+
+            $repository->clearActiveIdsCache();
+
+            $this->assertSame($newId, $repository->activeId($type));
+        } finally {
+            DB::table('maddraxikon_book_snapshot_pointers')
+                ->where('series_key', $type->key())
+                ->delete();
+            DB::table('maddraxikon_book_snapshots')
+                ->whereIn('snapshot_id', [$oldId, $newId])
+                ->delete();
+
+            for ($level = 0; $level < $testTransactionLevel; $level++) {
+                DB::beginTransaction();
+            }
+        }
+    }
+
     private function datasetJson(?string $cycle): string
     {
         return (string) json_encode([[

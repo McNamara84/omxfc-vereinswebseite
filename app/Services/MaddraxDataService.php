@@ -50,6 +50,7 @@ class MaddraxDataService
      */
     public function getSeries(string $seriesKey): Collection
     {
+        $cacheKey = "maddrax_series_{$seriesKey}";
         $type = BookType::fromKey($seriesKey);
 
         if ($type !== null) {
@@ -57,11 +58,23 @@ class MaddraxDataService
                 $snapshotId = $this->snapshots->activeId($type);
 
                 if ($snapshotId !== null) {
-                    $series = Cache::remember(
-                        "maddrax_series_{$seriesKey}_snapshot_{$snapshotId}",
-                        self::CACHE_TTL,
-                        fn (): array => $this->snapshots->dataset($snapshotId, $type),
-                    );
+                    $cached = Cache::get($cacheKey);
+
+                    if (
+                        is_array($cached)
+                        && ($cached['snapshot_id'] ?? null) === $snapshotId
+                        && isset($cached['rows'])
+                        && is_array($cached['rows'])
+                        && array_is_list($cached['rows'])
+                    ) {
+                        return collect($cached['rows']);
+                    }
+
+                    $series = $this->snapshots->dataset($snapshotId, $type);
+                    Cache::put($cacheKey, [
+                        'snapshot_id' => $snapshotId,
+                        'rows' => $series,
+                    ], self::CACHE_TTL);
 
                     return collect($series);
                 }
@@ -75,11 +88,12 @@ class MaddraxDataService
             }
         }
 
-        $cacheKey = "maddrax_series_{$seriesKey}";
+        $series = Cache::get($cacheKey);
 
-        $series = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($seriesKey) {
-            return $this->loadSeriesFromFile($seriesKey)->all();
-        });
+        if (! is_array($series) || ! array_is_list($series)) {
+            $series = $this->loadSeriesFromFile($seriesKey)->all();
+            Cache::put($cacheKey, $series, self::CACHE_TTL);
+        }
 
         return collect($series);
     }
@@ -163,6 +177,8 @@ class MaddraxDataService
      */
     public function clearCache(?string $seriesKey = null): void
     {
+        $this->snapshots->clearActiveIdsCache();
+
         if ($seriesKey === null || $seriesKey === 'maddrax') {
             self::$data = null;
             self::$dataSnapshotId = null;
