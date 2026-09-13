@@ -55,6 +55,21 @@ class MaddraxikonArticleParserTest extends TestCase
         yield 'Die Abenteurer' => [BookType::DieAbenteurer, $navigation, '<th>Testroman</th>'];
     }
 
+    public function test_2012_series_uses_navigation_number_instead_of_series_year(): void
+    {
+        $seriesHeader = '<table><tr><td><b>2012</b></td></tr></table>';
+        $navigation = '<div class="heftartikel-navigationsleiste-anfang"><table><tr><td align="center"><i><b>10</b></i></td></tr></table></div>';
+
+        $book = app(MaddraxikonArticleParser::class)->parse(
+            $this->articleHtml($seriesHeader.$navigation, '<th>Im Bann der Loge</th>'),
+            'https://de.maddraxikon.com/wiki/Im_Bann_der_Loge',
+            BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+        );
+
+        $this->assertSame(10, $book->number);
+        $this->assertSame('Im Bann der Loge', $book->title);
+    }
+
     public function test_rejects_article_without_number_or_title(): void
     {
         $this->expectException(MaddraxikonCrawlException::class);

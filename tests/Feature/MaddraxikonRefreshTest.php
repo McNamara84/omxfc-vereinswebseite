@@ -96,7 +96,17 @@ class MaddraxikonRefreshTest extends TestCase
         $article = 'https://de.maddraxikon.com/wiki/2012_1';
         Http::fake([
             $category => Http::response('<div id="mw-pages"><a href="/wiki/2012_1">2012 1</a></div>'),
-            $article => Http::response($this->articleHtml(1, '')),
+            $article => Http::response('<html><body>
+                <table><tr><td><b>2012</b></td></tr></table>
+                <div class="heftartikel-navigationsleiste-anfang">
+                    <table><tr><td align="center"><i><b>1</b></i></td></tr></table>
+                </div>
+                <table>
+                    <tr><td>Erstmals&nbsp;erschienen:</td><td>2026-09-01</td></tr>
+                    <tr><td>Titel:</td><th>Roman 1</th></tr>
+                    <tr><td>Text:</td><td>Autor</td></tr>
+                </table>
+            </body></html>'),
         ]);
 
         $this->artisan('books:refresh', ['--series' => '2012', '--dry-run' => true])
