@@ -17,7 +17,7 @@ class MaddraxikonSnapshotRepository
 
     private ?bool $tablesAvailable = null;
 
-    /** @var array<string, string>|null */
+    /** @var array<int|string, string>|null */
     private ?array $activeIds = null;
 
     public function activeId(BookType $type): ?string
@@ -38,7 +38,9 @@ class MaddraxikonSnapshotRepository
             $this->activeIds = [];
 
             foreach (DB::table(self::POINTERS_TABLE)->pluck('snapshot_id', 'series_key') as $seriesKey => $id) {
-                if (is_string($seriesKey) && is_string($id) && $id !== '') {
+                $seriesKey = (string) $seriesKey;
+
+                if (is_string($id) && $id !== '') {
                     $this->activeIds[$seriesKey] = $id;
                 }
             }
@@ -79,7 +81,7 @@ class MaddraxikonSnapshotRepository
         return $this->decode($payload, $type);
     }
 
-    /** @param array<string, string> $jsonBySeries */
+    /** @param array<int|string, string> $jsonBySeries */
     public function storeAndActivate(string $snapshotId, array $jsonBySeries): void
     {
         if (DB::transactionLevel() === 0) {
@@ -90,6 +92,7 @@ class MaddraxikonSnapshotRepository
         $now = now();
 
         foreach ($jsonBySeries as $seriesKey => $payload) {
+            $seriesKey = (string) $seriesKey;
             $type = BookType::fromKey($seriesKey);
 
             if ($type === null) {

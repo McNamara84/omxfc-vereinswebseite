@@ -26,7 +26,7 @@ class MaddraxikonCandidateStore
     ) {}
 
     /**
-     * @param  array<string, array<int, array<string, mixed>>>  $datasets
+     * @param  array<int|string, array<int, array<string, mixed>>>  $datasets
      * @return array{id: string, hash: string, manifest: array<string, mixed>}
      */
     public function stage(array $datasets): array
@@ -44,6 +44,7 @@ class MaddraxikonCandidateStore
 
         try {
             foreach ($datasets as $seriesKey => $rows) {
+                $seriesKey = (string) $seriesKey;
                 $type = BookType::fromKey($seriesKey);
 
                 if ($type === null) {
@@ -109,8 +110,8 @@ class MaddraxikonCandidateStore
     /**
      * @return array{
      *     manifest: array<string, mixed>,
-     *     datasets: array<string, array<int, array<string, mixed>>>,
-     *     json: array<string, string>,
+     *     datasets: array<int|string, array<int, array<string, mixed>>>,
+     *     json: array<int|string, string>,
      *     already_active: bool
      * }
      */
@@ -155,7 +156,8 @@ class MaddraxikonCandidateStore
         $activationStates = [];
 
         foreach ($series as $seriesKey => $metadata) {
-            $type = is_string($seriesKey) ? BookType::fromKey($seriesKey) : null;
+            $seriesKey = (string) $seriesKey;
+            $type = BookType::fromKey($seriesKey);
 
             if ($type === null || ! is_array($metadata)) {
                 throw new MaddraxikonCrawlException("Kandidat {$id} enthält eine unbekannte Reihe.");

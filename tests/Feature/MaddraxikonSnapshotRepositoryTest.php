@@ -92,24 +92,36 @@ class MaddraxikonSnapshotRepositoryTest extends TestCase
     public function test_schema_and_active_pointer_queries_are_cached_outside_transactions(): void
     {
         $testTransactionLevel = DB::transactionLevel();
+        $snapshotId = '20122012-2012-4012-8012-201220122012';
+        $numericType = BookType::ZweiTausendZwölfDasJahrDerApokalypse;
 
         for ($level = 0; $level < $testTransactionLevel; $level++) {
             DB::rollBack();
         }
 
         try {
+            DB::table('maddraxikon_book_snapshot_pointers')->insert([
+                'series_key' => $numericType->key(),
+                'snapshot_id' => $snapshotId,
+                'updated_at' => now(),
+            ]);
             DB::flushQueryLog();
             DB::enableQueryLog();
             $repository = new MaddraxikonSnapshotRepository;
 
             foreach (BookType::cases() as $type) {
-                $this->assertNull($repository->activeId($type));
-                $this->assertNull($repository->activeId($type));
+                $expected = $type === $numericType ? $snapshotId : null;
+
+                $this->assertSame($expected, $repository->activeId($type));
+                $this->assertSame($expected, $repository->activeId($type));
             }
 
             $this->assertCount(3, DB::getQueryLog());
         } finally {
             DB::disableQueryLog();
+            DB::table('maddraxikon_book_snapshot_pointers')
+                ->where('series_key', $numericType->key())
+                ->delete();
 
             for ($level = 0; $level < $testTransactionLevel; $level++) {
                 DB::beginTransaction();

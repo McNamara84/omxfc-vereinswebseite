@@ -10,11 +10,12 @@ class MaddraxikonBookImporter
 {
     private const UPSERT_BATCH_SIZE = 250;
 
-    /** @param array<string, array<int, array<string, mixed>>> $datasets */
+    /** @param array<int|string, array<int, array<string, mixed>>> $datasets */
     public function import(array $datasets, bool $transaction = true): void
     {
         $callback = function () use ($datasets): void {
             foreach ($datasets as $seriesKey => $rows) {
+                $seriesKey = (string) $seriesKey;
                 $type = BookType::fromKey($seriesKey);
 
                 if ($type === null) {

@@ -77,6 +77,39 @@ class MaddraxikonRefreshTest extends TestCase
         ], $manifest['series']['maddrax']['baseline']);
     }
 
+    public function test_numeric_2012_series_key_survives_manifest_load_and_promotion(): void
+    {
+        $category = 'https://de.maddraxikon.com/index.php?title=Kategorie:2012-Heftromane';
+        $article = 'https://de.maddraxikon.com/wiki/2012_1';
+        Http::fake([
+            $category => Http::response('<div id="mw-pages"><a href="/wiki/2012_1">2012 1</a></div>'),
+            $article => Http::response($this->articleHtml(1, '')),
+        ]);
+
+        $this->artisan('books:refresh', ['--series' => '2012', '--dry-run' => true])
+            ->assertSuccessful();
+
+        $manifests = File::glob(Storage::disk('private')->path('maddrax-candidates/*/manifest.json'));
+        $this->assertCount(1, $manifests);
+        $manifest = json_decode(File::get($manifests[0]), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame(2012, array_key_first($manifest['series']));
+
+        $this->artisan('books:refresh', ['--promote' => $manifest['id']])
+            ->expectsOutputToContain('für 2012 sicher aktualisiert')
+            ->assertSuccessful();
+
+        $type = BookType::ZweiTausendZwölfDasJahrDerApokalypse;
+        $this->assertSame(
+            $manifest['id'],
+            app(MaddraxikonSnapshotRepository::class)->activeId($type),
+        );
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'type' => $type->value,
+            'title' => 'Roman 1',
+        ]);
+    }
+
     public function test_refresh_uses_the_configured_origin_for_category_and_page_title(): void
     {
         $origin = 'https://wiki.example.test:8443';
