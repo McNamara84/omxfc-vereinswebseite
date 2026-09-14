@@ -11,6 +11,7 @@ import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
 import persist from '@alpinejs/persist';
 import './alpine/char-editor';
+import './cover-ratings/session';
 import { scheduleInitAlpine } from './alpine-init';
 
 scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);

@@ -202,6 +202,170 @@
 }
 
 /* Cover-Bewertungen: Ein einziges Brina-Asset bildet alle Zustände ab. */
+body.cover-rating-session-open {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+}
+
+body.cover-rating-session-open .website-feedback-root {
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.cover-rating-session {
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+    isolation: isolate;
+    display: grid;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    overscroll-behavior: none;
+    color: var(--color-base-content);
+    background: var(--color-base-300);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 150ms ease, visibility 0s linear 150ms;
+}
+
+.cover-rating-session--active,
+.cover-rating-session:fullscreen {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 150ms ease;
+}
+
+.cover-rating-session:fullscreen {
+    width: 100%;
+    height: 100%;
+}
+
+.cover-rating-session__header {
+    z-index: 2;
+    min-width: 0;
+    border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    padding:
+        max(0.65rem, env(safe-area-inset-top))
+        max(1rem, env(safe-area-inset-right))
+        0.65rem
+        max(1rem, env(safe-area-inset-left));
+    background: color-mix(in oklab, var(--color-base-100) 94%, transparent);
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.cover-rating-session__image-stage {
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: clamp(0.5rem, 1.5vw, 1.25rem);
+    background:
+        radial-gradient(circle at center, color-mix(in oklab, var(--color-base-100) 45%, transparent), transparent 72%),
+        var(--color-base-300);
+}
+
+.cover-rating-session__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+    object-position: center;
+    user-select: none;
+    filter: drop-shadow(0 1rem 1.5rem rgb(0 0 0 / 0.28));
+}
+
+.cover-rating-session__controls {
+    z-index: 2;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.75rem, 2vw, 2rem);
+    border-top: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    padding:
+        0.5rem
+        max(0.75rem, env(safe-area-inset-right))
+        max(0.5rem, env(safe-area-inset-bottom))
+        max(0.75rem, env(safe-area-inset-left));
+    background: color-mix(in oklab, var(--color-base-100) 95%, transparent);
+    box-shadow: 0 -0.5rem 1.5rem rgb(0 0 0 / 0.08);
+    backdrop-filter: blur(14px);
+}
+
+.cover-rating-session__controls--empty {
+    justify-content: center;
+}
+
+.cover-rating-session__feedback {
+    position: absolute;
+    z-index: 4;
+    top: max(5.5rem, calc(env(safe-area-inset-top) + 4.5rem));
+    left: 50%;
+    width: min(calc(100% - 2rem), 36rem);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.cover-rating-session__feedback > * {
+    pointer-events: auto;
+}
+
+.cover-rating-session__empty {
+    align-self: center;
+    justify-self: center;
+    width: min(calc(100% - 2rem), 42rem);
+    max-height: 100%;
+    overflow-y: auto;
+    border: 1px solid color-mix(in oklab, var(--color-base-content) 12%, transparent);
+    border-radius: 1.5rem;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    text-align: center;
+    background: color-mix(in oklab, var(--color-base-100) 92%, transparent);
+    box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.12);
+}
+
+.cover-rating-session__empty > * + * {
+    margin-top: 1rem;
+}
+
+@media (max-width: 639px) {
+    .cover-rating-session__header {
+        padding-top: max(0.45rem, env(safe-area-inset-top));
+        padding-bottom: 0.45rem;
+    }
+
+    .cover-rating-session__controls {
+        flex-direction: column;
+        gap: 0.2rem;
+        padding-top: 0.25rem;
+    }
+
+    .cover-rating-session__controls > * {
+        width: 100%;
+    }
+
+    .cover-rating-session__feedback {
+        top: max(4.75rem, calc(env(safe-area-inset-top) + 4rem));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cover-rating-session,
+    .cover-rating-session--active {
+        transition: none;
+    }
+}
+
 .brina-rating-option {
     display: inline-flex;
     min-width: 3.25rem;

@@ -1,4 +1,4 @@
-<div data-testid="website-feedback-root">
+<div class="website-feedback-root" data-testid="website-feedback-root">
     @if ($sent)
         <div
             x-data="{ visible: true }"

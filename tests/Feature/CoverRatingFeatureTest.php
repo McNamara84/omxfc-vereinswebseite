@@ -11,6 +11,7 @@ use App\Models\Book;
 use App\Models\BookCover;
 use App\Models\CoverRating;
 use App\Models\UserPoint;
+use App\Services\CoverRatings\CoverRatingBaxxService;
 use App\Services\CoverRatings\CoverRatingResultService;
 use App\Services\CoverRatings\CoverRatingService;
 use App\Services\CoverRatings\CoverSelectionService;
@@ -78,7 +79,7 @@ class CoverRatingFeatureTest extends TestCase
         $component
             ->call('rate', 5)
             ->assertHasNoErrors()
-            ->assertDispatched('cover-rating-advanced')
+            ->assertDispatched('cover-rating-advanced', hasCover: true, awardedBaxx: 0)
             ->assertSet('lastRatingId', fn (?int $id): bool => $id !== null)
             ->assertSet('currentCoverId', fn (?int $id): bool => $id !== null && $id !== $currentId);
 
@@ -89,10 +90,105 @@ class CoverRatingFeatureTest extends TestCase
             'deleted_at' => null,
         ]);
 
-        $component->call('rate', 2)->assertSet('currentCoverId', null);
+        $component
+            ->call('rate', 2)
+            ->assertDispatched('cover-rating-advanced', hasCover: false, awardedBaxx: 0)
+            ->assertSet('currentCoverId', null);
 
         $this->assertSame(2, CoverRating::query()->where('user_id', $member->id)->count());
         $component->assertSeeText('Alle Cover bewertet');
+    }
+
+    public function test_overview_and_fullscreen_session_render_with_stable_accessible_controls(): void
+    {
+        $this->actingMember();
+        $cover = $this->readyCover(BookType::MaddraxDieDunkleZukunftDerErde, 3, 'Vollbild-Testcover');
+
+        $component = Livewire::test(CoverRatingIndex::class)
+            ->assertSeeText('Wähle eine Serie und bewerte die Cover anschließend ungestört im Vollbildmodus.')
+            ->assertSeeText('Bewertung starten')
+            ->assertSeeText('Bewertungen beenden')
+            ->assertSeeText('Später bewerten')
+            ->assertSeeText('Bildquelle im Maddraxikon')
+            ->assertSeeText('Vollbild-Testcover');
+
+        $html = $component->html();
+
+        $this->assertStringContainsString('data-testid="cover-rating-overview"', $html);
+        $this->assertStringContainsString('data-testid="start-cover-rating"', $html);
+        $this->assertStringContainsString('data-testid="cover-rating-session"', $html);
+        $this->assertStringContainsString('x-bind:class="{ \'cover-rating-session--active\': active }"', $html);
+        $this->assertStringContainsString('role="dialog"', $html);
+        $this->assertStringContainsString('aria-modal="true"', $html);
+        $this->assertStringContainsString('x-trap.noscroll.inert="active"', $html);
+        $this->assertStringContainsString('data-testid="cover-rating-image-stage"', $html);
+        $this->assertStringContainsString('class="cover-rating-session__image"', $html);
+        $this->assertStringContainsString(route('cover-ratings.image', [$cover, 'large']), $html);
+        $this->assertStringContainsString('data-testid="cover-source-link"', $html);
+        $this->assertStringContainsString('href="'.e($cover->source_description_url).'"', $html);
+        $this->assertStringContainsString('wire:key="cover-rating-controls-'.$cover->id.'"', $html);
+        $this->assertStringContainsString('x-on:cover-rating-advanced.window="ratingPreview = 0"', $html);
+        $this->assertStringContainsString('x-on:mouseleave="ratingPreview = 0"', $html);
+        $this->assertStringContainsString('x-on:mousemove="ratingPreview = 5"', $html);
+        $this->assertStringContainsString('x-on:focus="ratingPreview = 5"', $html);
+        $this->assertStringContainsString('x-bind:class="ratingPreview >=', $html);
+        $this->assertStringContainsString('data-brina-rating-controls', $html);
+        $this->assertStringNotContainsString('data-testid="cover-rating-card"', $html);
+    }
+
+    public function test_start_button_is_disabled_and_empty_state_is_compact_without_an_available_cover(): void
+    {
+        $this->actingMember();
+
+        $html = Livewire::test(CoverRatingIndex::class)
+            ->assertSeeText('Noch sind keine Cover verfügbar.')
+            ->html();
+
+        $this->assertMatchesRegularExpression(
+            '/<button[^>]*data-testid="start-cover-rating"[^>]*disabled[^>]*>/',
+            $html,
+        );
+        $this->assertStringContainsString('data-testid="cover-rating-overview-empty-state"', $html);
+        $this->assertStringContainsString('data-cover-return-focus', $html);
+        $this->assertStringContainsString('tabindex="-1"', $html);
+    }
+
+    public function test_undo_announces_feedback_and_restores_the_only_cover(): void
+    {
+        $this->actingMember();
+        $cover = $this->readyCover(BookType::MaddraxDieDunkleZukunftDerErde, 4);
+
+        Livewire::test(CoverRatingIndex::class)
+            ->assertSet('currentCoverId', $cover->id)
+            ->call('rate', 4)
+            ->assertSet('currentCoverId', null)
+            ->call('undoLast')
+            ->assertDispatched('cover-rating-feedback', awardedBaxx: 0)
+            ->assertSet('currentCoverId', $cover->id)
+            ->assertSeeText('rückgängig gemacht');
+
+        $this->assertSoftDeleted('cover_ratings', [
+            'book_cover_id' => $cover->id,
+        ]);
+    }
+
+    public function test_livewire_rating_dispatches_a_positive_baxx_award_with_the_next_cover_event(): void
+    {
+        $member = $this->actingMember();
+        app(CoverRatingBaxxService::class)->getRule()->update([
+            'every_count' => 1,
+            'points' => 1,
+            'is_active' => true,
+        ]);
+        $cover = $this->readyCover(BookType::MaddraxDieDunkleZukunftDerErde, 5);
+
+        Livewire::test(CoverRatingIndex::class)
+            ->assertSet('currentCoverId', $cover->id)
+            ->call('rate', 5)
+            ->assertDispatched('cover-rating-advanced', hasCover: false, awardedBaxx: 1)
+            ->assertSet('awardedBaxx', 1);
+
+        $this->assertSame(1, UserPoint::query()->where('user_id', $member->id)->sum('points'));
     }
 
     public function test_client_cannot_replace_the_server_selected_cover_id(): void
