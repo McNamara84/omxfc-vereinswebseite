@@ -1,5 +1,46 @@
 const registeredAlpineInstances = new WeakSet();
 
+const hydrateExistingCoverRatingSessions = (
+    alpine,
+    documentRef = globalThis.document,
+) => {
+    if (
+        !documentRef
+        || typeof alpine?.initTree !== 'function'
+        || typeof alpine?.destroyTree !== 'function'
+        || typeof alpine?.$data !== 'function'
+    ) {
+        return;
+    }
+
+    documentRef
+        .querySelectorAll('[x-data="coverRatingSession"], [x-data^="coverRatingSession("]')
+        .forEach((element) => {
+            // A global Alpine instance may exist before Livewire starts it. In that
+            // case normal startup will pick up the newly registered provider.
+            if (!element._x_dataStack) {
+                return;
+            }
+
+            const scope = alpine.$data(element);
+            const hasRegisteredState = scope
+                && typeof scope.start === 'function'
+                && typeof scope.stop === 'function'
+                && Object.hasOwn(scope, 'active')
+                && Object.hasOwn(scope, 'fullscreenRequestPending');
+
+            if (hasRegisteredState) {
+                return;
+            }
+
+            // Reconcile only the missing x-data provider. Destroying the complete
+            // subtree would also remove Livewire's already-registered wire:* handlers.
+            alpine.destroyTree(element, (root, callback) => callback(root));
+
+            alpine.initTree(element);
+        });
+};
+
 const eventDetail = (event) => {
     const detail = event?.detail;
 
@@ -340,7 +381,10 @@ export function createCoverRatingSession({
     };
 }
 
-export function registerCoverRatingSession(alpine = globalThis.window?.Alpine) {
+export function registerCoverRatingSession(
+    alpine = globalThis.window?.Alpine,
+    { hydrateExisting = false } = {},
+) {
     if (!alpine || typeof alpine.data !== 'function' || registeredAlpineInstances.has(alpine)) {
         return false;
     }
@@ -348,11 +392,15 @@ export function registerCoverRatingSession(alpine = globalThis.window?.Alpine) {
     alpine.data('coverRatingSession', () => createCoverRatingSession());
     registeredAlpineInstances.add(alpine);
 
+    if (hydrateExisting) {
+        hydrateExistingCoverRatingSessions(alpine);
+    }
+
     return true;
 }
 
 if (globalThis.window?.Alpine) {
-    registerCoverRatingSession(globalThis.window.Alpine);
+    registerCoverRatingSession(globalThis.window.Alpine, { hydrateExisting: true });
 } else if (globalThis.document) {
     globalThis.document.addEventListener(
         'alpine:init',

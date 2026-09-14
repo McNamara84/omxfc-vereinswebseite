@@ -372,4 +372,129 @@ describe('cover rating fullscreen session', () => {
         expect(alpine.data).toHaveBeenCalledOnce();
         expect(alpine.data).toHaveBeenCalledWith('coverRatingSession', expect.any(Function));
     });
+
+    test('does not initialize an existing root before Alpine has started', async () => {
+        vi.resetModules();
+        document.body.innerHTML = '<div x-data="coverRatingSession"></div>';
+        const root = document.querySelector('[x-data="coverRatingSession"]');
+        const previousAlpine = window.Alpine;
+        let sessionFactory;
+        const alpine = {
+            data: vi.fn((_name, factory) => {
+                sessionFactory = factory;
+            }),
+            initTree: vi.fn((element) => {
+                element._x_dataStack = [sessionFactory()];
+            }),
+            destroyTree: vi.fn(),
+            $data: vi.fn((element) => element._x_dataStack?.[0]),
+        };
+        window.Alpine = alpine;
+
+        try {
+            await import('../../resources/js/cover-ratings/session.js');
+        } finally {
+            if (previousAlpine === undefined) {
+                delete window.Alpine;
+            } else {
+                window.Alpine = previousAlpine;
+            }
+        }
+
+        expect(alpine.data).toHaveBeenCalledWith('coverRatingSession', expect.any(Function));
+        expect(alpine.initTree).not.toHaveBeenCalled();
+        expect(alpine.destroyTree).not.toHaveBeenCalled();
+        expect(root._x_dataStack).toBeUndefined();
+    });
+
+    test('does not reinitialize an existing root with the registered session state', async () => {
+        vi.resetModules();
+        document.body.innerHTML = '<div x-data="coverRatingSession"></div>';
+        const root = document.querySelector('[x-data="coverRatingSession"]');
+        const previousAlpine = window.Alpine;
+        const existingScope = {
+            active: false,
+            fullscreenRequestPending: false,
+            start: vi.fn(),
+            stop: vi.fn(),
+        };
+        root._x_dataStack = [existingScope];
+        const alpine = {
+            data: vi.fn(),
+            initTree: vi.fn(),
+            destroyTree: vi.fn(),
+            $data: vi.fn(() => existingScope),
+        };
+        window.Alpine = alpine;
+
+        try {
+            await import('../../resources/js/cover-ratings/session.js');
+        } finally {
+            if (previousAlpine === undefined) {
+                delete window.Alpine;
+            } else {
+                window.Alpine = previousAlpine;
+            }
+        }
+
+        expect(alpine.data).toHaveBeenCalledWith('coverRatingSession', expect.any(Function));
+        expect(alpine.$data).toHaveBeenCalledOnce();
+        expect(alpine.$data).toHaveBeenCalledWith(root);
+        expect(alpine.destroyTree).not.toHaveBeenCalled();
+        expect(alpine.initTree).not.toHaveBeenCalled();
+    });
+
+    test('reconciles an existing empty Alpine scope without destroying descendant Livewire bindings', async () => {
+        vi.resetModules();
+        document.body.innerHTML = `
+            <div x-data="coverRatingSession">
+                <input wire:change="rate(5)">
+            </div>
+        `;
+        const root = document.querySelector('[x-data="coverRatingSession"]');
+        const livewireControl = root.querySelector('[wire\\:change]');
+        const previousAlpine = window.Alpine;
+        const existingScope = {};
+        root._x_dataStack = [existingScope];
+        root._x_marker = 1;
+        livewireControl._x_marker = 2;
+        let sessionFactory;
+        const alpine = {
+            data: vi.fn((_name, factory) => {
+                sessionFactory = factory;
+            }),
+            destroyTree: vi.fn((element, walker) => {
+                walker(element, (visitedElement) => {
+                    delete visitedElement._x_marker;
+                });
+            }),
+            initTree: vi.fn((element) => {
+                Object.assign(element._x_dataStack[0], sessionFactory());
+                element._x_dataStack[0].init();
+                element._x_marker = 3;
+            }),
+            $data: vi.fn((element) => element._x_dataStack?.[0]),
+        };
+        window.Alpine = alpine;
+
+        try {
+            await import('../../resources/js/cover-ratings/session.js');
+        } finally {
+            if (previousAlpine === undefined) {
+                delete window.Alpine;
+            } else {
+                window.Alpine = previousAlpine;
+            }
+        }
+
+        expect(alpine.destroyTree).toHaveBeenCalledWith(root, expect.any(Function));
+        expect(alpine.initTree).toHaveBeenCalledWith(root);
+        expect(root._x_dataStack[0]).toBe(existingScope);
+        expect(existingScope.start).toBeTypeOf('function');
+        expect(existingScope.stop).toBeTypeOf('function');
+        expect(existingScope.initialized).toBe(true);
+        expect(livewireControl._x_marker).toBe(2);
+
+        existingScope.destroy();
+    });
 });

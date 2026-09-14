@@ -1,4 +1,6 @@
-<div x-data="coverRatingSession" data-testid="cover-rating-root">
+<div data-testid="cover-rating-root">
+{{-- Keep the Alpine root below Livewire's component root so late hydration cannot tear down Livewire itself. --}}
+<div x-data="coverRatingSession">
     <x-member-page class="max-w-6xl space-y-5 sm:space-y-6">
         <section
             class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/90 px-5 py-5 shadow-lg shadow-base-content/5 backdrop-blur sm:px-7 sm:py-6"
@@ -322,4 +324,5 @@
             </footer>
         @endif
     </section>
+</div>
 </div>
