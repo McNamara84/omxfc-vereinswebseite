@@ -93,8 +93,8 @@ export function createCoverRatingSession({
         start(event) {
             const overlay = this.overlayElement();
 
-            if (!overlay || this.active || this.fullscreenRequestPending) {
-                return this.fullscreenPromise;
+            if (!overlay || this.active || this.fullscreenRequestPending || this.fullscreenExitPromise) {
+                return this.fullscreenExitPromise ?? this.fullscreenPromise;
             }
 
             this.returnFocusElement = event?.currentTarget ?? documentRef.activeElement;
@@ -301,7 +301,14 @@ export function createCoverRatingSession({
             }
 
             const detail = eventDetail(event);
-            this.schedule(() => this.showFeedback(detail));
+            this.schedule(() => {
+                const overlay = this.overlayElement();
+
+                overlay
+                    ?.querySelector('[data-cover-focus], [data-cover-empty-focus]')
+                    ?.focus();
+                this.showFeedback(detail);
+            });
         },
 
         showFeedback(detail = {}) {

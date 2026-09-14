@@ -11,6 +11,7 @@ use App\Models\Book;
 use App\Models\BookCover;
 use App\Models\CoverRating;
 use App\Models\UserPoint;
+use App\Services\CoverRatings\CoverRatingBaxxService;
 use App\Services\CoverRatings\CoverRatingResultService;
 use App\Services\CoverRatings\CoverRatingService;
 use App\Services\CoverRatings\CoverSelectionService;
@@ -128,6 +129,7 @@ class CoverRatingFeatureTest extends TestCase
         $this->assertStringContainsString('x-on:cover-rating-advanced.window="ratingPreview = 0"', $html);
         $this->assertStringContainsString('x-on:mouseleave="ratingPreview = 0"', $html);
         $this->assertStringContainsString('x-on:mousemove="ratingPreview = 5"', $html);
+        $this->assertStringContainsString('x-on:focus="ratingPreview = 5"', $html);
         $this->assertStringContainsString('x-bind:class="ratingPreview >=', $html);
         $this->assertStringContainsString('data-brina-rating-controls', $html);
         $this->assertStringNotContainsString('data-testid="cover-rating-card"', $html);
@@ -167,6 +169,25 @@ class CoverRatingFeatureTest extends TestCase
         $this->assertSoftDeleted('cover_ratings', [
             'book_cover_id' => $cover->id,
         ]);
+    }
+
+    public function test_livewire_rating_dispatches_a_positive_baxx_award_with_the_next_cover_event(): void
+    {
+        $member = $this->actingMember();
+        app(CoverRatingBaxxService::class)->getRule()->update([
+            'every_count' => 1,
+            'points' => 1,
+            'is_active' => true,
+        ]);
+        $cover = $this->readyCover(BookType::MaddraxDieDunkleZukunftDerErde, 5);
+
+        Livewire::test(CoverRatingIndex::class)
+            ->assertSet('currentCoverId', $cover->id)
+            ->call('rate', 5)
+            ->assertDispatched('cover-rating-advanced', hasCover: false, awardedBaxx: 1)
+            ->assertSet('awardedBaxx', 1);
+
+        $this->assertSame(1, UserPoint::query()->where('user_id', $member->id)->sum('points'));
     }
 
     public function test_client_cannot_replace_the_server_selected_cover_id(): void

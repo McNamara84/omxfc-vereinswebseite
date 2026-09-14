@@ -151,6 +151,14 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   await expect(page.getByTestId('cover-rating-session')).toBeVisible();
   await expect(page.getByTestId('brina-rating-group').locator('.brina-rating-icon--filled')).toHaveCount(0);
 
+  await clickAndWaitForLivewireUpdate(page, page.getByRole('button', { name: 'Rückgängig' }));
+  await expect(page.locator('[data-cover-focus]')).toBeFocused();
+  await expect(page.getByTestId('rating-status')).toContainText('rückgängig gemacht');
+  await clickAndWaitForLivewireUpdate(
+    page,
+    page.locator('label[for$="-rating-5"]'),
+  );
+
   await clickAndWaitForLivewireUpdate(page, page.getByTestId('skip-cover'));
   await expect(page.getByTestId('rating-status')).toContainText('zurückgestellt');
 
@@ -212,6 +220,7 @@ test('desktop keyboard flow, upscaling and all target viewports pass', async ({ 
   const firstRadio = page.getByRole('radio', { name: '1 von 5 Brina' });
   await firstRadio.focus();
   await expect(firstRadio).toBeFocused();
+  await expect(page.getByTestId('brina-rating-group').locator('.brina-rating-icon--filled')).toHaveCount(1);
   const update = page.waitForResponse((response) => (
     response.request().method() === 'POST'
       && /\/livewire(?:-[^/]+)?\/update\/?$/.test(new URL(response.url()).pathname)

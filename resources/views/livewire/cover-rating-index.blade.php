@@ -80,8 +80,8 @@
                     type="button"
                     x-ref="startButton"
                     x-on:click="start($event)"
-                    x-bind:aria-busy="fullscreenRequestPending ? 'true' : 'false'"
-                    x-bind:aria-disabled="fullscreenRequestPending ? 'true' : null"
+                    x-bind:aria-busy="fullscreenRequestPending || fullscreenExitPromise ? 'true' : 'false'"
+                    x-bind:aria-disabled="fullscreenRequestPending || fullscreenExitPromise ? 'true' : null"
                     class="btn btn-primary min-h-12 w-full px-7 md:w-auto"
                     data-testid="start-cover-rating"
                     @disabled(! $this->cover)
@@ -234,6 +234,7 @@
                                     value="{{ $value }}"
                                     class="peer sr-only"
                                     aria-label="{{ $value }} von 5 {{ $value === 1 ? 'Brina' : 'Brinas' }}"
+                                    x-on:focus="ratingPreview = {{ $value }}"
                                     wire:change="rate({{ $value }})"
                                     wire:loading.attr="disabled"
                                     wire:target="rate,skip"

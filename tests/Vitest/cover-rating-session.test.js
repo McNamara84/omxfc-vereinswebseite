@@ -202,6 +202,37 @@ describe('cover rating fullscreen session', () => {
         controller.destroy();
     });
 
+    test('blocks a restart until the previous native fullscreen exit has settled', async () => {
+        const { controller, overlay, startButton } = buildController();
+        let resolveFullscreenExit;
+        overlay.requestFullscreen = vi.fn().mockImplementation(() => {
+            setFullscreenElement(overlay);
+            return Promise.resolve();
+        });
+        document.exitFullscreen = vi.fn(() => new Promise((resolve) => {
+            resolveFullscreenExit = () => {
+                setFullscreenElement(null);
+                resolve();
+            };
+        }));
+
+        await controller.start({ currentTarget: startButton });
+        const fullscreenExit = controller.stop({ restoreFocus: false });
+        const blockedRestart = controller.start({ currentTarget: startButton });
+
+        expect(blockedRestart).toBe(controller.fullscreenExitPromise);
+        expect(overlay.requestFullscreen).toHaveBeenCalledOnce();
+        expect(controller.active).toBe(false);
+
+        resolveFullscreenExit();
+        await Promise.all([fullscreenExit, blockedRestart]);
+
+        expect(controller.fullscreenExitPromise).toBeNull();
+        await controller.start({ currentTarget: startButton });
+        expect(overlay.requestFullscreen).toHaveBeenCalledTimes(2);
+        expect(controller.active).toBe(true);
+    });
+
     test('closes the session when the browser leaves a previously active native fullscreen', async () => {
         const { controller, overlay, startButton } = buildController();
         controller.init();
@@ -283,6 +314,24 @@ describe('cover rating fullscreen session', () => {
         expect(controller.feedbackVisible).toBe(true);
         vi.advanceTimersByTime(2000);
         expect(controller.feedbackVisible).toBe(false);
+        controller.destroy();
+    });
+
+    test('restores focus inside the session after undo feedback removes its trigger', () => {
+        const { controller, overlay } = buildController();
+        const undoButton = document.createElement('button');
+        undoButton.textContent = 'Rückgängig';
+        overlay.append(undoButton);
+        controller.init();
+        controller.active = true;
+        undoButton.focus();
+        undoButton.remove();
+
+        window.dispatchEvent(new CustomEvent('cover-rating-feedback', {
+            detail: { awardedBaxx: 0 },
+        }));
+
+        expect(document.activeElement).toBe(document.querySelector('[data-cover-focus]'));
         controller.destroy();
     });
 
