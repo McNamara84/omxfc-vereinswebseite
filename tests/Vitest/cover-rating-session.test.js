@@ -113,10 +113,47 @@ describe('cover rating fullscreen session', () => {
 
         expect(document.exitFullscreen).toHaveBeenCalledOnce();
         expect(controller.active).toBe(false);
+        expect(controller.ownsScrollPosition).toBe(false);
         expect(overlay.inert).toBe(true);
         expect(overlay.getAttribute('aria-hidden')).toBe('true');
         expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
         expect(document.activeElement).toBe(startButton);
+    });
+
+    test.each([
+        ['stop()', (controller) => controller.stop({ restoreFocus: false })],
+        ['livewire:navigating', (controller) => {
+            controller.init();
+            document.dispatchEvent(new Event('livewire:navigating'));
+        }],
+        ['destroy()', (controller) => {
+            controller.init();
+            controller.destroy();
+        }],
+    ])('does not restore scroll during %s before a session has started', async (_label, cleanup) => {
+        const { controller } = buildController();
+        controller.scrollX = 240;
+        controller.scrollY = 800;
+
+        await cleanup(controller);
+
+        expect(window.scrollTo).not.toHaveBeenCalled();
+
+        if (controller.initialized) {
+            controller.destroy();
+        }
+    });
+
+    test('restores an owned scroll position only once across repeated cleanup', async () => {
+        const { controller, startButton } = buildController();
+        controller.init();
+
+        await controller.start({ currentTarget: startButton });
+        await controller.stop({ restoreFocus: false });
+        controller.destroy();
+
+        expect(window.scrollTo).toHaveBeenCalledOnce();
+        expect(controller.ownsScrollPosition).toBe(false);
     });
 
     test('returns focus to the overview state when the saved trigger became disabled', async () => {

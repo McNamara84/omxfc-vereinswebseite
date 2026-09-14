@@ -82,6 +82,7 @@ export function createCoverRatingSession({
         returnFocusElement: null,
         scrollX: 0,
         scrollY: 0,
+        ownsScrollPosition: false,
         feedbackTimer: null,
         initialized: false,
         fullscreenPromise: Promise.resolve(false),
@@ -157,6 +158,7 @@ export function createCoverRatingSession({
             this.returnFocusElement = event?.currentTarget ?? documentRef.activeElement;
             this.scrollX = Number(windowRef.scrollX ?? 0);
             this.scrollY = Number(windowRef.scrollY ?? 0);
+            this.ownsScrollPosition = true;
             this.active = true;
             this.feedbackVisible = false;
             this.ratingPreview = 0;
@@ -207,6 +209,7 @@ export function createCoverRatingSession({
         stop({ exitNative = true, restoreFocus = true } = {}) {
             const overlay = this.overlayElement();
             const focusTarget = this.returnFocusElement;
+            const shouldRestoreScroll = this.ownsScrollPosition;
             const shouldExitNative = exitNative
                 && overlay
                 && documentRef.fullscreenElement === overlay
@@ -217,6 +220,7 @@ export function createCoverRatingSession({
             this.nativeFullscreen = false;
             this.feedbackVisible = false;
             this.ratingPreview = 0;
+            this.ownsScrollPosition = false;
             this.clearFeedbackTimer();
             this.setOverlayActive(false);
             documentRef.body?.classList.remove('cover-rating-session-open');
@@ -226,7 +230,9 @@ export function createCoverRatingSession({
                 completion = this.exitOwnedFullscreen(overlay);
             }
 
-            this.restoreScroll();
+            if (shouldRestoreScroll) {
+                this.restoreScroll();
+            }
 
             if (restoreFocus) {
                 completion = completion.then(() => this.restoreFocus(focusTarget));
