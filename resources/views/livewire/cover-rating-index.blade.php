@@ -116,6 +116,7 @@
     <section
         x-ref="session"
         x-bind:aria-hidden="active ? 'false' : 'true'"
+        x-bind:class="{ 'cover-rating-session--active': active }"
         x-bind:inert="!active"
         x-trap.noscroll.inert="active"
         class="cover-rating-session"

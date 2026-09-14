@@ -444,41 +444,86 @@ describe('cover rating fullscreen session', () => {
         expect(alpine.initTree).not.toHaveBeenCalled();
     });
 
-    test('reconciles an existing empty Alpine scope without destroying descendant Livewire bindings', async () => {
+    test('rebinds an actual descendant Alpine directive after late provider registration', async () => {
         vi.resetModules();
         document.body.innerHTML = `
             <div x-data="coverRatingSession">
+                <button type="button" x-on:click="start($event)">Start</button>
+                <output x-bind:data-session-active="active ? 'yes' : 'no'"></output>
                 <input wire:change="rate(5)">
+                <section x-ref="session" data-testid="cover-rating-session" aria-hidden="true" inert></section>
             </div>
         `;
         const root = document.querySelector('[x-data="coverRatingSession"]');
+        const startButton = root.querySelector('button');
+        const stateOutput = root.querySelector('output');
         const livewireControl = root.querySelector('[wire\\:change]');
+        const livewireCleanup = vi.fn();
+        livewireControl._x_attributeCleanups = { 'wire:change': [livewireCleanup] };
         const previousAlpine = window.Alpine;
-        const existingScope = {};
-        root._x_dataStack = [existingScope];
-        root._x_marker = 1;
-        livewireControl._x_marker = 2;
-        let sessionFactory;
-        const alpine = {
-            data: vi.fn((_name, factory) => {
-                sessionFactory = factory;
-            }),
-            destroyTree: vi.fn((element, walker) => {
-                walker(element, (visitedElement) => {
-                    delete visitedElement._x_marker;
-                });
-            }),
-            initTree: vi.fn((element) => {
-                Object.assign(element._x_dataStack[0], sessionFactory());
-                element._x_dataStack[0].init();
-                element._x_marker = 3;
-            }),
-            $data: vi.fn((element) => element._x_dataStack?.[0]),
-        };
+        const { default: alpine } = await import('alpinejs');
+        const alpineErrors = [];
+        alpine.setErrorHandler((error) => alpineErrors.push(error));
+        window.Alpine = alpine;
+        // Keep the fallback listener from the file's static import out of this
+        // fresh Alpine instance so it can first process the missing provider.
+        document.addEventListener('alpine:init', () => {
+            window.Alpine = {};
+        }, { capture: true, once: true });
+        document.addEventListener('alpine:init', () => {
+            window.Alpine = alpine;
+        }, { once: true });
+        alpine.start();
+
+        expect(root._x_dataStack).toBeDefined();
+        expect(alpine.$data(root).start).toBeUndefined();
+
+        try {
+            await import('../../resources/js/cover-ratings/session.js');
+
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(stateOutput.getAttribute('data-session-active')).toBe('no');
+            alpineErrors.length = 0;
+
+            startButton.click();
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            await alpine.nextTick();
+
+            expect(alpineErrors.map(({ message }) => message)).toEqual([]);
+            expect(alpine.$data(root).active).toBe(true);
+            expect(stateOutput.getAttribute('data-session-active')).toBe('yes');
+            expect(livewireCleanup).not.toHaveBeenCalled();
+        } finally {
+            alpine.destroyTree(root);
+            alpine.stopObservingMutations();
+
+            if (previousAlpine === undefined) {
+                delete window.Alpine;
+            } else {
+                window.Alpine = previousAlpine;
+            }
+        }
+    });
+
+    test('waits for alpine:init when a partial global Alpine object has no data API yet', async () => {
+        vi.resetModules();
+        const previousAlpine = window.Alpine;
+        const alpine = {};
+        const addEventListener = vi.spyOn(document, 'addEventListener');
         window.Alpine = alpine;
 
         try {
             await import('../../resources/js/cover-ratings/session.js');
+
+            const alpineInitRegistration = addEventListener.mock.calls
+                .find(([eventName]) => eventName === 'alpine:init');
+
+            expect(alpineInitRegistration).toBeDefined();
+            alpine.data = vi.fn();
+            alpineInitRegistration[1]();
+
+            expect(alpine.data).toHaveBeenCalledOnce();
+            expect(alpine.data).toHaveBeenCalledWith('coverRatingSession', expect.any(Function));
         } finally {
             if (previousAlpine === undefined) {
                 delete window.Alpine;
@@ -486,15 +531,5 @@ describe('cover rating fullscreen session', () => {
                 window.Alpine = previousAlpine;
             }
         }
-
-        expect(alpine.destroyTree).toHaveBeenCalledWith(root, expect.any(Function));
-        expect(alpine.initTree).toHaveBeenCalledWith(root);
-        expect(root._x_dataStack[0]).toBe(existingScope);
-        expect(existingScope.start).toBeTypeOf('function');
-        expect(existingScope.stop).toBeTypeOf('function');
-        expect(existingScope.initialized).toBe(true);
-        expect(livewireControl._x_marker).toBe(2);
-
-        existingScope.destroy();
     });
 });

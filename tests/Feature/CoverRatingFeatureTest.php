@@ -117,6 +117,7 @@ class CoverRatingFeatureTest extends TestCase
         $this->assertStringContainsString('data-testid="cover-rating-overview"', $html);
         $this->assertStringContainsString('data-testid="start-cover-rating"', $html);
         $this->assertStringContainsString('data-testid="cover-rating-session"', $html);
+        $this->assertStringContainsString('x-bind:class="{ \'cover-rating-session--active\': active }"', $html);
         $this->assertStringContainsString('role="dialog"', $html);
         $this->assertStringContainsString('aria-modal="true"', $html);
         $this->assertStringContainsString('x-trap.noscroll.inert="active"', $html);

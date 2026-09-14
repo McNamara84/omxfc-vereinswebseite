@@ -1,5 +1,17 @@
 const registeredAlpineInstances = new WeakSet();
 
+const refreshDescendantAlpineDirectives = (root) => {
+    root.querySelectorAll('*').forEach((element) => {
+        Array.from(element.attributes)
+            .filter(({ name }) => (
+                name.startsWith('x-')
+                || name.startsWith('@')
+                || name.startsWith(':')
+            ))
+            .forEach(({ name, value }) => element.setAttribute(name, value));
+    });
+};
+
 const hydrateExistingCoverRatingSessions = (
     alpine,
     documentRef = globalThis.document,
@@ -36,8 +48,12 @@ const hydrateExistingCoverRatingSessions = (
             // Reconcile only the missing x-data provider. Destroying the complete
             // subtree would also remove Livewire's already-registered wire:* handlers.
             alpine.destroyTree(element, (root, callback) => callback(root));
-
             alpine.initTree(element);
+
+            // Re-run descendant Alpine directives through Alpine's attribute
+            // observer. Their first evaluation could not track properties that the
+            // missing provider had not exposed yet. wire:* attributes stay untouched.
+            refreshDescendantAlpineDirectives(element);
         });
 };
 
@@ -399,7 +415,7 @@ export function registerCoverRatingSession(
     return true;
 }
 
-if (globalThis.window?.Alpine) {
+if (typeof globalThis.window?.Alpine?.data === 'function') {
     registerCoverRatingSession(globalThis.window.Alpine, { hydrateExisting: true });
 } else if (globalThis.document) {
     globalThis.document.addEventListener(

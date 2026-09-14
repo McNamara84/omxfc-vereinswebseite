@@ -138,6 +138,12 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   expect(imageResponse.ok()).toBe(true);
   expect(imageResponse.headers()['content-type']).toContain('image/webp');
 
+  await page.getByTestId('cover-rating-session').evaluate((session) => {
+    Object.defineProperty(session, 'requestFullscreen', {
+      configurable: true,
+      value: undefined,
+    });
+  });
   await startRatingSession(page);
   await assertAccessible(page);
 
@@ -149,6 +155,7 @@ test('member rates, skips and reviews private cover ratings accessibly', async (
   await expect(page.getByTestId('global-progress')).toContainText(`${progressBefore + 1} / 6`);
   await expect(page.getByTestId('current-cover-image')).not.toHaveAttribute('src', firstImageUrl);
   await expect(page.getByTestId('cover-rating-session')).toBeVisible();
+  await expect(page.getByTestId('cover-rating-session')).toHaveClass(/cover-rating-session--active/);
   await expect(page.getByTestId('brina-rating-group').locator('.brina-rating-icon--filled')).toHaveCount(0);
 
   await clickAndWaitForLivewireUpdate(page, page.getByRole('button', { name: 'Rückgängig' }));
