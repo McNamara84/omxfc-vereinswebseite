@@ -103,12 +103,15 @@ Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus un
   npm ci
    ```
 
-  npm 12 blockiert Abhängigkeits-Installationsskripte standardmäßig. Aktuell
-  benötigt das Projekt keine Freigabe unter `allowScripts`; mit
-  `npm install-scripts ls` muss diese Annahme nach jedem Lockfile-Update geprüft
-  werden. Datei-, Verzeichnis-, Git- und Remote-Abhängigkeiten sind über
-  `.npmrc` gesperrt. Puppeteer/Chromium wird nicht mehr benötigt, da PDF-Exporte
-  ausschließlich über Dompdf laufen.
+  npm 12 blockiert Abhängigkeits-Installationsskripte standardmäßig. Die
+  einzige Freigabe unter `allowScripts` gilt versionsgenau für
+  `fsevents@2.3.3`, dessen natives Installationsskript Vite auf macOS benötigt.
+  Ein normales `npm ci` erzwingt die Allowlist und schlägt dank
+  `strict-allow-scripts=true` bei neuen ungeprüften Skripten fehl;
+  `npm install-scripts ls` dient nur als zusätzliche Inventarliste. Datei-,
+  Verzeichnis-, Git- und Remote-Abhängigkeiten sind über `.npmrc` gesperrt.
+  Puppeteer/Chromium wird nicht mehr benötigt, da PDF-Exporte ausschließlich
+  über Dompdf laufen.
 
 2. Beispiel-Environment kopieren und Applikationsschlüssel erzeugen:
    ```bash
@@ -373,7 +376,7 @@ mindestens folgende Prüfungen:
 composer validate --strict
 composer audit --locked --abandoned=fail
 composer check-platform-reqs --lock
-npm ci --ignore-scripts
+npm ci
 npm install-scripts ls
 npm audit --package-lock-only --audit-level=moderate
 ```

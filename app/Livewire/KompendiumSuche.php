@@ -180,8 +180,9 @@ class KompendiumSuche extends Component
             }
 
             $tntQuery = $searchService->buildTntSearchQuery($parsed);
+            $searchMode = $searchService->searchModeFor($parsed);
 
-            $raw = config('kompendium.search.mode', 'lexical') === 'hybrid'
+            $raw = $searchMode === 'hybrid'
                 ? $searchService->searchWithContext($tntQuery, $parsed)
                 : $searchService->search($tntQuery);
             $searchMode = $raw['mode'] ?? 'lexical';

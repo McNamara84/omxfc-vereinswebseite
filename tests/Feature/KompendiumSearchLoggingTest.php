@@ -100,6 +100,36 @@ class KompendiumSearchLoggingTest extends TestCase
         $this->assertArrayNotHasKey('user_agent', $log->getAttributes());
     }
 
+    public function test_failed_hybrid_search_is_logged_as_hybrid(): void
+    {
+        Storage::fake('private');
+        config([
+            'kompendium.search.mode' => 'hybrid',
+            'scout.driver' => 'typesense',
+        ]);
+
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('searchWithContext')
+                ->once()
+                ->andThrow(new \RuntimeException('Typesense hybrid search failed.'));
+        });
+
+        Livewire::actingAs($user)
+            ->test(KompendiumSuche::class)
+            ->set('query', 'Aruula')
+            ->call('performSearch')
+            ->assertSet('error', 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.');
+
+        $log = KompendiumSearchLog::query()->firstOrFail();
+
+        $this->assertSame('error', $log->status);
+        $this->assertSame('hybrid', $log->search_mode);
+        $this->assertNull($log->duration_ms);
+    }
+
     public function test_filter_and_sort_changes_are_logged_but_load_more_is_not(): void
     {
         Storage::fake('private');

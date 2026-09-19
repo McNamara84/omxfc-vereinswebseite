@@ -55,10 +55,10 @@ jobs:
       - name: Verify Composer platform requirements
         run: composer check-platform-reqs --lock
 
-      - name: Verify npm lockfile can be installed
-        run: npm ci --ignore-scripts
+      - name: Verify npm lockfile and install-script policy
+        run: npm ci
 
-      - name: Verify reviewed npm install scripts
+      - name: Inventory unreviewed npm install scripts
         run: npm install-scripts ls
 
       - name: Audit npm lockfile

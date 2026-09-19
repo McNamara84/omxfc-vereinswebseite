@@ -53,5 +53,8 @@
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3",
         "three": "^0.186.0"
+    },
+    "allowScripts": {
+        "fsevents@2.3.3": true
     }
 }
