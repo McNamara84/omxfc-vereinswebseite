@@ -105,6 +105,7 @@ class KompendiumSearchLoggingTest extends TestCase
         Storage::fake('private');
         config([
             'kompendium.search.mode' => 'hybrid',
+            'kompendium.search.index_variant' => 'hybrid',
             'scout.driver' => 'typesense',
         ]);
 

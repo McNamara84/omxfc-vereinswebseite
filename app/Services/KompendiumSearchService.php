@@ -79,6 +79,7 @@ class KompendiumSearchService
 
         if (
             config('kompendium.search.mode', 'lexical') !== 'hybrid'
+            || config('kompendium.search.index_variant', 'lexical') !== 'hybrid'
             || config('scout.driver') !== 'typesense'
             || empty($parsed['hasPositiveOperands'])
             || ! empty($parsed['isPhraseSearch'])

@@ -34,6 +34,7 @@ class KompendiumSearchQueryParserTest extends TestCase
     public function hybrid_search_is_limited_to_simple_positive_typesense_queries(): void
     {
         Config::set('kompendium.search.mode', 'hybrid');
+        Config::set('kompendium.search.index_variant', 'hybrid');
         Config::set('scout.driver', 'typesense');
 
         $this->assertSame(
@@ -58,6 +59,20 @@ class KompendiumSearchQueryParserTest extends TestCase
     public function lexical_mode_remains_the_kill_switch(): void
     {
         Config::set('kompendium.search.mode', 'lexical');
+        Config::set('kompendium.search.index_variant', 'hybrid');
+        Config::set('scout.driver', 'typesense');
+
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula')),
+        );
+    }
+
+    #[Test]
+    public function hybrid_queries_require_the_hybrid_index_variant(): void
+    {
+        Config::set('kompendium.search.mode', 'hybrid');
+        Config::set('kompendium.search.index_variant', 'lexical');
         Config::set('scout.driver', 'typesense');
 
         $this->assertSame(

@@ -4,8 +4,13 @@ return [
     'snippets_per_novel' => 10,
 
     'search' => [
-        // The lexical mode is the operational kill switch and remains the default.
+        // The query mode is the operational kill switch and remains lexical by default.
         'mode' => strtolower((string) env('KOMPENDIUM_SEARCH_MODE', 'lexical')) === 'hybrid'
+            ? 'hybrid'
+            : 'lexical',
+        // Keep the maintained collection independent from the query mode. This
+        // prevents the lexical kill switch from selecting a stale collection.
+        'index_variant' => strtolower((string) env('KOMPENDIUM_SEARCH_INDEX_VARIANT', 'lexical')) === 'hybrid'
             ? 'hybrid'
             : 'lexical',
         'index_version' => max(1, (int) env('KOMPENDIUM_SEARCH_INDEX_VERSION', 1)),

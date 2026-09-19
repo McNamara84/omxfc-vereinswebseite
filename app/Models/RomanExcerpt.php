@@ -53,7 +53,7 @@ class RomanExcerpt extends Model
     {
         $index = (string) config('scout.prefix').$this->getTable();
 
-        if (config('kompendium.search.mode', 'lexical') !== 'hybrid') {
+        if (config('kompendium.search.index_variant', 'lexical') !== 'hybrid') {
             return $index;
         }
 

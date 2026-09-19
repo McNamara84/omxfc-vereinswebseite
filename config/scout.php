@@ -2,7 +2,7 @@
 
 use App\Models\RomanExcerpt;
 
-$kompendiumHybridSearch = strtolower((string) env('KOMPENDIUM_SEARCH_MODE', 'lexical')) === 'hybrid';
+$kompendiumHybridIndex = strtolower((string) env('KOMPENDIUM_SEARCH_INDEX_VARIANT', 'lexical')) === 'hybrid';
 
 return [
 
@@ -228,7 +228,7 @@ return [
                             'name' => 'body',
                             'type' => 'string',
                         ],
-                        ...($kompendiumHybridSearch ? [[
+                        ...($kompendiumHybridIndex ? [[
                             'name' => 'embedding',
                             'type' => 'float[]',
                             'embed' => [
@@ -243,7 +243,7 @@ return [
                 'search-parameters' => [
                     'query_by' => 'title,body,cycle,roman_nr',
                 ],
-                ...($kompendiumHybridSearch ? [
+                ...($kompendiumHybridIndex ? [
                     'embedding' => [
                         'attribute' => 'embedding',
                         'driver' => 'typesense',

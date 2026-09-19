@@ -341,11 +341,12 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 
 Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.7 kann
 optional die native Typesense-Einbettung für eine hybride Volltext-/Semantiksuche
-nutzen. Der Modus ist ein bewusstes Opt-in und verwendet einen getrennten,
-versionierten Collection-Namen:
+nutzen. Suchmodus und aktive Indexvariante sind absichtlich getrennt: Der Modus
+steuert nur die Anfrage, die Variante dagegen Collection-Name und Schema.
 
 ```env
 KOMPENDIUM_SEARCH_MODE=lexical
+KOMPENDIUM_SEARCH_INDEX_VARIANT=lexical
 KOMPENDIUM_SEARCH_INDEX_VERSION=1
 KOMPENDIUM_SEARCH_EMBEDDING_MODEL=ts/multilingual-e5-large
 KOMPENDIUM_SEARCH_TEXT_WEIGHT=1
@@ -353,19 +354,33 @@ KOMPENDIUM_SEARCH_SEMANTIC_WEIGHT=2
 ```
 
 Vor einem Rollout werden RAM-Bedarf und Ergebnisqualität in einer
-Staging-Umgebung geprüft. Danach `KOMPENDIUM_SEARCH_MODE=hybrid` setzen, die
-Konfiguration leeren und den neuen Index vollständig aufbauen:
+Staging-Umgebung geprüft. Für den kontrollierten Aufbau werden Suchzugriffe und
+schreibende Index-Jobs in einem Wartungsfenster pausiert. Der Suchmodus bleibt
+zunächst `lexical`, während `KOMPENDIUM_SEARCH_INDEX_VARIANT=hybrid` gesetzt
+wird. Anschließend die Konfiguration leeren und den neuen Index vollständig
+aufbauen:
 
 ```bash
 php artisan config:clear
 php artisan romane:index --fresh
 ```
 
+Nach erfolgreicher Prüfung der lexikalischen Suche auf dieser Collection werden
+Suchzugriffe und Index-Jobs wieder freigegeben. Erst dann wird
+`KOMPENDIUM_SEARCH_MODE=hybrid` aktiviert. Ab diesem Zeitpunkt müssen reguläre
+Indexierungs- und Löschvorgänge weiter auf dieselbe aktive Hybrid-Collection
+zeigen.
+
 Phrasen, `OR`, `NOT` und Ausschlüsse bleiben absichtlich lexikal, damit deren
 bestehende Semantik erhalten bleibt. `KOMPENDIUM_SEARCH_MODE=lexical` ist der
-sofortige Kill-Switch; der alte Index wird durch die Umschaltung nicht
-überschrieben. Suchmodus und Laufzeit werden ohne zusätzliche personenbezogene
-Daten im Suchprotokoll erfasst.
+sofortige Kill-Switch: Er deaktiviert nur die Vektorsuche und fragt dieselbe,
+weiterhin aktuell gehaltene Hybrid-Collection lexikalisch ab. Dabei darf
+`KOMPENDIUM_SEARCH_INDEX_VARIANT` nicht zurück auf `lexical` gestellt werden,
+denn die alte Collection ist nach der Migration nur noch ein unveränderlicher
+Snapshot und kein synchrones Sofort-Fallback. Ein Schema-Rollback benötigt einen
+kontrolliert neu aufgebauten beziehungsweise synchronisierten Zielindex (oder
+künftig einen atomaren Typesense-Alias-Wechsel). Suchmodus und Laufzeit werden
+ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
