@@ -90,6 +90,8 @@ class KompendiumSearchLoggingTest extends TestCase
         $this->assertSame('aruula', $log->normalized_query);
         $this->assertSame('search_submit', $log->source);
         $this->assertSame('ok', $log->status);
+        $this->assertSame('lexical', $log->search_mode);
+        $this->assertNull($log->duration_ms);
         $this->assertSame(1, $log->results_count);
         $this->assertFalse($log->is_admin_search);
         $this->assertSame(['maddrax'], $log->selected_serien);

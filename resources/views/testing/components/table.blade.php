@@ -2,6 +2,8 @@
     'headers' => [],
     'rows' => [],
     'striped' => false,
+    'sortBy' => [],
+    'sortByProperty' => 'sortBy',
 ])
 
 @php

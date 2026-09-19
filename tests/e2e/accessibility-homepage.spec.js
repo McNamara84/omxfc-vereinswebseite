@@ -25,14 +25,8 @@ test.describe('Accessibility checks', () => {
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
-      // daisyUI drawer-toggle ist ein verstecktes Checkbox-Element ohne Label
-      .exclude('input.drawer-toggle')
-      // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
-      .exclude('input.theme-controller')
       // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
       .exclude('#nprogress [role="bar"]')
-      // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
-      .disableRules(['nested-interactive'])
       .analyze();
 
     const formattedViolations = accessibilityScanResults.violations

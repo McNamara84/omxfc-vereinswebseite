@@ -438,6 +438,42 @@ class MaddraxikonOperationsTest extends TestCase
             ->assertFailed();
     }
 
+    public function test_status_reports_total_queue_size_separately_from_maddraxikon_jobs(): void
+    {
+        config(['queue.default' => 'database']);
+        $now = now()->timestamp;
+
+        DB::table('jobs')->insert([
+            [
+                'queue' => 'default',
+                'payload' => json_encode([
+                    'displayName' => EvaluateMaddraxikonContributions::class,
+                ], JSON_THROW_ON_ERROR),
+                'attempts' => 0,
+                'reserved_at' => null,
+                'available_at' => $now,
+                'created_at' => $now,
+            ],
+            [
+                'queue' => 'mail',
+                'payload' => json_encode([
+                    'displayName' => 'App\\Jobs\\SendNewsletter',
+                ], JSON_THROW_ON_ERROR),
+                'attempts' => 0,
+                'reserved_at' => null,
+                'available_at' => $now,
+                'created_at' => $now,
+            ],
+        ]);
+
+        $exitCode = Artisan::call('maddraxikon:status', ['--skip-api' => true]);
+        $output = Artisan::output();
+
+        $this->assertSame(0, $exitCode);
+        $this->assertMatchesRegularExpression('/Gesamter Queue-Rückstau\s+\|\s+2/', $output);
+        $this->assertMatchesRegularExpression('/Maddraxikon-Queue-Rückstau\s+\|\s+1/', $output);
+    }
+
     public function test_status_fails_for_an_old_waiting_maddraxikon_job(): void
     {
         $now = CarbonImmutable::parse('2026-07-18T12:00:00Z');

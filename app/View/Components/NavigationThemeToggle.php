@@ -54,7 +54,7 @@ class NavigationThemeToggle extends ThemeToggle
                         @omxfc-theme-sync.window="syncExternal($event.detail)"
                         {{ $attributes->class("swap swap-rotate") }}
                     >
-                        <input id="{{ $uuid }}" type="checkbox" class="theme-controller opacity-0" @click="toggle()" :value="theme" />
+                        <input id="{{ $uuid }}" type="checkbox" class="theme-controller opacity-0" aria-label="Farbschema umschalten" @click="toggle()" :value="theme" />
                         <x-mary-icon x-ref="sun" name="o-sun" class="swap-on" />
                         <x-mary-icon x-ref="moon" name="o-moon" class="swap-off" />
                     </label>

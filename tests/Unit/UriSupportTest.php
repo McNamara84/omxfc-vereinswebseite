@@ -23,7 +23,8 @@ test('normalizeAbsoluteHttpUrl accepts only absolute HTTP URLs with a host', fun
 
 test('resolve builds absolute URLs from relative references', function () {
     expect(UriSupport::resolve('https://de.maddraxikon.com/', 'wiki/A1'))->toBe('https://de.maddraxikon.com/wiki/A1')
-        ->and(UriSupport::resolve('https://de.maddraxikon.com/', 'index.php?title=Kategorie:2012-Heftromane&pagefrom=2'))->toBe('https://de.maddraxikon.com/index.php?title=Kategorie:2012-Heftromane&pagefrom=2');
+        ->and(UriSupport::resolve('https://de.maddraxikon.com/', 'index.php?title=Kategorie:2012-Heftromane&pagefrom=2'))->toBe('https://de.maddraxikon.com/index.php?title=Kategorie:2012-Heftromane&pagefrom=2')
+        ->and(UriSupport::resolve('https://de.maddraxikon.com/wiki/serie/band', '../figuren/aruula'))->toBe('https://de.maddraxikon.com/wiki/figuren/aruula');
 });
 
 test('absolute host matching is case-insensitive but rejects ambiguous hosts', function () {
@@ -59,6 +60,8 @@ test('safe Markdown href matches the existing link policy', function () {
         ->and(UriSupport::isSafeMarkdownHref('https://'))->toBeFalse()
         ->and(UriSupport::isSafeMarkdownHref('mailto:'))->toBeFalse()
         ->and(UriSupport::isSafeMarkdownHref("javascript:\0alert(1)"))->toBeFalse()
+        ->and(UriSupport::isSafeMarkdownHref("https://example.com/\r\nmalicious"))->toBeFalse()
+        ->and(UriSupport::isSafeMarkdownHref('https:\\example.com'))->toBeFalse()
         ->and(UriSupport::isSafeMarkdownHref('\\\\example.com\\share'))->toBeFalse()
         ->and(UriSupport::isSafeMarkdownHref('../docs/readme.md#intro'))->toBeTrue()
         ->and(UriSupport::isSafeMarkdownHref('/absolute/path?section=1'))->toBeTrue();

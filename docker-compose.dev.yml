@@ -23,6 +23,11 @@ x-app-environment: &app-environment
   DB_QUEUE_RETRY_AFTER: ${DOCKER_DEV_DB_QUEUE_RETRY_AFTER:-420}
   SCOUT_DRIVER: ${DOCKER_DEV_SCOUT_DRIVER:-typesense}
   SCOUT_QUEUE: ${DOCKER_DEV_SCOUT_QUEUE:-true}
+  KOMPENDIUM_SEARCH_MODE: ${DOCKER_DEV_KOMPENDIUM_SEARCH_MODE:-lexical}
+  KOMPENDIUM_SEARCH_INDEX_VERSION: ${DOCKER_DEV_KOMPENDIUM_SEARCH_INDEX_VERSION:-1}
+  KOMPENDIUM_SEARCH_EMBEDDING_MODEL: ${DOCKER_DEV_KOMPENDIUM_SEARCH_EMBEDDING_MODEL:-ts/multilingual-e5-large}
+  KOMPENDIUM_SEARCH_TEXT_WEIGHT: ${DOCKER_DEV_KOMPENDIUM_SEARCH_TEXT_WEIGHT:-1}
+  KOMPENDIUM_SEARCH_SEMANTIC_WEIGHT: ${DOCKER_DEV_KOMPENDIUM_SEARCH_SEMANTIC_WEIGHT:-2}
   MAIL_MAILER: ${DOCKER_DEV_MAIL_MAILER:-log}
   TYPESENSE_HOST: typesense
   TYPESENSE_PORT: 8108
@@ -152,7 +157,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:stable-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c
+    image: nginx:1.30.4-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c
     depends_on:
       app:
         condition: service_started
@@ -166,7 +171,11 @@ services:
       - omxfc-dev-network
 
   vite:
-    image: node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868
+    image: omxfc-dev-node:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: node-development
     init: true
     working_dir: /workspace
     command: ['sh', '/workspace/docker/dev/start-vite.sh']

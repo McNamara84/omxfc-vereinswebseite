@@ -142,6 +142,9 @@ class KompendiumSuche extends Component
 
     private function executeSearch(?string $logSource = null): void
     {
+        $searchMode = 'lexical';
+        $searchDurationMs = null;
+
         try {
             $this->error = null;
             $this->candidatesTruncated = false;
@@ -178,7 +181,11 @@ class KompendiumSuche extends Component
 
             $tntQuery = $searchService->buildTntSearchQuery($parsed);
 
-            $raw = $searchService->search($tntQuery);
+            $raw = config('kompendium.search.mode', 'lexical') === 'hybrid'
+                ? $searchService->searchWithContext($tntQuery, $parsed)
+                : $searchService->search($tntQuery);
+            $searchMode = $raw['mode'] ?? 'lexical';
+            $searchDurationMs = isset($raw['duration_ms']) ? (int) $raw['duration_ms'] : null;
             $ids = array_values($raw['paths'] ?? $raw['ids'] ?? []);
             $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
 
@@ -257,7 +264,14 @@ class KompendiumSuche extends Component
 
             $this->lastPage = max(1, (int) ceil($paginationTotal / $perPage));
 
-            $this->logSearchEvent($logSource, $rawQuery, $parsed, $total);
+            $this->logSearchEvent(
+                $logSource,
+                $rawQuery,
+                $parsed,
+                $total,
+                searchMode: $searchMode,
+                durationMs: $searchDurationMs,
+            );
 
             $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
 
@@ -315,7 +329,15 @@ class KompendiumSuche extends Component
                 'scannedCandidates' => $this->scannedCandidates,
             ];
         } catch (\Throwable $e) {
-            $this->logSearchEvent($logSource, trim($this->query), null, 0, 'error');
+            $this->logSearchEvent(
+                $logSource,
+                trim($this->query),
+                null,
+                0,
+                'error',
+                $searchMode,
+                $searchDurationMs,
+            );
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
             $this->lastPage = $this->page;
             report($e);
@@ -386,8 +408,15 @@ class KompendiumSuche extends Component
         return $deduped;
     }
 
-    private function logSearchEvent(?string $source, string $query, ?array $parsed, int $resultsCount, string $status = 'ok'): void
-    {
+    private function logSearchEvent(
+        ?string $source,
+        string $query,
+        ?array $parsed,
+        int $resultsCount,
+        string $status = 'ok',
+        string $searchMode = 'lexical',
+        ?int $durationMs = null,
+    ): void {
         if (! $source) {
             return;
         }
@@ -409,6 +438,8 @@ class KompendiumSuche extends Component
             'results_count' => $resultsCount,
             'source' => $source,
             'status' => $status,
+            'search_mode' => $searchMode,
+            'duration_ms' => $durationMs,
             'candidates_truncated' => $this->candidatesTruncated,
             'scanned_candidates' => $this->scannedCandidates,
         ]);

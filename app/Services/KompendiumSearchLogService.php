@@ -26,6 +26,8 @@ class KompendiumSearchLogService
      *     results_count?: int|null,
      *     source?: string|null,
      *     status?: string|null,
+     *     search_mode?: string|null,
+     *     duration_ms?: int|null,
      *     candidates_truncated?: bool|null,
      *     scanned_candidates?: int|null
      * }  $payload
@@ -53,6 +55,12 @@ class KompendiumSearchLogService
             'results_count' => max(0, (int) ($payload['results_count'] ?? 0)),
             'source' => $this->limit((string) ($payload['source'] ?? 'search_submit'), 50),
             'status' => $this->limit((string) ($payload['status'] ?? 'ok'), 50),
+            'search_mode' => in_array(($payload['search_mode'] ?? 'lexical'), ['lexical', 'hybrid'], true)
+                ? $payload['search_mode'] ?? 'lexical'
+                : 'lexical',
+            'duration_ms' => isset($payload['duration_ms'])
+                ? max(0, (int) $payload['duration_ms'])
+                : null,
             'is_admin_search' => $this->isAdmin($user),
             'candidates_truncated' => (bool) ($payload['candidates_truncated'] ?? false),
             'scanned_candidates' => isset($payload['scanned_candidates'])

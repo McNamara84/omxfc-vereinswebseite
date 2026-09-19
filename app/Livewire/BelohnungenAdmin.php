@@ -31,6 +31,19 @@ class BelohnungenAdmin extends Component
 {
     use WithFileUploads;
 
+    private const PURCHASE_SORT_COLUMNS = [
+        'cost_baxx' => 'cost_baxx',
+        'purchased_at' => 'purchased_at',
+        'refunded_at' => 'refunded_at',
+    ];
+
+    private const DOWNLOAD_SORT_COLUMNS = [
+        'sort_order' => 'sort_order',
+        'title' => 'title',
+        'category' => 'category',
+        'is_active' => 'is_active',
+    ];
+
     #[Url(except: 'rewards')]
     public string $activeTab = 'rewards';
 
@@ -55,6 +68,12 @@ class BelohnungenAdmin extends Component
     public string $purchaseSearch = '';
 
     public string $purchaseRewardFilter = 'alle';
+
+    /** @var array{column: string, direction: string} */
+    public array $purchaseSortBy = [
+        'column' => 'purchased_at',
+        'direction' => 'desc',
+    ];
 
     // --- Earning rule editing ---
     public bool $showRuleModal = false;
@@ -126,6 +145,12 @@ class BelohnungenAdmin extends Component
     public int $downloadSortOrder = 0;
 
     public bool $downloadIsActive = true;
+
+    /** @var array{column: string, direction: string} */
+    public array $downloadSortBy = [
+        'column' => 'category',
+        'direction' => 'asc',
+    ];
 
     public $downloadFile = null;
 
@@ -224,9 +249,16 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function purchases(): Collection
     {
+        $sort = $this->normalizedSort(
+            $this->purchaseSortBy,
+            self::PURCHASE_SORT_COLUMNS,
+            ['column' => 'purchased_at', 'direction' => 'desc'],
+        );
+
         return $this->purchaseQuery()
             ->with(['user', 'reward', 'refundedByUser'])
-            ->latest('purchased_at')
+            ->orderBy($sort['column'], $sort['direction'])
+            ->orderByDesc('id')
             ->limit(100)
             ->get();
     }
@@ -277,11 +309,41 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function downloads(): \Illuminate\Database\Eloquent\Collection
     {
+        $sort = $this->normalizedSort(
+            $this->downloadSortBy,
+            self::DOWNLOAD_SORT_COLUMNS,
+            ['column' => 'category', 'direction' => 'asc'],
+        );
+
         return Download::with(['reward:id,title,download_id'])
-            ->orderBy('category')
+            ->orderBy($sort['column'], $sort['direction'])
             ->orderBy('sort_order')
             ->orderBy('title')
+            ->orderBy('id')
             ->get();
+    }
+
+    /**
+     * @param  array{column?: mixed, direction?: mixed}  $sort
+     * @param  array<string, string>  $allowedColumns
+     * @param  array{column: string, direction: 'asc'|'desc'}  $default
+     * @return array{column: string, direction: 'asc'|'desc'}
+     */
+    private function normalizedSort(array $sort, array $allowedColumns, array $default): array
+    {
+        $requestedColumn = is_string($sort['column'] ?? null)
+            ? $sort['column']
+            : $default['column'];
+        $requestedDirection = is_string($sort['direction'] ?? null)
+            ? strtolower($sort['direction'])
+            : $default['direction'];
+
+        return [
+            'column' => $allowedColumns[$requestedColumn] ?? $allowedColumns[$default['column']],
+            'direction' => in_array($requestedDirection, ['asc', 'desc'], true)
+                ? $requestedDirection
+                : $default['direction'],
+        ];
     }
 
     #[Computed]

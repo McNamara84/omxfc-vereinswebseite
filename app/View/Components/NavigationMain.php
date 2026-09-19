@@ -23,6 +23,12 @@ class NavigationMain extends Main
             return $template;
         }
 
-        return str_replace(' aria-label="close sidebar"', '', $template);
+        $template = str_replace(' aria-label="close sidebar"', '', $template);
+
+        return str_replace(
+            'class="drawer-toggle"',
+            'class="drawer-toggle" aria-label="Seitennavigation öffnen oder schließen"',
+            $template,
+        );
     }
 }

@@ -2,10 +2,9 @@
 
 namespace App\Support;
 
-use GuzzleHttp\Psr7\Uri;
-use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Str;
 use Throwable;
+use Uri\Rfc3986\Uri;
 
 final class UriSupport
 {
@@ -17,13 +16,13 @@ final class UriSupport
             return null;
         }
 
-        $scheme = strtolower((string) $parsed->getScheme());
+        $scheme = strtolower($parsed->getScheme() ?? '');
 
         if (! in_array($scheme, ['http', 'https'], true) || ! self::hasNonEmptyHost($parsed)) {
             return null;
         }
 
-        return (string) $parsed;
+        return $parsed->toString();
     }
 
     public static function isAbsoluteUrlForHost(
@@ -37,19 +36,19 @@ final class UriSupport
         if (
             $parsed === null
             || ! self::hasNonEmptyHost($parsed)
-            || $parsed->getUserInfo() !== ''
+            || $parsed->getUserInfo() !== null
         ) {
             return false;
         }
 
-        $actualScheme = strtolower((string) $parsed->getScheme());
+        $actualScheme = strtolower($parsed->getScheme() ?? '');
         $expectedScheme = strtolower($scheme);
         $defaultPorts = ['http' => 80, 'https' => 443];
         $actualPort = $parsed->getPort() ?? ($defaultPorts[$actualScheme] ?? null);
         $expectedPort = $port ?? ($defaultPorts[$expectedScheme] ?? null);
 
         return $actualScheme === $expectedScheme
-            && strtolower((string) $parsed->getHost()) === strtolower($host)
+            && strtolower($parsed->getHost() ?? '') === strtolower($host)
             && $actualPort === $expectedPort;
     }
 
@@ -62,7 +61,9 @@ final class UriSupport
         }
 
         try {
-            return (string) UriResolver::resolve(new Uri($normalizedBase), new Uri($reference));
+            $parsedBase = Uri::parse($normalizedBase);
+
+            return $parsedBase?->resolve($reference)->toString();
         } catch (Throwable) {
             return null;
         }
@@ -78,7 +79,7 @@ final class UriSupport
 
         $scheme = $parsed->getScheme();
 
-        if ($scheme !== '') {
+        if ($scheme !== null) {
             return match (strtolower($scheme)) {
                 'http', 'https' => self::hasNonEmptyHost($parsed),
                 'mailto' => $parsed->getPath() !== '',
@@ -100,8 +101,12 @@ final class UriSupport
 
     private static function parse(string $uri): ?Uri
     {
+        if (preg_match('/[\\x00-\\x20\\x7f\\\\]/u', $uri) === 1) {
+            return null;
+        }
+
         try {
-            return new Uri($uri);
+            return Uri::parse($uri);
         } catch (Throwable) {
             return null;
         }
@@ -109,6 +114,6 @@ final class UriSupport
 
     private static function hasNonEmptyHost(Uri $uri): bool
     {
-        return $uri->getHost() !== '';
+        return $uri->getHost() !== null && $uri->getHost() !== '';
     }
 }

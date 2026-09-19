@@ -26,10 +26,10 @@
     },
     "license": "GPL-3.0-or-later",
     "require": {
+        "ext-uri": "*",
         "ext-zip": "*",
         "php": "~8.5.0",
         "dompdf/dompdf": "^3.1",
-        "guzzlehttp/psr7": "^2.9",
         "intervention/image": "^4.2",
         "laravel/framework": "^13.0",
         "laravel/jetstream": "^5.5",
@@ -38,7 +38,6 @@
         "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.0",
         "robsontenorio/mary": "^2.9",
-        "spatie/browsershot": "^5.2",
         "spatie/laravel-pdf": "^2.6",
         "spatie/laravel-sitemap": "^8.0",
         "typesense/typesense-php": "^6.0"
@@ -98,6 +97,7 @@
         "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",
         "test:profanity": "@php vendor/bin/pest --profanity --compact",
         "test:rector": "@php vendor/bin/rector process --dry-run",
+        "test:mutate": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/UriSupportTest.php tests/Unit/MaddraxikonIdentityHmacPeppersTest.php --mutate --path=app --covered-only --min=100 --compact",
         "test:tia": "@php -d xdebug.mode=coverage vendor/bin/pest --configuration phpunit.tia.xml --tia --compact",
         "test:tia:fresh": "@php -d xdebug.mode=coverage vendor/bin/pest --configuration phpunit.tia.xml --tia --fresh --compact",
         "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G"
@@ -111,6 +111,24 @@
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
+        "secure-http": true,
+        "platform-check": true,
+        "policy": {
+            "advisories": {
+                "block": true,
+                "audit": "fail"
+            },
+            "abandoned": {
+                "block": true,
+                "audit": "fail"
+            },
+            "malware": {
+                "block": true,
+                "block-scope": "all",
+                "audit": "fail"
+            },
+            "ignore-unreachable": false
+        },
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
