@@ -158,7 +158,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.30.4-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c
+    image: nginx:1.30.5-alpine@sha256:a5f2157a0302eb0c5e300415effb63a9e70ed1eb9c107283819bf6d149ab607c
     depends_on:
       app:
         condition: service_started
@@ -192,7 +192,7 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:12.3@sha256:ab1c3dd381940233af12512b97d47b508fd3a0f17fbe3ba388739b7bc17cbc0b
+    image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}
