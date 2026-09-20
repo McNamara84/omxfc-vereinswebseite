@@ -76,7 +76,11 @@
                 </x-slot:sidebar>
 
                 <x-slot:content class="!p-0">
-                    <div class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
+                    <div
+                        class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16"
+                        data-testid="member-content"
+                        wire:transition.navigate="member-content"
+                    >
                         {{ $slot }}
                     </div>
                 </x-slot:content>

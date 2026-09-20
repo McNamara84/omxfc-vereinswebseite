@@ -50,7 +50,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 ## Technologie-Stack
 
-- **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
+- **Backend:** Laravel 13, Jetstream, Sanctum, Scout mit Typesense, Livewire 4, maryUI 2.9 sowie Spatie PDF (Dompdf) & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
 - **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
@@ -60,9 +60,9 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 | Komponente       | Version / Hinweis                                      |
 |------------------|---------------------------------------------------------|
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
-| PHP              | ≥ 8.5 inklusive Extensions: `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
-| Composer         | ≥ 2.6, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26 (Single Source of Truth: `.node-version`), nur für klassische Host-Entwicklung nötig |
+| PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
+| Composer         | 2.10.x, nur für klassische Host-Entwicklung nötig        |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.0.2 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -100,16 +100,18 @@ Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus un
 1. PHP- und Node-Abhängigkeiten installieren:
    ```bash
   composer install
-  npm install
+  npm ci
    ```
 
-  Die mit Node 26 verwendeten aktuellen npm-Versionen führen Installationsskripte
-  nur aus, wenn sie in `package.json` unter
-  `allowScripts` für die exakt aufgelöste Paketversion freigegeben sind. Die
-  Projektoption `strict-allow-scripts=true` lässt eine Installation bei einer
-  fehlenden Freigabe bewusst fehlschlagen. Nach einem Puppeteer-Update muss
-  deshalb dessen Versionsschlüssel geprüft und zusammen mit dem Lockfile
-  aktualisiert werden.
+  npm 12 blockiert Abhängigkeits-Installationsskripte standardmäßig. Die
+  einzige Freigabe unter `allowScripts` gilt versionsgenau für
+  `fsevents@2.3.3`, dessen natives Installationsskript Vite auf macOS benötigt.
+  Ein normales `npm ci` erzwingt die Allowlist und schlägt dank
+  `strict-allow-scripts=true` bei neuen ungeprüften Skripten fehl;
+  `npm install-scripts ls` dient nur als zusätzliche Inventarliste. Datei-,
+  Verzeichnis-, Git- und Remote-Abhängigkeiten sind über `.npmrc` gesperrt.
+  Puppeteer/Chromium wird nicht mehr benötigt, da PDF-Exporte ausschließlich
+  über Dompdf laufen.
 
 2. Beispiel-Environment kopieren und Applikationsschlüssel erzeugen:
    ```bash
@@ -335,6 +337,76 @@ PAYPAL_FANTREFFEN_EMAIL=vorstand@maddrax-fanclub.de
 
 Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` oder `Kassenwart` zugänglich. Die Middleware `EnsureVorstandOrKassenwart` regelt den Zugriff.
 
+## Kompendium-Suche: lexikal und hybrid
+
+Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.7 kann
+optional die native Typesense-Einbettung für eine hybride Volltext-/Semantiksuche
+nutzen. Suchmodus und aktive Indexvariante sind absichtlich getrennt: Der Modus
+steuert nur die Anfrage, die Variante dagegen Collection-Name und Schema.
+
+```env
+KOMPENDIUM_SEARCH_MODE=lexical
+KOMPENDIUM_SEARCH_INDEX_VARIANT=lexical
+KOMPENDIUM_SEARCH_INDEX_VERSION=1
+KOMPENDIUM_SEARCH_EMBEDDING_MODEL=ts/multilingual-e5-large
+KOMPENDIUM_SEARCH_TEXT_WEIGHT=1
+KOMPENDIUM_SEARCH_SEMANTIC_WEIGHT=2
+```
+
+Vor einem Rollout werden RAM-Bedarf und Ergebnisqualität in einer
+Staging-Umgebung geprüft. Für den kontrollierten Aufbau werden Suchzugriffe und
+schreibende Index-Jobs in einem Wartungsfenster pausiert. Der Suchmodus bleibt
+zunächst `lexical`, während `KOMPENDIUM_SEARCH_INDEX_VARIANT=hybrid` gesetzt
+wird. Anschließend die Konfiguration leeren und den neuen Index vollständig
+aufbauen:
+
+```bash
+php artisan config:clear
+php artisan romane:index --fresh
+```
+
+Nach erfolgreicher Prüfung der lexikalischen Suche auf dieser Collection werden
+Suchzugriffe und Index-Jobs wieder freigegeben. Erst dann wird
+`KOMPENDIUM_SEARCH_MODE=hybrid` aktiviert. Ab diesem Zeitpunkt müssen reguläre
+Indexierungs- und Löschvorgänge weiter auf dieselbe aktive Hybrid-Collection
+zeigen.
+
+Phrasen, `OR`, `NOT` und Ausschlüsse bleiben absichtlich lexikal, damit deren
+bestehende Semantik erhalten bleibt. `KOMPENDIUM_SEARCH_MODE=lexical` ist der
+sofortige Kill-Switch: Er deaktiviert nur die Vektorsuche und fragt dieselbe,
+weiterhin aktuell gehaltene Hybrid-Collection lexikalisch ab. Dabei darf
+`KOMPENDIUM_SEARCH_INDEX_VARIANT` nicht zurück auf `lexical` gestellt werden,
+denn die alte Collection ist nach der Migration nur noch ein unveränderlicher
+Snapshot und kein synchrones Sofort-Fallback. Ein Schema-Rollback benötigt einen
+kontrolliert neu aufgebauten beziehungsweise synchronisierten Zielindex (oder
+künftig einen atomaren Typesense-Alias-Wechsel). Suchmodus und Laufzeit werden
+ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
+
+## Abhängigkeiten und Supply-Chain-Prüfungen
+
+Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
+mindestens folgende Prüfungen:
+
+```bash
+composer validate --strict
+composer audit --locked --abandoned=fail
+composer check-platform-reqs --lock
+npm ci
+npm install-scripts ls
+npm audit --package-lock-only --audit-level=moderate
+```
+
+`npm audit signatures` läuft in CI zusätzlich als Best-Effort-Prüfung. Der
+öffentliche Registry-Endpunkt liefert für einzelne Pakete ohne Attestation
+derzeit `404`; dieser externe Metadatenfehler darf die übrigen reproduzierbaren
+Sicherheitsprüfungen nicht verdecken.
+
+Composer blockiert Advisories, aufgegebene Pakete und Malware bereits während
+der Auflösung. Dependabot verzögert normale Patch-, Minor- und Major-Releases
+gestaffelt, während Security-Updates von diesem Cooldown unberührt bleiben.
+Container-Basis- und Service-Images sind versions- und digestgenau gepinnt und
+werden zusätzlich wöchentlich gescannt.
+
 ## Tests & Qualitätssicherung
 
 | Zweck                        | Befehl |
@@ -345,6 +417,7 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | PHP-Tests im Docker-Stack    | `npm run docker:dev:test:php` |
 | Frische TIA-Basis aufzeichnen | `composer test:tia:fresh` |
 | Nur betroffene Tests mit TIA | `composer test:tia` |
+| Abgedeckte Mutationen prüfen | `composer test:mutate` |
 | Pest-PHPStan (migrierte Tests) | `composer test:types` |
 | Pest-Rector-Migration prüfen | `composer test:rector` |
 | Architektur- und Security-Regeln | `composer test:arch` |
@@ -356,20 +429,20 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA benötigt Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Da Pest 5 TIA bei expliziten Testpfaden deaktiviert und keine PHPUnit-Testklassen unterstützt, verwenden diese Skripte `phpunit.tia.xml` mit ausschließlich funktionalen Pest-Tests. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht.
+Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Der Mutation-Job prüft die ausdrücklich mit `mutates()` markierten Sicherheitsklassen und erzwingt für die derzeit 137 Mutationen einen Score von 100 %. Der explizite Anwendungspfad umgeht außerdem eine Pfadauflösungsschwäche von Pest 5.2 unter Windows. Da Pest 5 TIA bei expliziten Testpfaden deaktiviert und keine PHPUnit-Testklassen unterstützt, verwenden diese Skripte `phpunit.tia.xml` mit ausschließlich funktionalen Pest-Tests. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht; Mutation Tests laufen separat wöchentlich und manuell.
 Die PHPUnit-13.3-Diagnosen `test:stability:repeat` und `test:stability:retry` sind bewusst manuelle Zusatzprüfungen. Insbesondere Retry ersetzt keinen regulär erfolgreichen Testlauf und wird deshalb nicht als CI-Pflichtprüfung verwendet.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Der Test-Stack verwendet die stabilen Versionen Pest 5.1 und PHPUnit 13.3. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). TIA, neue Format-Expectations, PHPStan, Rector, das Agent-Plugin, erweiterte Architekturregeln, exakte Livewire-Validierungsfehler und zeitbasiertes CI-Sharding sind eingeführt. Umsetzungsstand, Ausbaupfade und der derzeitige Upstream-Blocker für Mutation Testing stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
+Der Test-Stack verwendet Pest 5.2 und PHPUnit 13.3. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
 ## Deployment
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.9 und npm 12.0.2 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

@@ -53,16 +53,70 @@ class KompendiumSearchService
     /**
      * Führt eine Volltextsuche in den Romantexten durch.
      *
-     * @return array{total: int, paths: list<string>, raw: array<mixed>}
+     * @return array{total: int, paths: list<string>, raw: array<mixed>, mode: 'lexical', duration_ms: int}
      */
     public function search(string $query): array
     {
-        $raw = RomanExcerpt::search($query)->raw();
+        return $this->executeSearch($query, 'lexical');
+    }
+
+    /**
+     * Hybrid search is deliberately limited to simple positive queries. Queries
+     * with phrases, OR or exclusions keep their exact lexical/post-filter semantics.
+     *
+     * @param  array<string, mixed>  $parsed
+     * @return array{total: int, paths: list<string>, raw: array<mixed>, mode: 'lexical'|'hybrid', duration_ms: int}
+     */
+    public function searchWithContext(string $query, array $parsed): array
+    {
+        return $this->executeSearch($query, $this->searchModeFor($parsed));
+    }
+
+    /** @param array<string, mixed> $parsed */
+    public function searchModeFor(array $parsed): string
+    {
+        $hasExclusions = ! empty($parsed['excludedTerms']) || ! empty($parsed['excludedPhrases']);
+
+        if (
+            config('kompendium.search.mode', 'lexical') !== 'hybrid'
+            || config('kompendium.search.index_variant', 'lexical') !== 'hybrid'
+            || config('scout.driver') !== 'typesense'
+            || empty($parsed['hasPositiveOperands'])
+            || ! empty($parsed['isPhraseSearch'])
+            || ! empty($parsed['usesOrOperator'])
+            || ! empty($parsed['usesNotOperator'])
+            || $hasExclusions
+        ) {
+            return 'lexical';
+        }
+
+        return 'hybrid';
+    }
+
+    /**
+     * @param  'lexical'|'hybrid'  $mode
+     * @return array{total: int, paths: list<string>, raw: array<mixed>, mode: 'lexical'|'hybrid', duration_ms: int}
+     */
+    private function executeSearch(string $query, string $mode): array
+    {
+        $startedAt = hrtime(true);
+        $search = RomanExcerpt::search($query);
+
+        if ($mode === 'hybrid') {
+            $search->hybrid(
+                textWeight: (float) config('kompendium.search.text_weight', 1),
+                semanticWeight: (float) config('kompendium.search.semantic_weight', 2),
+            );
+        }
+
+        $raw = $search->raw();
 
         return [
             'total' => $this->extractTotal($raw),
             'paths' => $this->extractPaths($raw),
             'raw' => $raw,
+            'mode' => $mode,
+            'duration_ms' => max(0, (int) round((hrtime(true) - $startedAt) / 1_000_000)),
         ];
     }
 

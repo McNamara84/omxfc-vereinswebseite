@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\View\Components\Alert;
 use App\View\Components\NavigationDropdown;
 use App\View\Components\NavigationMain;
 use App\View\Components\NavigationMenuSeparator;
@@ -148,6 +149,7 @@ class AppServiceProviderTest extends TestCase
 
         $this->assertIsString($template);
         $this->assertStringContainsString('class="drawer-overlay"', $template);
+        $this->assertStringContainsString('aria-label="Seitennavigation öffnen oder schließen"', $template);
         $this->assertStringNotContainsString('aria-label="close sidebar"', $template);
     }
 
@@ -169,7 +171,24 @@ class AppServiceProviderTest extends TestCase
         $this->assertStringContainsString('if (root && storedTheme !== null)', $template);
         $this->assertStringContainsString('if (root && storedClass !== null)', $template);
         $this->assertStringContainsString('} catch {}', $template);
+        $this->assertStringContainsString('aria-label="Farbschema umschalten"', $template);
         $this->assertStringNotContainsString('setAttribute("data-theme", localStorage.getItem', $template);
+    }
+
+    public function test_navigation_adapters_keep_valid_list_and_status_semantics(): void
+    {
+        $dropdown = (new NavigationDropdown)->render();
+        $separator = (new NavigationMenuSeparator)->render();
+        $alert = (new Alert(dismissible: true))->render();
+
+        $this->assertIsString($dropdown);
+        $this->assertStringContainsString('{{ $slot }}', $dropdown);
+        $this->assertStringNotContainsString('<div wire:key="dropdown-slot-', $dropdown);
+        $this->assertIsString($separator);
+        $this->assertStringContainsString('<li role="separator"', $separator);
+        $this->assertIsString($alert);
+        $this->assertStringContainsString("'role' => 'status'", $alert);
+        $this->assertStringContainsString('aria-label="Schließen"', $alert);
     }
 
     public function test_testing_environment_ignores_standard_vite_hot_file(): void

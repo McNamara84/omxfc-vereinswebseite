@@ -2,6 +2,8 @@
 
 use App\Models\RomanExcerpt;
 
+$kompendiumHybridIndex = strtolower((string) env('KOMPENDIUM_SEARCH_INDEX_VARIANT', 'lexical')) === 'hybrid';
+
 return [
 
     /*
@@ -226,11 +228,27 @@ return [
                             'name' => 'body',
                             'type' => 'string',
                         ],
+                        ...($kompendiumHybridIndex ? [[
+                            'name' => 'embedding',
+                            'type' => 'float[]',
+                            'embed' => [
+                                'from' => ['title', 'body', 'cycle'],
+                                'model_config' => [
+                                    'model_name' => env('KOMPENDIUM_SEARCH_EMBEDDING_MODEL', 'ts/multilingual-e5-large'),
+                                ],
+                            ],
+                        ]] : []),
                     ],
                 ],
                 'search-parameters' => [
                     'query_by' => 'title,body,cycle,roman_nr',
                 ],
+                ...($kompendiumHybridIndex ? [
+                    'embedding' => [
+                        'attribute' => 'embedding',
+                        'driver' => 'typesense',
+                    ],
+                ] : []),
             ],
         ],
     ],

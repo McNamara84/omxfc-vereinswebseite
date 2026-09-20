@@ -398,13 +398,13 @@
                 </div>
 
                 <x-table :headers="[
-                    ['key' => 'user_name', 'label' => 'Mitglied'],
-                    ['key' => 'reward_title', 'label' => 'Belohnung'],
+                    ['key' => 'user_name', 'label' => 'Mitglied', 'sortable' => false],
+                    ['key' => 'reward_title', 'label' => 'Belohnung', 'sortable' => false],
                     ['key' => 'cost_baxx', 'label' => 'Kosten (Baxx)'],
                     ['key' => 'purchased_at', 'label' => 'Kaufdatum'],
-                    ['key' => 'status', 'label' => 'Status'],
-                    ['key' => 'actions', 'label' => 'Aktionen'],
-                ]" :rows="$this->purchases" striped>
+                    ['key' => 'status', 'label' => 'Status', 'sortBy' => 'refunded_at'],
+                    ['key' => 'actions', 'label' => 'Aktionen', 'sortable' => false],
+                ]" :rows="$this->purchases" :sort-by="$purchaseSortBy" sort-by-property="purchaseSortBy" striped>
 
                     @scope('cell_user_name', $purchase)
                         {{ $purchase->user?->name ?? 'Gelöscht' }}
@@ -518,12 +518,12 @@
                     ['key' => 'sort_order', 'label' => '#'],
                     ['key' => 'title', 'label' => 'Titel'],
                     ['key' => 'category', 'label' => 'Kategorie'],
-                    ['key' => 'original_filename', 'label' => 'Datei'],
-                    ['key' => 'formatted_file_size', 'label' => 'Größe'],
+                    ['key' => 'original_filename', 'label' => 'Datei', 'sortable' => false],
+                    ['key' => 'formatted_file_size', 'label' => 'Größe', 'sortable' => false],
                     ['key' => 'is_active', 'label' => 'Status'],
-                    ['key' => 'linked_reward', 'label' => 'Verknüpfte Belohnung'],
-                    ['key' => 'actions', 'label' => 'Aktionen'],
-                ]" :rows="$this->downloads" striped>
+                    ['key' => 'linked_reward', 'label' => 'Verknüpfte Belohnung', 'sortable' => false],
+                    ['key' => 'actions', 'label' => 'Aktionen', 'sortable' => false],
+                ]" :rows="$this->downloads" :sort-by="$downloadSortBy" sort-by-property="downloadSortBy" striped>
 
                     @scope('cell_is_active', $download)
                         @if($download->is_active)

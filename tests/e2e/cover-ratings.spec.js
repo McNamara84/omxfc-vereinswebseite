@@ -16,10 +16,7 @@ const loginAsMember = async (page, email) => {
 const assertAccessible = async (page) => {
   const accessibility = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa'])
-    .exclude('input.drawer-toggle')
-    .exclude('input.theme-controller')
     .exclude('#nprogress [role="bar"]')
-    .disableRules(['nested-interactive'])
     .analyze();
 
   expect(accessibility.violations).toEqual([]);

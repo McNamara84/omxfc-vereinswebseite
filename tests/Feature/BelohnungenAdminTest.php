@@ -846,4 +846,66 @@ class BelohnungenAdminTest extends TestCase
             ->set('activeTab', 'downloads')
             ->assertSee('Mein Download');
     }
+
+    public function test_purchase_and_download_tables_keep_independent_sort_state(): void
+    {
+        $this->actingAdmin();
+        $reward = Reward::factory()->create();
+        $older = RewardPurchase::factory()->create([
+            'reward_id' => $reward->id,
+            'cost_baxx' => 9,
+            'purchased_at' => now()->subDay(),
+        ]);
+        $newer = RewardPurchase::factory()->create([
+            'reward_id' => $reward->id,
+            'cost_baxx' => 2,
+            'purchased_at' => now(),
+        ]);
+        $alpha = Download::factory()->create(['title' => 'Alpha', 'category' => 'Zeta']);
+        $zulu = Download::factory()->create(['title' => 'Zulu', 'category' => 'Alpha']);
+
+        $component = Livewire::test(BelohnungenAdmin::class)
+            ->set('purchaseSortBy', ['column' => 'cost_baxx', 'direction' => 'asc'])
+            ->set('downloadSortBy', ['column' => 'title', 'direction' => 'desc']);
+
+        $this->assertSame(
+            [$newer->id, $older->id],
+            $component->instance()->purchases()->pluck('id')->all(),
+        );
+        $this->assertSame(
+            [$zulu->id, $alpha->id],
+            $component->instance()->downloads()
+                ->whereIn('id', [$alpha->id, $zulu->id])
+                ->pluck('id')
+                ->all(),
+        );
+        $component->assertSet('purchaseSortBy.column', 'cost_baxx')
+            ->assertSet('downloadSortBy.column', 'title');
+    }
+
+    public function test_table_sorting_falls_back_for_untrusted_columns_and_directions(): void
+    {
+        $this->actingAdmin();
+        $reward = Reward::factory()->create();
+        $older = RewardPurchase::factory()->create([
+            'reward_id' => $reward->id,
+            'purchased_at' => now()->subDay(),
+        ]);
+        $newer = RewardPurchase::factory()->create([
+            'reward_id' => $reward->id,
+            'purchased_at' => now(),
+        ]);
+
+        $component = Livewire::test(BelohnungenAdmin::class)
+            ->set('purchaseSortBy', [
+                'column' => 'purchased_at desc; drop table users',
+                'direction' => 'sideways',
+            ]);
+
+        $this->assertSame(
+            [$newer->id, $older->id],
+            $component->instance()->purchases()->pluck('id')->all(),
+        );
+        $this->assertTrue(RewardPurchase::query()->whereKey($older->id)->exists());
+    }
 }

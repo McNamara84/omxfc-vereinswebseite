@@ -182,7 +182,9 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
-        $raw = $this->searchService->search($tntQuery);
+        $raw = config('kompendium.search.mode', 'lexical') === 'hybrid'
+            ? $this->searchService->searchWithContext($tntQuery, $parsed)
+            : $this->searchService->search($tntQuery);
 
         $ids = $raw['paths'] ?? $raw['ids'] ?? [];              // normalisierte Pfad-Treffer
         $ids = array_values($ids);                              // re-indexieren
@@ -411,7 +413,19 @@ class KompendiumController extends Controller
             $responseData['scannedCandidates'] = $scannedCandidates;
         }
 
-        $this->logSearchRequest($request, $rawQuery, $parsed, $selectedSerien, $sort, $direction, $total, $candidatesTruncated, $scannedCandidates);
+        $this->logSearchRequest(
+            $request,
+            $rawQuery,
+            $parsed,
+            $selectedSerien,
+            $sort,
+            $direction,
+            $total,
+            $candidatesTruncated,
+            $scannedCandidates,
+            searchMode: $raw['mode'] ?? 'lexical',
+            durationMs: isset($raw['duration_ms']) ? (int) $raw['duration_ms'] : null,
+        );
 
         return response()->json($responseData);
     }
@@ -427,6 +441,8 @@ class KompendiumController extends Controller
         bool $candidatesTruncated,
         int $scannedCandidates,
         string $status = 'ok',
+        string $searchMode = 'lexical',
+        ?int $durationMs = null,
     ): void {
         if ((int) $request->input('page', 1) !== 1) {
             return;
@@ -449,6 +465,8 @@ class KompendiumController extends Controller
             'results_count' => $resultsCount,
             'source' => 'api_search',
             'status' => $status,
+            'search_mode' => $searchMode,
+            'duration_ms' => $durationMs,
             'candidates_truncated' => $candidatesTruncated,
             'scanned_candidates' => $scannedCandidates,
         ]);

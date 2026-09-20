@@ -17,6 +17,7 @@ use App\Services\Maddraxikon\MaddraxikonNamespaceHealthService;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 use Throwable;
 
@@ -185,6 +186,7 @@ class MaddraxikonStatusCommand extends Command
             ['Rewards gegengebucht', (string) $reversed],
             ['Hauptgründe', $topReasons === '' ? 'keine' : $topReasons],
             ['Tageslimit-Kappungen', ((int) ($cap?->event_count ?? 0)).' Ereignisse / '.((int) ($cap?->point_count ?? 0)).' Baxx'],
+            ['Gesamter Queue-Rückstau', $this->queueMetricLabel($queue['total'], $queue['connection'])],
             ['Maddraxikon-Queue-Rückstau', $this->queueMetricLabel($queue['queued'], $queue['connection'])],
             ['Ältester wartender Maddraxikon-Job', $this->queueAgeLabel($queue)],
             ['Fehlgeschlagene Maddraxikon-Jobs', $this->queueMetricLabel($queue['failed'], $queue['connection'])],
@@ -257,7 +259,7 @@ class MaddraxikonStatusCommand extends Command
     }
 
     /**
-     * @param  array{queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}  $queue
+     * @param  array{total: ?int, queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}  $queue
      * @return list<string>
      */
     private function operationalAlarms(
@@ -432,14 +434,21 @@ class MaddraxikonStatusCommand extends Command
     }
 
     /**
-     * @return array{queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}
+     * @return array{total: ?int, queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}
      */
     private function queueMetrics(): array
     {
         $connection = (string) config('queue.default', 'sync');
 
+        try {
+            $total = Queue::totalSize();
+        } catch (Throwable) {
+            $total = null;
+        }
+
         if ($connection !== 'database') {
             return [
+                'total' => $total,
                 'queued' => null,
                 'failed' => null,
                 'oldest_age_minutes' => null,
@@ -474,6 +483,7 @@ class MaddraxikonStatusCommand extends Command
             : null;
 
         return [
+            'total' => $total,
             'queued' => $queued === null ? null : (int) $queued,
             'failed' => $failed === null ? null : (int) $failed,
             'oldest_age_minutes' => $oldestAgeMinutes,
@@ -500,7 +510,7 @@ class MaddraxikonStatusCommand extends Command
     }
 
     /**
-     * @param  array{queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}  $queue
+     * @param  array{total: ?int, queued: ?int, failed: ?int, oldest_age_minutes: ?int, connection: string}  $queue
      */
     private function queueAgeLabel(array $queue): string
     {

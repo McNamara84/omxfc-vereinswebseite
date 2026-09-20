@@ -46,11 +46,24 @@ jobs:
       - name: Validate Composer metadata and lockfile
         run: composer validate --no-check-publish --strict
 
+      - name: Pin npm
+        run: npm install --global npm@12.0.2 --ignore-scripts && test "$(npm --version)" = "12.0.2"
+
       - name: Audit Composer lockfile
         run: composer audit --locked --abandoned=fail
 
-      - name: Verify npm lockfile can be installed
-        run: npm ci --ignore-scripts
+      - name: Verify Composer platform requirements
+        run: composer check-platform-reqs --lock
+
+      - name: Verify npm lockfile and install-script policy
+        run: npm ci
+
+      - name: Inventory unreviewed npm install scripts
+        run: npm install-scripts ls
 
       - name: Audit npm lockfile
         run: npm audit --package-lock-only --audit-level=moderate
+
+      - name: Check npm registry signatures (best effort)
+        continue-on-error: true
+        run: npm audit signatures

@@ -1,8 +1,8 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2@sha256:d8f6343d3fae98107426bc49163ccad46ef85aabd4a27d80a74401fab4aba332 AS composer-bin
+FROM composer:2.10.3@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b AS composer-bin
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5-fpm@sha256:70076c1cae0cd0ba6761832417e3a1df3e5560f0544eb0fe40357373e54420fe AS php-base
+FROM php:8.5.10-fpm-bookworm@sha256:8e780a6e59508f418c7729681468322a2ce7d7cfe4266025054f41bbe85e3928 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -52,7 +52,12 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 
 # Build Stage für Node/Vite. Die Tailwind-Quellen aus Composer-Paketen stammen
 # aus demselben frischen Vendor-Baum, der später im Production-Image landet.
-FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868 AS node-builder
+FROM node:26.9.0-alpine3.24@sha256:dbaa92e5758cbbcf85d65d5403fdb530fe3442cbe8c6dbfb7ef23365450d5070 AS node-base
+
+RUN npm install --global npm@12.0.2 --ignore-scripts \
+    && test "$(npm --version)" = "12.0.2"
+
+FROM node-base AS node-builder
 
 WORKDIR /app
 
@@ -64,6 +69,12 @@ COPY . .
 COPY --from=production-vendor /var/www/html/vendor ./vendor
 
 RUN npm run build
+
+# Development target used by docker-compose for the Vite process. This keeps
+# local containers on the same reviewed npm version and install-script policy.
+FROM node-base AS node-development
+
+WORKDIR /workspace
 
 # PHP Production Stage
 FROM production-vendor AS production

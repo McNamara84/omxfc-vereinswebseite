@@ -49,6 +49,21 @@ class RomanExcerpt extends Model
         return 'id';
     }
 
+    public function searchableAs(): string
+    {
+        $index = (string) config('scout.prefix').$this->getTable();
+
+        if (config('kompendium.search.index_variant', 'lexical') !== 'hybrid') {
+            return $index;
+        }
+
+        return sprintf(
+            '%s_hybrid_v%d',
+            $index,
+            max(1, (int) config('kompendium.search.index_version', 1)),
+        );
+    }
+
     /*  Daten für Index – enthält Typesense-ID und den Originalpfad */
     public function toSearchableArray(): array
     {

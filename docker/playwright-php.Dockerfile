@@ -1,4 +1,4 @@
-FROM php:8.5-cli@sha256:9ebdf4c28ab12c02085e171c31e22ac5f7bbb6a9f6927e3bc3dfe7ee23df51e0
+FROM php:8.5.10-cli-bookworm@sha256:97c41462ce985a92b3fcb29dc02d5da568c7865ccb9fb9b0f712e192ad09e1bf
 
 # php:8.5-cli ships with sqlite3 and pdo_sqlite already enabled.
 RUN apt-get update \

@@ -24,7 +24,7 @@ class Alert extends Component
         return <<<'BLADE'
                 @php($hasBody = trim((string) $slot) !== '')
 
-                <div {{ $attributes->class(['alert rounded-md', 'shadow-md' => $shadow])->merge(['x-data' => '{ show: true }', 'x-show' => 'show']) }}>
+                <div {{ $attributes->class(['alert rounded-md', 'shadow-md' => $shadow])->merge(['role' => 'status', 'x-data' => '{ show: true }', 'x-show' => 'show']) }}>
                     @if($icon)
                         <x-icon :name="$icon" class="mt-0.5 h-5 w-5 shrink-0 self-start" />
                     @endif

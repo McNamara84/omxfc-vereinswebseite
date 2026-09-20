@@ -17,6 +17,7 @@ use Tests\TestCase;
 #[CoversMethod(KompendiumSearchService::class, 'hasPositiveOperands')]
 #[CoversMethod(KompendiumSearchService::class, 'matchesText')]
 #[CoversMethod(KompendiumSearchService::class, 'postFilterResultPaths')]
+#[CoversMethod(KompendiumSearchService::class, 'searchModeFor')]
 class KompendiumSearchQueryParserTest extends TestCase
 {
     use RefreshDatabase;
@@ -27,6 +28,57 @@ class KompendiumSearchQueryParserTest extends TestCase
     {
         parent::setUp();
         $this->service = new KompendiumSearchService;
+    }
+
+    #[Test]
+    public function hybrid_search_is_limited_to_simple_positive_typesense_queries(): void
+    {
+        Config::set('kompendium.search.mode', 'hybrid');
+        Config::set('kompendium.search.index_variant', 'hybrid');
+        Config::set('scout.driver', 'typesense');
+
+        $this->assertSame(
+            'hybrid',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula')),
+        );
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('"Matthew Drax"')),
+        );
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula OR Aruula')),
+        );
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula NOT Drax')),
+        );
+    }
+
+    #[Test]
+    public function lexical_mode_remains_the_kill_switch(): void
+    {
+        Config::set('kompendium.search.mode', 'lexical');
+        Config::set('kompendium.search.index_variant', 'hybrid');
+        Config::set('scout.driver', 'typesense');
+
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula')),
+        );
+    }
+
+    #[Test]
+    public function hybrid_queries_require_the_hybrid_index_variant(): void
+    {
+        Config::set('kompendium.search.mode', 'hybrid');
+        Config::set('kompendium.search.index_variant', 'lexical');
+        Config::set('scout.driver', 'typesense');
+
+        $this->assertSame(
+            'lexical',
+            $this->service->searchModeFor($this->service->parseSearchQuery('Aruula')),
+        );
     }
 
     /* --------------------------------------------------------------------- */

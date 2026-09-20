@@ -2,8 +2,10 @@
     "private": true,
     "type": "module",
     "engines": {
-        "node": ">=26 <27"
+        "node": ">=26 <27",
+        "npm": "12.0.2"
     },
+    "packageManager": "npm@12.0.2",
     "scripts": {
         "build": "vite build",
         "dev": "vite",
@@ -29,32 +31,30 @@
         "@playwright/test": "^1.63.0",
         "@tailwindcss/typography": "^0.5.20",
         "@tailwindcss/vite": "^4.3.3",
-        "@vitest/coverage-v8": "^5.0.0",
+        "@vitest/coverage-v8": "^5.0.1",
         "chart.js": "^4.5.1",
         "concurrently": "^10.0.5",
-        "daisyui": "^5.7.37",
-        "jsdom": "^30.0.1",
+        "daisyui": "^5.7.42",
+        "jsdom": "^30.1.0",
         "laravel-vite-plugin": "^3.2.0",
-        "puppeteer": "^25.10.0",
         "tailwindcss": "^4.3.3",
         "vite": "^8.3.0",
-        "vitest": "^5.0.0",
-        "zod": "^4.6.2"
+        "vitest": "^5.0.1",
+        "zod": "^4.6.5"
     },
     "dependencies": {
-        "@alpinejs/anchor": "^3.17.2",
-        "@alpinejs/collapse": "^3.17.2",
-        "@alpinejs/focus": "^3.17.2",
-        "@alpinejs/persist": "^3.17.2",
+        "@alpinejs/anchor": "^3.17.3",
+        "@alpinejs/collapse": "^3.17.3",
+        "@alpinejs/focus": "^3.17.3",
+        "@alpinejs/persist": "^3.17.3",
         "@fontsource-variable/figtree": "^5.3.0",
         "@fontsource-variable/space-grotesk": "^5.3.0",
-        "alpinejs": "^3.17.2",
+        "alpinejs": "^3.17.3",
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3",
         "three": "^0.186.0"
     },
     "allowScripts": {
-        "fsevents@2.3.3": true,
-        "puppeteer@25.10.0": true
+        "fsevents@2.3.3": true
     }
 }

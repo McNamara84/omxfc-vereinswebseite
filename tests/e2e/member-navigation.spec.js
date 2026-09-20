@@ -72,6 +72,35 @@ test('mobile member drawer opens, closes with escape and closes after navigation
   await expect(page.locator('#member-drawer')).not.toBeChecked();
 });
 
+test('member navigation transitions only the content region and respects reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => {
+    window.__omxfcViewTransitionCalls = 0;
+
+    if (typeof document.startViewTransition === 'function') {
+      const startViewTransition = document.startViewTransition.bind(document);
+      document.startViewTransition = (callback) => {
+        window.__omxfcViewTransitionCalls += 1;
+        return startViewTransition(callback);
+      };
+    }
+  });
+  await login(page);
+
+  const content = page.getByTestId('member-content');
+  await expect(content).toHaveCount(1);
+  await expect(content).toHaveAttribute('wire:transition.navigate', 'member-content');
+
+  await page.evaluate(() => window.Livewire.navigate('/mitglieder'));
+  await expect(page).toHaveURL(/\/mitglieder$/);
+  await expect(page.getByTestId('member-content')).toHaveCount(1);
+  expect(await page.evaluate(() => window.__omxfcViewTransitionCalls)).toBe(0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByTestId('member-content')).toHaveCount(1);
+});
+
 [
   { width: 768, mobile: true },
   { width: 1023, mobile: true },
