@@ -55,7 +55,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /root/maddrax-fanclub
+            cd /opt/stacks/omxfc
 
             COMPOSE="docker compose --env-file .env.production"
             QUEUES_PAUSED=0
@@ -223,10 +223,12 @@ jobs:
             done
             
             echo "=== Testing connectivity ==="
-            if curl -f http://localhost:8080 >/dev/null 2>&1; then
-              echo "✅ Local connectivity test: PASSED"
+            # nginx veröffentlicht keinen Host-Port mehr (Traefik ist der einzige Eintrittspunkt).
+            # Geprüft wird 1) der nginx-Container direkt und 2) der Weg über Traefik inkl. Zertifikat.
+            if docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/               && curl -fsS --max-time 20 --resolve maddrax-fanclub.de:443:127.0.0.1 https://maddrax-fanclub.de/ >/dev/null; then
+              echo "✅ Connectivity test (nginx + Traefik): PASSED"
             else
-              echo "❌ Local connectivity test: FAILED"
+              echo "❌ Connectivity test (nginx + Traefik): FAILED"
               echo "Container logs for debugging:"
               echo "=== Nginx logs ==="
               docker logs --tail=20 maddrax-nginx
