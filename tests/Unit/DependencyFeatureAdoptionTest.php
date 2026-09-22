@@ -53,7 +53,9 @@ class DependencyFeatureAdoptionTest extends TestCase
     public function test_deployment_prunes_only_stale_dangling_images_after_health_checks(): void
     {
         $workflow = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/deploy.yml');
-        $connectivityCheck = strpos($workflow, 'curl -f http://localhost:8080');
+        // nginx no longer publishes a host port (Traefik is the only entrypoint), so the
+        // connectivity check goes through the nginx container directly and via Traefik/TLS.
+        $connectivityCheck = strpos($workflow, 'docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/');
         $imagePrune = strpos($workflow, 'docker image prune --force --filter "until=168h"');
 
         $this->assertNotFalse($connectivityCheck);
