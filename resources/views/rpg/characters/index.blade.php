@@ -7,6 +7,10 @@
             data-testid="rpg-characters-header"
         >
             <x-slot:actions>
+                @can('manage-rpg-experience')
+                    <a href="{{ route('rpg.adventures.create') }}" class="btn btn-outline">EP vergeben</a>
+                    <a href="{{ route('rpg.advancements.index') }}" class="btn btn-outline">Verbesserungen prüfen</a>
+                @endcan
                 <a href="{{ route('rpg.char-editor') }}" class="btn btn-primary">
                     <x-icon name="o-plus" class="h-4 w-4" />
                     Neuer Charakter
@@ -47,6 +51,7 @@
                                     <th>Rasse</th>
                                     <th>Kultur</th>
                                     <th>Gespeichert</th>
+                                    <th>Erfahrung</th>
                                     <th class="text-right">Aktionen</th>
                                 </tr>
                             </thead>
@@ -61,9 +66,14 @@
                                         <td>{{ $characterPayload['race'] ?? '' }}</td>
                                         <td>{{ $characterPayload['culture'] ?? '' }}</td>
                                         <td>{{ $character->created_at?->format('d.m.Y H:i') }}</td>
+                                        <td>{{ (int) $character->experience_balance }} EP @if($character->has_pending_advancement)<span class="badge badge-outline">Zur Prüfung</span>@endif</td>
 
                                         <td>
-                                            <div class="flex justify-end gap-2">
+                                            <div class="flex flex-wrap justify-end gap-2">
+                                                @can('improve', $character)
+                                                    <a href="{{ route('rpg.characters.improve', $character) }}" class="btn btn-primary btn-sm">Charakter verbessern</a>
+                                                @endcan
+                                                <a href="{{ route('rpg.characters.history', $character) }}" class="btn btn-ghost btn-sm">Verlauf</a>
                                                 <a href="{{ route('rpg.characters.pdf', $character) }}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-testid="rpg-character-pdf-button">
                                                     <x-icon name="o-document-text" class="h-4 w-4" />
                                                     PDF

@@ -14,10 +14,12 @@ use App\Models\MaddraxikonAccountLink;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\RewardPurchase;
+use App\Models\RpgExperienceAward;
 use App\Models\Todo;
 use App\Models\User;
 use App\Services\FanfictionAccessService;
 use App\Services\RewardService;
+use App\Services\RpgAccess;
 use App\Support\PreviewText;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -38,6 +40,7 @@ class DashboardActivityPresenter
         Todo::class => 'Challenge',
         User::class => 'Mitglied',
         MaddraxikonAccountLink::class => 'Maddraxikon',
+        RpgExperienceAward::class => 'Rollenspiel',
     ];
 
     public function __construct(
@@ -53,6 +56,16 @@ class DashboardActivityPresenter
     {
         $this->addFanfictionPreviews($activities, $viewer);
         $this->addPresentationMetadata($activities);
+        if ($activities->contains(fn (Activity $activity): bool => $activity->subject_type === RpgExperienceAward::class)) {
+            $canImprove = app(RpgAccess::class)->isMember($viewer->id);
+            foreach ($activities as $activity) {
+                if ($activity->subject instanceof RpgExperienceAward) {
+                    $character = $activity->subject->character;
+                    $activity->setAttribute('dashboard_improve_url', $canImprove && $character?->user_id === $viewer->id
+                        ? route('rpg.characters.improve', $character) : null);
+                }
+            }
+        }
 
         return $this->groupMilestones($activities);
     }

@@ -51,7 +51,7 @@ class TourControllerTest extends TestCase
             ->assertJsonPath('tour.assignment_id', $assignment->id)
             ->assertJsonPath('tour.key', 'hauptmenue')
             ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value)
-            ->assertJsonCount(35, 'tour.steps');
+            ->assertJsonCount(36, 'tour.steps');
     }
 
     public function test_current_conditionally_includes_cover_ratings_navigation_step(): void
@@ -64,7 +64,7 @@ class TourControllerTest extends TestCase
             ->getJson(route('touren.current'))
             ->assertOk()
             ->assertJsonPath('tour.assignment_id', $assignment->id)
-            ->assertJsonCount(36, 'tour.steps');
+            ->assertJsonCount(37, 'tour.steps');
 
         $coverStep = collect($response->json('tour.steps'))
             ->firstWhere('key', 'community-cover-ratings');
@@ -111,7 +111,7 @@ class TourControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tour.current_step_key', 'profile-settings')
             ->assertJsonPath('tour.status', TourAssignmentStatus::InProgress->value)
-            ->assertJsonPath('tour.current_step_index', 34);
+            ->assertJsonPath('tour.current_step_index', 35);
 
         $this->assertDatabaseHas('tour_assignments', [
             'id' => $assignment->id,
@@ -119,6 +119,27 @@ class TourControllerTest extends TestCase
             'current_step_key' => 'profile-settings',
         ]);
         $this->assertNotNull($assignment->fresh()->started_at);
+    }
+
+    public function test_previous_navigation_tour_upgrades_and_accepts_character_step_progress(): void
+    {
+        $member = $this->createMember();
+        $rpg = Team::factory()->create(['name' => 'AG Rollenspiel', 'personal_team' => false]);
+        $rpg->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $previous = $this->createPendingAssignment($member, 5);
+        $response = $this->actingAs($member)
+            ->getJson(route('touren.current'))
+            ->assertOk()
+            ->assertJsonPath('tour.version', 6);
+        $steps = collect($response->json('tour.steps'));
+        $this->assertSame(1, $steps->where('key', 'teams-characters')->count());
+        $this->assertSame(6, $previous->fresh()->metadata['superseded_by_version']);
+        $this->assertNotSame($previous->id, $response->json('tour.assignment_id'));
+
+        $this->postJson(route('touren.progress', $response->json('tour.assignment_id')), ['step_key' => 'teams-characters'])
+            ->assertOk()
+            ->assertJsonPath('tour.current_step_key', 'teams-characters')
+            ->assertJsonPath('tour.current_step_index', $steps->search(fn ($step) => $step['key'] === 'teams-characters'));
     }
 
     public function test_progress_rejects_step_key_outside_tour_definition(): void

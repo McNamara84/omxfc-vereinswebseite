@@ -160,6 +160,64 @@ jobs:
       - name: Execute Maddraxikon tests on MariaDB
         run: php vendor/bin/phpunit --configuration=phpunit.mariadb.xml
 
+  rpg_mariadb:
+    runs-on: ubuntu-latest
+    name: PHP 8.5 RPG Concurrency (MariaDB 12.3)
+    timeout-minutes: 15
+    services:
+      mariadb:
+        image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
+        env:
+          MARIADB_DATABASE: omxfc_rpg_test
+          MARIADB_USER: omxfc_test
+          MARIADB_PASSWORD: omxfc_test_password
+          MARIADB_ROOT_PASSWORD: omxfc_root_test_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mariadb-admin ping -h 127.0.0.1 -u root
+          -pomxfc_root_test_password"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    # Job-level environment is also inherited by the independent PHP workers.
+    env:
+      APP_ENV: testing
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: omxfc_rpg_test
+      DB_USERNAME: omxfc_test
+      DB_PASSWORD: omxfc_test_password
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+        with:
+          php-version: '8.5'
+          extensions: pdo_mysql, intl, zip
+          coverage: none
+      - name: Generate ephemeral application key
+        run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache Composer dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-8.5-mariadb-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-mariadb-composer-
+            ${{ runner.os }}-php-8.5-composer-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Execute RPG concurrency tests on MariaDB
+        # RefreshDatabase creates the schema in this isolated database.
+        # A misconfigured connection must fail the job instead of silently skipping.
+        run: php vendor/bin/pest --configuration phpunit.rpg-mariadb.xml --fail-on-skipped --compact
+
   browser_preview:
     runs-on: ubuntu-latest
     name: PHP 8.5 Browser Preview Regression

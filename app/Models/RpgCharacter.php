@@ -6,6 +6,7 @@ use Database\Factories\RpgCharacterFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -35,7 +36,36 @@ class RpgCharacter extends Model
     {
         return [
             'payload' => 'array',
+            'initial_payload' => 'array',
+            'revision' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $character): void {
+            $character->initial_payload = $character->payload;
+        });
+        static::updating(function (self $character): void {
+            if ($character->isDirty('initial_payload')) {
+                throw new \LogicException('Der Ausgangsstand des Charakters ist unveränderlich.');
+            }
+        });
+    }
+
+    public function experienceEntries(): HasMany
+    {
+        return $this->hasMany(RpgExperienceEntry::class);
+    }
+
+    public function advancements(): HasMany
+    {
+        return $this->hasMany(RpgAdvancementRequest::class);
+    }
+
+    public function experienceBalance(): int
+    {
+        return (int) $this->experienceEntries()->sum('amount');
     }
 
     public function user(): BelongsTo

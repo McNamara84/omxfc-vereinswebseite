@@ -14,11 +14,13 @@ use App\Models\MaddraxikonAccountLink;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\RewardPurchase;
+use App\Models\RpgExperienceAward;
 use App\Models\Todo;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Throwable;
 
 class DashboardActivityQuery
@@ -92,7 +94,11 @@ class DashboardActivityQuery
 
         $positions = array_flip($ids);
         $activities = Activity::query()
-            ->with(['user', 'subject'])
+            ->with(['user', 'subject' => function (MorphTo $subject): void {
+                $subject->constrain([
+                    RpgExperienceAward::class => fn (Builder $query) => $query->select(['id', 'rpg_character_id', 'character_name', 'points']),
+                ]);
+            }])
             ->whereIn('id', $ids)
             ->get()
             ->sortBy(fn (Activity $activity): int => $positions[$activity->id] ?? PHP_INT_MAX)
@@ -125,7 +131,7 @@ class DashboardActivityQuery
                     });
             }),
             'club' => $query->where(function (Builder $query): void {
-                $query->whereIn('subject_type', [AdminMessage::class, FantreffenAnmeldung::class])
+                $query->whereIn('subject_type', [AdminMessage::class, FantreffenAnmeldung::class, RpgExperienceAward::class])
                     ->orWhere(function (Builder $members): void {
                         $members->where('subject_type', User::class)
                             ->where('action', 'member_approved');
@@ -141,6 +147,7 @@ class DashboardActivityQuery
     private function loadMorphRelations(Collection $activities): void
     {
         $activities->loadMorph('subject', [
+            RpgExperienceAward::class => ['character:id,user_id'],
             BookSwap::class => ['offer.user', 'request.user'],
             Fanfiction::class => ['reward'],
             FanfictionComment::class => ['fanfiction.reward'],
