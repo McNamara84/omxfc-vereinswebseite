@@ -148,7 +148,7 @@ class MaddraxikonRewardServiceTest extends TestCase
             $contributions->push($this->contribution($link, [
                 'page_id' => 20_000 + $index,
                 'page_title' => 'Artikel '.$index,
-                'occurred_at' => now()->subHours(30)->addMinutes($index),
+                'occurred_at' => now()->subDays(2)->startOfDay()->addHour()->addMinutes($index),
             ]));
         }
 
@@ -182,11 +182,11 @@ class MaddraxikonRewardServiceTest extends TestCase
 
         $first = $this->contribution($link, [
             'page_id' => 123,
-            'occurred_at' => now()->subHours(30),
+            'occurred_at' => now()->subDays(2)->startOfDay()->addHour(),
         ]);
         $second = $this->contribution($link, [
             'page_id' => 123,
-            'occurred_at' => now()->subHours(30)->addMinutes(30),
+            'occurred_at' => now()->subDays(2)->startOfDay()->addHour()->addMinutes(30),
             'session_anchor_revision_id' => $first->revision_id,
         ]);
         $first->update(['session_anchor_revision_id' => $first->revision_id]);
@@ -660,7 +660,7 @@ class MaddraxikonRewardServiceTest extends TestCase
     public function test_edit_sessions_are_sequenced_by_last_activity_then_revision(): void
     {
         [, $link] = $this->linkedMember();
-        $start = now()->subHours(30);
+        $start = now()->subDays(2)->startOfDay()->addHour();
         $longSession = $this->contribution($link, [
             'page_id' => 900,
             'occurred_at' => $start,
@@ -834,7 +834,7 @@ class MaddraxikonRewardServiceTest extends TestCase
         config(['maddraxikon.evaluation.api_batch_size' => 2]);
         [$user, $link] = $this->linkedMember();
         $articles = collect();
-        $startedAt = now()->subHours(30);
+        $startedAt = now()->subDays(2)->startOfDay()->addHour();
 
         foreach (range(1, 5) as $index) {
             $articles->push($this->contribution($link, [
@@ -1279,20 +1279,20 @@ class MaddraxikonRewardServiceTest extends TestCase
             'page_id' => 123,
             'old_size' => 1000,
             'new_size' => 1100,
-            'occurred_at' => now()->subHours(30),
+            'occurred_at' => now()->subDays(2)->startOfDay()->addHour(),
         ]);
         $reverted = $this->contribution($link, [
             'page_id' => 123,
             'old_size' => 1100,
             'new_size' => 1600,
-            'occurred_at' => now()->subHours(30)->addMinutes(10),
+            'occurred_at' => now()->subDays(2)->startOfDay()->addHour()->addMinutes(10),
             'session_anchor_revision_id' => $first->revision_id,
         ]);
         $last = $this->contribution($link, [
             'page_id' => 123,
             'old_size' => 1600,
             'new_size' => 1700,
-            'occurred_at' => now()->subHours(30)->addMinutes(20),
+            'occurred_at' => now()->subDays(2)->startOfDay()->addHour()->addMinutes(20),
             'session_anchor_revision_id' => $first->revision_id,
         ]);
         $first->update(['session_anchor_revision_id' => $first->revision_id]);
