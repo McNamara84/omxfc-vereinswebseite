@@ -40,7 +40,7 @@ class RpgProgressionController extends Controller
     {
         $this->authorize('manage-rpg-experience');
         $team = $this->access->team();
-        $characters = RpgCharacter::with('user')->whereHas('user.teams', fn ($query) => $query->where('teams.id', $team->id))->orderBy('character_name')->get();
+        $characters = RpgCharacter::with('user')->whereIn('user_id', $team->activeUsers()->select('users.id'))->orderBy('character_name')->get();
 
         return view('rpg.progression.award', ['config' => [
             'mode' => 'award', 'submission_key' => (string) Str::uuid(), 'today' => now()->toDateString(),

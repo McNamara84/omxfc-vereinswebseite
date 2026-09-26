@@ -49,7 +49,7 @@ class RpgCheckQuery
                 };
             }
         }
-        $members = $team->users()->pluck('users.id')->all();
+        $members = $team->activeUsers()->pluck('users.id')->all();
         $page = $query->latest('id')->paginate($hints ? 5 : 15, ['*'], 'page', max(1, (int) ($filters['page'] ?? 1)));
         $present = fn ($check) => $this->presenter->present($check, $user, $team, $members);
         $result = ['checks' => $page->getCollection()->map($present)->all(), 'page' => $page->currentPage(),

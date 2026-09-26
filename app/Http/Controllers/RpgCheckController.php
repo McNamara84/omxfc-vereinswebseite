@@ -47,7 +47,7 @@ class RpgCheckController extends Controller
         $team = $this->access->team();
         $leader = $this->access->isLeader($request->user());
 
-        return RpgCharacter::with('user')->whereHas('user.teams', fn ($q) => $q->where('teams.id', $team->id))
+        return RpgCharacter::with('user')->whereIn('user_id', $team->activeUsers()->select('users.id'))
             ->when($create, fn ($q) => $q->where('user_id', '!=', $request->user()->id))
             ->when(! $leader, fn ($q) => $q->where('user_id', $request->user()->id))
             ->orderBy('character_name')->get()->map(fn ($character) => [

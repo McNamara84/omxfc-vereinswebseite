@@ -62,13 +62,13 @@ class RpgCheckService
     private function snapshots(Team $team, array $data, bool $checkRevision = false): array
     {
         $characters = RpgCharacter::whereIn('id', array_column($data['participants'], 'character_id'))->get()->keyBy('id');
-        $memberIds = $team->users()->pluck('users.id')->all();
+        $memberIds = $team->activeUsers()->pluck('users.id')->all();
         $names = new RpgCharacterSheetService;
         $rows = [];
         foreach ($data['participants'] as $spec) {
             $character = $characters->get($spec['character_id']);
             RpgCheckInput::ensure($character !== null && $character->user_id !== $team->user_id && in_array($character->user_id, $memberIds, true),
-                'Alle Charaktere müssen anderen aktuellen Mitgliedern der AG Rollenspiel gehören.');
+                'Alle Charaktere müssen anderen aktiven Mitgliedern der AG Rollenspiel gehören.');
             RpgCheckInput::ensure(! $checkRevision || $character->revision === $spec['revision'], 'Ein Charakter wurde geändert. Bitte die Vorschau erneut prüfen.');
             $payload = $character->payload;
             $attribute = $payload['attributes'][$spec['attribute_key']] ?? null;
@@ -102,7 +102,7 @@ class RpgCheckService
 
     public function executable(RpgCheck $check, Team $team, ?array $memberIds = null): bool
     {
-        $memberIds ??= $team->users()->pluck('users.id')->all();
+        $memberIds ??= $team->activeUsers()->pluck('users.id')->all();
 
         return $check->participants->every(fn ($p) => $p->character !== null && $p->owner_id !== $team->user_id
             && $p->character->user_id === $p->owner_id && in_array($p->owner_id, $memberIds, true));

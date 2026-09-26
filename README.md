@@ -262,6 +262,12 @@ Tab ungefähr alle fünf Sekunden. Die Leitung kann offene Proben stornieren.
 Abgeschlossene Würfe bleiben im geschützten Verlauf erhalten. Ein Administratorstatus
 allein verleiht keine Probenrechte.
 
+Teilnahme und Zugriff setzen eine aktive Mitgliedschaft in der AG Rollenspiel
+voraus. Die AG-Rolle **Anwärter** berechtigt weder zum Zugriff noch zur Auswahl
+des eigenen Charakters als Probenteilnehmer, auch wenn ein anderes Team aktuell
+ausgewählt ist. Nach einer Rollenänderung werden die Rechte bei jedem Abruf und
+jeder Aktion erneut geprüft.
+
 Vor der ersten Nutzung `php artisan migrate` und `npm run build` ausführen.
 Es werden drei neue Tabellen angelegt; bestehende Charakterwerte und EP bleiben
 unverändert. Details stehen im
