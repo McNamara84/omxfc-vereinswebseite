@@ -144,6 +144,15 @@ return [
                         ['mitglieder_roles_any' => [Role::Admin]],
                     ],
                 ],
+                [
+                    'title' => 'Meine Charaktere',
+                    'route' => 'rpg.characters.index',
+                    'icon' => 'o-identification',
+                    'visible_any' => [
+                        ['team_any' => ['AG Rollenspiel']],
+                        ['mitglieder_roles_any' => [Role::Admin]],
+                    ],
+                ],
             ],
         ],
         [

@@ -35,6 +35,7 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\RpgCharacterController;
 use App\Http\Controllers\RpgCharEditorController;
+use App\Http\Controllers\RpgProgressionController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TourAdminController;
@@ -401,6 +402,25 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor.pdf.show')
         ->middleware('can:access-rpg-char-editor')
         ->whereUuid('token');
+
+    Route::prefix('rpg')->controller(RpgProgressionController::class)
+        ->middleware('can:access-rpg-char-editor')->group(function () {
+            Route::get('/abenteuer', 'adventures')->name('rpg.adventures.index');
+            Route::get('/abenteuer/neu', 'createAdventure')->name('rpg.adventures.create');
+            Route::post('/abenteuer/vorschau', 'previewAdventure')->name('rpg.adventures.preview');
+            Route::post('/abenteuer', 'storeAdventure')->name('rpg.adventures.store');
+            Route::get('/abenteuer/{adventure}', 'showAdventure')->whereNumber('adventure')->name('rpg.adventures.show');
+            Route::get('/charaktere/{rpgCharacter}/verbessern', 'improve')->whereNumber('rpgCharacter')->name('rpg.characters.improve');
+            Route::post('/charaktere/{rpgCharacter}/verbesserungsvorschau', 'preview')->whereNumber('rpgCharacter')->name('rpg.characters.advancement-preview');
+            Route::post('/charaktere/{rpgCharacter}/verbesserungen', 'store')->whereNumber('rpgCharacter')->name('rpg.characters.advancements.store');
+            Route::get('/charaktere/{rpgCharacter}/historie', 'history')->whereNumber('rpgCharacter')->name('rpg.characters.history');
+            Route::post('/charaktere/{rpgCharacter}/herkunft', 'clarify')->whereNumber('rpgCharacter')->name('rpg.characters.clarify');
+            Route::get('/verbesserungen', 'requests')->name('rpg.advancements.index');
+            Route::get('/verbesserungen/{advancementRequest}', 'show')->whereNumber('advancementRequest')->name('rpg.advancements.show');
+            Route::post('/verbesserungen/{advancementRequest}/genehmigen', 'approve')->whereNumber('advancementRequest')->name('rpg.advancements.approve');
+            Route::post('/verbesserungen/{advancementRequest}/ablehnen', 'reject')->whereNumber('advancementRequest')->name('rpg.advancements.reject');
+            Route::post('/verbesserungen/{advancementRequest}/zurueckziehen', 'withdraw')->whereNumber('advancementRequest')->name('rpg.advancements.withdraw');
+        });
 
     Route::prefix('rpg/charaktere')
         ->name('rpg.characters.')

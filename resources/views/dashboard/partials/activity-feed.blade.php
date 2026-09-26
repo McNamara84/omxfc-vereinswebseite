@@ -79,6 +79,11 @@
                         <span class="text-base-content italic">
                             {{ $missingSubjectMessage }}
                         </span>
+                    @elseif($activity->subject_type === \App\Models\RpgExperienceAward::class)
+                        <p>Charakter {{ $subject->character_name }} von {{ $activityUserName ?? 'einem ehemaligen Mitglied' }} erhält {{ $subject->points }} EP.</p>
+                        @if($activity->dashboard_improve_url)
+                            <a class="btn btn-primary btn-sm mt-2" href="{{ $activity->dashboard_improve_url }}">Charakter verbessern</a>
+                        @endif
                     @elseif($isFantreffenRegistration)
                         @php
                             $registrantName = $activityUser?->displayAlias()

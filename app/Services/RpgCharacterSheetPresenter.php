@@ -91,6 +91,9 @@ final class RpgCharacterSheetPresenter
             'equipment' => $this->equipmentText($equipment),
             'ammunition' => $this->ammunitionText($equipment['ammunition'] ?? []),
             'notes' => $this->short($equipment['notes'] ?? '', 180),
+            'experience' => $data['experience'] ?? null,
+            'progression_payload' => $data,
+            'psychic' => (new RpgCharacterPsychicCalculator)->calculate($data),
         ];
     }
 

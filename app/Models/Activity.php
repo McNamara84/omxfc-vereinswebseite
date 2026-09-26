@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Activity extends Model
 {
+    public const ACTION_RPG_EXPERIENCE_AWARDED = 'rpg_experience_awarded';
+
     public const ACTION_MADDRAXIKON_ACCOUNT_LINKED = 'maddraxikon_account_linked';
 
     public const ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX = 'maddraxikon_baxx_awarded_';

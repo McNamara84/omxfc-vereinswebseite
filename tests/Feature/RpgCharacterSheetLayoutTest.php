@@ -17,13 +17,16 @@ class RpgCharacterSheetLayoutTest extends TestCase
 
     public static function sheetVariants(): array
     {
-        return ['without portrait' => [false, false], 'with portrait' => [true, false], 'maximum text lengths' => [false, true], 'maximum text lengths with portrait' => [true, true]];
+        return ['without portrait' => [false, false], 'with portrait' => [true, false], 'maximum text lengths' => [false, true], 'maximum text lengths with portrait' => [true, true], 'saved character with experience summary' => [true, true, true]];
     }
 
     #[DataProvider('sheetVariants')]
-    public function test_equipment_details_remain_visible_above_source_footer(bool $withPortrait, bool $maximumText): void
+    public function test_equipment_details_remain_visible_above_source_footer(bool $withPortrait, bool $maximumText, bool $withExperience = false): void
     {
         $data = require __DIR__.'/../Fixtures/rpg-sheet-layout.php';
+        if ($withExperience) {
+            $data['experience'] = ['received' => 80, 'spent' => 50, 'balance' => 30, 'entries' => []];
+        }
         if ($withPortrait) {
             $data['portrait'] = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=';
         }

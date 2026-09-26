@@ -6,6 +6,7 @@ use App\Models\RpgCharacter;
 use App\Models\User;
 use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
+use App\Services\RpgProgressionHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,8 @@ class RpgCharacterController extends Controller
         return view('rpg.characters.index', [
             'characters' => RpgCharacter::query()
                 ->where('user_id', $user->id)
+                ->withSum('experienceEntries as experience_balance', 'amount')
+                ->withExists(['advancements as has_pending_advancement' => fn ($query) => $query->where('status', 'pending')])
                 ->latest()
                 ->get(),
             'slotSummary' => $this->slotService->summary($user),
@@ -83,8 +86,14 @@ class RpgCharacterController extends Controller
     {
         $this->authorize('view', $rpgCharacter);
 
-        $payload = $rpgCharacter->payload;
-        $payload['portrait'] = $this->portraitDataUrl($rpgCharacter);
+        $payload = DB::transaction(function () use ($rpgCharacter): array {
+            $character = RpgCharacter::lockForUpdate()->findOrFail($rpgCharacter->id);
+            $data = $character->payload;
+            $data['experience'] = app(RpgProgressionHistory::class)->forCharacter($character);
+            $data['portrait'] = $this->portraitDataUrl($character);
+
+            return $data;
+        });
 
         return $this->characterSheetService->characterSheetPdfResponse($payload);
     }
@@ -93,8 +102,13 @@ class RpgCharacterController extends Controller
     {
         $this->authorize('delete', $rpgCharacter);
 
-        $portraitPath = $rpgCharacter->portrait_path;
-        $rpgCharacter->delete();
+        $portraitPath = DB::transaction(function () use ($rpgCharacter): ?string {
+            $character = RpgCharacter::lockForUpdate()->findOrFail($rpgCharacter->id);
+            $path = $character->portrait_path;
+            $character->delete();
+
+            return $path;
+        });
         $this->deletePortraitIfPresent($portraitPath);
 
         return redirect()

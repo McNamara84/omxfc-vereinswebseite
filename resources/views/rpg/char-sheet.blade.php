@@ -9,7 +9,7 @@
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 7.6pt; line-height: 1.13; color: #111; }
         .rule-sources { margin-top: 1mm; font-size: 6pt; text-align: center; }
-        .sheet { width: 202mm; page-break-after: avoid; }
+        .sheet { width: 202mm; position: relative; page-break-after: avoid; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         td, th { vertical-align: top; }
         .header { height: 25mm; }
@@ -75,9 +75,25 @@
         .notes { margin-top: 1mm; padding-top: 0.7mm; border-top: 0.2mm solid #aaa; font-size: 5.8pt; }
         .situational { margin-top: 0.8mm; font-size: 5.6pt; font-style: italic; }
         .muted { color: #555; }
+        .experience-summary { position: absolute; left: 55mm; top: 2mm; width: 42mm; padding: 1mm; border: 0.2mm solid #aaa; font-size: 7pt; line-height: 1.25; }
+        .experience-summary .hint { font-size: 5.5pt; }
+        .progression-pages { page-break-before: always; font-size: 9pt; line-height: 1.35; }
+        .progression-pages h1 { font-size: 15pt; }
+        .progression-pages h2 { font-size: 12pt; margin: 4mm 0 2mm; }
+        .progression-pages h3 { font-size: 10pt; margin: 3mm 0 1mm; }
+        .progression-pages p { margin: 1mm 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .progression-pages table { table-layout: fixed; margin-bottom: 3mm; }
+        .progression-pages th, .progression-pages td { border: 0.2mm solid #aaa; padding: 1mm; overflow-wrap: anywhere; }
+        .progression-pages thead { display: table-header-group; }
+        .progression-pages tr { page-break-inside: avoid; }
+        .page-number { position: fixed; right: 0; bottom: 2mm; height: 3mm; font-size: 6pt; line-height: 1; }
+        .page-number:after { content: counter(page); }
     </style>
 </head>
 <body>
+@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']))
+    <div class="page-number">Seite </div>
+@endif
 @php
     if (! isset($sheet) || ! is_array($sheet)) {
         $fallbackPayload = [
@@ -110,6 +126,14 @@
     $armorBlankRows = max(0, 6 - max(1, count($sheet['armor'])));
 @endphp
 <div class="sheet">
+    @if($sheet['experience'] ?? null)
+        <div class="experience-summary">
+            <div>EP erhalten: {{ $sheet['experience']['received'] }}</div>
+            <div>Ausgegeben: {{ $sheet['experience']['spent'] }}</div>
+            <div><strong>Verfügbar: {{ $sheet['experience']['balance'] }} EP</strong></div>
+            @if(! empty($sheet['experience']['entries']))<div class="hint">Details und Verlauf auf Folgeseiten</div>@endif
+        </div>
+    @endif
     <table class="header">
         <tr>
             <td class="logo-cell">
@@ -285,5 +309,8 @@
     </table>
     <div class="rule-sources">{{ $sheet['rule_sources'] ?? 'Basisregelwerk' }}</div>
 </div>
+@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']))
+    @include('rpg.partials.character-progression-history')
+@endif
 </body>
 </html>

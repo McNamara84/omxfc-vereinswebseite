@@ -602,6 +602,9 @@ class RpgCharacterSheetService
 
     public function characterSheetPdfResponse(array $data) // @pest-ignore-profanity -- RPG domain term.
     {
+        if (isset($data['experience'])) {
+            $data = (new RpgCharacterProgressionAdapter)->normalize($data);
+        }
         $character = is_array($data['character'] ?? null) ? $data['character'] : [];
         $name = Str::slug((string) ($character['character_name'] ?? 'charakter')) ?: 'charakter';
         $combat = (new RpgCharacterCombatCalculator)->calculate($data);
@@ -1889,7 +1892,7 @@ class RpgCharacterSheetService
         return $payload;
     }
 
-    private function canonicalSkillName(string $value): string
+    public function canonicalSkillName(string $value): string
     {
         $normalized = trim(preg_replace('/\s+/', ' ', str_replace('_', ' ', $value)) ?? '');
         $normalized = preg_replace('/\s*:\s*/', ': ', $normalized) ?? $normalized;
@@ -2068,7 +2071,7 @@ class RpgCharacterSheetService
         return array_intersect_key($values, array_flip($names));
     }
 
-    private function canonicalSpecialName(string $value): string
+    public function canonicalSpecialName(string $value): string
     {
         $normalized = str_replace('_', ' ', $value);
 
@@ -2319,7 +2322,7 @@ class RpgCharacterSheetService
         ];
     }
 
-    private function equipmentAmmunitionPayload(array $equipmentItems): array
+    public function equipmentAmmunitionPayload(array $equipmentItems): array
     {
         $itemMap = RpgCharEditorEquipment::itemMap();
         $payload = [];

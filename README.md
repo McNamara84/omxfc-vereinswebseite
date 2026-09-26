@@ -183,6 +183,54 @@ und beim PDF-Export angegeben. Ältere Charaktere ohne Quellenangaben verwenden 
 Basisregelwerk. Die Kulturzuordnungen, Regelboni und der Nachrichtentwurf für Stefan
 stehen im [Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-1-Erweiterung.md).
 
+### Erfahrungspunkte und Charakterverbesserung
+
+Unter **Meine Charaktere** (`/rpg/charaktere`) sieht die aktuelle Leitung der
+AG Rollenspiel die Einstiege **EP vergeben** und **Verbesserungen prüfen**.
+Die Leitung muss als Besitzer der AG (`teams.user_id`) hinterlegt und zugleich
+AG-Mitglied sein. Eine Administratorrolle allein genügt nicht.
+
+Die Vergabe erfasst Abenteuer, Abschlussdatum, Spielzeit und die Kriterien aus
+Seite 54 des Regelwerks. Der Server berechnet die EP; abweichende Beträge brauchen
+eine Begründung. Positive Vergaben erscheinen im Dashboard. Die Bewertung bleibt
+dem Charakterbesitzer und der Leitung vorbehalten.
+
+Besitzer wählen **Charakter verbessern** in der Charakterliste oder in ihrer
+Dashboard-Meldung. Nach einer verbindlichen Servervorschau können sie mehrere
+Änderungen gemeinsam beantragen. Erst die Genehmigung bucht EP ab und aktualisiert
+den Charakter. Ablehnung und Rücknahme verbrauchen keine EP; je Charakter ist ein
+offener Antrag möglich. Der Charakterbogen zeigt aktuelle Werte und EP sowie
+vollständige Angaben und den Buchungsverlauf auf Folgeseiten.
+
+Die Preise berücksichtigen einzelne Fertigkeitsstufen, doppelte Kosten für
+psychische Fertigkeiten, wiederholbare Vorteile und 60 EP für Gestaltwandler.
+Alte Charaktere behalten ihren Ausgangsstand. Fehlen die ursprüngliche
+Barbaren-Attributswahl oder Ziele früherer Vorteile, ergänzt die Leitung diese
+begründet im Charakterverlauf, ohne Werte oder EP zu verändern.
+Die fachlichen Festlegungen stehen im
+[EP-Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-Erfahrungspunkte.md).
+
+Vor der ersten Nutzung die Migrationen mit `php artisan migrate` und die Assets
+mit `npm run build` ausführen. Bestandscharaktere beginnen mit null dokumentierten
+EP; frühere Abenteuer lassen sich mit ihrem damaligen Abschlussdatum nachtragen.
+
+Gezielte Prüfungen:
+
+```bash
+php artisan test --filter 'Rpg|DashboardActivityFeedTest|ActivityFeedTest'
+npm run test:coverage -- tests/Vitest/rpg-progression.test.js tests/Vitest/char-editor.test.js tests/Vitest/dashboard-activity-feed.test.js
+npm run test:e2e:docker -- tests/e2e/rpg-progression.spec.js --project=chromium
+```
+
+`phpunit.rpg-mariadb.xml` prüft echte parallele Buchungen mit getrennten
+PHP-Prozessen. Dafür eine **ausschließlich für Tests bestimmte** MariaDB-Datenbank
+`omxfc_rpg_test` anlegen und `DB_HOST`, `DB_USERNAME`, `DB_PASSWORD`,
+`DB_CONNECTION=mysql`, `DB_DATABASE=omxfc_rpg_test` und `APP_ENV=testing` in der
+Testumgebung setzen. Dann
+`php vendor/bin/pest --configuration phpunit.rpg-mariadb.xml` ausführen.
+Der Test migriert diese Datenbank frisch; SQLite-Läufe überspringen diese
+separate Testsuite. Die Verbindungsdaten werden an die Worker vererbt.
+
 ### Weitere Erweiterungen ergänzen
 
 1. In `app/Support/RpgCharEditorRuleCatalog.php` eine stabile Quellenkennung samt
