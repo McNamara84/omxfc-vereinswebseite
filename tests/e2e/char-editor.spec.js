@@ -685,10 +685,15 @@ test.describe('RPG Charakter-Editor', () => {
         await helpButton.click();
         await expect(description).toBeVisible();
         await description.click();
+        await expect(helpButton).not.toBeFocused();
+        await page.locator('#advantages-heading').hover();
         await expect(description).toBeVisible();
         await expect(advantage).not.toBeChecked();
         await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('advantages[]'))).toEqual(initialAdvantages);
 
+        await page.locator('#advantages-heading').click();
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
         await page.locator('label[for="advantage-0"]').click();
         await expect(description).toHaveClass(/sr-only/);
         await expect(advantage).toBeChecked();
@@ -762,6 +767,8 @@ test.describe('RPG Charakter-Editor', () => {
         await helpButton.click();
         await expect(description).toBeVisible();
         await description.click();
+        await expect(helpButton).not.toBeFocused();
+        await page.locator('#disadvantages-heading').hover();
         await expect(description).toBeVisible();
         await expect(disadvantage).not.toBeChecked();
         await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('disadvantages[]'))).not.toContain('Auffällig');
