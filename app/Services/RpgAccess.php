@@ -27,7 +27,7 @@ final class RpgAccess
     {
         $team ??= $this->team();
 
-        return $team && $team->users()->where('users.id', $userId)->exists();
+        return $team && $team->activeUsers()->where('users.id', $userId)->exists();
     }
 
     public function requireLeader(User $user, bool $lock = false): Team
