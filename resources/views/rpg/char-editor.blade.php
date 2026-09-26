@@ -760,7 +760,7 @@
                                     @foreach($advantages as $advantage)
                                         @php($advantageDescriptionId = 'advantage-description-'.$loop->index)
                                         <div
-                                            x-data="{ helpOpen: false }"
+                                            x-data="{ helpOpen: false, helpActivated: false }"
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedAdvantages.includes(@js($advantage)), 'opacity-60': isAdvantageDisabled(@js($advantage)), 'hover:border-primary/50': !isAdvantageDisabled(@js($advantage)) }"
                                         >
@@ -792,12 +792,12 @@
                                                     aria-controls="{{ $advantageDescriptionId }}"
                                                     x-bind:aria-expanded="helpOpen.toString()"
                                                     @mouseenter="helpOpen = true"
-                                                    @mouseleave="if (document.activeElement !== $el) helpOpen = false"
+                                                    @mouseleave="if (document.activeElement !== $el) { helpOpen = false; helpActivated = false }"
                                                     @focus="helpOpen = true"
-                                                    @blur="helpOpen = false"
-                                                    @click.stop="helpOpen = true"
-                                                    @click.outside="helpOpen = false"
-                                                    @keydown.escape.stop="helpOpen = false; $el.blur()"
+                                                    @blur="helpOpen = false; helpActivated = false"
+                                                    @click.stop="helpActivated = !helpActivated; helpOpen = helpActivated"
+                                                    @click.outside="helpOpen = false; helpActivated = false"
+                                                    @keydown.escape.stop="helpOpen = false; helpActivated = false; $el.blur()"
                                                     data-testid="advantage-help-{{ $loop->index }}"
                                                 >
                                                     <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
@@ -875,7 +875,7 @@
                                     @foreach($disadvantages as $disadvantage)
                                         @php($disadvantageDescriptionId = 'disadvantage-description-'.$loop->index)
                                         <div
-                                            x-data="{ helpOpen: false }"
+                                            x-data="{ helpOpen: false, helpActivated: false }"
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedDisadvantages.includes(@js($disadvantage)), 'opacity-60': isDisadvantageDisabled(@js($disadvantage)), 'hover:border-primary/50': !isDisadvantageDisabled(@js($disadvantage)) }"
                                         >
@@ -904,12 +904,12 @@
                                                     aria-controls="{{ $disadvantageDescriptionId }}"
                                                     x-bind:aria-expanded="helpOpen.toString()"
                                                     @mouseenter="helpOpen = true"
-                                                    @mouseleave="if (document.activeElement !== $el) helpOpen = false"
+                                                    @mouseleave="if (document.activeElement !== $el) { helpOpen = false; helpActivated = false }"
                                                     @focus="helpOpen = true"
-                                                    @blur="helpOpen = false"
-                                                    @click.stop="helpOpen = true"
-                                                    @click.outside="helpOpen = false"
-                                                    @keydown.escape.stop="helpOpen = false; $el.blur()"
+                                                    @blur="helpOpen = false; helpActivated = false"
+                                                    @click.stop="helpActivated = !helpActivated; helpOpen = helpActivated"
+                                                    @click.outside="helpOpen = false; helpActivated = false"
+                                                    @keydown.escape.stop="helpOpen = false; helpActivated = false; $el.blur()"
                                                     data-testid="disadvantage-help-{{ $loop->index }}"
                                                 >
                                                     <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />

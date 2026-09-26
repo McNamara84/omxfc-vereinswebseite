@@ -657,10 +657,22 @@ test.describe('RPG Charakter-Editor', () => {
 
         await helpButton.focus();
         await expect(description).toBeVisible();
+        await helpButton.press('Enter');
+        await expect(description).toBeVisible();
+        await helpButton.press('Enter');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.press('Enter');
+        await expect(description).toBeVisible();
         await helpButton.press('Escape');
         await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
         await expect(description).toHaveClass(/sr-only/);
 
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await helpButton.click();
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
         await helpButton.click();
         await expect(description).toBeVisible();
         await expect(advantage).not.toBeChecked();
@@ -704,9 +716,21 @@ test.describe('RPG Charakter-Editor', () => {
 
         await helpButton.focus();
         await expect(description).toBeVisible();
+        await helpButton.press('Space');
+        await expect(description).toBeVisible();
+        await helpButton.press('Space');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.press('Space');
+        await expect(description).toBeVisible();
         await page.keyboard.press('Tab');
         await expect(description).toHaveClass(/sr-only/);
 
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await helpButton.click();
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
         await helpButton.click();
         await expect(description).toBeVisible();
         await expect(disadvantage).not.toBeChecked();
@@ -746,11 +770,19 @@ test.describe('RPG Charakter-Editor', () => {
 
             await touchHelp(advantageHelp);
             await expect(page.locator('#advantage-description-0')).toBeVisible();
+            await touchHelp(advantageHelp);
+            await expect(advantageHelp).toHaveAttribute('aria-expanded', 'false');
+            await expect(page.locator('#advantage-description-0')).toHaveClass(/sr-only/);
+            await touchHelp(advantageHelp);
+            await expect(page.locator('#advantage-description-0')).toBeVisible();
             await expect(checkbox(page, 'advantages[]', 'Anführer')).not.toBeChecked();
 
             await touchHelp(disadvantageHelp);
             await expect(page.locator('#advantage-description-0')).toHaveClass(/sr-only/);
             await expect(page.locator('#disadvantage-description-3')).toBeVisible();
+            await touchHelp(disadvantageHelp);
+            await expect(disadvantageHelp).toHaveAttribute('aria-expanded', 'false');
+            await expect(page.locator('#disadvantage-description-3')).toHaveClass(/sr-only/);
             await expect(checkbox(page, 'disadvantages[]', 'Auffällig')).not.toBeChecked();
 
             for (const list of ['char-editor-advantages-list', 'char-editor-disadvantages-list']) {
