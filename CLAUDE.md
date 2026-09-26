@@ -1285,7 +1285,6 @@ response()->view('view', $data)
 - `phpunit.yml` - PHP tests on PHP 8.5 with coverage
 - `playwright.yml` - E2E tests on Chromium, Firefox, WebKit
 - `vitest.yml` - Vitest JavaScript tests
-- `summary.yml` - Workflow summary generation
 - `deploy.yml` - Deployment workflow
 - `performance-benchmark.yml` - Performance testing
 - `php-8-5-compatibility.yml` - Future PHP compatibility
