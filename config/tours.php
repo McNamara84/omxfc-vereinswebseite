@@ -2,7 +2,7 @@
 
 $tours = [
     'hauptmenue' => [
-        'version' => 5,
+        'version' => 6,
         'title' => 'Hauptmenü entdecken',
         'description' => 'Führt neue Mitglieder durch Navbar, Sidebar, aktuelle Hinweise und das Profilmenü.',
         'self_service_enabled' => true,
@@ -449,6 +449,19 @@ $tours = [
                 'reveal' => [
                     'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
                     'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-characters',
+                'title' => 'Meine Charaktere',
+                'description' => 'Hier verwaltest du gespeicherte Charaktere, siehst ihren EP-Stand und öffnest die PDF-Charakterbögen. Als AG-Mitglied kannst du Verbesserungen beantragen; die AG-Leitung vergibt EP und prüft Anträge.',
+                'selectors' => [
+                    'desktop' => '[data-tour-key="teams-characters"]',
+                    'mobile' => '[data-tour-key="teams-characters"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-key="section-teams"]'],
+                    'mobile' => ['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-teams"]'],
                 ],
             ],
             [

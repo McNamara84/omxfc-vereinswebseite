@@ -231,6 +231,11 @@ Testumgebung setzen. Dann
 Der Test migriert diese Datenbank frisch; SQLite-Läufe überspringen diese
 separate Testsuite. Die Verbindungsdaten werden an die Worker vererbt.
 
+Der Job **PHP 8.5 RPG Concurrency (MariaDB 12.3)** im Workflow
+`.github/workflows/phpunit.yml` führt diese Suite bei Pull Requests gegen
+`main` und Pushes auf `main` automatisch aus. Sein eigener MariaDB-Service
+erstellt `omxfc_rpg_test`; übersprungene Tests lassen den Job fehlschlagen.
+
 ### Weitere Erweiterungen ergänzen
 
 1. In `app/Support/RpgCharEditorRuleCatalog.php` eine stabile Quellenkennung samt

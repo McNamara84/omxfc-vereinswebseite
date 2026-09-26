@@ -147,6 +147,7 @@ return [
                 [
                     'title' => 'Meine Charaktere',
                     'route' => 'rpg.characters.index',
+                    'tour_key' => 'teams-characters',
                     'icon' => 'o-identification',
                     'visible_any' => [
                         ['team_any' => ['AG Rollenspiel']],
