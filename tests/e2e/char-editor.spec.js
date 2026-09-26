@@ -751,11 +751,10 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(lockedDisadvantage).toBeChecked();
     });
 
-    test('öffnet Regelhilfen im schmalen Touch-Layout', async ({ browser }) => {
-        const context = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true });
-        const page = await context.newPage();
+    test.describe('Regelhilfen im Touch-Layout', () => {
+        test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
 
-        try {
+        test('öffnet Regelhilfen im schmalen Touch-Layout', async ({ page }) => {
             await openAdvancedEditor(page);
 
             const touchHelp = async (button) => {
@@ -788,9 +787,7 @@ test.describe('RPG Charakter-Editor', () => {
             for (const list of ['char-editor-advantages-list', 'char-editor-disadvantages-list']) {
                 expect(await page.getByTestId(list).evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
             }
-        } finally {
-            await context.close();
-        }
+        });
     });
 
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
