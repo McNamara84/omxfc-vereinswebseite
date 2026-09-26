@@ -9,6 +9,7 @@
 /storage/*.index
 /storage/app/*.index
 /storage/pail
+/storage/framework/*
 /vendor
 .env
 .env.backup
