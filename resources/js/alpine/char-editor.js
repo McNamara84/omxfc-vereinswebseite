@@ -2699,11 +2699,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
         if (this.race === previousRace) return;
 
-        if (this.raceCache[this._prevRace]) {
-            // Already cached by cacheRaceState below
-        } else if (this._prevRace) {
-            this.cacheRaceState(this._prevRace);
-        }
+        this.cacheRaceState(previousRace);
         this.clearRace();
         if (this.race === 'Barbar') this.applyRaceBarbar();
         if (this.race === 'Guul') this.applyRaceGuul();

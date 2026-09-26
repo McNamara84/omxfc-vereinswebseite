@@ -183,6 +183,25 @@ const completeValidTechnoExport = async (page) => {
 };
 
 test.describe('RPG Charakter-Editor', () => {
+    test('Erweiterung: bewahrt die neuesten marsianischen Eingaben nach wiederholten Rassenwechseln', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Marsianer', culture: 'Marsianische Städter' });
+        for (const [replacement, points, drivingPoints] of [['Heiler', '3', '1'], ['Heimlichkeit', '2', '2'], ['Nahkampf', '1', '3']]) {
+            await page.locator('#marsianer-replacement-skill').selectOption(replacement);
+            await page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`).fill(points);
+            await page.locator('input[name="praekristofluu_skill_points[Fahren]"]').fill(drivingPoints);
+            await page.getByTestId('char-editor-edit-basics').click();
+            await page.locator('#race').selectOption('Morlock');
+            await expect(page.locator('#culture')).toHaveValue('Ruinenbewohner');
+            await page.locator('#race').selectOption('Marsianer');
+            await expect(page.locator('#culture')).toHaveValue('Marsianische Städter');
+            await page.getByTestId('char-editor-continue-button').click();
+            await expect(page.locator('#marsianer-replacement-skill')).toHaveValue(replacement);
+            await expect(page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`)).toHaveValue(points);
+            await expect(page.locator('input[name="praekristofluu_skill_points[Fahren]"]')).toHaveValue(drivingPoints);
+            await expect(page.getByText('Verteilt: 12 / 12', { exact: true })).toBeVisible();
+        }
+    });
+
     test('Erweiterung ist mobil im Dark Mode per Tastatur bedienbar', async ({ page }, testInfo) => {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.emulateMedia({ colorScheme: 'dark' });

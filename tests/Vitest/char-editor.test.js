@@ -2747,4 +2747,25 @@ describe('charEditor – erste Erweiterung', () => {
         expect(editor.praekristofluuSkillPoints.Nahkampf).toBe(4);
         expect(editor.praekristofluuSkillPoolComplete()).toBe(false);
     });
+
+    it('erhält nach wiederholten Rassenwechseln jeweils die zuletzt bearbeitete marsianische Auswahl', () => {
+        const editor = extensionEditor('Marsianer');
+        for (const [replacement, replacementPoints, drivingPoints] of [['Heiler', 3, 1], ['Heimlichkeit', 2, 2], ['Nahkampf', 1, 3]]) {
+            editor.setMarsianerReplacementSkill(replacement);
+            editor.setPraekristofluuSkillPoints(replacement, replacementPoints);
+            editor.setPraekristofluuSkillPoints('Fahren', drivingPoints);
+            const expectedPool = { ...editor.praekristofluuSkillPoints };
+            editor.race = 'Morlock';
+            editor.handleRaceChange();
+            editor.handleCultureChange();
+            editor.race = 'Marsianer';
+            editor.handleRaceChange();
+            editor.handleCultureChange();
+            expect(editor.marsianerReplacementSkill).toBe(replacement);
+            expect(editor.praekristofluuSkillPoints).toEqual(expectedPool);
+            expect(editor.praekristofluuPoolUsed()).toBe(12);
+            expect(editor.getGrant(replacement).value).toBe(replacementPoints);
+            expect(editor.getGrant('Fahren').value).toBe(drivingPoints);
+        }
+    });
 });

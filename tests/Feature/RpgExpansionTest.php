@@ -155,6 +155,14 @@ class RpgExpansionTest extends TestCase
         $this->assertContains('Kind zweier Welten', $data['advantages']);
     }
 
+    public function test_martian_replacement_rejects_specializations_even_with_matching_pool_entries(): void
+    {
+        foreach (['Beruf: Soldat', 'Kunde: Wetter', 'Unterhalten: Predigen'] as $replacement) {
+            $payload = $this->payload('Marsianer', 'Pilot', $replacement);
+            $this->assertRejected($payload, 'marsianer_replacement_skill');
+        }
+    }
+
     public function test_base_race_can_explicitly_disable_expansion_and_store_only_base(): void
     {
         $payload = $this->payload('Agarther');

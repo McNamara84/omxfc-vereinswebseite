@@ -460,7 +460,7 @@ class RpgCharacterSheetService
             }
         }
         $replacement = $this->canonicalSkillName($this->stringPayload($request->input('marsianer_replacement_skill', '')));
-        if ($character['race'] === 'Marsianer' && ($replacement === '' || $replacement === 'Feuerwaffen' || ! $this->isAllowedSkillName($replacement, 'Marsianer'))) {
+        if ($character['race'] === 'Marsianer' && ($replacement === 'Feuerwaffen' || ! in_array($replacement, self::SKILL_VALUES, true))) {
             throw ValidationException::withMessages(['marsianer_replacement_skill' => 'Wähle eine erlaubte Ersatzfertigkeit für Feuerwaffen.']);
         }
         $humanPoolNames = RpgCharEditorRuleCatalog::humanPool($character['race'], $replacement);
