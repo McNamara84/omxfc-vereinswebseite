@@ -35,6 +35,7 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\RpgCharacterController;
 use App\Http\Controllers\RpgCharEditorController;
+use App\Http\Controllers\RpgCheckController;
 use App\Http\Controllers\RpgProgressionController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
@@ -402,6 +403,19 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor.pdf.show')
         ->middleware('can:access-rpg-char-editor')
         ->whereUuid('token');
+
+    Route::prefix('rpg/proben')->name('rpg.checks.')->controller(RpgCheckController::class)
+        ->middleware('can:access-rpg-checks')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/neu', 'create')->name('create');
+            Route::get('/hinweise', 'hints')->name('hints');
+            Route::post('/vorschau', 'preview')->name('preview')->middleware('can:manage-rpg-checks');
+            Route::post('/', 'store')->name('store')->middleware('can:manage-rpg-checks');
+            Route::get('/{check}', 'show')->whereNumber('check')->name('show');
+            Route::post('/{check}/teilnehmer/{participant}/wuerfeln', 'roll')->whereNumber(['check', 'participant'])->name('roll');
+            Route::post('/{check}/stornieren', 'cancel')->whereNumber('check')->name('cancel');
+            Route::post('/{check}/gleichstand', 'resolve')->whereNumber('check')->name('resolve');
+        });
 
     Route::prefix('rpg')->controller(RpgProgressionController::class)
         ->middleware('can:access-rpg-char-editor')->group(function () {

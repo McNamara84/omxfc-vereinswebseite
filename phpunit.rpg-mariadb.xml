@@ -7,6 +7,7 @@
     <testsuites>
         <testsuite name="RPG MariaDB">
             <file>tests/Feature/RpgProgressionMariaDbConcurrencyTest.php</file>
+            <file>tests/Feature/RpgCheckMariaDbConcurrencyTest.php</file>
         </testsuite>
     </testsuites>
     <php>
