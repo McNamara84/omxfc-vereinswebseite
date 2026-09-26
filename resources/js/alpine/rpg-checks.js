@@ -128,7 +128,45 @@ export function rpgChecks(config) {
     };
 }
 
-document.addEventListener('alpine:init', () => {
-    window.Alpine.data('rpgCheckForm', rpgCheckForm);
-    window.Alpine.data('rpgChecks', rpgChecks);
-});
+function hydrateExistingRpgChecks(Alpine) {
+    if (typeof Alpine.initTree !== 'function'
+        || typeof Alpine.destroyTree !== 'function'
+        || typeof Alpine.$data !== 'function') return;
+
+    const providers = [
+        {
+            name: 'rpgCheckForm',
+            isReady: (scope) => typeof scope.preview === 'function'
+                && typeof scope.save === 'function' && Array.isArray(scope.participants),
+        },
+        {
+            name: 'rpgChecks',
+            isReady: (scope) => typeof scope.act === 'function'
+                && typeof scope.refresh === 'function' && Object.hasOwn(scope, 'data'),
+        },
+    ];
+
+    for (const { name, isReady } of providers) {
+        document.querySelectorAll(`[x-data="${name}"], [x-data^="${name}("]`).forEach((element) => {
+            const scope = element._x_dataStack ? Alpine.$data(element) : null;
+            // Preserve existing form input and the single active polling lifecycle.
+            if (scope && isReady(scope)) return;
+            if (element._x_dataStack) Alpine.destroyTree(element);
+            Alpine.initTree(element);
+        });
+    }
+}
+
+function registerRpgChecks({ hydrateExisting = false } = {}) {
+    const Alpine = window.Alpine;
+    if (!Alpine || typeof Alpine.data !== 'function') return;
+    Alpine.data('rpgCheckForm', rpgCheckForm);
+    Alpine.data('rpgChecks', rpgChecks);
+    if (hydrateExisting) hydrateExistingRpgChecks(Alpine);
+}
+
+if (window.Alpine && typeof window.Alpine.data === 'function') {
+    registerRpgChecks({ hydrateExisting: true });
+} else {
+    document.addEventListener('alpine:init', () => registerRpgChecks(), { once: true });
+}

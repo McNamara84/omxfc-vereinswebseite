@@ -271,8 +271,8 @@ Gezielte Prüfungen:
 
 ```bash
 php artisan test --filter 'RpgCheck(?!MariaDb)|RpgCharacterStorageTest|DashboardActivityFeedTest|ActivityFeedTest|DeleteAccountTest|DeleteTeamTest'
-npm run test:vitest -- tests/Vitest/rpg-checks.test.js
-npm run test:e2e:docker -- tests/e2e/rpg-checks.spec.js --project=chromium
+npm run test:vitest -- tests/Vitest/rpg-checks.test.js tests/Vitest/rpg-checks-registration.test.js
+npm run test:e2e:docker -- tests/e2e/rpg-checks.spec.js --project=chromium --project=firefox
 ```
 
 Die oben beschriebene separate MariaDB-Suite `phpunit.rpg-mariadb.xml` prüft

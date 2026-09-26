@@ -26,14 +26,7 @@ async function requestCheck(page, data, { hidden = false, opposed = false, group
     await page.goto('/rpg/proben/neu');
     await expect(page.locator('option[value="npc"]')).toHaveJSProperty('disabled', true);
     const comparison = page.getByRole('combobox', { name: 'Vergleich', exact: true });
-    await comparison.focus();
-    // DaisyUI uses base-select: keyboard navigation happens in its open picker.
-    await page.keyboard.press('Space');
-    await page.keyboard.press('End');
-    await page.keyboard.press('Enter');
-    await expect(comparison).toHaveValue('opposed');
-    await comparison.selectOption('fixed');
-    if (opposed) await comparison.selectOption('opposed');
+    await comparison.selectOption(opposed ? 'opposed' : 'fixed');
     await page.getByRole('combobox', { name: 'Sichtbarkeit', exact: true }).selectOption(hidden ? 'hidden' : 'open');
     await page.getByLabel('Beschreibung (für Spieler sichtbar)', { exact: true }).fill('Die Brücke '+data.characters.player.name);
     if (!opposed) await page.getByLabel('Schwierigkeitsgrad', { exact: true }).fill(hidden ? '743' : '-100');
@@ -55,6 +48,27 @@ async function openOwnCheck(page, character) {
     await card.getByRole('link').first().click();
     await page.waitForURL(/\/rpg\/proben\/\d+$/);
 }
+
+test('comparison is keyboard accessible and skips the disabled NPC option', async ({ page }) => {
+    test.setTimeout(120000);
+    const data = fixture();
+    await login(page, data.leader);
+    await page.goto('/rpg/proben/neu');
+    const comparison = page.getByRole('combobox', { name: 'Vergleich', exact: true });
+    await expect(page.locator('option[value="npc"]')).toHaveJSProperty('disabled', true);
+    await comparison.focus();
+    await expect(comparison).toBeFocused();
+    // Chromium's customizable picker must be opened; Firefox uses a native select.
+    const usesCustomPicker = await comparison.evaluate((element) => getComputedStyle(element).appearance === 'base-select');
+    if (usesCustomPicker) await page.keyboard.press('Space');
+    await page.keyboard.press('End');
+    if (usesCustomPicker) await page.keyboard.press('Enter');
+    await expect(comparison).toHaveValue('opposed');
+    await expect(page.getByLabel('Schwierigkeitsgrad', { exact: true })).toBeHidden();
+    // Tab leaves the picker without submitting the form or selecting the disabled entry.
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('combobox', { name: 'Sichtbarkeit', exact: true })).toBeFocused();
+});
 
 test('group request, personal dashboard polling, open roll and history', async ({ page, browser, baseURL }) => {
     test.setTimeout(180000);
