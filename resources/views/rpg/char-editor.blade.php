@@ -760,9 +760,14 @@
                                     @foreach($advantages as $advantage)
                                         @php($advantageDescriptionId = 'advantage-description-'.$loop->index)
                                         <div
-                                            x-data="{ helpOpen: false, helpActivated: false }"
+                                            x-data="{ helpOpen: false, helpActivated: false, pointerInRow: false }"
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedAdvantages.includes(@js($advantage)), 'opacity-60': isAdvantageDisabled(@js($advantage)), 'hover:border-primary/50': !isAdvantageDisabled(@js($advantage)) }"
+                                            @mouseenter="pointerInRow = true"
+                                            @mouseleave="pointerInRow = false; if (document.activeElement !== $refs.helpButton) { helpOpen = false; helpActivated = false }"
+                                            @click="if (!$refs.helpText.contains($event.target)) { helpOpen = false; helpActivated = false }"
+                                            @click.outside="helpOpen = false; helpActivated = false"
+                                            @keydown.escape.window="if (helpOpen) { helpOpen = false; helpActivated = false; $refs.helpButton.blur() }"
                                         >
                                             <div class="flex items-start">
                                                 <label for="advantage-{{ $loop->index }}" class="flex min-h-12 min-w-0 flex-1 flex-wrap items-start gap-3 px-3 py-2">
@@ -787,18 +792,16 @@
                                                 </label>
                                                 <button
                                                     type="button"
+                                                    x-ref="helpButton"
                                                     class="btn btn-circle btn-ghost btn-sm mr-2 mt-1.5 h-9 min-h-0 w-9 shrink-0"
                                                     aria-label="Regelhinweis zu Vorteil {{ $advantage }}"
                                                     aria-controls="{{ $advantageDescriptionId }}"
                                                     x-bind:aria-expanded="helpOpen.toString()"
                                                     x-bind:aria-describedby="helpOpen ? @js($advantageDescriptionId) : null"
                                                     @mouseenter="helpOpen = true"
-                                                    @mouseleave="if (document.activeElement !== $el) { helpOpen = false; helpActivated = false }"
                                                     @focus="helpOpen = true"
-                                                    @blur="helpOpen = false; helpActivated = false"
+                                                    @blur="if (!pointerInRow) { helpOpen = false; helpActivated = false }"
                                                     @click.stop="helpActivated = !helpActivated; helpOpen = helpActivated"
-                                                    @click.outside="helpOpen = false; helpActivated = false"
-                                                    @keydown.escape.stop="helpOpen = false; helpActivated = false; $el.blur()"
                                                     data-testid="advantage-help-{{ $loop->index }}"
                                                 >
                                                     <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
@@ -806,6 +809,7 @@
                                             </div>
                                             <p
                                                 id="{{ $advantageDescriptionId }}"
+                                                x-ref="helpText"
                                                 class="px-3 pb-2 text-xs leading-5 text-base-content/70"
                                                 x-cloak
                                                 x-bind:class="{ 'sr-only': !helpOpen }"
@@ -876,9 +880,14 @@
                                     @foreach($disadvantages as $disadvantage)
                                         @php($disadvantageDescriptionId = 'disadvantage-description-'.$loop->index)
                                         <div
-                                            x-data="{ helpOpen: false, helpActivated: false }"
+                                            x-data="{ helpOpen: false, helpActivated: false, pointerInRow: false }"
                                             class="rounded-md border border-base-300 bg-base-100 text-sm transition"
                                             :class="{ 'border-primary/60 bg-primary/5': selectedDisadvantages.includes(@js($disadvantage)), 'opacity-60': isDisadvantageDisabled(@js($disadvantage)), 'hover:border-primary/50': !isDisadvantageDisabled(@js($disadvantage)) }"
+                                            @mouseenter="pointerInRow = true"
+                                            @mouseleave="pointerInRow = false; if (document.activeElement !== $refs.helpButton) { helpOpen = false; helpActivated = false }"
+                                            @click="if (!$refs.helpText.contains($event.target)) { helpOpen = false; helpActivated = false }"
+                                            @click.outside="helpOpen = false; helpActivated = false"
+                                            @keydown.escape.window="if (helpOpen) { helpOpen = false; helpActivated = false; $refs.helpButton.blur() }"
                                         >
                                             <div class="flex items-start">
                                                 <label for="disadvantage-{{ $loop->index }}" class="flex min-h-12 min-w-0 flex-1 flex-wrap items-start gap-3 px-3 py-2">
@@ -900,18 +909,16 @@
                                                 </label>
                                                 <button
                                                     type="button"
+                                                    x-ref="helpButton"
                                                     class="btn btn-circle btn-ghost btn-sm mr-2 mt-1.5 h-9 min-h-0 w-9 shrink-0"
                                                     aria-label="Regelhinweis zu Nachteil {{ $disadvantage }}"
                                                     aria-controls="{{ $disadvantageDescriptionId }}"
                                                     x-bind:aria-expanded="helpOpen.toString()"
                                                     x-bind:aria-describedby="helpOpen ? @js($disadvantageDescriptionId) : null"
                                                     @mouseenter="helpOpen = true"
-                                                    @mouseleave="if (document.activeElement !== $el) { helpOpen = false; helpActivated = false }"
                                                     @focus="helpOpen = true"
-                                                    @blur="helpOpen = false; helpActivated = false"
+                                                    @blur="if (!pointerInRow) { helpOpen = false; helpActivated = false }"
                                                     @click.stop="helpActivated = !helpActivated; helpOpen = helpActivated"
-                                                    @click.outside="helpOpen = false; helpActivated = false"
-                                                    @keydown.escape.stop="helpOpen = false; helpActivated = false; $el.blur()"
                                                     data-testid="disadvantage-help-{{ $loop->index }}"
                                                 >
                                                     <x-icon name="o-information-circle" class="h-4 w-4" aria-hidden="true" />
@@ -919,6 +926,7 @@
                                             </div>
                                             <p
                                                 id="{{ $disadvantageDescriptionId }}"
+                                                x-ref="helpText"
                                                 class="px-3 pb-2 text-xs leading-5 text-base-content/70"
                                                 x-cloak
                                                 x-bind:class="{ 'sr-only': !helpOpen }"

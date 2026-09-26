@@ -649,10 +649,19 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toContainText('W66 11-12');
         await expect(description).toContainText('Natürlicher Anführer');
 
-        await helpButton.dispatchEvent('mouseenter');
+        await expect(helpButton).not.toBeFocused();
+        await helpButton.hover();
         await expect(helpButton).toHaveAttribute('aria-expanded', 'true');
         await expect(description).toBeVisible();
-        await helpButton.dispatchEvent('mouseleave');
+        await page.keyboard.press('Escape');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await page.locator('#advantages-heading').hover();
+        await helpButton.hover();
+        await description.hover();
+        await expect(description).toBeVisible();
+        await page.locator('#advantages-heading').hover();
         await expect(description).toHaveClass(/sr-only/);
 
         await helpButton.focus();
@@ -675,11 +684,15 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toHaveClass(/sr-only/);
         await helpButton.click();
         await expect(description).toBeVisible();
+        await description.click();
+        await expect(description).toBeVisible();
         await expect(advantage).not.toBeChecked();
         await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('advantages[]'))).toEqual(initialAdvantages);
 
-        await page.locator('#advantages-heading').click();
+        await page.locator('label[for="advantage-0"]').click();
         await expect(description).toHaveClass(/sr-only/);
+        await expect(advantage).toBeChecked();
+        await advantage.uncheck();
 
         const lockedAdvantage = checkbox(page, 'advantages[]', 'Zäh');
         const lockedHelp = page.getByRole('button', { name: 'Regelhinweis zu Vorteil Zäh' });
@@ -715,7 +728,16 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toContainText('W66 23-24');
         await expect(description).toContainText('Verkleiden-Proben');
 
+        await expect(helpButton).not.toBeFocused();
         await helpButton.hover();
+        await expect(description).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await page.locator('#disadvantages-heading').hover();
+        await helpButton.hover();
+        await description.hover();
         await expect(description).toBeVisible();
         await page.locator('#disadvantages-heading').hover();
         await expect(description).toHaveClass(/sr-only/);
@@ -739,10 +761,17 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toHaveClass(/sr-only/);
         await helpButton.click();
         await expect(description).toBeVisible();
+        await description.click();
+        await expect(description).toBeVisible();
         await expect(disadvantage).not.toBeChecked();
         await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('disadvantages[]'))).not.toContain('Auffällig');
         await helpButton.press('Escape');
         await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
+        await page.locator('label[for="disadvantage-3"]').click();
+        await expect(description).toHaveClass(/sr-only/);
+        await expect(disadvantage).toBeChecked();
+        await disadvantage.uncheck();
 
         await page.locator('#figurenstaerke').selectOption('1');
         const lockedDisadvantage = checkbox(page, 'disadvantages[]', 'Taratzenfutter');
