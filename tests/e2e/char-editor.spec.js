@@ -631,6 +631,213 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toHaveClass(/sr-only/);
     });
 
+    test('zeigt Regelhilfe für alle Vorteile ohne die Auswahl zu verändern', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        const helpButtons = page.getByRole('button', { name: /^Regelhinweis zu Vorteil / });
+        await expect(helpButtons).toHaveCount(await page.locator('input[type="checkbox"][name="advantages[]"]').count());
+
+        const helpButton = page.getByRole('button', { name: 'Regelhinweis zu Vorteil Anführer' });
+        const description = page.locator('#advantage-description-0');
+        const advantage = checkbox(page, 'advantages[]', 'Anführer');
+        const initialAdvantages = await page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('advantages[]'));
+
+        await expect(helpButton).toHaveAttribute('aria-controls', 'advantage-description-0');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(advantage).toHaveAttribute('aria-describedby', 'advantage-description-0');
+        await expect(description).toHaveClass(/sr-only/);
+        await expect(description).toContainText('W66 11-12');
+        await expect(description).toContainText('Natürlicher Anführer');
+
+        await expect(helpButton).not.toBeFocused();
+        await helpButton.hover();
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'true');
+        await expect(description).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await page.locator('#advantages-heading').hover();
+        await helpButton.hover();
+        await description.hover();
+        await expect(description).toBeVisible();
+        await page.locator('#advantages-heading').hover();
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.focus();
+        await expect(description).toBeVisible();
+        await helpButton.press('Enter');
+        await expect(description).toBeVisible();
+        await helpButton.press('Enter');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.press('Enter');
+        await expect(description).toBeVisible();
+        await helpButton.press('Escape');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await helpButton.click();
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await description.click();
+        await expect(helpButton).not.toBeFocused();
+        await page.locator('#advantages-heading').hover();
+        await expect(description).toBeVisible();
+        await expect(advantage).not.toBeChecked();
+        await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('advantages[]'))).toEqual(initialAdvantages);
+
+        await page.locator('#advantages-heading').click();
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
+        await page.locator('label[for="advantage-0"]').click();
+        await expect(description).toHaveClass(/sr-only/);
+        await expect(advantage).toBeChecked();
+        await advantage.uncheck();
+
+        const lockedAdvantage = checkbox(page, 'advantages[]', 'Zäh');
+        const lockedHelp = page.getByRole('button', { name: 'Regelhinweis zu Vorteil Zäh' });
+        await expect(lockedAdvantage).toBeDisabled();
+        await expect(lockedHelp).toBeEnabled();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
+        await lockedHelp.click();
+        const lockedDescriptionId = await lockedHelp.getAttribute('aria-controls');
+        const lockedDescription = page.locator(`#${lockedDescriptionId}`);
+        await expect(lockedHelp).toHaveAttribute('aria-describedby', lockedDescriptionId);
+        await expect(lockedHelp).toHaveAccessibleDescription(/Schutzfaktor \+1/);
+        await expect(lockedDescription).toBeVisible();
+        await expect(lockedDescription).toContainText('Schutzfaktor +1');
+        await expect(lockedAdvantage).toBeChecked();
+        await lockedHelp.click();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
+    });
+
+    test('zeigt Regelhilfe für Nachteile auch bei gesperrten Einträgen', async ({ page }) => {
+        await openAdvancedEditor(page);
+
+        const helpButtons = page.getByRole('button', { name: /^Regelhinweis zu Nachteil / });
+        await expect(helpButtons).toHaveCount(await page.locator('input[type="checkbox"][name="disadvantages[]"]').count());
+
+        const helpButton = page.getByRole('button', { name: 'Regelhinweis zu Nachteil Auffällig' });
+        const description = page.locator('#disadvantage-description-3');
+        const disadvantage = checkbox(page, 'disadvantages[]', 'Auffällig');
+
+        await expect(helpButton).toHaveAttribute('aria-controls', 'disadvantage-description-3');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(disadvantage).toHaveAttribute('aria-describedby', 'disadvantage-description-3');
+        await expect(description).toHaveClass(/sr-only/);
+        await expect(description).toContainText('W66 23-24');
+        await expect(description).toContainText('Verkleiden-Proben');
+
+        await expect(helpButton).not.toBeFocused();
+        await helpButton.hover();
+        await expect(description).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await page.locator('#disadvantages-heading').hover();
+        await helpButton.hover();
+        await description.hover();
+        await expect(description).toBeVisible();
+        await page.locator('#disadvantages-heading').hover();
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.focus();
+        await expect(description).toBeVisible();
+        await helpButton.press('Space');
+        await expect(description).toBeVisible();
+        await helpButton.press('Space');
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.press('Space');
+        await expect(description).toBeVisible();
+        await page.keyboard.press('Tab');
+        await expect(description).toHaveClass(/sr-only/);
+
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await helpButton.click();
+        await expect(helpButton).toHaveAttribute('aria-expanded', 'false');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
+        await expect(description).toBeVisible();
+        await description.click();
+        await expect(helpButton).not.toBeFocused();
+        await page.locator('#disadvantages-heading').hover();
+        await expect(description).toBeVisible();
+        await expect(disadvantage).not.toBeChecked();
+        await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => new FormData(form).getAll('disadvantages[]'))).not.toContain('Auffällig');
+        await helpButton.press('Escape');
+        await expect(description).toHaveClass(/sr-only/);
+        await helpButton.click();
+        await page.locator('label[for="disadvantage-3"]').click();
+        await expect(description).toHaveClass(/sr-only/);
+        await expect(disadvantage).toBeChecked();
+        await disadvantage.uncheck();
+
+        await page.locator('#figurenstaerke').selectOption('1');
+        const lockedDisadvantage = checkbox(page, 'disadvantages[]', 'Taratzenfutter');
+        const lockedHelp = page.getByRole('button', { name: 'Regelhinweis zu Nachteil Taratzenfutter' });
+        const lockedDescriptionId = await lockedHelp.getAttribute('aria-controls');
+        const lockedDescription = page.locator(`#${lockedDescriptionId}`);
+        await expect(lockedDisadvantage).toBeChecked();
+        await expect(lockedDisadvantage).toBeDisabled();
+        await expect(lockedHelp).toBeEnabled();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
+        await lockedHelp.click();
+        await expect(lockedHelp).toHaveAttribute('aria-describedby', lockedDescriptionId);
+        await expect(lockedHelp).toHaveAccessibleDescription(/Alle Schadenswürfe/);
+        await expect(lockedDescription).toBeVisible();
+        await expect(lockedDescription).toContainText('Alle Schadenswürfe');
+        await expect(lockedDisadvantage).toBeChecked();
+        await lockedHelp.click();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
+    });
+
+    test.describe('Regelhilfen im Touch-Layout', () => {
+        test.use({ viewport: { width: 375, height: 812 }, hasTouch: true });
+
+        test('öffnet Regelhilfen im schmalen Touch-Layout', async ({ page }) => {
+            await openAdvancedEditor(page);
+
+            const touchHelp = async (button) => {
+                await button.scrollIntoViewIfNeeded();
+                const box = await button.boundingBox();
+                expect(box).not.toBeNull();
+                await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+            };
+
+            const advantageHelp = page.getByRole('button', { name: 'Regelhinweis zu Vorteil Anführer' });
+            const disadvantageHelp = page.getByRole('button', { name: 'Regelhinweis zu Nachteil Auffällig' });
+
+            await touchHelp(advantageHelp);
+            await expect(page.locator('#advantage-description-0')).toBeVisible();
+            await touchHelp(advantageHelp);
+            await expect(advantageHelp).toHaveAttribute('aria-expanded', 'false');
+            await expect(page.locator('#advantage-description-0')).toHaveClass(/sr-only/);
+            await touchHelp(advantageHelp);
+            await expect(page.locator('#advantage-description-0')).toBeVisible();
+            await expect(checkbox(page, 'advantages[]', 'Anführer')).not.toBeChecked();
+
+            await touchHelp(disadvantageHelp);
+            await expect(page.locator('#advantage-description-0')).toHaveClass(/sr-only/);
+            await expect(page.locator('#disadvantage-description-3')).toBeVisible();
+            await touchHelp(disadvantageHelp);
+            await expect(disadvantageHelp).toHaveAttribute('aria-expanded', 'false');
+            await expect(page.locator('#disadvantage-description-3')).toHaveClass(/sr-only/);
+            await expect(checkbox(page, 'disadvantages[]', 'Auffällig')).not.toBeChecked();
+
+            for (const list of ['char-editor-advantages-list', 'char-editor-disadvantages-list']) {
+                expect(await page.getByTestId(list).evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+            }
+        });
+    });
+
     test('sendet gesperrte Basisdaten und automatisch gewährte Fertigkeiten im Formularpayload', async ({ page }) => {
         await openAdvancedEditor(page);
 
