@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 
 final class RpgCharacterCreationEvaluator
@@ -9,31 +10,6 @@ final class RpgCharacterCreationEvaluator
     private const ABSOLUTE_ATTRIBUTE_MIN = -2;
 
     private const ABSOLUTE_ATTRIBUTE_MAX = 2;
-
-    private const RACE_ATTRIBUTE_MODIFIERS = [
-        'Guul' => ['au' => -1],
-        'Nosfera' => ['ge' => 1, 'au' => -1],
-        'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-        'Wulfane' => ['ro' => 1, 'au' => -1],
-        'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-    ];
-
-    private const RACE_ADVANTAGES = [
-        'Guul' => ['Natürliche Waffen'],
-        'Hydrit' => ['Kiemen', 'Natürliche Waffen'],
-        'Nosfera' => ['Nachtsicht'],
-        'Techno' => ['High-Tech-Ausrüstung'],
-        'Präkristofluu' => ['High-Tech-Ausrüstung'],
-    ];
-
-    private const RACE_DISADVANTAGES = [
-        'Guul' => ['Primitiv', 'Gejagt'],
-        'Hydrit' => ['Anfälligkeit gegen Wahnsinn'],
-        'Nosfera' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-        'Taratze' => ['Auffällig', 'Primitiv', 'Gejagt'],
-        'Wulfane' => ['Ehrenkodex'],
-        'Techno' => ['Tödliche Immunschwäche'],
-    ];
 
     /**
      * Evaluate normalized creation input without reading request or session state.
@@ -55,8 +31,8 @@ final class RpgCharacterCreationEvaluator
         $effects = $this->normalizeEffects($input['advantage_effects'] ?? [], $errors);
         $selectedAdvantages = $this->uniqueStrings($input['advantages'] ?? []);
         $selectedDisadvantages = $this->uniqueStrings($input['disadvantages'] ?? []);
-        $racialAdvantages = self::RACE_ADVANTAGES[$race] ?? [];
-        $racialDisadvantages = self::RACE_DISADVANTAGES[$race] ?? [];
+        $racialAdvantages = RpgCharEditorRuleCatalog::races()[$race]['advantages'] ?? [];
+        $racialDisadvantages = RpgCharEditorRuleCatalog::races()[$race]['disadvantages'] ?? [];
         $negatedRacialDisadvantages = $this->uniqueStrings($input['negated_racial_disadvantages'] ?? []);
         $extraApAttribute = (string) ($input['extra_ap_attribute'] ?? '');
         $compensationAttributes = $this->uniqueStrings($input['advantage_compensation_attributes'] ?? []);
@@ -231,7 +207,7 @@ final class RpgCharacterCreationEvaluator
     /** @param array<string, list<string>> $errors */
     private function raceAttributeModifiers(string $race, string $barbarBonus, array &$errors): array
     {
-        $modifiers = self::RACE_ATTRIBUTE_MODIFIERS[$race] ?? [];
+        $modifiers = RpgCharEditorRuleCatalog::races()[$race]['attributes'] ?? [];
         if ($race !== 'Barbar') {
             return $modifiers;
         }

@@ -6,6 +6,8 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Js;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
@@ -111,11 +113,16 @@ class RpgCharEditorAccessTest extends TestCase
     public function test_editor_only_exposes_whitelisted_old_input_to_javascript(): void
     {
         $member = $this->addAgRollenspielMembership($this->createMember());
+        $oldInput = [
+            'player_name' => 'Geretteter Spieler',
+            'attributes' => ['st' => 2],
+            'rule_sources' => ['expansion-1' => '0'],
+            'marsianer_replacement_skill' => 'Heiler',
+            'marsianer_bonus_skill' => 'Unterhalten',
+        ];
 
         $this->withSession([
-            '_old_input' => [
-                'player_name' => 'Geretteter Spieler',
-                'attributes' => ['st' => 2],
+            '_old_input' => $oldInput + [
                 'email' => 'privat@example.test',
                 'password' => 'super-secret-old-input',
             ],
@@ -124,6 +131,7 @@ class RpgCharEditorAccessTest extends TestCase
             ->get('/rpg/char-editor')
             ->assertOk()
             ->assertSee('window.rpgCharEditorOldInput', false)
+            ->assertSee('window.rpgCharEditorOldInput = '.Js::from(Arr::only($oldInput, ['rule_sources', 'marsianer_replacement_skill', 'marsianer_bonus_skill', 'player_name', 'attributes']))->toHtml().';', false)
             ->assertSee('Geretteter Spieler')
             ->assertDontSee('privat@example.test')
             ->assertDontSee('super-secret-old-input');

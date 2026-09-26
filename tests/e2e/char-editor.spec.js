@@ -1,4 +1,5 @@
 import { expect, test } from './test-support.js';
+import AxeBuilder from '@axe-core/playwright';
 import { spawnSync } from 'child_process';
 import { randomUUID } from 'node:crypto';
 import { createPhpProcess } from './utils/php.js';
@@ -182,6 +183,128 @@ const completeValidTechnoExport = async (page) => {
 };
 
 test.describe('RPG Charakter-Editor', () => {
+    test('Erweiterung: bewahrt die neuesten marsianischen Eingaben nach wiederholten Rassenwechseln', async ({ page }) => {
+        await openAdvancedEditor(page, { race: 'Marsianer', culture: 'Marsianische Städter' });
+        for (const [replacement, points, drivingPoints] of [['Heiler', '3', '1'], ['Heimlichkeit', '2', '2'], ['Nahkampf', '1', '3']]) {
+            await page.locator('#marsianer-replacement-skill').selectOption(replacement);
+            await page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`).fill(points);
+            await page.locator('input[name="praekristofluu_skill_points[Fahren]"]').fill(drivingPoints);
+            await page.getByTestId('char-editor-edit-basics').click();
+            await page.locator('#race').selectOption('Morlock');
+            await expect(page.locator('#culture')).toHaveValue('Ruinenbewohner');
+            await page.locator('#race').selectOption('Marsianer');
+            await expect(page.locator('#culture')).toHaveValue('Marsianische Städter');
+            await page.getByTestId('char-editor-continue-button').click();
+            await expect(page.locator('#marsianer-replacement-skill')).toHaveValue(replacement);
+            await expect(page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`)).toHaveValue(points);
+            await expect(page.locator('input[name="praekristofluu_skill_points[Fahren]"]')).toHaveValue(drivingPoints);
+            await expect(page.getByText('Verteilt: 12 / 12', { exact: true })).toBeVisible();
+        }
+    });
+
+    test('Erweiterung ist mobil im Dark Mode per Tastatur bedienbar', async ({ page }, testInfo) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.emulateMedia({ colorScheme: 'dark' });
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+        await expect(page.locator('html')).toHaveAttribute('data-theme', 'coffee');
+        const toggle = page.getByRole('checkbox', { name: '1. Erweiterung von Stefan Küppers', exact: true });
+        await toggle.focus();
+        await toggle.press('Space');
+        await expect(toggle).not.toBeChecked();
+        await toggle.press('Space');
+        await expect(toggle).toBeChecked();
+        await page.locator('#race').selectOption('Morlock');
+        await toggle.press('Space');
+        await expect(toggle).toBeChecked();
+        await expect(toggle).toHaveAccessibleDescription(/Morlock/);
+        const sources = page.getByTestId('rule-sources');
+        const bounds = await sources.boundingBox();
+        expect(bounds.x).toBeGreaterThanOrEqual(0);
+        expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+        const accessibility = await new AxeBuilder({ page }).include('[data-testid="rule-sources"]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+        expect(accessibility.violations).toEqual([]);
+        await sources.screenshot({ path: testInfo.outputPath('regelquellen-mobil-dark.png') });
+    });
+
+    test('Erweiterung ist voreingestellt, beschriftet und ohne verwendete Inhalte abschaltbar', async ({ page }) => {
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/rpg/char-editor');
+        const toggle = page.getByTestId('rule-source-expansion-1');
+        await expect(toggle).toBeChecked();
+        await expect(page.locator('#race optgroup[label="1. Erweiterung von Stefan Küppers"] option')).toHaveCount(3);
+        await expect(page.locator('#culture option[value="Marsianische Städter"]')).toHaveCount(1);
+        await toggle.uncheck();
+        await expect(page.locator('#race option[value="Morlock"]')).toHaveCount(0);
+        await expect(page.locator('#culture option[value="Marsianische Städter"]')).toHaveCount(0);
+        await expect(page.locator('input[name="rule_sources[expansion-1]"]')).toHaveValue('0');
+        await toggle.check();
+        await page.locator('#race').selectOption('Morlock');
+        await expect(page.locator('#culture')).toHaveValue('Ruinenbewohner');
+        await toggle.click();
+        await expect(toggle).toBeChecked();
+        await expect(page.locator('#rule-source-error')).toContainText('Morlock');
+        await expect(page.locator('#race')).toHaveValue('Morlock');
+        await page.locator('#race').selectOption('Barbar');
+        await toggle.uncheck();
+        await expect(page.locator('#rule-source-error')).toBeHidden();
+    });
+
+    for (const [race, culture] of [['Agarther', 'Mensch des 21. Jahrhunderts'], ['Marsianer', 'Marsianische Städter'], ['Morlock', 'Ruinenbewohner']]) {
+        test(`Erweiterung: ${race} lässt sich mit allen Regelboni speichern`, async ({ page }, testInfo) => {
+            test.setTimeout(90_000);
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            const email = createRpgEditorUser(testInfo);
+            await openAdvancedEditor(page, { email, race, culture, characterName: `${race} Erweiterungstest` });
+            await expect(page.getByTestId('race-summary')).toContainText('1. Erweiterung von Stefan Küppers');
+            if (race === 'Marsianer') {
+                await page.locator('#marsianer-bonus-skill').selectOption('Unterhalten');
+                await expect(page.getByTestId('culture-summary')).toContainText('Unterhalten +1');
+                await page.locator('#marsianer-replacement-skill').selectOption('Heimlichkeit');
+                await page.locator('input[name="praekristofluu_skill_points[Heimlichkeit]"]').fill('2');
+            }
+            await page.getByTestId('rule-source-expansion-1').click();
+            await expect(page.getByTestId('rule-source-expansion-1')).toBeChecked();
+            await page.getByTestId('char-editor-edit-basics').click();
+            await expect(page.locator('#race')).toBeEnabled();
+            await page.getByTestId('char-editor-continue-button').click();
+            await page.getByTestId('char-editor-form').evaluate((form, selectedRace) => {
+                const state = window.Alpine.$data(form);
+                state.attributes.st = 1;
+                state.attributes.ge = 1;
+                for (const skill of ['Heiler', 'Fernkampf', 'Handeln', 'Athletik', 'Reiten']) state.ensureSkill(skill).value = 4;
+                state.clothing = 'kleidung-einfach';
+                const equipment = selectedRace === 'Morlock'
+                    ? ['messer-dolch', 'seil', 'rucksack', 'wasserschlauch', 'wochenration', 'bogen']
+                    : ['fernglas', 'funkgeraet', 'gasmaske', 'atemgeraet', 'seil', 'rucksack'];
+                for (const id of equipment) state.setEquipmentQuantity(id, 1);
+            }, race);
+            await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => window.Alpine.$data(form).completionIssues())).toEqual([]);
+            await expect(page.getByTestId('submit-button')).toBeEnabled();
+            await Promise.all([
+                page.waitForURL((url) => url.pathname === '/rpg/charaktere'),
+                page.getByTestId('submit-button').click(),
+            ]);
+            await expect(page.getByTestId('rpg-character-row').filter({ hasText: `${race} Erweiterungstest` })).toBeVisible();
+            expect(errors).toEqual([]);
+        });
+    }
+
+    test('Erweiterung: gewählte Ausbildung verhindert das Abschalten und wird nach Abwahl ausgeblendet', async ({ page }) => {
+        await openAdvancedEditor(page);
+        const gladiator = checkbox(page, 'trainings[]', 'Gladiator');
+        await gladiator.check();
+        await page.getByTestId('rule-source-expansion-1').click();
+        await expect(page.getByTestId('rule-source-expansion-1')).toBeChecked();
+        await expect(page.locator('#rule-source-error')).toContainText('Gladiator');
+        await gladiator.uncheck();
+        await page.getByTestId('rule-source-expansion-1').uncheck();
+        await expect(gladiator).toHaveCount(0);
+        await expect(checkbox(page, 'trainings[]', 'Priester')).toHaveCount(0);
+        await expect(checkbox(page, 'trainings[]', 'Krieger')).toBeVisible();
+    });
+
     test('erzeugt gueltige kurze Testuser-Mailadressen fuer CI', async ({}, testInfo) => {
         const email = buildRpgEditorUserEmail(testInfo);
         const [localPart, domain] = email.split('@');

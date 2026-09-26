@@ -14,13 +14,14 @@ final class RpgCharEditorTraining
      *     cost: int,
      *     skills: list<string>,
      *     description: string,
+     *     source: string,
      *     requiredAdvantages?: list<string>,
      *     suggestedSpecializations?: array<string, string>
      * }>
      */
     public static function definitions(): array
     {
-        return [
+        $definitions = [
             'Arbeiter' => [
                 'name' => 'Arbeiter',
                 'cost' => 5,
@@ -84,6 +85,23 @@ final class RpgCharEditorTraining
                 'description' => 'Wandernder Sänger und Nachrichtenüberbringer der dunklen Zukunft.',
             ],
         ];
+        $definitions['Gladiator'] = [
+            'name' => 'Gladiator', 'source' => RpgCharEditorRuleCatalog::EXPANSION, 'cost' => 5,
+            'skills' => ['Nahkampf', 'Unterhalten', 'Intuition', 'Reiten'],
+            'description' => 'Kämpft vor Publikum und verbindet Kampftechnik mit einer wirkungsvollen Darbietung.',
+            'suggestedSpecializations' => ['Unterhalten' => 'Kämpfen'],
+        ];
+        $definitions['Priester'] = [
+            'name' => 'Priester', 'source' => RpgCharEditorRuleCatalog::EXPANSION, 'cost' => 5,
+            'skills' => ['Kunde', 'Unterhalten', 'Sprachen', 'Bildung'],
+            'description' => 'Verkündet den Glauben einer organisierten Gemeinschaft und schützt ihre Angehörigen.',
+            'suggestedSpecializations' => ['Unterhalten' => 'Predigen'],
+        ];
+        foreach ($definitions as &$definition) {
+            $definition += ['source' => RpgCharEditorRuleCatalog::BASE];
+        }
+
+        return $definitions;
     }
 
     /**

@@ -5,6 +5,8 @@
  * verfügbar ist. Andernfalls wartet das Modul auf 'alpine:init'.
  */
 
+import extensionRules from '../Fixtures/rpg-extension-rules.json';
+
 let editorFactory;
 
 const specialRuleConfig = {
@@ -2502,5 +2504,268 @@ describe('charEditor - Speicher-Slots', () => {
         expect(hiddenInput.value).toBe('0');
         expect(event.preventDefault).toHaveBeenCalledTimes(1);
         confirmSpy.mockRestore();
+    });
+});
+
+describe('charEditor – erste Erweiterung', () => {
+    beforeEach(() => {
+        Object.assign(window.rpgCharEditorRules, structuredClone(extensionRules));
+    });
+
+    function extensionEditor(race = 'Morlock') {
+        const editor = createEditor({ race });
+        editor.handleRaceChange();
+        editor.handleCultureChange();
+        return editor;
+    }
+
+    it('aktiviert die Erweiterung für neue Charaktere und filtert Ausbildungen beim Abschalten', () => {
+        const editor = createEditor();
+        expect(editor.sourceEnabled('expansion-1')).toBe(true);
+        expect(editor.trainingRules()).toHaveLength(12);
+        expect(editor.setSourceEnabled('expansion-1', false)).toBe(true);
+        expect(editor.trainingRules()).toHaveLength(10);
+        expect(editor.isRaceSelectable('Morlock')).toBe(false);
+        expect(editor.setSourceEnabled('base', false)).toBe(false);
+        expect(editor.sourceEnabled('base')).toBe(true);
+        expect(editor.setSourceEnabled('unknown', true)).toBe(false);
+        editor.setSourceEnabled('expansion-1', true);
+        expect(editor.trainingRules()).toHaveLength(12);
+    });
+
+    it.each([
+        ['Agarther', 'Mensch des 21. Jahrhunderts'],
+        ['Marsianer', 'Marsianische Städter'],
+        ['Morlock', 'Ruinenbewohner'],
+    ])('wendet Rasse %s und ihre verpflichtende Kultur %s an', (race, culture) => {
+        const editor = extensionEditor(race);
+        expect(editor.culture).toBe(culture);
+        expect(editor.allowedCulturesForRace()).toEqual([culture]);
+        expect(editor.isCultureSelectable('Bunkermensch')).toBe(false);
+        expect(editor.isCultureSelectable('Landbewohner')).toBe(false);
+        expect(editor.raceInfo().name).toBe(race);
+        expect(editor.raceShortDescription()).not.toBe('');
+        expect(editor.cultureInfo().description).not.toBe('');
+        expect(editor.description).toContain(editor.cultureInfo().description);
+        expect(editor.sourceName(editor.contentSource('races', race))).toBe('1. Erweiterung von Stefan Küppers');
+        expect(editor.setSourceEnabled('expansion-1', false)).toBe(false);
+        expect(editor.sourceToggleError).toContain(race);
+        expect(editor.ruleSourcesComplete()).toBe(true);
+    });
+
+    it('übernimmt Morlock-Boni und addiert die Ruinenbewohner-Kultur', () => {
+        const editor = extensionEditor();
+        expect(editor.attributes.in).toBe(-1);
+        expect(editor.getGrant('Heimlichkeit').value).toBe(2);
+        expect(editor.getGrant('Überleben').value).toBe(1);
+        expect(editor.getGrant('Diebeskunst').value).toBe(1);
+        expect(editor.selectedAdvantages).toContain('Nachtsicht');
+        expect(editor.selectedDisadvantages).toContain('Lichtscheu');
+        expect(editor.raceInfo().note).toBeUndefined();
+    });
+
+    it('tauscht bei Agarthern Feuerwaffen gegen Nahkampf und behält zwölf Rassenpunkte', () => {
+        const editor = extensionEditor('Agarther');
+        expect(editor.praekristofluuSkillNames).toEqual(['Bildung', 'Fahren', 'Nahkampf', 'Pilot', 'Techniker', 'Wissenschaftler']);
+        expect(editor.praekristofluuPoolUsed()).toBe(12);
+        expect(editor.praekristofluuSkillPoolComplete()).toBe(true);
+        expect(editor.getGrant('Beruf').value).toBe(4);
+        expect(editor.getGrant('Nahkampf').value).toBe(2);
+        expect(editor.getGrant('Bildung').value).toBe(3);
+        expect(editor.selectedAdvantages).toContain('High-Tech-Ausrüstung');
+        expect(editor.cultureInfo().description).toContain('Agarther');
+    });
+
+    it.each(['Pilot', 'Wissenschaftler', 'Athletik', 'Unterhalten'])('addiert den marsianischen Kulturbonus %s', bonus => {
+        const editor = extensionEditor('Marsianer');
+        editor.setMarsianerBonusSkill(bonus);
+        expect(editor.marsianerBonusSkill).toBe(bonus);
+        expect(editor.cultureGrants).toEqual({ Bildung: { type: 'min', value: 1 }, Techniker: { type: 'min', value: 1 }, [bonus]: { type: 'min', value: 1 } });
+        expect(editor.getGrant(bonus).value).toBe((editor.raceGrants[bonus]?.value || 0) + 1);
+        expect(editor.getGrant('Bildung').value).toBe(3);
+        expect(editor.getGrant('Techniker').value).toBe(3);
+        expect(editor.attributes.ro).toBe(0);
+        expect(editor.sourceName(editor.contentSource('cultures', editor.culture))).toContain('Stefan Küppers');
+    });
+
+    it('wechselt die Ersatzfertigkeit ohne zusätzliche Poolpunkte und erhält fixe Berufspunkte', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.setMarsianerReplacementSkill('Beruf');
+        expect(editor.praekristofluuSkillNames).not.toContain('Nahkampf');
+        expect(editor.getGrant('Nahkampf')).toBeNull();
+        expect(editor.getGrant('Beruf').value).toBe(3);
+        expect(editor.praekristofluuPoolUsed()).toBe(10);
+        expect(editor.praekristofluuSkillPoolComplete()).toBe(false);
+        editor.setPraekristofluuSkillPoints('Beruf', 2);
+        expect(editor.getGrant('Beruf').value).toBe(5);
+        expect(editor.praekristofluuSkillPoolComplete()).toBe(true);
+        editor.setMarsianerReplacementSkill('Nahkampf');
+        expect(editor.getGrant('Beruf').value).toBe(3);
+        editor.setMarsianerReplacementSkill('Bildung');
+        expect(editor.praekristofluuSkillNames).toHaveLength(5);
+        expect(new Set(editor.praekristofluuSkillNames).size).toBe(5);
+        editor.setPraekristofluuSkillPoints('Bildung', 4);
+        expect(editor.praekristofluuPoolUsed()).toBe(12);
+        expect(editor.getGrant('Bildung').value).toBe(5);
+    });
+
+    it('ignoriert unzulässige Ersatzfertigkeiten und Kulturboni', () => {
+        const editor = extensionEditor('Marsianer');
+        for (const name of ['', 'Feuerwaffen', 'Zauberei']) editor.setMarsianerReplacementSkill(name);
+        expect(editor.marsianerReplacementSkill).toBe('Nahkampf');
+        for (const name of ['', 'Nahkampf', 'Bildung']) editor.setMarsianerBonusSkill(name);
+        expect(editor.marsianerBonusSkill).toBe('Pilot');
+        expect(editor.marsianerReplacementOptions()).not.toContain('Feuerwaffen');
+    });
+
+    it('benötigt Kind zweier Welten bei Intuition als marsianischer Ersatzfertigkeit', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.setMarsianerReplacementSkill('Intuition');
+        expect(editor.exclusiveSkillsComplete()).toBe(true);
+        editor.setPraekristofluuSkillPoints('Intuition', 2);
+        expect(editor.exclusiveSkillsComplete()).toBe(false);
+        expect(editor.completionIssues()).toContain('Bildung und Intuition benötigen zusammen den Vorteil Kind zweier Welten.');
+        expect(editor.formValid()).toBe(false);
+        editor.selectedAdvantages.push('Kind zweier Welten');
+        expect(editor.exclusiveSkillsComplete()).toBe(true);
+    });
+
+    it('erhält bezahlte Punkte beim Wechsel marsianischer Wahlboni ohne zusätzliche FP-Kosten', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.ensureSkill('Pilot').value = 4; // Rasse 2 + Kultur 1 + bezahlt 1.
+        editor.setMarsianerBonusSkill('Unterhalten');
+        expect(editor.skills.find(skill => skill.name === 'Pilot').value).toBe(3);
+        expect(editor.fpUsed()).toBe(1);
+        editor.ensureSkill('Unterhalten').value = 3; // Kultur 1 + bezahlt 2.
+        editor.setMarsianerBonusSkill('Pilot');
+        expect(editor.skills.find(skill => skill.name === 'Unterhalten').value).toBe(2);
+        expect(editor.skills.find(skill => skill.name === 'Pilot').value).toBe(4);
+        expect(editor.fpUsed()).toBe(3);
+    });
+
+    it('entfernt beim Ersatzfertigkeitswechsel nur Poolboni und erhält gekaufte Fertigkeitspunkte', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.ensureSkill('Nahkampf').value = 3;
+        editor.setMarsianerReplacementSkill('Beruf');
+        expect(editor.skills.find(skill => skill.name === 'Nahkampf').value).toBe(1);
+        editor.setPraekristofluuSkillPoints('Beruf', 2);
+        expect(editor.skills.find(skill => skill.name === 'Beruf').value).toBe(5);
+        editor.setMarsianerReplacementSkill('Heiler');
+        expect(editor.skills.find(skill => skill.name === 'Beruf').value).toBe(3);
+        expect(editor.fpUsed()).toBe(1);
+    });
+
+    it('verändert bei einem blockierten Abschaltversuch keine Charakterwerte', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.attributes.st = 1;
+        const before = JSON.stringify({ attributes: editor.attributes, skills: editor.skills, pool: editor.praekristofluuSkillPoints, culture: editor.culture, advantages: editor.selectedAdvantages });
+        editor.setSourceEnabled('expansion-1', false);
+        expect(editor.sourceEnabled('expansion-1')).toBe(true);
+        expect(JSON.stringify({ attributes: editor.attributes, skills: editor.skills, pool: editor.praekristofluuSkillPoints, culture: editor.culture, advantages: editor.selectedAdvantages })).toBe(before);
+    });
+
+    it.each(['Gladiator', 'Priester'])('verhindert das Abschalten bei gewählter Ausbildung %s', training => {
+        const editor = createEditor({ selectedTrainings: [training] });
+        editor.handleTrainingSelection(training);
+        expect(editor.setSourceEnabled('expansion-1', false)).toBe(false);
+        expect(editor.sourceToggleError).toContain(training);
+        expect(editor.trainingRule(training).cost).toBe(5);
+        expect(editor.trainingDefaultTarget(editor.trainingRule(training), 'Unterhalten')).toBe(`Unterhalten: ${training === 'Gladiator' ? 'Kämpfen' : 'Predigen'}`);
+        editor.selectedTrainings = [];
+        editor.handleTrainingSelection(training);
+        expect(editor.setSourceEnabled('expansion-1', false)).toBe(true);
+        expect(editor.sourceToggleError).toBe('');
+    });
+
+    it('sperrt erzwungene Auswahlen deaktivierter Quellen', () => {
+        const editor = createEditor();
+        editor.setSourceEnabled('expansion-1', false);
+        editor.selectedTrainings = ['Priester'];
+        expect(editor.ruleSourcesComplete()).toBe(false);
+        expect(editor.completionIssues()).toContain('Eine benötigte Regelquelle ist nicht aktiviert.');
+    });
+
+    it.each([{}, { 'expansion-1': '0' }, { 'expansion-1': false }])('reaktiviert eine deaktivierte oder alte Auswahl nach Fehlern nicht: %j', selection => {
+        const editor = createEditor();
+        editor.hydrateFromOldInput({ race: 'Barbar', culture: 'Landbewohner', rule_sources: selection });
+        expect(editor.sourceEnabled('expansion-1')).toBe(false);
+    });
+
+    it('stellt marsianische Quellen, Ersatzfertigkeit, Pool und Kulturbonus wieder her', () => {
+        const editor = createEditor();
+        editor.hydrateFromOldInput({
+            rule_sources: { 'expansion-1': '1' }, race: 'Marsianer', culture: 'Marsianische Städter',
+            marsianer_replacement_skill: 'Heiler', marsianer_bonus_skill: 'Unterhalten',
+            praekristofluu_skill_points: { Bildung: 2, Fahren: 2, Pilot: 2, Techniker: 2, Wissenschaftler: 1, Heiler: 3 },
+        });
+        expect(editor.sourceEnabled('expansion-1')).toBe(true);
+        expect(editor.marsianerReplacementSkill).toBe('Heiler');
+        expect(editor.praekristofluuPoolUsed()).toBe(12);
+        expect(editor.getGrant('Heiler').value).toBe(3);
+        expect(editor.marsianerBonusSkill).toBe('Unterhalten');
+        expect(editor.getGrant('Unterhalten').value).toBe(1);
+    });
+
+    it('entfernt Erweiterungsboni beim Wechsel zu einer Basisrasse', () => {
+        const editor = extensionEditor();
+        editor.race = 'Barbar';
+        editor.handleRaceChange();
+        editor.handleCultureChange();
+        expect(editor.attributes.in).toBe(0);
+        expect(editor.selectedAdvantages).not.toContain('Nachtsicht');
+        expect(editor.selectedDisadvantages).not.toContain('Lichtscheu');
+        expect(editor.setSourceEnabled('expansion-1', false)).toBe(true);
+    });
+
+    it('stellt beim Rückwechsel die marsianische Ersatzfertigkeit und deren Punkte wieder her', () => {
+        const editor = extensionEditor('Marsianer');
+        editor.setMarsianerReplacementSkill('Heiler');
+        editor.setPraekristofluuSkillPoints('Heiler', 3);
+        editor.setPraekristofluuSkillPoints('Fahren', 1);
+        editor.race = 'Morlock';
+        editor.handleRaceChange();
+        editor.handleCultureChange();
+        editor.race = 'Marsianer';
+        editor.handleRaceChange();
+        editor.handleCultureChange();
+        expect(editor.marsianerReplacementSkill).toBe('Heiler');
+        expect(editor.praekristofluuPoolUsed()).toBe(12);
+        expect(editor.getGrant('Heiler').value).toBe(3);
+        expect(editor.getGrant('Fahren').value).toBe(1);
+        expect(editor.raceLocked.disadvantages).toEqual([]);
+        expect(editor.attributes.in).toBe(0);
+    });
+
+    it('meldet einen unvollständigen Erweiterungspool und begrenzt Eingaben auf die Figurenstärke', () => {
+        const editor = extensionEditor('Agarther');
+        editor.setPraekristofluuSkillPoints('Feuerwaffen', 2);
+        expect(editor.praekristofluuSkillPoints.Feuerwaffen).toBeUndefined();
+        editor.setPraekristofluuSkillPoints('Nahkampf', -2);
+        expect(editor.praekristofluuSkillPoints.Nahkampf).toBe(0);
+        expect(editor.completionIssues()).toContain('Agarther-Rassenpunkte: 10 / 12');
+        editor.setPraekristofluuSkillPoints('Nahkampf', 99);
+        expect(editor.praekristofluuSkillPoints.Nahkampf).toBe(4);
+        expect(editor.praekristofluuSkillPoolComplete()).toBe(false);
+    });
+
+    it('erhält nach wiederholten Rassenwechseln jeweils die zuletzt bearbeitete marsianische Auswahl', () => {
+        const editor = extensionEditor('Marsianer');
+        for (const [replacement, replacementPoints, drivingPoints] of [['Heiler', 3, 1], ['Heimlichkeit', 2, 2], ['Nahkampf', 1, 3]]) {
+            editor.setMarsianerReplacementSkill(replacement);
+            editor.setPraekristofluuSkillPoints(replacement, replacementPoints);
+            editor.setPraekristofluuSkillPoints('Fahren', drivingPoints);
+            const expectedPool = { ...editor.praekristofluuSkillPoints };
+            editor.race = 'Morlock';
+            editor.handleRaceChange();
+            editor.handleCultureChange();
+            editor.race = 'Marsianer';
+            editor.handleRaceChange();
+            editor.handleCultureChange();
+            expect(editor.marsianerReplacementSkill).toBe(replacement);
+            expect(editor.praekristofluuSkillPoints).toEqual(expectedPool);
+            expect(editor.praekristofluuPoolUsed()).toBe(12);
+            expect(editor.getGrant(replacement).value).toBe(replacementPoints);
+            expect(editor.getGrant('Fahren').value).toBe(drivingPoints);
+        }
     });
 });

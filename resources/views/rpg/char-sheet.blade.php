@@ -8,19 +8,21 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 7.6pt; line-height: 1.13; color: #111; }
-        .sheet { width: 202mm; height: 289mm; overflow: hidden; page-break-after: avoid; page-break-inside: avoid; }
+        .rule-sources { margin-top: 1mm; font-size: 6pt; text-align: center; }
+        .sheet { width: 202mm; page-break-after: avoid; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         td, th { vertical-align: top; }
         .header { height: 25mm; }
         .logo-cell { width: 54mm; padding: 1.5mm 4mm 1mm 1mm; }
         .logo { width: 48mm; height: 20.4mm; object-fit: contain; }
         .meta-cell { padding: 1mm 0 0 4mm; }
-        .meta-table th { width: 29mm; height: 6.2mm; padding: 0 1.5mm 0.7mm 0; vertical-align: bottom; font-size: 9pt; text-align: left; }
-        .meta-table td { height: 6.2mm; padding: 0 1.5mm 0.7mm; border-bottom: 0.35mm solid #111; vertical-align: bottom; font-size: 8.4pt; white-space: nowrap; overflow: hidden; }
-        .traits { height: 19mm; padding: 0 1mm; }
-        .trait-table th { width: 28mm; height: 4.6mm; padding: 0 1mm 0.5mm 0; vertical-align: bottom; font-size: 8.3pt; text-align: left; white-space: nowrap; }
-        .trait-table td { height: 4.6mm; padding: 0 1mm 0.5mm; border-bottom: 0.25mm solid #111; vertical-align: bottom; overflow: hidden; white-space: nowrap; }
-        .core { height: 92mm; margin-top: 1mm; }
+        .meta-table th { width: 29mm; height: 5.7mm; padding: 0 1.5mm 0.7mm 0; vertical-align: bottom; font-size: 9pt; text-align: left; }
+        .meta-table td { height: 5.7mm; padding: 0 1.5mm 0.7mm; border-bottom: 0.35mm solid #111; vertical-align: bottom; font-size: 8.4pt; white-space: nowrap; overflow: hidden; }
+        .meta-table td.race-culture { white-space: normal; font-size: 7pt; line-height: 1.1; }
+        .traits { height: 17mm; padding: 0 1mm; }
+        .trait-table th { width: 28mm; height: 4mm; padding: 0 1mm 0.5mm 0; vertical-align: bottom; font-size: 8.3pt; text-align: left; white-space: nowrap; }
+        .trait-table td { height: 4mm; padding: 0 1mm 0.5mm; border-bottom: 0.25mm solid #111; vertical-align: bottom; overflow: hidden; white-space: nowrap; }
+        .core { height: 76mm; margin-top: 1mm; }
         .values-cell { width: 112mm; padding-right: 4mm; }
         .portrait-cell { width: 90mm; }
         .section-title { margin: 0 0 1mm; font-size: 8.8pt; font-weight: 700; }
@@ -30,22 +32,22 @@
         .value-list td { height: 4mm; vertical-align: middle; font-size: 8.1pt; }
         .value-list .value-name { width: 36mm; padding-right: 1mm; }
         .value-list .value-box { width: 9mm; padding-top: 0.3mm; border: 0.45mm solid #111; text-align: center; font-weight: 700; }
-        .skills { margin-top: 2mm; height: 60mm; }
+        .skills { margin-top: 2mm; }
         .skill-column { width: 50%; padding-right: 3mm; }
         .skill-list { width: 46mm; table-layout: auto; }
         .skill-list td { height: 4mm; vertical-align: middle; font-size: 8pt; }
         .skill-list .skill-name { width: 36mm; padding-right: 1mm; }
         .skill-list .skill-value { width: 9mm; padding-top: 0.3mm; border: 0.35mm solid #111; text-align: center; font-weight: 700; }
-        .portrait-frame { height: 92mm; border: 0.45mm double #111; padding: 1mm; overflow: hidden; }
-        .portrait-image { width: 100%; height: 65mm; object-fit: cover; display: block; }
-        .portrait-placeholder { width: 100%; height: 36mm; padding-top: 29mm; text-align: center; color: #666; font-size: 8pt; }
+        .portrait-frame { height: 76mm; border: 0.45mm double #111; padding: 1mm; overflow: hidden; }
+        .portrait-image { width: 100%; height: 52mm; object-fit: cover; display: block; }
+        .portrait-placeholder { width: 100%; height: 23mm; padding-top: 29mm; text-align: center; color: #666; font-size: 8pt; }
         .description { height: 18mm; margin-top: 1mm; padding: 1mm; border-top: 0.25mm solid #777; overflow: hidden; font-size: 6.7pt; line-height: 1.18; }
         .description strong { font-size: 7pt; }
-        .specializations { height: 9mm; margin-top: 1mm; padding: 1mm; border-bottom: 0.35mm solid #111; overflow: hidden; }
+        .specializations { height: 7mm; margin-top: 1mm; padding: 1mm; border-bottom: 0.35mm solid #111; overflow: hidden; }
         .specializations strong { font-size: 8pt; }
-        .combat-summary { height: 17mm; padding-top: 2mm; }
+        .combat-summary { height: 15mm; padding-top: 2mm; }
         .combat-summary td { padding-right: 1.4mm; }
-        .combat-box { height: 13mm; border: 0.3mm solid #111; padding: 1mm; overflow: hidden; }
+        .combat-box { height: 11.5mm; border: 0.3mm solid #111; padding: 1mm; overflow: hidden; }
         .combat-label { display: block; font-size: 7.3pt; font-weight: 700; }
         .combat-value { display: block; margin-top: 1mm; font-size: 9.4pt; font-weight: 700; }
         .combat-formula { display: block; margin-top: 0.4mm; font-size: 5.4pt; color: #333; white-space: nowrap; }
@@ -60,18 +62,18 @@
         .armor-table th { height: 3.6mm; padding: 0.3mm 0.6mm; background: #eee; border-bottom: 0.25mm solid #111; font-size: 5.8pt; text-align: left; }
         .armor-table td { height: 2mm; padding: 0.15mm 0.7mm; border-bottom: 0.18mm solid #777; font-size: 5.4pt; }
         .active { font-weight: 700; }
-        .bottom { height: 37mm; margin-top: 1.5mm; }
-        .wounds-cell { width: 77mm; padding-right: 3mm; }
-        .equipment-cell { width: 125mm; }
-        .bottom-box { height: 36mm; border: 0.45mm solid #111; padding: 1.2mm; overflow: hidden; }
+        .bottom { margin-top: 1.5mm; }
+        .wounds-cell { width: 38%; padding-right: 3mm; }
+        .equipment-cell { width: 62%; }
+        .bottom-box { min-height: 42mm; border: 0.45mm solid #111; padding: 1.2mm; }
         .bottom-title { margin: 0 0 1mm; font-size: 8.5pt; font-weight: 700; }
-        .wound-row { height: 7mm; border-bottom: 0.2mm solid #aaa; padding-top: 1mm; }
+        .wound-row { height: 6mm; border-bottom: 0.2mm solid #aaa; padding-top: 0.5mm; }
         .wound-name { display: inline-block; width: 20mm; font-size: 7.6pt; }
         .wound-mod { display: inline-block; width: 47mm; font-size: 6.3pt; text-align: right; }
-        .equipment-text { height: 15mm; overflow: hidden; font-size: 6.6pt; line-height: 1.2; }
+        .equipment-text { min-height: 15mm; font-size: 6.6pt; line-height: 1.2; }
         .equipment-sub { margin-top: 1mm; font-size: 6pt; line-height: 1.2; }
-        .notes { height: 9mm; margin-top: 1mm; padding-top: 0.7mm; border-top: 0.2mm solid #aaa; overflow: hidden; font-size: 5.8pt; }
-        .situational { height: 7mm; margin-top: 0.8mm; overflow: hidden; font-size: 5.6pt; font-style: italic; }
+        .notes { margin-top: 1mm; padding-top: 0.7mm; border-top: 0.2mm solid #aaa; font-size: 5.8pt; }
+        .situational { margin-top: 0.8mm; font-size: 5.6pt; font-style: italic; }
         .muted { color: #555; }
     </style>
 </head>
@@ -79,6 +81,7 @@
 @php
     if (! isset($sheet) || ! is_array($sheet)) {
         $fallbackPayload = [
+            'rules' => $rules ?? [],
             'character' => $character ?? [],
             'attributes' => $attributes ?? [],
             'skills' => $skills ?? [],
@@ -120,7 +123,7 @@
                 <table class="meta-table">
                     <tr><th>Name</th><td>{{ $sheet['character_name'] }}</td></tr>
                     <tr><th>Spieler</th><td>{{ $sheet['player_name'] }}</td></tr>
-                    <tr><th>Rasse &amp; Kultur</th><td>{{ $sheet['race_culture'] }}@if($sheet['gender']) · {{ $sheet['gender'] }}@endif</td></tr>
+                    <tr><th>Rasse &amp; Kultur</th><td class="race-culture">{{ $sheet['race_culture'] }}@if($sheet['gender']) · {{ $sheet['gender'] }}@endif</td></tr>
                     <tr><th>Figurenstärke</th><td>{{ $sheet['creation_level'] }}</td></tr>
                 </table>
             </td>
@@ -280,6 +283,7 @@
             </td>
         </tr>
     </table>
+    <div class="rule-sources">{{ $sheet['rule_sources'] ?? 'Basisregelwerk' }}</div>
 </div>
 </body>
 </html>

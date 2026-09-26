@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Services\RpgCharacterSheetService;
+use App\Support\RpgCharEditorRuleCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -141,7 +142,7 @@ class RpgCharacterCreationV2Test extends TestCase
             'advantage_effects' => [['name' => 'Schnell', 'target' => '', 'justification' => 'Nanotechnologie']],
         ]));
 
-        $this->assertSame(['edition' => 2007, 'creation_level' => 3, 'payload_version' => 2], $data['rules']);
+        $this->assertSame(['edition' => 2007, 'creation_level' => 3, 'payload_version' => 2, 'sources' => RpgCharEditorRuleCatalog::snapshots([])], $data['rules']);
         $this->assertSame(1, $data['creation']['advantage_budget']['used']);
         $this->assertSame(0, $data['creation']['advantage_budget']['required_compensations']);
         $this->assertSame(1, $data['creation']['attribute_adjustments']['st']);

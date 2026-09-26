@@ -1,0 +1,520 @@
+{
+    "ruleCatalog": {
+        "sources": {
+            "base": {
+                "id": "base",
+                "name": "Basisregelwerk",
+                "author": null,
+                "version": "2007",
+                "defaultEnabled": true
+            },
+            "expansion-1": {
+                "id": "expansion-1",
+                "name": "1. Erweiterung von Stefan Küppers",
+                "author": "Stefan Küppers",
+                "version": "1",
+                "defaultEnabled": true
+            }
+        },
+        "races": {
+            "Barbar": {
+                "skills": {
+                    "Überleben": 1,
+                    "Intuition": 1
+                },
+                "anySkills": [
+                    {
+                        "names": [
+                            "Nahkampf",
+                            "Fernkampf"
+                        ],
+                        "minimum": 1,
+                        "label": "Nahkampf oder Fernkampf mindestens auf 1"
+                    }
+                ],
+                "name": "Barbar",
+                "source": "base",
+                "attributes": [],
+                "advantages": [],
+                "disadvantages": [],
+                "allowedCultures": [
+                    "Landbewohner",
+                    "Stadtbewohner",
+                    "Nomade",
+                    "Disuuslachter (Nordmann)",
+                    "Ruinenbewohner",
+                    "Untergrundbewohner",
+                    "Volk der 13 Inseln"
+                ]
+            },
+            "Guul": {
+                "attributes": {
+                    "au": -1
+                },
+                "skills": {
+                    "Heimlichkeit": 2,
+                    "Intuition": 1
+                },
+                "advantages": [
+                    "Natürliche Waffen"
+                ],
+                "disadvantages": [
+                    "Primitiv",
+                    "Gejagt"
+                ],
+                "name": "Guul",
+                "source": "base",
+                "allowedCultures": [
+                    "Landbewohner",
+                    "Stadtbewohner",
+                    "Nomade",
+                    "Ruinenbewohner",
+                    "Untergrundbewohner"
+                ]
+            },
+            "Hydrit": {
+                "skills": {
+                    "Athletik": 2,
+                    "Bildung": 1
+                },
+                "advantages": [
+                    "Kiemen",
+                    "Natürliche Waffen"
+                ],
+                "disadvantages": [
+                    "Anfälligkeit gegen Wahnsinn"
+                ],
+                "culture": "Meeresbewohner",
+                "name": "Hydrit",
+                "source": "base",
+                "attributes": [],
+                "allowedCultures": [
+                    "Meeresbewohner"
+                ]
+            },
+            "Nosfera": {
+                "attributes": {
+                    "ge": 1,
+                    "au": -1
+                },
+                "skills": {
+                    "Intuition": 2,
+                    "Heimlichkeit": 2
+                },
+                "advantages": [
+                    "Nachtsicht"
+                ],
+                "disadvantages": [
+                    "Blutdurst",
+                    "Lichtscheu",
+                    "Gejagt"
+                ],
+                "name": "Nosfera",
+                "source": "base",
+                "allowedCultures": [
+                    "Landbewohner",
+                    "Stadtbewohner",
+                    "Nomade",
+                    "Ruinenbewohner",
+                    "Untergrundbewohner"
+                ]
+            },
+            "Taratze": {
+                "attributes": {
+                    "st": 1,
+                    "wa": 1,
+                    "in": -1,
+                    "au": -1
+                },
+                "skills": {
+                    "Intuition": 2,
+                    "Heimlichkeit": 1,
+                    "Überleben": 1
+                },
+                "disadvantages": [
+                    "Auffällig",
+                    "Primitiv",
+                    "Gejagt"
+                ],
+                "name": "Taratze",
+                "source": "base",
+                "advantages": [],
+                "allowedCultures": [
+                    "Landbewohner",
+                    "Stadtbewohner",
+                    "Nomade",
+                    "Ruinenbewohner",
+                    "Untergrundbewohner"
+                ]
+            },
+            "Wulfane": {
+                "attributes": {
+                    "ro": 1,
+                    "au": -1
+                },
+                "skills": {
+                    "Intuition": 1,
+                    "Nahkampf": 1
+                },
+                "disadvantages": [
+                    "Ehrenkodex"
+                ],
+                "name": "Wulfane",
+                "source": "base",
+                "advantages": [],
+                "allowedCultures": [
+                    "Landbewohner",
+                    "Stadtbewohner",
+                    "Nomade",
+                    "Ruinenbewohner",
+                    "Untergrundbewohner"
+                ]
+            },
+            "Techno": {
+                "attributes": {
+                    "st": -1,
+                    "ro": -1,
+                    "in": 1
+                },
+                "skills": {
+                    "Bildung": 3
+                },
+                "advantages": [
+                    "High-Tech-Ausrüstung"
+                ],
+                "disadvantages": [
+                    "Tödliche Immunschwäche"
+                ],
+                "culture": "Bunkermensch",
+                "name": "Techno",
+                "source": "base",
+                "allowedCultures": [
+                    "Bunkermensch"
+                ]
+            },
+            "Präkristofluu": {
+                "skills": {
+                    "Beruf": 3
+                },
+                "advantages": [
+                    "High-Tech-Ausrüstung"
+                ],
+                "culture": "Mensch des 21. Jahrhunderts",
+                "pool": [
+                    "Bildung",
+                    "Fahren",
+                    "Feuerwaffen",
+                    "Pilot",
+                    "Techniker",
+                    "Wissenschaftler"
+                ],
+                "name": "Präkristofluu",
+                "source": "base",
+                "attributes": [],
+                "disadvantages": [],
+                "allowedCultures": [
+                    "Mensch des 21. Jahrhunderts"
+                ]
+            },
+            "Agarther": {
+                "source": "expansion-1",
+                "skills": {
+                    "Beruf": 3
+                },
+                "advantages": [
+                    "High-Tech-Ausrüstung"
+                ],
+                "culture": "Mensch des 21. Jahrhunderts",
+                "pool": [
+                    "Bildung",
+                    "Fahren",
+                    "Nahkampf",
+                    "Pilot",
+                    "Techniker",
+                    "Wissenschaftler"
+                ],
+                "description": "Agarther erkunden die Welt außerhalb Agarthas häufig unter einer Tarnidentität. Sie sammeln Informationen und suchen nach verbliebenen Zentren der Zivilisation.",
+                "note": "12 Rassenpunkte wie bei Präkristofluu; Nahkampf ersetzt Feuerwaffen. Die Kulturboni entsprechen Mensch des 21. Jahrhunderts.",
+                "name": "Agarther",
+                "attributes": [],
+                "disadvantages": [],
+                "allowedCultures": [
+                    "Mensch des 21. Jahrhunderts"
+                ]
+            },
+            "Marsianer": {
+                "source": "expansion-1",
+                "skills": {
+                    "Beruf": 3
+                },
+                "advantages": [
+                    "High-Tech-Ausrüstung"
+                ],
+                "culture": "Marsianische Städter",
+                "pool": [
+                    "Bildung",
+                    "Fahren",
+                    "Pilot",
+                    "Techniker",
+                    "Wissenschaftler"
+                ],
+                "description": "Marsianer sind große, schlanke Menschen mit feingliedrigem Körperbau, vergrößertem Brustkorb und einer individuell gemaserten Haut. Ihre Gesellschaft hat sich über Jahrhunderte auf dem Mars entwickelt.",
+                "note": "12 Rassenpunkte wie bei Präkristofluu; eine andere Fertigkeit ersetzt Feuerwaffen. Eine geringere Robustheit auf der Erde wird empfohlen, ist aber kein automatischer Abzug.",
+                "name": "Marsianer",
+                "attributes": [],
+                "disadvantages": [],
+                "allowedCultures": [
+                    "Marsianische Städter"
+                ]
+            },
+            "Morlock": {
+                "source": "expansion-1",
+                "attributes": {
+                    "in": -1
+                },
+                "skills": {
+                    "Heimlichkeit": 1,
+                    "Überleben": 1
+                },
+                "advantages": [
+                    "Nachtsicht"
+                ],
+                "disadvantages": [
+                    "Lichtscheu"
+                ],
+                "culture": "Ruinenbewohner",
+                "description": "Morlocks haben bleiche Haut, weißes Haar und sehr lichtempfindliche Augen. Sie können im Dunkeln sehen und leben in vor Tageslicht abgeschirmten Behausungen.",
+                "name": "Morlock",
+                "allowedCultures": [
+                    "Ruinenbewohner"
+                ]
+            }
+        },
+        "cultures": {
+            "Landbewohner": {
+                "name": "Landbewohner",
+                "source": "base"
+            },
+            "Stadtbewohner": {
+                "name": "Stadtbewohner",
+                "source": "base"
+            },
+            "Meeresbewohner": {
+                "name": "Meeresbewohner",
+                "source": "base"
+            },
+            "Bunkermensch": {
+                "name": "Bunkermensch",
+                "source": "base"
+            },
+            "Mensch des 21. Jahrhunderts": {
+                "name": "Mensch des 21. Jahrhunderts",
+                "source": "base"
+            },
+            "Nomade": {
+                "name": "Nomade",
+                "source": "base"
+            },
+            "Disuuslachter (Nordmann)": {
+                "name": "Disuuslachter (Nordmann)",
+                "source": "base"
+            },
+            "Ruinenbewohner": {
+                "name": "Ruinenbewohner",
+                "source": "base"
+            },
+            "Untergrundbewohner": {
+                "name": "Untergrundbewohner",
+                "source": "base"
+            },
+            "Volk der 13 Inseln": {
+                "name": "Volk der 13 Inseln",
+                "source": "base"
+            },
+            "Marsianische Städter": {
+                "name": "Marsianische Städter",
+                "source": "expansion-1",
+                "skills": {
+                    "Bildung": 1,
+                    "Techniker": 1
+                },
+                "bonusSkills": [
+                    "Pilot",
+                    "Wissenschaftler",
+                    "Athletik",
+                    "Unterhalten"
+                ],
+                "description": "Die marsianischen Städter haben über Jahrhunderte eine eigenständige, technisch fortgeschrittene Gesellschaft entwickelt. Gemeinschaftliche Erziehung, praktische Berufsausbildung und das Zusammenleben in großen Familienverbänden prägen ihren Alltag. Neben ihrer Arbeit widmen sich viele Marsianer sportlichen oder künstlerischen Interessen."
+            }
+        },
+        "poolPoints": 12
+    },
+    "trainingRules": {
+        "maxTrainings": 10,
+        "maxAllocations": 64,
+        "trainings": [
+            {
+                "name": "Arbeiter",
+                "cost": 5,
+                "skills": [
+                    "Beruf",
+                    "Fahren",
+                    "Unterhalten"
+                ],
+                "description": "Ein einfacher Beruf in der postapokalyptischen Zivilisation.",
+                "source": "base"
+            },
+            {
+                "name": "Arzt (Heilkundiger)",
+                "cost": 5,
+                "skills": [
+                    "Beruf",
+                    "Heiler",
+                    "Handeln"
+                ],
+                "description": "Ausbildung in Heilkunst, einem passenden Beruf und im Umgang mit Patienten oder Auftraggebern.",
+                "source": "base"
+            },
+            {
+                "name": "Dieb",
+                "cost": 6,
+                "skills": [
+                    "Diebeskunst",
+                    "Heimlichkeit",
+                    "Nahkampf",
+                    "Fernkampf"
+                ],
+                "description": "Ausbildung für Taschendiebe, Einbrecher, Räuber, Piraten oder Meuchelmörder.",
+                "source": "base"
+            },
+            {
+                "name": "Forscher",
+                "cost": 6,
+                "skills": [
+                    "Fahren",
+                    "Kunde",
+                    "Pilot",
+                    "Reiten",
+                    "Techniker",
+                    "Wissenschaftler"
+                ],
+                "description": "Erkundet die Umwelt und erschließt unbekannte Orte und Zusammenhänge.",
+                "source": "base"
+            },
+            {
+                "name": "Händler",
+                "cost": 5,
+                "skills": [
+                    "Fahren",
+                    "Handeln",
+                    "Kunde",
+                    "Reiten"
+                ],
+                "description": "Handelt mit Waren, kennt Preise und kommt weit herum.",
+                "source": "base"
+            },
+            {
+                "name": "Krieger",
+                "cost": 5,
+                "skills": [
+                    "Nahkampf",
+                    "Fernkampf",
+                    "Feuerwaffen",
+                    "Reiten",
+                    "Fahren",
+                    "Pilot"
+                ],
+                "description": "Kampfausbildung für primitive Krieger ebenso wie für moderne Eliteeinheiten.",
+                "source": "base"
+            },
+            {
+                "name": "Rev'rend",
+                "cost": 15,
+                "skills": [
+                    "Nahkampf",
+                    "Fernkampf",
+                    "Feuerwaffen",
+                    "Athletik",
+                    "Reiten",
+                    "Kunde",
+                    "Unterhalten"
+                ],
+                "description": "Furchtloser Prediger und Mutantenjäger mit umfassender Kampf- und Reiseausbildung.",
+                "suggestedSpecializations": {
+                    "Unterhalten": "Predigen"
+                },
+                "source": "base"
+            },
+            {
+                "name": "Schamane (Göttersprecher)",
+                "cost": 5,
+                "skills": [
+                    "Kunde",
+                    "Unterhalten",
+                    "Nahkampf",
+                    "Fernkampf",
+                    "Heiler"
+                ],
+                "description": "Spiritueller Mittler zwischen einer Gemeinschaft und höheren Wesen.",
+                "source": "base"
+            },
+            {
+                "name": "Seher",
+                "cost": 5,
+                "skills": [
+                    "Kunde",
+                    "Unterhalten",
+                    "Sprachen"
+                ],
+                "description": "Mental begabter Charakter, der Gefahren oder fremde Gedanken erspüren kann.",
+                "requiredAdvantages": [
+                    "Psychische Kraft"
+                ],
+                "source": "base"
+            },
+            {
+                "name": "Truveer",
+                "cost": 6,
+                "skills": [
+                    "Unterhalten",
+                    "Kunde",
+                    "Heimlichkeit",
+                    "Nahkampf",
+                    "Fernkampf"
+                ],
+                "description": "Wandernder Sänger und Nachrichtenüberbringer der dunklen Zukunft.",
+                "source": "base"
+            },
+            {
+                "name": "Gladiator",
+                "source": "expansion-1",
+                "cost": 5,
+                "skills": [
+                    "Nahkampf",
+                    "Unterhalten",
+                    "Intuition",
+                    "Reiten"
+                ],
+                "description": "Kämpft vor Publikum und verbindet Kampftechnik mit einer wirkungsvollen Darbietung.",
+                "suggestedSpecializations": {
+                    "Unterhalten": "Kämpfen"
+                }
+            },
+            {
+                "name": "Priester",
+                "source": "expansion-1",
+                "cost": 5,
+                "skills": [
+                    "Kunde",
+                    "Unterhalten",
+                    "Sprachen",
+                    "Bildung"
+                ],
+                "description": "Verkündet den Glauben einer organisierten Gemeinschaft und schützt ihre Angehörigen.",
+                "suggestedSpecializations": {
+                    "Unterhalten": "Predigen"
+                }
+            }
+        ]
+    }
+}

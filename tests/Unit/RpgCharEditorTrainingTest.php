@@ -23,6 +23,8 @@ class RpgCharEditorTrainingTest extends TestCase
             'Schamane (Göttersprecher)' => 5,
             'Seher' => 5,
             'Truveer' => 6,
+            'Gladiator' => 5,
+            'Priester' => 5,
         ], array_map(static fn (array $training): int => $training['cost'], $definitions));
         $this->assertSame(['Psychische Kraft'], $definitions['Seher']['requiredAdvantages']);
         $this->assertSame(['Unterhalten' => 'Predigen'], $definitions["Rev'rend"]['suggestedSpecializations']);
