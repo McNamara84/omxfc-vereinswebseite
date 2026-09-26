@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 use Illuminate\Support\Str;
 
@@ -66,6 +67,7 @@ final class RpgCharacterSheetPresenter
             'gender' => $this->genderLabel((string) ($character['gender'] ?? '')),
             'race_culture' => $this->short(trim((string) ($character['race'] ?? '').' · '.(string) ($character['culture'] ?? ''), ' ·'), 85),
             'creation_level' => $creationLevel,
+            'rule_sources' => implode(' · ', array_column($rules['sources'] ?? RpgCharEditorRuleCatalog::snapshots([]), 'name')),
             'trainings' => $this->short($this->trainingText($data['trainings'] ?? []), 100),
             'professions' => $this->short($this->specializationText($skills, 'Beruf'), 100),
             'description' => $this->short($character['description'] ?? '', 230),

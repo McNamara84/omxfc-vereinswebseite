@@ -22,6 +22,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Klassische Host-Entwicklung (optional)](#klassische-host-entwicklung-optional)
     - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
     - [Datenbank seeden](#datenbank-seeden)
+  - [Maddrax-Charakter-Editor und Regelquellen](#maddrax-charakter-editor-und-regelquellen)
   - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
   - [Maddraxikon-Bewertungen in Rezensionen](#maddraxikon-bewertungen-in-rezensionen)
   - [Cover-Bewertungen](#cover-bewertungen)
@@ -45,6 +46,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Mitgliederbereich** mit Dashboard, Aufgabenverwaltung, Newslettern, Belohnungen und Audiobereich.
 - **Interaktive Mitgliederkarte** (Leaflet + MarkerCluster) mit aktualisiertem Cache via Scheduler.
 - **Arbeitsgruppen-Management** mit Rollen, Teamverwaltung und CSV-Export der Mitgliederlisten.
+- **Maddrax-Charakter-Editor** mit wählbaren Regelquellen, gespeicherten Charakteren und PDF-Bögen.
 - **Meeting- und Kassenbuchmodule** zur Organisation von Vereinstreffen und Finanzverwaltung.
 - **Maddraxiversum-Minispiele** und weitere Community-Features (Cover-Bewertungen, Rezensionen, Romantausch, Hörbücher).
 
@@ -162,6 +164,39 @@ php artisan db:seed
 ```
 
 Spezielle Seeder wie `TodoPlaywrightSeeder` und `FantreffenPlaywrightSeeder` bereiten End-to-End-Tests vor und sollten nur in Testumgebungen ausgeführt werden.
+
+## Maddrax-Charakter-Editor und Regelquellen
+
+Unter `/rpg/char-editor` ist die **1. Erweiterung von Stefan Küppers** für neue
+Charaktere standardmäßig aktiviert. Sie ergänzt Agarther, Marsianer und Morlocks,
+die Kultur „Marsianische Städter“ sowie die Ausbildungen Gladiator und Priester.
+Die Auswahl gilt pro Charakter. Basisregelwerk und Erweiterung sind in der
+Rassen-, Kultur- und Ausbildungsauswahl sowie in den Zusammenfassungen beschriftet.
+
+Die Erweiterung lässt sich unter „Regelquellen“ abschalten. Werden bereits Inhalte
+daraus verwendet, nennt der Editor die betroffenen Auswahlen und erhält alle
+Eingaben. Über „Charakterdaten ändern“ lassen sich Rasse und Kultur erneut wählen.
+Nach dem Wechsel oder Entfernen der betroffenen Inhalte ist das Abschalten möglich.
+
+Aktive Quellen werden mit Kennung, Namen, Autor und Version im Charakter gespeichert
+und beim PDF-Export angegeben. Ältere Charaktere ohne Quellenangaben verwenden das
+Basisregelwerk. Die Kulturzuordnungen, Regelboni und der Nachrichtentwurf für Stefan
+stehen im [Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-1-Erweiterung.md).
+
+### Weitere Erweiterungen ergänzen
+
+1. In `app/Support/RpgCharEditorRuleCatalog.php` eine stabile Quellenkennung samt
+   Metadaten und Standardaktivierung aufnehmen. Bestehende Kennungen beibehalten.
+2. Rassen und Kulturen im Katalog, Ausbildungen in `RpgCharEditorTraining.php` über
+   `source` zuordnen. Neue Wahlregeln und Effekte in Servervalidierung und
+   `resources/js/alpine/char-editor.js` ergänzen. Quellenauswahl, Filterung und
+   Speicherung verwenden bereits den gemeinsamen Katalog.
+3. Regeln fachlich testen und die JavaScript-Testdaten mit
+   `php tests/Fixtures/update-rpg-extension-rules.php` aktualisieren.
+   `RpgCharEditorRuleCatalogTest` prüft, dass diese Daten den PHP-Definitionen entsprechen.
+4. `php artisan test --filter Rpg`,
+   `npm run test:vitest -- tests/Vitest/char-editor.test.js` und
+   `npm run test:e2e:docker -- tests/e2e/char-editor.spec.js --project=chromium` ausführen.
 
 ## Maddraxikon-Baxx-Regeln verwalten
 

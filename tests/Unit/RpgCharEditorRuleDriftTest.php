@@ -29,6 +29,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
             'skillRules',
             'trainingRules',
             'equipmentRules',
+            'ruleCatalog',
         ], array_keys($config));
         $this->assertSame(RpgCharEditorSpecialRules::ruleConfig()['creation'], $config['creation']);
         $this->assertSame(3, $config['creation']['defaultLevel']);
@@ -92,7 +93,7 @@ class RpgCharEditorRuleDriftTest extends TestCase
         $this->assertSame($config['advantages'], $this->frontendMetadataNames('ADVANTAGE_RULE_METADATA'));
         $this->assertSame($config['disadvantages'], $this->frontendMetadataNames('DISADVANTAGE_RULE_METADATA'));
         $this->assertNotEmpty($config['equipmentRules']['items']);
-        $this->assertCount(10, $config['trainingRules']['trainings']);
+        $this->assertCount(12, $config['trainingRules']['trainings']);
         $this->assertSame(6, $config['equipmentRules']['limits']['items']);
     }
 

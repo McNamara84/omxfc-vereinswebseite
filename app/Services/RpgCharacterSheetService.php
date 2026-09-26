@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCharEditorTraining;
 use Illuminate\Http\Request;
@@ -128,14 +129,6 @@ class RpgCharacterSheetService
         ],
     ];
 
-    private const RACE_ATTRIBUTE_MODIFIERS = [
-        'Guul' => ['au' => -1],
-        'Nosfera' => ['ge' => 1, 'au' => -1],
-        'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-        'Wulfane' => ['ro' => 1, 'au' => -1],
-        'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-    ];
-
     private const CHARACTER_KEYS = [
         'player_name',
         'character_name',
@@ -149,21 +142,6 @@ class RpgCharacterSheetService
     private const CHARACTER_NAME_MAX_CHARS = 255;
 
     private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
-
-    private const RACE_VALUES = ['Barbar', 'Guul', 'Hydrit', 'Nosfera', 'Taratze', 'Wulfane', 'Techno', 'Präkristofluu'];
-
-    private const CULTURE_VALUES = [
-        'Landbewohner',
-        'Stadtbewohner',
-        'Meeresbewohner',
-        'Bunkermensch',
-        'Mensch des 21. Jahrhunderts',
-        'Nomade',
-        'Ruinenbewohner',
-        'Untergrundbewohner',
-        'Volk der 13 Inseln',
-        'Disuuslachter (Nordmann)',
-    ];
 
     private const BASE_SKILL_POINTS = 20;
 
@@ -198,9 +176,7 @@ class RpgCharacterSheetService
 
     private const TECHNO_SKILL_POOL_POINTS = 12;
 
-    private const PRAEKRISTOFLUU_SKILL_POOL_VALUES = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
-
-    private const PRAEKRISTOFLUU_SKILL_POOL_POINTS = 12;
+    private const PRAEKRISTOFLUU_SKILL_POOL_POINTS = RpgCharEditorRuleCatalog::POOL_POINTS;
 
     private const BUNKERMENSCH_BONUS_SKILL_VALUES = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
 
@@ -410,6 +386,7 @@ class RpgCharacterSheetService
             'skillRules' => self::skillRuleConfig(),
             'trainingRules' => RpgCharEditorTraining::ruleConfig(),
             'equipmentRules' => RpgCharEditorEquipment::ruleConfig(),
+            'ruleCatalog' => RpgCharEditorRuleCatalog::ruleConfig(),
         ];
     }
 
@@ -419,6 +396,10 @@ class RpgCharacterSheetService
         $maximumSkillPoints = max(array_column(RpgCharEditorSpecialRules::CREATION_LEVELS, 'skillPoints'));
 
         $request->validate([
+            'rule_sources' => 'sometimes|array:'.implode(',', array_diff(array_keys(RpgCharEditorRuleCatalog::sources()), [RpgCharEditorRuleCatalog::BASE])),
+            'rule_sources.*' => 'required|boolean',
+            'marsianer_replacement_skill' => 'nullable|string|max:255',
+            'marsianer_bonus_skill' => 'nullable|string|max:100',
             'figurenstaerke' => 'required|integer|in:'.implode(',', $validCreationLevels),
             'portrait' => 'nullable|image|max:2048',
             'portrait_data_url' => 'nullable|string|max:'.self::PORTRAIT_DATA_URL_MAX_CHARS,
@@ -465,14 +446,42 @@ class RpgCharacterSheetService
         $creationLevel = (int) $request->input('figurenstaerke');
         $this->validateCharacterPayload($character);
         $this->validateCharacterSelection($character);
+        $sources = RpgCharEditorRuleCatalog::snapshots($request->input('rule_sources', []));
+        $activeSourceIds = array_column($sources, 'id');
+        foreach (['race' => RpgCharEditorRuleCatalog::races(), 'culture' => RpgCharEditorRuleCatalog::cultures()] as $field => $definitions) {
+            if (! in_array($definitions[$character[$field]]['source'], $activeSourceIds, true)) {
+                throw ValidationException::withMessages([$field => 'Die Regelquelle für '.$character[$field].' ist nicht aktiviert.']);
+            }
+        }
+        foreach ($this->trainingNamesPayload($request->input('trainings', [])) as $training) {
+            $source = RpgCharEditorTraining::definitions()[$training]['source'] ?? RpgCharEditorRuleCatalog::BASE;
+            if (! in_array($source, $activeSourceIds, true)) {
+                throw ValidationException::withMessages(['trainings' => 'Die Regelquelle für '.$training.' ist nicht aktiviert.']);
+            }
+        }
+        $replacement = $this->canonicalSkillName($this->stringPayload($request->input('marsianer_replacement_skill', '')));
+        if ($character['race'] === 'Marsianer' && ($replacement === '' || $replacement === 'Feuerwaffen' || ! $this->isAllowedSkillName($replacement, 'Marsianer'))) {
+            throw ValidationException::withMessages(['marsianer_replacement_skill' => 'Wähle eine erlaubte Ersatzfertigkeit für Feuerwaffen.']);
+        }
+        $humanPoolNames = RpgCharEditorRuleCatalog::humanPool($character['race'], $replacement);
+        if (in_array($character['race'], ['Agarther', 'Marsianer'], true)) {
+            $request->validate(['praekristofluu_skill_points' => 'required|array']);
+            foreach (array_keys($request->input('praekristofluu_skill_points')) as $skill) {
+                if (! in_array($skill, $humanPoolNames, true)) {
+                    throw ValidationException::withMessages(['praekristofluu_skill_points' => 'Unzulässige Fertigkeit im Rassenpunkte-Pool.']);
+                }
+            }
+        }
         $usesCreationV2 = true;
         $attributes = $this->attributesPayload($request->input('attributes', []));
         $skills = $this->skillsPayload($request->input('skills', []));
         $skillPools = [
             'techno' => $this->skillPoolPayload($request->input('techno_skill_points', []), self::TECHNO_SKILL_POOL_VALUES),
-            'praekristofluu' => $this->skillPoolPayload($request->input('praekristofluu_skill_points', []), self::PRAEKRISTOFLUU_SKILL_POOL_VALUES),
+            'praekristofluu' => $this->skillPoolPayload($request->input('praekristofluu_skill_points', []), $humanPoolNames),
         ];
+        $skillPools['human_pool_names'] = $humanPoolNames;
         $cultureChoices = [
+            'marsianer_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('marsianer_bonus_skill', ''))),
             'bunkermensch_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('bunkermensch_bonus_skill', ''))),
             'mensch_21_first_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('mensch_21_first_bonus_skill', ''))),
             'mensch_21_second_bonus_skill' => $this->canonicalSkillName($this->stringPayload($request->input('mensch_21_second_bonus_skill', ''))),
@@ -554,6 +563,7 @@ class RpgCharacterSheetService
                 'edition' => 2007,
                 'creation_level' => $creationLevel,
                 'payload_version' => 2,
+                'sources' => $sources,
             ] : null,
             'creation' => $usesCreationV2 ? [
                 'level_rules' => $creationEvaluation['level_rules'],
@@ -576,6 +586,7 @@ class RpgCharacterSheetService
             'advantage_counts' => $advantageCounts,
             'advantage_effects' => $usesCreationV2 ? $creationEvaluation['advantage_effects'] : null,
             'languages' => $languages,
+            'rule_choices' => ['marsianer_replacement_skill' => $replacement, 'culture' => $cultureChoices, 'skill_pools' => $skillPools],
             'trainings' => $trainings,
             'training_allocations' => $trainingAllocations,
             'equipment' => $this->equipmentExportPayload($clothing, $equipmentItems, $character['equipment'], $activeArmorId, $activeShieldId),
@@ -636,64 +647,20 @@ class RpgCharacterSheetService
             ]);
         }
 
-        if (! in_array($race, self::RACE_VALUES, true)) {
+        if (! array_key_exists($race, RpgCharEditorRuleCatalog::races())) {
             throw ValidationException::withMessages([
                 'race' => 'Die Rasse muss gewählt werden und einem erlaubten Wert entsprechen.',
             ]);
         }
 
-        if (! in_array($culture, self::CULTURE_VALUES, true)) {
+        if (! array_key_exists($culture, RpgCharEditorRuleCatalog::cultures())) {
             throw ValidationException::withMessages([
                 'culture' => 'Die Kultur muss gewählt werden und einem erlaubten Wert entsprechen.',
             ]);
         }
 
-        if ($race === 'Hydrit' && $culture !== 'Meeresbewohner') {
-            throw ValidationException::withMessages([
-                'culture' => 'Hydriten können laut Regelwerk nur die Kultur Meeresbewohner wählen.',
-            ]);
-        }
-
-        if ($culture === 'Meeresbewohner' && $race !== 'Hydrit') {
-            throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Meeresbewohner ist laut Regelwerk nur für Hydriten zugelassen.',
-            ]);
-        }
-
-        if ($race === 'Techno' && $culture !== 'Bunkermensch') {
-            throw ValidationException::withMessages([
-                'culture' => 'Technos können laut Regelwerk nur die Kultur Bunkermensch wählen.',
-            ]);
-        }
-
-        if ($race === 'Präkristofluu' && $culture !== 'Mensch des 21. Jahrhunderts') {
-            throw ValidationException::withMessages([
-                'culture' => 'Präkristofluu können laut Regelwerk nur die Kultur Mensch des 21. Jahrhunderts wählen.',
-            ]);
-        }
-
-        if ($culture === 'Bunkermensch' && $race !== 'Techno') {
-            throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Bunkermensch ist laut Regelwerk nur für Technos zugelassen.',
-            ]);
-        }
-
-        if ($culture === 'Mensch des 21. Jahrhunderts' && $race !== 'Präkristofluu') {
-            throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Mensch des 21. Jahrhunderts ist laut Regelwerk nur für Präkristofluu zugelassen.',
-            ]);
-        }
-
-        if ($culture === 'Volk der 13 Inseln' && $race !== 'Barbar') {
-            throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Volk der 13 Inseln ist laut Regelwerk nur für Barbaren zugelassen.',
-            ]);
-        }
-
-        if ($culture === 'Disuuslachter (Nordmann)' && $race !== 'Barbar') {
-            throw ValidationException::withMessages([
-                'culture' => 'Die Kultur Disuuslachter (Nordmann) ist laut Regelwerk nur für Barbaren zugelassen.',
-            ]);
+        if (! in_array($culture, RpgCharEditorRuleCatalog::allowedCultures($race), true)) {
+            throw ValidationException::withMessages(['culture' => "Die Kultur {$culture} ist für die Rasse {$race} nicht zugelassen."]);
         }
     }
 
@@ -1040,9 +1007,9 @@ class RpgCharacterSheetService
                 $skills,
                 $skillMax,
             ),
-            'Präkristofluu' => $this->normalizedSkillPool(
+            'Präkristofluu', 'Agarther', 'Marsianer' => $this->normalizedSkillPool(
                 $skillPools['praekristofluu'] ?? [],
-                self::PRAEKRISTOFLUU_SKILL_POOL_VALUES,
+                $skillPools['human_pool_names'] ?? RpgCharEditorRuleCatalog::humanPool($race),
                 self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
                 $skills,
                 $skillMax,
@@ -1089,7 +1056,7 @@ class RpgCharacterSheetService
     {
         $expectedPoolPoints = match ($race) {
             'Techno' => self::TECHNO_SKILL_POOL_POINTS,
-            'Präkristofluu' => self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
+            'Präkristofluu', 'Agarther', 'Marsianer' => self::PRAEKRISTOFLUU_SKILL_POOL_POINTS,
             default => null,
         };
 
@@ -1122,7 +1089,7 @@ class RpgCharacterSheetService
         }
 
         if ($sum !== $expectedPoolPoints) {
-            $label = $race === 'Techno' ? 'Techno-Rassenpunkte' : 'Präkristofluu-Rassenpunkte';
+            $label = $race.'-Rassenpunkte';
 
             throw ValidationException::withMessages([
                 'skills' => "Die {$label} müssen genau {$expectedPoolPoints} Punkte ergeben.",
@@ -1134,7 +1101,7 @@ class RpgCharacterSheetService
     {
         foreach ($skillPool as $skillName => $value) {
             if (is_int($value) && $value > 0) {
-                $this->setSkillGrant($grants, (string) $skillName, $value);
+                $this->setSkillGrant($grants, (string) $skillName, ($grants[$skillName] ?? 0) + $value);
             }
         }
     }
@@ -1159,6 +1126,9 @@ class RpgCharacterSheetService
 
     private function addCultureChoiceSkillGrants(array &$grants, string $culture, array $cultureChoices): void
     {
+        if ($culture === RpgCharEditorRuleCatalog::MARTIAN_CULTURE) {
+            $this->setAdditiveChoiceGrant($grants, $cultureChoices['marsianer_bonus_skill']);
+        }
         if ($culture === 'Bunkermensch') {
             $skillName = $this->selectedCultureChoice($cultureChoices, 'bunkermensch_bonus_skill', self::BUNKERMENSCH_BONUS_SKILL_VALUES);
 
@@ -1196,6 +1166,9 @@ class RpgCharacterSheetService
 
     private function validateCultureChoiceInputs(string $culture, array $cultureChoices): void
     {
+        if ($culture === RpgCharEditorRuleCatalog::MARTIAN_CULTURE && ! in_array($cultureChoices['marsianer_bonus_skill'] ?? '', RpgCharEditorRuleCatalog::MARTIAN_BONUS_SKILLS, true)) {
+            throw ValidationException::withMessages(['marsianer_bonus_skill' => 'Wähle den Kulturbonus aus Pilot, Wissenschaftler, Athletik oder Unterhalten.']);
+        }
         $bunkermenschBonusSkill = $this->canonicalSkillName((string) ($cultureChoices['bunkermensch_bonus_skill'] ?? ''));
 
         if ($culture === 'Bunkermensch'
@@ -1431,6 +1404,7 @@ class RpgCharacterSheetService
     private function cultureRequirements(string $culture): array
     {
         return match ($culture) {
+            RpgCharEditorRuleCatalog::MARTIAN_CULTURE => ['skills' => RpgCharEditorRuleCatalog::cultures()[RpgCharEditorRuleCatalog::MARTIAN_CULTURE]['skills']],
             'Landbewohner' => [
                 'skills' => ['Kunde: Wetter' => 1],
                 'anySkills' => [[
@@ -1785,7 +1759,7 @@ class RpgCharacterSheetService
 
     private function raceAttributeModifiers(string $race): array
     {
-        return self::RACE_ATTRIBUTE_MODIFIERS[$race] ?? [];
+        return RpgCharEditorRuleCatalog::races()[$race]['attributes'] ?? [];
     }
 
     private function attributeLabel(string $attributeName): string
@@ -1795,49 +1769,7 @@ class RpgCharacterSheetService
 
     private function raceRequirements(string $race): array
     {
-        return match ($race) {
-            'Barbar' => [
-                'skills' => ['Überleben' => 1, 'Intuition' => 1],
-                'anySkills' => [[
-                    'names' => ['Nahkampf', 'Fernkampf'],
-                    'minimum' => 1,
-                    'label' => 'Nahkampf oder Fernkampf mindestens auf 1',
-                ]],
-            ],
-            'Guul' => [
-                'skills' => ['Heimlichkeit' => 2, 'Intuition' => 1],
-                'advantages' => ['Natürliche Waffen'],
-                'disadvantages' => ['Primitiv', 'Gejagt'],
-            ],
-            'Hydrit' => [
-                'skills' => ['Athletik' => 2, 'Bildung' => 1],
-                'advantages' => ['Kiemen', 'Natürliche Waffen'],
-                'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
-            ],
-            'Nosfera' => [
-                'skills' => ['Intuition' => 2, 'Heimlichkeit' => 2],
-                'advantages' => ['Nachtsicht'],
-                'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-            ],
-            'Taratze' => [
-                'skills' => ['Intuition' => 2, 'Heimlichkeit' => 1, 'Überleben' => 1],
-                'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
-            ],
-            'Wulfane' => [
-                'skills' => ['Intuition' => 1, 'Nahkampf' => 1],
-                'disadvantages' => ['Ehrenkodex'],
-            ],
-            'Techno' => [
-                'skills' => ['Bildung' => 3],
-                'advantages' => ['High-Tech-Ausrüstung'],
-                'disadvantages' => ['Tödliche Immunschwäche'],
-            ],
-            'Präkristofluu' => [
-                'skills' => ['Beruf' => 3],
-                'advantages' => ['High-Tech-Ausrüstung'],
-            ],
-            default => [],
-        };
+        return RpgCharEditorRuleCatalog::races()[$race] ?? [];
     }
 
     private function skillValue(array $skills, string $skillName): int

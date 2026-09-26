@@ -6,6 +6,9 @@
     $skillSuggestions = $specialRules['skillRules']['suggestions'] ?? \App\Services\RpgCharacterSheetService::skillRuleConfig()['suggestions'];
     $slotSummary ??= null;
     $editorOldInput = \Illuminate\Support\Arr::only(session()->getOldInput(), [
+        'rule_sources',
+        'marsianer_replacement_skill',
+        'marsianer_bonus_skill',
         'player_name',
         'character_name',
         'gender',
@@ -117,6 +120,22 @@
                     <input type="hidden" name="languages[]" :value="language" x-bind:disabled="!advancedUnlocked">
                 </template>
 
+                <fieldset class="mb-6 rounded-md border border-base-300 p-4" data-testid="rule-sources">
+                    <legend class="px-2 font-semibold">Regelquellen</legend>
+                    <p class="mb-3 text-sm text-base-content/70">Das Basisregelwerk ist immer aktiv. Wähle die Erweiterungen für diesen Charakter.</p>
+                    @foreach($specialRules['ruleCatalog']['sources'] as $source)
+                        @if($source['id'] !== 'base')
+                            <input type="hidden" name="rule_sources[{{ $source['id'] }}]" :value="sourceEnabled(@js($source['id'])) ? '1' : '0'">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="checkbox checkbox-primary" :checked="sourceEnabled(@js($source['id']))" @change="setSourceEnabled(@js($source['id']), $event.target.checked); $event.target.checked = sourceEnabled(@js($source['id']))" aria-describedby="rule-source-error" data-testid="rule-source-{{ $source['id'] }}">
+                                <span>{{ $source['name'] }}</span>
+                            </label>
+                        @endif
+                    @endforeach
+                    <p id="rule-source-error" class="mt-3 text-sm text-error" role="alert" x-show="sourceToggleError" x-cloak x-text="sourceToggleError"></p>
+                    <button type="button" class="btn btn-ghost btn-sm mt-3" x-show="advancedUnlocked" x-cloak @click="advancedUnlocked = false" data-testid="char-editor-edit-basics">Charakterdaten ändern</button>
+                </fieldset>
+
                 <nav class="mb-6 flex flex-wrap gap-2 text-sm" aria-label="Editorbereiche" data-testid="char-editor-section-nav">
                     <a href="#char-editor-basics" class="btn btn-ghost btn-sm">Charakterdaten</a>
                     <a href="#char-editor-attributes" class="btn btn-ghost btn-sm" :class="{ 'btn-disabled': !advancedUnlocked }" x-bind:aria-disabled="advancedUnlocked ? null : 'true'" x-bind:tabindex="advancedUnlocked ? null : -1" @click="if (!advancedUnlocked) $event.preventDefault()" @keydown.enter="if (!advancedUnlocked) $event.preventDefault()">Attribute</a>
@@ -161,14 +180,17 @@
                                     <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
                                     <select name="race" id="race" class="select select-bordered w-full" x-model="race" x-bind:disabled="advancedUnlocked" @focus="setRaceInfoPreview(race)" @input="setRaceInfoPreview($event.target.value)" @change="setRaceInfoPreview($event.target.value)" @blur="clearRaceInfoPreview()" x-bind:aria-describedby="selectionInfoAvailable() ? 'race-info-panel' : null">
                                         <option value="" disabled>Rasse wählen</option>
-                                        <option value="Barbar" x-bind:disabled="!isRaceSelectable('Barbar')">Barbar</option>
-                                        <option value="Guul" x-bind:disabled="!isRaceSelectable('Guul')">Guul</option>
-                                        <option value="Hydrit" x-bind:disabled="!isRaceSelectable('Hydrit')">Hydrit</option>
-                                        <option value="Nosfera" x-bind:disabled="!isRaceSelectable('Nosfera')">Nosfera</option>
-                                        <option value="Taratze" x-bind:disabled="!isRaceSelectable('Taratze')">Taratze</option>
-                                        <option value="Wulfane" x-bind:disabled="!isRaceSelectable('Wulfane')">Wulfane</option>
-                                        <option value="Techno" x-bind:disabled="!isRaceSelectable('Techno')">Techno</option>
-                                        <option value="Präkristofluu" x-bind:disabled="!isRaceSelectable('Präkristofluu')">Präkristofluu</option>
+                                        @foreach($specialRules['ruleCatalog']['sources'] as $source)
+                                            <optgroup label="{{ $source['name'] }}">
+                                                @foreach($specialRules['ruleCatalog']['races'] as $raceRule)
+                                                    @if($raceRule['source'] === $source['id'])
+                                                        <template x-if="sourceEnabled(@js($source['id']))">
+                                                            <option value="{{ $raceRule['name'] }}" x-bind:disabled="!isRaceSelectable(@js($raceRule['name']))">{{ $raceRule['name'] }}</option>
+                                                        </template>
+                                                    @endif
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -176,16 +198,17 @@
                                     <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
                                     <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" x-bind:disabled="advancedUnlocked" x-bind:aria-describedby="selectionInfoAvailable() ? 'race-info-panel' : null">
                                         <option value="" disabled>Kultur wählen</option>
-                                        <option value="Landbewohner" x-bind:disabled="!isCultureSelectable('Landbewohner')">Landbewohner</option>
-                                        <option value="Stadtbewohner" x-bind:disabled="!isCultureSelectable('Stadtbewohner')">Stadtbewohner</option>
-                                        <option value="Meeresbewohner" x-bind:disabled="!isCultureSelectable('Meeresbewohner')">Meeresbewohner</option>
-                                        <option value="Bunkermensch" x-bind:disabled="!isCultureSelectable('Bunkermensch')">Bunkermensch</option>
-                                        <option value="Mensch des 21. Jahrhunderts" x-bind:disabled="!isCultureSelectable('Mensch des 21. Jahrhunderts')">Mensch des 21. Jahrhunderts</option>
-                                        <option value="Nomade" x-bind:disabled="!isCultureSelectable('Nomade')">Nomade</option>
-                                        <option value="Disuuslachter (Nordmann)" x-bind:disabled="!isCultureSelectable('Disuuslachter (Nordmann)')">Disuuslachter (Nordmann)</option>
-                                        <option value="Ruinenbewohner" x-bind:disabled="!isCultureSelectable('Ruinenbewohner')">Ruinenbewohner</option>
-                                        <option value="Untergrundbewohner" x-bind:disabled="!isCultureSelectable('Untergrundbewohner')">Untergrundbewohner</option>
-                                        <option value="Volk der 13 Inseln" x-bind:disabled="!isCultureSelectable('Volk der 13 Inseln')">Volk der 13 Inseln</option>
+                                        @foreach($specialRules['ruleCatalog']['sources'] as $source)
+                                            <optgroup label="{{ $source['name'] }}">
+                                                @foreach($specialRules['ruleCatalog']['cultures'] as $cultureRule)
+                                                    @if($cultureRule['source'] === $source['id'])
+                                                        <template x-if="sourceEnabled(@js($source['id']))">
+                                                            <option value="{{ $cultureRule['name'] }}" x-bind:disabled="!isCultureSelectable(@js($cultureRule['name']))">{{ $cultureRule['name'] }}</option>
+                                                        </template>
+                                                    @endif
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
                                     </select>
                                 </div>
 
@@ -247,6 +270,7 @@
                                 <div class="border-t border-base-300 pt-3 first:border-t-0 first:pt-0" data-testid="race-summary">
                                     <div class="flex flex-wrap items-baseline justify-between gap-2">
                                         <h4 class="font-semibold text-base-content" x-text="raceInfo().name"></h4>
+                                        <span class="text-xs text-primary" x-text="sourceName(contentSource('races', raceInfo().name))"></span>
                                         <span class="text-xs text-base-content/70" x-text="raceInfo().attributes"></span>
                                     </div>
                                     <p class="mt-2 leading-5 text-base-content/80" x-text="raceShortDescription()"></p>
@@ -268,6 +292,7 @@
                             <template x-if="cultureInfo()">
                                 <div class="mt-4 border-t border-base-300 pt-3" data-testid="culture-summary">
                                     <h4 class="font-semibold text-base-content" x-text="cultureInfo().name"></h4>
+                                    <p class="mt-1 text-xs text-primary" x-text="sourceName(contentSource('cultures', culture))"></p>
                                     <p class="mt-2 leading-5 text-base-content/80" x-text="cultureShortDescription()"></p>
                                     <dl class="mt-3 grid grid-cols-1 gap-2">
                                         <template x-for="row in cultureInfoRows()" :key="row.label">
@@ -420,16 +445,30 @@
                                 </template>
                             </div>
                         </div>
-                        <div x-show="race === 'Präkristofluu'" class="mb-3 rounded-md border border-base-300 bg-base-200/40 p-3">
+                        <div x-show="race === 'Marsianer'" x-cloak class="mb-3 grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label for="marsianer-replacement-skill" class="block text-sm font-medium mb-1">Marsianer: Ersatz für Feuerwaffen im Rassenpunkte-Pool</label>
+                                <select id="marsianer-replacement-skill" name="marsianer_replacement_skill" class="select select-bordered w-full" :disabled="race !== 'Marsianer' || !advancedUnlocked" :value="marsianerReplacementSkill" @change="setMarsianerReplacementSkill($event.target.value)">
+                                    <template x-for="name in marsianerReplacementOptions()" :key="name"><option :value="name" x-text="name" :selected="name === marsianerReplacementSkill"></option></template>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="marsianer-bonus-skill" class="block text-sm font-medium mb-1">Marsianische Städter: Kulturbonus (+1)</label>
+                                <select id="marsianer-bonus-skill" name="marsianer_bonus_skill" class="select select-bordered w-full" :disabled="culture !== 'Marsianische Städter' || !advancedUnlocked" x-model="marsianerBonusSkill" @change="setMarsianerBonusSkill($event.target.value)">
+                                    <template x-for="name in marsianerBonusOptions()" :key="name"><option :value="name" x-text="name" :selected="name === marsianerBonusSkill"></option></template>
+                                </select>
+                            </div>
+                        </div>
+                        <div x-show="hasHumanSkillPool()" class="mb-3 rounded-md border border-base-300 bg-base-200/40 p-3">
                             <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                                <h3 class="text-sm font-medium text-base-content">Präkristofluu-Rassenpunkte</h3>
+                                <h3 class="text-sm font-medium text-base-content" x-text="race + '-Rassenpunkte'"></h3>
                                 <p class="text-xs text-base-content/70" aria-live="polite" x-text="'Verteilt: ' + praekristofluuPoolUsed() + ' / ' + praekristofluuSkillPoolPoints"></p>
                             </div>
                             <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                 <template x-for="skillName in praekristofluuSkillNames" :key="'praekristofluu-skill-' + skillName">
                                     <label class="flex min-h-12 items-center justify-between gap-3 rounded-md border border-base-300 bg-base-100 px-3 py-2 text-sm">
                                         <span class="min-w-0 flex-1" x-text="skillName"></span>
-                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-bind:name="'praekristofluu_skill_points[' + skillName + ']'" x-bind:disabled="race !== 'Präkristofluu' || !advancedUnlocked" x-model.number="praekristofluuSkillPoints[skillName]" @input="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" @change="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" data-testid="praekristofluu-skill-points-input">
+                                        <input type="number" min="0" x-bind:max="base.maxFW" step="1" class="input input-bordered input-sm w-20" x-bind:name="'praekristofluu_skill_points[' + skillName + ']'" x-bind:disabled="!hasHumanSkillPool() || !advancedUnlocked" x-model.number="praekristofluuSkillPoints[skillName]" @input="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" @change="setPraekristofluuSkillPoints(skillName, praekristofluuSkillPoints[skillName])" data-testid="praekristofluu-skill-points-input">
                                     </label>
                                 </template>
                             </div>
@@ -657,6 +696,7 @@
                                                 <span class="badge badge-ghost" x-text="rule.cost + ' FP'"></span>
                                             </span>
                                             <span class="mt-1 block text-sm leading-5 text-base-content/70" x-text="rule.description"></span>
+                                            <span class="mt-2 block text-xs text-primary" x-text="sourceName(rule.source)"></span>
                                             <span class="mt-2 block text-xs text-base-content/60" x-text="'Fertigkeiten: ' + rule.skills.join(', ')"></span>
                                             <template x-if="trainingRequiredAdvantages(rule).length">
                                                 <span class="mt-2 block text-xs" :class="trainingPrerequisitesMet(rule) ? 'text-success' : 'text-error'" x-text="'Voraussetzung: ' + trainingRequiredAdvantages(rule).join(', ')"></span>

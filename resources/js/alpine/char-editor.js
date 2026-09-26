@@ -462,6 +462,8 @@ const disadvantageRulesByName = () => Object.fromEntries(disadvantageRules().map
 const PRAEKRISTOFLUU_RACE = 'Präkristofluu';
 const NOSFERA_RACE = 'Nosfera';
 const MENSCH_21_CULTURE = 'Mensch des 21. Jahrhunderts';
+const ruleCatalog = () => specialRuleConfig().ruleCatalog || {};
+const MARTIAN_CULTURE = 'Marsianische Städter';
 const TECHNO_SKILLS = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 const TECHNO_SKILL_POOL_POINTS = 12;
 const BUNKERMENSCH_BONUS_SKILLS = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
@@ -684,7 +686,14 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     technoSkillNames: TECHNO_SKILLS,
     technoSkillPoolPoints: TECHNO_SKILL_POOL_POINTS,
     technoSkillPoints: Object.fromEntries(TECHNO_SKILLS.map(name => [name, 2])),
-    praekristofluuSkillNames: PRAEKRISTOFLUU_SKILLS,
+    get praekristofluuSkillNames() {
+        const pool = ruleCatalog().races?.[this.race]?.pool || PRAEKRISTOFLUU_SKILLS;
+        return this.race === 'Marsianer' ? [...new Set([...pool, this.marsianerReplacementSkill].filter(Boolean))] : pool;
+    },
+    enabledSources: Object.fromEntries(Object.values(ruleCatalog().sources || {}).map(source => [source.id, source.defaultEnabled])),
+    sourceToggleError: '',
+    marsianerReplacementSkill: 'Nahkampf',
+    marsianerBonusSkill: null,
     praekristofluuSkillPoolPoints: PRAEKRISTOFLUU_SKILL_POOL_POINTS,
     praekristofluuSkillPoints: Object.fromEntries(PRAEKRISTOFLUU_SKILLS.map(name => [name, 2])),
     raceCache: {},
@@ -727,6 +736,110 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     advancedUnlocked: false,
     purchaseSlotIfNeeded: false,
     characterSlotSummary: typeof window === 'undefined' ? null : (window.rpgCharacterSlots || null),
+    ruleSources() {
+        return Object.values(ruleCatalog().sources || {});
+    },
+
+    sourceEnabled(id = 'base') {
+        return id === 'base' || this.enabledSources[id] === true;
+    },
+
+    sourceName(id = 'base') {
+        return ruleCatalog().sources?.[id]?.name || 'Basisregelwerk';
+    },
+
+    contentSource(kind, name) {
+        return ruleCatalog()[kind]?.[name]?.source || 'base';
+    },
+
+    sourceDependencies(id) {
+        return [
+            ...(this.race && this.contentSource('races', this.race) === id ? [this.race] : []),
+            ...(this.culture && this.contentSource('cultures', this.culture) === id ? [this.culture] : []),
+            ...this.selectedTrainings.filter(name => (this.trainingRule(name)?.source || 'base') === id),
+        ];
+    },
+
+    setSourceEnabled(id, enabled) {
+        if (id === 'base' || !ruleCatalog().sources?.[id]) return false;
+        const dependencies = this.sourceDependencies(id);
+        if (!enabled && dependencies.length) {
+            this.sourceToggleError = `Zum Abschalten zuerst wechseln oder entfernen: ${dependencies.join(', ')}. Die Charakterdaten können über „Charakterdaten ändern“ bearbeitet werden.`;
+            return false;
+        }
+        this.sourceToggleError = '';
+        this.enabledSources = { ...this.enabledSources, [id]: Boolean(enabled) };
+        return true;
+    },
+
+    ruleSourcesComplete() {
+        return this.sourceEnabled(this.contentSource('races', this.race))
+            && this.sourceEnabled(this.contentSource('cultures', this.culture))
+            && this.selectedTrainings.every(name => this.sourceEnabled(this.trainingRule(name)?.source));
+    },
+
+    hasHumanSkillPool(race = this.race) {
+        return race === PRAEKRISTOFLUU_RACE || Boolean(ruleCatalog().races?.[race]?.pool);
+    },
+
+    marsianerReplacementOptions() {
+        return skillRules().map(rule => rule.name).filter(name => name !== 'Feuerwaffen');
+    },
+
+    setMarsianerReplacementSkill(name) {
+        if (this.race !== 'Marsianer' || !this.marsianerReplacementOptions().includes(name)) return;
+        const oldNames = Object.keys(this.praekristofluuSkillPoints);
+        const oldPoints = { ...this.praekristofluuSkillPoints };
+        this.marsianerReplacementSkill = name;
+        this.praekristofluuSkillPoints = Object.fromEntries(this.praekristofluuSkillNames.map(skill => [skill, oldPoints[skill] || 0]));
+        oldNames.filter(skill => !this.praekristofluuSkillNames.includes(skill)).forEach(skill => {
+            const fixed = ruleCatalog().races?.[this.race]?.skills?.[skill] || 0;
+            this.replaceFreeMin(skill, fixed, 'Rasse');
+        });
+        this.refreshAllPraekristofluuSkillGrants();
+    },
+
+    marsianerBonusOptions() {
+        return ruleCatalog().cultures?.[MARTIAN_CULTURE]?.bonusSkills || [];
+    },
+
+    setMarsianerBonusSkill(name) {
+        if (!this.marsianerBonusOptions().includes(name)) return;
+        this.marsianerBonusOptions().filter(skill => skill !== name).forEach(skill => {
+            this.replaceFreeMin(skill, 0, 'Kultur');
+        });
+        this.marsianerBonusSkill = name;
+        this.replaceFreeMin(name, 1, 'Kultur');
+    },
+
+    replaceFreeMin(name, value, source) {
+        const skill = this.skills.find(entry => entry.name === name);
+        const paidPoints = Math.max(0, (skill?.value || 0) - this.getSkillMin(name));
+        const grants = source === 'Rasse' ? this.raceGrants : this.cultureGrants;
+        if (value > 0) grants[name] = { type: 'min', value };
+        else delete grants[name];
+
+        const minimum = this.getSkillMin(name);
+        if (skill || minimum > 0) {
+            this.ensureSkill(name).value = minimum + paidPoints;
+            this.refreshTrainingSkill(name);
+        }
+    },
+
+    applyCatalogRace() {
+        const rule = ruleCatalog().races?.[this.race];
+        if (!rule) return;
+        this.setRaceAttributeModifiers(rule.attributes || {});
+        Object.entries(rule.skills || {}).forEach(([skill, value]) => this.setFreeMin(skill, value, 'Rasse'));
+        this.setRaceLockedAdvantages(rule.advantages || []);
+        this.raceLocked.disadvantages = [...(rule.disadvantages || [])];
+        this.selectedDisadvantages = [...new Set([...this.selectedDisadvantages, ...this.raceLocked.disadvantages])];
+        if (this.hasHumanSkillPool()) {
+            this.resetPraekristofluuSkillPoints(2);
+            this.refreshAllPraekristofluuSkillGrants();
+        }
+    },
+
     basicsFilled() {
         return Boolean(this.playerName.trim()
             && this.characterName.trim()
@@ -998,7 +1111,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     trainingRules() {
-        return trainingRules();
+        return trainingRules().filter(rule => this.sourceEnabled(rule.source));
     },
 
     trainingRule(name) {
@@ -1188,7 +1301,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
                     .filter(baseSkill => this.trainingAllocationPoints(rule.name, baseSkill) > 0)
                     .map(baseSkill => this.trainingSkillTarget(rule.name, baseSkill));
 
-                return this.trainingPrerequisitesMet(rule)
+                return this.sourceEnabled(rule.source) && this.trainingPrerequisitesMet(rule)
                     && this.trainingAllocationTotal(rule.name) === Number(rule.cost)
                     && targets.length === new Set(targets).size;
             });
@@ -1430,11 +1543,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     cultureInfo() {
-        if (!this.culture || !CULTURE_DESCRIPTIONS[this.culture]) return null;
+        if (!this.culture || !(CULTURE_DESCRIPTIONS[this.culture] || ruleCatalog().cultures?.[this.culture])) return null;
 
         return {
             name: this.culture,
-            description: CULTURE_DESCRIPTIONS[this.culture],
+            description: ruleCatalog().cultures?.[this.culture]?.description || (this.race === 'Agarther' && this.culture === MENSCH_21_CULTURE ? 'Agarther übernehmen die Kulturboni Mensch des 21. Jahrhunderts: Beruf +1 und zwei verschiedene Boni aus Bildung, Pilot, Techniker und Wissenschaftler.' : CULTURE_DESCRIPTIONS[this.culture]),
         };
     },
 
@@ -1463,6 +1576,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     completionIssues() {
         const issues = [];
+        if (!this.ruleSourcesComplete()) issues.push('Eine benötigte Regelquelle ist nicht aktiviert.');
 
         if (this.apRemaining() !== 0) {
             issues.push(`Attribute: ${Math.abs(this.apRemaining())} Punkt${Math.abs(this.apRemaining()) === 1 ? '' : 'e'} ${this.apRemaining() > 0 ? 'offen' : 'zu viel'}`);
@@ -1476,6 +1590,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             issues.push(`Fertigkeiten: Höchstwert der Figurenstärke ${this.creationLevel} überschritten`);
         }
 
+        if (!this.exclusiveSkillsComplete()) {
+            issues.push('Bildung und Intuition benötigen zusammen den Vorteil Kind zweier Welten.');
+        }
+
         if (!this.trainingRulesComplete()) {
             issues.push('Ausbildungen: Punkteverteilung oder Voraussetzung unvollständig');
         }
@@ -1485,7 +1603,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         }
 
         if (!this.praekristofluuSkillPoolComplete()) {
-            issues.push(`Präkristofluu-Rassenpunkte: ${this.praekristofluuPoolUsed()} / ${this.praekristofluuSkillPoolPoints}`);
+            issues.push(`${this.race}-Rassenpunkte: ${this.praekristofluuPoolUsed()} / ${this.praekristofluuSkillPoolPoints}`);
         }
 
         if (this.missingAdvantageCompensations() > 0) {
@@ -1747,6 +1865,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.apRemaining() === 0
             && this.fpRemaining() === 0
             && this.skillsWithinLevelLimit()
+            && this.exclusiveSkillsComplete()
+            && this.ruleSourcesComplete()
             && this.trainingRulesComplete()
             && this.technoSkillPoolComplete()
             && this.praekristofluuSkillPoolComplete()
@@ -1860,6 +1980,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     allowedCulturesForRace(race = this.race) {
+        if (ruleCatalog().races?.[race]?.allowedCultures) return ruleCatalog().races[race].allowedCultures;
         if (race === 'Hydrit') return ['Meeresbewohner'];
         if (race === 'Techno') return ['Bunkermensch'];
         if (race === PRAEKRISTOFLUU_RACE) return [MENSCH_21_CULTURE];
@@ -1872,7 +1993,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     isCultureSelectable(culture) {
         if (culture === 'Bunkermensch') {
-            return this.race !== 'Hydrit' && this.race !== PRAEKRISTOFLUU_RACE;
+            const requiredCulture = ruleCatalog().races?.[this.race]?.culture;
+            return this.race !== 'Hydrit' && this.race !== PRAEKRISTOFLUU_RACE
+                && (!requiredCulture || requiredCulture === 'Bunkermensch');
         }
 
         if (this.race === 'Techno' && this.raceLockedByBunkermenschCulture) {
@@ -1883,7 +2006,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     isRaceSelectable(race) {
-        return this.culture !== 'Bunkermensch' || !this.raceLockedByBunkermenschCulture || race === 'Techno';
+        return this.sourceEnabled(this.contentSource('races', race)) && (this.culture !== 'Bunkermensch' || !this.raceLockedByBunkermenschCulture || race === 'Techno');
     },
 
     enforceCultureForRace() {
@@ -1901,6 +2024,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     hydrateFromOldInput(oldInput = editorOldInput()) {
         if (!oldInput) return false;
 
+        this.enabledSources = Object.fromEntries(this.ruleSources().map(source => [source.id, source.id === 'base' || [true, 1, '1'].includes(oldInput.rule_sources?.[source.id])]));
+        this.marsianerReplacementSkill = oldString(oldInput.marsianer_replacement_skill) || 'Nahkampf';
         this.initialCreationLevel = oldInteger(oldInput.figurenstaerke, defaultCreationLevel());
         this.creationLevel = this.initialCreationLevel;
         this.handleCreationLevelChange();
@@ -1975,8 +2100,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             });
         }
 
-        if (this.race === PRAEKRISTOFLUU_RACE && Object.keys(praekristofluuSkillPoints).length) {
-            PRAEKRISTOFLUU_SKILLS.forEach((name) => {
+        if (this.hasHumanSkillPool() && Object.keys(praekristofluuSkillPoints).length) {
+            this.praekristofluuSkillNames.forEach((name) => {
                 if (Object.prototype.hasOwnProperty.call(praekristofluuSkillPoints, name)) {
                     this.setPraekristofluuSkillPoints(name, oldInteger(praekristofluuSkillPoints[name], this.praekristofluuSkillPoints[name]));
                 }
@@ -1985,6 +2110,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyOldCultureChoiceInput(input) {
+        if (this.culture === MARTIAN_CULTURE) this.setMarsianerBonusSkill(oldString(input.marsianer_bonus_skill));
         const bunkermenschBonusSkill = oldString(input.bunkermensch_bonus_skill);
         const mensch21FirstBonusSkill = oldString(input.mensch_21_first_bonus_skill);
         const mensch21SecondBonusSkill = oldString(input.mensch_21_second_bonus_skill);
@@ -2210,9 +2336,9 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
 
     updateDescription() {
         if (this.descriptionUserEdited) return;
-        let text = RACE_DESCRIPTIONS[this.race] || '';
-        if (CULTURE_DESCRIPTIONS[this.culture]) {
-            text += (text ? '\n\n' : '') + CULTURE_DESCRIPTIONS[this.culture];
+        let text = ruleCatalog().races?.[this.race]?.description || RACE_DESCRIPTIONS[this.race] || '';
+        if (this.cultureInfo()?.description) {
+            text += (text ? '\n\n' : '') + this.cultureInfo().description;
         }
         this.description = text;
     },
@@ -2220,7 +2346,15 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     raceInfo() {
         const raceName = this.raceInfoPreview || this.race;
 
-        return RACE_RULE_SUMMARIES[raceName] || null;
+        const rule = ruleCatalog().races?.[raceName];
+        if (!rule?.description) return RACE_RULE_SUMMARIES[raceName] || null;
+        return {
+            ...rule,
+            attributes: Object.entries(rule.attributes || {}).map(([name, value]) => `${name.toUpperCase()} ${value > 0 ? '+' : ''}${value}`).join(', ') || 'Keine Attributsmodifikatoren',
+            skills: Object.entries(rule.skills || {}).map(([name, value]) => `${name} +${value}`).join(', ') + (rule.pool ? ' sowie 12 frei verteilbare Rassenpunkte' : ''),
+            advantages: rule.advantages.join(', ') || 'Keine rassenbedingten Pflichtvorteile',
+            disadvantages: rule.disadvantages.join(', ') || 'Keine rassenbedingten Pflichtnachteile',
+        };
     },
 
     raceInfoRows() {
@@ -2237,7 +2371,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     setRaceInfoPreview(raceName) {
-        this.raceInfoPreview = RACE_RULE_SUMMARIES[raceName] ? raceName : '';
+        this.raceInfoPreview = RACE_RULE_SUMMARIES[raceName] || ruleCatalog().races?.[raceName] ? raceName : '';
     },
 
     clearRaceInfoPreview() {
@@ -2373,6 +2507,11 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         return this.skills.every(skill => Number(skill.value) <= this.getSkillMax(skill.name));
     },
 
+    exclusiveSkillsComplete() {
+        return this.hasKindZweierWelten()
+            || !['Bildung', 'Intuition'].every(name => this.skills.some(skill => skill.name === name && Number(skill.value) > 0));
+    },
+
     isSkillDisabled(skill) {
         if (skill.valueDisabled) return true;
         const grant = this.getGrant(skill.name);
@@ -2477,22 +2616,22 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     resetPraekristofluuSkillPoints(defaultValue = 0) {
-        this.praekristofluuSkillPoints = Object.fromEntries(PRAEKRISTOFLUU_SKILLS.map(name => [name, defaultValue]));
+        this.praekristofluuSkillPoints = Object.fromEntries(this.praekristofluuSkillNames.map(name => [name, defaultValue]));
     },
 
     praekristofluuPoolUsed() {
-        return PRAEKRISTOFLUU_SKILLS.reduce((sum, name) => sum + (Number(this.praekristofluuSkillPoints[name]) || 0), 0);
+        return this.praekristofluuSkillNames.reduce((sum, name) => sum + (Number(this.praekristofluuSkillPoints[name]) || 0), 0);
     },
 
     praekristofluuSkillPoolComplete() {
-        return this.race !== PRAEKRISTOFLUU_RACE || (
+        return !this.hasHumanSkillPool() || (
             this.praekristofluuPoolUsed() === this.praekristofluuSkillPoolPoints
-            && PRAEKRISTOFLUU_SKILLS.every(name => Number(this.praekristofluuSkillPoints[name] || 0) <= this.base.maxFW)
+            && this.praekristofluuSkillNames.every(name => Number(this.praekristofluuSkillPoints[name] || 0) <= this.base.maxFW)
         );
     },
 
     setPraekristofluuSkillPoints(skillName, value) {
-        if (!PRAEKRISTOFLUU_SKILLS.includes(skillName)) return;
+        if (!this.praekristofluuSkillNames.includes(skillName)) return;
 
         const parsedValue = Number.parseInt(value, 10);
         const normalizedValue = Number.isFinite(parsedValue)
@@ -2505,7 +2644,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     applyPraekristofluuSkillGrant(skillName) {
-        const value = this.race === PRAEKRISTOFLUU_RACE ? (Number(this.praekristofluuSkillPoints[skillName]) || 0) : 0;
+        const fixed = ruleCatalog().races?.[this.race]?.skills?.[skillName] || 0;
+        const value = this.hasHumanSkillPool() ? fixed + (Number(this.praekristofluuSkillPoints[skillName]) || 0) : 0;
 
         if (value > 0) {
             this.raceGrants[skillName] = { type: 'min', value };
@@ -2519,7 +2659,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
     },
 
     refreshAllPraekristofluuSkillGrants() {
-        PRAEKRISTOFLUU_SKILLS.forEach(name => this.applyPraekristofluuSkillGrant(name));
+        this.praekristofluuSkillNames.forEach(name => this.applyPraekristofluuSkillGrant(name));
         this.refreshAllMensch21BonusGrants();
     },
 
@@ -2552,7 +2692,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === previousRace) return;
 
         if (!this.isRaceSelectable(this.race)) {
-            this.race = 'Techno';
+            this.race = this.sourceEnabled(this.contentSource('races', this.race)) ? 'Techno' : '';
         } else if (this.culture !== 'Bunkermensch' || this.race !== 'Techno') {
             this.raceLockedByBunkermenschCulture = false;
         }
@@ -2573,6 +2713,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.race === 'Wulfane') this.applyRaceWulfane();
         if (this.race === 'Techno') this.applyRaceTechno();
         if (this.race === PRAEKRISTOFLUU_RACE) this.applyRacePraekristofluu();
+        if (ruleCatalog().races?.[this.race]?.source !== 'base') this.applyCatalogRace();
         this.restoreRaceState(this.race);
         this.enforceCultureForRace();
         this._prevRace = this.race;
@@ -2588,6 +2729,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             barbarCombatSkill: this.barbarCombatSkill,
             technoSkillPoints: { ...this.technoSkillPoints },
             praekristofluuSkillPoints: { ...this.praekristofluuSkillPoints },
+            marsianerReplacementSkill: this.marsianerReplacementSkill,
         };
     },
 
@@ -2613,7 +2755,8 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
             this.technoSkillPoints = { ...this.technoSkillPoints, ...cache.technoSkillPoints };
             this.refreshAllTechnoSkillGrants();
         }
-        if (raceName === PRAEKRISTOFLUU_RACE && cache.praekristofluuSkillPoints) {
+        if (this.hasHumanSkillPool(raceName) && cache.praekristofluuSkillPoints) {
+            if (raceName === 'Marsianer') this.setMarsianerReplacementSkill(cache.marsianerReplacementSkill || 'Nahkampf');
             this.praekristofluuSkillPoints = { ...this.praekristofluuSkillPoints, ...cache.praekristofluuSkillPoints };
             this.refreshAllPraekristofluuSkillGrants();
         }
@@ -2767,6 +2910,10 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         if (this.culture === 'Meeresbewohner') this.applyCultureMeeresbewohner();
         if (this.culture === 'Bunkermensch') this.applyCultureBunkermensch();
         if (this.culture === MENSCH_21_CULTURE) this.applyCultureMensch21();
+        if (this.culture === MARTIAN_CULTURE) {
+            Object.entries(ruleCatalog().cultures[MARTIAN_CULTURE].skills).forEach(([skill, value]) => this.setFreeMin(skill, value, 'Kultur'));
+            this.setMarsianerBonusSkill('Pilot');
+        }
         if (this.culture === 'Nomade') this.applyCultureNomade();
         if (this.culture === 'Ruinenbewohner') this.applyCultureRuinenbewohner();
         if (this.culture === 'Untergrundbewohner') this.applyCultureUntergrundbewohner();
@@ -2802,6 +2949,7 @@ function registerCharEditor({ hydrateExisting = false } = {}) {
         this.seaProfessionSkill = null;
         this.seaKnowledgeOrCombatSkill = null;
         this.bunkermenschBonusSkill = null;
+        this.marsianerBonusSkill = null;
         this.mensch21FirstBonusSkill = null;
         this.mensch21SecondBonusSkill = null;
         this.nomadeCombatSkill = null;
