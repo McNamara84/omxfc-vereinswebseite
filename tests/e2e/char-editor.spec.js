@@ -685,11 +685,17 @@ test.describe('RPG Charakter-Editor', () => {
         const lockedHelp = page.getByRole('button', { name: 'Regelhinweis zu Vorteil Zäh' });
         await expect(lockedAdvantage).toBeDisabled();
         await expect(lockedHelp).toBeEnabled();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
         await lockedHelp.click();
-        const lockedDescription = page.locator(`#${await lockedHelp.getAttribute('aria-controls')}`);
+        const lockedDescriptionId = await lockedHelp.getAttribute('aria-controls');
+        const lockedDescription = page.locator(`#${lockedDescriptionId}`);
+        await expect(lockedHelp).toHaveAttribute('aria-describedby', lockedDescriptionId);
+        await expect(lockedHelp).toHaveAccessibleDescription(/Schutzfaktor \+1/);
         await expect(lockedDescription).toBeVisible();
         await expect(lockedDescription).toContainText('Schutzfaktor +1');
         await expect(lockedAdvantage).toBeChecked();
+        await lockedHelp.click();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
     });
 
     test('zeigt Regelhilfe für Nachteile auch bei gesperrten Einträgen', async ({ page }) => {
@@ -741,14 +747,20 @@ test.describe('RPG Charakter-Editor', () => {
         await page.locator('#figurenstaerke').selectOption('1');
         const lockedDisadvantage = checkbox(page, 'disadvantages[]', 'Taratzenfutter');
         const lockedHelp = page.getByRole('button', { name: 'Regelhinweis zu Nachteil Taratzenfutter' });
-        const lockedDescription = page.locator(`#${await lockedHelp.getAttribute('aria-controls')}`);
+        const lockedDescriptionId = await lockedHelp.getAttribute('aria-controls');
+        const lockedDescription = page.locator(`#${lockedDescriptionId}`);
         await expect(lockedDisadvantage).toBeChecked();
         await expect(lockedDisadvantage).toBeDisabled();
         await expect(lockedHelp).toBeEnabled();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
         await lockedHelp.click();
+        await expect(lockedHelp).toHaveAttribute('aria-describedby', lockedDescriptionId);
+        await expect(lockedHelp).toHaveAccessibleDescription(/Alle Schadenswürfe/);
         await expect(lockedDescription).toBeVisible();
         await expect(lockedDescription).toContainText('Alle Schadenswürfe');
         await expect(lockedDisadvantage).toBeChecked();
+        await lockedHelp.click();
+        await expect(lockedHelp).not.toHaveAttribute('aria-describedby');
     });
 
     test.describe('Regelhilfen im Touch-Layout', () => {
