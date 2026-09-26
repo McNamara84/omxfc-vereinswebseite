@@ -1608,7 +1608,7 @@ class MaddraxikonRewardServiceTest extends TestCase
         array $overrides = [],
     ): MaddraxikonRewardPolicy {
         $policy = MaddraxikonRewardPolicy::factory()->create([
-            'effective_from' => now()->subDays(2),
+            'effective_from' => now()->subDays(4),
             ...$overrides,
         ]);
 
@@ -1622,7 +1622,7 @@ class MaddraxikonRewardServiceTest extends TestCase
 
         $policy->update([
             'status' => MaddraxikonRewardPolicy::STATUS_PUBLISHED,
-            'published_at' => now()->subDays(2),
+            'published_at' => now()->subDays(4),
         ]);
 
         return $policy->fresh('tiers');
