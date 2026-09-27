@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RpgCharacter;
 use App\Models\User;
+use App\Services\RpgAccess;
 use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
 use App\Services\RpgProgressionHistory;
@@ -103,6 +104,7 @@ class RpgCharacterController extends Controller
         $this->authorize('delete', $rpgCharacter);
 
         $portraitPath = DB::transaction(function () use ($rpgCharacter): ?string {
+            app(RpgAccess::class)->team(lock: true);
             $character = RpgCharacter::lockForUpdate()->findOrFail($rpgCharacter->id);
             $path = $character->portrait_path;
             $character->delete();

@@ -236,6 +236,56 @@ Der Job **PHP 8.5 RPG Concurrency (MariaDB 12.3)** im Workflow
 `main` und Pushes auf `main` automatisch aus. Sein eigener MariaDB-Service
 erstellt `omxfc_rpg_test`; übersprungene Tests lassen den Job fehlschlagen.
 
+### Würfelaufforderungen und Proben
+
+Unter **Proben** (`/rpg/proben`) fordert die aktuelle Leitung der AG Rollenspiel
+Charaktere anderer AG-Mitglieder zu Attributs- oder Fertigkeitsproben auf.
+Eine Mehrfachauswahl erstellt getrennte Proben mit gemeinsamen Vorgaben.
+Widerstandsproben verbinden zwei Spielercharaktere; einen Gleichstand entscheidet
+die Leitung mit einer Begründung. Die NSC-Auswahl ist für einen späteren Ausbau
+sichtbar, derzeit aber deaktiviert.
+
+Die Servervorschau übernimmt gespeicherte Charakterwerte. Schwierigkeit und
+beschriebene Situationsmodifikatoren wählt die Leitung. Die Werte werden beim
+Anfordern festgehalten; spätere Charakterverbesserungen verändern laufende Proben
+nicht. Jeder Besitzer würfelt seine Seite einmal über die Webseite. Wiederholte
+Anfragen liefern denselben gespeicherten Wurf.
+
+Offene Ergebnisse sehen der jeweilige Besitzer und die Leitung. Bei verdeckten
+Proben erhalten Besitzer nur die Aufforderung und eine Bestätigung ihres Wurfs;
+Schwierigkeit, zusätzliche Modifikatoren, Würfel und Ausgang werden ihrem Browser
+nicht übermittelt. Bei offenen Widerstandsproben bleiben fremde Einzelrechnungen
+verborgen, der gemeinsame Ausgang ist für beide Besitzer sichtbar.
+
+Persönliche Dashboard-Hinweise und Probenansichten aktualisieren sich im sichtbaren
+Tab ungefähr alle fünf Sekunden. Die Leitung kann offene Proben stornieren.
+Abgeschlossene Würfe bleiben im geschützten Verlauf erhalten. Ein Administratorstatus
+allein verleiht keine Probenrechte.
+
+Teilnahme und Zugriff setzen eine aktive Mitgliedschaft in der AG Rollenspiel
+voraus. Die AG-Rolle **Anwärter** berechtigt weder zum Zugriff noch zur Auswahl
+des eigenen Charakters als Probenteilnehmer, auch wenn ein anderes Team aktuell
+ausgewählt ist. Nach einer Rollenänderung werden die Rechte bei jedem Abruf und
+jeder Aktion erneut geprüft.
+
+Vor der ersten Nutzung `php artisan migrate` und `npm run build` ausführen.
+Es werden drei neue Tabellen angelegt; bestehende Charakterwerte und EP bleiben
+unverändert. Details stehen im
+[Proben-Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-Proben.md).
+
+Gezielte Prüfungen:
+
+```bash
+php artisan test --filter 'RpgCheck(?!MariaDb)|RpgCharacterStorageTest|DashboardActivityFeedTest|ActivityFeedTest|DeleteAccountTest|DeleteTeamTest'
+npm run test:vitest -- tests/Vitest/rpg-checks.test.js tests/Vitest/rpg-checks-registration.test.js
+npm run test:e2e:docker -- tests/e2e/rpg-checks.spec.js --project=chromium --project=firefox
+```
+
+Die oben beschriebene separate MariaDB-Suite `phpunit.rpg-mariadb.xml` prüft
+zusätzlich gleichzeitige Würfe, beide Seiten einer Widerstandsprobe, doppelte
+Sammelaufforderungen, konkurrierende Gleichstandsentscheidungen sowie
+Stornierungen und Löschungen während des Würfelns.
+
 ### Weitere Erweiterungen ergänzen
 
 1. In `app/Support/RpgCharEditorRuleCatalog.php` eine stabile Quellenkennung samt

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Livewire\DashboardActivityFeed;
 use App\Models\Activity;
 use App\Models\RpgAdvancementRequest;
@@ -20,6 +21,21 @@ class RpgProgressionHttpTest extends TestCase
     {
         parent::setUp();
         $this->progressionFixtures();
+    }
+
+    public function test_award_picker_and_requests_use_the_same_active_ag_membership_rule(): void
+    {
+        $this->rpgTeam->users()->updateExistingPivot($this->player->id, ['role' => Role::Anwaerter->value]);
+        $this->actingAs($this->leader)->get(route('rpg.adventures.create'))->assertOk()->assertViewHas('config',
+            fn ($config) => ! $config['characters']->pluck('id')->contains($this->character->id));
+        $this->postJson(route('rpg.adventures.preview'), $this->awardInput())->assertUnprocessable();
+        $this->postJson(route('rpg.adventures.store'), $this->awardInput())->assertUnprocessable();
+        $this->assertDatabaseCount('rpg_adventures', 0);
+
+        $this->rpgTeam->users()->updateExistingPivot($this->player->id, ['role' => Role::Mitglied->value]);
+        $this->get(route('rpg.adventures.create'))->assertOk()->assertViewHas('config',
+            fn ($config) => $config['characters']->pluck('id')->contains($this->character->id));
+        $this->postJson(route('rpg.adventures.preview'), $this->awardInput())->assertOk();
     }
 
     public function test_full_http_award_preview_request_and_approval_flow(): void

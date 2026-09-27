@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\RpgCheckLifecycle;
 use Database\Factories\RpgCharacterFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -43,6 +44,7 @@ class RpgCharacter extends Model
 
     protected static function booted(): void
     {
+        static::deleting(fn (self $character) => app(RpgCheckLifecycle::class)->character($character->id));
         static::creating(function (self $character): void {
             $character->initial_payload = $character->payload;
         });

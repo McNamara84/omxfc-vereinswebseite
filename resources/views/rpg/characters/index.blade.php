@@ -7,6 +7,12 @@
             data-testid="rpg-characters-header"
         >
             <x-slot:actions>
+                @can('access-rpg-checks')
+                    <a href="{{ route('rpg.checks.index') }}" class="btn btn-outline">Proben</a>
+                @endcan
+                @can('manage-rpg-checks')
+                    <a href="{{ route('rpg.checks.create') }}" class="btn btn-outline">Probe anfordern</a>
+                @endcan
                 @can('manage-rpg-experience')
                     <a href="{{ route('rpg.adventures.create') }}" class="btn btn-outline">EP vergeben</a>
                     <a href="{{ route('rpg.advancements.index') }}" class="btn btn-outline">Verbesserungen prüfen</a>

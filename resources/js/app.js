@@ -12,6 +12,7 @@ import focus from '@alpinejs/focus';
 import persist from '@alpinejs/persist';
 import './alpine/char-editor';
 import './alpine/rpg-progression';
+import './alpine/rpg-checks';
 import './cover-ratings/session';
 import { scheduleInitAlpine } from './alpine-init';
 
