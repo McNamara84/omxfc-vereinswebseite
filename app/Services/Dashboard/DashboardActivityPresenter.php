@@ -14,6 +14,7 @@ use App\Models\MaddraxikonAccountLink;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\RewardPurchase;
+use App\Models\RpgCombatMilestone;
 use App\Models\RpgExperienceAward;
 use App\Models\Todo;
 use App\Models\User;
@@ -41,6 +42,7 @@ class DashboardActivityPresenter
         User::class => 'Mitglied',
         MaddraxikonAccountLink::class => 'Maddraxikon',
         RpgExperienceAward::class => 'Rollenspiel',
+        RpgCombatMilestone::class => 'Rollenspiel',
     ];
 
     public function __construct(

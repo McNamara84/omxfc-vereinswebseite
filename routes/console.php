@@ -23,6 +23,7 @@ $ratingSyncMinutes = max(
 );
 
 Schedule::command('member-map:refresh')->hourly();
+Schedule::command('rpg:process-combats')->everyMinute()->withoutOverlapping(10);
 Schedule::command('polls:archive-ended')->hourly();
 Schedule::command('database-maintenance:cleanup')->daily();
 Schedule::command('maddraxikon:prune-audit')

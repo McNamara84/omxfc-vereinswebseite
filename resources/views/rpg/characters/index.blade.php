@@ -8,6 +8,7 @@
         >
             <x-slot:actions>
                 @can('access-rpg-checks')
+                    @can('access-rpg-combats')<a href="{{ route('rpg.combats.index') }}" class="btn btn-outline">Übungskämpfe</a>@endcan
                     <a href="{{ route('rpg.checks.index') }}" class="btn btn-outline">Proben</a>
                 @endcan
                 @can('manage-rpg-checks')

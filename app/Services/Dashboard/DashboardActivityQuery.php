@@ -14,6 +14,7 @@ use App\Models\MaddraxikonAccountLink;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\RewardPurchase;
+use App\Models\RpgCombatMilestone;
 use App\Models\RpgExperienceAward;
 use App\Models\Todo;
 use App\Models\User;
@@ -131,7 +132,7 @@ class DashboardActivityQuery
                     });
             }),
             'club' => $query->where(function (Builder $query): void {
-                $query->whereIn('subject_type', [AdminMessage::class, FantreffenAnmeldung::class, RpgExperienceAward::class])
+                $query->whereIn('subject_type', [AdminMessage::class, FantreffenAnmeldung::class, RpgExperienceAward::class, RpgCombatMilestone::class])
                     ->orWhere(function (Builder $members): void {
                         $members->where('subject_type', User::class)
                             ->where('action', 'member_approved');

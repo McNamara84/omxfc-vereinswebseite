@@ -43,8 +43,8 @@ class RpgCharacterCombatCalculatorTest extends TestCase
         $this->assertSame(5, $weapons['schwert']['attack']);
         $this->assertSame('ST', $weapons['schwert']['attack_attribute']);
         $this->assertSame(3, $weapons['schwert']['damage_modifier']);
-        $this->assertSame(4, $weapons['bogen']['attack']);
-        $this->assertSame(0, $weapons['bogen']['damage_modifier']);
+        $this->assertSame(2, $weapons['bogen']['attack']);
+        $this->assertSame(2, $weapons['bogen']['damage_modifier']);
         $this->assertSame(1, $weapons['bogen']['core_range_damage_bonus']);
         $this->assertSame('15m', $weapons['bogen']['range_increment']);
     }

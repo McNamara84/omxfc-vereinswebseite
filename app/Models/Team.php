@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Role;
 use App\Services\RpgCheckLifecycle;
+use App\Services\RpgCombat\CombatLifecycle;
 use Carbon\Carbon;
 use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -180,6 +181,7 @@ class Team extends JetstreamTeam
     protected static function booted(): void
     {
         static::deleting(fn (self $team) => app(RpgCheckLifecycle::class)->team($team->id));
+        static::deleting(fn (self $team) => app(CombatLifecycle::class)->team($team->id));
         static::updated(function (self $team) {
             if (
                 $team->wasChanged('name') &&

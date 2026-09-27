@@ -79,6 +79,8 @@
                         <span class="text-base-content italic">
                             {{ $missingSubjectMessage }}
                         </span>
+                    @elseif($activity->subject_type === \App\Models\RpgCombatMilestone::class)
+                        <p>{{ $subject->message() }}</p>
                     @elseif($activity->subject_type === \App\Models\RpgExperienceAward::class)
                         <p>Charakter {{ $subject->character_name }} von {{ $activityUserName ?? 'einem ehemaligen Mitglied' }} erhält {{ $subject->points }} EP.</p>
                         @if($activity->dashboard_improve_url)

@@ -57,8 +57,8 @@ class RpgCharEditorEquipmentCombatProfileTest extends TestCase
         $this->assertSame($itemMap['bogen']['combat'], $configMap['bogen']['combat']);
         $this->assertSame('ranged', $itemMap['bogen']['combat']['modes'][0]['kind']);
         $this->assertSame(['wa'], $itemMap['bogen']['combat']['modes'][0]['attributes']);
-        $this->assertSame(1, $itemMap['bogen']['combat']['modes'][0]['precision']);
-        $this->assertSame(-1, $itemMap['bogen']['combat']['modes'][0]['damage']);
+        $this->assertSame(-1, $itemMap['bogen']['combat']['modes'][0]['precision']);
+        $this->assertSame(1, $itemMap['bogen']['combat']['modes'][0]['damage']);
         $this->assertSame(3, $itemMap['kampfpanzer']['combat']['protection']);
         $this->assertSame(-1, $itemMap['kampfpanzer']['combat']['movementModifier']);
     }

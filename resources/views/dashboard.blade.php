@@ -34,6 +34,7 @@
             <x-dashboard.tasks-panel :tasks="$tasks" />
 
             @include('rpg.checks.partials.dashboard')
+            @include('rpg.combats.partials.dashboard')
 
             @foreach($metricGroups as $metricGroup)
                 <x-dashboard.metric-group :group="$metricGroup" />
