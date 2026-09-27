@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Services\RpgCheckQuery;
 use App\Services\RpgCheckService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Js;
+use Illuminate\Testing\TestResponse;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\Support\RpgCheckFixtures;
 use Tests\TestCase;
 
@@ -31,6 +34,18 @@ class RpgCheckPrivacyTest extends TestCase
         }
     }
 
+    private function assertSecretHtml(TestResponse $response, array $projection): void
+    {
+        $response->assertOk()->assertDontSee('SECRET-SITUATION');
+        $this->assertSecret($projection);
+        $this->assertSame($projection, $response->viewData('data'));
+        // Check the complete data actually embedded for Alpine. Short numbers
+        // anywhere in the page can also occur in unrelated CSRF tokens or IDs.
+        $component = (new Crawler($response->getContent()))->filter('[x-data^="rpgChecks("]');
+        $this->assertCount(1, $component);
+        $this->assertSame('rpgChecks('.Js::from(['initial' => ['checks' => [$projection]], 'url' => $projection['url'], 'detail' => true])->toHtml().')', $component->attr('x-data'));
+    }
+
     public function test_hidden_result_is_absent_from_every_player_response(): void
     {
         $input = $this->checkInput(visibility: 'hidden');
@@ -39,10 +54,14 @@ class RpgCheckPrivacyTest extends TestCase
         $check = $this->createCheck(input: $input);
         $this->dice([6, 6]);
         $this->actingAs($this->player);
-        $this->assertSecret($this->getJson(route('rpg.checks.show', $check))->assertOk()->json());
-        $this->get(route('rpg.checks.show', $check))->assertOk()->assertDontSee('SECRET-SITUATION')->assertDontSee('743')->assertDontSee('913');
+        // Deterministically exercise the former false positive from page tokens.
+        $this->withSession(['_token' => 'csrf-token-743-913']);
+        $projection = $this->getJson(route('rpg.checks.show', $check))->assertOk()->json();
+        $html = $this->get(route('rpg.checks.show', $check))->assertSee('csrf-token-743-913');
+        $this->assertSecretHtml($html, $projection);
         $response = $this->postJson(route('rpg.checks.roll', [$check, $check->participants[0]]))->assertOk();
         $this->assertSecret($response->json());
+        $this->assertSecretHtml($this->get(route('rpg.checks.show', $check)), $response->json());
         $this->assertSecret($this->getJson(route('rpg.checks.index', ['tab' => 'history']))->json('checks.0'));
         $this->get(route('dashboard'))->assertOk()->assertDontSee('SECRET-SITUATION');
         $this->actingAs($this->leader)->getJson(route('rpg.checks.show', $check))->assertJsonPath('participants.0.dice', [6, 6])->assertJsonPath('difficulty', 743);

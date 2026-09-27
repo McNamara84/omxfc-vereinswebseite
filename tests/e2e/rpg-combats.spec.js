@@ -76,6 +76,8 @@ test('overdue preparations advance and a stranger cannot read combat data', asyn
     const url = await challenge(page, data);
     const context = await browser.newContext({ baseURL });
     const other = await context.newPage();
+    const outsiderContext = await browser.newContext({ baseURL });
+    const outsider = await outsiderContext.newPage();
     try {
         await login(other, data.other);
         await other.goto(url);
@@ -84,12 +86,11 @@ test('overdue preparations advance and a stranger cannot read combat data', asyn
         expect(result.automatic).toBe(2);
         await other.goto(url);
         await expect(other.getByRole('button', { name: 'Jetzt würfeln' })).toBeVisible();
-        await context.clearCookies();
-        await login(other, data.outsider);
-        const response = await other.goto(url);
+        await login(outsider, data.outsider);
+        const response = await outsider.goto(url);
         expect(response.status()).toBe(403);
-        await expect(other.getByText(data.characters.player.name)).toHaveCount(0);
-    } finally { await context.close(); }
+        await expect(outsider.getByText(data.characters.player.name)).toHaveCount(0);
+    } finally { await context.close(); await outsiderContext.close(); }
 });
 
 test('psychic decisions work on mobile and only the replacement leader can adjudicate', async ({ page, browser, baseURL }) => {
@@ -98,6 +99,8 @@ test('psychic decisions work on mobile and only the replacement leader can adjud
     const url = `/rpg/uebungskaempfe/${data.combat}`;
     const leaderContext = await browser.newContext({ baseURL });
     const leader = await leaderContext.newPage();
+    const replacementContext = await browser.newContext({ baseURL });
+    const replacement = await replacementContext.newPage();
     const otherContext = await browser.newContext({ baseURL });
     const other = await otherContext.newPage();
     try {
@@ -114,13 +117,12 @@ test('psychic decisions work on mobile and only the replacement leader can adjud
         fixture('replace-leader', String(data.combat), data.replacement);
         await leader.reload();
         await expect(leader.getByRole('textbox', { name: 'Begründung' })).toHaveCount(0);
-        await leaderContext.clearCookies();
-        await login(leader, data.replacement);
-        await leader.goto('/dashboard');
-        await expect(leader.getByRole('region', { name: 'Persönliche Übungskämpfe' })).toContainText('Regelfrage entscheiden');
-        await leader.goto(url);
-        await leader.getByRole('textbox', { name: 'Begründung' }).fill('Die veröffentlichten Standardauslegungen gelten für diesen Übungskampf.');
-        await leader.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
+        await login(replacement, data.replacement);
+        await replacement.goto('/dashboard');
+        await expect(replacement.getByRole('region', { name: 'Persönliche Übungskämpfe' })).toContainText('Regelfrage entscheiden');
+        await replacement.goto(url);
+        await replacement.getByRole('textbox', { name: 'Begründung' }).fill('Die veröffentlichten Standardauslegungen gelten für diesen Übungskampf.');
+        await replacement.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
         await login(other, data.other);
         await other.goto(url);
         await expect(other.getByRole('region', { name: 'Offene Entscheidungen' })).toContainText('Psychisch widerstehen');
@@ -130,7 +132,7 @@ test('psychic decisions work on mobile and only the replacement leader can adjud
         const audit = await new AxeBuilder({ page }).include('[data-rpg-combat]').analyze();
         expect(audit.violations).toEqual([]);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    } finally { await leaderContext.close(); await otherContext.close(); }
+    } finally { await leaderContext.close(); await replacementContext.close(); await otherContext.close(); }
 });
 
 test('simultaneous declarations stay hidden until both members have chosen', async ({ page, browser, baseURL }) => {
@@ -139,12 +141,13 @@ test('simultaneous declarations stay hidden until both members have chosen', asy
     const url = `/rpg/uebungskaempfe/${data.combat}`;
     const context = await browser.newContext({ baseURL });
     const other = await context.newPage();
+    const leaderContext = await browser.newContext({ baseURL });
+    const leader = await leaderContext.newPage();
     try {
-        await login(page, data.leader);
-        await page.goto(url);
-        await page.getByRole('textbox', { name: 'Begründung' }).fill('Die gleichzeitigen Handlungen gelten für diese Runde.');
-        await page.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
-        await page.context().clearCookies();
+        await login(leader, data.leader);
+        await leader.goto(url);
+        await leader.getByRole('textbox', { name: 'Begründung' }).fill('Die gleichzeitigen Handlungen gelten für diese Runde.');
+        await leader.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
         await login(page, data.player);
         await page.goto(url);
         await page.getByRole('combobox', { name: 'Handlung', exact: true }).selectOption('wait');
@@ -157,5 +160,5 @@ test('simultaneous declarations stay hidden until both members have chosen', asy
         await other.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
         await expect(other.getByText('Entfernung: 2 m', { exact: true })).toBeVisible();
         await expect(other.getByRole('button', { name: 'Jetzt würfeln' })).toBeVisible();
-    } finally { await context.close(); }
+    } finally { await context.close(); await leaderContext.close(); }
 });
