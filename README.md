@@ -494,6 +494,38 @@ Sicherheitsgründen auf den täglichen Lauf zurück.
 
 ## Maddrax-Fantreffen 2026 Event-System
 
+### Baxx für bestätigte Veranstaltungsteilnahme
+
+Admin und Vorstand können unter `/admin/veranstaltungen/{slug}/anmeldungen`
+die Teilnahme bereits angemeldeter Mitglieder bestätigen. Im Veranstaltungsformular
+lässt sich die Belohnung auf **2 bis 50 ganze Baxx** einstellen; Standard sind **10 Baxx**.
+Erst beim Speichern des Status **Archiviert** wird der Betrag einmalig gutgeschrieben.
+Die Archivierung wird vor dem Speichern bestätigt.
+
+Empfänger müssen bei der Archivierung im Mitglieder-Team die Rolle Mitglied,
+Ehrenmitglied, Kassenwart, Vorstand oder Admin besitzen. Anwärter, Mitwirkende,
+Gäste und nicht bestätigte Teilnehmer erhalten keine Baxx. Die Übersicht und der
+CSV-Export zeigen bestätigte Teilnahme und tatsächlich vergebene Baxx.
+
+Nach dem ersten Abschluss sind Teilnahme, Betrag und das Löschen von Anmeldungen
+gesperrt, auch wenn kein Mitglied vergütet wurde oder das Event wieder veröffentlicht
+wird. Wiederholtes Archivieren vergibt keine weiteren Baxx. Veranstaltungen, die
+bei Einführung bereits archiviert sind, bleiben dauerhaft ausgeschlossen.
+Der Kassenwart behält seine übrigen Verwaltungsrechte; die neuen Schreibaktionen
+und die Archivierung sind Admin und Vorstand vorbehalten.
+
+Vor der Nutzung die Migrationen mit `php artisan migrate` ausführen und die Assets
+mit `npm run build` erstellen. Bei der Einführung während der Migration keine
+Veranstaltungen archivieren. Details stehen im
+[Implementierungsplan](docs/Implementierungsplan-Veranstaltungs-Baxx.md).
+
+Die Feature- und Migrationstests heißen `VeranstaltungsBaxxVergabeTest` und
+`VeranstaltungsBaxxMigrationTest`. Echte parallele Schreibzugriffe werden mit
+`phpunit.veranstaltungs-baxx-mariadb.xml` ausschließlich auf der separaten Datenbank
+`omxfc_veranstaltungen_test` geprüft. Diese Datenbank muss vorher angelegt und für
+den Testbenutzer freigegeben sein; die Tests setzen sie zurück. Der Browserfall
+liegt unter `tests/e2e/veranstaltungs-baxx.spec.js`.
+
 Das Anmeldesystem für das Maddrax-Fantreffen am 9. Mai 2026 bietet:
 
 ### Funktionen

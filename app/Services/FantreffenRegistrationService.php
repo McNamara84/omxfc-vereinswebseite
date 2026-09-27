@@ -192,6 +192,12 @@ class FantreffenRegistrationService
                 $vorname,
                 $nachname
             ) {
+                $veranstaltung = Veranstaltung::query()->lockForUpdate()->findOrFail($veranstaltung->id);
+
+                if (! $veranstaltung->isRegistrationOpen()) {
+                    throw ValidationException::withMessages(['error' => 'Die Anmeldung für diese Veranstaltung ist derzeit geschlossen.']);
+                }
+
                 $legacyTshirtBestellung = collect($selectedMerchArtikel)->first(
                     fn (array $bestellung) => $this->isLegacyTshirtArtikel($bestellung['artikel'])
                 );
@@ -245,6 +251,8 @@ class FantreffenRegistrationService
 
             return $anmeldung;
 
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             $this->safeLog('error', 'FantreffenRegistrationService: Registration failed', [
                 'error' => $e->getMessage(),

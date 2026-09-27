@@ -30,7 +30,10 @@
         @endif
 
         <x-ui.panel :title="$isCreate ? 'Grunddaten' : 'Grunddaten und Module'" description="Alle Felder sind ohne Codeänderung anpassbar.">
-            <form method="POST" action="{{ $isCreate ? route('admin.veranstaltungen.store') : route('admin.veranstaltungen.update', $veranstaltung) }}" class="space-y-6">
+            <form method="POST" action="{{ $isCreate ? route('admin.veranstaltungen.store') : route('admin.veranstaltungen.update', $veranstaltung) }}" class="space-y-6"
+                x-data="{ status: @js(old('status', $veranstaltung->status)), baxx: @js(old('teilnahme_baxx', $veranstaltung->teilnahme_baxx)), originalStatus: @js($veranstaltung->status) }"
+                x-on:submit="if (status === 'archiviert' && originalStatus !== 'archiviert' && !confirm('Veranstaltung archivieren? Bestätigte berechtigte Mitglieder erhalten einmalig ' + baxx + ' Baxx. Teilnahme und Betrag sind danach dauerhaft gesperrt. Bereits abgeschlossene oder ausgeschlossene Vergaben werden nicht wiederholt.')) $event.preventDefault()"
+            >
                 @csrf
                 @unless ($isCreate)
                     @method('PUT')
@@ -51,12 +54,36 @@
                     </label>
                     <label class="form-control w-full">
                         <span class="label-text mb-1 block text-sm font-medium">Status</span>
-                        <select name="status" class="select select-bordered w-full">
+                        <select name="status" x-model="status" class="select select-bordered w-full">
                             @foreach (['entwurf' => 'Entwurf', 'veroeffentlicht' => 'Veröffentlicht', 'archiviert' => 'Archiviert'] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('status', $veranstaltung->status) === $value)>{{ $label }}</option>
+                                @if ($value !== 'archiviert' || $veranstaltung->status === 'archiviert' || auth()->user()->can('archive', $veranstaltung))
+                                    <option value="{{ $value }}" @selected(old('status', $veranstaltung->status) === $value)>{{ $label }}</option>
+                                @endif
                             @endforeach
                         </select>
                     </label>
+                </div>
+
+                <div class="rounded-box border border-base-300 p-4 space-y-2">
+                    @if ($veranstaltung->canEditTeilnahmeBaxx() && auth()->user()->can('setBaxx', $veranstaltung))
+                        <label class="form-control w-full max-w-sm">
+                            <span class="label-text mb-1 block text-sm font-medium">Baxx für bestätigte Teilnahme</span>
+                            <input type="number" name="teilnahme_baxx" x-model="baxx" min="2" max="50" step="1" required value="{{ old('teilnahme_baxx', $veranstaltung->teilnahme_baxx) }}" class="input input-bordered w-full" aria-describedby="teilnahme-baxx-hilfe" />
+                        </label>
+                    @else
+                        <p class="font-medium">Baxx für bestätigte Teilnahme: {{ $veranstaltung->teilnahme_baxx }}</p>
+                    @endif
+                    <p id="teilnahme-baxx-hilfe" class="text-sm text-base-content/70">2 bis 50 Baxx je Mitglied. Die Gutschrift erfolgt einmalig beim Archivieren für bestätigte, dann berechtigte Mitglieder.</p>
+                    @if ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen)
+                        <p class="text-sm">Vergabe abgeschlossen am {{ $veranstaltung->baxx_abgeschlossen_am?->format('d.m.Y H:i') }}. Teilnahme und Betrag bleiben dauerhaft gesperrt.</p>
+                    @elseif ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::BestandAusgeschlossen)
+                        <p class="text-sm">Von der Baxx-Vergabe ausgeschlossen: bereits vor Einführung archiviert.</p>
+                    @else
+                        <p x-show="status === 'archiviert'" x-cloak class="text-sm font-medium" role="status">Beim Archivieren werden <span x-text="baxx"></span> Baxx je berechtigtem Mitglied vergeben. Teilnahme und Betrag sind anschließend dauerhaft gesperrt, auch wenn niemand bestätigt wurde.</p>
+                    @endif
+                    @unless ($isCreate)
+                        <a href="{{ route('admin.veranstaltungen.anmeldungen', $veranstaltung) }}" class="link link-primary text-sm">Teilnahme in der Anmeldeliste prüfen</a>
+                    @endunless
                 </div>
 
                 <div class="grid gap-4 md:grid-cols-2">

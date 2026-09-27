@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\VeranstaltungsBaxxStatus;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
 use App\Models\VeranstaltungsMerchartikel;
+use App\Services\VeranstaltungsBaxxService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -18,6 +20,8 @@ use Illuminate\View\View;
 #[Authorize('manage', Veranstaltung::class)]
 class VeranstaltungVerwaltungController extends Controller
 {
+    public function __construct(private readonly VeranstaltungsBaxxService $baxxService) {}
+
     public function index(): View
     {
         return view('admin.veranstaltungen.index', [
@@ -50,11 +54,10 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $veranstaltung = Veranstaltung::create($this->validatedData($request));
-        $this->syncHighlight($veranstaltung);
+        $veranstaltung = $this->baxxService->speichern(new Veranstaltung, $this->validatedData($request), $request->user());
 
         return redirect()->route('admin.veranstaltungen.edit', $veranstaltung)
-            ->with('success', 'Veranstaltung erfolgreich angelegt.');
+            ->with('success', $this->successMessage($veranstaltung, 'Veranstaltung erfolgreich angelegt.'));
     }
 
     public function edit(Veranstaltung $veranstaltung): View
@@ -69,11 +72,10 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function update(Request $request, Veranstaltung $veranstaltung): RedirectResponse
     {
-        $veranstaltung->update($this->validatedData($request, $veranstaltung));
-        $this->syncHighlight($veranstaltung);
+        $veranstaltung = $this->baxxService->speichern($veranstaltung, $this->validatedData($request, $veranstaltung), $request->user());
 
         return redirect()->route('admin.veranstaltungen.edit', $veranstaltung)
-            ->with('success', 'Veranstaltung erfolgreich aktualisiert.');
+            ->with('success', $this->successMessage($veranstaltung, 'Veranstaltung erfolgreich aktualisiert.'));
     }
 
     public function storeAbschnitt(Request $request, Veranstaltung $veranstaltung): RedirectResponse
@@ -171,6 +173,7 @@ class VeranstaltungVerwaltungController extends Controller
             'titel' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('veranstaltungen', 'slug')->ignore($veranstaltung?->id)],
             'status' => ['required', Rule::in(['entwurf', 'veroeffentlicht', 'archiviert'])],
+            'teilnahme_baxx' => ['sometimes', 'required', 'integer', 'min:2', 'max:50'],
             'veranstaltungsart' => ['nullable', 'string', 'max:255'],
             'untertitel' => ['nullable', 'string', 'max:255'],
             'teaser' => ['nullable', 'string'],
@@ -236,15 +239,16 @@ class VeranstaltungVerwaltungController extends Controller
         return $validated;
     }
 
-    private function syncHighlight(Veranstaltung $veranstaltung): void
+    private function successMessage(Veranstaltung $veranstaltung, string $message): string
     {
-        if (! $veranstaltung->ist_highlight) {
-            return;
+        if ($veranstaltung->status === 'archiviert' && $veranstaltung->baxx_status === VeranstaltungsBaxxStatus::Abgeschlossen) {
+            $count = $veranstaltung->baxxVergaben()->count();
+            $total = (int) $veranstaltung->baxxVergaben()->sum('points');
+
+            return $message." Baxx-Vergabe abgeschlossen: {$count} Mitglieder, je {$veranstaltung->teilnahme_baxx} Baxx, insgesamt {$total} Baxx.";
         }
 
-        Veranstaltung::query()
-            ->whereKeyNot($veranstaltung->id)
-            ->update(['ist_highlight' => false]);
+        return $message;
     }
 
     private function parseVarianten(?string $varianten): array

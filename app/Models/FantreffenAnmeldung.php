@@ -55,6 +55,8 @@ class FantreffenAnmeldung extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'teilgenommen' => 'boolean',
+        'teilnahme_bestaetigt_am' => 'datetime',
         'tshirt_bestellt' => 'boolean',
         'tshirt_fertig' => 'boolean',
         'zahlungseingang' => 'boolean',

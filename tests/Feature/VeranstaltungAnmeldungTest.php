@@ -75,7 +75,7 @@ class VeranstaltungAnmeldungTest extends TestCase
         $erstesEvent = Veranstaltung::query()->where('slug', 'maddrax-fantreffen-2026')->firstOrFail();
         $zweitesEvent = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
 
-        $erstesEvent->update(['anmeldung_aktiv' => true]);
+        $erstesEvent->update(['status' => 'veroeffentlicht', 'anmeldung_aktiv' => true]);
         $zweitesEvent->update(['anmeldung_aktiv' => true]);
 
         $payload = [
