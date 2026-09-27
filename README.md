@@ -286,6 +286,60 @@ zusätzlich gleichzeitige Würfe, beide Seiten einer Widerstandsprobe, doppelte
 Sammelaufforderungen, konkurrierende Gleichstandsentscheidungen sowie
 Stornierungen und Löschungen während des Würfelns.
 
+### Übungskämpfe
+
+Unter **Übungskämpfe** (`/rpg/uebungskaempfe`, auch unter „Meine Charaktere“)
+können aktive AG-Mitglieder andere Mitglieder mit gespeicherten Charakteren
+herausfordern. Die Einladung enthält Startdistanz und Rundenlimit und verfällt
+nach sieben Tagen. Erst die Annahme belegt beide Charaktere und startet den Kampf.
+Eine zwischenzeitliche Charakteränderung erfordert eine neue Einladung.
+
+Die Kampfseite führt durch Vorbereitung, Initiative, Bewegung, Angriffe,
+Verteidigung, Schadenswürfe, Sondermanöver und psychische Talente. Sie zeigt
+Charakterstände sowie ein Protokoll mit Würfeln, Modifikatoren und Regelstellen.
+Regelauslegungen samt Timeout-Standard stehen auf derselben Seite. Die aktuelle
+AG-Leitung entscheidet solche Fälle mit Begründung, sofern sie nicht selbst
+beteiligt ist. Gleichzeitige Ansagen bleiben bis zur gemeinsamen Aufdeckung
+verborgen. Charakteroriginale, EP und Baxx ändern sich durch Übungskämpfe nicht.
+
+Jede neue Entscheidung erhält 24 Stunden; nach Fristablauf verarbeitet der
+Server ausschließlich diesen Schritt mit einer gültigen Standardentscheidung.
+Fristen werden in UTC gespeichert und in deutscher Ortszeit angezeigt.
+Regelfragen pausieren andere Entscheidungen mit deren verbleibender Restzeit.
+Spielzeit läuft nur beim Rundenabschluss weiter (drei Sekunden pro Runde).
+Nach standardmäßig 100 Runden endet das Duell unentschieden. Diese Grenzen
+stehen in `config/rpg-combat.php` und sind Simulatorentscheidungen.
+
+Kampfseite und vollständiges Protokoll sehen die Beteiligten und die aktuelle
+AG-Leitung. Das Dashboard veröffentlicht ausschließlich Herausforderung,
+Annahme und Ergebnis. Persönliche Dashboard-Hinweise und E-Mails verweisen auf
+offene Kämpfe. Die Kampfseite aktualisiert sich etwa alle fünf Sekunden und
+überschreibt dabei keine noch nicht abgesendete Eingabe.
+
+Vor der Nutzung `php artisan migrate` und `npm run build` ausführen. Der
+vorhandene Scheduler muss `rpg:process-combats` minütlich ausführen; der
+Queue-Worker versendet die dauerhaft gespeicherten Mail-Aufträge. Der Befehl
+prüft auch Mitgliedschaft und gelöschte Bezüge. Ein Versandfehler bleibt
+wiederholbar. Ein Prozessabbruch unmittelbar nach Annahme durch den Mailserver
+kann trotz stabiler Message-ID zu einer erneuten Zustellung führen; Kampfaktionen
+und Dashboard-Meilensteine bleiben davon unabhängig einmalig.
+
+```bash
+php vendor/bin/phpunit -c phpunit.rpg-combat.xml
+# Optional mit installierter PCOV-Erweiterung:
+php -d pcov.enabled=1 vendor/bin/phpunit -c phpunit.rpg-combat.xml --coverage-text
+npm run test:vitest -- tests/Vitest/rpg-combats.test.js tests/Vitest/rpg-checks.test.js
+npm run test:e2e:docker -- tests/e2e/rpg-combats.spec.js --project=chromium
+```
+
+Die separate MariaDB-Suite `phpunit.rpg-mariadb.xml` enthält außerdem Tests für
+doppelte Kampfaktionen, konkurrierende Annahmen, Timeout gegen Benutzeraktion
+und Charakterlöschung während einer Aktion. Sie darf nur mit der isolierten
+Datenbank `omxfc_rpg_test` laufen. Fachliche Entscheidungen und Umfang stehen im
+[Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-Uebungskampf.md).
+Regelbezug, Testnachweise und Betriebsgrenzen stehen im
+[Umsetzungsbericht](docs/RPG-Regelwerk/Umsetzung-Uebungskampf.md).
+
 ### Weitere Erweiterungen ergänzen
 
 1. In `app/Support/RpgCharEditorRuleCatalog.php` eine stabile Quellenkennung samt

@@ -2,6 +2,7 @@
 
 use App\Models\RpgCharacter;
 use App\Models\User;
+use App\Services\RpgAccess;
 use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgExperienceAwardService;
 use Illuminate\Contracts\Console\Kernel;
@@ -25,6 +26,8 @@ try {
         'award' => app(RpgExperienceAwardService::class)->award($actor, $data['input']),
         'submit' => app(RpgCharacterAdvancementService::class)->submit($actor, $data['character'], $data['input']),
         'delete' => DB::transaction(function () use ($actor, $data) {
+            // Match RpgCharacterController::destroy: AG before character, including lifecycle hooks.
+            app(RpgAccess::class)->team(lock: true);
             $character = RpgCharacter::lockForUpdate()->findOrFail($data['character']);
             Gate::forUser($actor)->authorize('delete', $character);
             $character->delete();

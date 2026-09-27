@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Jobs\GeocodeUser;
 use App\Services\RewardService;
 use App\Services\RpgCheckLifecycle;
+use App\Services\RpgCombat\CombatLifecycle;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -164,6 +165,7 @@ class User extends Authenticatable
 
         static::deleting(function (User $user): void {
             app(RpgCheckLifecycle::class)->user($user->id);
+            app(CombatLifecycle::class)->user($user->id);
             $schema = Schema::connection($user->getConnectionName());
 
             if (! $schema->hasTable('maddraxikon_identity_tombstones')) {

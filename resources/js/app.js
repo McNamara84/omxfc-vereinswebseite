@@ -184,6 +184,11 @@ document.addEventListener('livewire:navigated', loadThreeDViewerIfNeeded);
 
 registerMarkdownEditorLifecycle();
 
+import { initCombats, destroyCombats } from './rpg-combats';
+document.addEventListener('DOMContentLoaded', initCombats);
+document.addEventListener('livewire:navigated', initCombats);
+document.addEventListener('livewire:navigating', destroyCombats);
+
 // Toast-Bridge: Livewire dispatch('toast') → maryUI window.toast()
 // Livewire-Komponenten nutzen $this->dispatch('toast', type: '...', title: '...'),
 // maryUI <x-toast /> hört aber auf 'mary-toast' Window-Events via window.toast().

@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" recordTestRunHistory="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
+  <testsuites>
+    <testsuite name="RPG Combat">
+      <file>tests/Unit/RpgCombatMathTest.php</file>
+      <file>tests/Unit/RpgCombatEngineTest.php</file>
+      <file>tests/Feature/RpgCombatHttpTest.php</file>
+      <file>tests/Feature/RpgCombatDeadlineTest.php</file>
+      <file>tests/Feature/RpgCombatIntegrityTest.php</file>
+    </testsuite>
+  </testsuites>
+  <source>
+    <include>
+      <file>app/Models/Concerns/UsesUtcCombatDates.php</file>
+      <directory suffix=".php">app/Services/RpgCombat</directory>
+      <file>app/Models/RpgCombat.php</file>
+      <file>app/Models/RpgCombatDecision.php</file>
+      <file>app/Models/RpgCombatDelivery.php</file>
+      <file>app/Models/RpgCombatEvent.php</file>
+      <file>app/Models/RpgCombatMilestone.php</file>
+      <file>app/Models/RpgCombatParticipant.php</file>
+      <file>app/Support/RpgCombatRules.php</file>
+      <file>app/Policies/RpgCombatPolicy.php</file>
+      <file>app/Http/Controllers/RpgCombatController.php</file>
+      <file>app/Console/Commands/ProcessRpgCombats.php</file>
+      <file>app/Jobs/SendRpgCombatMail.php</file>
+      <file>app/Mail/RpgCombatMail.php</file>
+    </include>
+  </source>
+  <php>
+    <ini name="memory_limit" value="512M" />
+    <env name="APP_ENV" value="testing" force="true" />
+    <env name="APP_CONFIG_CACHE" value="bootstrap/cache/config-phpunit.php" force="true" />
+    <env name="APP_MAINTENANCE_DRIVER" value="file" />
+    <env name="BCRYPT_ROUNDS" value="4" />
+    <env name="CACHE_STORE" value="array" />
+    <env name="DB_CONNECTION" value="sqlite" force="true" />
+    <env name="DB_DATABASE" value=":memory:" force="true" />
+    <env name="MAIL_MAILER" value="array" />
+    <env name="PULSE_ENABLED" value="false" />
+    <env name="SCOUT_DRIVER" value="null" />
+    <env name="QUEUE_CONNECTION" value="sync" />
+    <env name="SESSION_DRIVER" value="array" />
+    <env name="TELESCOPE_ENABLED" value="false" />
+    <env name="FANTREFFEN_DISABLE_RATE_LIMIT" value="true" />
+    <env name="MADDRAXIKON_IDENTITY_HMAC_PEPPERS" value="test-v1:0123456789abcdef0123456789abcdef" force="true" />
+  </php>
+</phpunit>

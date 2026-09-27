@@ -18,6 +18,7 @@ if (! $app->environment('testing') || config('database.default') !== 'sqlite' ||
 Http::fake();
 $members = Team::membersTeam();
 $suffix = Str::uuid();
+$characterName = 'Arkon EP-Test '.$suffix;
 $leader = User::factory()->create(['email' => "rpg-leader-{$suffix}@example.test", 'current_team_id' => $members->id]);
 $player = User::factory()->create(['email' => "rpg-player-{$suffix}@example.test", 'current_team_id' => $members->id]);
 foreach ([$leader, $player] as $user) {
@@ -27,9 +28,9 @@ $team = Team::firstOrCreate(['name' => 'AG Rollenspiel'], ['user_id' => $leader-
 $team->update(['user_id' => $leader->id]);
 $team->users()->syncWithoutDetaching([$leader->id => ['role' => Role::Mitglied->value], $player->id => ['role' => Role::Mitglied->value]]);
 $character = RpgCharacter::factory()->create([
-    'user_id' => $player->id, 'character_name' => 'Arkon EP-Test',
+    'user_id' => $player->id, 'character_name' => $characterName,
     'payload' => [
-        'character' => ['character_name' => 'Arkon EP-Test', 'race' => 'Hydrit', 'culture' => 'Meeresbewohner'],
+        'character' => ['character_name' => $characterName, 'race' => 'Hydrit', 'culture' => 'Meeresbewohner'],
         'attributes' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
         'skills' => [['name' => 'Nahkampf', 'value' => 2]],
         'advantages' => [], 'disadvantages' => [], 'languages' => [], 'advantage_effects' => [],
@@ -47,4 +48,4 @@ if (($argv[1] ?? '') === 'funded') {
         ]],
     ]);
 }
-echo json_encode(['leader' => $leader->email, 'player' => $player->email, 'character_id' => $character->id], JSON_THROW_ON_ERROR).PHP_EOL;
+echo json_encode(['leader' => $leader->email, 'player' => $player->email, 'character_id' => $character->id, 'character_name' => $characterName], JSON_THROW_ON_ERROR).PHP_EOL;
