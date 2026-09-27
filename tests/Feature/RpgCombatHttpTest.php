@@ -7,8 +7,10 @@ use App\Models\RpgCombat;
 use App\Models\RpgCombatMilestone;
 use App\Services\RpgCombat\CombatQuery;
 use App\Services\RpgCombat\CombatService;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\RpgCombatFixtures;
 use Tests\TestCase;
 
@@ -67,6 +69,26 @@ class RpgCombatHttpTest extends TestCase
         $this->assertSame(3, RpgCombatMilestone::count());
         $this->assertSame(range(1, $combat->events()->count()), $combat->events()->orderBy('sequence')->pluck('sequence')->all());
         $this->get(route('rpg.combats.show', $combat))->assertOk()->assertSee('Kampfprotokoll');
+    }
+
+    #[DataProvider('localCreationDates')]
+    public function test_combat_listing_shows_the_berlin_creation_date(string $instant, string $expectedDate): void
+    {
+        $this->travelTo(CarbonImmutable::parse($instant));
+        $combat = $this->combat(false);
+        $this->assertSame('UTC', $combat->fresh()->created_at->timezoneName);
+        $this->assertNotSame($expectedDate, $combat->fresh()->created_at->format('d.m.Y'));
+
+        $this->actingAs($this->player)->get(route('rpg.combats.index'))
+            ->assertOk()->assertSee('Herausforderung offen · '.$expectedDate);
+    }
+
+    public static function localCreationDates(): array
+    {
+        return [
+            'winter after midnight' => ['2026-01-02T00:15:00+01:00', '02.01.2026'],
+            'summer after midnight' => ['2026-07-02T00:15:00+02:00', '02.07.2026'],
+        ];
     }
 
     public function test_access_is_limited_to_participants_and_current_leader(): void

@@ -5,7 +5,7 @@
         <p class="mb-4">Sichtbar für die Beteiligten und die aktuelle AG-Leitung. Öffentliche Meilensteine erscheinen im Dashboard.</p>
         <div class="space-y-3">
             @forelse($combats as $combat)
-                <article class="border border-base-300 rounded-xl p-4"><h2 class="font-semibold"><a class="link" href="{{ route('rpg.combats.show', $combat) }}">{{ $combat->participants->pluck('character_name')->join(' gegen ') }}</a></h2><p>{{ \App\Models\RpgCombat::statusLabel($combat->status) }} · {{ $combat->created_at->format('d.m.Y') }}</p></article>
+                <article class="border border-base-300 rounded-xl p-4"><h2 class="font-semibold"><a class="link" href="{{ route('rpg.combats.show', $combat) }}">{{ $combat->participants->pluck('character_name')->join(' gegen ') }}</a></h2><p>{{ \App\Models\RpgCombat::statusLabel($combat->status) }} · {{ $combat->created_at->timezone('Europe/Berlin')->format('d.m.Y') }}</p></article>
             @empty<p>Noch keine Übungskämpfe vorhanden.</p>@endforelse
         </div>
         <div class="mt-4">{{ $combats->links() }}</div>

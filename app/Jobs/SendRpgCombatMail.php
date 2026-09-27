@@ -47,7 +47,7 @@ class SendRpgCombatMail implements ShouldBeUnique, ShouldQueue
             $decision = $delivery->decision;
             $valid = $user && $combat && Gate::forUser($user)->allows('view', $combat);
             if ($decision) {
-                $valid = $valid && $decision->status === 'pending' && ($decision->type === 'ruling'
+                $valid = $valid && $decision->status === 'pending' && $decision->due_at?->isFuture() && ($decision->type === 'ruling'
                     ? Gate::forUser($user)->allows('rule', $combat)
                     : $combat->participants->firstWhere('side', $decision->controller_side)?->owner_id === $user->id);
             } elseif ($delivery->kind === 'invitation') {

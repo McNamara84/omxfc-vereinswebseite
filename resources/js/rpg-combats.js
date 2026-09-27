@@ -15,9 +15,16 @@ export function mountCombat(root) {
                 notice.textContent = 'Der Kampf wurde fortgesetzt. Bitte vor dem Absenden aktualisieren; deine Eingabe wurde nicht überschrieben.';
                 return;
             }
+            // Use the active (possibly Livewire-provided) Alpine instance. Suspend
+            // its observer so each replaced subtree has one explicit lifecycle.
+            const alpine = window.Alpine;
+            alpine.mutateDom(() => {
+                alpine.destroyTree(content);
+                // Blade escapes all character names, descriptions and log data.
+                content.innerHTML = data.html;
+                alpine.initTree(content);
+            });
             revision = Number(data.revision);
-            // Server-rendered Blade escapes all character names, descriptions and log data.
-            content.innerHTML = data.html;
             notice.textContent = 'Kampfstand aktualisiert.';
         },
         onError(message, fatal) {

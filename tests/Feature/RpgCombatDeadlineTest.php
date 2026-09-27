@@ -127,6 +127,45 @@ class RpgCombatDeadlineTest extends TestCase
         $this->assertSame('preparing', $combat->fresh()->status);
     }
 
+    #[DataProvider('decisionMailDeadlines')]
+    public function test_decision_mail_requires_a_future_deadline_even_before_scheduler_runs(bool $ruling, int $secondsAfterDeadline, bool $shouldSend): void
+    {
+        $combat = $this->activeCombat();
+        if ($ruling) {
+            $combat = $this->decision($combat, 'action', 1, ['kind' => 'creative', 'description' => 'Staub aufwirbeln']);
+        }
+        $decision = $combat->decisions()->where('status', 'pending')->sole();
+        $delivery = RpgCombatDelivery::where('rpg_combat_decision_id', $decision->id)->sole();
+        $recipient = $ruling ? $this->leader : $this->player;
+        $this->assertSame($recipient->id, $delivery->recipient_id);
+        $this->travelTo($decision->due_at->addSeconds($secondsAfterDeadline));
+
+        (new SendRpgCombatMail($delivery->id))->handle();
+        (new SendRpgCombatMail($delivery->id))->handle();
+
+        $this->assertSame('pending', $decision->fresh()->status);
+        $this->assertSame($shouldSend ? 'sent' : 'cancelled', $delivery->fresh()->status);
+        if ($shouldSend) {
+            Mail::assertSent(RpgCombatMail::class, 1);
+            Mail::assertSent(RpgCombatMail::class, fn ($mail) => $mail->hasTo($recipient->email));
+        } else {
+            Mail::assertNothingSent();
+            $this->assertNull($delivery->fresh()->sent_at);
+        }
+    }
+
+    public static function decisionMailDeadlines(): array
+    {
+        return [
+            'player just before deadline' => [false, -1, true],
+            'player at deadline' => [false, 0, false],
+            'player after delayed scheduler' => [false, 3600, false],
+            'leader just before deadline' => [true, -1, true],
+            'leader at deadline' => [true, 0, false],
+            'leader after delayed scheduler' => [true, 3600, false],
+        ];
+    }
+
     public function test_user_deletion_anonymizes_public_names(): void
     {
         $combat = $this->combat();
