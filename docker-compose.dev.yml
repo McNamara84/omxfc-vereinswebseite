@@ -158,7 +158,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.30.5-alpine3.24@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94
+    image: nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
     depends_on:
       app:
         condition: service_started
@@ -213,7 +213,10 @@ services:
       - omxfc-dev-network
 
   typesense:
-    image: typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
+    image: omxfc-dev-typesense:local
+    build:
+      context: .
+      dockerfile: docker/typesense.Dockerfile
     command: '--data-dir /typesense-data --api-key=${DOCKER_DEV_TYPESENSE_API_KEY:-local-dev-typesense-key}'
     ports:
       - '${DOCKER_DEV_TYPESENSE_FORWARD_PORT:-8108}:8108'

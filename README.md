@@ -609,11 +609,20 @@ ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
+Prüfergebnisse, bekannte Versionsgrenzen und verbleibende Image-Sicherheitsbefunde:
+[Abhängigkeitsupdate vom 28. September 2026](DEPENDENCY-UPDATE.md).
+
 Stand der Aktualisierung: **28. September 2026**. PHP 8.5.11 basiert auf Debian
 Trixie; Node 26.10.0 verwendet Alpine 3.24 und npm 12.1.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
-MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24) und Typesense
+MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
+Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
+Typesense wird über `docker/typesense.Dockerfile` mit den aktuellen Ubuntu-
+Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
+OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
+`ghcr.io/mcnamara84/omxfc-vereinswebseite:typesense-30.2`, scannt es und übergibt
+den geprüften Digest an das Deployment.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
 aktualisiert. Verbleibende upstreambedingte Grenzen: Pest 5.2.1 schließt PHPUnit
@@ -627,6 +636,11 @@ aktualisiert die Systemtabellen; ein Rollback benötigt das Backup und das alte
 Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
 `docker-compose.yml` ist absichtlich nicht versioniert: Die freigegebenen
 Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
+Insbesondere muss `typesense.image` dort
+`${OMXFC_TYPESENSE_IMAGE:?OMXFC_TYPESENSE_IMAGE is required}` verwenden. Der Workflow
+prüft diese Voraussetzung vor dem Anhalten von Diensten und speichert den
+gescannten Image-Digest anschließend in `.env.production` für manuelle
+Compose-Befehle.
 
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:
