@@ -1,17 +1,29 @@
 import { expect, test, clickAndWaitForLivewireUpdate } from './test-support.js';
 import { runArtisan } from './utils/artisan.js';
 
-test('Bestätigte Teilnahme wird beim Archivieren einmalig vergütet und gesperrt', async ({ page }) => {
+test('Bestätigte Teilnahme wird beim Archivieren einmalig vergütet und gesperrt', async ({ page }, testInfo) => {
     test.setTimeout(120_000);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\VeranstaltungsBaxxPlaywrightSeeder']);
+    // Projekte/Worker haben eigene Daten; Retries und Wiederholungen setzen dieselbe Fixture zurück.
+    const fixture = `${testInfo.project.name}-${testInfo.parallelIndex}`;
+    const previousFixture = process.env.E2E_VERANSTALTUNGS_BAXX_FIXTURE;
+    process.env.E2E_VERANSTALTUNGS_BAXX_FIXTURE = fixture;
+    try {
+        await runArtisan(['db:seed', '--class=Database\\Seeders\\VeranstaltungsBaxxPlaywrightSeeder']);
+    } finally {
+        if (previousFixture === undefined) {
+            delete process.env.E2E_VERANSTALTUNGS_BAXX_FIXTURE;
+        } else {
+            process.env.E2E_VERANSTALTUNGS_BAXX_FIXTURE = previousFixture;
+        }
+    }
     await page.goto('/login');
     await page.locator('input[name="email"]').fill('info@maddraxikon.com');
     await page.locator('input[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 
-    const editUrl = '/admin/veranstaltungen/baxx-browserpruefung/bearbeiten';
-    const listUrl = '/admin/veranstaltungen/baxx-browserpruefung/anmeldungen';
+    const editUrl = `/admin/veranstaltungen/baxx-browserpruefung-${fixture}/bearbeiten`;
+    const listUrl = `/admin/veranstaltungen/baxx-browserpruefung-${fixture}/anmeldungen`;
     await page.goto(editUrl);
     const amount = page.getByLabel('Baxx für bestätigte Teilnahme');
     await expect(amount).toHaveValue('10');

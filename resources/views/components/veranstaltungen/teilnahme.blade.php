@@ -1,7 +1,7 @@
-@props(['anmeldung', 'veranstaltung', 'berechtigt', 'vergabe' => null])
+@props(['anmeldung', 'veranstaltung', 'berechtigt', 'canConfirmAttendance', 'vergabe' => null])
 
 <div class="space-y-1 text-sm" wire:key="teilnahme-{{ $anmeldung->id }}-{{ (int) $anmeldung->teilgenommen }}-{{ $veranstaltung->baxx_status->value }}">
-    @if ($veranstaltung->canEditTeilnahmeBaxx() && auth()->user()?->can('confirmAttendance', $veranstaltung) && ($berechtigt || $anmeldung->teilgenommen))
+    @if ($canConfirmAttendance && ($berechtigt || $anmeldung->teilgenommen))
         <label class="inline-flex items-center gap-2">
             <input type="checkbox" class="checkbox checkbox-sm" @checked($anmeldung->teilgenommen)
                 data-confirmed="{{ (int) $anmeldung->teilgenommen }}"

@@ -302,8 +302,10 @@ class VeranstaltungsBaxxVergabeTest extends TestCase
         $event = $this->event();
         $this->registration($event, $this->member(), true);
         $first = $this->archive($event, $actor, ['teilnahme_baxx' => 50]);
+        $this->assertTrue($first->wasChanged('baxx_status'));
         $closedAt = $first->baxx_abgeschlossen_am;
-        $this->archive($event, $actor); // bewusst veraltetes Model
+        $repeated = $this->archive($event, $actor); // bewusst veraltetes Model
+        $this->assertFalse($repeated->wasChanged('baxx_status'));
         $this->travel(1)->days();
         app(VeranstaltungsBaxxService::class)->speichern($event, ['status' => 'veroeffentlicht'], $actor);
         $this->archive($event, $actor);
@@ -311,6 +313,51 @@ class VeranstaltungsBaxxVergabeTest extends TestCase
         $this->assertSame(50, (int) $event->baxxVergaben()->sum('points'));
         $this->assertTrue($event->fresh()->baxx_abgeschlossen_am->equalTo($closedAt));
         $this->assertSame($actor->id, $event->fresh()->baxx_abgeschlossen_von);
+    }
+
+    public function test_completion_summary_is_only_reported_for_the_request_that_completes_allocation(): void
+    {
+        $actor = $this->member(Role::Admin);
+        $event = $this->event();
+        $this->registration($event, $this->member(), true);
+        $this->actingAs($actor)->put(route('admin.veranstaltungen.update', $event), $this->payload($event, ['status' => 'archiviert']))
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success', 'Veranstaltung erfolgreich aktualisiert. Baxx-Vergabe abgeschlossen: 1 Mitglieder, je 10 Baxx, insgesamt 10 Baxx.');
+
+        foreach (['archiviert', 'archiviert', 'veroeffentlicht', 'archiviert'] as $status) {
+            $this->put(route('admin.veranstaltungen.update', $event), $this->payload($event, [
+                'status' => $status, 'titel' => 'Bearbeitete Veranstaltung',
+            ]))->assertSessionHasNoErrors()->assertSessionHas('success', 'Veranstaltung erfolgreich aktualisiert.');
+        }
+        $this->assertSame(1, $event->baxxVergaben()->count());
+    }
+
+    #[TestWith([Role::Admin, true])]
+    #[TestWith([Role::Vorstand, true])]
+    #[TestWith([Role::Kassenwart, false])]
+    public function test_attendance_permission_is_checked_once_per_render_not_per_registration(Role $role, bool $mayConfirm): void
+    {
+        $actor = $this->member($role);
+        $event = $this->event();
+        for ($index = 0; $index < 20; $index++) {
+            $this->registration($event, $this->member());
+        }
+        $permissionChecks = 0;
+        Gate::after(function (User $user, string $ability) use (&$permissionChecks): void {
+            if ($ability === 'confirmAttendance') {
+                $permissionChecks++;
+            }
+        });
+
+        $component = Livewire::actingAs($actor)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $event]);
+        $this->assertSame(1, $permissionChecks);
+        $this->assertSame($mayConfirm ? 20 : 0, substr_count($component->html(), 'data-confirmed='));
+
+        // Eine neue Anfrage muss die Berechtigung nach einem Rollenwechsel erneut prüfen.
+        $actor->teams()->updateExistingPivot(Team::membersTeam()->id, ['role' => Role::Kassenwart->value]);
+        $component->call('$refresh');
+        $this->assertSame(2, $permissionChecks);
+        $this->assertSame(0, substr_count($component->html(), 'data-confirmed='));
     }
 
     public function test_closed_attendance_amount_and_deletion_stay_locked_after_reopening(): void

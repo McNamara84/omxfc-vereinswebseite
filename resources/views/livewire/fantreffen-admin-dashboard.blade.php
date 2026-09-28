@@ -2,6 +2,8 @@
     $eligibleUserIds = $this->eligibleUserIds;
     $baxxVergaben = $this->baxxVergaben;
     $baxxSummary = $this->baxxSummary;
+    $canConfirmAttendance = $veranstaltung->canEditTeilnahmeBaxx()
+        && (auth()->user()?->can('confirmAttendance', $veranstaltung) ?? false);
     $teilnahmeOptions = [
         ['id' => 'alle', 'name' => 'Alle'],
         ['id' => 'bestaetigt', 'name' => 'Bestätigt'],
@@ -227,7 +229,7 @@
                                         <td>{{ $anmeldung->registrant_email }}</td>
                                         <td>{{ $anmeldung->mobile ?? '-' }}</td>
                                         <td class="text-center">{{ $anmeldung->ist_mitglied ? 'Mitglied' : 'Gast' }}</td>
-                                        <td class="text-center"><x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" /></td>
+                                        <td class="text-center"><x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :can-confirm-attendance="$canConfirmAttendance" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" /></td>
                                         <td class="text-center">{{ $anmeldung->orga_team ? 'Im Orga-Team' : '-' }}</td>
                                         <td class="text-center">
                                             @if ($anmeldung->ordered_merchandise->isNotEmpty())
@@ -250,8 +252,8 @@
                     </div>
                 @else
                     <x-table :headers="$headers" :rows="$this->anmeldungen" striped>
-                        @scope('cell_teilnahme', $anmeldung, $veranstaltung, $eligibleUserIds, $baxxVergaben)
-                            <x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" />
+                        @scope('cell_teilnahme', $anmeldung, $veranstaltung, $eligibleUserIds, $baxxVergaben, $canConfirmAttendance)
+                            <x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :can-confirm-attendance="$canConfirmAttendance" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" />
                         @endscope
                         {{-- Name Spalte --}}
                         @scope('cell_full_name', $anmeldung)

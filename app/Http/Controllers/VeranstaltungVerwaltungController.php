@@ -241,7 +241,9 @@ class VeranstaltungVerwaltungController extends Controller
 
     private function successMessage(Veranstaltung $veranstaltung, string $message): string
     {
-        if ($veranstaltung->status === 'archiviert' && $veranstaltung->baxx_status === VeranstaltungsBaxxStatus::Abgeschlossen) {
+        // Der Service liefert das innerhalb der Transaktion frisch gesperrte Model.
+        // Dessen Änderungen zeigen, ob genau dieser Request die Vergabe abgeschlossen hat.
+        if ($veranstaltung->wasChanged('baxx_status') && $veranstaltung->baxx_status === VeranstaltungsBaxxStatus::Abgeschlossen) {
             $count = $veranstaltung->baxxVergaben()->count();
             $total = (int) $veranstaltung->baxxVergaben()->sum('points');
 
