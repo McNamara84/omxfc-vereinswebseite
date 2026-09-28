@@ -72,7 +72,7 @@ This document provides comprehensive guidance for AI assistants working with the
 - **Code Style:** Laravel Pint 1.29
 
 ### Development Tools
-- **Package Manager:** Composer 2.6+, npm 11
+- **Package Manager:** Composer 2.10.3, npm 12.1.0
 - **Node.js:** v26 (see `.node-version`)
 - **Database:** MariaDB/MySQL (production), SQLite in-memory (testing)
 - **Queue:** Database driver (can be configured for Redis)

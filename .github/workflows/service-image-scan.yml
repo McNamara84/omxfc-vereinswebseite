@@ -1,6 +1,19 @@
 name: Service image security scan
 
 on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - 'docker/**'
+      - 'docker-compose*.yml'
+      - '.github/workflows/service-image-scan.yml'
+  push:
+    branches: [main]
+    paths:
+      - Dockerfile
+      - 'docker/**'
+      - 'docker-compose*.yml'
+      - '.github/workflows/service-image-scan.yml'
   workflow_dispatch:
   schedule:
     - cron: '20 4 * * 1'
@@ -16,18 +29,92 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - composer:2.10.3@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b
-          - php:8.5.10-fpm-bookworm@sha256:8e780a6e59508f418c7729681468322a2ce7d7cfe4266025054f41bbe85e3928
-          - php:8.5.10-cli-bookworm@sha256:97c41462ce985a92b3fcb29dc02d5da568c7865ccb9fb9b0f712e192ad09e1bf
-          - node:26.9.0-alpine3.24@sha256:dbaa92e5758cbbcf85d65d5403fdb530fe3442cbe8c6dbfb7ef23365450d5070
-          - nginx:1.30.5-alpine@sha256:a5f2157a0302eb0c5e300415effb63a9e70ed1eb9c107283819bf6d149ab607c
-          - mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
-          - typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
+          - composer:2.10.3@sha256:9715c7f69044da2a212a5fbde29ee7da24e364d426560ae6367b060236f847d7
+          - php:8.5.11-fpm-trixie@sha256:584e584083bada479f0ee733a3025722a68e366eb721e618d1b6a252e4ff45c5
+          - php:8.5.11-cli-trixie@sha256:19642e172d3a542225225e202ddc2c11f67bdcbddf147b676c49338609b9290f
+          - node:26.10.0-alpine3.24@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80
+          - nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
+          - mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
 
     steps:
-      - name: Scan ${{ matrix.image }}
+      - name: Report all vulnerabilities in ${{ matrix.image }}
+        id: scan
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ matrix.image }}
+          grype-version: v0.119.0
+          # Keep unfixed findings visible; the next step enforces the deployment policy.
+          # Scanner/database errors still fail this action with fail-build disabled.
+          fail-build: false
+          severity-cutoff: high
+          output-format: json
+          output-file: grype-report.json
+      - name: Block fixable high and critical vulnerabilities
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ matrix.image }}
+          grype-version: v0.119.0
           fail-build: true
           severity-cutoff: high
+          only-fixed: true
+          output-format: table
+      - name: Summarize image vulnerabilities
+        if: ${{ !cancelled() && steps.scan.outputs.json != '' }}
+        env:
+          SCAN_REPORT: ${{ steps.scan.outputs.json }}
+          SCANNED_IMAGE: ${{ matrix.image }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from collections import Counter
+
+          with open(os.environ['SCAN_REPORT'], encoding='utf-8') as report:
+              matches = json.load(report)['matches']
+          counts = Counter(
+              (match['vulnerability']['severity'], match['vulnerability']['fix']['state'] == 'fixed')
+              for match in matches
+          )
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+              summary.write('### Image security scan\n\n')
+              summary.write(f"`{os.environ['SCANNED_IMAGE']}`\n\n")
+              summary.write('| Severity | Fix available | No fix available |\n')
+              summary.write('| --- | ---: | ---: |\n')
+              for severity in ('Critical', 'High', 'Medium', 'Low', 'Negligible', 'Unknown'):
+                  summary.write(f'| {severity} | {counts[severity, True]} | {counts[severity, False]} |\n')
+              summary.write('\nHigh/Critical findings with a fix block this job. ')
+              summary.write('Findings without a fix remain visible and are not considered resolved. ')
+              summary.write('The complete Grype JSON report is attached as an artifact.\n')
+          PY
+      - name: Upload complete vulnerability report
+        if: ${{ !cancelled() && steps.scan.outputs.json != '' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: service-image-scan-${{ strategy.job-index }}
+          path: ${{ steps.scan.outputs.json }}
+          if-no-files-found: error
+          retention-days: 14
+
+  typesense:
+    name: Scan Typesense with OS security updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build patched Typesense
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/typesense.Dockerfile
+          load: true
+          no-cache: true
+          tags: omxfc-typesense:security-scan
+      - name: Scan patched Typesense
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: omxfc-typesense:security-scan
+          grype-version: v0.119.0
+          fail-build: true
+          severity-cutoff: high
+          output-format: table

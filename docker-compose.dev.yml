@@ -158,7 +158,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.30.5-alpine@sha256:a5f2157a0302eb0c5e300415effb63a9e70ed1eb9c107283819bf6d149ab607c
+    image: nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
     depends_on:
       app:
         condition: service_started
@@ -192,7 +192,7 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
+    image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}
@@ -213,7 +213,10 @@ services:
       - omxfc-dev-network
 
   typesense:
-    image: typesense/typesense:30.2@sha256:610f2d34b1f93d00762869da2c67736775e5798d19a2c8b91b014b8a0cc1e110
+    image: omxfc-dev-typesense:local
+    build:
+      context: .
+      dockerfile: docker/typesense.Dockerfile
     command: '--data-dir /typesense-data --api-key=${DOCKER_DEV_TYPESENSE_API_KEY:-local-dev-typesense-key}'
     ports:
       - '${DOCKER_DEV_TYPESENSE_FORWARD_PORT:-8108}:8108'
