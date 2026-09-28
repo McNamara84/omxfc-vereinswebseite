@@ -667,6 +667,15 @@ werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
 wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
 Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 
+Der Service-Image-Scan verwendet dieselbe Regel wie der Produktionsscan:
+Hohe und kritische Befunde mit verfügbarem Fix blockieren die CI. Befunde ohne
+Fix bleiben als Warnung, in der Job-Zusammenfassung und im vollständigen
+JSON-Artefakt sichtbar; sie gelten damit nicht als behoben. Die Berichte werden
+auch bei einem fehlgeschlagenen Sicherheitscheck für 14 Tage gespeichert.
+Scanner- und Datenbankfehler führen weiterhin zum Abbruch. Das selbst gebaute
+Typesense-Image wird zusätzlich auf sämtliche hohen und kritischen Befunde
+geprüft und bei solchen Befunden blockiert.
+
 ## Tests & Qualitätssicherung
 
 | Zweck                        | Befehl |
