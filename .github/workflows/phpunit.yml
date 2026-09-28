@@ -92,16 +92,13 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Create Database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
       - name: Execute time-balanced Pest shard
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          # Match phpunit.xml; inherited process variables also populate $_SERVER.
+          DB_DATABASE: ':memory:'
         run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact
 
   maddraxikon_mariadb:
@@ -327,16 +324,12 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Create Database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
       - name: Execute tests with coverage
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          DB_DATABASE: ':memory:'
           XDEBUG_MODE: coverage
         run: php artisan test tests/Feature --coverage-clover=coverage.xml
       - name: Create PHP coverage badge

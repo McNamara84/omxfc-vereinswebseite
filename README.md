@@ -516,8 +516,7 @@ und die Archivierung sind Admin und Vorstand vorbehalten.
 
 Vor der Nutzung die Migrationen mit `php artisan migrate` ausführen und die Assets
 mit `npm run build` erstellen. Bei der Einführung während der Migration keine
-Veranstaltungen archivieren. Details stehen im
-[Implementierungsplan](docs/Implementierungsplan-Veranstaltungs-Baxx.md).
+Veranstaltungen archivieren.
 
 Die Feature- und Migrationstests heißen `VeranstaltungsBaxxVergabeTest` und
 `VeranstaltungsBaxxMigrationTest`. Echte parallele Schreibzugriffe werden mit
