@@ -13,7 +13,6 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Services\RewardService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Config;
@@ -295,14 +294,12 @@ class BelohnungenAdminTest extends TestCase
         $originalPoints = $rule->points;
         $originalEveryCount = $rule->every_count;
 
-        try {
-            Livewire::test(BelohnungenAdmin::class)
-                ->call('openEditRule', $rule->id);
-            $this->fail('Maddraxikon-Legacy-Regeln dürfen hier nicht bearbeitet werden.');
-        } catch (ModelNotFoundException) {
-            $this->assertSame($originalPoints, $rule->fresh()->points);
-            $this->assertSame($originalEveryCount, $rule->fresh()->every_count);
-        }
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('openEditRule', $rule->id)
+            ->assertNotFound();
+
+        $this->assertSame($originalPoints, $rule->fresh()->points);
+        $this->assertSame($originalEveryCount, $rule->fresh()->every_count);
 
         $this->assertSame(1, $originalPoints);
         $this->assertSame(5, $originalEveryCount);

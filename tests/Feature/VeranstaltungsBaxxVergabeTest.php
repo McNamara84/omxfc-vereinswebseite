@@ -14,7 +14,6 @@ use App\Models\Veranstaltung;
 use App\Services\FantreffenRegistrationService;
 use App\Services\RewardService;
 use App\Services\VeranstaltungsBaxxService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
@@ -269,14 +268,12 @@ class VeranstaltungsBaxxVergabeTest extends TestCase
         $actor = $this->member(Role::Admin);
         $event = $this->event();
         $foreign = $this->registration($this->event(), $this->member());
-        $this->expectException(ModelNotFoundException::class);
-        try {
-            Livewire::actingAs($actor)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $event])
-                ->call($action, ...($action === 'setTeilnahme' ? [$foreign->id, true] : [$foreign->id]));
-        } finally {
-            $this->assertNotNull($foreign->fresh());
-            $this->assertFalse($foreign->fresh()->teilgenommen);
-        }
+        Livewire::actingAs($actor)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $event])
+            ->call($action, ...($action === 'setTeilnahme' ? [$foreign->id, true] : [$foreign->id]))
+            ->assertNotFound();
+
+        $this->assertNotNull($foreign->fresh());
+        $this->assertFalse($foreign->fresh()->teilgenommen);
     }
 
     public function test_role_changes_and_departures_are_rechecked_when_archiving(): void
