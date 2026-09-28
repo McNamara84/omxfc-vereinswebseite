@@ -64,7 +64,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
 | PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | 2.10.x, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.0.2 (`packageManager`), nur für klassische Host-Entwicklung nötig |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.1.0 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -112,6 +112,8 @@ Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus un
   `strict-allow-scripts=true` bei neuen ungeprüften Skripten fehl;
   `npm install-scripts ls` dient nur als zusätzliche Inventarliste. Datei-,
   Verzeichnis-, Git- und Remote-Abhängigkeiten sind über `.npmrc` gesperrt.
+  `engine-strict=true` verhindert Installationen mit einer abweichenden Node-
+  oder npm-Version, die diese Sicherheitsregeln möglicherweise nicht unterstützt.
   Puppeteer/Chromium wird nicht mehr benötigt, da PDF-Exporte ausschließlich
   über Dompdf laufen.
 
@@ -231,7 +233,7 @@ Testumgebung setzen. Dann
 Der Test migriert diese Datenbank frisch; SQLite-Läufe überspringen diese
 separate Testsuite. Die Verbindungsdaten werden an die Worker vererbt.
 
-Der Job **PHP 8.5 RPG Concurrency (MariaDB 12.3)** im Workflow
+Der Job **PHP 8.5 RPG Concurrency (MariaDB 13.0)** im Workflow
 `.github/workflows/phpunit.yml` führt diese Suite bei Pull Requests gegen
 `main` und Pushes auf `main` automatisch aus. Sein eigener MariaDB-Service
 erstellt `omxfc_rpg_test`; übersprungene Tests lassen den Job fehlschlagen.
@@ -607,6 +609,25 @@ ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
+Stand der Aktualisierung: **28. September 2026**. PHP 8.5.11 basiert auf Debian
+Trixie; Node 26.10.0 verwendet Alpine 3.24 und npm 12.1.0. Composer 2.10.3 ist
+in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
+MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24) und Typesense
+30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
+
+Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
+aktualisiert. Verbleibende upstreambedingte Grenzen: Pest 5.2.1 schließt PHPUnit
+13.3.5 explizit aus, daher bleibt PHPUnit bei 13.3.4. maryUI 2.9.10 benötigt
+`jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
+Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
+
+Beim Wechsel von MariaDB 12.3 auf 13.0 vor dem ersten Neustart ein vollständiges
+Datenbank-Backup erstellen und die Wiederherstellung prüfen. `MARIADB_AUTO_UPGRADE`
+aktualisiert die Systemtabellen; ein Rollback benötigt das Backup und das alte
+Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
+`docker-compose.yml` ist absichtlich nicht versioniert: Die freigegebenen
+Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
+
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:
 
@@ -628,7 +649,9 @@ Composer blockiert Advisories, aufgegebene Pakete und Malware bereits während
 der Auflösung. Dependabot verzögert normale Patch-, Minor- und Major-Releases
 gestaffelt, während Security-Updates von diesem Cooldown unberührt bleiben.
 Container-Basis- und Service-Images sind versions- und digestgenau gepinnt und
-werden zusätzlich wöchentlich gescannt.
+werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
+wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
+Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 
 ## Tests & Qualitätssicherung
 
@@ -665,7 +688,7 @@ Der Test-Stack verwendet Pest 5.2 und PHPUnit 13.3. Alle direkt eingebundenen Pe
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.9 und npm 12.0.2 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.10 und npm 12.1.0 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

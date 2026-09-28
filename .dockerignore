@@ -18,6 +18,9 @@ Thumbs.db
 /database/*.sqlite
 /database/*.sqlite-*
 /public/build
+/public/hot
+/public/playwright.hot
+/public/vendor/livewire
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
@@ -34,6 +37,8 @@ npm-debug.log
 yarn-error.log
 
 # Testing
+/.tmp
+/tmp
 /.phpunit.cache
 /.playwright-browsers
 /coverage
@@ -45,6 +50,9 @@ yarn-error.log
 .env
 .env.backup
 .env.production
+.env.docker.dev.local
+.env.testing
+/nextcloud
 
 # Deployment
 /deploy

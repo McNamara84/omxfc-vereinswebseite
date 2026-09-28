@@ -19,6 +19,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: intl, zip
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -56,6 +57,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: gd, exif, zip
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -103,10 +105,10 @@ jobs:
 
   maddraxikon_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Maddraxikon (MariaDB 12.3)
+    name: PHP 8.5 Maddraxikon (MariaDB 13.0)
     services:
       mariadb:
-        image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
+        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
         env:
           MARIADB_DATABASE: omxfc_maddraxikon_test
           MARIADB_USER: omxfc_test
@@ -133,6 +135,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: pdo_mysql, zip
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -159,11 +162,11 @@ jobs:
 
   rpg_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 RPG Concurrency (MariaDB 12.3)
+    name: PHP 8.5 RPG Concurrency (MariaDB 13.0)
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
+        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
         env:
           MARIADB_DATABASE: omxfc_rpg_test
           MARIADB_USER: omxfc_test
@@ -192,6 +195,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: pdo_mysql, intl, zip
           coverage: none
       - name: Generate ephemeral application key
@@ -217,11 +221,11 @@ jobs:
 
   veranstaltungs_baxx_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Veranstaltungs-Baxx Concurrency (MariaDB 12.3)
+    name: PHP 8.5 Veranstaltungs-Baxx Concurrency (MariaDB 13.0)
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:12.3.3@sha256:805c8e104bd563d5bfa24fadd3f31cd419ea859cb5277f32b5dbf2db714f9ed1
+        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
         env:
           MARIADB_DATABASE: omxfc_veranstaltungen_test
           MARIADB_USER: omxfc_test
@@ -250,6 +254,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: pdo_mysql, intl, zip
           coverage: none
       - name: Generate ephemeral application key
@@ -282,6 +287,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: zip
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -344,6 +350,7 @@ jobs:
       - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
         with:
           php-version: '8.5'
+          tools: composer:2.10.3
           extensions: gd, exif, zip
           coverage: xdebug
           ini-values: xdebug.mode=coverage
@@ -437,8 +444,8 @@ jobs:
           cache: npm
       - name: Install Node dependencies
         run: |
-          npm install --global npm@12.0.2 --ignore-scripts
-          test "$(npm --version)" = "12.0.2"
+          npm install --global npm@12.1.0 --ignore-scripts
+          test "$(npm --version)" = "12.1.0"
           npm ci
       - name: Run Vitest tests with coverage
         run: npm run test:coverage

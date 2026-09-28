@@ -1,8 +1,8 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2.10.3@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b AS composer-bin
+FROM composer:2.10.3@sha256:9715c7f69044da2a212a5fbde29ee7da24e364d426560ae6367b060236f847d7 AS composer-bin
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.10-fpm-bookworm@sha256:8e780a6e59508f418c7729681468322a2ce7d7cfe4266025054f41bbe85e3928 AS php-base
+FROM php:8.5.11-fpm-trixie@sha256:584e584083bada479f0ee733a3025722a68e366eb721e618d1b6a252e4ff45c5 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -52,10 +52,10 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 
 # Build Stage für Node/Vite. Die Tailwind-Quellen aus Composer-Paketen stammen
 # aus demselben frischen Vendor-Baum, der später im Production-Image landet.
-FROM node:26.9.0-alpine3.24@sha256:dbaa92e5758cbbcf85d65d5403fdb530fe3442cbe8c6dbfb7ef23365450d5070 AS node-base
+FROM node:26.10.0-alpine3.24@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS node-base
 
-RUN npm install --global npm@12.0.2 --ignore-scripts \
-    && test "$(npm --version)" = "12.0.2"
+RUN npm install --global npm@12.1.0 --ignore-scripts \
+    && test "$(npm --version)" = "12.1.0"
 
 FROM node-base AS node-builder
 
