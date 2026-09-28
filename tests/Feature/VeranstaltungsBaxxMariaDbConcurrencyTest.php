@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Enums\VeranstaltungsBaxxStatus;
+use App\Models\Activity;
+use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Services\FantreffenRegistrationService;
 use App\Services\VeranstaltungsBaxxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\Process\Process;
 use Tests\TestCase;
@@ -84,6 +88,56 @@ class VeranstaltungsBaxxMariaDbConcurrencyTest extends TestCase
             $this->assertSame(10, $event->fresh()->teilnahme_baxx);
             $this->assertSame(1, $event->anmeldungen()->count());
             $this->assertTrue($registration->fresh()->teilgenommen);
+        } finally {
+            while (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+            $process->stop();
+        }
+    }
+
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function test_parallel_duplicate_registrations_return_validation_errors_after_waiting_for_the_event_lock(bool $guest): void
+    {
+        Mail::fake();
+        $member = User::factory()->create();
+        $event = Veranstaltung::create([
+            'titel' => 'Parallele Anmeldung', 'slug' => 'parallele-anmeldung',
+            'status' => 'veroeffentlicht', 'anmeldung_aktiv' => true,
+        ]);
+        $data = ['vorname' => 'Alex', 'nachname' => 'Parallel', 'email' => $member->email];
+        DB::connection()->commit();
+        $this->committed = true;
+
+        DB::beginTransaction();
+        Veranstaltung::whereKey($event->id)->lockForUpdate()->firstOrFail();
+        $process = new Process([PHP_BINARY, base_path('tests/Support/MariaDbVeranstaltungsBaxxWorker.php'), json_encode([
+            'action' => 'register', 'actor' => $member->id, 'event' => $event->id,
+            'newMember' => $member->id, 'guest' => $guest, 'data' => $data, 'prevalidateRegistration' => true,
+        ], JSON_THROW_ON_ERROR)], base_path(), timeout: 30);
+
+        try {
+            $process->start();
+            $this->assertTrue($process->waitUntil(fn ($type, $output) => str_contains($output, "locking\n")), $process->getErrorOutput());
+            usleep(200_000);
+            $this->assertTrue($process->isRunning(), 'Die zweite Anmeldung muss auf die Veranstaltungssperre warten. '.$process->getOutput());
+
+            $service = app(FantreffenRegistrationService::class);
+            $first = $service->register($data, $event, $guest ? null : $member);
+            DB::commit();
+            $this->assertSame(0, $process->wait(), $process->getErrorOutput());
+            $lines = explode("\n", trim($process->getOutput()));
+            $this->assertJson(end($lines), $process->getOutput().$process->getErrorOutput());
+            $result = json_decode(end($lines), true, flags: JSON_THROW_ON_ERROR);
+            $this->assertFalse($result['ok']);
+            $this->assertSame(['email' => [$guest
+                ? $service->validationMessages($event)['email.unique']
+                : 'Du bist bereits für diese Veranstaltung angemeldet.']], $result['errors']);
+            $this->assertSame([$first->id], $event->anmeldungen()->pluck('id')->all());
+            $this->assertSame(1, Activity::where('subject_type', FantreffenAnmeldung::class)
+                ->where('subject_id', $first->id)->where('action', 'fantreffen_registered')->count());
+            Mail::assertQueuedCount(2);
         } finally {
             while (DB::transactionLevel() > 0) {
                 DB::rollBack();

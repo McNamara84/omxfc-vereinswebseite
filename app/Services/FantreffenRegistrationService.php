@@ -147,7 +147,7 @@ class FantreffenRegistrationService
      * @return FantreffenAnmeldung Die erstellte Anmeldung
      *
      * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
-     * @throws ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
+     * @throws ValidationException wenn bereits eine Anmeldung besteht oder Merchandise-Auswahl oder Varianten ungültig sind
      * @throws \RuntimeException wenn die Anmeldung nicht erstellt werden konnte
      */
     public function register(array $data, Veranstaltung $veranstaltung, ?User $user = null): FantreffenAnmeldung
@@ -198,6 +198,16 @@ class FantreffenRegistrationService
                     throw ValidationException::withMessages(['error' => 'Die Anmeldung für diese Veranstaltung ist derzeit geschlossen.']);
                 }
 
+                // Vorprüfungen können während des Wartens veralten. Erst unter der
+                // Veranstaltungssperre verbindlich auf Duplikate prüfen.
+                if ($user && $veranstaltung->anmeldungen()->where('user_id', $user->id)->lockForUpdate()->first(['id'])) {
+                    throw ValidationException::withMessages(['email' => 'Du bist bereits für diese Veranstaltung angemeldet.']);
+                }
+
+                if ($veranstaltung->anmeldungen()->where('email', $email)->lockForUpdate()->first(['id'])) {
+                    throw ValidationException::withMessages(['email' => $this->validationMessages($veranstaltung)['email.unique']]);
+                }
+
                 $legacyTshirtBestellung = collect($selectedMerchArtikel)->first(
                     fn (array $bestellung) => $this->isLegacyTshirtArtikel($bestellung['artikel'])
                 );
@@ -236,7 +246,7 @@ class FantreffenRegistrationService
                 ]);
 
                 return $anmeldung;
-            });
+            }, 3);
 
             $anmeldung->loadMissing([
                 'veranstaltung',
