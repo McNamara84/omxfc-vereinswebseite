@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\VeranstaltungsBaxxStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,6 +13,11 @@ class Veranstaltung extends Model
     use HasFactory;
 
     protected $table = 'veranstaltungen';
+
+    protected $attributes = [
+        'teilnahme_baxx' => 10,
+        'baxx_status' => 'offen',
+    ];
 
     protected $fillable = [
         'titel',
@@ -41,9 +47,13 @@ class Veranstaltung extends Model
         'seo_description',
         'sort_order',
         'ist_highlight',
+        'teilnahme_baxx',
     ];
 
     protected $casts = [
+        'teilnahme_baxx' => 'integer',
+        'baxx_status' => VeranstaltungsBaxxStatus::class,
+        'baxx_abgeschlossen_am' => 'datetime',
         'datum_von' => 'datetime',
         'datum_bis' => 'datetime',
         'anmeldung_aktiv' => 'boolean',
@@ -67,6 +77,16 @@ class Veranstaltung extends Model
     public function anmeldungen(): HasMany
     {
         return $this->hasMany(FantreffenAnmeldung::class);
+    }
+
+    public function baxxVergaben(): HasMany
+    {
+        return $this->hasMany(UserPoint::class, 'veranstaltung_id');
+    }
+
+    public function canEditTeilnahmeBaxx(): bool
+    {
+        return $this->baxx_status === VeranstaltungsBaxxStatus::Offen && $this->status !== 'archiviert';
     }
 
     public function abschnitte(): HasMany
@@ -103,7 +123,7 @@ class Veranstaltung extends Model
 
     public function isRegistrationOpen(): bool
     {
-        if (! $this->anmeldung_aktiv) {
+        if ($this->status === 'archiviert' || ! $this->anmeldung_aktiv) {
             return false;
         }
 

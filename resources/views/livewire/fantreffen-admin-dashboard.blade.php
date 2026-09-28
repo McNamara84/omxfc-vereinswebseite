@@ -1,4 +1,14 @@
 @php
+    $eligibleUserIds = $this->eligibleUserIds;
+    $baxxVergaben = $this->baxxVergaben;
+    $baxxSummary = $this->baxxSummary;
+    $canConfirmAttendance = $veranstaltung->canEditTeilnahmeBaxx()
+        && (auth()->user()?->can('confirmAttendance', $veranstaltung) ?? false);
+    $teilnahmeOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'bestaetigt', 'name' => 'Bestätigt'],
+        ['id' => 'offen', 'name' => 'Nicht bestätigt'],
+    ];
     // Filter-Optionen
     $memberStatusOptions = [
         ['id' => 'alle', 'name' => 'Alle'],
@@ -37,6 +47,7 @@
         ['key' => 'email', 'label' => 'E-Mail'],
         ['key' => 'mobile', 'label' => 'Mobil'],
         ['key' => 'status', 'label' => 'Status', 'class' => 'text-center'],
+        ['key' => 'teilnahme', 'label' => 'Teilnahme bestätigt', 'class' => 'text-center'],
         ['key' => 'orga_team', 'label' => 'Orga-Team', 'class' => 'text-center'],
         ['key' => 'tshirt', 'label' => 'Merchandise', 'class' => 'text-center'],
         ['key' => 'zahlung', 'label' => 'Zahlung', 'class' => 'text-center'],
@@ -82,6 +93,30 @@
             </x-alert>
         @endif
 
+        @if ($errors->any())
+            <x-alert icon="o-exclamation-circle" class="alert-error" role="alert">
+                @foreach ($errors->all() as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </x-alert>
+        @endif
+
+        <x-ui.panel title="Baxx für die Teilnahme" description="Diese Übersicht gilt für die gesamte Veranstaltung, unabhängig von Suche und Filtern.">
+            <p class="font-medium">{{ $veranstaltung->teilnahme_baxx }} Baxx je bestätigtem berechtigtem Mitglied</p>
+            @if ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen)
+                <p>Vergabe abgeschlossen: {{ $baxxSummary['awarded'] }} Mitglieder, insgesamt {{ $baxxSummary['total'] }} Baxx.</p>
+                <p class="text-sm text-base-content/70">Abgeschlossen am {{ $veranstaltung->baxx_abgeschlossen_am?->format('d.m.Y H:i') }}. Teilnahme und Betrag bleiben dauerhaft gesperrt.</p>
+            @elseif ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::BestandAusgeschlossen)
+                <p>Von der Baxx-Vergabe ausgeschlossen: bereits vor Einführung archiviert.</p>
+            @else
+                <p>Voraussichtliche Vergabe: {{ $baxxSummary['eligible'] }} Mitglieder, insgesamt {{ $baxxSummary['expected'] }} Baxx.</p>
+                @if ($baxxSummary['ineligible'] > 0)
+                    <p>{{ $baxxSummary['ineligible'] }} bestätigte Teilnehmer sind aktuell nicht Baxx-berechtigt.</p>
+                @endif
+                <p class="text-sm text-base-content/70">Die Mitgliedschaft wird beim Archivieren erneut geprüft. Danach sind Teilnahme und Betrag gesperrt.</p>
+            @endif
+        </x-ui.panel>
+
         {{-- Statistik-Cards --}}
         <x-ui.panel title="Überblick" description="Die Kennzahlen zeigen aktuelle Anmeldungen, Merchandise-Bedarf und offene Zahlungen. Der Export steht direkt daneben bereit.">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -121,6 +156,7 @@
         {{-- Filter & Suche --}}
         <x-ui.panel title="Filter & Suche" description="Kombiniere Status-, Merchandise- und Zahlungsfilter mit einer Schnellsuche nach Name oder E-Mail.">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <x-select label="Teilnahme" :options="$teilnahmeOptions" wire:model.live="filterTeilnahme" />
                 <x-select 
                     label="Mitgliedsstatus" 
                     :options="$memberStatusOptions"
@@ -170,7 +206,7 @@
         <x-ui.panel title="Anmeldungen" description="Die Tabelle bleibt die zentrale Arbeitsfläche für Profilzugriffe, Merchandise-Status, Zahlungen und das Entfernen einzelner Registrierungen.">
             {{-- Skeleton Loading State --}}
             <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleMerchFertig, toggleZahlungseingang, deleteAnmeldung">
-                <x-skeleton-table :columns="9" :rows="8" />
+                <x-skeleton-table :columns="10" :rows="8" />
             </div>
             <div wire:loading.remove wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleMerchFertig, toggleZahlungseingang, deleteAnmeldung">
                 @if (app()->runningUnitTests())
@@ -193,6 +229,7 @@
                                         <td>{{ $anmeldung->registrant_email }}</td>
                                         <td>{{ $anmeldung->mobile ?? '-' }}</td>
                                         <td class="text-center">{{ $anmeldung->ist_mitglied ? 'Mitglied' : 'Gast' }}</td>
+                                        <td class="text-center"><x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :can-confirm-attendance="$canConfirmAttendance" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" /></td>
                                         <td class="text-center">{{ $anmeldung->orga_team ? 'Im Orga-Team' : '-' }}</td>
                                         <td class="text-center">
                                             @if ($anmeldung->ordered_merchandise->isNotEmpty())
@@ -203,7 +240,7 @@
                                         </td>
                                         <td class="text-center">{{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €</td>
                                         <td class="text-center">{{ $anmeldung->user ? 'Profil' : '-' }}</td>
-                                        <td class="text-center">Löschen</td>
+                                        <td class="text-center">{{ $veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen ? 'Gesperrt' : 'Löschen' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -215,6 +252,9 @@
                     </div>
                 @else
                     <x-table :headers="$headers" :rows="$this->anmeldungen" striped>
+                        @scope('cell_teilnahme', $anmeldung, $veranstaltung, $eligibleUserIds, $baxxVergaben, $canConfirmAttendance)
+                            <x-veranstaltungen.teilnahme :anmeldung="$anmeldung" :veranstaltung="$veranstaltung" :can-confirm-attendance="$canConfirmAttendance" :berechtigt="$eligibleUserIds->contains($anmeldung->user_id)" :vergabe="$baxxVergaben->get($anmeldung->user_id)" />
+                        @endscope
                         {{-- Name Spalte --}}
                         @scope('cell_full_name', $anmeldung)
                             <div>
@@ -338,8 +378,11 @@
                         @endscope
 
                         {{-- Aktionen Spalte --}}
-                        @scope('cell_actions', $anmeldung)
+                        @scope('cell_actions', $anmeldung, $veranstaltung)
                             <div class="text-center">
+                                @if ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen)
+                                    <span class="text-xs text-base-content/60">Gesperrt</span>
+                                @else
                                 <x-ui.icon-action
                                     wire:click="deleteAnmeldung({{ $anmeldung->id }})"
                                     wire:confirm="Möchten Sie die Anmeldung von {{ $anmeldung->full_name }} wirklich löschen?"
@@ -348,6 +391,7 @@
                                     tooltip="Anmeldung löschen"
                                     tooltip-align="end"
                                 />
+                                @endif
                             </div>
                         @endscope
 

@@ -3,13 +3,16 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Services\FantreffenRegistrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\Concerns\CreatesUserWithRole;
@@ -75,7 +78,7 @@ class VeranstaltungAnmeldungTest extends TestCase
         $erstesEvent = Veranstaltung::query()->where('slug', 'maddrax-fantreffen-2026')->firstOrFail();
         $zweitesEvent = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
 
-        $erstesEvent->update(['anmeldung_aktiv' => true]);
+        $erstesEvent->update(['status' => 'veroeffentlicht', 'anmeldung_aktiv' => true]);
         $zweitesEvent->update(['anmeldung_aktiv' => true]);
 
         $payload = [
@@ -107,6 +110,74 @@ class VeranstaltungAnmeldungTest extends TestCase
         ]);
 
         $this->assertSame(2, FantreffenAnmeldung::where('email', 'alex@example.com')->count());
+    }
+
+    #[TestWith([false, false, false])]
+    #[TestWith([true, true, false])]
+    #[TestWith([true, true, true])]
+    #[TestWith([false, true, false])]
+    #[TestWith([true, false, false])]
+    public function test_service_rechecks_duplicate_registration_without_additional_side_effects(bool $firstIsMember, bool $secondIsMember, bool $changeEmail): void
+    {
+        Mail::fake();
+        $event = Veranstaltung::create([
+            'titel' => 'Doppelanmeldung', 'slug' => 'doppelanmeldung',
+            'status' => 'veroeffentlicht', 'anmeldung_aktiv' => true,
+        ]);
+        $member = $this->createUserWithRole(Role::Mitglied);
+        $data = ['vorname' => 'Alex', 'nachname' => 'Gast', 'email' => $member->email];
+        $service = app(FantreffenRegistrationService::class);
+        $first = $service->register($data, $event, $firstIsMember ? $member : null);
+        if ($changeEmail) {
+            $member->update(['email' => 'neue-adresse@example.com']);
+        }
+        Mail::fake();
+
+        try {
+            // Bereits validierte Daten müssen auch bei einem direkten Service-Aufruf geprüft werden.
+            $service->register($data, $event, $secondIsMember ? $member : null);
+            $this->fail('Eine doppelte Anmeldung muss als Validierungsfehler abgewiesen werden.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(['email' => [$firstIsMember && $secondIsMember
+                ? 'Du bist bereits für diese Veranstaltung angemeldet.'
+                : $service->validationMessages($event)['email.unique']]], $exception->errors());
+        }
+
+        $this->assertSame([$first->id], $event->anmeldungen()->pluck('id')->all());
+        $this->assertSame($data['email'], $first->fresh()->email);
+        $this->assertSame(1, Activity::where('subject_type', FantreffenAnmeldung::class)
+            ->where('subject_id', $first->id)->where('action', 'fantreffen_registered')->count());
+        Mail::assertNothingOutgoing();
+    }
+
+    public function test_member_can_register_for_multiple_events(): void
+    {
+        Mail::fake();
+        $member = $this->createUserWithRole(Role::Mitglied);
+        foreach (['erstes-event', 'zweites-event'] as $slug) {
+            $event = Veranstaltung::create([
+                'titel' => $slug, 'slug' => $slug, 'status' => 'veroeffentlicht', 'anmeldung_aktiv' => true,
+            ]);
+            $this->actingAs($member)->post(route('veranstaltungen.anmeldung.store', $event), [
+                '_form_token' => $this->validFormToken(),
+            ])->assertRedirect()->assertSessionHasNoErrors();
+            $this->assertSame(1, $event->anmeldungen()->where('user_id', $member->id)->count());
+        }
+    }
+
+    public function test_different_guests_can_register_for_the_same_event(): void
+    {
+        Mail::fake();
+        $event = Veranstaltung::create([
+            'titel' => 'Gäste', 'slug' => 'gaeste', 'status' => 'veroeffentlicht', 'anmeldung_aktiv' => true,
+        ]);
+        foreach (['erster@example.com', 'zweiter@example.com'] as $email) {
+            $this->post(route('veranstaltungen.anmeldung.store', $event), [
+                'vorname' => 'Alex', 'nachname' => 'Gast', 'email' => $email,
+                '_form_token' => $this->validFormToken(),
+            ])->assertRedirect()->assertSessionHasNoErrors();
+        }
+        $this->assertSame(2, $event->anmeldungen()->whereNull('user_id')->count());
     }
 
     #[TestWith([Role::Admin->value])]

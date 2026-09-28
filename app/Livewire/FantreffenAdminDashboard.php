@@ -6,8 +6,12 @@ use App\Enums\Role;
 use App\Models\FantreffenAnmeldung;
 use App\Models\FantreffenAnmeldungMerchartikel;
 use App\Models\Veranstaltung;
+use App\Services\VeranstaltungsBaxxService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,7 +20,57 @@ class FantreffenAdminDashboard extends Component
 {
     use WithPagination;
 
+    #[Locked]
     public ?Veranstaltung $veranstaltung = null;
+
+    #[Url(except: 'alle')]
+    public string $filterTeilnahme = 'alle';
+
+    #[Computed]
+    public function eligibleUserIds(): Collection
+    {
+        return app(VeranstaltungsBaxxService::class)->eligibleUserIds($this->currentVeranstaltung());
+    }
+
+    #[Computed]
+    public function baxxVergaben(): Collection
+    {
+        return $this->currentVeranstaltung()->baxxVergaben()->get()->keyBy('user_id');
+    }
+
+    #[Computed]
+    public function baxxSummary(): array
+    {
+        $event = $this->currentVeranstaltung();
+        $confirmed = $event->anmeldungen()->where('teilgenommen', true);
+        $eligible = (clone $confirmed)->whereIn('user_id', $this->eligibleUserIds)->count();
+
+        return [
+            'eligible' => $eligible,
+            'ineligible' => $confirmed->count() - $eligible,
+            'expected' => $eligible * $event->teilnahme_baxx,
+            'awarded' => $this->baxxVergaben->count(),
+            'total' => (int) $this->baxxVergaben->sum('points'),
+        ];
+    }
+
+    public function updatedFilterTeilnahme(): void
+    {
+        $this->resetPage();
+        unset($this->stats, $this->anmeldungen);
+    }
+
+    public function setTeilnahme(int $anmeldungId, mixed $teilgenommen): void
+    {
+        $this->authorize('confirmAttendance', $this->currentVeranstaltung());
+        $this->resetValidation(['teilnahme', 'teilgenommen']);
+        $validated = Validator::make(['teilgenommen' => $teilgenommen], ['teilgenommen' => ['required', 'boolean']])->validate();
+        app(VeranstaltungsBaxxService::class)->setTeilnahme(
+            $this->currentVeranstaltung(), $anmeldungId, (bool) $validated['teilgenommen'], auth()->user()
+        );
+        unset($this->stats, $this->anmeldungen, $this->baxxSummary, $this->eligibleUserIds);
+        session()->flash('success', 'Teilnahmebestätigung gespeichert. Baxx werden erst beim Archivieren vergeben.');
+    }
 
     // URL-Query-Parameter automatisch synchronisieren
     #[Url(except: 'alle')]
@@ -172,11 +226,11 @@ class FantreffenAdminDashboard extends Component
 
     public function deleteAnmeldung(int $anmeldungId): void
     {
-        $anmeldung = $this->findAnmeldung($anmeldungId);
-        $name = $anmeldung->full_name;
-        $anmeldung->delete();
+        $this->authorize('manage', $this->currentVeranstaltung());
+        $this->resetValidation('teilnahme');
+        $name = app(VeranstaltungsBaxxService::class)->deleteAnmeldung($this->currentVeranstaltung(), $anmeldungId, auth()->user());
 
-        unset($this->stats, $this->anmeldungen);
+        unset($this->stats, $this->anmeldungen, $this->baxxSummary, $this->eligibleUserIds);
         session()->flash('success', "Anmeldung von {$name} wurde gelöscht.");
     }
 
@@ -205,8 +259,9 @@ class FantreffenAdminDashboard extends Component
     public function exportCsv()
     {
         $anmeldungen = $this->getFilteredQuery()->get();
+        $vergaben = $this->baxxVergaben;
 
-        return Response::streamDownload(function () use ($anmeldungen) {
+        return Response::streamDownload(function () use ($anmeldungen, $vergaben) {
             $output = fopen('php://output', 'wb');
 
             if ($output === false) {
@@ -228,9 +283,14 @@ class FantreffenAdminDashboard extends Component
                 'Zahlungseingang',
                 'PayPal ID',
                 'Registriert am',
+                'Teilnahme bestätigt',
+                'Teilnahme bestätigt am',
+                'Gutgeschriebene Baxx',
+                'Baxx vergeben am',
             ]);
 
             foreach ($anmeldungen as $anmeldung) {
+                $vergabe = $vergaben->get($anmeldung->user_id);
                 $orderedMerchandise = $anmeldung->ordered_merchandise;
 
                 $merchandise = $orderedMerchandise->map(function (array $bestellung) {
@@ -259,6 +319,10 @@ class FantreffenAdminDashboard extends Component
                     $anmeldung->zahlungseingang ? 'Ja' : 'Nein',
                     $anmeldung->paypal_transaction_id ?? '-',
                     $anmeldung->created_at->format('d.m.Y H:i'),
+                    $anmeldung->teilgenommen ? 'Ja' : 'Nicht bestätigt',
+                    $anmeldung->teilnahme_bestaetigt_am?->format('d.m.Y H:i') ?? '',
+                    $vergabe?->points ?? 0,
+                    $vergabe?->created_at?->format('d.m.Y H:i') ?? '',
                 ]));
             }
 
@@ -273,6 +337,10 @@ class FantreffenAdminDashboard extends Component
         $query = FantreffenAnmeldung::query()
             ->with(['user', 'merchartikelBestellungen.artikel', 'merchartikelBestellungen.variante'])
             ->where('veranstaltung_id', $this->currentVeranstaltung()->id);
+
+        if (in_array($this->filterTeilnahme, ['bestaetigt', 'offen'], true)) {
+            $query->where('teilgenommen', $this->filterTeilnahme === 'bestaetigt');
+        }
 
         // Mitgliedsstatus-Filter
         if ($this->filterMemberStatus === 'mitglieder') {
@@ -335,7 +403,7 @@ class FantreffenAdminDashboard extends Component
 
     public function render()
     {
-        $veranstaltung = $this->currentVeranstaltung();
+        $veranstaltung = $this->currentVeranstaltung()->refresh();
 
         return view('livewire.fantreffen-admin-dashboard', [
             'veranstaltung' => $veranstaltung,

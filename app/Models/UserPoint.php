@@ -48,6 +48,7 @@ class UserPoint extends Model
         'team_id',
         'todo_id',
         'points',
+        'veranstaltung_id',
     ];
 
     /**
@@ -72,6 +73,11 @@ class UserPoint extends Model
     public function todo(): BelongsTo
     {
         return $this->belongsTo(Todo::class);
+    }
+
+    public function veranstaltung(): BelongsTo
+    {
+        return $this->belongsTo(Veranstaltung::class);
     }
 
     public function maddraxikonRewardEvent(): HasOne
