@@ -2,7 +2,7 @@
 FROM composer:2.10.3@sha256:a5f59b9fd2faf31218632be4809dc6491761085e8064c31dc3b84378c48c248b AS composer-bin
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.10-fpm-bookworm@sha256:8e780a6e59508f418c7729681468322a2ce7d7cfe4266025054f41bbe85e3928 AS php-base
+FROM php:8.5.10-fpm-bookworm@sha256:cc45fc347dcdef585e907fa7dab27087039f2adf7bd911c22b79a3d80cc98d08 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
