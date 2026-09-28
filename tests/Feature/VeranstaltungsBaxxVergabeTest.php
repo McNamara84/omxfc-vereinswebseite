@@ -17,6 +17,7 @@ use App\Services\VeranstaltungsBaxxService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -25,6 +26,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Mary\View\Components\Table as MaryTable;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
@@ -358,6 +360,60 @@ class VeranstaltungsBaxxVergabeTest extends TestCase
         $component->call('$refresh');
         $this->assertSame(2, $permissionChecks);
         $this->assertSame(0, substr_count($component->html(), 'data-confirmed='));
+    }
+
+    #[TestWith([Role::Admin, false])]
+    #[TestWith([Role::Vorstand, false])]
+    #[TestWith([Role::Kassenwart, false])]
+    #[TestWith([Role::Admin, true])]
+    #[TestWith([Role::Vorstand, true])]
+    #[TestWith([Role::Kassenwart, true])]
+    public function test_real_mary_table_scopes_render_attendance_and_actions(Role $role, bool $archived): void
+    {
+        $actor = $this->member($role);
+        $event = $this->event(['teilnahme_baxx' => 17]);
+        $registration = $this->registration($event, $this->member(), true);
+        $guest = $this->registration($event);
+        if ($archived) {
+            $this->archive($event, $this->member(Role::Admin));
+        }
+
+        $originalEnvironment = $this->app->environment();
+        $originalTable = Blade::getClassComponentAliases()['table'];
+        $viewPath = resource_path('views/livewire/fantreffen-admin-dashboard.blade.php');
+        $permissionChecks = 0;
+        Gate::after(function (User $user, string $ability) use (&$permissionChecks): void {
+            if ($ability === 'confirmAttendance') {
+                $permissionChecks++;
+            }
+        });
+
+        try {
+            // Den regulären Tabellenzweig mit echten MaryUI-Scopes statt der Testtabelle rendern.
+            $this->app->instance('env', 'local');
+            Blade::component(MaryTable::class, 'table');
+            Blade::compile($viewPath);
+
+            $component = Livewire::actingAs($actor)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $event])
+                ->assertOk()
+                ->assertSee($registration->email)
+                ->assertSee($guest->email);
+
+            $this->assertSame($archived ? 0 : 1, $permissionChecks);
+            $this->assertSame(! $archived && $role !== Role::Kassenwart ? 1 : 0, substr_count($component->html(), 'data-confirmed='));
+            if ($archived) {
+                $component->assertSee('17 Baxx vergeben')->assertSee('Keine Gutschrift')->assertSee('Gesperrt')
+                    ->assertDontSee('wire:click="deleteAnmeldung(', false);
+            } else {
+                $component->assertSee('Kein Mitgliedskonto')
+                    ->assertSee('wire:click="deleteAnmeldung('.$registration->id.')"', false)
+                    ->assertSee('wire:click="deleteAnmeldung('.$guest->id.')"', false);
+            }
+        } finally {
+            $this->app->instance('env', $originalEnvironment);
+            Blade::component($originalTable, 'table');
+            Blade::compile($viewPath);
+        }
     }
 
     public function test_closed_attendance_amount_and_deletion_stay_locked_after_reopening(): void
