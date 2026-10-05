@@ -158,7 +158,7 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
+    image: nginx:1.31-alpine3.24-slim@sha256:f761b94f2cb9e8e05e2943d5f773609596113ef69b54e2433a996d109a8f78b7
     depends_on:
       app:
         condition: service_started
