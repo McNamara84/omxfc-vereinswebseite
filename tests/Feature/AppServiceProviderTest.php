@@ -3,6 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Providers\AppServiceProvider;
+use App\View\Components\AccessibleFile;
+use App\View\Components\AccessibleInput;
+use App\View\Components\AccessiblePassword;
+use App\View\Components\AccessibleSelect;
+use App\View\Components\AccessibleTextarea;
 use App\View\Components\Alert;
 use App\View\Components\NavigationDropdown;
 use App\View\Components\NavigationMain;
@@ -141,6 +147,23 @@ class AppServiceProviderTest extends TestCase
         $this->assertTrue(is_subclass_of(NavigationMenuSeparator::class, MenuSeparator::class));
         $this->assertTrue(is_subclass_of(NavigationThemeToggle::class, ThemeToggle::class));
         $this->assertFalse(view()->exists('layouts.admin'));
+    }
+
+    public function test_rebooting_the_provider_preserves_console_field_doubles_and_real_prefixed_components(): void
+    {
+        $this->assertTrue($this->app->runningInConsole());
+        $this->assertTrue($this->app->runningUnitTests());
+
+        (new AppServiceProvider($this->app))->boot();
+        $aliases = app('blade.compiler')->getClassComponentAliases();
+
+        foreach (['input', 'password', 'select', 'file'] as $alias) {
+            $this->assertSame('testing.components.'.$alias, $aliases[$alias] ?? null, $alias);
+        }
+
+        foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
+            $this->assertSame($component, $aliases['mary-'.$alias] ?? null, 'mary-'.$alias);
+        }
     }
 
     public function test_navigation_main_removes_the_invalid_drawer_overlay_aria_label(): void

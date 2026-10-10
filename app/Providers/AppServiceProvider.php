@@ -252,7 +252,8 @@ class AppServiceProvider extends ServiceProvider
 
         // HTTP browser tests must exercise the real Mary components. Laravel's
         // runningUnitTests() also returns true in an HTTP server with APP_ENV=testing.
-        if ($this->app->runningInConsole() && $this->app->runningUnitTests()) {
+        $useTestingComponents = $this->app->runningInConsole() && $this->app->runningUnitTests();
+        if ($useTestingComponents) {
             TestingBladeComponentRegistry::register();
             $this->app->booted(static function (): void {
                 TestingBladeComponentRegistry::register();
@@ -277,7 +278,9 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('mary-nav', MaryNav::class);
         Blade::component('mary-popover', AccessiblePopover::class);
         foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
-            Blade::component($alias, $component);
+            if (! $useTestingComponents) {
+                Blade::component($alias, $component);
+            }
             Blade::component('mary-'.$alias, $component);
         }
         Blade::component('mary-theme-toggle', NavigationThemeToggle::class);
