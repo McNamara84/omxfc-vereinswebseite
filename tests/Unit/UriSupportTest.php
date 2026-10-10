@@ -21,6 +21,52 @@ test('normalizeAbsoluteHttpUrl accepts only absolute HTTP URLs with a host', fun
         ->and(UriSupport::normalizeAbsoluteHttpUrl('docs/page'))->toBeNull();
 });
 
+test('HTTP normalization rejects unsafe input and unsupported schemes', function (string $url) {
+    expect(UriSupport::normalizeAbsoluteHttpUrl($url))->toBeNull();
+})->with(['', 'ftp://example.com/file', 'mailto:a@example.com', 'https://', 'http://[broken', "https://example.com/\npath", 'https://example.com/a b', 'https:\\example.com']);
+
+test('host matching uses the requested protocol and port including HTTP defaults', function () {
+    expect(UriSupport::isAbsoluteUrlForHost('http://example.com', 'HTTP', 'EXAMPLE.COM'))->toBeTrue()
+        ->and(UriSupport::isAbsoluteUrlForHost('http://example.com:80/path', 'http', 'example.com'))->toBeTrue()
+        ->and(UriSupport::isAbsoluteUrlForHost('http://example.com', 'https', 'example.com'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('https://example.com', 'https', 'example.com', 8443))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('http://example.com:81', 'http', 'example.com'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('ftp://example.com', 'ftp', 'example.com'))->toBeTrue()
+        ->and(UriSupport::isAbsoluteUrlForHost('ftp://example.com:21', 'ftp', 'example.com'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('ftp://example.com:21', 'ftp', 'example.com', 21))->toBeTrue()
+        ->and(UriSupport::isAbsoluteUrlForHost('docs/page', 'https', 'example.com'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('http://[broken', 'https', 'example.com'))->toBeFalse();
+});
+
+test('host matching cannot accept a scheme-relative URL with an empty expected scheme', function () {
+    expect(UriSupport::isAbsoluteUrlForHost('//example.com/path', '', 'example.com'))->toBeFalse()
+        ->and(UriSupport::isAbsoluteUrlForHost('http:///path', 'http', ''))->toBeFalse()
+        ->and(UriSupport::normalizeAbsoluteHttpUrl('https:relative'))->toBeNull()
+        ->and(UriSupport::isSafeMarkdownHref('https:relative'))->toBeFalse()
+        ->and(UriSupport::isSafeMarkdownHref('///example.com/path'))->toBeFalse();
+});
+
+test('native URI validation rejects literal control characters, spaces and backslashes', function () {
+    foreach ([...range(0, 32), 127, 92] as $byte) {
+        $url = 'https://example.com/a'.chr($byte).'file';
+        expect(UriSupport::normalizeAbsoluteHttpUrl($url))->toBeNull()
+            ->and(UriSupport::isAbsoluteUrlForHost($url, 'https', 'example.com'))->toBeFalse()
+            ->and(UriSupport::isSafeMarkdownHref($url))->toBeFalse();
+    }
+
+    expect(UriSupport::normalizeAbsoluteHttpUrl('HTTPS://EXAMPLE.COM/path'))->toBe('https://example.com/path')
+        ->and(UriSupport::isSafeMarkdownHref('MAILTO:team@example.com'))->toBeTrue()
+        ->and(UriSupport::resolve('ftp://example.com/', 'page'))->toBeNull();
+});
+
+test('resolution rejects invalid bases and malformed references', function () {
+    expect(UriSupport::resolve('/relative', 'page'))->toBeNull()
+        ->and(UriSupport::resolve('https://example.com/', 'http://[broken'))->toBeNull()
+        ->and(UriSupport::resolve('https://example.com/path', '#section'))->toBe('https://example.com/path#section')
+        ->and(UriSupport::resolve('http://example.com/docs/', 'page'))->toBe('http://example.com/docs/page')
+        ->and(UriSupport::resolve('https:relative', 'page'))->toBeNull();
+});
+
 test('resolve builds absolute URLs from relative references', function () {
     expect(UriSupport::resolve('https://de.maddraxikon.com/', 'wiki/A1'))->toBe('https://de.maddraxikon.com/wiki/A1')
         ->and(UriSupport::resolve('https://de.maddraxikon.com/', 'index.php?title=Kategorie:2012-Heftromane&pagefrom=2'))->toBe('https://de.maddraxikon.com/index.php?title=Kategorie:2012-Heftromane&pagefrom=2')

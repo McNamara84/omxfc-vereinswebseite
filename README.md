@@ -53,7 +53,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 ## Technologie-Stack
 
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout mit Typesense, Livewire 4, maryUI 2.9 sowie Spatie PDF (Dompdf) & Sitemap.
-- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
+- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
 - **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
@@ -64,7 +64,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
 | PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | 2.10.x, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.1.0 (`packageManager`), nur für klassische Host-Entwicklung nötig |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.0 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -564,7 +564,7 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 
 ## Kompendium-Suche: lexikal und hybrid
 
-Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.7 kann
+Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.9 kann
 optional die native Typesense-Einbettung für eine hybride Volltext-/Semantiksuche
 nutzen. Suchmodus und aktive Indexvariante sind absichtlich getrennt: Der Modus
 steuert nur die Anfrage, die Variante dagegen Collection-Name und Schema.
@@ -583,7 +583,8 @@ Staging-Umgebung geprüft. Für den kontrollierten Aufbau werden Suchzugriffe un
 schreibende Index-Jobs in einem Wartungsfenster pausiert. Der Suchmodus bleibt
 zunächst `lexical`, während `KOMPENDIUM_SEARCH_INDEX_VARIANT=hybrid` gesetzt
 wird. Anschließend die Konfiguration leeren und den neuen Index vollständig
-aufbauen:
+aufbauen. Für einen unterbrochenen Import kann der bestehende Index ohne Löschen
+mit `php artisan kompendium:rebuild-index --resume` erneut importiert werden:
 
 ```bash
 php artisan config:clear
@@ -607,13 +608,24 @@ kontrolliert neu aufgebauten beziehungsweise synchronisierten Zielindex (oder
 künftig einen atomaren Typesense-Alias-Wechsel). Suchmodus und Laufzeit werden
 ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
+Für einen versionsweisen Wechsel bei gleichem lexikalischem Schema kann
+`php artisan kompendium:clone-index 2` die bestehende Collection einschließlich
+Dokumenten kopieren, prüfen und mit einem internen Snapshot dauerhaft sichern.
+Die Typesense-API-Berechtigung muss dafür `operations/snapshot` erlauben.
+Das Kommando aktiviert den Klon nicht. Für den Wechsel Suchzugriffe und
+indexschreibende Worker im Wartungsfenster anhalten und den Bestand sichern.
+Nach dem Klonen Dokumentzahlen, Treffer, Filter und Rechte unter isolierter
+Staging-Konfiguration prüfen. Erst dann `KOMPENDIUM_SEARCH_INDEX_VERSION=2`
+setzen, die Konfiguration neu laden und Worker neu starten. Den Quellindex
+aufbewahren. Nach neuen Schreibvorgängen muss er vor einem Rückwechsel
+synchronisiert oder neu aufgebaut werden.
+
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Prüfergebnisse, bekannte Versionsgrenzen und verbleibende Image-Sicherheitsbefunde:
-[Abhängigkeitsupdate vom 28. September 2026](DEPENDENCY-UPDATE.md).
+Der [Septemberbericht](DEPENDENCY-UPDATE.md) bleibt als historischer Stand erhalten.
 
-Stand der Aktualisierung: **28. September 2026**. PHP 8.5.11 basiert auf Debian
-Trixie; Node 26.10.0 verwendet Alpine 3.24 und npm 12.1.0. Composer 2.10.3 ist
+Stand der Aktualisierung: **10. Oktober 2026**. PHP 8.5.11 basiert auf Debian
+Trixie; Node 26.11.1 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
@@ -623,12 +635,25 @@ Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
 OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
 `ghcr.io/mcnamara84/omxfc-vereinswebseite:typesense-30.2`, scannt es und übergibt
 den geprüften Digest an das Deployment.
+MariaDB wird über `docker/mariadb.Dockerfile` gehärtet: Das ungenutzte
+`/usr/bin/pebble` aus dem Ubuntu-Basisimage wird entfernt, da dessen eingebettete
+Go-Laufzeit behebbare High/Critical-Befunde verursacht. MariaDB verwendet seinen
+eigenen Entrypoint mit `gosu`. Verfügbare Betriebssystemupdates werden eingespielt;
+ein unbeabsichtigtes MariaDB-Paketupdate lässt den Build fehlschlagen.
+CI prüft den Start mit leerem Datenvolume, den Benutzerwechsel und den Erhalt
+geschriebener Daten nach einem Neustart. Der Deploy-Workflow veröffentlicht
+`ghcr.io/mcnamara84/omxfc-vereinswebseite:mariadb-13.0.2`, scannt das Image und
+verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselbe
+Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Verbleibende upstreambedingte Grenzen: Pest 5.2.1 schließt PHPUnit
-13.3.5 explizit aus, daher bleibt PHPUnit bei 13.3.4. maryUI 2.9.10 benötigt
+aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
+
+Auch das Werkzeug für die JS-Coverage-Badge ist als Dev-Abhängigkeit exakt im
+Lockfile gepinnt (`make-coverage-badge` 1.2.0). Der Workflow verwendet die lokale
+Installation mit `npm exec --no` und lädt dabei keine zusätzliche CLI nach.
 
 Beim Wechsel von MariaDB 12.3 auf 13.0 vor dem ersten Neustart ein vollständiges
 Datenbank-Backup erstellen und die Wiederherstellung prüfen. `MARIADB_AUTO_UPGRADE`
@@ -636,11 +661,35 @@ aktualisiert die Systemtabellen; ein Rollback benötigt das Backup und das alte
 Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
 `docker-compose.yml` ist absichtlich nicht versioniert: Die freigegebenen
 Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
-Insbesondere muss `typesense.image` dort
-`${OMXFC_TYPESENSE_IMAGE:?OMXFC_TYPESENSE_IMAGE is required}` verwenden. Der Workflow
-prüft diese Voraussetzung vor dem Anhalten von Diensten und speichert den
-gescannten Image-Digest anschließend in `.env.production` für manuelle
-Compose-Befehle.
+Der Deploymenthelfer übernimmt die tatsächlichen Compose-Dateien und den
+Projektnamen des laufenden App-Containers und ergänzt ein geprüftes Image-Overlay.
+App, Queue, Scheduler, MariaDB, Typesense und Nginx verwenden dadurch die gescannten Digests.
+Der Datenbank-Preflight erlaubt für diesen Rollout ausschließlich das Patchupdate
+innerhalb MariaDB 13.0. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
+aktuellen Revision erfolgreich sein. Private Datenbackups, alte Image-Tags und
+Codevolumes sichern den Rückweg. Die Sicherungen liegen auf dem Server unter
+`.deployment/backups/<UTC-Zeit>/`; `compose.yml` und `images.yml` halten die
+vorherige Konfiguration fest. Ein App-Rollback benötigt ein kompatibles
+Datenbankschema. Datenbank- und Typesense-Wiederherstellungen erfolgen in
+separaten Datenvolumes mit den passenden gesicherten Images.
+
+Bei einem Deploymentabbruch vor dem Containerwechsel startet der Fehler-Trap
+die bisherigen Dienste wieder und beendet den Wartungsmodus. Nach dem Wechsel
+stellt er die alte Anwendung samt Codevolume und Images wieder her; Datenbankdump
+und Typesense-Archiv werden dafür in neue, separate Datenvolumes eingespielt.
+Die Datenvolumes des fehlgeschlagenen Deployments bleiben zur Diagnose erhalten.
+HTTP-Zugriffe und Hintergrundschreibvorgänge bleiben bis zum Abschluss der
+Healthchecks angehalten; die Laravel-Healthroute `/up` ist währenddessen erreichbar.
+Scheitert auch die Wiederherstellung, meldet der Workflow den privaten Backup-Pfad
+und hält den Wartungsmodus für eine manuelle Wiederherstellung aktiv.
+
+Nach einem erfolgreichen Deployment entfernt der Helfer Rollback-Tags,
+nicht mehr referenzierte Codevolumes und private Backup-Verzeichnisse, die älter
+als sieben Tage sind. Der neueste Rollback-Satz, laufende beziehungsweise gestoppte
+Container und Ressourcen der weiterhin aufbewahrten Sätze bleiben erhalten.
+Als aktive Compose-Eingaben verwendete Backups werden ebenfalls aufbewahrt.
+Die Bereinigung erfasst auch eindeutig erkannte Backups älterer Deployments;
+unbekannte oder manuell angelegte Verzeichnisse bleiben erhalten.
 
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:
@@ -666,6 +715,10 @@ Container-Basis- und Service-Images sind versions- und digestgenau gepinnt und
 werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
 wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
 Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
+
+Auch npm 12.2.0 selbst erhält über `docker/patch-npm-security.sh` überprüfte
+Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
+unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
 
 Der Service-Image-Scan verwendet dieselbe Regel wie der Produktionsscan:
 Hohe und kritische Befunde mit verfügbarem Fix blockieren die CI. Befunde ohne
@@ -695,23 +748,30 @@ geprüft und bei solchen Befunden blockiert.
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
 | Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
+| Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
+| Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
+| Deploymenthelfer und Releasechecks prüfen | `npm run test:deployment` |
+| Interner Typesense-Snapshot (isolierter Server) | `php vendor/bin/phpunit tests/Integration/TypesenseInternalSnapshotTest.php --do-not-record-test-run-history` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Der Mutation-Job prüft die ausdrücklich mit `mutates()` markierten Sicherheitsklassen und erzwingt für die derzeit 137 Mutationen einen Score von 100 %. Der explizite Anwendungspfad umgeht außerdem eine Pfadauflösungsschwäche von Pest 5.2 unter Windows. Da Pest 5 TIA bei expliziten Testpfaden deaktiviert und keine PHPUnit-Testklassen unterstützt, verwenden diese Skripte `phpunit.tia.xml` mit ausschließlich funktionalen Pest-Tests. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht; Mutation Tests laufen separat wöchentlich und manuell.
-Die PHPUnit-13.3-Diagnosen `test:stability:repeat` und `test:stability:retry` sind bewusst manuelle Zusatzprüfungen. Insbesondere Retry ersetzt keinen regulär erfolgreichen Testlauf und wird deshalb nicht als CI-Pflichtprüfung verwendet.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5 trennt fünf reine Node-Testdateien von 26 DOM-Testdateien; die Ressourcenleckprüfung läuft ebenfalls in CI. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf Push, PR, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. TIA lädt eine nach PHP-Version, Lockfile und Testkonfiguration getrennte Baseline und aktualisiert sie; `--fresh` ist für den bewussten Neuaufbau vorgesehen. Die vollständige Suite bleibt Pflicht.
+Die PHPUnit-13.4-Diagnosen `test:stability:repeat` und `test:stability:retry` sind manuelle Zusatzprüfungen. Retry ersetzt keinen regulär erfolgreichen Testlauf.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Der Test-Stack verwendet Pest 5.2 und PHPUnit 13.3. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
+Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
+und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
+
+Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
 ## Deployment
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.10 und npm 12.1.0 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.11.1 und gepatchtem npm 12.2.0 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.
@@ -731,16 +791,18 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 
 Der GitHub-Deployment-Workflow nutzt ab Laravel 13.25 den globalen
 Queue-Pause-Mechanismus. Vor dem Containerwechsel nimmt der Worker keine neuen
-Jobs mehr an und wird mit einem großzügigen Timeout beendet; vor dem Start der
-neuen Worker hebt der Workflow die Pause garantiert wieder auf. Beim ersten
+Jobs mehr an und wird mit einem großzügigen Timeout beendet. Die neuen Worker
+starten nach Migrationen und Cacheaufbau; die Pause wird erst nach erfolgreichen
+Healthchecks aufgehoben. Beim ersten
 Deployment von einer älteren Laravel-Version wird die Pause per Feature-Check
 übersprungen.
 
-Nach erfolgreich abgeschlossenen Healthchecks entfernt der Workflow nur
-unreferenzierte Docker-Images, die älter als sieben Tage sind. So bleibt ein
-kurzer lokaler Rollback-Puffer erhalten, während alte `latest`-Versionen nicht
-dauerhaft Speicherplatz auf dem Produktionsserver belegen. Docker-Volumes und
-damit Datenbank- oder Anwendungsdaten werden dabei nicht bereinigt.
+Nach erfolgreich abgeschlossenen Healthchecks bereinigt der Workflow abgelaufene
+Rollback-Sätze einschließlich ihrer Tags, unbenutzten Codevolumes und privaten
+Backups. Der neueste Satz und die letzten sieben Tage bleiben erhalten; aktive
+Compose-Eingaben und referenzierte Ressourcen werden geschützt. Zusätzlich werden
+alte, unreferenzierte Images dieses Repositories entfernt. Datenbank-, Typesense-
+und Storage-Volumes werden durch diese Bereinigung nicht entfernt.
 
 ## Nützliche Artisan-Befehle
 

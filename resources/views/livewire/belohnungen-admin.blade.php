@@ -13,7 +13,7 @@
         {{-- Tabs --}}
         @php($tabBadges = $this->tabBadges())
 
-        <x-tabs wire:model="activeTab">
+        <x-tabs wire:model="activeTab" active-class="font-semibold text-primary" label-class="min-h-12" content-class="px-0 sm:px-3">
             <x-tab name="rewards" label="Belohnungen" icon="o-gift" :badge="$tabBadges['rewards']" badge-class="badge-primary">
 
                 <x-ui.panel class="mb-6 border border-primary/15 bg-base-100">

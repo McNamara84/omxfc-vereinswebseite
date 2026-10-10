@@ -15,6 +15,7 @@ async function login(page, email) {
     await page.locator('input[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 }
 async function challenge(page, data) {
     await page.goto('/rpg/uebungskaempfe/neu');
@@ -39,6 +40,7 @@ test('two members challenge, accept, roll, react, and publish milestones', async
         const url = await challenge(page, data);
         await login(other, data.other);
         await other.goto('/dashboard');
+        await expect(other.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
         await expect(other.getByRole('region', { name: 'Persönliche Übungskämpfe' })).toContainText(data.characters.player.name);
         await other.goto(url);
         await other.getByRole('button', { name: 'Bedingungen annehmen und starten' }).click();

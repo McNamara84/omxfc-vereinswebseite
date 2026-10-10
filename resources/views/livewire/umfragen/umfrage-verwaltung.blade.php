@@ -123,7 +123,7 @@
                                 <div class="md:col-span-5">
                                     <x-input
                                         label="Antwort"
-                                        wire:model.blur="options.{{ $index }}.label"
+                                        wire:model.live.blur="options.{{ $index }}.label"
                                         placeholder="Antworttext"
                                         data-testid="option-{{ $index }}-label"
                                     />
@@ -133,7 +133,7 @@
                                         <div class="flex-1">
                                             <x-input
                                                 label="Bild-URL (optional)"
-                                                wire:model.blur="options.{{ $index }}.image_url"
+                                                wire:model.live.blur="options.{{ $index }}.image_url"
                                                 placeholder="https://..."
                                             />
                                         </div>
@@ -148,7 +148,7 @@
                                 <div class="md:col-span-3">
                                     <x-input
                                         label="Link-URL (optional)"
-                                        wire:model.blur="options.{{ $index }}.link_url"
+                                        wire:model.live.blur="options.{{ $index }}.link_url"
                                         placeholder="https://..."
                                     />
                                 </div>

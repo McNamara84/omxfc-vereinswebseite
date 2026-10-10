@@ -10,6 +10,8 @@ const login = async (page, email, password = 'password') => {
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    // Complete the deferred dashboard request before a full page navigation.
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 };
 
 const buildRpgEditorUserEmail = (testInfo) => {

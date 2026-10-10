@@ -158,7 +158,9 @@ services:
       - omxfc-dev-network
 
   nginx:
-    image: nginx:1.31-alpine3.24-slim@sha256:f761b94f2cb9e8e05e2943d5f773609596113ef69b54e2433a996d109a8f78b7
+    build:
+      context: .
+      dockerfile: docker/nginx.Dockerfile
     depends_on:
       app:
         condition: service_started
@@ -192,7 +194,10 @@ services:
       - omxfc-dev-network
 
   db:
-    image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
+    image: omxfc-dev-mariadb:local
+    build:
+      context: .
+      dockerfile: docker/mariadb.Dockerfile
     environment:
       MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
       MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}

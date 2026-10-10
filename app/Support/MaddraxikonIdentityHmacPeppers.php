@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Support;
 
 use LogicException;
 
 final class MaddraxikonIdentityHmacPeppers
 {
-    private const FINGERPRINT_DOMAIN = 'maddraxikon-identity-hmac-pepper-fingerprint-v1';
+    private const string FINGERPRINT_DOMAIN = 'maddraxikon-identity-hmac-pepper-fingerprint-v1';
 
     /**
      * @return array<string, string>
@@ -17,13 +19,13 @@ final class MaddraxikonIdentityHmacPeppers
         $entries = preg_split(
             '/\s*,\s*/',
             $serialized,
-            -1,
-            PREG_SPLIT_NO_EMPTY,
+            flags: PREG_SPLIT_NO_EMPTY,
         ) ?: [];
 
         foreach ($entries as $entry) {
-            [$version, $secret] = array_pad(explode(':', $entry, 2), 2, '');
-            $version = trim($version);
+            $parts = explode(':', $entry, 2);
+            $version = trim($parts[0]);
+            $secret = $parts[1] ?? '';
 
             if (array_key_exists($version, $configured)) {
                 throw new LogicException(
@@ -51,12 +53,17 @@ final class MaddraxikonIdentityHmacPeppers
         $peppers = [];
 
         foreach ($configured as $version => $secret) {
+            if (! is_string($secret)) {
+                throw new LogicException(
+                    'MADDRAXIKON_IDENTITY_HMAC_PEPPERS enthält einen ungültigen Eintrag.',
+                );
+            }
+
             $version = trim((string) $version);
-            $secret = trim((string) $secret);
+            $secret = trim($secret);
 
             if (
-                $version === ''
-                || preg_match('/^[A-Za-z0-9._-]{1,64}$/', $version) !== 1
+                preg_match('/^[A-Za-z0-9._-]{1,64}$/', $version) !== 1
                 || $secret === ''
             ) {
                 throw new LogicException(
@@ -87,7 +94,7 @@ final class MaddraxikonIdentityHmacPeppers
             $peppers[$version] = $secret;
         }
 
-        if ((string) array_key_first($peppers) === 'legacy-app-key') {
+        if (array_key_first($peppers) === 'legacy-app-key') {
             throw new LogicException(
                 'Der Legacy-APP_KEY darf nicht der primäre Identitäts-Pepper sein.',
             );

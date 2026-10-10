@@ -17,6 +17,7 @@ async function login(page, email) {
     await page.locator('input[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 }
 async function addCharacter(page, id) {
     await page.getByRole('combobox', { name: 'Charakter auswählen', exact: true }).selectOption(String(id));
@@ -82,6 +83,7 @@ test('group request, personal dashboard polling, open roll and history', async (
         await login(page, data.leader);
         await login(player, data.player);
         await player.goto('/dashboard');
+        await expect(player.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
         await requestCheck(page, data, { group: true });
         await player.bringToFront();
         const panel = player.getByRole('region', { name: 'Persönliche Rollenspiel-Proben' });

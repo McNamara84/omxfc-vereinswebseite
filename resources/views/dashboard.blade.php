@@ -47,7 +47,7 @@
 
             @include('dashboard.partials.applicants-panel')
 
-            <livewire:dashboard-activity-feed />
+            <livewire:dashboard-activity-feed defer />
         </div>
     </x-member-page>
 </x-member-layout>

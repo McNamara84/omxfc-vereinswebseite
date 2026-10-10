@@ -4,6 +4,9 @@ on:
     branches: [ main ]
 permissions:
   contents: read
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
 jobs:
   build:
     permissions:
@@ -11,7 +14,10 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     outputs:
+      app-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
       typesense-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-typesense.outputs.digest }}
+      nginx-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-nginx.outputs.digest }}
+      database-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       
@@ -36,16 +42,66 @@ jobs:
           sbom: true
           provenance: mode=max
           tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:typesense-30.2
+          labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
 
       - name: Scan patched Typesense before deployment
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-typesense.outputs.digest }}
-          grype-version: v0.119.0
+          grype-version: v0.120.1
           fail-build: true
           severity-cutoff: high
           output-format: table
+
+      - name: Build and push Nginx with OS security updates
+        id: build-nginx
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/nginx.Dockerfile
+          push: true
+          no-cache: true
+          sbom: true
+          provenance: mode=max
+          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:nginx-1.30.5
+          labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
+
+      - name: Scan patched Nginx before deployment
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-nginx.outputs.digest }}
+          grype-version: v0.120.1
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
       
+      - name: Build and push MariaDB with image security hardening
+        id: build-database
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/mariadb.Dockerfile
+          push: true
+          no-cache: true
+          sbom: true
+          provenance: mode=max
+          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:mariadb-13.0.2
+          labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
+
+      - name: Scan patched MariaDB before deployment
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
+          grype-version: v0.120.1
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
+
+      - name: Verify pushed MariaDB initialization and data after restart
+        run: bash docker/verify-mariadb-image.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}'
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -56,13 +112,16 @@ jobs:
           no-cache: true
           sbom: true
           provenance: mode=max
-          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
+          tags: |
+            ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
+            ghcr.io/mcnamara84/omxfc-vereinswebseite:${{ github.sha }}
+          labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
 
       - name: Scan pushed image for fixable high and critical vulnerabilities
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
-          grype-version: v0.119.0
+          grype-version: v0.120.1
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -70,53 +129,62 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 125
+    permissions:
+      contents: read
+      actions: read
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+      - name: Require successful checks for this exact revision
+        id: checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/wait-for-release-checks.mjs
+      - name: Prepare reviewed deployment helper
+        if: steps.checks.outputs.deploy == 'true'
+        id: helper
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync, appendFileSync } from 'node:fs';
+          appendFileSync(process.env.GITHUB_OUTPUT, 'script=' + readFileSync('docker/prepare-deployment.sh').toString('base64') + '\n');
+          for (const name of ['recovery', 'retention']) {
+            appendFileSync(process.env.GITHUB_OUTPUT, name + '=' + readFileSync(`docker/deployment-${name}.sh`).toString('base64') + '\n');
+          }
+          NODE
       - name: Deploy via SSH
+        if: steps.checks.outputs.deploy == 'true'
         uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          command_timeout: 30m
           script: |
             set -e
             cd /opt/stacks/omxfc
 
+            export OMXFC_APP_IMAGE='${{ needs.build.outputs.app-image }}'
             export OMXFC_TYPESENSE_IMAGE='${{ needs.build.outputs.typesense-image }}'
+            export OMXFC_NGINX_IMAGE='${{ needs.build.outputs.nginx-image }}'
+            export OMXFC_DATABASE_IMAGE='${{ needs.build.outputs.database-image }}'
 
-            COMPOSE="docker compose --env-file .env.production"
-            QUEUES_PAUSED=0
-
-            # Refuse to deploy an unpatched upstream Typesense image when the
-            # server's separately maintained Compose file has not been updated.
-            if ! $COMPOSE config --images | grep -Fxq "$OMXFC_TYPESENSE_IMAGE"; then
-              echo 'Set typesense.image to ${OMXFC_TYPESENSE_IMAGE:?OMXFC_TYPESENSE_IMAGE is required} in the server Compose file.'
-              exit 1
-            fi
-
-            # Retain the verified digest for subsequent manual Compose commands.
-            if grep -q '^OMXFC_TYPESENSE_IMAGE=' .env.production; then
-              sed -i "s|^OMXFC_TYPESENSE_IMAGE=.*|OMXFC_TYPESENSE_IMAGE=$OMXFC_TYPESENSE_IMAGE|" .env.production
-            else
-              printf '\nOMXFC_TYPESENSE_IMAGE=%s\n' "$OMXFC_TYPESENSE_IMAGE" >> .env.production
-            fi
-
-            resume_queues_on_exit() {
-              if [ "$QUEUES_PAUSED" = "1" ] && [ "$($COMPOSE ps --status running --services app)" = "app" ]; then
-                if $COMPOSE exec -T app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
-                  echo "Resuming queues after interrupted deployment..."
-                  $COMPOSE exec -T app php artisan queue:resume --all || true
-                fi
-              fi
-            }
-
-            trap resume_queues_on_exit EXIT
+            umask 077
+            mkdir -p .deployment
+            printf '%s' '${{ steps.helper.outputs.script }}' | base64 -d > .deployment/prepare-deployment.sh
+            printf '%s' '${{ steps.helper.outputs.recovery }}' | base64 -d > .deployment/deployment-recovery.sh
+            printf '%s' '${{ steps.helper.outputs.retention }}' | base64 -d > .deployment/deployment-retention.sh
+            source .deployment/prepare-deployment.sh
             
             echo "Pulling new images..."
-            $COMPOSE pull
+            $COMPOSE pull app queue scheduler db typesense nginx
 
             # Laravel 13.25 can pause all queues while the current job finishes.
             # Laravel 13.24 already exposes queue:pause, but does not support the
             # --all option, so detect the option itself for the first rollout.
+            DEPLOYMENT_SERVICES_TOUCHED=1
             if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
               echo "Pausing all queues before replacing containers..."
               docker exec maddrax-app php artisan queue:pause --all
@@ -127,14 +195,19 @@ jobs:
 
             echo "Stopping queue worker gracefully..."
             $COMPOSE stop --timeout 360 queue
+            $COMPOSE exec -T app php artisan down
+            $COMPOSE stop scheduler
+
+            # Freeze HTTP writers as well as background writers before taking
+            # the database dump and offline Typesense archive.
+            echo "Stopping application services..."
+            $COMPOSE stop app nginx
+            backup_deployment_data
             
-            echo "Removing old containers..."
-            $COMPOSE down --remove-orphans
-            
-            echo "Removing app_data volume to ensure fresh assets..."
-            docker volume rm maddrax-fanclub_app_data || true
-            
+            # The digest-specific application volume is fresh. The previous
+            # code volume remains available with the private rollback config.
             echo "Starting infrastructure containers..."
+            DEPLOYMENT_INFRASTRUCTURE_CHANGED=1
             $COMPOSE up -d --force-recreate db typesense
 
             echo "Starting application container to initialize shared app volume..."
@@ -152,9 +225,9 @@ jobs:
             echo "Waiting for database to be ready (MariaDB upgrade may take a few minutes)..."
             DB_READY=0
             for i in {1..60}; do
-              if docker exec maddrax-db sh -lc 'mariadb-admin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent' >/dev/null 2>&1; then
+              if docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; test -n "$MYSQL_PWD" && mariadb -h 127.0.0.1 -uroot --batch --skip-column-names -e "SELECT 1"' >/dev/null 2>&1; then
                 echo "Database is ready!"
-                docker exec maddrax-db sh -lc 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT VERSION();"'
+                docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; mariadb -uroot -e "SELECT VERSION();"'
                 DB_READY=1
                 break
               fi
@@ -176,7 +249,6 @@ jobs:
             docker exec maddrax-app sh -lc 'rm -f /var/www/html/bootstrap/cache/*.php' || true
             docker exec maddrax-app sh -lc 'rm -rf /var/www/html/storage/framework/cache/*' || true
             docker exec maddrax-app sh -lc 'rm -rf /var/www/html/storage/framework/views/*' || true
-            docker exec maddrax-app sh -lc 'rm -rf /var/www/html/storage/framework/sessions/*' || true
             
             # Verify caches are gone
             echo "Verifying caches are removed..."
@@ -209,11 +281,11 @@ jobs:
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
             docker exec maddrax-app chmod -R 775 /var/www/html/storage
 
-            # Always clear a persisted global pause before new workers start.
-            if docker exec maddrax-app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
-              docker exec maddrax-app php artisan queue:resume --all
+            # Keep writes paused until every release check succeeds. Laravel's
+            # /up health route remains accessible during maintenance mode.
+            if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+              docker exec maddrax-app php artisan queue:pause --all
             fi
-            QUEUES_PAUSED=0
             
             # Start long-running workers only after migrations and the
             # configuration cache have been rebuilt. Otherwise they can retain
@@ -226,27 +298,8 @@ jobs:
             echo "Running health checks..."
 
             echo "=== Verifying registered Laravel schedule ==="
-            SCHEDULE_OUTPUT="$(docker exec maddrax-app php artisan schedule:list --no-ansi)"
-            echo "$SCHEDULE_OUTPUT"
+            docker exec maddrax-app php artisan app:verify-schedule --no-ansi
 
-            for REQUIRED_SCHEDULE in \
-              "member-map:refresh" \
-              "polls:archive-ended" \
-              "database-maintenance:cleanup" \
-              "maddraxikon:prune-audit" \
-              "maddraxikon:heartbeat" \
-              "maddraxikon:sync-job" \
-              "maddraxikon:evaluate-job"; do
-              if ! echo "$SCHEDULE_OUTPUT" | grep -Fq "$REQUIRED_SCHEDULE"; then
-                echo "❌ Laravel schedule is missing: ${REQUIRED_SCHEDULE}"
-                echo "=== Scheduler logs ==="
-                $COMPOSE logs --tail=50 scheduler || true
-                exit 1
-              fi
-            done
-
-            echo "✅ Laravel schedule: ALL REQUIRED TASKS REGISTERED"
-            
             echo "=== Container Status ==="
             docker ps
 
@@ -265,7 +318,7 @@ jobs:
             echo "=== Testing connectivity ==="
             # nginx veröffentlicht keinen Host-Port mehr (Traefik ist der einzige Eintrittspunkt).
             # Geprüft wird 1) der nginx-Container direkt und 2) der Weg über Traefik inkl. Zertifikat.
-            if docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/               && curl -fsS --max-time 20 --resolve maddrax-fanclub.de:443:127.0.0.1 https://maddrax-fanclub.de/ >/dev/null; then
+            if docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/up               && curl -fsS --max-time 20 --resolve maddrax-fanclub.de:443:127.0.0.1 https://maddrax-fanclub.de/up >/dev/null; then
               echo "✅ Connectivity test (nginx + Traefik): PASSED"
             else
               echo "❌ Connectivity test (nginx + Traefik): FAILED"
@@ -286,15 +339,27 @@ jobs:
               docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
             fi
 
-            # Repeated pulls of the mutable `latest` tag leave the previous
-            # application image dangling. Keep a seven-day rollback window,
-            # then remove only dangling images after all health checks passed.
+            # Release writes only after startup, migrations, caches, indexes,
+            # workers, connectivity and assets have all been checked.
+            if docker exec maddrax-app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+              docker exec maddrax-app php artisan queue:resume --all
+            fi
+            QUEUES_PAUSED=0
+            docker exec maddrax-app php artisan up
+            trap - EXIT INT TERM
+
+            # Cleanup is best effort after a successful release. Retain seven
+            # days of complete rollback sets, plus the newest set and all
+            # volumes/images still referenced by containers or retained sets.
+            echo "=== Expiring deployment rollback sets ==="
+            if ! cleanup_deployment_retention; then
+              echo "⚠️ Some expired rollback resources could not be removed; retained for retry"
+            fi
             echo "=== Pruning stale deployment images ==="
-            if docker image prune --force --filter "until=168h"; then
+            if docker image prune --force --filter "until=168h" --filter "label=org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite"; then
               echo "✅ Stale deployment images: PRUNED"
             else
               echo "⚠️ Stale deployment images could not be pruned"
             fi
             
-            trap - EXIT
             echo "🚀 Deployment completed successfully!"

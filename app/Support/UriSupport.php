@@ -16,7 +16,7 @@ final class UriSupport
             return null;
         }
 
-        $scheme = strtolower($parsed->getScheme() ?? '');
+        $scheme = $parsed->getScheme();
 
         if (! in_array($scheme, ['http', 'https'], true) || ! self::hasNonEmptyHost($parsed)) {
             return null;
@@ -35,35 +35,37 @@ final class UriSupport
 
         if (
             $parsed === null
-            || ! self::hasNonEmptyHost($parsed)
             || $parsed->getUserInfo() !== null
         ) {
             return false;
         }
 
-        $actualScheme = strtolower($parsed->getScheme() ?? '');
         $expectedScheme = strtolower($scheme);
+        if ($parsed->getScheme() !== $expectedScheme
+            || ! self::hasNonEmptyHost($parsed)
+            || $parsed->getHost() !== strtolower($host)) {
+            return false;
+        }
+
         $defaultPorts = ['http' => 80, 'https' => 443];
-        $actualPort = $parsed->getPort() ?? ($defaultPorts[$actualScheme] ?? null);
+        $actualPort = $parsed->getPort() ?? ($defaultPorts[$expectedScheme] ?? null);
         $expectedPort = $port ?? ($defaultPorts[$expectedScheme] ?? null);
 
-        return $actualScheme === $expectedScheme
-            && strtolower($parsed->getHost() ?? '') === strtolower($host)
-            && $actualPort === $expectedPort;
+        return $actualPort === $expectedPort;
     }
 
     public static function resolve(string $base, string $reference): ?string
     {
-        $normalizedBase = self::normalizeAbsoluteHttpUrl($base);
+        $parsedBase = self::parse($base);
 
-        if ($normalizedBase === null) {
+        if ($parsedBase === null
+            || ! in_array($parsedBase->getScheme(), ['http', 'https'], true)
+            || ! self::hasNonEmptyHost($parsedBase)) {
             return null;
         }
 
         try {
-            $parsedBase = Uri::parse($normalizedBase);
-
-            return $parsedBase?->resolve($reference)->toString();
+            return $parsedBase->resolve($reference)->toString();
         } catch (Throwable) {
             return null;
         }
@@ -80,32 +82,30 @@ final class UriSupport
         $scheme = $parsed->getScheme();
 
         if ($scheme !== null) {
-            return match (strtolower($scheme)) {
+            return match ($scheme) {
                 'http', 'https' => self::hasNonEmptyHost($parsed),
                 'mailto' => $parsed->getPath() !== '',
                 default => false,
             };
         }
 
-        if (self::hasNonEmptyHost($parsed)) {
+        if ($parsed->getHost() !== null) {
             return false;
         }
 
-        $trimmedHref = ltrim($href);
-        $isHashLink = Str::startsWith($trimmedHref, '#');
-        $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-        $looksLikeFile = preg_match('/^[A-Za-z_][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
+        $isHashLink = Str::startsWith($href, '#');
+        $isRelativePath = Str::startsWith($href, ['/', './', '../']);
+        $looksLikeFile = preg_match('/^[A-Za-z_][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $href) === 1;
 
         return $isHashLink || $isRelativePath || $looksLikeFile;
     }
 
     private static function parse(string $uri): ?Uri
     {
-        if (preg_match('/[\\x00-\\x20\\x7f\\\\]/u', $uri) === 1) {
-            return null;
-        }
-
         try {
+            // RFC 3986 rejects control characters, whitespace and backslashes,
+            // and normalizes scheme/host casing. Keep the native parser as the
+            // single validation boundary; invalid syntax returns null.
             return Uri::parse($uri);
         } catch (Throwable) {
             return null;

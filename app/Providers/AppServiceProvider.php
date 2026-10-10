@@ -16,6 +16,12 @@ use App\Services\Polls\ActivePollResolver;
 use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
 use App\Support\TestingBladeComponentRegistry;
+use App\View\Components\AccessibleFile;
+use App\View\Components\AccessibleInput;
+use App\View\Components\AccessiblePassword;
+use App\View\Components\AccessiblePopover;
+use App\View\Components\AccessibleSelect;
+use App\View\Components\AccessibleTextarea;
 use App\View\Components\Alert;
 use App\View\Components\NavigationDropdown;
 use App\View\Components\NavigationMain;
@@ -244,7 +250,10 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::if('vorstand', fn () => Auth::check() && Auth::user()?->hasVorstandRole());
 
-        if ($this->app->runningUnitTests()) {
+        // HTTP browser tests must exercise the real Mary components. Laravel's
+        // runningUnitTests() also returns true in an HTTP server with APP_ENV=testing.
+        $useTestingComponents = $this->app->runningInConsole() && $this->app->runningUnitTests();
+        if ($useTestingComponents) {
             TestingBladeComponentRegistry::register();
             $this->app->booted(static function (): void {
                 TestingBladeComponentRegistry::register();
@@ -267,6 +276,13 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('mary-menu-separator', NavigationMenuSeparator::class);
         Blade::component('mary-menu-sub', NavigationMenuSub::class);
         Blade::component('mary-nav', MaryNav::class);
+        Blade::component('mary-popover', AccessiblePopover::class);
+        foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
+            if (! $useTestingComponents) {
+                Blade::component($alias, $component);
+            }
+            Blade::component('mary-'.$alias, $component);
+        }
         Blade::component('mary-theme-toggle', NavigationThemeToggle::class);
 
         Livewire::addPersistentMiddleware([

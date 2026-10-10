@@ -17,7 +17,7 @@
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
 | CI | PHPUnit, Vitest 5, Playwright | `.github/workflows/` |
 
-**Kern-Packages:** Jetstream (Teams/Auth), Scout+TNTSearch (Volltextsuche), Spatie PDF/Sitemap
+**Kern-Packages:** Jetstream (Teams/Auth), Scout+Typesense (Volltextsuche), Spatie PDF/Sitemap
 
 **Kernstruktur:**
 ```

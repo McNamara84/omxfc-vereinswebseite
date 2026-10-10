@@ -11,6 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
@@ -681,6 +683,37 @@ class RpgCharEditorPdfTest extends TestCase
 
         $this->actingAs($member)->get($path)->assertOk();
         $this->actingAs($member)->get($path)->assertOk();
+    }
+
+    public function test_real_pdf_exports_use_a_writable_private_font_cache_for_repeated_rendering(): void
+    {
+        $fontPath = storage_path('framework/testing/pdf-fonts-'.Str::uuid());
+        config([
+            'laravel-pdf.dompdf.font_dir' => $fontPath,
+            'laravel-pdf.dompdf.font_cache' => $fontPath,
+        ]);
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
+        try {
+            $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
+                'character_name' => 'Ärztin Groß',
+                'description' => 'Überleben in der Straße: äöü ÄÖÜ ß, 12.345,67.',
+            ]));
+            $path = parse_url($prepared->headers->get('Location'), PHP_URL_PATH);
+
+            for ($render = 0; $render < 2; $render++) {
+                $response = $this->actingAs($member)->get($path)->assertOk();
+                $response->assertHeader('content-type', 'application/pdf');
+                $this->assertStringStartsWith('%PDF-', $response->getContent());
+                $this->assertGreaterThan(1000, strlen($response->getContent()));
+            }
+
+            $this->assertDirectoryExists($fontPath);
+            $this->assertTrue(is_writable($fontPath));
+            $this->assertFalse(config('laravel-pdf.dompdf.is_remote_enabled'));
+        } finally {
+            File::deleteDirectory($fontPath);
+        }
     }
 
     public function test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created(): void

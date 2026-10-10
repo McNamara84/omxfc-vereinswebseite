@@ -15,7 +15,9 @@ class TiaWorkflowCommandTest extends TestCase
 
         $this->assertIsString($workflow);
         $this->assertIsString($tiaConfiguration);
-        $this->assertStringContainsString('run: composer test:tia:fresh', $workflow);
+        $this->assertStringContainsString('run: composer test:tia', $workflow);
+        $this->assertStringNotContainsString('run: composer test:tia:fresh', $workflow);
+        $this->assertStringContainsString("hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php')", $workflow);
 
         $command = $composer['scripts']['test:tia:fresh'] ?? null;
 

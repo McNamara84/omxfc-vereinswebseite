@@ -16,11 +16,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: intl, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: intl, zip, sockets
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -54,11 +54,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: gd, exif, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: gd, exif, zip, sockets
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -101,14 +101,14 @@ jobs:
           DB_CONNECTION: sqlite
           # Match phpunit.xml; inherited process variables also populate $_SERVER.
           DB_DATABASE: ':memory:'
-        run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact
+        run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact --timeout=1800
 
   maddraxikon_mariadb:
     runs-on: ubuntu-latest
     name: PHP 8.5 Maddraxikon (MariaDB 13.0)
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
+        image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
         env:
           MARIADB_DATABASE: omxfc_maddraxikon_test
           MARIADB_USER: omxfc_test
@@ -132,11 +132,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: pdo_mysql, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: pdo_mysql, zip, sockets
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -166,7 +166,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
+        image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
         env:
           MARIADB_DATABASE: omxfc_rpg_test
           MARIADB_USER: omxfc_test
@@ -192,11 +192,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: pdo_mysql, intl, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: pdo_mysql, intl, zip, sockets
           coverage: none
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -225,7 +225,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
+        image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
         env:
           MARIADB_DATABASE: omxfc_veranstaltungen_test
           MARIADB_USER: omxfc_test
@@ -251,11 +251,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: pdo_mysql, intl, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: pdo_mysql, intl, zip, sockets
           coverage: none
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -284,11 +284,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: zip, sockets
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -325,9 +325,10 @@ jobs:
         run: npx playwright install-deps chromium
       - name: Install Playwright Chromium
         run: npx playwright install chromium
-      - name: Prepare Pest browser screenshot directories
-        # Pest Browser cleans these internal directories unconditionally when tracked screenshots exist.
-        run: mkdir -p tests/Browser/Screenshots/Sliders tests/Browser/Screenshots/ImageDiffView
+      - name: Prepare Pest browser artifact directories
+        # Pest Browser removes these paths; PHPUnit 13.4 reports a missing
+        # trace directory as a warning even when the plugin uses @rmdir().
+        run: mkdir -p tests/Browser/Screenshots/Sliders tests/Browser/Screenshots/ImageDiffView tests/Browser/Traces
       - name: Execute Pest browser preview regression
         env:
           DB_CONNECTION: sqlite
@@ -347,11 +348,11 @@ jobs:
           # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
           # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: gd, exif, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: gd, exif, zip, sockets
           coverage: xdebug
           ini-values: xdebug.mode=coverage
       - name: Generate ephemeral application key
@@ -413,13 +414,13 @@ jobs:
             sed -i 's/Coverage/PHP Coverage/' badge-output/php-coverage.svg
           fi
       - name: Upload PHP coverage report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: php-coverage-report
           path: coverage.xml
       - name: Upload PHP coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: php-coverage-badge
           path: badge-output/php-coverage.svg
@@ -438,14 +439,15 @@ jobs:
           # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Install Node dependencies
         run: |
-          npm install --global npm@12.1.0 --ignore-scripts
-          test "$(npm --version)" = "12.1.0"
+          npm install --global npm@12.2.0 --ignore-scripts
+          test "$(npm --version)" = "12.2.0"
+          sh docker/patch-npm-security.sh
           npm ci
       - name: Run Vitest tests with coverage
         run: npm run test:coverage
@@ -454,17 +456,17 @@ jobs:
         run: |
           mkdir -p output
           if [ -f "coverage/coverage-summary.json" ]; then
-            npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+            npm exec --no -- make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
             sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
           fi
       - name: Upload JS coverage summary
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: js-coverage-summary
           path: coverage/coverage-summary.json
       - name: Upload JS coverage badge
         if: github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: js-coverage-badge
           path: output/js-coverage.svg
@@ -488,25 +490,25 @@ jobs:
           fi
       - name: Download PHP coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: php-coverage-badge
           path: artifacts/php/badge
       - name: Download JS coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: js-coverage-badge
           path: artifacts/js/badge
       - name: Download JS coverage summary
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: js-coverage-summary
           path: artifacts/js/summary
       - name: Download PHP coverage report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: php-coverage-report
           path: artifacts/php/report

@@ -1,0 +1,10 @@
+{
+  "name": "omxfc-npm-security-patches",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Reviewed same-major security replacements for npm 12.2.0 bundled dependencies; remove after upstream fixes.",
+  "dependencies": {
+    "brace-expansion": "5.0.12",
+    "undici": "6.28.1"
+  }
+}

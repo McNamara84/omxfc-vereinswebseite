@@ -18,11 +18,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2.37.2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-          extensions: gd, exif, zip
+          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          extensions: gd, exif, zip, sockets
           coverage: xdebug
           ini-values: xdebug.mode=coverage
       - name: Generate ephemeral application key
@@ -47,19 +47,28 @@ jobs:
           touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
-      - name: Record a fresh Pest dependency graph
+      - name: Resolve TIA baseline directory
+        id: baseline-path
+        run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
+      - name: Restore compatible Pest 5.3 dependency graph
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.baseline-path.outputs.path }}
+          key: ${{ runner.os }}-php-8.5-pest-tia-v2-${{ hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-pest-tia-v2-${{ hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php') }}-
+      - name: Update Pest dependency graph
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
           XDEBUG_MODE: coverage
         # Pest 5 does not allow a fixed random-order seed together with TIA.
         # Keep the CI invocation aligned with the canonical Composer script.
-        run: composer test:tia:fresh
-      - name: Resolve TIA baseline directory
-        id: baseline-path
-        run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
+        # Full-suite acceptance remains in phpunit.yml. This cache accelerates
+        # only the supplementary TIA run and never crosses lockfile/config changes.
+        run: composer test:tia
       - name: Upload TIA baseline
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: pest-tia-baseline
           path: ${{ steps.baseline-path.outputs.path }}

@@ -136,6 +136,8 @@ class CoverImageSecurityTest extends TestCase
         $this->assertSame(128, $processed['height']);
         Storage::disk('private')->assertExists($processed['small_path']);
         Storage::disk('private')->assertExists($processed['large_path']);
+        $this->assertSame(32, getimagesizefromstring(Storage::disk('private')->get($processed['small_path']))[0]);
+        $this->assertSame(64, getimagesizefromstring(Storage::disk('private')->get($processed['large_path']))[0]);
         $this->assertStringEndsWith('-small-32.webp', $processed['small_path']);
         $this->assertStringEndsWith('-large-64.webp', $processed['large_path']);
         $this->assertNotSame($processed['small_path'], $secondPass['small_path']);
@@ -186,6 +188,49 @@ class CoverImageSecurityTest extends TestCase
             );
             $this->assertSame([], Storage::disk('private')->allFiles());
         }
+    }
+
+    public function test_processor_preserves_transparency_in_each_independent_variant(): void
+    {
+        Storage::fake('private');
+        config(['cover-ratings.images.max_bytes' => 100_000]);
+        $source = imagecreatetruecolor(128, 64);
+        imagealphablending($source, false);
+        imagesavealpha($source, true);
+        imagefill($source, 0, 0, imagecolorallocatealpha($source, 0, 0, 0, 127));
+        imagefilledrectangle($source, 32, 16, 96, 48, imagecolorallocatealpha($source, 255, 0, 0, 0));
+        ob_start();
+        imagepng($source);
+        $binary = ob_get_clean();
+
+        $processed = app(CoverImageProcessor::class)->process(Book::factory()->create(), $binary, str_repeat('e', 40));
+
+        foreach (['small_path' => 32, 'large_path' => 64] as $key => $width) {
+            $variant = imagecreatefromstring(Storage::disk('private')->get($processed[$key]));
+            $this->assertSame($width, imagesx($variant));
+            $this->assertSame(127, imagecolorsforindex($variant, imagecolorat($variant, 0, 0))['alpha']);
+        }
+    }
+
+    public function test_processor_applies_exif_orientation_before_scaling_each_variant(): void
+    {
+        Storage::fake('private');
+        config(['cover-ratings.images.max_bytes' => 100_000]);
+        $source = imagecreatetruecolor(128, 64);
+        ob_start();
+        imagejpeg($source);
+        $jpeg = ob_get_clean();
+        // Little-endian TIFF with one orientation entry (6 = rotate 90 degrees).
+        $exif = "Exif\0\0II".pack('vV', 42, 8).pack('v', 1)
+            .pack('vvVv', 0x0112, 3, 1, 6)."\0\0".pack('V', 0);
+        $binary = "\xff\xd8\xff\xe1".pack('n', strlen($exif) + 2).$exif.substr($jpeg, 2);
+
+        $processed = app(CoverImageProcessor::class)->process(Book::factory()->create(), $binary, str_repeat('f', 40));
+
+        $this->assertSame(64, $processed['width']);
+        $this->assertSame(128, $processed['height']);
+        $this->assertSame([32, 64], array_slice(getimagesizefromstring(Storage::disk('private')->get($processed['small_path'])), 0, 2));
+        $this->assertSame([64, 128], array_slice(getimagesizefromstring(Storage::disk('private')->get($processed['large_path'])), 0, 2));
     }
 
     public function test_processor_rejects_undecodable_content_without_leaving_files(): void

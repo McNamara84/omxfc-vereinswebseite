@@ -51,17 +51,22 @@ class RomanExcerpt extends Model
 
     public function searchableAs(): string
     {
-        $index = (string) config('scout.prefix').$this->getTable();
-
-        if (config('kompendium.search.index_variant', 'lexical') !== 'hybrid') {
-            return $index;
-        }
-
-        return sprintf(
-            '%s_hybrid_v%d',
-            $index,
-            max(1, (int) config('kompendium.search.index_version', 1)),
+        return self::indexNameFor(
+            (string) config('kompendium.search.index_variant', 'lexical'),
+            (int) config('kompendium.search.index_version', 1),
         );
+    }
+
+    public static function indexNameFor(string $variant, int $version): string
+    {
+        $index = (string) config('scout.prefix').(new self)->getTable();
+        $version = max(1, $version);
+        $variant = $variant === 'hybrid' ? 'hybrid' : 'lexical';
+
+        // Preserve the existing lexical collection until a deliberate switch.
+        return $variant === 'lexical' && $version === 1
+            ? $index
+            : "{$index}_{$variant}_v{$version}";
     }
 
     /*  Daten für Index – enthält Typesense-ID und den Originalpfad */

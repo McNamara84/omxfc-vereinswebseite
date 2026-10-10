@@ -5,6 +5,21 @@ import {
 } from '../e2e/utils/temporal.js';
 
 describe('temporal utils', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('nutzt die gefälschte aktuelle Zeit auch über das Ende der Sommerzeit', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-24T08:30:00Z'));
+
+    expect(createDatetimeLocalRange({ timeZone: 'Europe/Berlin', durationDays: 2 })).toEqual({
+      start: '2026-10-24T10:30',
+      end: '2026-10-26T10:30',
+    });
+
+    vi.advanceTimersByTime(60_000);
+    expect(createDatetimeLocalRange({ durationDays: 0 }).start).toBe('2026-10-24T08:31');
+  });
+
   it('formatiert Epoch-Millis als ISO-Instant mit Millisekunden', () => {
     expect(formatEpochMillisecondsAsIsoInstant(Date.UTC(2024, 0, 1))).toBe('2024-01-01T00:00:00.000Z');
   });

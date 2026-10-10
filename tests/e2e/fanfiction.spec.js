@@ -173,9 +173,9 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
 
         const storyRow = page.getByRole('row', { name: /Die dunkle Prophezeiung/i });
         await expect(storyRow).toBeVisible();
-        const statusCell = storyRow.getByRole('cell').nth(2);
+        const draftStatus = page.getByRole('cell', { name: 'Entwurf', exact: true }).within(storyRow);
 
-        if (await statusCell.getByText(/^Entwurf$/).isVisible()) {
+        if (await draftStatus.isVisible()) {
             const publishButton = storyRow.getByRole('button', { name: /Veröffentlichen/i });
             await expect(publishButton).toBeVisible();
 
@@ -186,7 +186,8 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         }
 
         const updatedRow = page.getByRole('row', { name: /Die dunkle Prophezeiung/i });
-        await expect(updatedRow.getByRole('cell').nth(2).getByText(/^Veröffentlicht$/)).toBeVisible({ timeout: 15000 });
+        const publishedStatus = page.getByRole('cell', { name: 'Veröffentlicht', exact: true }).within(updatedRow);
+        await expect(publishedStatus).toBeVisible({ timeout: 15000 });
         await expect(updatedRow.getByRole('button', { name: /Veröffentlichen/i })).toHaveCount(0);
     });
 });

@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { createManagedDockerCleanupArgs } from '../e2e/utils/docker.js';
 
 describe('docker utils', () => {

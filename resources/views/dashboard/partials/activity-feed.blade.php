@@ -15,11 +15,7 @@
                 type="button"
                 wire:click="selectFilter('{{ $filterKey }}')"
                 wire:loading.attr="disabled"
-                @class([
-                    'btn btn-sm rounded-full',
-                    'btn-primary' => $activeFilter === $filterKey,
-                    'btn-ghost bg-base-200/70' => $activeFilter !== $filterKey,
-                ])
+                class="btn btn-sm rounded-full {{ $activeFilter === $filterKey ? 'btn-primary' : 'btn-ghost' }}"
                 aria-pressed="{{ $activeFilter === $filterKey ? 'true' : 'false' }}"
             >
                 {{ $filterLabel }}

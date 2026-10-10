@@ -35,6 +35,7 @@ use App\Support\PreviewText;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -60,6 +61,16 @@ class ActivityFeedTest extends TestCase
         $team->users()->attach($user, ['role' => $role->value]);
 
         return $user;
+    }
+
+    private function dashboardWithLoadedFeed(): TestResponse
+    {
+        // A preceding Livewire interaction flushes its test configuration, so
+        // enable resolved rendering immediately before each content assertion.
+        // DashboardActivityFeedTest separately covers the deferred response.
+        Livewire::withoutLazyLoading();
+
+        return $this->get('/dashboard');
     }
 
     public function test_activity_created_for_new_review(): void
@@ -150,7 +161,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $comment->id,
         ]);
 
-        $dashboard = $this->get('/dashboard');
+        $dashboard = $this->dashboardWithLoadedFeed();
         $dashboard->assertOk();
         $dashboard->assertSeeTextInOrder(['Kommentar zu', 'Meine Rezension', 'von', 'ReviewNick']);
         $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" wire:navigate class="text-info hover:underline">Meine Rezension</a>', false);
@@ -178,7 +189,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $review->id,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
         $response->assertOk();
         $response->assertSeeText('Neue Rezension: '.$review->title);
         $response->assertSeeText(PreviewText::make($reviewContent, 160));
@@ -210,7 +221,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $comment->id,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
         $response->assertOk();
         $expectedPreview = PreviewText::make($longComment, 140);
         $response->assertSeeTextInOrder(['Kommentar zu', $review->title, 'von', $user->name]);
@@ -247,7 +258,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $comment->id,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Kommentar zu');
@@ -277,7 +288,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $review->id,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
         $response->assertOk();
         $response->assertSeeText('Neue Rezension: '.$review->title);
         $response->assertDontSeeText('Auszug aus der Rezension');
@@ -309,7 +320,7 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $comment->id,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
         $response->assertOk();
         $response->assertSeeTextInOrder(['Kommentar zu', $review->title, 'von', $user->name]);
         $response->assertDontSeeText('Auszug aus dem Kommentar');
@@ -344,7 +355,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'reward_unlocked',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('RewardNick');
@@ -372,7 +383,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'published',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Neue Fanfiction: Orbit im Sturm');
@@ -405,7 +416,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'published',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Neue Fanfiction: Geheimsignal');
@@ -434,7 +445,7 @@ class ActivityFeedTest extends TestCase
 
         $fanfiction->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag');
@@ -467,7 +478,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'created',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeTextInOrder(['Kommentar zu', $fanfiction->title, 'von', 'FanfictionNick']);
@@ -495,7 +506,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'bundle_created',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Neues Romantausch-Paket');
@@ -546,7 +557,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'swap_completed',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Tausch erfolgreich abgeschlossen');
@@ -580,7 +591,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'completed',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Archiv pflegen');
@@ -601,7 +612,7 @@ class ActivityFeedTest extends TestCase
             'points' => 100,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('MeilensteinNick');
@@ -625,7 +636,7 @@ class ActivityFeedTest extends TestCase
             'action' => Activity::ACTION_MADDRAXIKON_ACCOUNT_LINKED,
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('VerknuepfungsNick');
@@ -647,7 +658,7 @@ class ActivityFeedTest extends TestCase
             'action' => Activity::ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX.'7',
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('BaxxWikiNick');
@@ -729,7 +740,7 @@ class ActivityFeedTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('FantreffenNick hat sich zum nächsten Fantreffen angemeldet');
@@ -762,7 +773,7 @@ class ActivityFeedTest extends TestCase
             'created_at' => now(),
         ]);
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Jamie hat sich zum nächsten Fantreffen angemeldet');
@@ -896,7 +907,7 @@ class ActivityFeedTest extends TestCase
             'action' => 'member_approved',
         ]);
 
-        $dashboard = $this->get('/dashboard');
+        $dashboard = $this->dashboardWithLoadedFeed();
         $dashboard->assertSeeText('AdminNick');
         $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied NeuNick');
     }
@@ -929,7 +940,7 @@ class ActivityFeedTest extends TestCase
 
         $todo->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
@@ -958,7 +969,7 @@ class ActivityFeedTest extends TestCase
 
         $review->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
@@ -993,7 +1004,7 @@ class ActivityFeedTest extends TestCase
 
         $review->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Kommentar – Bezug nicht mehr verfügbar');
@@ -1017,7 +1028,7 @@ class ActivityFeedTest extends TestCase
 
         $message->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
@@ -1040,7 +1051,7 @@ class ActivityFeedTest extends TestCase
 
         $newMember->delete();
 
-        $response = $this->get('/dashboard');
+        $response = $this->dashboardWithLoadedFeed();
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');

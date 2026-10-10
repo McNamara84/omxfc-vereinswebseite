@@ -31,6 +31,19 @@ async function login(page, email) {
     await page.locator('input[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    // Login redirects to the dashboard; let its deferred request complete
+    // before the next full navigation aborts that request in Firefox/WebKit.
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
+}
+
+async function expectNoHorizontalOverflow(page) {
+    const layout = await page.evaluate(() => ({
+        width: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        overflowing: [...document.querySelectorAll('main *')].filter(el => el.getBoundingClientRect().right > window.innerWidth)
+            .map(el => ({tag: el.tagName, class: el.className, width: el.getBoundingClientRect().width})).slice(0, 12),
+    }));
+    expect(layout.scrollWidth, JSON.stringify(layout)).toBeLessThanOrEqual(layout.width);
 }
 
 test('EP award, private request, leader approval and updated PDF', async ({ page, playerPage }) => {
@@ -86,24 +99,26 @@ test('EP award, private request, leader approval and updated PDF', async ({ page
 
 test('mobile forms have accessible labels and no horizontal overflow', async ({ page, playerPage }) => {
     test.setTimeout(90_000);
-    const data = fixture();
-    await page.setViewportSize({ width: 390, height: 844 });
-    await playerPage.setViewportSize({ width: 390, height: 844 });
+    const data = fixture('long-name');
     await login(page, data.leader);
-    await page.goto('/rpg/abenteuer/neu');
-    await page.getByLabel('Charakter auswählen').selectOption(String(data.character_id));
-    await page.getByRole('button', { name: 'Charakter hinzufügen' }).click();
-    let results = await new AxeBuilder({ page }).include('main').withTags(['wcag2a', 'wcag2aa']).analyze();
-    expect(results.violations).toEqual([]);
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        await page.goto('/rpg/abenteuer/neu');
+        await page.getByLabel('Charakter auswählen').selectOption(String(data.character_id));
+        await page.getByRole('button', { name: 'Charakter hinzufügen' }).click();
+        const results = await new AxeBuilder({ page }).include('main').withTags(['wcag2a', 'wcag2aa']).analyze();
+        expect(results.violations).toEqual([]);
+        await expectNoHorizontalOverflow(page);
+    }
+    await playerPage.setViewportSize({ width: 320, height: 844 });
     await login(playerPage, data.player);
     await playerPage.goto('/rpg/charaktere/' + data.character_id + '/verbessern');
     await playerPage.getByLabel('Art der Änderung').selectOption('advantage');
     await playerPage.getByRole('combobox', { name: 'Eigenschaft', exact: true }).selectOption('Gesteigertes Attribut');
     await expect(playerPage.getByLabel('Ziel des Vorteils')).toBeVisible();
-    results = await new AxeBuilder({ page: playerPage }).include('main').withTags(['wcag2a', 'wcag2aa']).analyze();
+    const results = await new AxeBuilder({ page: playerPage }).include('main').withTags(['wcag2a', 'wcag2aa']).analyze();
     expect(results.violations).toEqual([]);
-    expect(await playerPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expectNoHorizontalOverflow(playerPage);
 });
 
 test('keyboard submission, server errors, rejection and withdrawal preserve available EP', async ({ page, playerPage }) => {

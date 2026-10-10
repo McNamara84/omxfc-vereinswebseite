@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 async function importPhpUtils() {
     vi.resetModules();
 

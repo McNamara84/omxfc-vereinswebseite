@@ -82,7 +82,7 @@ export default defineConfig({
   workers: playwrightWorkers,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
-  reporter: isCI ? [['line'], ['github']] : 'list',
+  reporter: isCI ? [['line'], ['github'], ['html', { open: 'never' }]] : 'list',
   
   // Browser-Projekte explizit definieren
   projects: isCI
@@ -110,5 +110,6 @@ export default defineConfig({
     baseURL: `http://127.0.0.1:${playwrightPort}`,
     reducedMotion: 'reduce',
     trace: playwrightTrace,
+    screenshot: 'only-on-failure',
   },
 });

@@ -6,4 +6,8 @@ parameters:
     paths:
         - tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
         - tests/Unit/UriSupportTest.php
+        - app/Support/UriSupport.php
+        - app/Support/MaddraxikonIdentityHmacPeppers.php
+        - app/Support/ScheduleInventory.php
+        - app/Support/CoverRatings/CoverSyncInterval.php
     tmpDir: /tmp/omxfc-phpstan
