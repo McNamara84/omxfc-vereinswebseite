@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Sourced by prepare-deployment.sh. Never downgrade an existing data volume.
 DEPLOYMENT_METADATA_CHANGED=0
+DEPLOYMENT_PHASE='preparation'
 DEPLOYMENT_SERVICES_TOUCHED=0
 DEPLOYMENT_INFRASTRUCTURE_CHANGED=0
 DEPLOYMENT_BACKUP_COMPLETE=0
@@ -146,6 +147,9 @@ RECOVERY_VOLUMES
 deployment_exit() {
     local status="$1"
     trap - EXIT INT TERM
+    if [[ "$status" != 0 ]]; then
+        echo "Deployment failed during $DEPLOYMENT_PHASE." >&2
+    fi
     if [[ "$status" != 0 && "$DEPLOYMENT_METADATA_CHANGED" = 1 ]]; then
         # Recovery has explicit checks: do not let one failed command silently
         # continue, or mask the original deployment failure with a zero exit.

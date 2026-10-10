@@ -129,6 +129,9 @@ jobs:
           severity-cutoff: high
           only-fixed: true
           output-format: table
+      - name: Verify Compose dependency images and deployment digest checks
+        run: bash docker/verify-deployment-compose.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}'
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -153,7 +156,7 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
           appendFileSync(process.env.GITHUB_OUTPUT, 'script=' + readFileSync('docker/prepare-deployment.sh').toString('base64') + '\n');
-          for (const name of ['recovery', 'retention', 'database']) {
+          for (const name of ['recovery', 'retention', 'database', 'images']) {
             appendFileSync(process.env.GITHUB_OUTPUT, name + '=' + readFileSync(`docker/deployment-${name}.sh`).toString('base64') + '\n');
           }
           NODE
@@ -180,15 +183,18 @@ jobs:
             printf '%s' '${{ steps.helper.outputs.recovery }}' | base64 -d > .deployment/deployment-recovery.sh
             printf '%s' '${{ steps.helper.outputs.retention }}' | base64 -d > .deployment/deployment-retention.sh
             printf '%s' '${{ steps.helper.outputs.database }}' | base64 -d > .deployment/deployment-database.sh
+            printf '%s' '${{ steps.helper.outputs.images }}' | base64 -d > .deployment/deployment-images.sh
             source .deployment/prepare-deployment.sh
             
             echo "Pulling new images..."
+            DEPLOYMENT_PHASE='image pull'
             $COMPOSE pull app queue scheduler db typesense nginx
 
             # Laravel 13.25 can pause all queues while the current job finishes.
             # Laravel 13.24 already exposes queue:pause, but does not support the
             # --all option, so detect the option itself for the first rollout.
             DEPLOYMENT_SERVICES_TOUCHED=1
+            DEPLOYMENT_PHASE='stopping application writers'
             if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
               echo "Pausing all queues before replacing containers..."
               docker exec maddrax-app php artisan queue:pause --all
@@ -206,17 +212,21 @@ jobs:
             # the database dump and offline Typesense archive.
             echo "Stopping application services..."
             $COMPOSE stop app nginx
+            DEPLOYMENT_PHASE='private data backup'
             backup_deployment_data
+            DEPLOYMENT_PHASE='database volume staging'
             stage_deployment_database
             
             # The digest-specific application volume is fresh. The previous
             # code volume remains available with the private rollback config.
             echo "Starting infrastructure containers..."
             DEPLOYMENT_INFRASTRUCTURE_CHANGED=1
+            DEPLOYMENT_PHASE='infrastructure startup and database upgrade'
             $COMPOSE up -d --force-recreate db typesense
             wait_for_deployment_database
 
             echo "Starting application container to initialize shared app volume..."
+            DEPLOYMENT_PHASE='application startup'
             $COMPOSE up -d --force-recreate --no-deps app
 
             echo "Starting web container..."
@@ -229,6 +239,7 @@ jobs:
             docker ps -a
             
             echo "Running Laravel setup commands..."
+            DEPLOYMENT_PHASE='Laravel migrations, caches and indexes'
             
             # CRITICAL: Clear ALL caches FIRST - do this BEFORE any file operations
             echo "Clearing all caches BEFORE running any Laravel commands..."
@@ -278,11 +289,13 @@ jobs:
             # configuration cache have been rebuilt. Otherwise they can retain
             # stale environment values for the lifetime of the process.
             echo "Starting background service containers..."
+            DEPLOYMENT_PHASE='background service startup'
             $COMPOSE up -d --force-recreate --no-deps queue scheduler
             sleep 5
 
             # Gesundheitschecks
             echo "Running health checks..."
+            DEPLOYMENT_PHASE='release health checks'
 
             echo "=== Verifying registered Laravel schedule ==="
             docker exec maddrax-app php artisan app:verify-schedule --no-ansi

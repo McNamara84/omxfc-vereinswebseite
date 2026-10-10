@@ -15,6 +15,8 @@ const workflow = fs.readFileSync(new URL('../../.github/workflows/deploy.yml', i
     .replaceAll(/printf '%s' '\$\{\{ steps\.helper\.outputs\.[^\n]+\n/g, '')
     .replace('source .deployment/prepare-deployment.sh', 'source "$DEPLOY_HELPER"');
 const image = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'a'.repeat(64);
+const typesenseImage = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'c'.repeat(64);
+const nginxImage = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'e'.repeat(64);
 const databaseImage = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'd'.repeat(64);
 const fixture = () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omxfc-deploy-'));
@@ -31,12 +33,14 @@ const run = (root, extra = {}, suffix = '') => spawnSync('bash', ['-c', 'source 
     cwd: root, encoding: 'utf8', env: {
         ...process.env, PATH: path.join(root, 'bin') + ':' + process.env.PATH,
         DEPLOY_HELPER: helper, FIXTURE_ROOT: root,
-        OMXFC_APP_IMAGE: image, OMXFC_TYPESENSE_IMAGE: image, OMXFC_NGINX_IMAGE: image,
+        OMXFC_APP_IMAGE: image, OMXFC_TYPESENSE_IMAGE: typesenseImage, OMXFC_NGINX_IMAGE: nginxImage,
         OMXFC_DATABASE_IMAGE: databaseImage, ...extra,
     },
 });
 
 const runWorkflow = (root, extra = {}) => spawnSync('bash', ['-c', workflow
+    .replace("'${{ needs.build.outputs.typesense-image }}'", `'${typesenseImage}'`)
+    .replace("'${{ needs.build.outputs.nginx-image }}'", `'${nginxImage}'`)
     .replace("'${{ needs.build.outputs.database-image }}'", `'${databaseImage}'`)
     .replaceAll(/'\$\{\{ needs\.build\.outputs\.[^']+'/g, `'${image}'`)], {
     cwd: root, encoding: 'utf8', timeout: 60_000, env: {
@@ -254,7 +258,7 @@ test('valid preparation preserves project, old code volume, image tags and priva
     } finally { fs.rmSync(root, { recursive: true }); }
 });
 
-test('successful workflow releases maintenance only after all health checks', () => {
+test('successful workflow validates services with dependencies and releases maintenance only after health checks', () => {
     const root = fixture();
     try {
         const result = runWorkflow(root);
@@ -264,10 +268,40 @@ test('successful workflow releases maintenance only after all health checks', ()
         assert.equal(state.paused, false);
         assert.ok(Object.values(state.running).every(Boolean));
         const recorded = calls(root);
+        assert.ok(recorded.some(args => args.includes('config') && args.includes('json')));
+        assert.equal(recorded.some(args => args.includes('config') && args.includes('--images')), false);
         const health = recorded.findIndex(args => args.includes('wget'));
         const up = recorded.findIndex(args => args.join(' ').includes('php artisan up'));
         assert.ok(health >= 0 && up > health);
         assert.ok(recorded[health].includes('http://127.0.0.1/up'));
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('each unscanned service image is rejected before changing the active configuration or stopping services', () => {
+    for (const service of ['app', 'queue', 'scheduler', 'typesense', 'nginx', 'db']) {
+        const root = fixture();
+        try {
+            const result = runWorkflow(root, { CONFIG_IMAGE_MISMATCH: service });
+            assert.notEqual(result.status, 0);
+            assert.ok(result.stderr.includes('Deployment image mismatch for service: ' + service));
+            assert.match(result.stderr, /Deployment failed during service image verification/);
+            assert.doesNotMatch(result.stdout + result.stderr, /FAKE_SECRET|fixture-only/);
+            assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
+            assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
+            assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
+});
+
+test('malformed resolved configuration fails without revealing its private contents', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, { INVALID_COMPOSE_JSON: '1' });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /Could not decode the deployment Compose configuration/);
+        assert.doesNotMatch(result.stdout + result.stderr, /FAKE_SECRET|fixture-only/);
+        assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
+        assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
     } finally { fs.rmSync(root, { recursive: true }); }
 });
 

@@ -668,6 +668,12 @@ Views, Routinen, Events und Fremdschlüssel müssen erhalten bleiben. Die produk
 Der Deploymenthelfer übernimmt die tatsächlichen Compose-Dateien und den
 Projektnamen des laufenden App-Containers und ergänzt ein geprüftes Image-Overlay.
 App, Queue, Scheduler, MariaDB, Typesense und Nginx verwenden dadurch die gescannten Digests.
+Die Image-Prüfung vergleicht jeden dieser sechs Dienste im aufgelösten
+Compose-JSON-Modell. Die Ausgabe von `config --images app` enthält auch
+Dependency-Images und eignet sich deshalb nicht für einen Einzelvergleich.
+Ein CI-Test mit echtem Docker Compose und PHP prüft diese Abhängigkeiten und
+weist falsche Images für jeden Dienst zurück. Die private Compose-Konfiguration
+wird dabei nicht geloggt; Deploymentfehler nennen die betroffene Phase.
 Der Datenbank-Preflight erlaubt MariaDB 12.3.x sowie vorwärts gerichtete
 Patchupdates von 13.0.0–13.0.2 auf 13.0.2; unbekannte Versionen und Downgrades
 werden vor dem Anhalten blockiert. Die Anwendung startet erst nach erfolgreichem

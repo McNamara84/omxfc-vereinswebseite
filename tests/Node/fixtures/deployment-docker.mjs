@@ -1,5 +1,6 @@
 // No Docker socket or network access: only fixture files and recorded calls.
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 
 const args = process.argv.slice(2);
 const root = process.env.FIXTURE_ROOT;
@@ -56,7 +57,26 @@ if (args[0] === 'inspect') {
         if (tail.includes('--quiet')) console.log(services.includes(service) ? 'container-' + service : 'container-app');
         else if (services.includes(service) && state.running[service]) console.log(service);
     } else if (command === 'config') {
-        if (tail.includes('--images')) console.log(tail.at(-1) === 'db' ? process.env.OMXFC_DATABASE_IMAGE : process.env.OMXFC_APP_IMAGE);
+        const images = {
+            app: process.env.OMXFC_APP_IMAGE, queue: process.env.OMXFC_APP_IMAGE,
+            scheduler: process.env.OMXFC_APP_IMAGE, db: process.env.OMXFC_DATABASE_IMAGE,
+            typesense: process.env.OMXFC_TYPESENSE_IMAGE, nginx: process.env.OMXFC_NGINX_IMAGE,
+            'init-app-data': 'fixture:legacy-init',
+        };
+        if (tail.includes('--images')) {
+            // Real Compose includes dependencies when a service is selected.
+            const service = tail.at(-1);
+            console.log([images[service], ...(['app', 'queue', 'scheduler', 'nginx'].includes(service)
+                ? [images.db, images.typesense, images['init-app-data']] : [])].join('\n'));
+        }
+        else if (tail.includes('json')) {
+            if (process.env.INVALID_COMPOSE_JSON) console.log('{FAKE_SECRET=fixture-only');
+            else {
+                if (process.env.CONFIG_IMAGE_MISMATCH) images[process.env.CONFIG_IMAGE_MISMATCH] = 'fixture:unscanned';
+                console.log(JSON.stringify({ services: Object.fromEntries(Object.entries(images)
+                    .map(([service, image]) => [service, { image, environment: { FAKE_SECRET: 'fixture-only' } }])) }));
+            }
+        }
         else if (!tail.includes('--quiet')) console.log('services: {}');
     } else if (command === 'pull') fail('pull');
     else if (['stop', 'up', 'start'].includes(command)) {
@@ -100,7 +120,19 @@ if (args[0] === 'inspect') {
     }
 } else if (args[0] === 'exec') {
     const joined = args.join(' ');
-    if (joined.includes('SELECT 1')) {
+    const phpIndex = args.indexOf('php');
+    if (args[phpIndex + 1] === '-r') {
+        // Execute the real validator in PHP, with fixture JSON only. This
+        // avoids a test double that silently accepts broken image checks.
+        const result = spawnSync('php', args.slice(phpIndex + 1), {
+            input: fs.readFileSync(0), encoding: 'utf8',
+        });
+        process.stdout.write(result.stdout || '');
+        process.stderr.write(result.stderr || result.error?.message || '');
+        save();
+        process.exit(result.status ?? 1);
+    }
+    else if (joined.includes('SELECT 1')) {
         if (process.env.FAIL_OPERATION === 'database-ready') process.exit(19);
     } else if (joined.includes('php artisan')) artisan(joined);
     else if (args[1] === 'maddrax-nginx' && joined.includes('wget')) fail('health');

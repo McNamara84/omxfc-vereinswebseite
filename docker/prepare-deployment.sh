@@ -19,6 +19,7 @@ mkdir "$BACKUP_DIR"
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-recovery.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-retention.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-database.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/deployment-images.sh"
 cp .env.production "$BACKUP_DIR/environment"
 if [[ -f "$IMAGE_OVERRIDE" ]]; then
     cp "$IMAGE_OVERRIDE" "$BACKUP_DIR/previous-images.compose.yml"
@@ -50,6 +51,7 @@ COMPOSE=omxfc_compose
 
 # Only the tested 12.3 -> 13.0 migration and forward 13.0 patch updates are allowed.
 # Never start the new major version on the original database volume.
+DEPLOYMENT_PHASE='database preflight'
 # shellcheck disable=SC2016
 DATABASE_VERSION="$($COMPOSE exec -T db sh -c '
     export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
@@ -71,6 +73,7 @@ $COMPOSE config > "$BACKUP_DIR/compose.yml"
 
 # Give each application image its own code volume. Keep the previous volume
 # for rollback instead of deleting a hard-coded volume from a guessed project.
+DEPLOYMENT_PHASE='application volume and storage preflight'
 OLD_APP_VOLUME="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if and (eq .Destination "/var/www/html") (eq .Type "volume")}}{{.Name}}{{end}}{{end}}')"
 [[ "$OLD_APP_VOLUME" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || exit 1
 [[ "$(docker volume inspect "$OLD_APP_VOLUME" --format '{{ index .Labels "com.docker.compose.volume" }}')" = 'app_data' ]] || exit 1
@@ -89,6 +92,7 @@ if [[ ! "$APP_STORAGE_MOUNT" =~ ^(volume|bind):.+$ ]]; then
     done
 fi
 typesense_container="$($COMPOSE ps --all --quiet typesense)"
+DEPLOYMENT_PHASE='Typesense storage preflight'
 TYPESENSE_DATA_TARGET="$(docker inspect "$typesense_container" --format '{{range .Mounts}}{{if and .RW (or (eq .Destination "/data") (eq .Destination "/typesense-data"))}}{{.Destination}}{{end}}{{end}}')"
 [[ "$TYPESENSE_DATA_TARGET" = /data || "$TYPESENSE_DATA_TARGET" = /typesense-data ]] || {
     echo 'Deployment requires one writable Typesense data mount at /data or /typesense-data.' >&2
@@ -137,17 +141,12 @@ DATABASE_VOLUME
 sed -i '/^  db:$/a\    environment:\n      MARIADB_AUTO_UPGRADE: "1"\n      MARIADB_DISABLE_UPGRADE_BACKUP: ""\n    volumes:\n      - type: volume\n        source: deployment_db\n        target: /var/lib/mysql' "$IMAGE_OVERRIDE.candidate"
 
 DEPLOY_COMPOSE_ARGS+=(-f "$IMAGE_OVERRIDE.candidate")
+DEPLOYMENT_PHASE='service image verification'
 $COMPOSE config --quiet
+verify_deployment_images
 DEPLOYMENT_METADATA_CHANGED=1
 mv "$IMAGE_OVERRIDE.candidate" "$IMAGE_OVERRIDE"
 DEPLOY_COMPOSE_ARGS[${#DEPLOY_COMPOSE_ARGS[@]}-1]="$IMAGE_OVERRIDE"
-
-for service in app queue scheduler; do
-    [[ "$($COMPOSE config --images "$service")" = "$OMXFC_APP_IMAGE" ]] || exit 1
-done
-[[ "$($COMPOSE config --images typesense)" = "$OMXFC_TYPESENSE_IMAGE" ]] || exit 1
-[[ "$($COMPOSE config --images nginx)" = "$OMXFC_NGINX_IMAGE" ]] || exit 1
-[[ "$($COMPOSE config --images db)" = "$OMXFC_DATABASE_IMAGE" ]] || exit 1
 
 # Persist only non-secret deployment metadata for subsequent manual Compose runs.
 COMPOSE_FILE_VALUE="$(IFS=:; echo "${BASE_FILES[*]}:$IMAGE_OVERRIDE")"
