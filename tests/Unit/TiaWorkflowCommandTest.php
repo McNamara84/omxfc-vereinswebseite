@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 class TiaWorkflowCommandTest extends TestCase
 {
-    public function test_tia_baseline_workflow_uses_the_compatible_canonical_composer_script(): void
+    public function test_tia_baseline_workflow_records_a_fresh_graph_with_the_canonical_composer_script(): void
     {
         $root = dirname(__DIR__, 2);
         $workflow = file_get_contents($root.'/.github/workflows/tia-baseline.yml');
@@ -15,9 +15,8 @@ class TiaWorkflowCommandTest extends TestCase
 
         $this->assertIsString($workflow);
         $this->assertIsString($tiaConfiguration);
-        $this->assertStringContainsString('run: composer test:tia', $workflow);
-        $this->assertStringNotContainsString('run: composer test:tia:fresh', $workflow);
-        $this->assertStringContainsString("hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php')", $workflow);
+        // The publisher must record without a previous baseline or gh session.
+        $this->assertMatchesRegularExpression('/^\s*run: composer test:tia:fresh\s*$/m', $workflow);
 
         $command = $composer['scripts']['test:tia:fresh'] ?? null;
 
