@@ -456,7 +456,7 @@ jobs:
         run: |
           mkdir -p output
           if [ -f "coverage/coverage-summary.json" ]; then
-            npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+            npm exec --no -- make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
             sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
           fi
       - name: Upload JS coverage summary

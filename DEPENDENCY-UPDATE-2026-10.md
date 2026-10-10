@@ -1,6 +1,6 @@
 # Abhängigkeitsupdate und Feature-Nutzung vom 10. Oktober 2026
 
-Ausgangsstand: `8f293705d2bb57c633f5410345b1d094ca76fe1a`. Die Versionsrecherche und die vollständige Matrix der 54 direkten Pakete stehen im [Implementierungsplan](IMPLEMENTIERUNGSPLAN_ABHAENGIGKEITEN_2026.md). Dieser Bericht beschreibt die Umsetzung. Nextcloud und die dazugehörigen persönlichen Notizen sind ausgeschlossen.
+Ausgangsstand: `8f293705d2bb57c633f5410345b1d094ca76fe1a`. Die Versionsrecherche und die vollständige Matrix der ursprünglich 54 direkten Pakete stehen im [Implementierungsplan](IMPLEMENTIERUNGSPLAN_ABHAENGIGKEITEN_2026.md). Zusätzlich wird jetzt das zuvor extern heruntergeladene Coverage-Badge-Werkzeug als direkte Dev-Abhängigkeit verwaltet. Dieser Bericht beschreibt die Umsetzung. Nextcloud und die dazugehörigen persönlichen Notizen sind ausgeschlossen.
 
 ## Versionsstand und Sicherheitskorrekturen
 
@@ -21,13 +21,15 @@ Die Composer-Auflösung aktualisiert 27 Pakete und entfernt das aufgegebene Pake
 
 Im npm-Anwendungsgraphen sind unter anderem `shell-quote`, `source-map-js` und `postcss-selector-parser` korrigiert. Der eng begrenzte Typography-Override auf Parser 7.1.6 ist durch den Vite-/Prose-Build geprüft. Die strenge Freigabe von Installationsskripten bleibt bestehen.
 
+`make-coverage-badge` 1.2.0 ist exakt als Dev-Abhängigkeit mit Integritätsprüfung im Root-Lockfile gepinnt. Der Coverage-Workflow nutzt `npm exec --no`, sodass ein fehlendes lokales Werkzeug keinen ungeprüften Download auslöst. Eine echte Badge-Erzeugung aus der Coverage-Zusammenfassung ist geprüft; die SVG zeigt die vom Werkzeug verwendete Statement-Coverage von 83,12 %. Das ist eine andere Messgröße als die Zeilen-Coverage von 84,27 %. Frisches `npm ci`, Audit und Vite-Build sind erfolgreich; `npm outdated` meldet keine veralteten direkten Pakete.
+
 Zusätzlich enthält selbst npm 12.2.0 verwundbare **gebündelte** Pakete, die ein Audit des Anwendungs-Lockfiles nicht erfasst. `docker/patch-npm-security.sh` ersetzt deshalb ausschließlich `undici` durch 6.28.1 und `brace-expansion` durch 5.0.12 einschließlich dessen `balanced-match`-Abhängigkeit. Ein eigenes Lockfile unter `docker/npm-security/` prüft Versionen und Integrität. Docker und alle npm-installierenden Workflows wenden denselben Patch an. Dependabot überwacht diesen kleinen Graphen separat; kompatible Releasezweige sind erforderlich, bis npm selbst die Korrekturen übernimmt. Danach kann der Patch entfallen.
 
 maryUI verlangt weiterhin `jfcherng/php-diff` 6.x und damit `php-sequence-matcher` 4.x. Höhere transitive Major-Versionen werden nicht gegen diese Eltern-Constraints erzwungen. Nginx bleibt auf dem vom Hersteller als Stable bezeichneten Zweig 1.30; Mainline ist eine andere Releasekategorie.
 
 OS-Sicherheitsupdates werden in den effektiven Composer-/Node-/PHP-/Nginx-/Typesense-Buildstufen installiert. Der Service-Scan prüft die tatsächlich gepatchten Buildstufen. Rohe Upstream-Images und sämtliche Funde bleiben als zusätzliche Berichte sichtbar. Behebbare High-/Critical-Funde blockieren weiterhin; Typesense blockiert sämtliche High-/Critical-Funde. Ein erfolgreicher Scan bedeutet deshalb bei den übrigen Images nicht automatisch, dass keine ungefixten Upstream-Funde existieren.
 
-Der vollständige lokale Appimage-Scan mit der Grype-Datenbank vom 09.10.2026 meldet **203 High-/Critical-Paketfunde zu 52 unterschiedlichen CVEs**, davon 34 Critical- und 169 High-Paketfunde. Keiner besitzt laut dieser Datenbank einen verfügbaren Fix im gewählten Debian-Release. Mehrere Pakete desselben Quellpakets erscheinen separat; diese Zahlen sind keine 203 unabhängigen Anwendungslücken. Die Befunde bleiben im vollständigen Scan sichtbar und werden nicht durch Ignore-Regeln entfernt. Debian unterscheidet zum Beispiel eine noch ausstehende [MariaDB-Punktkorrektur](https://security-tracker.debian.org/tracker/CVE-2026-49261), ein an Digest-Authentifizierung gebundenes [curl-Problem](https://security-tracker.debian.org/tracker/CVE-2026-11856) und einen noch ungefixten [libxml2-Befund](https://security-tracker.debian.org/tracker/CVE-2026-86142). Ihre Auswirkungen sind paket- und nutzungsabhängig; ein sauberer Composer-/npm-Audit beseitigt diese OS-Befunde nicht.
+Der vollständige lokale Scan des finalen Appimages mit Grype 0.120.1 und der Datenbank vom 09.10.2026 meldet **203 High-/Critical-Paketfunde zu 52 unterschiedlichen CVEs**, davon 34 Critical- und 169 High-Paketfunde. Die abschließende Onlineprüfung bestätigt, dass keine neuere Datenbank verfügbar ist. Keiner besitzt laut dieser Datenbank einen verfügbaren Fix im gewählten Debian-Release. Mehrere Pakete desselben Quellpakets erscheinen separat; diese Zahlen sind keine 203 unabhängigen Anwendungslücken. Die Befunde bleiben im vollständigen Scan sichtbar und werden nicht durch Ignore-Regeln entfernt. Debian unterscheidet zum Beispiel eine noch ausstehende [MariaDB-Punktkorrektur](https://security-tracker.debian.org/tracker/CVE-2026-49261), ein an Digest-Authentifizierung gebundenes [curl-Problem](https://security-tracker.debian.org/tracker/CVE-2026-11856) und einen noch ungefixten [libxml2-Befund](https://security-tracker.debian.org/tracker/CVE-2026-86142). Ihre Auswirkungen sind paket- und nutzungsabhängig; ein sauberer Composer-/npm-Audit beseitigt diese OS-Befunde nicht.
 
 Auch das offizielle alternative Basisimage `php:8.5.11-fpm-alpine3.24` wurde vergleichend gescannt: 13 High-Paketfunde zu fünf CVEs, darunter zwölf OpenSSL-Funde mit unbekanntem Fixstatus und ein behebbarer zlib-Fund. Es ist damit kein nachgewiesener Weg zu einem PHP-Stack ohne High-/Critical-Funde. Die getestete Debian-Runtime bleibt bestehen; ein Wechsel der C-Laufzeit von glibc zu musl benötigt eine eigene vollständige Kompatibilitätsprüfung. Wöchentliche Scans und frische Builds prüfen neu verfügbare Herstellerkorrekturen weiter.
 
@@ -52,7 +54,11 @@ Auch das offizielle alternative Basisimage `php:8.5.11-fpm-alpine3.24` wurde ver
 
 Die Test-Komponentenregistry wird nur in echten Konsolen-Unit-Tests verwendet. HTTP-Browsertests unter `APP_ENV=testing` rendern die echten maryUI-Komponenten. Dadurch werden Beschriftungs- und Fehlermeldungsprobleme nicht mehr durch Testattrappen verdeckt. Der Stapel-Angebotsfehler erscheint einmal als zugeordnetes `role="alert"`.
 
+Popover bleiben bei Tastaturfokus offen, auch wenn der Mauszeiger den Auslöser verlässt. Die optionale Übergangsanimation ist entfernt: Im vollständigen Firefox-Lauf konnte sie nach Escape und sofortigem erneutem Öffnen einen unsichtbaren Inhalt trotz `aria-expanded=true` hinterlassen. Der korrigierte Ablauf hat fünf aufeinanderfolgende Firefox-Läufe ohne Retry bestanden; Sichtbarkeit und ARIA-Zustand wechseln unmittelbar gemeinsam.
+
 Bei Browseraktionen, die unmittelbar nach dem Login eine volle Seitennavigation auslösen, wird zuerst das tatsächliche Laden des verzögerten Feeds abgewartet. Das vermeidet künstlich abgebrochene Livewire-Anfragen in Firefox/WebKit. Die Fehlerprüfung bleibt bestehen. Die automatische Abbruchbehandlung von Livewire selbst wird nicht durch einen allgemeinen Fehlerfilter ersetzt.
+
+Auch nach einem zusätzlichen Dashboard-Aufruf warten die RPG-Browsertests auf den verzögerten Feed. Die Mobilkorrektur begrenzt zusätzlich die Mindestbreite von `fieldset`, Beschriftungen und nativen Eingabefeldern. Explizite einspaltige Grids verhindern, dass Datumsfelder oder lange Select-Optionen die Formulare über die Viewportbreite hinaus vergrößern.
 
 Größere neue Produktfunktionen, insbesondere eine neue Suche mit Vektormodellen, werden nicht automatisch aktiviert. Bereits vorhandene Hybrid-Suchkonfiguration und deren lexikalischer Kill-Switch bleiben erhalten.
 
@@ -135,6 +141,7 @@ Alle lokalen Anwendungsprüfungen laufen in getrennten Docker-Umgebungen mit syn
 | Prüfung | Ergebnis / Stand |
 | --- | --- |
 | Composer-/npm-Lockfile-Audits | Keine gemeldeten Paket-Advisories; Composer einschließlich Dev-/Abandoned-Prüfung |
+| Finaler npm-Graph / Build / Badge | Frisches `npm ci`, 153 auditierte Pakete ohne Advisories, `npm outdated` leer; Vite-Build und lokal fixierte SVG-Badge-Erzeugung erfolgreich |
 | Vitest / Coverage | 450 Tests in 31 Dateien erfolgreich; Zeilen 84,27 %, Funktionen 86,11 % |
 | Vitest Ressourcenlecks | 450 Tests erfolgreich |
 | Mutation | 100 %: 130 von 130 Mutationen erkannt; 39 funktionale Securitytests |
@@ -148,7 +155,8 @@ Alle lokalen Anwendungsprüfungen laufen in getrennten Docker-Umgebungen mit syn
 | Echte Typesense-Integration / Restore | Schema-/Dokumentklon, identische Treffer, Rückschaltung, Neustart und Vergleich aller drei wiederhergestellten Collections erfolgreich |
 | Typesense Snapshot-Regressionen | Sechs Tests, 42 Assertions erfolgreich; fehlgeschlagener Snapshot blockiert die Freigabe |
 | maryUI / Feed in drei Browsern | Sechs gezielte Fälle erfolgreich |
-| RPG / Mobil / PDF in drei Browsern | Sechs gezielte Abläufe erfolgreich; finale Mobilprüfung mit langen Namen und Popover-/Feed-Prüfung in WebKit erfolgreich |
+| RPG / Mobil / PDF in drei Browsern | Sechs gezielte EP-/PDF-/Mobilabläufe erfolgreich; anschließend neun finale Mobilprüfungen ohne Retry: jeweils dreimal Chromium, Firefox und WebKit bei 320/390 Pixeln |
+| RPG-Navigation in Firefox | Beide korrigierten Dashboard-/Mehrpersonenabläufe jeweils dreimal ohne Retry erfolgreich; JavaScript-Fehlerprüfung bleibt aktiv |
 | Charakter-Editor | Drei korrigierte Speicherabläufe in Firefox erfolgreich; Agarther, Marsianer und Morlock in WebKit erfolgreich, Morlock nach einem Timeout nochmals geprüft |
 | Node Deploymentprüfungen | Acht Fälle erfolgreich; Digests, Projekte, unabhängiger Storage, Major-/Downgrade-Abwehr, Backups und Releasechecks |
 | Actionlint / ShellCheck / Pint | Finale Workflow-/Shellprüfung und Stilprüfung der geänderten PHP-Dateien erfolgreich |
@@ -156,6 +164,6 @@ Alle lokalen Anwendungsprüfungen laufen in getrennten Docker-Umgebungen mit syn
 | Vollständige PHP-Suite / Coverage | 3.298 Tests, 13.943 Assertions erfolgreich; 29 übersprungen; Zeilen 85,72 %. Die nachfolgende Snapshot-Korrektur ist zusätzlich separat und mit dem echten Server geprüft. |
 | Vollständiges Playwright Chromium / Firefox | Chromium: 226 erfolgreich, zwei übersprungen. Der finale Firefox-Lauf mit allen Timing-/Fokuskorrekturen läuft. |
 
-GitHub hat für `ccfaf997482041851944ab510811c8fab52d6400` alle relevanten Prüfungen erfolgreich abgeschlossen, einschließlich [PHP-/Datenbank-/Coverage-Prüfungen](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38023318820) und [Playwright](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38023318914). Firefox benötigte dort sechs Wiederholungen; die anschließenden Feed-Synchronisierungen beheben deren beobachtete Ursache. Die nachfolgenden Korrekturen werden auf ihrer eigenen Revision erneut geprüft. Ein lokaler Erfolg macht einen früheren roten Lauf nicht nachträglich grün.
+GitHub hat für `cf6828ca030717bab57636ca7ef7342feba070c9` alle relevanten Prüfungen erfolgreich abgeschlossen, einschließlich [PHP-/Datenbank-/Coverage-Prüfungen](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38025109756), [Playwright](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38025109901), Mutation, Dependency Review, Image-Scans und CodeQL. Firefox benötigte dort noch zwei Wiederholungen wegen RPG-Navigation und Formularbreite. Die anschließenden Korrekturen sind zusätzlich mit sechs Navigations- und neun Mobilfällen ohne Retry geprüft. Ein lokaler Erfolg macht einen früheren roten Lauf nicht nachträglich grün; die veröffentlichten Checks gehören ausdrücklich zur genannten Revision.
 
 Die Umsetzung befindet sich auf `chore/dependencies-upgrade` beziehungsweise PR #757. Die jeweils aktuelle Revision und deren Checks müssen vor dem Rollout überprüft werden. Ein Merge, Produktionsdeployment, eine produktive Datenmigration und Hostupdates wurden hier nicht ausgeführt. Die noch erforderliche Serverinventur und gegebenenfalls Datenbank-/Storage-Migration sind bewusst vor dem Rollout durch Preflights abgesichert.

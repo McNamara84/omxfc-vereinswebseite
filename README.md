@@ -53,7 +53,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 ## Technologie-Stack
 
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout mit Typesense, Livewire 4, maryUI 2.9 sowie Spatie PDF (Dompdf) & Sitemap.
-- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
+- **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
 - **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
@@ -610,7 +610,9 @@ ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
 Für einen versionsweisen Wechsel bei gleichem lexikalischem Schema kann
 `php artisan kompendium:clone-index 2` die bestehende Collection einschließlich
-Dokumenten kopieren und prüfen. Das Kommando aktiviert den Klon nicht. Ablauf,
+Dokumenten kopieren, prüfen und mit einem internen Snapshot dauerhaft sichern.
+Die Typesense-API-Berechtigung muss dafür `operations/snapshot` erlauben.
+Das Kommando aktiviert den Klon nicht. Ablauf,
 Wartungsfenster und Rückweg stehen im [Updatebericht Oktober 2026](DEPENDENCY-UPDATE-2026-10.md#kontrollierter-suchindex-wechsel).
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
@@ -635,6 +637,10 @@ Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
 aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
+
+Auch das Werkzeug für die JS-Coverage-Badge ist als Dev-Abhängigkeit exakt im
+Lockfile gepinnt (`make-coverage-badge` 1.2.0). Der Workflow verwendet die lokale
+Installation mit `npm exec --no` und lädt dabei keine zusätzliche CLI nach.
 
 Beim Wechsel von MariaDB 12.3 auf 13.0 vor dem ersten Neustart ein vollständiges
 Datenbank-Backup erstellen und die Wiederherstellung prüfen. `MARIADB_AUTO_UPGRADE`

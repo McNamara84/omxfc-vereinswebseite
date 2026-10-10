@@ -38,7 +38,6 @@
         role="tooltip"
         x-show="open"
         x-anchor.{{ $position }}.offset.{{ $offset }}="$refs.myTrigger"
-        x-transition
         @mouseenter="show()"
         @mouseleave="hide()"
         {{ $content->attributes->class(['z-50 inline-block max-w-xs whitespace-normal rounded-md border border-base-content/10 bg-base-100 p-3 text-sm shadow-xl']) }}
