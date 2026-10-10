@@ -263,7 +263,7 @@ class RpgNpcEngineTest extends TestCase
         $this->assertSame(500, $state['actors'][2]['position']);
     }
 
-    public function test_mismatched_jump_distance_and_ability_range_are_rejected(): void
+    public function test_jump_distance_outside_published_limits_is_rejected(): void
     {
         $state = $this->step($this->state('frekkeuscher'), 'action', 1, ['kind' => 'npc_ability', 'ability' => 'Sprung (20–30 m)']);
         $this->expectException(InvalidArgumentException::class);
@@ -276,6 +276,72 @@ class RpgNpcEngineTest extends TestCase
         $state = $this->step($state, 'ruling', 0, $this->ruling(['effect' => 'movement', 'displacement' => 2500, 'range' => 0]));
         $this->assertSame(2500, $state['actors'][1]['position']);
         $this->assertSame(100, $state['actors'][2]['position']);
+        $this->assertSame(2, $this->dice->calls);
+    }
+
+    public static function movesIntoAbilityRange(): array
+    {
+        return [
+            'sequential NPC approach' => [false, 400, 0, false],
+            'simultaneous NPC approach' => [true, 400, 0, false],
+            'simultaneous opponent approach' => [true, 0, -400, false],
+            'simultaneous joint approach' => [true, 200, -200, false],
+            'opponent declares approach first' => [true, 0, -400, true],
+        ];
+    }
+
+    #[DataProvider('movesIntoAbilityRange')]
+    public function test_npc_ability_uses_final_positions_after_declared_movements(bool $tied, int $npcMove, int $opponentMove, bool $opponentFirst): void
+    {
+        $state = $this->state('avtar', 500, tied: $tied);
+        $this->assertCount($tied ? 2 : 1, $state['group']);
+        $opponentAction = ['kind' => $opponentMove === 0 ? 'wait' : 'move', 'move' => $opponentMove];
+        if ($opponentFirst) {
+            $state = $this->step($state, 'action', 2, $opponentAction);
+        }
+        $state = $this->step($state, 'action', 1, ['kind' => 'npc_ability', 'ability' => 'Schrei', 'move' => $npcMove]);
+        $this->assertSame(0, $state['actors'][1]['position']);
+        $this->assertSame(500, $state['actors'][2]['position']);
+        $state = $this->step($state, 'ruling', 0, $this->ruling(['range' => 100, 'resistance_attribute' => 'wi']));
+        if ($tied && ! $opponentFirst) {
+            $this->assertSame(0, $state['actors'][1]['position']);
+            $this->assertSame(500, $state['actors'][2]['position']);
+            $this->assertNull($state['pending_npc_effect'] ?? null);
+            $state = $this->step($state, 'action', 2, $opponentAction);
+        }
+        $this->assertSame($npcMove, $state['actors'][1]['position']);
+        $this->assertSame(500 + $opponentMove, $state['actors'][2]['position']);
+        $this->assertSame(100, abs($state['actors'][1]['position'] - $state['actors'][2]['position']));
+        $this->assertSame(2, $this->dice->calls);
+        $state = $this->step($state, 'npc_resistance', 2, [], [1, 3]);
+        $this->assertSame('paralyzed', $state['actors'][2]['effects'][0]['type']);
+        $this->assertSame(4, $this->dice->calls);
+    }
+
+    public static function movesOutsideAbilityRange(): array
+    {
+        return [
+            'stationary out of range' => [false, 0, 0],
+            'insufficient NPC approach' => [false, 300, 0],
+            'simultaneous opponent retreat' => [true, 400, 100],
+        ];
+    }
+
+    #[DataProvider('movesOutsideAbilityRange')]
+    public function test_npc_ability_outside_final_range_has_no_effect_or_resistance_roll(bool $tied, int $npcMove, int $opponentMove): void
+    {
+        $state = $this->state('avtar', 500, tied: $tied);
+        $state = $this->step($state, 'action', 1, ['kind' => 'npc_ability', 'ability' => 'Schrei', 'move' => $npcMove]);
+        $state = $this->step($state, 'ruling', 0, $this->ruling(['range' => 100, 'resistance_attribute' => 'wi']));
+        if ($tied) {
+            $state = $this->step($state, 'action', 2, ['kind' => 'move', 'move' => $opponentMove]);
+        }
+        $this->assertSame($npcMove, $state['actors'][1]['position']);
+        $this->assertSame(500 + $opponentMove, $state['actors'][2]['position']);
+        $this->assertGreaterThan(100, abs($state['actors'][1]['position'] - $state['actors'][2]['position']));
+        $this->assertEmpty($state['actors'][2]['effects']);
+        $this->assertNull($state['pending_npc_effect'] ?? null);
+        $this->assertNotContains('npc_resistance', array_column($state['tasks'], 'type'));
         $this->assertSame(2, $this->dice->calls);
     }
 

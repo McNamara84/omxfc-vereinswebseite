@@ -40,7 +40,7 @@ trait ResolvesNpcAbilities
         }
         $this->ensure(in_array($input['resistance_attribute'] ?? null, ['none', 'st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'], true), 'Ungültige Widerstandsprobe.');
         $this->ensure(! isset($input['entangle']) || (is_bool($input['entangle']) && $context['npc_ability'] === 'Besonderer Schutz gegen gewöhnliche Waffen'), 'Festhalten ist nur für Snäkke-Waffenschutz zulässig.');
-        $this->ensure(abs($state['actors'][$context['source']]['position'] - $state['actors'][$context['target']]['position']) <= $input['range'], 'Die Fähigkeit erreicht das Ziel mit dieser Reichweite nicht.');
+        // resolveNpcEffect checks range after the action's move and all simultaneous moves.
         $this->ensure(is_string($input['reason'] ?? null) && mb_strlen(trim($input['reason'])) >= 3 && mb_strlen($input['reason']) <= 2000, 'Die ergänzende Simulatorregel begründen.');
         if (str_contains($context['npc_ability'], 'Sprung')) {
             $this->ensure(abs($input['displacement']) >= 2000 && abs($input['displacement']) <= 3000, 'Frekkeuscher springen laut Regelwerk 20–30 Meter.');
