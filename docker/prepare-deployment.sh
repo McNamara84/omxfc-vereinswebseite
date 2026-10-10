@@ -74,6 +74,13 @@ OLD_APP_VOLUME="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if and
 [[ "$OLD_APP_VOLUME" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || exit 1
 [[ "$(docker volume inspect "$OLD_APP_VOLUME" --format '{{ index .Labels "com.docker.compose.volume" }}')" = 'app_data' ]] || exit 1
 [[ "$(docker volume inspect "$OLD_APP_VOLUME" --format '{{ index .Labels "com.docker.compose.project" }}')" = "$PROJECT_NAME" ]] || exit 1
+# A new code volume must never hide uploads, private novels or sessions that
+# were stored in the old code volume. Require an independent writable mount.
+APP_STORAGE_MOUNT="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if and (eq .Destination "/var/www/html/storage") (eq .RW true)}}{{.Type}}:{{.Source}}{{end}}{{end}}')"
+[[ "$APP_STORAGE_MOUNT" =~ ^(volume|bind):.+$ ]] || {
+    echo 'Deployment requires an independent writable /var/www/html/storage mount; migrate and verify storage before replacing the code volume.' >&2
+    exit 1
+}
 printf 'volumes:\n  app_data:\n    name: %s\n' "$OLD_APP_VOLUME" >> "$BACKUP_DIR/images.yml"
 export OMXFC_APP_VOLUME="${PROJECT_NAME}_app_data_${OMXFC_APP_IMAGE##*:}"
 

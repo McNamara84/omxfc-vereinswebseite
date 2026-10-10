@@ -15,12 +15,12 @@
                     <label class="fieldset">Zyklusabschluss<select class="select w-full" x-model="cycleBonus"><option value="0">Kein Zyklusabschluss</option><option value="1">Nicht erfolgreich · 1 EP</option><option value="2">Neutral · 2 EP</option><option value="4">Sieg · 4 EP</option></select></label>
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
-                    <label class="fieldset grow">Charakter auswählen<select class="select w-full" x-model="selectedCharacter"><option value="">Bitte wählen</option><template x-for="character in config.characters" :key="character.id"><option :value="character.id" x-text="character.name"></option></template></select></label>
+                    <label class="fieldset min-w-0 grow basis-64">Charakter auswählen<select class="select w-full min-w-0 max-w-full" x-model="selectedCharacter"><option value="">Bitte wählen</option><template x-for="character in config.characters" :key="character.id"><option :value="character.id" x-text="character.name"></option></template></select></label>
                     <button type="button" class="btn" @click="addParticipant()">Charakter hinzufügen</button>
                 </div>
                 <template x-for="(participant, index) in participants" :key="participant.character_id">
-                    <section class="rounded-xl border border-base-300 p-4 space-y-3">
-                        <h2 class="font-semibold" x-text="participant.label"></h2>
+                    <section class="min-w-0 rounded-xl border border-base-300 p-4 space-y-3">
+                        <h2 class="font-semibold wrap-break-word" x-text="participant.label"></h2>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <label class="flex gap-2"><input class="checkbox" type="checkbox" x-model="participant.survived" />Abenteuer überlebt · 1 EP</label>
                             <label class="flex gap-2"><input class="checkbox" type="checkbox" x-model="participant.humor" />Runde zum Lachen gebracht · 1 EP</label>

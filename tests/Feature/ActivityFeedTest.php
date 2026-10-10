@@ -35,6 +35,7 @@ use App\Support\PreviewText;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Testing\TestResponse;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -62,7 +63,7 @@ class ActivityFeedTest extends TestCase
         return $user;
     }
 
-    private function dashboardWithLoadedFeed(): \Illuminate\Testing\TestResponse
+    private function dashboardWithLoadedFeed(): TestResponse
     {
         // A preceding Livewire interaction flushes its test configuration, so
         // enable resolved rendering immediately before each content assertion.

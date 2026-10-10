@@ -40,31 +40,31 @@ export function assessReleaseChecks(runs) {
 }
 
 export async function waitForReleaseChecks() {
-if (!repository || !sha || !process.env.GH_TOKEN || !process.env.GITHUB_OUTPUT) throw new Error('Release check environment is incomplete.');
+    if (!repository || !sha || !process.env.GH_TOKEN || !process.env.GITHUB_OUTPUT) throw new Error('Release check environment is incomplete.');
 
-while (Date.now() < deadline) {
-    const head = await api('git/ref/heads/main');
-    if (head.object.sha !== sha) {
-        appendFileSync(process.env.GITHUB_OUTPUT, 'deploy=false\n');
-        console.log('A newer main revision supersedes this deployment.');
-        return;
-    }
-    const { workflow_runs: runs } = await api(`actions/runs?event=push&head_sha=${sha}&per_page=100`);
-    const result = assessReleaseChecks(runs);
-
-    if (result.ready) {
+    while (Date.now() < deadline) {
         const head = await api('git/ref/heads/main');
-        const current = head.object.sha === sha;
-        appendFileSync(process.env.GITHUB_OUTPUT, `deploy=${current}\n`);
-        console.log(current ? `All release checks passed for ${sha}.` : 'A newer main revision supersedes this deployment.');
-        return;
+        if (head.object.sha !== sha) {
+            appendFileSync(process.env.GITHUB_OUTPUT, 'deploy=false\n');
+            console.log('A newer main revision supersedes this deployment.');
+            return;
+        }
+        const { workflow_runs: runs } = await api(`actions/runs?event=push&head_sha=${sha}&per_page=100`);
+        const result = assessReleaseChecks(runs);
+
+        if (result.ready) {
+            const head = await api('git/ref/heads/main');
+            const current = head.object.sha === sha;
+            appendFileSync(process.env.GITHUB_OUTPUT, `deploy=${current}\n`);
+            console.log(current ? `All release checks passed for ${sha}.` : 'A newer main revision supersedes this deployment.');
+            return;
+        }
+
+        console.log(`Waiting for ${result.pending} release workflows for ${sha}.`);
+        await delay(30_000);
     }
 
-    console.log(`Waiting for ${result.pending} release workflows for ${sha}.`);
-    await delay(30_000);
-}
-
-throw new Error('Release checks did not finish within 90 minutes.');
+    throw new Error('Release checks did not finish within 90 minutes.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await waitForReleaseChecks();

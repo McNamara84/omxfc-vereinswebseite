@@ -564,7 +564,7 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 
 ## Kompendium-Suche: lexikal und hybrid
 
-Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.7 kann
+Die Typesense-Suche bleibt standardmäßig rein lexikal. Laravel Scout 11.9 kann
 optional die native Typesense-Einbettung für eine hybride Volltext-/Semantiksuche
 nutzen. Suchmodus und aktive Indexvariante sind absichtlich getrennt: Der Modus
 steuert nur die Anfrage, die Variante dagegen Collection-Name und Schema.
@@ -583,7 +583,8 @@ Staging-Umgebung geprüft. Für den kontrollierten Aufbau werden Suchzugriffe un
 schreibende Index-Jobs in einem Wartungsfenster pausiert. Der Suchmodus bleibt
 zunächst `lexical`, während `KOMPENDIUM_SEARCH_INDEX_VARIANT=hybrid` gesetzt
 wird. Anschließend die Konfiguration leeren und den neuen Index vollständig
-aufbauen:
+aufbauen. Für einen unterbrochenen Import kann der bestehende Index ohne Löschen
+mit `php artisan kompendium:rebuild-index --resume` erneut importiert werden:
 
 ```bash
 php artisan config:clear
@@ -607,12 +608,18 @@ kontrolliert neu aufgebauten beziehungsweise synchronisierten Zielindex (oder
 künftig einen atomaren Typesense-Alias-Wechsel). Suchmodus und Laufzeit werden
 ohne zusätzliche personenbezogene Daten im Suchprotokoll erfasst.
 
+Für einen versionsweisen Wechsel bei gleichem lexikalischem Schema kann
+`php artisan kompendium:clone-index 2` die bestehende Collection einschließlich
+Dokumenten kopieren und prüfen. Das Kommando aktiviert den Klon nicht. Ablauf,
+Wartungsfenster und Rückweg stehen im [Updatebericht Oktober 2026](DEPENDENCY-UPDATE-2026-10.md#kontrollierter-suchindex-wechsel).
+
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
 Prüfergebnisse, bekannte Versionsgrenzen und verbleibende Image-Sicherheitsbefunde:
-[Abhängigkeitsupdate vom 28. September 2026](DEPENDENCY-UPDATE.md).
+[Abhängigkeitsupdate vom 10. Oktober 2026](DEPENDENCY-UPDATE-2026-10.md).
+Der [Septemberbericht](DEPENDENCY-UPDATE.md) bleibt als historischer Stand erhalten.
 
-Stand der Aktualisierung: **28. September 2026**. PHP 8.5.11 basiert auf Debian
+Stand der Aktualisierung: **10. Oktober 2026**. PHP 8.5.11 basiert auf Debian
 Trixie; Node 26.11.1 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
@@ -625,8 +632,7 @@ OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
 den geprüften Digest an das Deployment.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Verbleibende upstreambedingte Grenzen: Pest 5.2.1 schließt PHPUnit
-13.3.5 explizit aus, daher bleibt PHPUnit bei 13.3.4. maryUI 2.9.10 benötigt
+aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
 
@@ -636,11 +642,13 @@ aktualisiert die Systemtabellen; ein Rollback benötigt das Backup und das alte
 Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
 `docker-compose.yml` ist absichtlich nicht versioniert: Die freigegebenen
 Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
-Insbesondere muss `typesense.image` dort
-`${OMXFC_TYPESENSE_IMAGE:?OMXFC_TYPESENSE_IMAGE is required}` verwenden. Der Workflow
-prüft diese Voraussetzung vor dem Anhalten von Diensten und speichert den
-gescannten Image-Digest anschließend in `.env.production` für manuelle
-Compose-Befehle.
+Der Deploymenthelfer übernimmt die tatsächlichen Compose-Dateien und den
+Projektnamen des laufenden App-Containers und ergänzt ein geprüftes Image-Overlay.
+App, Queue, Scheduler, Typesense und Nginx verwenden dadurch die gescannten Digests.
+Der Datenbank-Preflight erlaubt für diesen Rollout ausschließlich das Patchupdate
+innerhalb MariaDB 13.0. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
+aktuellen Revision erfolgreich sein. Private Datenbackups, alte Image-Tags und
+Codevolumes sichern den [dokumentierten Rückweg](DEPENDENCY-UPDATE-2026-10.md#deployment-und-rückweg).
 
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:
@@ -666,6 +674,10 @@ Container-Basis- und Service-Images sind versions- und digestgenau gepinnt und
 werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
 wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
 Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
+
+Auch npm 12.2.0 selbst erhält über `docker/patch-npm-security.sh` überprüfte
+Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
+unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
 
 Der Service-Image-Scan verwendet dieselbe Regel wie der Produktionsscan:
 Hohe und kritische Befunde mit verfügbarem Fix blockieren die CI. Befunde ohne
@@ -695,23 +707,26 @@ geprüft und bei solchen Befunden blockiert.
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
 | Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
+| Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
+| Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
+| Deploymenthelfer und Releasechecks prüfen | `npm run test:deployment` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen lokal bewusst effizient: Pest bleibt auf SQLite `:memory:`, Vitest läuft im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren diesen Modus automatisch. Der Mutation-Job prüft die ausdrücklich mit `mutates()` markierten Sicherheitsklassen und erzwingt für die derzeit 137 Mutationen einen Score von 100 %. Der explizite Anwendungspfad umgeht außerdem eine Pfadauflösungsschwäche von Pest 5.2 unter Windows. Da Pest 5 TIA bei expliziten Testpfaden deaktiviert und keine PHPUnit-Testklassen unterstützt, verwenden diese Skripte `phpunit.tia.xml` mit ausschließlich funktionalen Pest-Tests. Eine frische Baseline wird auf `main` zusätzlich als GitHub-Actions-Artefakt veröffentlicht; Mutation Tests laufen separat wöchentlich und manuell.
-Die PHPUnit-13.3-Diagnosen `test:stability:repeat` und `test:stability:retry` sind bewusst manuelle Zusatzprüfungen. Insbesondere Retry ersetzt keinen regulär erfolgreichen Testlauf und wird deshalb nicht als CI-Pflichtprüfung verwendet.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5 trennt fünf reine Node-Testdateien von 26 DOM-Testdateien; die Ressourcenleckprüfung läuft ebenfalls in CI. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf Push, PR, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. TIA lädt eine nach PHP-Version, Lockfile und Testkonfiguration getrennte Baseline und aktualisiert sie; `--fresh` ist für den bewussten Neuaufbau vorgesehen. Die vollständige Suite bleibt Pflicht.
+Die PHPUnit-13.4-Diagnosen `test:stability:repeat` und `test:stability:retry` sind manuelle Zusatzprüfungen. Retry ersetzt keinen regulär erfolgreichen Testlauf.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Der Test-Stack verwendet Pest 5.2 und PHPUnit 13.3. Alle direkt eingebundenen Pest-Plugins sind auf `^5.0` festgelegt; PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
+Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
 ## Deployment
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.10 und npm 12.2.0 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.11.1 und gepatchtem npm 12.2.0 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

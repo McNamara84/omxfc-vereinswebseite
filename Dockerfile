@@ -104,13 +104,8 @@ RUN composer dump-autoload --optimize
 RUN mkdir -p public/vendor/livewire \
     && cp -r vendor/livewire/livewire/dist/* public/vendor/livewire/
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
-# Create storage directories if they don't exist
+# Create storage directories and set permissions once. Repeating the recursive
+# ownership pass needlessly copies the same vendor tree into another layer.
 RUN mkdir -p storage/app/public \
     && mkdir -p storage/framework/sessions \
     && mkdir -p storage/framework/views \
@@ -120,6 +115,7 @@ RUN mkdir -p storage/app/public \
     && touch storage/logs/laravel.log \
     && mkdir -p bootstrap/cache \
     && chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 9000

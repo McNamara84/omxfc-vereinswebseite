@@ -26,6 +26,8 @@ Thumbs.db
 /storage/framework/views/*
 /storage/logs/*
 /storage/*.key
+/storage/app/*
+/storage/testing
 /public/storage
 
 # Composer
@@ -48,6 +50,12 @@ yarn-error.log
 /phpunit.xml
 
 # Environment
+/.env*
+!/.env.example
+!/.env.docker.dev.example
+/.aws
+/.codex
+/.agents
 .env
 .env.backup
 .env.production

@@ -12,9 +12,9 @@ use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\User;
+use App\Services\Dashboard\DashboardActivityQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
-use App\Services\Dashboard\DashboardActivityQuery;
 use Livewire\Livewire;
 use Tests\TestCase;
 

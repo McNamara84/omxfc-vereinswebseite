@@ -23,6 +23,7 @@ if(a[0]==='inspect') {
  if(format.includes('config_files')) console.log(process.env.FOREIGN_FILE || root+'/compose.yml');
  else if(format.includes('project')) console.log('fixture');
  else if(format.includes('.Image')) console.log('sha256:'+'b'.repeat(64));
+ else if(format.includes('/var/www/html/storage')) console.log(process.env.MISSING_STORAGE ? '' : 'volume:/var/lib/docker/volumes/fixture_storage/_data');
  else if(format.includes('/var/www/html')) console.log('fixture_app_data_old');
  else if(format.includes('/data')) console.log('/data');
 } else if(a[0]==='volume') console.log(a.at(-1).includes('compose.volume') ? 'app_data' : 'fixture');
@@ -75,6 +76,17 @@ test('a database major upgrade or downgrade cannot happen implicitly', () => {
             assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
         } finally { fs.rmSync(root, { recursive: true }); }
     }
+});
+
+test('storage inside the code volume blocks replacement before environment changes', () => {
+    const root = fixture();
+    try {
+        const result = run(root, { MISSING_STORAGE: '1' });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /independent writable.*storage mount/);
+        assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
+        assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
+    } finally { fs.rmSync(root, { recursive: true }); }
 });
 
 test('valid preparation preserves project, old code volume, image tags and private backups', () => {

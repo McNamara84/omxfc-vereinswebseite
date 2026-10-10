@@ -11,6 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
@@ -685,7 +687,7 @@ class RpgCharEditorPdfTest extends TestCase
 
     public function test_real_pdf_exports_use_a_writable_private_font_cache_for_repeated_rendering(): void
     {
-        $fontPath = storage_path('framework/testing/pdf-fonts-'.\Illuminate\Support\Str::uuid());
+        $fontPath = storage_path('framework/testing/pdf-fonts-'.Str::uuid());
         config([
             'laravel-pdf.dompdf.font_dir' => $fontPath,
             'laravel-pdf.dompdf.font_cache' => $fontPath,
@@ -710,7 +712,7 @@ class RpgCharEditorPdfTest extends TestCase
             $this->assertTrue(is_writable($fontPath));
             $this->assertFalse(config('laravel-pdf.dompdf.is_remote_enabled'));
         } finally {
-            \Illuminate\Support\Facades\File::deleteDirectory($fontPath);
+            File::deleteDirectory($fontPath);
         }
     }
 
