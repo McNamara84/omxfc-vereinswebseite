@@ -7,6 +7,7 @@
             data-testid="rpg-characters-header"
         >
             <x-slot:actions>
+                @can('manage-rpg-npcs')<a href="{{ route('rpg.npcs.create') }}" class="btn btn-outline">NSC aus Regelwerk erstellen</a>@endcan
                 @can('access-rpg-checks')
                     @can('access-rpg-combats')<a href="{{ route('rpg.combats.index') }}" class="btn btn-outline">Übungskämpfe</a>@endcan
                     <a href="{{ route('rpg.checks.index') }}" class="btn btn-outline">Proben</a>
@@ -41,6 +42,16 @@
             </div>
         @endif
 
+        @can('manage-rpg-npcs')
+            <x-ui.panel class="mt-6" title="NSCs der AG" description="Gemeinsamer Bestand ohne Slot- oder Baxx-Kosten. Entscheidungen trifft ausschließlich die aktuelle AG-Leitung.">
+                @forelse($npcs as $npc)
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-base-300 py-3" data-testid="npc-row">
+                        <span>{{ $npc->displayName() }} · {{ $npc->profile['npc']['template_name'] }} {{ $npc->configuration['rank'] ?? '' }}</span>
+                        <div class="flex gap-2"><a class="btn btn-ghost btn-sm" href="{{ route('rpg.npcs.show', $npc) }}">Anzeigen</a><a class="btn btn-primary btn-sm" href="{{ route('rpg.combats.create', ['npc_id' => $npc->id]) }}">Herausfordern</a></div>
+                    </div>
+                @empty<p>Noch keine NSCs erstellt.</p>@endforelse
+            </x-ui.panel>
+        @endcan
         <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <x-ui.panel title="Gespeicherte Charaktere" description="Der erste Speicherplatz ist kostenlos. Gelöschte Charaktere geben ihren belegten Slot wieder frei.">
                 @if($characters->isEmpty())

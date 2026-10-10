@@ -181,6 +181,9 @@ trait ResolvesPsychicCombat
                     }
                     $this->event($state, 'effect_expired', $side, ['message' => 'Zeitwirkung beendet: '.$effect['type'], 'pages' => '36–37']);
                     unset($actor['effects'][$index]);
+                    if ($effect['type'] === 'swallowed') {
+                        unset($actor['swallowed_by']);
+                    }
                 } elseif ($effect['type'] === 'control' && $effect['next_resistance'] <= $state['seconds']) {
                     $repeat = $effect['attack'];
                     $repeat['repeat'] = true;

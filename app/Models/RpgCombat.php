@@ -10,13 +10,17 @@ class RpgCombat extends Model
 {
     use UsesUtcCombatDates;
 
+    public const OPEN_STATUSES = ['challenged', 'preparing', 'active', 'awaiting_ruling'];
+
     protected $guarded = [];
+
+    protected $attributes = ['kind' => 'player_vs_player'];
 
     protected $hidden = ['state', 'submission_hash'];
 
     protected function casts(): array
     {
-        return ['state' => 'array', 'revision' => 'integer', 'expires_at' => 'immutable_datetime',
+        return ['state' => 'array', 'suspension' => 'array', 'revision' => 'integer', 'expires_at' => 'immutable_datetime',
             'accepted_at' => 'immutable_datetime', 'completed_at' => 'immutable_datetime'];
     }
 
@@ -37,7 +41,7 @@ class RpgCombat extends Model
 
     public function isOpen(): bool
     {
-        return in_array($this->status, ['challenged', 'preparing', 'active', 'awaiting_ruling'], true);
+        return in_array($this->status, self::OPEN_STATUSES, true);
     }
 
     public static function statusLabel(string $status): string

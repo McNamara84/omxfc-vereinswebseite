@@ -9,6 +9,7 @@ use InvalidArgumentException;
 final class CombatEngine
 {
     use ResolvesCombatAttacks;
+    use ResolvesNpcAbilities;
     use ResolvesPsychicCombat;
 
     private array $events = [];
@@ -19,7 +20,8 @@ final class CombatEngine
     {
         $this->ensure(count($profiles) === 2 && $distance >= 100 && $roundLimit >= 1, 'Ungültige Kampfbedingungen.');
         $this->events = [];
-        $state = ['version' => RpgCombatRules::VERSION, 'round' => 1, 'seconds' => 0, 'limit' => $roundLimit,
+        $version = isset($profiles[0]['npc']) || isset($profiles[1]['npc']) ? RpgCombatRules::NPC_VERSION : RpgCombatRules::VERSION;
+        $state = ['version' => $version, 'round' => 1, 'seconds' => 0, 'limit' => $roundLimit,
             'phase' => 'preparing', 'actors' => [], 'rules' => [], 'tasks' => [], 'next_token' => 0,
             'groups' => [], 'group' => [], 'declarations' => [], 'queue' => [], 'pending' => null,
             'continuation' => null, 'end' => null, 'abort_offer' => null];
@@ -41,7 +43,7 @@ final class CombatEngine
     public function decide(array $state, int $token, array $input): array
     {
         $this->events = [];
-        $this->ensure($state['version'] === RpgCombatRules::VERSION && $state['end'] === null, 'Dieser Kampf kann nicht fortgesetzt werden.');
+        $this->ensure(in_array($state['version'], [RpgCombatRules::VERSION, RpgCombatRules::NPC_VERSION], true) && $state['end'] === null, 'Dieser Kampf kann nicht fortgesetzt werden.');
         $task = $state['tasks'][$token] ?? throw new InvalidArgumentException('Diese Entscheidung ist nicht mehr offen.');
         $this->ensure($task['type'] === 'ruling' || $state['continuation'] === null, 'Zunächst muss die Regelfrage entschieden werden.');
         unset($state['tasks'][$token]);
@@ -62,6 +64,8 @@ final class CombatEngine
             'strength' => $this->strength($state, $task, $input),
             'resistance' => $this->resistance($state, $task, $input),
             'psychic_resistance' => $this->psychicResistance($state, $task, $input),
+            'npc_resistance' => $this->npcResistance($state, $task, $input),
+            'npc_order' => $this->npcOrder($state, $task, $input),
             'technology' => $this->technology($state, $task, $input),
             'ruling' => $this->rule($state, $task, $input),
             '_round' => $this->beginRound($state),
@@ -215,6 +219,8 @@ final class CombatEngine
         foreach ($state['group'] as $side) {
             if ($state['actors'][$side]['blocked_until'] >= $state['round']) {
                 $this->event($state, 'skipped', $side, ['message' => 'Handlung entfällt nach Verteidigungspatzer.', 'pages' => '48']);
+            } elseif (array_any($state['actors'][$side]['effects'], fn ($e) => $e['type'] === 'paralyzed' && $e['expires'] > $state['seconds'])) {
+                $this->event($state, 'skipped', $side, ['message' => 'Handlung entfällt durch Paralyse.', 'pages' => '57']);
             } else {
                 $this->task($state, 'action', $side);
             }
@@ -227,7 +233,7 @@ final class CombatEngine
     private function action(array &$state, array $task, array $input): void
     {
         $this->keys($input, ['kind', 'weapon', 'mode', 'attribute', 'aim', 'fire', 'move', 'shield', 'weapons',
-            'power', 'duration', 'range', 'strength', 'damage', 'target', 'object', 'weight', 'description', 'effect', 'displacement']);
+            'power', 'duration', 'range', 'strength', 'damage', 'target', 'object', 'weight', 'description', 'effect', 'displacement', 'ability']);
         $this->ensure(is_string($input['kind'] ?? null), 'Eine Handlung auswählen.');
         $side = $task['side'];
         // Validate before asking the leader; invalid requests cannot create arbitration queues.
@@ -235,6 +241,17 @@ final class CombatEngine
         $rules = $this->actionRules($state, $side, $input);
         if ($this->defer($state, $rules, $task, $input)) {
             return;
+        }
+        if ($input['kind'] === 'npc_ability') {
+            if (! isset($state['npc_interpretations'][$task['token']])) {
+                $source = $input['ability'] === 'Befreiung' ? ($state['actors'][$side]['swallowed_by'] ?? $state['actors'][$side]['held_by']) : $side;
+                $target = $input['ability'] === 'Befreiung' || in_array(self::npcAbilityEffects($input['ability'])[0], ['movement', 'disguised', 'perception', 'protection'], true) ? $side : 3 - $side;
+                $this->requestNpcRuling($state, $task, $input, $input['ability'], $source, $target);
+
+                return;
+            }
+            $input['interpretation'] = $state['npc_interpretations'][$task['token']];
+            unset($state['npc_interpretations'][$task['token']]);
         }
         $state['declarations'][$side] = $input;
         $this->event($state, 'declared', $side, ['message' => 'Handlung verbindlich festgelegt. Sie wird nach allen gleichzeitigen Ansagen aufgedeckt.']);
@@ -246,8 +263,16 @@ final class CombatEngine
             $move = $declaration['move'] ?? 0;
             $state['actors'][$actorSide]['position'] += $move;
             $state['actors'][$actorSide]['moved'] = abs($move);
+            $actor = &$state['actors'][$actorSide];
+            $direction = $move <=> 0;
+            $previous = $actor['runup'] ?? [];
+            $actor['runup'] = $declaration['kind'] === 'run' && $direction !== 0
+                ? ['distance' => abs($move) + (($previous['round'] ?? 0) === $state['round'] - 1 && ($previous['direction'] ?? 0) === $direction ? $previous['distance'] : 0), 'direction' => $direction, 'round' => $state['round']]
+                : [];
+            unset($actor);
             $this->event($state, 'action', (int) $actorSide, ['message' => self::actionLabels()[$declaration['kind']], 'selection' => $declaration, 'pages' => '46–50']);
         }
+        $this->carrySwallowedActors($state);
         foreach ($state['group'] as $actorSide) {
             if (isset($state['declarations'][$actorSide])) {
                 $this->executeAction($state, $actorSide, $state['declarations'][$actorSide]);
@@ -274,7 +299,7 @@ final class CombatEngine
             }],
             default => [],
         }];
-        if (($actor['weapons'][$input['weapon'] ?? '']['id'] ?? '') === 'natural') {
+        if (($actor['weapons'][$input['weapon'] ?? '']['id'] ?? '') === 'natural' && ! isset($actor['profile']['npc'])) {
             $rules[] = 'natural_weapons';
         }
         if (($actor['weapons'][$input['weapon'] ?? '']['id'] ?? '') === 'driller') {
@@ -290,7 +315,7 @@ final class CombatEngine
             'full_defense' => 'Volle Verteidigung', 'move' => 'Bewegen', 'run' => 'Rennen', 'stand' => 'Aufstehen',
             'switch' => 'Waffen wechseln', 'pickup' => 'Waffe aufnehmen', 'reload' => 'Nachladen', 'unjam' => 'Ladehemmung beseitigen',
             'heal' => 'Heilgel verwenden', 'psychic' => 'Psychische Kraft einsetzen', 'creative' => 'Kreative Aktion',
-            'object' => 'Ausrüstung angreifen', 'wait' => 'Abwarten'];
+            'object' => 'Ausrüstung angreifen', 'wait' => 'Abwarten', 'npc_ability' => 'NSC-Sonderfähigkeit / Befreiung'];
     }
 
     private function validateAction(array $state, int $side, array $input): void
@@ -302,6 +327,7 @@ final class CombatEngine
         }
         $this->ensure(! $actor['full_defense'] || ! in_array($input['kind'], ['attack', 'disarm', 'knockdown', 'object', 'psychic'], true), 'Volle Verteidigung schließt Angriffe in dieser Runde aus.');
         $move = $input['move'] ?? 0;
+        $this->ensure(! isset($actor['swallowed_by']) || ($move === 0 && in_array($input['kind'], ['npc_ability', 'wait'], true)), 'Verschlungen: Befreiung anfordern oder abwarten.');
         $this->ensure(is_int($move) && abs($move) <= CombatStats::movement($actor) * ($input['kind'] === 'run' ? 4 : 1)
             && (! $actor['prone'] || $move === 0), 'Unzulässige Bewegung.');
         $distance = abs($actor['position'] + $move - $state['actors'][3 - $side]['position']);
@@ -309,6 +335,12 @@ final class CombatEngine
             $this->ensure(is_string($input['weapon'] ?? null) && is_int($input['mode'] ?? 0), 'Waffe und Angriffsart auswählen.');
             $weapon = CombatStats::weapon($actor, $input['weapon']);
             $mode = CombatStats::mode($weapon, $input['mode'] ?? 0);
+            if (($mode['runup'] ?? 0) > 0) {
+                $runup = $actor['runup'] ?? [];
+                $direction = ($state['actors'][3 - $side]['position'] - $actor['position']) <=> 0;
+                $this->ensure(($runup['round'] ?? 0) === $state['round'] - 1 && ($runup['direction'] ?? 0) === $direction
+                    && ($move === 0 || ($move <=> 0) === $direction) && ($runup['distance'] ?? 0) + abs($move) >= $mode['runup'], 'Dieser Angriff benötigt mindestens sechs Meter tatsächlichen, geradlinigen Anlauf.');
+            }
             $this->ensure(! $weapon['jammed'] && ($weapon['fuel'] === null || $weapon['fuel'] > 0), 'Die Waffe ist blockiert oder ohne Treibstoff.');
             CombatStats::attack($actor, $weapon, $mode, $state['rules'], $distance, $input);
             if ($input['kind'] !== 'attack') {
@@ -346,6 +378,15 @@ final class CombatEngine
         } elseif ($input['kind'] === 'creative') {
             $this->ensure(is_string($input['description'] ?? null) && mb_strlen(trim($input['description'])) >= 3
                 && mb_strlen($input['description']) <= 1000, 'Die kreative Handlung kurz beschreiben.');
+        } elseif ($input['kind'] === 'npc_ability') {
+            $abilities = $actor['profile']['npc']['abilities'] ?? [];
+            if (isset($actor['swallowed_by'])) {
+                $abilities = ['Befreiung'];
+            } elseif (isset($actor['held_by'])) {
+                $abilities[] = 'Befreiung';
+            }
+            $this->ensure(is_string($input['ability'] ?? null) && in_array($input['ability'], $abilities, true)
+                && ! str_contains($input['ability'], 'Verschlingen'), 'Diese Sonderfähigkeit ist nicht verfügbar. Verschlingen wird durch einen erfolgreichen Biss ausgelöst.');
         }
     }
 
@@ -356,6 +397,12 @@ final class CombatEngine
             case 'attack': case 'disarm': case 'knockdown': case 'object':
                 $actor['has_attacked'] = true;
                 $this->queueAttack($state, $side, $input);
+                $mode = $actor['weapons'][$input['weapon']]['modes'][$input['mode'] ?? 0];
+                if ($input['kind'] === 'attack') {
+                    for ($index = 1; $index < ($mode['attack_count'] ?? 1); $index++) {
+                        $this->queueAttack($state, $side, $input);
+                    }
+                }
                 if ($input['kind'] === 'attack' && count($actor['held']) === 2) {
                     $other = array_values(array_diff($actor['held'], [$input['weapon']]))[0] ?? null;
                     if ($other !== null) {
@@ -418,6 +465,9 @@ final class CombatEngine
                 $actor['has_attacked'] = true;
                 $state['queue'][] = ['kind' => 'psychic', 'side' => $side, 'input' => $input];
                 break;
+            case 'npc_ability':
+                $state['queue'][] = ['kind' => 'npc_ability', 'side' => $side, 'interpretation' => $input['interpretation']];
+                break;
             case 'creative':
                 $bonus = match ($state['rules']['context'] ?? 'none') {
                     'plus_one' => 1, 'plus_two' => 2, default => 0
@@ -441,7 +491,7 @@ final class CombatEngine
         foreach ($weapons as $id) {
             $this->ensure(is_string($id) && isset($actor['weapons'][$id]), 'Unbekannte Waffe.');
             $weapon = $actor['weapons'][$id];
-            $this->ensure(! $weapon['natural'] && ! $weapon['broken'] && $weapon['position'] === null, 'Diese Waffe kann nicht bereitgehalten werden.');
+            $this->ensure(! $weapon['natural'] && ! $weapon['broken'] && ! ($weapon['stuck'] ?? false) && $weapon['position'] === null, 'Diese Waffe kann nicht bereitgehalten werden.');
             $this->ensure(! (CombatStats::disadvantage($actor, 'Primitiv') && $weapon['education'] > 0), 'Primitiv verhindert technische Waffen.');
             $this->ensure(! array_key_exists($id, $actor['technology']) || $actor['technology'][$id], 'Die Benutzungsprobe für diese Waffe ist gescheitert.');
             $hands += $weapon['hands'];
@@ -455,6 +505,7 @@ final class CombatEngine
     private function endRound(array &$state): void
     {
         $state['phase'] = 'round_effects';
+        $this->npcRoundEffects($state);
         $state['seconds'] += RpgCombatRules::ROUND_SECONDS;
         $this->roundEffects($state);
         $this->nextAttack($state);
@@ -526,6 +577,14 @@ final class CombatEngine
 
     private function rule(array &$state, array $task, array $input): void
     {
+        if (isset($task['context']['npc_ability']) && ! ($input['abort'] ?? false)) {
+            $this->npcRuling($state, $task, $input);
+
+            return;
+        }
+        if (isset($task['context']['npc_ability']) && ($input['abort'] ?? false) === true) {
+            $input = array_intersect_key($input, array_flip(['reason', 'abort']));
+        }
         $this->keys($input, ['choices', 'reason', 'abort']);
         if (($input['abort'] ?? false) === true) {
             $this->ensure(is_string($input['reason'] ?? null) && mb_strlen(trim($input['reason'])) >= 3 && mb_strlen($input['reason']) <= 2000, 'Den neutralen Abbruch begründen.');
@@ -566,6 +625,9 @@ final class CombatEngine
                     $controller = $effect['controller'];
                 }
             }
+        }
+        if ($type === 'action' && isset($state['actors'][$side]['profile']['npc']) && $controller !== $side && ! ($context['ordered'] ?? false)) {
+            $type = 'npc_order';
         }
         $state['tasks'][$token] = compact('token', 'type', 'side', 'controller', 'context');
     }

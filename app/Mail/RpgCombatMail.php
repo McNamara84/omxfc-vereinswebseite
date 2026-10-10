@@ -15,7 +15,7 @@ class RpgCombatMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(subject: match ($this->delivery->kind) {
-            'invitation' => 'Neue Herausforderung zum Übungskampf', 'started' => 'Dein Übungskampf beginnt', default => 'Deine Entscheidung im Übungskampf wartet',
+            'invitation' => 'Neue Herausforderung zum Übungskampf', 'started' => 'Dein Übungskampf beginnt', 'reminder' => 'Erinnerung: Deine NSC-Entscheidung wartet', 'handover' => 'NSC-Übungskampf als AG-Leitung übernommen', default => 'Deine Entscheidung im Übungskampf wartet',
         });
     }
 

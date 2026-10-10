@@ -1,10 +1,12 @@
 <?php
 
 use App\Models\RpgCharacter;
+use App\Models\RpgCombat;
 use App\Models\User;
 use App\Services\RpgAccess;
 use App\Services\RpgCombat\CombatDice;
 use App\Services\RpgCombat\CombatService;
+use App\Services\RpgNpcService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +31,12 @@ try {
         'decide' => $service->decide($actor, $data['combat'], $data['decision'], $data['input'] ?? []),
         'command' => $service->command($actor, $data['combat'], $data['command'], $data['key']),
         'challenge' => $service->challenge($actor, $data['input']),
+        'npc-create' => app(RpgNpcService::class)->create($actor, $data['input']),
+        'remind' => (function () use ($service, $data) {
+            $service->remind($data['combat'], $data['decision']);
+
+            return RpgCombat::findOrFail($data['combat']);
+        })(),
         'delete' => DB::transaction(function () use ($data) {
             app(RpgAccess::class)->team(lock: true);
             $character = RpgCharacter::lockForUpdate()->findOrFail($data['character']);

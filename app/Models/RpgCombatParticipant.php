@@ -12,6 +12,8 @@ class RpgCombatParticipant extends Model
 
     protected $guarded = [];
 
+    protected $attributes = ['participant_kind' => 'player'];
+
     protected $hidden = ['snapshot', 'snapshot_hash'];
 
     protected function casts(): array
@@ -36,6 +38,11 @@ class RpgCombatParticipant extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function npc(): BelongsTo
+    {
+        return $this->belongsTo(RpgNpc::class, 'rpg_npc_id');
     }
 
     public function combat(): BelongsTo

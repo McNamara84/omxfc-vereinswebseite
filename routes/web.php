@@ -37,6 +37,7 @@ use App\Http\Controllers\RpgCharacterController;
 use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\RpgCheckController;
 use App\Http\Controllers\RpgCombatController;
+use App\Http\Controllers\RpgNpcController;
 use App\Http\Controllers\RpgProgressionController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
@@ -445,6 +446,16 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::post('/verbesserungen/{advancementRequest}/genehmigen', 'approve')->whereNumber('advancementRequest')->name('rpg.advancements.approve');
             Route::post('/verbesserungen/{advancementRequest}/ablehnen', 'reject')->whereNumber('advancementRequest')->name('rpg.advancements.reject');
             Route::post('/verbesserungen/{advancementRequest}/zurueckziehen', 'withdraw')->whereNumber('advancementRequest')->name('rpg.advancements.withdraw');
+        });
+
+    Route::prefix('rpg/charaktere/nscs')->name('rpg.npcs.')->controller(RpgNpcController::class)
+        ->middleware('can:manage-rpg-npcs')->group(function () {
+            Route::get('/neu', 'create')->name('create');
+            Route::post('/vorschau', 'preview')->name('preview')->middleware('throttle:30,1');
+            Route::post('/', 'store')->name('store')->middleware('throttle:30,1');
+            Route::get('/{npc}', 'show')->whereNumber('npc')->name('show');
+            Route::patch('/{npc}/name', 'rename')->whereNumber('npc')->name('rename');
+            Route::delete('/{npc}', 'destroy')->whereNumber('npc')->name('destroy');
         });
 
     Route::prefix('rpg/charaktere')

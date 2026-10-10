@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\RpgCharacter;
+use App\Models\RpgCombat;
+use App\Models\RpgCombatDelivery;
+use App\Models\RpgNpc;
 use App\Services\RpgCombat\CombatService;
+use App\Services\RpgNpcService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -75,6 +79,58 @@ class RpgCombatMariaDbConcurrencyTest extends TestCase
         $this->assertSame('completed', $combat->fresh()->status);
         $this->assertDatabaseCount('rpg_combat_character_locks', 0);
         $this->assertSame(0, $combat->decisions()->whereIn('status', ['pending', 'paused'])->count());
+    }
+
+    private function npcInvitation(int $opponent): RpgCombat
+    {
+        $npc = RpgNpc::first() ?? app(RpgNpcService::class)->create($this->leader, ['template_key' => 'androne', 'submission_key' => (string) Str::uuid()]);
+        $character = RpgCharacter::findOrFail($opponent);
+
+        return app(CombatService::class)->challenge($this->leader, ['kind' => 'npc_vs_player', 'submission_key' => (string) Str::uuid(),
+            'npc_id' => $npc->id, 'npc_revision' => $npc->revision, 'opponent_id' => $character->id, 'opponent_revision' => $character->revision, 'distance' => 1]);
+    }
+
+    public function test_competing_acceptances_reserve_npc_once(): void
+    {
+        $first = $this->npcInvitation($this->character->id);
+        $second = $this->npcInvitation($this->otherCharacter->id);
+        $results = $this->parallel(['action' => 'command', 'actor' => $this->player->id, 'combat' => $first->id, 'command' => 'accept', 'key' => (string) Str::uuid()],
+            ['action' => 'command', 'actor' => $this->opponent->id, 'combat' => $second->id, 'command' => 'accept', 'key' => (string) Str::uuid()]);
+        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
+        $this->assertDatabaseCount('rpg_combat_npc_locks', 1);
+        $this->assertDatabaseCount('rpg_combat_character_locks', 1);
+    }
+
+    public function test_player_and_npc_invitations_cannot_reserve_same_player(): void
+    {
+        $first = $this->combat(false);
+        $second = $this->npcInvitation($this->otherCharacter->id);
+        $base = ['action' => 'command', 'actor' => $this->opponent->id, 'command' => 'accept'];
+        $results = $this->parallel($base + ['combat' => $first->id, 'key' => (string) Str::uuid()], $base + ['combat' => $second->id, 'key' => (string) Str::uuid()]);
+        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
+        $this->assertSame(1, DB::table('rpg_combat_character_locks')->where('rpg_character_id', $this->otherCharacter->id)->count());
+    }
+
+    public function test_simultaneous_special_creations_enforce_uniqueness(): void
+    {
+        $base = ['action' => 'npc-create', 'actor' => $this->leader->id];
+        $results = $this->parallel($base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]],
+            $base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]]);
+        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
+        $this->assertDatabaseCount('rpg_npcs', 1);
+    }
+
+    public function test_duplicate_reminders_create_one_delivery_without_resolving_decision(): void
+    {
+        $combat = app(CombatService::class)->command($this->player, $this->npcInvitation($this->character->id)->id, 'accept', (string) Str::uuid());
+        $decision = $combat->decisions()->where('side', 1)->sole();
+        $decision->update(['reminder_at' => now('UTC')->subMinute()]);
+        $request = ['action' => 'remind', 'combat' => $combat->id, 'decision' => $decision->id];
+        $results = $this->parallel($request, $request);
+        $this->assertTrue($results[0]['ok']);
+        $this->assertTrue($results[1]['ok']);
+        $this->assertSame(1, RpgCombatDelivery::where('kind', 'reminder')->count());
+        $this->assertSame('pending', $decision->fresh()->status);
     }
 
     private function parallel(array $first, array $second): array
