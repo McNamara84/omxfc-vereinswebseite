@@ -49,6 +49,7 @@ test.describe('Aufgaben (Mobile)', () => {
 
         await page.click('button[type="submit"]');
         await page.waitForURL(url => !url.pathname.endsWith('/login'));
+        await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 
         await page.goto('/aufgaben');
 
@@ -99,6 +100,7 @@ test('admin can filter and accept challenges', async ({ page }) => {
 
     await page.click('button[type="submit"]');
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 
     await page.goto('/aufgaben');
 
@@ -149,6 +151,7 @@ test('member can focus on own challenges and release one', async ({ page }) => {
 
     await page.click('button[type="submit"]');
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 
     await page.goto('/aufgaben');
 
@@ -157,11 +160,13 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await filterSummary.click();
 
     const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
-    await ownButton.click();
+    await clickAndWaitForLivewireUpdate(page, ownButton);
 
-    const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
+    const assignedRow = page.getByRole('row', { name: /Übernommene Playwright Challenge/ })
+        .within(page.locator('[data-todo-section="assigned"]'));
+    const releaseButton = assignedRow.getByRole('button', { name: 'Freigeben', exact: true });
 
-    await releaseButton.click();
+    await clickAndWaitForLivewireUpdate(page, releaseButton);
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
 
     // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der

@@ -612,13 +612,16 @@ Für einen versionsweisen Wechsel bei gleichem lexikalischem Schema kann
 `php artisan kompendium:clone-index 2` die bestehende Collection einschließlich
 Dokumenten kopieren, prüfen und mit einem internen Snapshot dauerhaft sichern.
 Die Typesense-API-Berechtigung muss dafür `operations/snapshot` erlauben.
-Das Kommando aktiviert den Klon nicht. Ablauf,
-Wartungsfenster und Rückweg stehen im [Updatebericht Oktober 2026](DEPENDENCY-UPDATE-2026-10.md#kontrollierter-suchindex-wechsel).
+Das Kommando aktiviert den Klon nicht. Für den Wechsel Suchzugriffe und
+indexschreibende Worker im Wartungsfenster anhalten und den Bestand sichern.
+Nach dem Klonen Dokumentzahlen, Treffer, Filter und Rechte unter isolierter
+Staging-Konfiguration prüfen. Erst dann `KOMPENDIUM_SEARCH_INDEX_VERSION=2`
+setzen, die Konfiguration neu laden und Worker neu starten. Den Quellindex
+aufbewahren. Nach neuen Schreibvorgängen muss er vor einem Rückwechsel
+synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Prüfergebnisse, bekannte Versionsgrenzen und verbleibende Image-Sicherheitsbefunde:
-[Abhängigkeitsupdate vom 10. Oktober 2026](DEPENDENCY-UPDATE-2026-10.md).
 Der [Septemberbericht](DEPENDENCY-UPDATE.md) bleibt als historischer Stand erhalten.
 
 Stand der Aktualisierung: **10. Oktober 2026**. PHP 8.5.11 basiert auf Debian
@@ -654,7 +657,11 @@ App, Queue, Scheduler, Typesense und Nginx verwenden dadurch die gescannten Dige
 Der Datenbank-Preflight erlaubt für diesen Rollout ausschließlich das Patchupdate
 innerhalb MariaDB 13.0. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
 aktuellen Revision erfolgreich sein. Private Datenbackups, alte Image-Tags und
-Codevolumes sichern den [dokumentierten Rückweg](DEPENDENCY-UPDATE-2026-10.md#deployment-und-rückweg).
+Codevolumes sichern den Rückweg. Die Sicherungen liegen auf dem Server unter
+`.deployment/backups/<UTC-Zeit>/`; `compose.yml` und `images.yml` halten die
+vorherige Konfiguration fest. Ein App-Rollback benötigt ein kompatibles
+Datenbankschema. Datenbank- und Typesense-Wiederherstellungen erfolgen in
+separaten Datenvolumes mit den passenden gesicherten Images.
 
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:

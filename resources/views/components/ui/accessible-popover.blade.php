@@ -36,7 +36,7 @@
     <span
         id="{{ $uuid }}-content"
         role="tooltip"
-        x-show="open"
+        x-bind:style="{ display: open ? 'inline-block' : 'none' }"
         x-anchor.{{ $position }}.offset.{{ $offset }}="$refs.myTrigger"
         @mouseenter="show()"
         @mouseleave="hide()"
