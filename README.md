@@ -635,6 +635,16 @@ Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
 OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
 `ghcr.io/mcnamara84/omxfc-vereinswebseite:typesense-30.2`, scannt es und übergibt
 den geprüften Digest an das Deployment.
+MariaDB wird über `docker/mariadb.Dockerfile` gehärtet: Das ungenutzte
+`/usr/bin/pebble` aus dem Ubuntu-Basisimage wird entfernt, da dessen eingebettete
+Go-Laufzeit behebbare High/Critical-Befunde verursacht. MariaDB verwendet seinen
+eigenen Entrypoint mit `gosu`. Verfügbare Betriebssystemupdates werden eingespielt;
+ein unbeabsichtigtes MariaDB-Paketupdate lässt den Build fehlschlagen.
+CI prüft den Start mit leerem Datenvolume, den Benutzerwechsel und den Erhalt
+geschriebener Daten nach einem Neustart. Der Deploy-Workflow veröffentlicht
+`ghcr.io/mcnamara84/omxfc-vereinswebseite:mariadb-13.0.2`, scannt das Image und
+verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselbe
+Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
 aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
@@ -653,7 +663,7 @@ Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
 Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
 Der Deploymenthelfer übernimmt die tatsächlichen Compose-Dateien und den
 Projektnamen des laufenden App-Containers und ergänzt ein geprüftes Image-Overlay.
-App, Queue, Scheduler, Typesense und Nginx verwenden dadurch die gescannten Digests.
+App, Queue, Scheduler, MariaDB, Typesense und Nginx verwenden dadurch die gescannten Digests.
 Der Datenbank-Preflight erlaubt für diesen Rollout ausschließlich das Patchupdate
 innerhalb MariaDB 13.0. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
 aktuellen Revision erfolgreich sein. Private Datenbackups, alte Image-Tags und

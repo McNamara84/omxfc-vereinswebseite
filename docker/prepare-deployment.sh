@@ -3,7 +3,7 @@
 set -euo pipefail
 umask 077
 
-for image in "$OMXFC_APP_IMAGE" "$OMXFC_TYPESENSE_IMAGE" "$OMXFC_NGINX_IMAGE"; do
+for image in "$OMXFC_APP_IMAGE" "$OMXFC_TYPESENSE_IMAGE" "$OMXFC_NGINX_IMAGE" "$OMXFC_DATABASE_IMAGE"; do
     [[ "$image" =~ ^ghcr\.io/mcnamara84/omxfc-vereinswebseite@sha256:[a-f0-9]{64}$ ]] || {
         echo 'Deployment requires verified immutable GHCR image digests.' >&2
         exit 1
@@ -46,7 +46,6 @@ omxfc_compose() {
     docker compose --env-file .env.production "${DEPLOY_COMPOSE_ARGS[@]}" "$@"
 }
 COMPOSE=omxfc_compose
-OMXFC_DATABASE_IMAGE='mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3'
 
 # This release performs a same-series database patch. Major upgrades require
 # their own tested backup/restore migration before this deployment can proceed.
@@ -104,7 +103,7 @@ services:
   nginx:
     image: ${OMXFC_NGINX_IMAGE:?OMXFC_NGINX_IMAGE is required}
   db:
-    image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
+    image: ${OMXFC_DATABASE_IMAGE:?OMXFC_DATABASE_IMAGE is required}
 volumes:
   app_data:
     name: ${OMXFC_APP_VOLUME:?OMXFC_APP_VOLUME is required}
@@ -125,7 +124,7 @@ done
 
 # Persist only non-secret deployment metadata for subsequent manual Compose runs.
 COMPOSE_FILE_VALUE="$(IFS=:; echo "${BASE_FILES[*]}:$IMAGE_OVERRIDE")"
-for key in OMXFC_APP_IMAGE OMXFC_TYPESENSE_IMAGE OMXFC_NGINX_IMAGE OMXFC_APP_VOLUME COMPOSE_PROJECT_NAME COMPOSE_FILE; do
+for key in OMXFC_APP_IMAGE OMXFC_TYPESENSE_IMAGE OMXFC_NGINX_IMAGE OMXFC_DATABASE_IMAGE OMXFC_APP_VOLUME COMPOSE_PROJECT_NAME COMPOSE_FILE; do
     case "$key" in
         COMPOSE_PROJECT_NAME) value="$PROJECT_NAME" ;;
         COMPOSE_FILE) value="$COMPOSE_FILE_VALUE" ;;

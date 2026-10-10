@@ -34,6 +34,8 @@ jobs:
             target: nginx
             file: docker/nginx.Dockerfile
           - image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
+            target: mariadb
+            file: docker/mariadb.Dockerfile
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -47,6 +49,9 @@ jobs:
           load: true
           no-cache: true
           tags: omxfc-service-base:security-scan
+      - name: Verify MariaDB initialization and data after restart
+        if: matrix.target == 'mariadb'
+        run: bash docker/verify-mariadb-image.sh omxfc-service-base:security-scan
       - name: Report upstream findings separately
         if: matrix.target != ''
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
@@ -99,7 +104,7 @@ jobs:
               summary.write('### Image security scan\n\n')
               summary.write(f"`{os.environ['SCANNED_IMAGE']}`\n\n")
               if os.environ['PATCHED_TARGET']:
-                  summary.write(f"Gate applies to the rebuilt `{os.environ['PATCHED_TARGET']}` stage with OS security updates. Upstream findings are attached separately.\n\n")
+                  summary.write(f"Gate applies to the rebuilt `{os.environ['PATCHED_TARGET']}` stage with image security hardening. Upstream findings are attached separately.\n\n")
               summary.write('| Severity | Fix available | No fix available |\n')
               summary.write('| --- | ---: | ---: |\n')
               for severity in ('Critical', 'High', 'Medium', 'Low', 'Negligible', 'Unknown'):

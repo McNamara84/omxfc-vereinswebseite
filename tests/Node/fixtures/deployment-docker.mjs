@@ -44,7 +44,7 @@ if (args[0] === 'inspect') {
         if (tail.includes('--quiet')) console.log(services.includes(service) ? 'container-' + service : 'container-app');
         else if (services.includes(service) && state.running[service]) console.log(service);
     } else if (command === 'config') {
-        if (tail.includes('--images')) console.log(tail.at(-1) === 'db' ? 'mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3' : process.env.OMXFC_APP_IMAGE);
+        if (tail.includes('--images')) console.log(tail.at(-1) === 'db' ? process.env.OMXFC_DATABASE_IMAGE : process.env.OMXFC_APP_IMAGE);
         else if (!tail.includes('--quiet')) console.log('services: {}');
     } else if (command === 'pull') fail('pull');
     else if (['stop', 'up', 'start'].includes(command)) {

@@ -15,6 +15,7 @@ const workflow = fs.readFileSync(new URL('../../.github/workflows/deploy.yml', i
     .replaceAll(/printf '%s' '\$\{\{ steps\.helper\.outputs\.[^\n]+\n/g, '')
     .replace('source .deployment/prepare-deployment.sh', 'source "$DEPLOY_HELPER"');
 const image = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'a'.repeat(64);
+const databaseImage = 'ghcr.io/mcnamara84/omxfc-vereinswebseite@sha256:' + 'd'.repeat(64);
 const fixture = () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'omxfc-deploy-'));
     fs.mkdirSync(path.join(root, 'bin'));
@@ -30,11 +31,13 @@ const run = (root, extra = {}, suffix = '') => spawnSync('bash', ['-c', 'source 
     cwd: root, encoding: 'utf8', env: {
         ...process.env, PATH: path.join(root, 'bin') + ':' + process.env.PATH,
         DEPLOY_HELPER: helper, FIXTURE_ROOT: root,
-        OMXFC_APP_IMAGE: image, OMXFC_TYPESENSE_IMAGE: image, OMXFC_NGINX_IMAGE: image, ...extra,
+        OMXFC_APP_IMAGE: image, OMXFC_TYPESENSE_IMAGE: image, OMXFC_NGINX_IMAGE: image,
+        OMXFC_DATABASE_IMAGE: databaseImage, ...extra,
     },
 });
 
 const runWorkflow = (root, extra = {}) => spawnSync('bash', ['-c', workflow
+    .replace("'${{ needs.build.outputs.database-image }}'", `'${databaseImage}'`)
     .replaceAll(/'\$\{\{ needs\.build\.outputs\.[^']+'/g, `'${image}'`)], {
     cwd: root, encoding: 'utf8', timeout: 60_000, env: {
         ...process.env, PATH: path.join(root, 'bin') + ':' + process.env.PATH,
@@ -54,12 +57,14 @@ const rollbackSet = (root, days, oldVolume, newVolume = oldVolume) => {
 };
 
 test('invalid mutable images fail before any Docker operation or environment change', () => {
-    const root = fixture();
-    try {
-        assert.notEqual(run(root, { OMXFC_APP_IMAGE: 'image:latest' }).status, 0);
-        assert.equal(fs.existsSync(root + '/calls'), false);
-        assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
-    } finally { fs.rmSync(root, { recursive: true }); }
+    for (const key of ['OMXFC_APP_IMAGE', 'OMXFC_TYPESENSE_IMAGE', 'OMXFC_NGINX_IMAGE', 'OMXFC_DATABASE_IMAGE']) {
+        const root = fixture();
+        try {
+            assert.notEqual(run(root, { [key]: 'image:latest' }).status, 0);
+            assert.equal(fs.existsSync(root + '/calls'), false);
+            assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
 });
 
 test('foreign Compose files fail before containers or volumes can change', () => {
@@ -107,6 +112,7 @@ test('valid preparation preserves project, old code volume, image tags and priva
         const env = fs.readFileSync(root + '/.env.production', 'utf8');
         assert.match(env, /COMPOSE_PROJECT_NAME=fixture/);
         assert.match(env, /OMXFC_APP_VOLUME=fixture_app_data_a{64}/);
+        assert.ok(env.includes('OMXFC_DATABASE_IMAGE=' + databaseImage));
         const calls = fs.readFileSync(root + '/calls', 'utf8');
         assert.doesNotMatch(calls, /"rm"|"prune"|"down"/);
         assert.match(calls, /container-typesense:ro/);

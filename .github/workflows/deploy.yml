@@ -17,6 +17,7 @@ jobs:
       app-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
       typesense-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-typesense.outputs.digest }}
       nginx-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-nginx.outputs.digest }}
+      database-image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       
@@ -75,6 +76,32 @@ jobs:
           only-fixed: true
           output-format: table
       
+      - name: Build and push MariaDB with image security hardening
+        id: build-database
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: docker/mariadb.Dockerfile
+          push: true
+          no-cache: true
+          sbom: true
+          provenance: mode=max
+          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:mariadb-13.0.2
+          labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
+
+      - name: Scan patched MariaDB before deployment
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
+          grype-version: v0.120.1
+          fail-build: true
+          severity-cutoff: high
+          only-fixed: true
+          output-format: table
+
+      - name: Verify pushed MariaDB initialization and data after restart
+        run: bash docker/verify-mariadb-image.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}'
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -142,6 +169,7 @@ jobs:
             export OMXFC_APP_IMAGE='${{ needs.build.outputs.app-image }}'
             export OMXFC_TYPESENSE_IMAGE='${{ needs.build.outputs.typesense-image }}'
             export OMXFC_NGINX_IMAGE='${{ needs.build.outputs.nginx-image }}'
+            export OMXFC_DATABASE_IMAGE='${{ needs.build.outputs.database-image }}'
 
             umask 077
             mkdir -p .deployment
