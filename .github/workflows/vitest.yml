@@ -34,12 +34,15 @@ jobs:
         run: |
           npm install --global npm@12.2.0 --ignore-scripts
           test "$(npm --version)" = "12.2.0"
+          sh docker/patch-npm-security.sh
           npm ci
 
       - name: Run Vitest unit tests
         run: npm run test:vitest
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+      - name: Verify release gate and deployment preparation
+        run: npm run test:deployment
       - name: Check asynchronous resource leaks
         run: npm run test:leaks
         env:

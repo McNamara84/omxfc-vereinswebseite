@@ -1,6 +1,7 @@
 /.phpunit.cache
 /.cache/rector
 /playwright-report
+/.deployment
 /node_modules
 /public/build
 /public/hot

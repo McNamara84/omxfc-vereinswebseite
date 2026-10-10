@@ -40,6 +40,7 @@ jobs:
         run: |
           npm install --global npm@12.2.0 --ignore-scripts
           test "$(npm --version)" = "12.2.0"
+          sh docker/patch-npm-security.sh
           npm ci
       - run: npm run build --if-present
       - name: Debug - Verify build integrity
@@ -54,6 +55,8 @@ jobs:
           ls -la public/hot 2>&1 || echo "No hot file (expected in production build)"
           echo ""
           echo "=== Verify all manifest files exist ==="
+          # PHP variables must stay literal until PHP evaluates this code.
+          # shellcheck disable=SC2016
           php -r '
             $manifest = json_decode(file_get_contents("public/build/manifest.json"), true);
             $missing = [];

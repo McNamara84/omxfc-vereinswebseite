@@ -56,8 +56,11 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 # aus demselben frischen Vendor-Baum, der später im Production-Image landet.
 FROM node:26.11.1-alpine3.24@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a AS node-base
 
+COPY docker/patch-npm-security.sh /opt/npm-patches/patch-npm-security.sh
+COPY docker/npm-security/ /opt/npm-patches/npm-security/
 RUN apk upgrade --no-cache \
     && npm install --global npm@12.2.0 --ignore-scripts \
+    && sh /opt/npm-patches/patch-npm-security.sh \
     && test "$(npm --version)" = "12.2.0"
 
 FROM node-base AS node-builder

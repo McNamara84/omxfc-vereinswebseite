@@ -12,13 +12,13 @@ class RebuildKompendiumIndex extends Command
 {
     private const BATCH_SIZE = 25;
 
-    protected $signature = 'kompendium:rebuild-index';
+    protected $signature = 'kompendium:rebuild-index {--resume : Vorhandenen, unvollständigen Index erneut importieren}';
 
     protected $description = 'Baut den Kompendium-Suchindex aus vorhandenen Romanen neu auf, falls er fehlt';
 
     public function handle(KompendiumSearchService $searchService): int
     {
-        if ($searchService->indexExists()) {
+        if ($searchService->indexExists() && ! $this->option('resume')) {
             $this->info('Index existiert bereits – kein Rebuild nötig.');
 
             return 0;
@@ -79,6 +79,8 @@ class RebuildKompendiumIndex extends Command
         if ($fehler > 0) {
             $fehlerLabel = $fehler === 1 ? 'Roman konnte' : 'Romane konnten';
             $this->warn("{$fehler} {$fehlerLabel} nicht indexiert werden (Datei fehlt).");
+
+            return self::FAILURE;
         }
 
         $this->info('Index-Rebuild abgeschlossen.');

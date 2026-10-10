@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Support\ScheduleInventory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
 use UnexpectedValueException;
 
@@ -14,10 +15,12 @@ class VerifyScheduleTest extends TestCase
 
     public function test_actual_schedule_contains_commands_and_named_jobs_in_berlin(): void
     {
-        $this->artisan('app:verify-schedule')
-            ->expectsOutputToContain('maddraxikon:heartbeat – on_one_server=false')
-            ->expectsOutputToContain('maddraxikon:sync-job – on_one_server=false')
-            ->assertSuccessful();
+        $output = new BufferedOutput;
+        $status = Artisan::call('app:verify-schedule', [], $output);
+        $text = $output->fetch();
+        $this->assertSame(0, $status, $text);
+        $this->assertStringContainsString('maddraxikon:heartbeat – on_one_server=false', $text);
+        $this->assertStringContainsString('maddraxikon:sync-job – on_one_server=false', $text);
     }
 
     public function test_wrong_timezone_and_command_prefixes_cannot_satisfy_the_inventory(): void

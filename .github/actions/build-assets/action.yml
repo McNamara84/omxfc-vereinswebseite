@@ -21,7 +21,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
     - name: Pin npm
-      run: npm install --global npm@12.2.0 --ignore-scripts && test "$(npm --version)" = "12.2.0"
+      run: npm install --global npm@12.2.0 --ignore-scripts && test "$(npm --version)" = "12.2.0" && sh docker/patch-npm-security.sh
       shell: bash
     - run: npm ci
       shell: bash

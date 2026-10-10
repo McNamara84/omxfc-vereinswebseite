@@ -446,6 +446,7 @@ jobs:
         run: |
           npm install --global npm@12.2.0 --ignore-scripts
           test "$(npm --version)" = "12.2.0"
+          sh docker/patch-npm-security.sh
           npm ci
       - name: Run Vitest tests with coverage
         run: npm run test:coverage

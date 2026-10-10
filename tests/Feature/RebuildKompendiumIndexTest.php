@@ -122,7 +122,7 @@ class RebuildKompendiumIndexTest extends TestCase
 
         $this->artisan('kompendium:rebuild-index')
             ->expectsOutputToContain('Datei nicht gefunden')
-            ->assertExitCode(0);
+            ->assertExitCode(1);
 
         $roman->refresh();
         $this->assertEquals('fehler', $roman->status);

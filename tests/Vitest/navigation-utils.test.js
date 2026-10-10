@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 import { waitForUrl } from '../e2e/utils/navigation.js';
 
 describe('navigation utils', () => {

@@ -9,11 +9,6 @@ on:
       - '.github/workflows/service-image-scan.yml'
   push:
     branches: [main]
-    paths:
-      - Dockerfile
-      - 'docker/**'
-      - 'docker-compose*.yml'
-      - '.github/workflows/service-image-scan.yml'
   workflow_dispatch:
   schedule:
     - cron: '20 4 * * 1'
