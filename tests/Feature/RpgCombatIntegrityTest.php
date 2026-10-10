@@ -11,7 +11,6 @@ use App\Services\RpgCombat\CombatTraits;
 use App\Support\RpgCharEditorRuleCatalog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Support\RpgCombatFixtures;
@@ -122,21 +121,22 @@ class RpgCombatIntegrityTest extends TestCase
     }
 
     #[DataProvider('invalidPayloads')]
-    public function test_invalid_saved_character_is_rejected_without_partial_invitation(array $changes): void
+    public function test_invalid_saved_character_is_rejected_without_partial_invitation(array $changes, bool $opponent): void
     {
         $payload = array_replace_recursive($this->progressionPayload(), $changes);
-        $this->character->update(['payload' => $payload]);
-        try {
-            $this->combat(false);
-            $this->fail('Expected invalid snapshot');
-        } catch (ValidationException) {
-            $this->assertDatabaseCount('rpg_combats', 0);
-        }
+        $character = $opponent ? $this->otherCharacter : $this->character;
+        $character->update(['payload' => $payload]);
+
+        $this->actingAs($this->player)->postJson(route('rpg.combats.store'), $this->combatInput())
+            ->assertUnprocessable()->assertJsonValidationErrors('character');
+
+        $this->assertChallengeRolledBack();
+        $this->assertSame($payload, $character->fresh()->payload);
     }
 
     public static function invalidPayloads(): array
     {
-        return array_map(fn ($p) => [$p], [
+        $payloads = [
             ['attributes' => ['st' => 'six']], ['skills' => [['name' => 'Nahkampf', 'value' => -2]]],
             ['advantages' => [['wrong']]], ['advantage_counts' => ['Panzerung' => 100000]],
             ['advantages' => ['Unbekannt']], ['equipment' => ['items' => [['id' => 'missing', 'quantity' => 1]]]],
@@ -145,7 +145,58 @@ class RpgCombatIntegrityTest extends TestCase
             ['rule_sources' => [['id' => 'invented']]],
             ['advantage_effects' => [['name' => 'Psychische Kraft', 'target' => 'Pyrokinese']]],
             ['character' => ['race' => 'Marsianer']],
-        ]);
+            ['attributes' => null], ['attributes' => '0'], ['attributes' => ['st' => null]],
+            ['attributes' => ['st' => false]], ['attributes' => ['st' => '1.5']], ['attributes' => ['st' => '1e1']],
+            ['attributes' => ['st' => str_repeat('9', 100)]],
+            ['attributes' => ['st' => '21']], ['attributes' => ['st' => '-21']],
+            ['skills' => null], ['skills' => [['name' => 'Nahkampf', 'value' => '101']]],
+            ['skills' => [['name' => 'Nahkampf', 'value' => null]]],
+            ['skills' => [['name' => 'Nahkampf', 'value' => false]]],
+            ['skills' => [['name' => 'Nahkampf', 'value' => '1.5']]],
+        ];
+        $cases = [];
+        foreach ($payloads as $index => $payload) {
+            foreach ([false, true] as $opponent) {
+                $cases[($opponent ? 'opponent' : 'challenger').' '.$index] = [$payload, $opponent];
+            }
+        }
+
+        return $cases;
+    }
+
+    #[DataProvider('missingNumericValues')]
+    public function test_missing_numeric_values_are_not_defaulted_when_challenging(bool $opponent, string $field): void
+    {
+        $character = $opponent ? $this->otherCharacter : $this->character;
+        $payload = $character->payload;
+        if ($field === 'attributes') {
+            unset($payload['attributes']['st']);
+        } else {
+            unset($payload['skills'][0]['value']);
+        }
+        $character->update(['payload' => $payload]);
+
+        $this->actingAs($this->player)->postJson(route('rpg.combats.store'), $this->combatInput())
+            ->assertUnprocessable()->assertJsonValidationErrors('character');
+
+        $this->assertChallengeRolledBack();
+    }
+
+    public static function missingNumericValues(): iterable
+    {
+        foreach ([false, true] as $opponent) {
+            foreach (['attributes', 'skills'] as $field) {
+                yield ($opponent ? 'opponent' : 'challenger').' '.$field => [$opponent, $field];
+            }
+        }
+    }
+
+    private function assertChallengeRolledBack(): void
+    {
+        foreach (['rpg_combats', 'rpg_combat_participants', 'rpg_combat_character_locks', 'rpg_combat_decisions',
+            'rpg_combat_events', 'rpg_combat_milestones', 'rpg_combat_deliveries', 'rpg_combat_commands'] as $table) {
+            $this->assertDatabaseCount($table, 0);
+        }
     }
 
     public function test_public_dashboard_shows_only_milestones_and_escapes_names(): void

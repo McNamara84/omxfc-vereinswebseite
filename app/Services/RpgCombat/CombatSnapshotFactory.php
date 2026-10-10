@@ -20,14 +20,16 @@ final class CombatSnapshotFactory
     public function make(RpgCharacter $character): array
     {
         $data = $character->payload;
+        $this->ensure(is_array($data['attributes'] ?? null), 'Ungültiges oder fehlendes Attribut: ST');
         foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
-            $this->ensure(isset($data['attributes'][$attribute]) && is_int($data['attributes'][$attribute])
-                && abs($data['attributes'][$attribute]) <= 20, 'Ungültiges oder fehlendes Attribut: '.strtoupper($attribute));
+            $data['attributes'][$attribute] = $this->integerValue($data['attributes'][$attribute] ?? null,
+                -20, 20, 'Ungültiges oder fehlendes Attribut: '.strtoupper($attribute));
         }
         $this->ensure(is_array($data['skills'] ?? null), 'Fertigkeiten fehlen.');
-        foreach ($data['skills'] as $skill) {
-            $this->ensure(is_array($skill) && is_string($skill['name'] ?? null) && is_int($skill['value'] ?? null)
-                && $skill['value'] >= 0 && $skill['value'] <= 100, 'Ungültige Fertigkeitswerte.');
+        foreach ($data['skills'] as $index => $skill) {
+            $this->ensure(is_array($skill) && is_string($skill['name'] ?? null), 'Ungültige Fertigkeitswerte.');
+            $data['skills'][$index]['value'] = $this->integerValue($skill['value'] ?? null,
+                0, 100, 'Ungültige Fertigkeitswerte.');
         }
         foreach (['advantages', 'disadvantages', 'advantage_effects', 'advantage_counts', 'advantage_details', 'disadvantage_details'] as $key) {
             $this->ensure(is_array($data[$key] ?? []), 'Ungültige Eigenschaften.');
@@ -142,6 +144,16 @@ final class CombatSnapshotFactory
             'natural' => in_array($id, ['natural', 'faustschlag-tritt'], true),
             'jammed' => false, 'broken' => false, 'position' => null, 'fuel' => null, 'progress' => 0,
         ];
+    }
+
+    private function integerValue(mixed $value, int $minimum, int $maximum, string $message): int
+    {
+        // The editor persists decimal integer strings; validate before casting them.
+        $this->ensure(is_int($value) || (is_string($value) && preg_match('/\A-?[0-9]+\z/', $value) === 1), $message);
+        $value = (int) $value;
+        $this->ensure($value >= $minimum && $value <= $maximum, $message);
+
+        return $value;
     }
 
     private function ensure(bool $condition, string $message): void
