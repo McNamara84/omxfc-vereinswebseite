@@ -18,6 +18,7 @@ mkdir -p "$STACK_ROOT/.deployment/backups"
 mkdir "$BACKUP_DIR"
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-recovery.sh"
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-retention.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/deployment-database.sh"
 cp .env.production "$BACKUP_DIR/environment"
 if [[ -f "$IMAGE_OVERRIDE" ]]; then
     cp "$IMAGE_OVERRIDE" "$BACKUP_DIR/previous-images.compose.yml"
@@ -47,19 +48,23 @@ omxfc_compose() {
 }
 COMPOSE=omxfc_compose
 
-# This release performs a same-series database patch. Major upgrades require
-# their own tested backup/restore migration before this deployment can proceed.
+# Only the tested 12.3 -> 13.0 migration and forward 13.0 patch updates are allowed.
+# Never start the new major version on the original database volume.
 # shellcheck disable=SC2016
 DATABASE_VERSION="$($COMPOSE exec -T db sh -c '
     export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
     test -n "$MYSQL_PWD"
     mariadb -uroot --batch --skip-column-names -e "SELECT VERSION()"
 ')"
-[[ "$DATABASE_VERSION" =~ ^13\.0\.[012](-.*)?$ ]] || {
-    echo 'Database deployment requires MariaDB 13.0.0–13.0.2. Complete and verify the separate major-version migration first.' >&2
-    exit 1
-}
 echo "Database preflight: $DATABASE_VERSION"
+DATABASE_MIGRATION_REQUIRED=0
+if [[ "$DATABASE_VERSION" =~ ^12\.3\.[0-9]+-MariaDB ]]; then
+    DATABASE_MIGRATION_REQUIRED=1
+elif [[ ! "$DATABASE_VERSION" =~ ^13\.0\.[012]-MariaDB ]]; then
+    echo 'Supported source versions: MariaDB 12.3.x or 13.0.0-13.0.2; other upgrades and downgrades require a separate migration.' >&2
+    exit 1
+fi
+prepare_deployment_database
 
 # This private resolved configuration contains secrets; never upload or print it.
 $COMPOSE config > "$BACKUP_DIR/compose.yml"
@@ -73,8 +78,20 @@ OLD_APP_VOLUME="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if and
 # A new code volume must never hide uploads, private novels or sessions that
 # were stored in the old code volume. Require an independent writable mount.
 APP_STORAGE_MOUNT="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if and (eq .Destination "/var/www/html/storage") (eq .RW true)}}{{.Type}}:{{.Source}}{{end}}{{end}}')"
-[[ "$APP_STORAGE_MOUNT" =~ ^(volume|bind):.+$ ]] || {
-    echo 'Deployment requires an independent writable /var/www/html/storage mount; migrate and verify storage before replacing the code volume.' >&2
+if [[ ! "$APP_STORAGE_MOUNT" =~ ^(volume|bind):.+$ ]]; then
+    # Older production stacks persist app/framework/logs individually.
+    for storage_target in /var/www/html/storage/{app,framework,logs}; do
+        storage_mount="$(docker inspect maddrax-app --format "{{range .Mounts}}{{if and (eq .Destination \"$storage_target\") (eq .RW true)}}{{.Type}}:{{.Source}}{{end}}{{end}}")"
+        [[ "$storage_mount" =~ ^(volume|bind):.+$ ]] || {
+            echo 'Deployment requires an independent writable storage mount (either all storage, or app/framework/logs individually); migrate and verify storage before replacing the code volume.' >&2
+            exit 1
+        }
+    done
+fi
+typesense_container="$($COMPOSE ps --all --quiet typesense)"
+TYPESENSE_DATA_TARGET="$(docker inspect "$typesense_container" --format '{{range .Mounts}}{{if and .RW (or (eq .Destination "/data") (eq .Destination "/typesense-data"))}}{{.Destination}}{{end}}{{end}}')"
+[[ "$TYPESENSE_DATA_TARGET" = /data || "$TYPESENSE_DATA_TARGET" = /typesense-data ]] || {
+    echo 'Deployment requires one writable Typesense data mount at /data or /typesense-data.' >&2
     exit 1
 }
 export OMXFC_APP_VOLUME="${PROJECT_NAME}_app_data_${OMXFC_APP_IMAGE##*:}"
@@ -108,6 +125,16 @@ volumes:
   app_data:
     name: ${OMXFC_APP_VOLUME:?OMXFC_APP_VOLUME is required}
 COMPOSE_IMAGES
+
+# Preserve the actual database volume on every release, including the release
+# after the major upgrade. Never fall back to the original 12.3 volume then.
+cat >> "$IMAGE_OVERRIDE.candidate" <<DATABASE_VOLUME
+  deployment_db:
+    external: true
+    name: $NEW_DATABASE_VOLUME
+DATABASE_VOLUME
+# Insert a db override separately, avoiding duplicate YAML mapping keys.
+sed -i '/^  db:$/a\    environment:\n      MARIADB_AUTO_UPGRADE: "1"\n      MARIADB_DISABLE_UPGRADE_BACKUP: ""\n    volumes:\n      - type: volume\n        source: deployment_db\n        target: /var/lib/mysql' "$IMAGE_OVERRIDE.candidate"
 
 DEPLOY_COMPOSE_ARGS+=(-f "$IMAGE_OVERRIDE.candidate")
 $COMPOSE config --quiet
@@ -150,11 +177,10 @@ backup_deployment_data() {
     test -s "$BACKUP_DIR/database.sql"
 
     typesense_container="$($COMPOSE ps --all --quiet typesense)"
-    [[ "$(docker inspect "$typesense_container" --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Destination}}{{end}}{{end}}')" = '/data' ]] || exit 1
     $COMPOSE stop typesense
     docker run --rm --volumes-from "$typesense_container:ro" \
         --mount "type=bind,source=$BACKUP_DIR,target=/backup" \
-        --entrypoint tar "$OMXFC_APP_IMAGE" -C /data -czf /backup/typesense-data.tar.gz .
+        --entrypoint tar "$OMXFC_APP_IMAGE" -C "$TYPESENSE_DATA_TARGET" -czf /backup/typesense-data.tar.gz .
     test -s "$BACKUP_DIR/typesense-data.tar.gz"
     DEPLOYMENT_BACKUP_COMPLETE=1
     echo "Private rollback configuration and data backup: $BACKUP_DIR"

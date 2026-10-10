@@ -102,6 +102,9 @@ jobs:
       - name: Verify pushed MariaDB initialization and data after restart
         run: bash docker/verify-mariadb-image.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}'
 
+      - name: Verify MariaDB 12.3 upgrade and rollback before deployment
+        run: bash docker/verify-mariadb-upgrade.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}'
+
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
@@ -150,7 +153,7 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
           appendFileSync(process.env.GITHUB_OUTPUT, 'script=' + readFileSync('docker/prepare-deployment.sh').toString('base64') + '\n');
-          for (const name of ['recovery', 'retention']) {
+          for (const name of ['recovery', 'retention', 'database']) {
             appendFileSync(process.env.GITHUB_OUTPUT, name + '=' + readFileSync(`docker/deployment-${name}.sh`).toString('base64') + '\n');
           }
           NODE
@@ -176,6 +179,7 @@ jobs:
             printf '%s' '${{ steps.helper.outputs.script }}' | base64 -d > .deployment/prepare-deployment.sh
             printf '%s' '${{ steps.helper.outputs.recovery }}' | base64 -d > .deployment/deployment-recovery.sh
             printf '%s' '${{ steps.helper.outputs.retention }}' | base64 -d > .deployment/deployment-retention.sh
+            printf '%s' '${{ steps.helper.outputs.database }}' | base64 -d > .deployment/deployment-database.sh
             source .deployment/prepare-deployment.sh
             
             echo "Pulling new images..."
@@ -203,12 +207,14 @@ jobs:
             echo "Stopping application services..."
             $COMPOSE stop app nginx
             backup_deployment_data
+            stage_deployment_database
             
             # The digest-specific application volume is fresh. The previous
             # code volume remains available with the private rollback config.
             echo "Starting infrastructure containers..."
             DEPLOYMENT_INFRASTRUCTURE_CHANGED=1
             $COMPOSE up -d --force-recreate db typesense
+            wait_for_deployment_database
 
             echo "Starting application container to initialize shared app volume..."
             $COMPOSE up -d --force-recreate --no-deps app
@@ -221,25 +227,6 @@ jobs:
             
             echo "Checking container status:"
             docker ps -a
-            
-            echo "Waiting for database to be ready (MariaDB upgrade may take a few minutes)..."
-            DB_READY=0
-            for i in {1..60}; do
-              if docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; test -n "$MYSQL_PWD" && mariadb -h 127.0.0.1 -uroot --batch --skip-column-names -e "SELECT 1"' >/dev/null 2>&1; then
-                echo "Database is ready!"
-                docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; mariadb -uroot -e "SELECT VERSION();"'
-                DB_READY=1
-                break
-              fi
-              echo "Waiting for database... ($i/60)"
-              sleep 5
-            done
-
-            if [ "$DB_READY" != "1" ]; then
-              echo "Database did not become ready in time. Last database logs:"
-              docker logs maddrax-db
-              exit 1
-            fi
             
             echo "Running Laravel setup commands..."
             

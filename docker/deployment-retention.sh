@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 # Remove only resources recorded by this stack's deployment helper.
+retention_database_volumes() {
+    local -a database_metadata=()
+    [[ -f "$1/database-volumes.meta" ]] || return 0
+    mapfile -t database_metadata < "$1/database-volumes.meta" || return 1
+    [[ "${#database_metadata[@]}" = 3 && "${database_metadata[0]}" = "$PROJECT_NAME" ]] || return 1
+    [[ "${database_metadata[1]}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ && "${database_metadata[2]}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]] || return 1
+    printf '%s\n' "${database_metadata[1]}" "${database_metadata[2]}"
+}
+
 cleanup_deployment_retention() {
     local backup_root cutoff directory latest='' id project old_volume new_volume created
     local kept_directory kept_volume volume service tag container configured_image
-    local file protected_directories=''
+    local file database_volumes role protected_directories=''
     local -a metadata=()
     local protected_volumes="${OMXFC_APP_VOLUME}" protected_tags='' containers
     backup_root="$STACK_ROOT/.deployment/backups"
@@ -55,6 +64,8 @@ cleanup_deployment_retention() {
         [[ "${#metadata[@]}" = 4 && "${metadata[0]}" = "$PROJECT_NAME" ]] || continue
         if [[ "$kept_directory" = "$BACKUP_DIR" || "$kept_directory" = "$latest" || "${metadata[3]}" -ge "$cutoff" ]] || grep -Fxq -- "$kept_directory" <<< "$protected_directories"; then
             protected_volumes+=$'\n'"${metadata[1]}"$'\n'"${metadata[2]}"
+            database_volumes="$(retention_database_volumes "$kept_directory")" || return 1
+            protected_volumes+=$'\n'"$database_volumes"
         fi
     done
     containers="$($COMPOSE ps --all --quiet)" || return 1
@@ -74,7 +85,9 @@ cleanup_deployment_retention() {
         grep -Fxq -- "$directory" <<< "$protected_directories" && continue
         [[ "$(realpath -- "$directory")" = "$backup_root/$id" ]] || return 1
 
-        for volume in "$old_volume" "$new_volume"; do
+        database_volumes="$(retention_database_volumes "$directory")" || return 1
+        # Names have been validated and cannot contain spaces or glob characters.
+        for volume in "$old_volume" "$new_volume" $database_volumes; do
             grep -Fxq -- "$volume" <<< "$protected_volumes" && continue
             # Retained legacy backups also keep their original code volume.
             kept_volume=0
@@ -91,7 +104,12 @@ cleanup_deployment_retention() {
             [[ -z "$containers" ]] || continue
             if docker volume inspect "$volume" >/dev/null 2>&1; then
                 [[ "$(docker volume inspect "$volume" --format '{{ index .Labels "com.docker.compose.project" }}')" = "$PROJECT_NAME" ]] || return 1
-                [[ "$(docker volume inspect "$volume" --format '{{ index .Labels "com.docker.compose.volume" }}')" = app_data ]] || return 1
+                role="$(docker volume inspect "$volume" --format '{{ index .Labels "com.docker.compose.volume" }}')" || return 1
+                if grep -Fxq -- "$volume" <<< "$database_volumes"; then
+                    [[ "$role" = db_data || "$role" = deployment_db ]] || return 1
+                else
+                    [[ "$role" = app_data ]] || return 1
+                fi
                 docker volume rm "$volume" >/dev/null || return 1
             fi
         done

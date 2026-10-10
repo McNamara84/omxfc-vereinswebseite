@@ -655,28 +655,40 @@ Auch das Werkzeug für die JS-Coverage-Badge ist als Dev-Abhängigkeit exakt im
 Lockfile gepinnt (`make-coverage-badge` 1.2.0). Der Workflow verwendet die lokale
 Installation mit `npm exec --no` und lädt dabei keine zusätzliche CLI nach.
 
-Beim Wechsel von MariaDB 12.3 auf 13.0 vor dem ersten Neustart ein vollständiges
-Datenbank-Backup erstellen und die Wiederherstellung prüfen. `MARIADB_AUTO_UPGRADE`
-aktualisiert die Systemtabellen; ein Rollback benötigt das Backup und das alte
-Image, nicht lediglich einen zurückgesetzten Image-Tag. Die produktive
-`docker-compose.yml` ist absichtlich nicht versioniert: Die freigegebenen
-Service-Images müssen auch in der Compose-Datei auf dem Server übernommen werden.
+Der Deploymenthelfer führt den Wechsel von MariaDB 12.3 auf 13.0.2 automatisch
+auf einem separaten Datenvolume durch. Nach dem privaten Datenbankdump wird der
+alte Server mit `innodb_fast_shutdown=0` sauber beendet. Erst nach geprüftem
+Shutdown wird sein vollständiges Datenvolume schreibgeschützt auf das neue
+Volume kopiert. `MARIADB_AUTO_UPGRADE` aktualisiert dort die Systemtabellen samt
+zusätzlicher Systemtabellensicherung. Das bisherige Volume und das alte Image
+bleiben für den Rückweg erhalten. Beide Image-Workflows prüfen den Upgrade- und
+Rollback-Pfad mit echten MariaDB-Images; Testdaten, Unicode, Benutzerrechte,
+Views, Routinen, Events und Fremdschlüssel müssen erhalten bleiben. Die produktive
+`docker-compose.yml` ist absichtlich nicht versioniert.
 Der Deploymenthelfer übernimmt die tatsächlichen Compose-Dateien und den
 Projektnamen des laufenden App-Containers und ergänzt ein geprüftes Image-Overlay.
 App, Queue, Scheduler, MariaDB, Typesense und Nginx verwenden dadurch die gescannten Digests.
-Der Datenbank-Preflight erlaubt für diesen Rollout ausschließlich das Patchupdate
-innerhalb MariaDB 13.0. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
+Der Datenbank-Preflight erlaubt MariaDB 12.3.x sowie vorwärts gerichtete
+Patchupdates von 13.0.0–13.0.2 auf 13.0.2; unbekannte Versionen und Downgrades
+werden vor dem Anhalten blockiert. Die Anwendung startet erst nach erfolgreichem
+Upgrade und geprüfter Datenbankversion. Folge-Deployments übernehmen das tatsächlich
+verwendete Datenvolume. Vor dem Anhalten müssen sämtliche Pflichtchecks derselben
 aktuellen Revision erfolgreich sein. Private Datenbackups, alte Image-Tags und
 Codevolumes sichern den Rückweg. Die Sicherungen liegen auf dem Server unter
 `.deployment/backups/<UTC-Zeit>/`; `compose.yml` und `images.yml` halten die
 vorherige Konfiguration fest. Ein App-Rollback benötigt ein kompatibles
-Datenbankschema. Datenbank- und Typesense-Wiederherstellungen erfolgen in
-separaten Datenvolumes mit den passenden gesicherten Images.
+Datenbankschema. `database-volumes.meta` erfasst das alte und neue Datenvolume
+für die Aufbewahrung. Der Helfer unterstützt sowohl ein gemeinsames Storage-Mount
+als auch separate Mounts für `storage/app`, `storage/framework` und `storage/logs`.
+Typesense-Backups und Wiederherstellungen übernehmen den vorhandenen Datenpfad
+(`/data` oder `/typesense-data`).
 
 Bei einem Deploymentabbruch vor dem Containerwechsel startet der Fehler-Trap
 die bisherigen Dienste wieder und beendet den Wartungsmodus. Nach dem Wechsel
-stellt er die alte Anwendung samt Codevolume und Images wieder her; Datenbankdump
-und Typesense-Archiv werden dafür in neue, separate Datenvolumes eingespielt.
+stellt er die alte Anwendung samt Codevolume und Images wieder her. Beim Major-Upgrade
+startet die alte MariaDB auf ihrem unveränderten ursprünglichen Datenvolume;
+beim Patchupdate wird der Datenbankdump in ein separates Volume eingespielt.
+Das Typesense-Archiv wird ebenfalls in ein separates Datenvolume eingespielt.
 Die Datenvolumes des fehlgeschlagenen Deployments bleiben zur Diagnose erhalten.
 HTTP-Zugriffe und Hintergrundschreibvorgänge bleiben bis zum Abschluss der
 Healthchecks angehalten; die Laravel-Healthroute `/up` ist währenddessen erreichbar.
@@ -684,7 +696,7 @@ Scheitert auch die Wiederherstellung, meldet der Workflow den privaten Backup-Pf
 und hält den Wartungsmodus für eine manuelle Wiederherstellung aktiv.
 
 Nach einem erfolgreichen Deployment entfernt der Helfer Rollback-Tags,
-nicht mehr referenzierte Codevolumes und private Backup-Verzeichnisse, die älter
+nicht mehr referenzierte Code- und Datenbankvolumes und private Backup-Verzeichnisse, die älter
 als sieben Tage sind. Der neueste Rollback-Satz, laufende beziehungsweise gestoppte
 Container und Ressourcen der weiterhin aufbewahrten Sätze bleiben erhalten.
 Als aktive Compose-Eingaben verwendete Backups werden ebenfalls aufbewahrt.

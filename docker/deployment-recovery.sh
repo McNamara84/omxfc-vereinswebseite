@@ -19,7 +19,7 @@ wait_for_recovery_database() {
         if recovery_compose exec -T db sh -c '
             export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
             test -n "$MYSQL_PWD"
-            mariadb -uroot --batch --skip-column-names -e "SELECT 1"
+            mariadb --protocol=tcp -h 127.0.0.1 -uroot --batch --skip-column-names -e "SELECT 1"
         ' >/dev/null 2>&1; then
             return 0
         fi
@@ -40,16 +40,24 @@ recover_deployment() {
         # failed deployment's original volumes intact for diagnosis.
         $COMPOSE stop --timeout 360 queue scheduler app nginx typesense db || return 1
         recovery_id="$(basename "$BACKUP_DIR")"
-        recovery_db="${PROJECT_NAME}_recovery_db_${recovery_id}"
+        if [[ "$DATABASE_MIGRATION_REQUIRED" = 1 ]]; then
+            # This volume was never opened by 13.0: keep every user, grant,
+            # database, routine and event rather than importing a partial dump.
+            recovery_db="$OLD_DATABASE_VOLUME"
+        else
+            recovery_db="${PROJECT_NAME}_recovery_db_${recovery_id}"
+            docker volume create --label "com.docker.compose.project=$PROJECT_NAME" \
+                --label com.docker.compose.volume=db_data "$recovery_db" >/dev/null || return 1
+        fi
         recovery_typesense="${PROJECT_NAME}_recovery_typesense_${recovery_id}"
-        docker volume create --label "com.docker.compose.project=$PROJECT_NAME" "$recovery_db" >/dev/null || return 1
         docker volume create --label "com.docker.compose.project=$PROJECT_NAME" "$recovery_typesense" >/dev/null || return 1
         docker run --rm --mount "type=volume,source=$recovery_typesense,target=/restore" \
             --mount "type=bind,source=$BACKUP_DIR,target=/backup,readonly" \
             --entrypoint tar "$OMXFC_APP_IMAGE" -C /restore -xzf /backup/typesense-data.tar.gz || return 1
 
         # Compose merges volumes by container target, preserving other mounts.
-        # Old MariaDB runs against a fresh volume populated from its own dump.
+        # Major upgrade recovery uses the untouched original database volume.
+        # Same-series recovery uses a fresh volume populated from its own dump.
         cat > "$BACKUP_DIR/recovery.yml" <<RECOVERY_VOLUMES
 services:
   db:
@@ -61,7 +69,7 @@ services:
     volumes:
       - type: volume
         source: recovery_typesense
-        target: /data
+        target: $TYPESENSE_DATA_TARGET
 volumes:
   recovery_db:
     external: true
@@ -84,12 +92,14 @@ RECOVERY_VOLUMES
         recovery_compose config --quiet || return 1
         recovery_compose up -d --force-recreate --no-deps db || return 1
         wait_for_recovery_database || return 1
-        # shellcheck disable=SC2016
-        recovery_compose exec -T db sh -c '
-            export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
-            test -n "$MYSQL_PWD"
-            mariadb -uroot
-        ' < "$BACKUP_DIR/database.sql" || return 1
+        if [[ "$DATABASE_MIGRATION_REQUIRED" != 1 ]]; then
+            # shellcheck disable=SC2016
+            recovery_compose exec -T db sh -c '
+                export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
+                test -n "$MYSQL_PWD"
+                mariadb -uroot
+            ' < "$BACKUP_DIR/database.sql" || return 1
+        fi
         recovery_compose up -d --force-recreate --no-deps typesense app nginx || return 1
     elif [[ "$DEPLOYMENT_SERVICES_TOUCHED" = 1 ]]; then
         # Backup failures precede replacement: the original containers and

@@ -76,16 +76,150 @@ test('foreign Compose files fail before containers or volumes can change', () =>
     } finally { fs.rmSync(root, { recursive: true }); }
 });
 
-test('a database major upgrade or downgrade cannot happen implicitly', () => {
-    for (const version of ['12.3.4-MariaDB', '13.0.3-MariaDB', '14.0.0-MariaDB', 'unknown']) {
+test('untested database upgrades and downgrades are rejected before changing services', () => {
+    for (const version of ['12.2.3-MariaDB', '12.4.0-MariaDB', '13.0.3-MariaDB', '14.0.0-MariaDB', 'unknown']) {
         const root = fixture();
         try {
             const result = run(root, { DATABASE_VERSION: version });
             assert.notEqual(result.status, 0);
-            assert.match(result.stderr, /separate major-version migration/);
+            assert.match(result.stderr, /separate migration/);
             assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
         } finally { fs.rmSync(root, { recursive: true }); }
     }
+});
+
+test('12.3 upgrade clones a cleanly stopped database and verifies 13.0.2 before starting the app', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, { DATABASE_VERSION: '12.3.3-MariaDB' });
+        assert.equal(result.status, 0, result.stderr);
+        const recorded = calls(root);
+        const dbStop = recorded.findIndex(args => args.includes('stop') && args.at(-1) === 'db');
+        const copy = recorded.findIndex(args => args.some(arg => arg.includes('target=/source')));
+        const dbStart = recorded.findIndex(args => args.includes('up') && args.includes('db'));
+        const version = recorded.findIndex((args, index) => index > dbStart && args.join(' ').includes('SELECT VERSION()'));
+        const appStart = recorded.findIndex(args => args.includes('up') && args.at(-1) === 'app');
+        assert.ok(dbStop >= 0 && copy > dbStop && dbStart > copy && version > dbStart && appStart > version);
+        assert.ok(recorded[copy].includes('type=volume,source=fixture_db_data_old,target=/source,readonly'));
+        assert.ok(recorded[copy].includes('--network') && recorded[copy].includes('none'));
+        const overlay = fs.readFileSync(root + '/.deployment/images.compose.yml', 'utf8');
+        assert.match(overlay, /MARIADB_AUTO_UPGRADE: "1"/);
+        assert.match(overlay, /source: deployment_db/);
+        assert.match(overlay, /name: fixture_database_\d{8}T\d{6}Z/);
+        assert.equal(JSON.parse(fs.readFileSync(root + '/state.json')).maintenance, false);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('unsupported database mounts and existing upgrade targets fail before downtime', () => {
+    for (const extra of [
+        { MISSING_DATABASE_VOLUME: '1' }, { FOREIGN_VOLUME: 'fixture_db_data_old' },
+        { CUSTOM_DATABASE_DIRECTORY: '/another-directory/' }, { NESTED_DATABASE_MOUNT: '1' },
+        { EXISTING_DATABASE_TARGET: '1' },
+    ]) {
+        const root = fixture();
+        try {
+            const result = runWorkflow(root, { DATABASE_VERSION: '12.3.3-MariaDB', ...extra });
+            assert.notEqual(result.status, 0);
+            assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
+            assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
+});
+
+test('later 13.0 deployments preserve the active database copy instead of reopening the 12.3 volume', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, { DATABASE_VERSION: '13.0.2-MariaDB', CURRENT_DATABASE_VOLUME: 'fixture_database_active' });
+        assert.equal(result.status, 0, result.stderr);
+        assert.match(fs.readFileSync(root + '/.deployment/images.compose.yml', 'utf8'), /name: fixture_database_active/);
+        assert.equal(calls(root).some(args => args.some(arg => arg.includes('target=/source'))), false);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('split storage and the existing /typesense-data mount survive both rollout and recovery', () => {
+    for (const extra of [{}, { FAIL_OPERATION: 'migration' }]) {
+        const root = fixture();
+        try {
+            const result = runWorkflow(root, { SPLIT_STORAGE: '1', TYPESENSE_DATA_TARGET: '/typesense-data', DATABASE_VERSION: '12.3.3-MariaDB', ...extra });
+            assert.equal(result.status === 0, !extra.FAIL_OPERATION, result.stderr);
+            assert.ok(calls(root).some(args => args.includes('-czf') && args.includes('/typesense-data')));
+            if (extra.FAIL_OPERATION) {
+                assert.match(fs.readFileSync(root + '/.deployment/recovered.volumes.yml', 'utf8'), /target: \/typesense-data/);
+                assert.equal(JSON.parse(fs.readFileSync(root + '/state.json')).maintenance, false);
+            }
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
+});
+
+test('incomplete split storage and missing Typesense mounts are rejected before downtime', () => {
+    for (const extra of [{ SPLIT_STORAGE: '1', MISSING_STORAGE_PART: '1' }, { MISSING_TYPESENSE_MOUNT: '1' }]) {
+        const root = fixture();
+        try {
+            const result = runWorkflow(root, extra);
+            assert.notEqual(result.status, 0);
+            assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
+});
+
+for (const operation of ['database-flush', 'database-stop', 'database-copy', 'infrastructure', 'database-ready', 'migration', 'index', 'health']) {
+    test(`12.3 upgrade failure during ${operation} restores the untouched original database`, () => {
+        const root = fixture();
+        try {
+            const result = runWorkflow(root, { DATABASE_VERSION: '12.3.3-MariaDB', FAIL_OPERATION: operation });
+            assert.notEqual(result.status, 0);
+            assert.match(result.stderr, /Previous application restored/, result.stderr);
+            assert.equal(fs.existsSync(root + '/restored-database.sql'), false);
+            const state = JSON.parse(fs.readFileSync(root + '/state.json'));
+            assert.equal(state.maintenance, false);
+            assert.ok(Object.values(state.running).every(Boolean));
+            if (['infrastructure', 'database-ready', 'migration', 'index', 'health'].includes(operation)) {
+                assert.match(fs.readFileSync(root + '/.deployment/recovered.volumes.yml', 'utf8'), /name: fixture_db_data_old/);
+                assert.equal(calls(root).some(args => args[0] === 'volume' && args[1] === 'create' && args.at(-1).includes('recovery_db')), false);
+            }
+        } finally { fs.rmSync(root, { recursive: true }); }
+    });
+}
+
+test('an unclean shutdown refuses copying and restores the original database first', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, { DATABASE_VERSION: '12.3.3-MariaDB', UNCLEAN_DATABASE_STOP: '1' });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /did not shut down cleanly/);
+        assert.match(result.stderr, /Previous application restored/);
+        assert.equal(calls(root).some(args => args.some(arg => arg.includes('target=/source'))), false);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('an unexpected deployed version is recovered before the app can start', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, { DATABASE_VERSION: '12.3.3-MariaDB', DEPLOYED_DATABASE_VERSION: '12.3.3-MariaDB' });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /Unexpected deployed MariaDB version/);
+        assert.match(result.stderr, /Previous application restored/);
+        assert.equal(calls(root).some(args => args.includes('up') && args.at(-1) === 'app' && !args.some(arg => arg.includes('recovered.images.yml'))), false);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('retention removes expired database copies while preserving those needed by recent rollbacks', () => {
+    const root = fixture();
+    try {
+        const expired = rollbackSet(root, 9, 'fixture_app_data_expired');
+        const shared = rollbackSet(root, 8, 'fixture_app_data_shared');
+        const recent = rollbackSet(root, 2, 'fixture_app_data_recent');
+        fs.writeFileSync(expired.directory + '/database-volumes.meta', 'fixture\nfixture_db_data_old\nfixture_database_expired\n');
+        for (const backup of [shared, recent]) {
+            fs.writeFileSync(backup.directory + '/database-volumes.meta', 'fixture\nfixture_db_data_old\nfixture_database_retained\n');
+        }
+        const result = run(root, {}, '; cleanup_deployment_retention');
+        assert.equal(result.status, 0, result.stderr);
+        assert.ok(calls(root).some(args => args[0] === 'volume' && args[1] === 'rm' && args[2] === 'fixture_database_expired'));
+        assert.equal(calls(root).some(args => args[0] === 'volume' && args[1] === 'rm' && ['fixture_db_data_old', 'fixture_database_retained'].includes(args[2])), false);
+        assert.equal(fs.existsSync(expired.directory), false);
+        assert.equal(fs.existsSync(recent.directory), true);
+    } finally { fs.rmSync(root, { recursive: true }); }
 });
 
 test('storage inside the code volume blocks replacement before environment changes', () => {

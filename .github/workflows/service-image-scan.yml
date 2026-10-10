@@ -52,6 +52,9 @@ jobs:
       - name: Verify MariaDB initialization and data after restart
         if: matrix.target == 'mariadb'
         run: bash docker/verify-mariadb-image.sh omxfc-service-base:security-scan
+      - name: Verify MariaDB 12.3 upgrade and rollback
+        if: matrix.target == 'mariadb'
+        run: bash docker/verify-mariadb-upgrade.sh omxfc-service-base:security-scan
       - name: Report upstream findings separately
         if: matrix.target != ''
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
