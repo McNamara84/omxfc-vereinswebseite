@@ -50,23 +50,15 @@ jobs:
       - name: Resolve TIA baseline directory
         id: baseline-path
         run: echo "path=$(./vendor/bin/pest --baseline)" >> "$GITHUB_OUTPUT"
-      - name: Restore compatible Pest 5.3 dependency graph
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ steps.baseline-path.outputs.path }}
-          key: ${{ runner.os }}-php-8.5-pest-tia-v2-${{ hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php') }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-php-8.5-pest-tia-v2-${{ hashFiles('composer.lock', 'phpunit.tia.xml', 'tests/Pest.php', 'tests/TestCase.php') }}-
-      - name: Update Pest dependency graph
+      - name: Record fresh Pest dependency graph
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
           XDEBUG_MODE: coverage
-        # Pest 5 does not allow a fixed random-order seed together with TIA.
-        # Keep the CI invocation aligned with the canonical Composer script.
-        # Full-suite acceptance remains in phpunit.yml. This cache accelerates
-        # only the supplementary TIA run and never crosses lockfile/config changes.
-        run: composer test:tia
+        # This workflow publishes the baseline. Re-record it without fetching
+        # a previous artifact through gh, even on a runner with an empty cache.
+        # Full-suite acceptance remains in phpunit.yml.
+        run: composer test:tia:fresh
       - name: Upload TIA baseline
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
