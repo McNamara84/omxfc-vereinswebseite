@@ -69,12 +69,16 @@ test('dashboard renders its accessible placeholder before the deferred feed requ
         await expect.poll(() => deferredRequestSeen).toBe(true);
         release();
         const all = page.getByRole('button', { name: 'Alle', exact: true }).within(feed);
+        const club = page.getByRole('button', { name: 'Verein & Veranstaltungen', exact: true }).within(feed);
         await expect(all).toBeVisible();
         await expect(all).toHaveAttribute('aria-pressed', 'true');
-        const club = page.getByRole('button', { name: 'Verein & Veranstaltungen', exact: true }).within(feed);
+        await expect(all).toHaveClass(/\bbtn-primary\b/);
+        await expect(club).toHaveClass(/\bbtn-ghost\b/);
         await clickAndWaitForLivewireUpdate(page, club);
         await expect(club).toHaveAttribute('aria-pressed', 'true');
         await expect(all).toHaveAttribute('aria-pressed', 'false');
+        await expect(club).toHaveClass(/\bbtn-primary\b/);
+        await expect(all).toHaveClass(/\bbtn-ghost\b/);
     } finally {
         release();
     }

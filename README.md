@@ -663,6 +663,24 @@ vorherige Konfiguration fest. Ein App-Rollback benötigt ein kompatibles
 Datenbankschema. Datenbank- und Typesense-Wiederherstellungen erfolgen in
 separaten Datenvolumes mit den passenden gesicherten Images.
 
+Bei einem Deploymentabbruch vor dem Containerwechsel startet der Fehler-Trap
+die bisherigen Dienste wieder und beendet den Wartungsmodus. Nach dem Wechsel
+stellt er die alte Anwendung samt Codevolume und Images wieder her; Datenbankdump
+und Typesense-Archiv werden dafür in neue, separate Datenvolumes eingespielt.
+Die Datenvolumes des fehlgeschlagenen Deployments bleiben zur Diagnose erhalten.
+HTTP-Zugriffe und Hintergrundschreibvorgänge bleiben bis zum Abschluss der
+Healthchecks angehalten; die Laravel-Healthroute `/up` ist währenddessen erreichbar.
+Scheitert auch die Wiederherstellung, meldet der Workflow den privaten Backup-Pfad
+und hält den Wartungsmodus für eine manuelle Wiederherstellung aktiv.
+
+Nach einem erfolgreichen Deployment entfernt der Helfer Rollback-Tags,
+nicht mehr referenzierte Codevolumes und private Backup-Verzeichnisse, die älter
+als sieben Tage sind. Der neueste Rollback-Satz, laufende beziehungsweise gestoppte
+Container und Ressourcen der weiterhin aufbewahrten Sätze bleiben erhalten.
+Als aktive Compose-Eingaben verwendete Backups werden ebenfalls aufbewahrt.
+Die Bereinigung erfasst auch eindeutig erkannte Backups älterer Deployments;
+unbekannte oder manuell angelegte Verzeichnisse bleiben erhalten.
+
 Die Lockfiles sind verbindlich. Vor einem Merge von Dependency-Updates laufen
 mindestens folgende Prüfungen:
 
@@ -723,6 +741,7 @@ geprüft und bei solchen Befunden blockiert.
 | Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
 | Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
 | Deploymenthelfer und Releasechecks prüfen | `npm run test:deployment` |
+| Interner Typesense-Snapshot (isolierter Server) | `php vendor/bin/phpunit tests/Integration/TypesenseInternalSnapshotTest.php --do-not-record-test-run-history` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
@@ -732,6 +751,9 @@ Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `pl
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
+
+Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
+und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
 Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
 
@@ -759,16 +781,18 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 
 Der GitHub-Deployment-Workflow nutzt ab Laravel 13.25 den globalen
 Queue-Pause-Mechanismus. Vor dem Containerwechsel nimmt der Worker keine neuen
-Jobs mehr an und wird mit einem großzügigen Timeout beendet; vor dem Start der
-neuen Worker hebt der Workflow die Pause garantiert wieder auf. Beim ersten
+Jobs mehr an und wird mit einem großzügigen Timeout beendet. Die neuen Worker
+starten nach Migrationen und Cacheaufbau; die Pause wird erst nach erfolgreichen
+Healthchecks aufgehoben. Beim ersten
 Deployment von einer älteren Laravel-Version wird die Pause per Feature-Check
 übersprungen.
 
-Nach erfolgreich abgeschlossenen Healthchecks entfernt der Workflow nur
-unreferenzierte Docker-Images, die älter als sieben Tage sind. So bleibt ein
-kurzer lokaler Rollback-Puffer erhalten, während alte `latest`-Versionen nicht
-dauerhaft Speicherplatz auf dem Produktionsserver belegen. Docker-Volumes und
-damit Datenbank- oder Anwendungsdaten werden dabei nicht bereinigt.
+Nach erfolgreich abgeschlossenen Healthchecks bereinigt der Workflow abgelaufene
+Rollback-Sätze einschließlich ihrer Tags, unbenutzten Codevolumes und privaten
+Backups. Der neueste Satz und die letzten sieben Tage bleiben erhalten; aktive
+Compose-Eingaben und referenzierte Ressourcen werden geschützt. Zusätzlich werden
+alte, unreferenzierte Images dieses Repositories entfernt. Datenbank-, Typesense-
+und Storage-Volumes werden durch diese Bereinigung nicht entfernt.
 
 ## Nützliche Artisan-Befehle
 

@@ -31,7 +31,7 @@ class DependencyFeatureAdoptionTest extends TestCase
         $this->assertStringNotContainsString('cdnjs.cloudflare.com/ajax/libs/font-awesome', $memberMap);
     }
 
-    public function test_deployment_pauses_queues_gracefully_and_resumes_before_workers_start(): void
+    public function test_deployment_keeps_writes_paused_until_health_checks_pass(): void
     {
         $workflow = (string) file_get_contents(dirname(__DIR__, 2).'/.github/workflows/deploy.yml');
         $featureCheck = strpos($workflow, 'php artisan queue:pause --help --no-ansi');
@@ -39,16 +39,22 @@ class DependencyFeatureAdoptionTest extends TestCase
         $stop = strpos($workflow, '$COMPOSE stop --timeout 360 queue');
         $resume = strpos($workflow, 'docker exec maddrax-app php artisan queue:resume --all');
         $start = strpos($workflow, '$COMPOSE up -d --force-recreate --no-deps queue scheduler');
+        $health = strpos($workflow, 'docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/up');
+        $release = strpos($workflow, 'docker exec maddrax-app php artisan up');
 
         $this->assertNotFalse($featureCheck);
         $this->assertNotFalse($pause);
         $this->assertNotFalse($stop);
         $this->assertNotFalse($resume);
         $this->assertNotFalse($start);
+        $this->assertNotFalse($health);
+        $this->assertNotFalse($release);
         $this->assertLessThan($pause, $featureCheck);
         $this->assertLessThan($stop, $pause);
         $this->assertLessThan($resume, $stop);
-        $this->assertLessThan($start, $resume);
+        $this->assertLessThan($health, $start);
+        $this->assertLessThan($resume, $health);
+        $this->assertLessThan($release, $resume);
     }
 
     public function test_deployment_prunes_only_stale_dangling_images_after_health_checks(): void
@@ -58,10 +64,13 @@ class DependencyFeatureAdoptionTest extends TestCase
         // connectivity check goes through the nginx container directly and via Traefik/TLS.
         $connectivityCheck = strpos($workflow, 'docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/');
         $imagePrune = strpos($workflow, 'docker image prune --force --filter "until=168h"');
+        $retention = strpos($workflow, 'cleanup_deployment_retention');
 
         $this->assertNotFalse($connectivityCheck);
         $this->assertNotFalse($imagePrune);
+        $this->assertNotFalse($retention);
         $this->assertLessThan($imagePrune, $connectivityCheck);
+        $this->assertLessThan($retention, $connectivityCheck);
         $this->assertStringNotContainsString('docker volume prune', $workflow);
         $this->assertStringNotContainsString('docker system prune', $workflow);
     }

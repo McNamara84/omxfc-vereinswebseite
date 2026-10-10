@@ -123,6 +123,9 @@ jobs:
           node --input-type=module <<'NODE'
           import { readFileSync, appendFileSync } from 'node:fs';
           appendFileSync(process.env.GITHUB_OUTPUT, 'script=' + readFileSync('docker/prepare-deployment.sh').toString('base64') + '\n');
+          for (const name of ['recovery', 'retention']) {
+            appendFileSync(process.env.GITHUB_OUTPUT, name + '=' + readFileSync(`docker/deployment-${name}.sh`).toString('base64') + '\n');
+          }
           NODE
       - name: Deploy via SSH
         if: steps.checks.outputs.deploy == 'true'
@@ -143,19 +146,9 @@ jobs:
             umask 077
             mkdir -p .deployment
             printf '%s' '${{ steps.helper.outputs.script }}' | base64 -d > .deployment/prepare-deployment.sh
+            printf '%s' '${{ steps.helper.outputs.recovery }}' | base64 -d > .deployment/deployment-recovery.sh
+            printf '%s' '${{ steps.helper.outputs.retention }}' | base64 -d > .deployment/deployment-retention.sh
             source .deployment/prepare-deployment.sh
-            QUEUES_PAUSED=0
-
-            resume_queues_on_exit() {
-              if [ "$QUEUES_PAUSED" = "1" ] && [ "$($COMPOSE ps --status running --services app)" = "app" ]; then
-                if $COMPOSE exec -T app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
-                  echo "Resuming queues after interrupted deployment..."
-                  $COMPOSE exec -T app php artisan queue:resume --all || true
-                fi
-              fi
-            }
-
-            trap resume_queues_on_exit EXIT
             
             echo "Pulling new images..."
             $COMPOSE pull app queue scheduler db typesense nginx
@@ -163,6 +156,7 @@ jobs:
             # Laravel 13.25 can pause all queues while the current job finishes.
             # Laravel 13.24 already exposes queue:pause, but does not support the
             # --all option, so detect the option itself for the first rollout.
+            DEPLOYMENT_SERVICES_TOUCHED=1
             if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
               echo "Pausing all queues before replacing containers..."
               docker exec maddrax-app php artisan queue:pause --all
@@ -175,14 +169,17 @@ jobs:
             $COMPOSE stop --timeout 360 queue
             $COMPOSE exec -T app php artisan down
             $COMPOSE stop scheduler
-            backup_deployment_data
-            
+
+            # Freeze HTTP writers as well as background writers before taking
+            # the database dump and offline Typesense archive.
             echo "Stopping application services..."
             $COMPOSE stop app nginx
+            backup_deployment_data
             
             # The digest-specific application volume is fresh. The previous
             # code volume remains available with the private rollback config.
             echo "Starting infrastructure containers..."
+            DEPLOYMENT_INFRASTRUCTURE_CHANGED=1
             $COMPOSE up -d --force-recreate db typesense
 
             echo "Starting application container to initialize shared app volume..."
@@ -255,13 +252,12 @@ jobs:
             echo "Setting permissions..."
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
             docker exec maddrax-app chmod -R 775 /var/www/html/storage
-            docker exec maddrax-app php artisan up
 
-            # Always clear a persisted global pause before new workers start.
-            if docker exec maddrax-app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
-              docker exec maddrax-app php artisan queue:resume --all
+            # Keep writes paused until every release check succeeds. Laravel's
+            # /up health route remains accessible during maintenance mode.
+            if docker exec maddrax-app php artisan queue:pause --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+              docker exec maddrax-app php artisan queue:pause --all
             fi
-            QUEUES_PAUSED=0
             
             # Start long-running workers only after migrations and the
             # configuration cache have been rebuilt. Otherwise they can retain
@@ -294,7 +290,7 @@ jobs:
             echo "=== Testing connectivity ==="
             # nginx veröffentlicht keinen Host-Port mehr (Traefik ist der einzige Eintrittspunkt).
             # Geprüft wird 1) der nginx-Container direkt und 2) der Weg über Traefik inkl. Zertifikat.
-            if docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/               && curl -fsS --max-time 20 --resolve maddrax-fanclub.de:443:127.0.0.1 https://maddrax-fanclub.de/ >/dev/null; then
+            if docker exec maddrax-nginx wget -q -O /dev/null http://127.0.0.1/up               && curl -fsS --max-time 20 --resolve maddrax-fanclub.de:443:127.0.0.1 https://maddrax-fanclub.de/up >/dev/null; then
               echo "✅ Connectivity test (nginx + Traefik): PASSED"
             else
               echo "❌ Connectivity test (nginx + Traefik): FAILED"
@@ -315,9 +311,22 @@ jobs:
               docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
             fi
 
-            # Repeated pulls of the mutable `latest` tag leave the previous
-            # application image dangling. Keep a seven-day rollback window,
-            # then remove only dangling images after all health checks passed.
+            # Release writes only after startup, migrations, caches, indexes,
+            # workers, connectivity and assets have all been checked.
+            if docker exec maddrax-app php artisan queue:resume --help --no-ansi 2>/dev/null | grep -Fq -- "--all"; then
+              docker exec maddrax-app php artisan queue:resume --all
+            fi
+            QUEUES_PAUSED=0
+            docker exec maddrax-app php artisan up
+            trap - EXIT INT TERM
+
+            # Cleanup is best effort after a successful release. Retain seven
+            # days of complete rollback sets, plus the newest set and all
+            # volumes/images still referenced by containers or retained sets.
+            echo "=== Expiring deployment rollback sets ==="
+            if ! cleanup_deployment_retention; then
+              echo "⚠️ Some expired rollback resources could not be removed; retained for retry"
+            fi
             echo "=== Pruning stale deployment images ==="
             if docker image prune --force --filter "until=168h" --filter "label=org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite"; then
               echo "✅ Stale deployment images: PRUNED"
@@ -325,5 +334,4 @@ jobs:
               echo "⚠️ Stale deployment images could not be pruned"
             fi
             
-            trap - EXIT
             echo "🚀 Deployment completed successfully!"

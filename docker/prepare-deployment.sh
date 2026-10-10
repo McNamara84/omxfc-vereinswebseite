@@ -14,8 +14,14 @@ STACK_ROOT="$(pwd -P)"
 [[ "$STACK_ROOT" != *[$'\r\n|&:']* ]] || exit 1
 IMAGE_OVERRIDE="$STACK_ROOT/.deployment/images.compose.yml"
 BACKUP_DIR="$STACK_ROOT/.deployment/backups/$(date -u +%Y%m%dT%H%M%SZ)"
-mkdir -p "$BACKUP_DIR"
+mkdir -p "$STACK_ROOT/.deployment/backups"
+mkdir "$BACKUP_DIR"
+source "$(dirname "${BASH_SOURCE[0]}")/deployment-recovery.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/deployment-retention.sh"
 cp .env.production "$BACKUP_DIR/environment"
+if [[ -f "$IMAGE_OVERRIDE" ]]; then
+    cp "$IMAGE_OVERRIDE" "$BACKUP_DIR/previous-images.compose.yml"
+fi
 
 # Docker records the actual Compose inputs, including an existing override.
 # Reuse these files and retain the project name to preserve volumes/networks.
@@ -58,15 +64,6 @@ echo "Database preflight: $DATABASE_VERSION"
 
 # This private resolved configuration contains secrets; never upload or print it.
 $COMPOSE config > "$BACKUP_DIR/compose.yml"
-printf 'services:\n' > "$BACKUP_DIR/images.yml"
-for service in app queue scheduler db typesense nginx; do
-    container="$($COMPOSE ps --all --quiet "$service")"
-    [[ -n "$container" ]] || { echo "Missing deployment service: $service" >&2; exit 1; }
-    old_image="$(docker inspect "$container" --format '{{.Image}}')"
-    rollback_tag="omxfc-rollback:$(basename "$BACKUP_DIR")-$service"
-    docker image tag "$old_image" "$rollback_tag"
-    printf '  %s:\n    image: %s\n' "$service" "$rollback_tag" >> "$BACKUP_DIR/images.yml"
-done
 
 # Give each application image its own code volume. Keep the previous volume
 # for rollback instead of deleting a hard-coded volume from a guessed project.
@@ -81,8 +78,18 @@ APP_STORAGE_MOUNT="$(docker inspect maddrax-app --format '{{range .Mounts}}{{if 
     echo 'Deployment requires an independent writable /var/www/html/storage mount; migrate and verify storage before replacing the code volume.' >&2
     exit 1
 }
-printf 'volumes:\n  app_data:\n    name: %s\n' "$OLD_APP_VOLUME" >> "$BACKUP_DIR/images.yml"
 export OMXFC_APP_VOLUME="${PROJECT_NAME}_app_data_${OMXFC_APP_IMAGE##*:}"
+printf '%s\n' "$PROJECT_NAME" "$OLD_APP_VOLUME" "$OMXFC_APP_VOLUME" "$(date -u +%s)" > "$BACKUP_DIR/retention.meta"
+printf 'services:\n' > "$BACKUP_DIR/images.yml"
+for service in app queue scheduler db typesense nginx; do
+    container="$($COMPOSE ps --all --quiet "$service")"
+    [[ -n "$container" ]] || { echo "Missing deployment service: $service" >&2; exit 1; }
+    old_image="$(docker inspect "$container" --format '{{.Image}}')"
+    rollback_tag="omxfc-rollback:$(basename "$BACKUP_DIR")-$service"
+    docker image tag "$old_image" "$rollback_tag"
+    printf '  %s:\n    image: %s\n' "$service" "$rollback_tag" >> "$BACKUP_DIR/images.yml"
+done
+printf 'volumes:\n  app_data:\n    name: %s\n' "$OLD_APP_VOLUME" >> "$BACKUP_DIR/images.yml"
 
 cat > "$IMAGE_OVERRIDE.candidate" <<'COMPOSE_IMAGES'
 services:
@@ -105,6 +112,7 @@ COMPOSE_IMAGES
 
 DEPLOY_COMPOSE_ARGS+=(-f "$IMAGE_OVERRIDE.candidate")
 $COMPOSE config --quiet
+DEPLOYMENT_METADATA_CHANGED=1
 mv "$IMAGE_OVERRIDE.candidate" "$IMAGE_OVERRIDE"
 DEPLOY_COMPOSE_ARGS[${#DEPLOY_COMPOSE_ARGS[@]}-1]="$IMAGE_OVERRIDE"
 
@@ -149,5 +157,6 @@ backup_deployment_data() {
         --mount "type=bind,source=$BACKUP_DIR,target=/backup" \
         --entrypoint tar "$OMXFC_APP_IMAGE" -C /data -czf /backup/typesense-data.tar.gz .
     test -s "$BACKUP_DIR/typesense-data.tar.gz"
+    DEPLOYMENT_BACKUP_COMPLETE=1
     echo "Private rollback configuration and data backup: $BACKUP_DIR"
 }
