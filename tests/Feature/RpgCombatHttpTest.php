@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Activity;
+use App\Models\RpgCharacter;
 use App\Models\RpgCombat;
 use App\Models\RpgCombatMilestone;
 use App\Services\RpgCombat\CombatQuery;
@@ -69,6 +70,103 @@ class RpgCombatHttpTest extends TestCase
         $this->assertSame(3, RpgCombatMilestone::count());
         $this->assertSame(range(1, $combat->events()->count()), $combat->events()->orderBy('sequence')->pluck('sequence')->all());
         $this->get(route('rpg.combats.show', $combat))->assertOk()->assertSee('Kampfprotokoll');
+    }
+
+    public function test_characters_saved_through_the_editor_can_challenge_accept_and_fight_with_zero_strength(): void
+    {
+        $player = $this->progressionMember();
+        $opponent = $this->progressionMember();
+        $this->rpgTeam->users()->attach([$player->id, $opponent->id], ['role' => 'mitglied']);
+        $attributes = ['st' => 0, 'ge' => 1, 'ro' => 1, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
+        $input = [
+            'figurenstaerke' => 2, 'player_name' => 'Spieler', 'gender' => 'maennlich',
+            'race' => 'Barbar', 'culture' => 'Landbewohner', 'barbar_attribute_bonus' => 'ge',
+            'attributes' => array_replace($attributes, ['st' => -1]),
+            'attribute_adjustments' => array_replace($attributes, ['st' => -1, 'ge' => 0]),
+            'skills' => [
+                ['name' => 'Nahkampf', 'value' => 3], ['name' => 'Überleben', 'value' => 1],
+                ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2],
+                ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Athletik', 'value' => 3],
+                ['name' => 'Fernkampf', 'value' => 3], ['name' => 'Handeln', 'value' => 3],
+                ['name' => 'Fahren', 'value' => 3], ['name' => 'Feuerwaffen', 'value' => 1],
+            ],
+            'clothing' => 'kleidung-einfach',
+            'equipment_items' => [
+                ['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1],
+                ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1],
+                ['id' => 'wochenration', 'quantity' => 1], ['id' => 'bogen', 'quantity' => 1],
+            ],
+        ];
+
+        $this->actingAs($player)->post(route('rpg.characters.store'), $input + ['character_name' => 'Mäc'])
+            ->assertSessionHasNoErrors()->assertRedirect(route('rpg.characters.index'));
+        $input['attributes'] = $attributes;
+        $input['attribute_adjustments'] = array_replace($attributes, ['ge' => 0]);
+        $this->actingAs($opponent)->post(route('rpg.characters.store'), $input + ['character_name' => 'Arthanasia'])
+            ->assertSessionHasNoErrors()->assertRedirect(route('rpg.characters.index'));
+
+        $this->player = $player;
+        $this->opponent = $opponent;
+        $this->character = RpgCharacter::where('user_id', $player->id)->sole();
+        $this->otherCharacter = RpgCharacter::where('user_id', $opponent->id)->sole();
+        $originals = [];
+        foreach ([$this->character, $this->otherCharacter] as $character) {
+            $originals[$character->id] = $character->getRawOriginal();
+            foreach ($character->payload['attributes'] as $value) {
+                $this->assertIsString($value);
+            }
+            foreach ($character->payload['skills'] as $skill) {
+                $this->assertIsString($skill['value']);
+            }
+        }
+        $this->assertSame('-1', $this->character->payload['attributes']['st']);
+        $this->assertSame('0', $this->otherCharacter->payload['attributes']['st']);
+
+        $this->actingAs($player)->post(route('rpg.combats.store'), $this->combatInput())
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $combat = RpgCombat::sole();
+        $this->actingAs($opponent)->post(route('rpg.combats.command', $combat), ['command' => 'accept', 'submission_key' => (string) Str::uuid()])
+            ->assertSessionHasNoErrors()->assertRedirect();
+        $combat->refresh();
+        $this->assertSame('preparing', $combat->status);
+        $this->assertDatabaseCount('rpg_combat_participants', 2);
+        $this->assertDatabaseCount('rpg_combat_character_locks', 2);
+        foreach ($combat->participants as $participant) {
+            foreach ($participant->snapshot['attributes'] as $value) {
+                $this->assertIsInt($value);
+            }
+            foreach ($participant->snapshot['skills'] as $value) {
+                $this->assertIsInt($value);
+            }
+        }
+
+        foreach ([1, 2] as $side) {
+            $combat = $this->decision($combat, 'prepare', $side, ['weapons' => [], 'shield' => false, 'skill' => 'Nahkampf']);
+        }
+        $this->combatDice->values = [1, 6];
+        $combat = $this->decision($combat, 'initiative', 1);
+        $combat = $this->decision($combat, 'initiative', 2);
+        $this->combatDice->values = [6, 5, 2, 2, 1];
+        $combat = $this->decision($combat, 'action', 2, ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1']);
+        $combat = $this->decision($combat, 'defense', 1, ['defense' => 'dodge']);
+        $combat = $this->decision($combat, 'damage', 2);
+        $damage = $combat->events()->where('kind', 'roll')->get()->firstWhere('data.message', 'Schadenswurf');
+        $this->assertNotNull($damage);
+        $this->assertSame(0, $damage->data['modifiers']['ST']);
+
+        $this->combatDice->values = [6, 5, 2, 2, 6];
+        $combat = $this->decision($combat, 'action', 1, ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1', 'attribute' => 'st']);
+        $combat = $this->decision($combat, 'defense', 2, ['defense' => 'dodge']);
+        $combat = $this->decision($combat, 'damage', 1);
+        $damage = $combat->events()->where('kind', 'roll')->orderByDesc('sequence')->get()->firstWhere('data.message', 'Schadenswurf');
+        $this->assertNotNull($damage);
+        $this->assertSame(-1, $damage->data['modifiers']['ST']);
+        $this->assertSame(-1, $combat->state['actors'][1]['profile']['attributes']['st']);
+        $this->assertSame(0, $combat->state['actors'][2]['profile']['attributes']['st']);
+        foreach ([$this->character, $this->otherCharacter] as $character) {
+            $this->assertSame($originals[$character->id], $character->fresh()->getRawOriginal());
+            $this->assertSame(0, $character->experienceBalance());
+        }
     }
 
     #[DataProvider('localCreationDates')]

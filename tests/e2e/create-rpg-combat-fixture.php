@@ -48,10 +48,17 @@ foreach (['leader', 'player', 'other', 'replacement'] as $role) {
 }
 $characters = [];
 foreach (['player' => 'Arkon', 'other' => 'Mira'] as $role => $name) {
+    $attributes = ['st' => $role === 'player' ? 5 : 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
+    $skillValue = $role === 'player' ? 20 : 0;
+    if ($scenario === 'invitation') {
+        // Match the numeric strings persisted by the character editor.
+        $attributes = array_map('strval', $attributes);
+        $skillValue = (string) $skillValue;
+    }
     $characters[$role] = RpgCharacter::factory()->create(['user_id' => $users[$role]->id, 'character_name' => $name.' Kampf '.substr($suffix, 0, 8),
         'payload' => ['character' => ['character_name' => $name, 'race' => 'Hydrit', 'culture' => 'Meeresbewohner'],
-            'attributes' => ['st' => $role === 'player' ? 5 : 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'skills' => [['name' => 'Nahkampf', 'value' => $role === 'player' ? 20 : 0]], 'advantages' => [], 'disadvantages' => [], 'advantage_effects' => [], 'equipment' => ['items' => []]]]);
+            'attributes' => $attributes,
+            'skills' => [['name' => 'Nahkampf', 'value' => $skillValue]], 'advantages' => [], 'disadvantages' => [], 'advantage_effects' => [], 'equipment' => ['items' => []]]]);
 }
 $extra = [];
 if (in_array($scenario, ['psychic', 'simultaneous'], true)) {
