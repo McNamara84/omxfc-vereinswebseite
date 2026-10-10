@@ -3,11 +3,12 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const helper = fileURLToPath(new URL('../../docker/prepare-deployment.sh', import.meta.url));
 const dockerFixture = fileURLToPath(new URL('./fixtures/deployment-docker.mjs', import.meta.url));
+const stateWriteDelay = fileURLToPath(new URL('./fixtures/delay-state-writes.cjs', import.meta.url));
 const workflow = fs.readFileSync(new URL('../../.github/workflows/deploy.yml', import.meta.url), 'utf8')
     .replaceAll('\r\n', '\n').split('          script: |\n')[1]
     .split('\n').map(line => line.slice(12)).join('\n')
@@ -283,7 +284,7 @@ test('each unscanned service image is rejected before changing the active config
         try {
             const result = runWorkflow(root, { CONFIG_IMAGE_MISMATCH: service });
             assert.notEqual(result.status, 0);
-            assert.ok(result.stderr.includes('Deployment image mismatch for service: ' + service));
+            assert.ok(result.stderr.includes('Deployment image mismatch for service: ' + service), `${service}: ${result.stderr}`);
             assert.match(result.stderr, /Deployment failed during service image verification/);
             assert.doesNotMatch(result.stdout + result.stderr, /FAKE_SECRET|fixture-only/);
             assert.equal(fs.readFileSync(root + '/.env.production', 'utf8'), 'FAKE_SECRET=fixture-only\n');
@@ -302,6 +303,42 @@ test('malformed resolved configuration fails without revealing its private conte
         assert.doesNotMatch(result.stdout + result.stderr, /FAKE_SECRET|fixture-only/);
         assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
         assert.doesNotMatch(fs.readFileSync(root + '/calls', 'utf8'), /"stop"|"up"|"run"/);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('concurrent Compose JSON validation never reads incomplete fixture state', () => {
+    const root = fixture();
+    try {
+        const result = runWorkflow(root, {
+            CONFIG_IMAGE_MISMATCH: 'app', NODE_OPTIONS: `--require="${stateWriteDelay}"`,
+        });
+        assert.notEqual(result.status, 0);
+        assert.match(result.stderr, /Deployment image mismatch for service: app/, result.stderr);
+        assert.doesNotMatch(result.stderr, /SyntaxError|Unexpected end of JSON/);
+        assert.doesNotMatch(result.stdout + result.stderr, /FAKE_SECRET|fixture-only/);
+        assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
+    } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('the PHP fixture forwards complete error output before returning its failure status', { timeout: 10_000 }, async () => {
+    const root = fixture();
+    try {
+        const result = await new Promise((resolve, reject) => {
+            const child = spawn(process.execPath, [dockerFixture, 'exec', '-i', 'fixture-app', 'php', '-r',
+                'fwrite(STDERR, str_repeat("E", 256 * 1024)); exit(7);'], {
+                env: { ...process.env, FIXTURE_ROOT: root },
+            });
+            let output = '';
+            // Backpressure exposes output discarded by an immediate process.exit().
+            const timer = setTimeout(() => child.stderr.on('data', chunk => { output += chunk; }), 150);
+            child.stdout.resume();
+            child.stdin.end();
+            child.once('error', error => { clearTimeout(timer); reject(error); });
+            child.once('close', status => { clearTimeout(timer); resolve({ status, output }); });
+        });
+        assert.equal(result.status, 7);
+        assert.equal(result.output.length, 256 * 1024);
+        assert.equal(result.output, 'E'.repeat(256 * 1024));
     } finally { fs.rmSync(root, { recursive: true }); }
 });
 

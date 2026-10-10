@@ -10,7 +10,13 @@ const state = fs.existsSync(statePath)
     ? JSON.parse(fs.readFileSync(statePath, 'utf8'))
     : { running: Object.fromEntries(services.map(service => [service, true])), maintenance: false, paused: false };
 fs.appendFileSync(root + '/calls', JSON.stringify(args) + '\n');
-const save = () => fs.writeFileSync(statePath, JSON.stringify(state));
+const save = () => {
+    // Compose JSON and its PHP consumer run concurrently. Replace a complete
+    // snapshot atomically so neither process can read a truncated state file.
+    const temporaryPath = statePath + '.' + process.pid + '.tmp';
+    fs.writeFileSync(temporaryPath, JSON.stringify(state));
+    fs.renameSync(temporaryPath, statePath);
+};
 const fail = (operation) => {
     if (process.env.FAIL_OPERATION === operation && !fs.existsSync(root + '/failure')) {
         fs.writeFileSync(root + '/failure', operation);
@@ -129,8 +135,8 @@ if (args[0] === 'inspect') {
         });
         process.stdout.write(result.stdout || '');
         process.stderr.write(result.stderr || result.error?.message || '');
-        save();
-        process.exit(result.status ?? 1);
+        // Let pending pipe writes finish before Node exits with PHP's status.
+        process.exitCode = result.status ?? 1;
     }
     else if (joined.includes('SELECT 1')) {
         if (process.env.FAIL_OPERATION === 'database-ready') process.exit(19);
