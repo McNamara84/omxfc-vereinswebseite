@@ -34,7 +34,9 @@ class RebuildKompendiumIndex extends Command
 
         $anzahl = $romane->count();
         $label = $anzahl === 1 ? 'Roman' : 'Romane';
-        $this->info("Index fehlt – baue {$anzahl} {$label} neu auf …");
+        $this->info($this->option('resume')
+            ? "Setze Index-Import fort – importiere {$anzahl} {$label} erneut …"
+            : "Index fehlt – baue {$anzahl} {$label} neu auf …");
 
         $disk = Storage::disk('private');
 

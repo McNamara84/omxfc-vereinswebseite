@@ -19,6 +19,9 @@ Http::fake();
 $members = Team::membersTeam();
 $suffix = Str::uuid();
 $characterName = 'Arkon EP-Test '.$suffix;
+if (($argv[1] ?? '') === 'long-name') {
+    $characterName = 'Küstenwächter aus den Unterwassergärten von Äquatoria '.$suffix;
+}
 $leader = User::factory()->create(['email' => "rpg-leader-{$suffix}@example.test", 'current_team_id' => $members->id]);
 $player = User::factory()->create(['email' => "rpg-player-{$suffix}@example.test", 'current_team_id' => $members->id]);
 foreach ([$leader, $player] as $user) {

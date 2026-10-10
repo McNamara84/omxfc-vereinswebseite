@@ -100,6 +100,31 @@ class RebuildKompendiumIndexTest extends TestCase
             ->assertExitCode(0);
     }
 
+    public function test_resume_reimports_into_an_existing_index_without_deleting_it(): void
+    {
+        $this->partialMock(KompendiumSearchService::class, function ($mock): void {
+            $mock->shouldReceive('indexExists')->twice()->andReturn(true);
+            $mock->shouldNotReceive('deleteIndex');
+        });
+        Storage::disk('private')->put('romane/maddrax/001 - Eis.txt', 'Matthew Drax findet das Eis.');
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Eis.txt', 'dateipfad' => 'romane/maddrax/001 - Eis.txt',
+            'serie' => 'maddrax', 'roman_nr' => 1, 'titel' => 'Eis',
+            'hochgeladen_am' => now(), 'hochgeladen_von' => $this->admin->id, 'status' => 'indexiert',
+        ]);
+
+        for ($attempt = 0; $attempt < 2; $attempt++) {
+            $this->artisan('kompendium:rebuild-index --resume')
+                ->expectsOutputToContain('Setze Index-Import fort')
+                ->expectsOutput('Index-Rebuild abgeschlossen.')
+                ->assertSuccessful();
+        }
+
+        $this->assertSame('indexiert', $roman->fresh()->status);
+        $this->assertSame(1, KompendiumRoman::count());
+        $this->assertSame('Matthew Drax findet das Eis.', Storage::disk('private')->get($roman->dateipfad));
+    }
+
     public function test_marks_roman_as_fehler_when_file_missing(): void
     {
         $this->partialMock(KompendiumSearchService::class, function ($mock) {

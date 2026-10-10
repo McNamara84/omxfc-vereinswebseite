@@ -40,6 +40,21 @@ omxfc_compose() {
     docker compose --env-file .env.production "${DEPLOY_COMPOSE_ARGS[@]}" "$@"
 }
 COMPOSE=omxfc_compose
+OMXFC_DATABASE_IMAGE='mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3'
+
+# This release performs a same-series database patch. Major upgrades require
+# their own tested backup/restore migration before this deployment can proceed.
+# shellcheck disable=SC2016
+DATABASE_VERSION="$($COMPOSE exec -T db sh -c '
+    export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"
+    test -n "$MYSQL_PWD"
+    mariadb -uroot --batch --skip-column-names -e "SELECT VERSION()"
+')"
+[[ "$DATABASE_VERSION" =~ ^13\.0\.[012](-.*)?$ ]] || {
+    echo 'Database deployment requires MariaDB 13.0.0–13.0.2. Complete and verify the separate major-version migration first.' >&2
+    exit 1
+}
+echo "Database preflight: $DATABASE_VERSION"
 
 # This private resolved configuration contains secrets; never upload or print it.
 $COMPOSE config > "$BACKUP_DIR/compose.yml"
@@ -74,6 +89,8 @@ services:
     image: ${OMXFC_TYPESENSE_IMAGE:?OMXFC_TYPESENSE_IMAGE is required}
   nginx:
     image: ${OMXFC_NGINX_IMAGE:?OMXFC_NGINX_IMAGE is required}
+  db:
+    image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
 volumes:
   app_data:
     name: ${OMXFC_APP_VOLUME:?OMXFC_APP_VOLUME is required}
@@ -89,6 +106,7 @@ for service in app queue scheduler; do
 done
 [[ "$($COMPOSE config --images typesense)" = "$OMXFC_TYPESENSE_IMAGE" ]] || exit 1
 [[ "$($COMPOSE config --images nginx)" = "$OMXFC_NGINX_IMAGE" ]] || exit 1
+[[ "$($COMPOSE config --images db)" = "$OMXFC_DATABASE_IMAGE" ]] || exit 1
 
 # Persist only non-secret deployment metadata for subsequent manual Compose runs.
 COMPOSE_FILE_VALUE="$(IFS=:; echo "${BASE_FILES[*]}:$IMAGE_OVERRIDE")"

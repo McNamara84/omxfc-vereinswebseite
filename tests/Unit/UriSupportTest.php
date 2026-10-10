@@ -62,8 +62,8 @@ test('native URI validation rejects literal control characters, spaces and backs
 test('resolution rejects invalid bases and malformed references', function () {
     expect(UriSupport::resolve('/relative', 'page'))->toBeNull()
         ->and(UriSupport::resolve('https://example.com/', 'http://[broken'))->toBeNull()
-        ->and(UriSupport::resolve('https://example.com/path', '#section'))->toBe('https://example.com/path#section');
-    expect(UriSupport::resolve('http://example.com/docs/', 'page'))->toBe('http://example.com/docs/page')
+        ->and(UriSupport::resolve('https://example.com/path', '#section'))->toBe('https://example.com/path#section')
+        ->and(UriSupport::resolve('http://example.com/docs/', 'page'))->toBe('http://example.com/docs/page')
         ->and(UriSupport::resolve('https:relative', 'page'))->toBeNull();
 });
 

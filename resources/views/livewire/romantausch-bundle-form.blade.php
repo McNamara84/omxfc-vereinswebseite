@@ -55,13 +55,15 @@
                             placeholder="z.B. 1-50, 52, 55-100"
                             hint="Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas."
                             error-field="book_numbers"
+                            omit-error
+                            :aria-describedby="$errors->has('book_numbers') ? 'book-numbers-error' : null"
                             wire:model="book_numbers"
                             x-model="input"
                             x-init="input = $wire.get('book_numbers') || ''; parseNumbers()"
                             @input.debounce.300ms="parseNumbers()"
                         />
                         @error('book_numbers')
-                            <p class="mt-2 text-sm text-error" role="alert">{{ $message }}</p>
+                            <p id="book-numbers-error" class="mt-2 text-sm text-error" role="alert">{{ $message }}</p>
                         @enderror
                         <div x-show="numbers.length > 0" x-cloak class="mt-3 p-3 bg-base-200 rounded-lg">
                             <p class="text-sm font-medium text-base-content">

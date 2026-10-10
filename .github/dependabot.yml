@@ -104,6 +104,24 @@ updates:
           - patch
           - minor
 
+  - package-ecosystem: npm
+    directory: /docker/npm-security
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:20"
+      timezone: Europe/Berlin
+    open-pull-requests-limit: 3
+    # npm's bundled code must stay on the compatible release branches.
+    ignore:
+      - dependency-name: undici
+        update-types: [version-update:semver-major]
+      - dependency-name: brace-expansion
+        update-types: [version-update:semver-major]
+    groups:
+      npm-bundled-security:
+        patterns: ["*"]
+
   - package-ecosystem: docker
     directories:
       - /

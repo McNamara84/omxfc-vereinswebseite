@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const nodeTestFiles = ['docker-utils', 'php-utils', 'navigation-utils', 'performance-metrics', 'playwright-node-utils']
+    .map(name => `**/${name}.test.js`);
 
 export default defineConfig({
     resolve: {
@@ -20,7 +22,10 @@ export default defineConfig({
         globals: true,
         setupFiles: ['tests/Vitest/setup.js'],
         dir: 'tests/Vitest',
-        include: ['**/*.test.js'],
+        projects: [
+            { test: { name: 'node', environment: 'node', include: nodeTestFiles } },
+            { test: { name: 'dom', environment: 'jsdom', include: ['**/*.test.js'], exclude: nodeTestFiles } },
+        ],
         coverage: {
             provider: 'v8',
             reporter: ['json-summary'],

@@ -28,9 +28,9 @@ if(a[0]==='inspect') {
 } else if(a[0]==='volume') console.log(a.at(-1).includes('compose.volume') ? 'app_data' : 'fixture');
 else if(a[0]==='compose') {
  if(a.includes('--quiet') && a.includes('ps')) console.log('container-'+a.at(-1));
- else if(a.includes('--images')) console.log(process.env.OMXFC_APP_IMAGE);
+ else if(a.includes('--images')) console.log(a.at(-1)==='db' ? 'mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3' : process.env.OMXFC_APP_IMAGE);
  else if(a.includes('config') && !a.includes('--quiet')) console.log('services: {}');
- else if(a.includes('exec')) console.log('-- fixture database backup');
+ else if(a.includes('exec')) console.log(a.at(-1).includes('SELECT VERSION()') ? (process.env.DATABASE_VERSION || '13.0.1-MariaDB') : '-- fixture database backup');
 } else if(a[0]==='run') {
  const mount=a[a.indexOf('--mount')+1];
  const dir=mount.split(',')[1].slice('source='.length);
@@ -63,6 +63,18 @@ test('foreign Compose files fail before containers or volumes can change', () =>
         const calls = fs.readFileSync(root + '/calls', 'utf8');
         assert.doesNotMatch(calls, /"compose"|"run"|"tag"/);
     } finally { fs.rmSync(root, { recursive: true }); }
+});
+
+test('a database major upgrade or downgrade cannot happen implicitly', () => {
+    for (const version of ['12.3.4-MariaDB', '13.0.3-MariaDB', '14.0.0-MariaDB', 'unknown']) {
+        const root = fixture();
+        try {
+            const result = run(root, { DATABASE_VERSION: version });
+            assert.notEqual(result.status, 0);
+            assert.match(result.stderr, /separate major-version migration/);
+            assert.equal(fs.existsSync(root + '/.deployment/images.compose.yml'), false);
+        } finally { fs.rmSync(root, { recursive: true }); }
+    }
 });
 
 test('valid preparation preserves project, old code volume, image tags and private backups', () => {

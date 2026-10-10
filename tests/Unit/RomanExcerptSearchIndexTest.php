@@ -19,11 +19,11 @@ class RomanExcerptSearchIndexTest extends TestCase
             'kompendium.search.index_version' => 3,
         ]);
 
-        $this->assertSame('test_roman_excerpts', (new RomanExcerpt)->searchableAs());
+        $this->assertSame('test_roman_excerpts_lexical_v3', (new RomanExcerpt)->searchableAs());
 
         config(['kompendium.search.mode' => 'hybrid']);
 
-        $this->assertSame('test_roman_excerpts', (new RomanExcerpt)->searchableAs());
+        $this->assertSame('test_roman_excerpts_lexical_v3', (new RomanExcerpt)->searchableAs());
 
         config([
             'kompendium.search.mode' => 'lexical',

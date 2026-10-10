@@ -158,7 +158,7 @@ jobs:
             trap resume_queues_on_exit EXIT
             
             echo "Pulling new images..."
-            $COMPOSE pull
+            $COMPOSE pull app queue scheduler db typesense nginx
 
             # Laravel 13.25 can pause all queues while the current job finishes.
             # Laravel 13.24 already exposes queue:pause, but does not support the
@@ -177,8 +177,8 @@ jobs:
             $COMPOSE stop scheduler
             backup_deployment_data
             
-            echo "Removing old containers..."
-            $COMPOSE down --remove-orphans
+            echo "Stopping application services..."
+            $COMPOSE stop app nginx
             
             # The digest-specific application volume is fresh. The previous
             # code volume remains available with the private rollback config.
@@ -200,9 +200,9 @@ jobs:
             echo "Waiting for database to be ready (MariaDB upgrade may take a few minutes)..."
             DB_READY=0
             for i in {1..60}; do
-              if docker exec maddrax-db sh -lc 'mariadb-admin ping -h 127.0.0.1 -uroot -p"$MYSQL_ROOT_PASSWORD" --silent' >/dev/null 2>&1; then
+              if docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; test -n "$MYSQL_PWD" && mariadb -h 127.0.0.1 -uroot --batch --skip-column-names -e "SELECT 1"' >/dev/null 2>&1; then
                 echo "Database is ready!"
-                docker exec maddrax-db sh -lc 'mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT VERSION();"'
+                docker exec maddrax-db sh -lc 'export MYSQL_PWD="${MARIADB_ROOT_PASSWORD:-${MYSQL_ROOT_PASSWORD:-}}"; mariadb -uroot -e "SELECT VERSION();"'
                 DB_READY=1
                 break
               fi
