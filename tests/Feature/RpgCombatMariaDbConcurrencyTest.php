@@ -8,8 +8,10 @@ use App\Models\RpgCombatDelivery;
 use App\Models\RpgNpc;
 use App\Services\RpgCombat\CombatService;
 use App\Services\RpgNpcService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Support\RpgCombatFixtures;
 use Tests\TestCase;
@@ -131,6 +133,64 @@ class RpgCombatMariaDbConcurrencyTest extends TestCase
         $this->assertTrue($results[1]['ok']);
         $this->assertSame(1, RpgCombatDelivery::where('kind', 'reminder')->count());
         $this->assertSame('pending', $decision->fresh()->status);
+    }
+
+    public function test_identity_triggers_reject_invalid_inserts_and_updates(): void
+    {
+        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
+        $combat = $this->npcInvitation($this->character->id);
+        $participants = $combat->participants->keyBy('participant_kind');
+        foreach ([
+            ['npc', ['rpg_character_id' => $this->character->id]],
+            ['npc', ['owner_id' => $this->leader->id]],
+            ['player', ['rpg_npc_id' => $participants['npc']->rpg_npc_id]],
+            ['player', ['participant_kind' => 'unknown']],
+        ] as [$kind, $changes]) {
+            $participant = $participants[$kind];
+            $row = (array) DB::table('rpg_combat_participants')->find($participant->id);
+            unset($row['id']);
+            $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->insert(array_replace($row, ['side' => 3], $changes)));
+            $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->where('id', $participant->id)->update($changes));
+        }
+        $this->assertDatabaseCount('rpg_combat_participants', 2);
+    }
+
+    public function test_npc_migration_round_trip_preserves_pvp_and_foreign_key_deletions(): void
+    {
+        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
+        $combat = $this->combat(false);
+        // MariaDB DDL commits implicitly; leave RefreshDatabase's transaction first.
+        DB::connection()->commit();
+        $this->committed = true;
+        $migration = require database_path('migrations/2026_10_10_180000_add_rpg_npcs.php');
+        $migration->down();
+        $this->assertFalse(Schema::hasTable('rpg_npcs'));
+        $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id]);
+        $this->assertSame(0, DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count());
+        $migration->up();
+        $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id, 'kind' => 'player_vs_player']);
+        $this->assertSame(['player', 'player'], $combat->fresh()->participants->pluck('participant_kind')->all());
+        $this->assertSame(2, DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count());
+
+        $npcCombat = $this->npcInvitation($this->otherCharacter->id);
+        $npcParticipant = $npcCombat->participants->where('participant_kind', 'npc')->sole();
+        DB::table('rpg_npcs')->where('id', $npcParticipant->rpg_npc_id)->delete();
+        $this->assertNull($npcParticipant->fresh()->rpg_npc_id);
+        $this->assertSame($npcParticipant->snapshot, $npcParticipant->fresh()->snapshot);
+        DB::table('rpg_characters')->where('id', $this->character->id)->delete();
+        $this->assertNull($combat->participants->where('side', 1)->sole()->fresh()->rpg_character_id);
+        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
+    }
+
+    private function assertInvalidIdentity(callable $write): void
+    {
+        try {
+            $write();
+            $this->fail('Invalid participant identity was accepted.');
+        } catch (QueryException $exception) {
+            $this->assertSame('45000', $exception->errorInfo[0]);
+            $this->assertStringContainsString('Invalid RPG participant identity', $exception->getMessage());
+        }
     }
 
     private function parallel(array $first, array $second): array

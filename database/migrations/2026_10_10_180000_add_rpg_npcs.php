@@ -40,12 +40,16 @@ return new class extends Migration
         });
         // Deleted historical participants may have a null entity; mixed identities never may.
         $valid = "(participant_kind = 'npc' AND rpg_character_id IS NULL AND owner_id IS NULL) OR (participant_kind = 'player' AND rpg_npc_id IS NULL)";
-        if (DB::getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE rpg_combat_participants ADD CONSTRAINT rpg_participant_identity CHECK ($valid)");
-        } elseif (DB::getDriverName() === 'sqlite') {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb', 'sqlite'], true)) {
             $newValid = str_replace(['participant_kind', 'rpg_character_id', 'owner_id', 'rpg_npc_id'], ['NEW.participant_kind', 'NEW.rpg_character_id', 'NEW.owner_id', 'NEW.rpg_npc_id'], $valid);
             foreach (['INSERT', 'UPDATE'] as $operation) {
-                DB::statement('CREATE TRIGGER rpg_participant_identity_'.strtolower($operation)." BEFORE $operation ON rpg_combat_participants WHEN NOT ($newValid) BEGIN SELECT RAISE(ABORT, 'Invalid RPG participant identity'); END");
+                $trigger = 'CREATE TRIGGER rpg_participant_identity_'.strtolower($operation)." BEFORE $operation ON rpg_combat_participants";
+                // MariaDB rejects CHECK conditions involving ON DELETE SET NULL foreign keys.
+                if (DB::getDriverName() === 'sqlite') {
+                    DB::statement($trigger." WHEN NOT ($newValid) BEGIN SELECT RAISE(ABORT, 'Invalid RPG participant identity'); END");
+                } else {
+                    DB::statement($trigger." FOR EACH ROW BEGIN IF NOT ($newValid) THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Invalid RPG participant identity'; END IF; END");
+                }
             }
         }
         Schema::create('rpg_combat_npc_locks', function (Blueprint $table): void {
@@ -63,9 +67,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::getDriverName() === 'mysql') {
-            DB::statement('ALTER TABLE rpg_combat_participants DROP CONSTRAINT rpg_participant_identity');
-        } elseif (DB::getDriverName() === 'sqlite') {
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb', 'sqlite'], true)) {
             DB::statement('DROP TRIGGER IF EXISTS rpg_participant_identity_insert');
             DB::statement('DROP TRIGGER IF EXISTS rpg_participant_identity_update');
         }
