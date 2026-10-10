@@ -4,10 +4,10 @@ namespace App\Support\CoverRatings;
 
 final class CoverSyncInterval
 {
-    public const DEFAULT_HOURS = 24;
+    public const int DEFAULT_HOURS = 24;
 
     /** @var list<int> */
-    public const ALLOWED_HOURS = [1, 2, 3, 4, 6, 8, 12, 24];
+    public const array ALLOWED_HOURS = [1, 2, 3, 4, 6, 8, 12, 24];
 
     public static function normalize(int $hours): int
     {

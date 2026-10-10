@@ -34,7 +34,8 @@ class CoverImageProcessor
             throw new CoverImageException('Das Coverbild besitzt unzulässige Abmessungen.');
         }
 
-        $manager = new ImageManager(new Driver);
+        // Verify decoded dimensions against the header before EXIF can rotate it.
+        $manager = new ImageManager(new Driver, autoOrientation: false);
         $diskName = (string) config('cover-ratings.images.disk', 'private');
         $directory = trim((string) config('cover-ratings.images.directory', 'cover-ratings'), '/');
         $safeFingerprint = Str::lower(preg_replace('/[^a-f0-9]/i', '', $fingerprint) ?: sha1($binary));
@@ -54,20 +55,26 @@ class CoverImageProcessor
         $temporaryPaths = [];
 
         try {
+            try {
+                $source = $manager->decodeBinary($binary);
+            } catch (Throwable $exception) {
+                throw new CoverImageException(
+                    'Das Coverbild konnte nicht sicher dekodiert werden.',
+                    previous: $exception,
+                );
+            }
+
+            if ($source->width() !== $width || $source->height() !== $height) {
+                throw new CoverImageException('Das Coverbild besitzt widersprüchliche Abmessungen.');
+            }
+
+            $source->orient();
+            $width = $source->width();
+            $height = $source->height();
+
             foreach ($variants as $key => $configuration) {
-                try {
-                    $variant = $manager->decodeBinary($binary);
-                } catch (Throwable $exception) {
-                    throw new CoverImageException(
-                        'Das Coverbild konnte nicht sicher dekodiert werden.',
-                        previous: $exception,
-                    );
-                }
-
-                if ($variant->width() !== $width || $variant->height() !== $height) {
-                    throw new CoverImageException('Das Coverbild besitzt widersprüchliche Abmessungen.');
-                }
-
+                // Image operations mutate their core; each output needs an independent copy.
+                $variant = clone $source;
                 $targetWidth = $configuration['width'];
                 $variant->scaleDown(width: $targetWidth);
                 $encoded = (string) $variant->encode(new WebpEncoder(

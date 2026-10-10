@@ -28,21 +28,45 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - composer:2.10.3@sha256:9715c7f69044da2a212a5fbde29ee7da24e364d426560ae6367b060236f847d7
-          - php:8.5.11-fpm-trixie@sha256:584e584083bada479f0ee733a3025722a68e366eb721e618d1b6a252e4ff45c5
-          - php:8.5.11-cli-trixie@sha256:19642e172d3a542225225e202ddc2c11f67bdcbddf147b676c49338609b9290f
-          - node:26.10.0-alpine3.24@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80
-          - nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
-          - mariadb:13.0.2@sha256:d4fdec0510ad498e4f3127da30a99df3745bd6d5e611ae6ac5f76403d9284a8d
+        include:
+          - image: composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac
+            target: composer-bin
+          - image: php:8.5.11-fpm-trixie@sha256:adde18b67ea7a8cddc580f657e0d3f16e800758c6fa690b969c2925a303e8afc
+          - image: php:8.5.11-cli-trixie@sha256:01a109229f4465bc9ef042d9198f09a4d9da7775a825dbd8572dcdbd8756c4d3
+          - image: node:26.11.1-alpine3.24@sha256:143494b1da2945f061539253adc65e4f1569ddf07da2d384c022c791a9d90a4a
+            target: node-base
+          - image: nginx:1.30.5-alpine3.24-slim@sha256:32463212baf0e7d91aded2e9b843a4f2b9e017804b8c9d5bae7b51dcef64389c
+            target: nginx
+            file: docker/nginx.Dockerfile
+          - image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
 
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build the patched stage actually used by the application
+        if: matrix.target != ''
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: ${{ matrix.file || 'Dockerfile' }}
+          target: ${{ matrix.target }}
+          load: true
+          no-cache: true
+          tags: omxfc-service-base:security-scan
+      - name: Report upstream findings separately
+        if: matrix.target != ''
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: ${{ matrix.image }}
+          grype-version: v0.120.1
+          fail-build: false
+          output-format: json
+          output-file: upstream-grype-report.json
       - name: Report all vulnerabilities in ${{ matrix.image }}
         id: scan
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ${{ matrix.image }}
-          grype-version: v0.119.0
+          image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
+          grype-version: v0.120.1
           # Keep unfixed findings visible; the next step enforces the deployment policy.
           # Scanner/database errors still fail this action with fail-build disabled.
           fail-build: false
@@ -52,8 +76,8 @@ jobs:
       - name: Block fixable high and critical vulnerabilities
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ${{ matrix.image }}
-          grype-version: v0.119.0
+          image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
+          grype-version: v0.120.1
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -63,6 +87,7 @@ jobs:
         env:
           SCAN_REPORT: ${{ steps.scan.outputs.json }}
           SCANNED_IMAGE: ${{ matrix.image }}
+          PATCHED_TARGET: ${{ matrix.target }}
         run: |
           python3 - <<'PY'
           import json
@@ -78,6 +103,8 @@ jobs:
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
               summary.write('### Image security scan\n\n')
               summary.write(f"`{os.environ['SCANNED_IMAGE']}`\n\n")
+              if os.environ['PATCHED_TARGET']:
+                  summary.write(f"Gate applies to the rebuilt `{os.environ['PATCHED_TARGET']}` stage with OS security updates. Upstream findings are attached separately.\n\n")
               summary.write('| Severity | Fix available | No fix available |\n')
               summary.write('| --- | ---: | ---: |\n')
               for severity in ('Critical', 'High', 'Medium', 'Low', 'Negligible', 'Unknown'):
@@ -88,10 +115,12 @@ jobs:
           PY
       - name: Upload complete vulnerability report
         if: ${{ !cancelled() && steps.scan.outputs.json != '' }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: service-image-scan-${{ strategy.job-index }}
-          path: ${{ steps.scan.outputs.json }}
+          path: |
+            ${{ steps.scan.outputs.json }}
+            upstream-grype-report.json
           if-no-files-found: error
           retention-days: 14
 
@@ -114,7 +143,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: omxfc-typesense:security-scan
-          grype-version: v0.119.0
+          grype-version: v0.120.1
           fail-build: true
           severity-cutoff: high
           output-format: table

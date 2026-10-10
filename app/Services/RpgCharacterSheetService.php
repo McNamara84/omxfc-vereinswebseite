@@ -7,6 +7,7 @@ use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCharEditorTraining;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
@@ -602,6 +603,10 @@ class RpgCharacterSheetService
 
     public function characterSheetPdfResponse(array $data) // @pest-ignore-profanity -- RPG domain term.
     {
+        foreach (['font_dir', 'font_cache'] as $directory) {
+            File::ensureDirectoryExists(config('laravel-pdf.dompdf.'.$directory));
+        }
+
         if (isset($data['experience'])) {
             $data = (new RpgCharacterProgressionAdapter)->normalize($data);
         }

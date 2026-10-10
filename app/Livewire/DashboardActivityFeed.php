@@ -25,6 +25,7 @@ class DashboardActivityFeed extends Component
     public function mount(): void
     {
         $this->resetFeed();
+        $this->dispatch('dashboard-feed-updated');
     }
 
     public function selectFilter(string $filter): void
@@ -64,6 +65,11 @@ class DashboardActivityFeed extends Component
         return view('livewire.dashboard-activity-feed', [
             'filters' => app(DashboardActivityQuery::class)->filters(),
         ]);
+    }
+
+    public function placeholder()
+    {
+        return view('livewire.placeholders.dashboard-activity-feed');
     }
 
     private function resetFeed(): void

@@ -14,12 +14,27 @@ use App\Models\Todo;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use App\Services\Dashboard\DashboardActivityQuery;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class DashboardActivityFeedTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_dashboard_defers_all_feed_queries_until_the_component_is_loaded(): void
+    {
+        $member = $this->member();
+        $this->partialMock(DashboardActivityQuery::class, function ($mock): void {
+            $mock->shouldNotReceive('page');
+            $mock->shouldNotReceive('findMany');
+        });
+
+        $this->actingAs($member)->get('/dashboard')
+            ->assertOk()
+            ->assertSeeText('Aktivitäten werden geladen')
+            ->assertSeeHtml('aria-busy="true"');
+    }
 
     public function test_initial_page_has_fifteen_items_and_manual_fallback(): void
     {

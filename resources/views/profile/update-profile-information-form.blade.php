@@ -102,7 +102,8 @@
             @endif
 
             <div class="col-span-4">
-                <x-input id="strasse" label="{{ __('Straße') }}" wire:model="state.strasse" required title="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand verwendet." />
+                <x-input id="strasse" label="{{ __('Straße') }}" wire:model="state.strasse" required popover="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand verwendet." aria-describedby="strasse-hilfe" />
+                <p id="strasse-hilfe" class="sr-only">Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand verwendet.</p>
             </div>
 
             <div class="col-span-2">
@@ -133,7 +134,8 @@
             </div>
 
             <div class="col-span-6 sm:col-span-4">
-                <x-input id="mitgliedsbeitrag" label="{{ __('Mitgliedsbeitrag (jährlich, min. 12€)') }}" type="number" min="12" wire:model="state.mitgliedsbeitrag" required title="Dein gewählter Jahresbeitrag wird beim nächsten Fälligkeitsdatum wirksam." />
+                <x-input id="mitgliedsbeitrag" label="{{ __('Mitgliedsbeitrag (jährlich, min. 12€)') }}" type="number" min="12" wire:model="state.mitgliedsbeitrag" required popover="Dein gewählter Jahresbeitrag wird beim nächsten Fälligkeitsdatum wirksam." aria-describedby="mitgliedsbeitrag-hilfe" />
+                <p id="mitgliedsbeitrag-hilfe" class="sr-only">Dein gewählter Jahresbeitrag wird beim nächsten Fälligkeitsdatum wirksam.</p>
             </div>
 
             <div class="col-span-6 sm:col-span-4">

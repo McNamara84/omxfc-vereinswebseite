@@ -17,6 +17,7 @@ use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
 use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\Alert;
+use App\View\Components\AccessiblePopover;
 use App\View\Components\NavigationDropdown;
 use App\View\Components\NavigationMain;
 use App\View\Components\NavigationMenuSeparator;
@@ -267,6 +268,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('mary-menu-separator', NavigationMenuSeparator::class);
         Blade::component('mary-menu-sub', NavigationMenuSub::class);
         Blade::component('mary-nav', MaryNav::class);
+        Blade::component('mary-popover', AccessiblePopover::class);
         Blade::component('mary-theme-toggle', NavigationThemeToggle::class);
 
         Livewire::addPersistentMiddleware([

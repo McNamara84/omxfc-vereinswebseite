@@ -28,6 +28,7 @@ updates:
           - pestphp/*
           - phpunit/phpunit
           - nunomaduro/collision
+          - rector/rector
       production-patch-and-minor:
         dependency-type: production
         exclude-patterns:
@@ -43,6 +44,7 @@ updates:
           - pestphp/*
           - phpunit/phpunit
           - nunomaduro/collision
+          - rector/rector
         update-types:
           - patch
           - minor
@@ -61,6 +63,15 @@ updates:
       semver-minor-days: 7
       semver-major-days: 30
     groups:
+      browser-test-stack:
+        patterns:
+          - "@playwright/test"
+          - "@axe-core/playwright"
+      vitest-stack:
+        patterns:
+          - vitest
+          - "@vitest/*"
+          - jsdom
       frontend-ui-stack:
         patterns:
           - "@alpinejs/*"
@@ -68,6 +79,8 @@ updates:
           - alpinejs
           - daisyui
           - tailwindcss
+          - vite
+          - laravel-vite-plugin
         update-types:
           - patch
           - minor
@@ -80,6 +93,13 @@ updates:
           - alpinejs
           - daisyui
           - tailwindcss
+          - vite
+          - laravel-vite-plugin
+          - "@playwright/test"
+          - "@axe-core/playwright"
+          - vitest
+          - "@vitest/*"
+          - jsdom
         update-types:
           - patch
           - minor

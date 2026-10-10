@@ -64,7 +64,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
 | PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | 2.10.x, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.1.0 (`packageManager`), nur für klassische Host-Entwicklung nötig |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.0 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -613,7 +613,7 @@ Prüfergebnisse, bekannte Versionsgrenzen und verbleibende Image-Sicherheitsbefu
 [Abhängigkeitsupdate vom 28. September 2026](DEPENDENCY-UPDATE.md).
 
 Stand der Aktualisierung: **28. September 2026**. PHP 8.5.11 basiert auf Debian
-Trixie; Node 26.10.0 verwendet Alpine 3.24 und npm 12.1.0. Composer 2.10.3 ist
+Trixie; Node 26.11.1 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
@@ -711,7 +711,7 @@ Der Test-Stack verwendet Pest 5.2 und PHPUnit 13.3. Alle direkt eingebundenen Pe
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.10 und npm 12.1.0 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.10 und npm 12.2.0 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

@@ -10,17 +10,17 @@
     @endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <x-input wire:model.blur="vorname" name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
+        <x-input wire:model.live.blur="vorname" name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
 
-        <x-input wire:model.blur="nachname" name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
+        <x-input wire:model.live.blur="nachname" name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
 
-        <x-input wire:model.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" title="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand benötigt." />
+        <x-input wire:model.live.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" title="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand benötigt." />
 
-        <x-input wire:model.blur="hausnummer" name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
+        <x-input wire:model.live.blur="hausnummer" name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
 
-        <x-input wire:model.blur="plz" name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
+        <x-input wire:model.live.blur="plz" name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
 
-        <x-input wire:model.blur="stadt" name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
+        <x-input wire:model.live.blur="stadt" name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
 
         @php
             $landOptions = [
@@ -30,7 +30,7 @@
             ];
         @endphp
         <x-form-select
-            wire:model.blur="land"
+            wire:model.live.blur="land"
             name="land"
             label="Land"
             aria-label="Land"
@@ -40,11 +40,11 @@
             required
         />
 
-        <x-input wire:model.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" title="Wird als Anmeldename für den Mitgliederbereich verwendet." />
+        <x-input wire:model.live.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" title="Wird als Anmeldename für den Mitgliederbereich verwendet." />
 
-        <x-password wire:model.blur="passwort" name="passwort" label="Passwort" required class="w-full" autocomplete="new-password" hint="Mindestens 8 Zeichen." popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort." />
+        <x-password wire:model.live.blur="passwort" name="passwort" label="Passwort" required class="w-full" autocomplete="new-password" hint="Mindestens 8 Zeichen." popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort." />
 
-        <x-password wire:model.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
+        <x-password wire:model.live.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
 
         <div class="col-span-1 md:col-span-2 w-full space-y-2" x-data="{ beitrag: @entangle('mitgliedsbeitrag') }">
             <label for="mitgliedsbeitrag" class="pt-0 label label-text font-semibold">
@@ -54,7 +54,7 @@
                 type="range"
                 id="mitgliedsbeitrag"
                 x-model.number="beitrag"
-                wire:model.blur="mitgliedsbeitrag"
+                wire:model.live.blur="mitgliedsbeitrag"
                 name="mitgliedsbeitrag"
                 min="12"
                 max="120"
@@ -64,7 +64,7 @@
             <p class="text-sm text-base-content/80">Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand.</p>
         </div>
 
-        <x-input wire:model.blur="telefon" name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
+        <x-input wire:model.live.blur="telefon" name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
 
         @php
             $vereinGefundenOptions = [
@@ -78,7 +78,7 @@
             ];
         @endphp
         <x-form-select
-            wire:model.blur="verein_gefunden"
+            wire:model.live.blur="verein_gefunden"
             name="verein_gefunden"
             label="Wie hast du von uns erfahren? (optional)"
             aria-label="Wie hast du von uns erfahren?"

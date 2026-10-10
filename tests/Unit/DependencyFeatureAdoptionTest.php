@@ -12,7 +12,8 @@ class DependencyFeatureAdoptionTest extends TestCase
         $composer = json_decode((string) file_get_contents($root.'/composer.json'), true, flags: JSON_THROW_ON_ERROR);
         $scripts = $composer['scripts'] ?? [];
 
-        $this->assertSame('@php vendor/bin/pest --compact', $scripts['test'] ?? null);
+        $this->assertSame('@php vendor/bin/pest --compact --timeout=1800', $scripts['test'] ?? null);
+        $this->assertStringNotContainsString('--retry', $scripts['test']);
         $this->assertStringContainsString('--repeat=2', $scripts['test:stability:repeat'] ?? '');
         $this->assertStringContainsString('--retry=2', $scripts['test:stability:retry'] ?? '');
     }
