@@ -12,6 +12,7 @@ use Typesense\Collection;
 use Typesense\Collections;
 use Typesense\Exceptions\ObjectAlreadyExists;
 use Typesense\Exceptions\ObjectNotFound;
+use Typesense\Operations;
 
 class CloneKompendiumIndexTest extends TestCase
 {
@@ -78,12 +79,32 @@ class CloneKompendiumIndexTest extends TestCase
         $this->assertSame(1, config('kompendium.search.index_version'));
     }
 
-    private function collections(): Collections
+    public function test_failed_snapshot_blocks_promotion_and_preserves_the_active_index(): void
+    {
+        $collections = $this->collections(snapshotSucceeds: false);
+        $source = Mockery::mock(Collection::class);
+        $target = Mockery::mock(Collection::class);
+        $schema = ['num_documents' => 2, 'fields' => []];
+        $collections->shouldReceive('offsetGet')->with('roman_excerpts')->twice()->andReturn($source);
+        $collections->shouldReceive('offsetGet')->with('roman_excerpts_lexical_v2')->once()->andReturn($target);
+        $source->shouldReceive('retrieve')->twice()->andReturn($schema);
+        $target->shouldReceive('retrieve')->once()->andReturn($schema);
+        $collections->shouldReceive('create')->once()->andReturn([]);
+        $source->shouldNotReceive('delete');
+        $target->shouldNotReceive('delete');
+        $this->artisan('kompendium:clone-index', ['version' => '2'])->assertExitCode(1);
+        $this->assertSame(1, config('kompendium.search.index_version'));
+    }
+
+    private function collections(bool $snapshotSucceeds = true): Collections
     {
         config(['scout.driver' => 'typesense', 'scout.prefix' => '', 'kompendium.search.index_variant' => 'lexical', 'kompendium.search.index_version' => 1]);
         $collections = Mockery::mock(Collections::class);
         $engine = Mockery::mock(TypesenseEngine::class);
         $engine->shouldReceive('getCollections')->andReturn($collections);
+        $operations = Mockery::mock(Operations::class);
+        $operations->shouldReceive('perform')->with('snapshot')->andReturn(['success' => $snapshotSucceeds]);
+        $engine->shouldReceive('getOperations')->andReturn($operations);
         $this->mock(EngineManager::class)->shouldReceive('engine')->andReturn($engine);
 
         return $collections;

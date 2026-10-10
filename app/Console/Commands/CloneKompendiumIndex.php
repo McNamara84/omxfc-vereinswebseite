@@ -50,6 +50,15 @@ class CloneKompendiumIndex extends Command
 
                 return self::FAILURE;
             }
+
+            // Typesense 30.2 can lose a newly cloned collection when replaying
+            // Raft logs on restart. Persist the verified copy in an internal
+            // snapshot before reporting success; no export path is required.
+            if (($engine->getOperations()->perform('snapshot')['success'] ?? false) !== true) {
+                $this->error('Der Klon konnte nicht dauerhaft gesichert werden. Aktiven Index beibehalten und den Klon prüfen.');
+
+                return self::FAILURE;
+            }
         } catch (Throwable $exception) {
             report($exception);
             $this->error('Index konnte nicht geklont werden. Der aktive Index bleibt unverändert; Details im privaten Log.');
