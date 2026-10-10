@@ -27,6 +27,10 @@ maryUI verlangt weiterhin `jfcherng/php-diff` 6.x und damit `php-sequence-matche
 
 OS-Sicherheitsupdates werden in den effektiven Composer-/Node-/PHP-/Nginx-/Typesense-Buildstufen installiert. Der Service-Scan prüft die tatsächlich gepatchten Buildstufen. Rohe Upstream-Images und sämtliche Funde bleiben als zusätzliche Berichte sichtbar. Behebbare High-/Critical-Funde blockieren weiterhin; Typesense blockiert sämtliche High-/Critical-Funde. Ein erfolgreicher Scan bedeutet deshalb bei den übrigen Images nicht automatisch, dass keine ungefixten Upstream-Funde existieren.
 
+Der vollständige lokale Appimage-Scan mit der Grype-Datenbank vom 09.10.2026 meldet **203 High-/Critical-Paketfunde zu 52 unterschiedlichen CVEs**, davon 34 Critical- und 169 High-Paketfunde. Keiner besitzt laut dieser Datenbank einen verfügbaren Fix im gewählten Debian-Release. Mehrere Pakete desselben Quellpakets erscheinen separat; diese Zahlen sind keine 203 unabhängigen Anwendungslücken. Die Befunde bleiben im vollständigen Scan sichtbar und werden nicht durch Ignore-Regeln entfernt. Debian unterscheidet zum Beispiel eine noch ausstehende [MariaDB-Punktkorrektur](https://security-tracker.debian.org/tracker/CVE-2026-49261), ein an Digest-Authentifizierung gebundenes [curl-Problem](https://security-tracker.debian.org/tracker/CVE-2026-11856) und einen noch ungefixten [libxml2-Befund](https://security-tracker.debian.org/tracker/CVE-2026-86142). Ihre Auswirkungen sind paket- und nutzungsabhängig; ein sauberer Composer-/npm-Audit beseitigt diese OS-Befunde nicht.
+
+Auch das offizielle alternative Basisimage `php:8.5.11-fpm-alpine3.24` wurde vergleichend gescannt: 13 High-Paketfunde zu fünf CVEs, darunter zwölf OpenSSL-Funde mit unbekanntem Fixstatus und ein behebbarer zlib-Fund. Es ist damit kein nachgewiesener Weg zu einem PHP-Stack ohne High-/Critical-Funde. Die getestete Debian-Runtime bleibt bestehen; ein Wechsel der C-Laufzeit von glibc zu musl benötigt eine eigene vollständige Kompatibilitätsprüfung. Wöchentliche Scans und frische Builds prüfen neu verfügbare Herstellerkorrekturen weiter.
+
 ## Tatsächlich genutzte Features und geprüfte Entscheidungen
 
 | Plan | Umsetzung und Nutzen |
@@ -36,7 +40,7 @@ OS-Sicherheitsupdates werden in den effektiven Composer-/Node-/PHP-/Nginx-/Types
 | F03 Laravel | `app:verify-schedule` bewertet strukturiertes `schedule:list --json`, die zehn erforderlichen Aufgaben, Zeitzone und Ausführungsschutz. Das Deployment prüft den Scheduler unabhängig von textueller Tabellenformatierung. Queue-Pause/-Resume mit `--all` wird nach Verfügbarkeit erkannt; Worker werden vor Datenbackups geordnet beendet. |
 | F04 PDF | Dompdf erhält lokale `font_dir`-/`font_cache`-Verzeichnisse unter `storage/app/private/pdf-fonts`. Deutsche Zeichen, kalter und warmer Cache und bestehende PDF-Bögen bleiben durch echte Exporte geprüft; Remotezugriff und Sandbox werden beibehalten. |
 | F05 Image | Cover werden einmal dekodiert; unabhängige Klone erzeugen die Varianten. Rohbild-Grenzen werden vor EXIF-Orientierung kontrolliert, Zielmaße nach der Orientierung. Tests decken Alpha-PNG, EXIF-JPEG, Varianten und beschädigte/zu große Dateien ab. Temporäre Dateien werden atomar veröffentlicht und bei Fehlern aufgeräumt. |
-| F06 Scout / Typesense | `kompendium:clone-index N` nutzt die [Collection-Klon-API](https://typesense.org/docs/30.2/api/collections.html) mit `copy_documents=true`, prüft Schema und Dokumentzahlen und lässt den aktiven Index unangetastet. Lexikalische Versionen ab 2 erhalten eigene Collection-Namen. `kompendium:rebuild-index --resume` importiert nach einem Abbruch erneut, ohne den bestehenden Index zu löschen. Fehlende Dateien führen zu einem Fehlerstatus. |
+| F06 Scout / Typesense | `kompendium:clone-index N` nutzt die [Collection-Klon-API](https://typesense.org/docs/30.2/api/collections.html) mit `copy_documents=true`, prüft Schema und Dokumentzahlen und sichert den Klon durch einen internen Snapshot. Der aktive Index bleibt unverändert. Lexikalische Versionen ab 2 erhalten eigene Collection-Namen. `kompendium:rebuild-index --resume` importiert nach einem Abbruch erneut, ohne den bestehenden Index zu löschen. Fehlende Dateien führen zu einem Fehlerstatus. |
 | F07 Sitemap | Am 10.10.2026 liefert die öffentliche Sitemap einen Eintrag und 559 Bytes; der gemessene Abruf dauerte 167 ms. Das ist eine Abrufmessung, keine Generierungsbenchmark. Eine Aufteilung würde zusätzliche Dateien ohne Nutzen erzeugen. Die kompakte Struktur bleibt erhalten; bestehende Sitemaptests prüfen die Inhalte. |
 | F08 Pest / PHPUnit | Neue Suite-Zeitlimits, Mutationserkennung, gecachte TIA-Baselines und verbesserte Browserdiagnosen werden genutzt. PHPUnit 13.4 erfasst auch bisher unterdrückte Pluginwarnungen: Der Browserjob legt die vom Plugin bereinigten Screenshot- und Traceverzeichnisse vorab an. Die Warnungsregeln bleiben aktiv. Die vollständige Suite bleibt Pflicht; TIA ersetzt sie nicht. |
 | F09 Analyse | PHPStan Level 10 und Rector PHP 8.5 prüfen zusätzlich URI-, HMAC-, Scheduler- und Sync-Intervall-Helfer. Die Security-Helfer nutzen native URI-Validierung und streng geprüfte Secrets; redundante, nicht beobachtbare Zweige sind entfernt. Alle 130 erzeugten Mutationen werden erkannt, ohne Ignorierregeln oder verringerte Schwelle. |
@@ -61,6 +65,8 @@ Größere neue Produktfunktionen, insbesondere eine neue Suche mit Vektormodelle
 5. Vor Wiederaufnahme der Schreibvorgänge kann durch Zurücksetzen der Version zurückgeschaltet werden. Nach neuen Schreibvorgängen muss der alte Index zunächst synchronisiert oder aus den privaten Roman-Dateien neu aufgebaut werden; ein alter Snapshot ist kein aktuelles Fallback.
 
 Ein Klon behält das Schema bei. Ein Wechsel zu einem anderen Schema oder Embedding-Modell benötigt einen separaten Aufbau und eine Qualitäts-/Kapazitätsprüfung. Queue-Importe der nicht persistierten `RomanExcerpt`-Modelle werden nicht blind aktiviert: Die bestehende Import-Job-Queue bleibt zuständig, ihre Batches werden synchron per Scout übertragen.
+
+Die echte Typesense-30.2-Prüfung zeigte, dass ein unmittelbar erfolgreicher Klon ohne Snapshot nach einem Neustart verschwinden kann. Das Kommando fordert deshalb vor seinem Erfolg einen [internen Snapshot ohne Exportpfad](https://typesense.org/docs/30.2/api/cluster-operations.html#create-snapshot-for-backups) an. Die API-Berechtigung muss `operations/snapshot` erlauben; ausreichend Wartungszeit und freier Speicher sind erforderlich. Bei einem Fehler bleibt die aktive Version erhalten und ein eventuell vorhandener Klon wird zur Prüfung aufbewahrt. Original und zwei Klone haben danach einen Neustart sowie eine Offline-Sicherung und Wiederherstellung in einem neuen Volume bestanden: Schema, vollständige Dokumentinhalte und Umlautsuche stimmen überein.
 
 ## Deployment und Rückweg
 
@@ -137,14 +143,19 @@ Alle lokalen Anwendungsprüfungen laufen in getrennten Docker-Umgebungen mit syn
 | Pest Browser Preview | Ein Test, 77 Assertions; Exit-Code 0 mit unveränderten Warnungsregeln |
 | MariaDB Maddraxikon | 286 Tests, 1.559 Assertions erfolgreich |
 | MariaDB RPG-Konkurrenz | 15 Tests, 150 Assertions erfolgreich |
-| MariaDB Veranstaltungs-Baxx | Abschließender lokaler Lauf läuft; im GitHub-Lauf `0690d37d` erfolgreich |
-| Echte Typesense-Integration | Schema-/Dokumentklon, identische Treffer einschließlich Umlauten und Rückschaltung erfolgreich |
+| MariaDB Veranstaltungs-Baxx | Acht Tests, 86 Assertions erfolgreich |
+| MariaDB Backup / Restore | Echter konsistenter SQL-Dump, Neuimport und Vergleich von Umlauten, Join-Ergebnis und Fremdschlüsselprüfung erfolgreich |
+| Echte Typesense-Integration / Restore | Schema-/Dokumentklon, identische Treffer, Rückschaltung, Neustart und Vergleich aller drei wiederhergestellten Collections erfolgreich |
+| Typesense Snapshot-Regressionen | Sechs Tests, 42 Assertions erfolgreich; fehlgeschlagener Snapshot blockiert die Freigabe |
 | maryUI / Feed in drei Browsern | Sechs gezielte Fälle erfolgreich |
-| RPG / Mobil / PDF in drei Browsern | Sechs gezielte Abläufe erfolgreich; vollständiger Lauf nach letzter Größenbegrenzung läuft |
-| Node Deploymentprüfungen | Acht Fälle; Digests, Projekte, unabhängiger Storage, Major-/Downgrade-Abwehr, Backups und Releasechecks |
-| Actionlint / ShellCheck | Erfolgreich; abschließender Lauf nach letzten Workflowänderungen folgt |
-| Images | Gepatchte Buildstufen geprüft; Typesense besteht auch den vollständigen High-/Critical-Scan; endgültiger Appbuild/Scan läuft |
-| Vollständige PHP-Suite / Coverage | Abschließender Lauf läuft |
-| Vollständiges Playwright Chromium / Firefox | Abschließender Lauf läuft |
+| RPG / Mobil / PDF in drei Browsern | Sechs gezielte Abläufe erfolgreich; finale Mobilprüfung mit langen Namen und Popover-/Feed-Prüfung in WebKit erfolgreich |
+| Charakter-Editor | Drei korrigierte Speicherabläufe in Firefox erfolgreich; Agarther, Marsianer und Morlock in WebKit erfolgreich, Morlock nach einem Timeout nochmals geprüft |
+| Node Deploymentprüfungen | Acht Fälle erfolgreich; Digests, Projekte, unabhängiger Storage, Major-/Downgrade-Abwehr, Backups und Releasechecks |
+| Actionlint / ShellCheck / Pint | Finale Workflow-/Shellprüfung und Stilprüfung der geänderten PHP-Dateien erfolgreich |
+| Images | Development-, Playwright- und Produktionsbuild erfolgreich; Produktions-Smoke prüft Routes, Views, Scheduler, Manifest und PHP-Erweiterungen; Typesense besteht auch den vollständigen High-/Critical-Scan |
+| Vollständige PHP-Suite / Coverage | 3.298 Tests, 13.943 Assertions erfolgreich; 29 übersprungen; Zeilen 85,72 %. Die nachfolgende Snapshot-Korrektur ist zusätzlich separat und mit dem echten Server geprüft. |
+| Vollständiges Playwright Chromium / Firefox | Chromium: 226 erfolgreich, zwei übersprungen. Der finale Firefox-Lauf mit allen Timing-/Fokuskorrekturen läuft. |
 
-Diese Tabelle wird nach Abschluss der laufenden Prüfungen ergänzt. GitHub-Prüfungen sind an einen Commit gebunden: Ein lokaler Erfolg macht einen früheren roten Lauf nicht nachträglich grün. Die jeweils aktuelle Revision und deren Checks müssen vor dem Rollout überprüft werden. Ein Produktionsdeployment, eine produktive Datenmigration und Hostupdates sind durch diesen Bericht nicht als ausgeführt ausgewiesen.
+GitHub hat für `ccfaf997482041851944ab510811c8fab52d6400` alle relevanten Prüfungen erfolgreich abgeschlossen, einschließlich [PHP-/Datenbank-/Coverage-Prüfungen](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38023318820) und [Playwright](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38023318914). Firefox benötigte dort sechs Wiederholungen; die anschließenden Feed-Synchronisierungen beheben deren beobachtete Ursache. Die nachfolgenden Korrekturen werden auf ihrer eigenen Revision erneut geprüft. Ein lokaler Erfolg macht einen früheren roten Lauf nicht nachträglich grün.
+
+Die Umsetzung befindet sich auf `chore/dependencies-upgrade` beziehungsweise PR #757. Die jeweils aktuelle Revision und deren Checks müssen vor dem Rollout überprüft werden. Ein Merge, Produktionsdeployment, eine produktive Datenmigration und Hostupdates wurden hier nicht ausgeführt. Die noch erforderliche Serverinventur und gegebenenfalls Datenbank-/Storage-Migration sind bewusst vor dem Rollout durch Preflights abgesichert.

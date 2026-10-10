@@ -1,12 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, clickAndWaitForLivewireUpdate } from './test-support.js';
 
-const login = async (page) => {
+const login = async (page, { waitForFeed = true } = {}) => {
     await page.goto('/login');
     await page.getByRole('textbox', { name: 'E-Mail', exact: true }).fill('playwright-member@example.com');
     await page.locator('input[name="password"]').fill('password');
     await page.locator('input[name="password"]').press('Enter');
     await page.waitForURL(/\/dashboard$/);
+    if (waitForFeed) {
+        await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
+    }
 };
 
 test('profile hints work with keyboard and click, have unique IDs and survive navigation', async ({ page }) => {
@@ -42,6 +45,7 @@ test('profile hints work with keyboard and click, have unique IDs and survive na
             .analyze();
         expect(accessibility.violations).toEqual([]);
         await page.goto('/dashboard');
+        await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
     }
 });
 
@@ -58,7 +62,7 @@ test('dashboard renders its accessible placeholder before the deferred feed requ
     });
 
     try {
-        await login(page);
+        await login(page, { waitForFeed: false });
         const feed = page.locator('[data-dashboard-activity-feed]');
         await expect(feed).toHaveAttribute('aria-busy', 'true');
         await expect(feed.getByRole('status')).toContainText('Aktivitäten werden geladen');

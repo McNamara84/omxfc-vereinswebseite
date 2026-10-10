@@ -5,7 +5,12 @@
         open: false,
         timer: null,
         show() { clearTimeout(this.timer); this.open = true },
-        hide() { clearTimeout(this.timer); this.timer = setTimeout(() => this.open = false, 300) },
+        hide() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+                if (!this.$el.matches(':hover') &amp;&amp; !this.$refs.myTrigger.matches(':focus')) this.open = false
+            }, 300)
+        },
         close() { clearTimeout(this.timer); this.open = false },
         destroy() { clearTimeout(this.timer) }
     }"

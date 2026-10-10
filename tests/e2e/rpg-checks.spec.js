@@ -17,6 +17,7 @@ async function login(page, email) {
     await page.locator('input[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
 }
 async function addCharacter(page, id) {
     await page.getByRole('combobox', { name: 'Charakter auswählen', exact: true }).selectOption(String(id));
