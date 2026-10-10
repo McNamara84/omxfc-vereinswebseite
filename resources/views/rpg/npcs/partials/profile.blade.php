@@ -1,0 +1,12 @@
+<dl class="space-y-2">
+    <div><dt class="font-semibold">Attribute</dt><dd>{{ collect($profile['attributes'])->map(fn($v,$k) => strtoupper($k).' '.($v >= 0 ? '+' : '').$v)->join(' · ') }}</dd></div>
+    <div><dt class="font-semibold">Fertigkeiten</dt><dd>{{ collect($profile['skills'])->map(fn($v,$k) => $k.' '.$v)->join(', ') }}</dd></div>
+    <div><dt class="font-semibold">Vorteile</dt><dd>{{ collect($profile['advantages'])->map(fn($v) => $v.(isset($profile['advantage_counts'][$v]) ? ' '.$profile['advantage_counts'][$v] : ''))->join(', ') ?: 'keine' }}</dd></div>
+    <div><dt class="font-semibold">Nachteile</dt><dd>{{ implode(', ', $profile['disadvantages']) ?: 'keine' }}</dd></div>
+    <div><dt class="font-semibold">Verteidigung der Vorlage</dt><dd>Ausweichen {{ ($profile['npc']['published_defense']['dodge'] ?? 0) >= 0 ? '+' : '' }}{{ $profile['npc']['published_defense']['dodge'] ?? 0 }}@if(isset($profile['npc']['published_defense']['parry'])) · Parade +{{ $profile['npc']['published_defense']['parry'] }}@endif</dd></div>
+    <div><dt class="font-semibold">Angriffe</dt><dd>@foreach($profile['weapons'] as $weapon)@foreach($weapon['modes'] as $mode)<p>{{ $weapon['name'] }} · {{ $mode['kind'] === 'melee' ? 'Nahkampf' : 'Fernkampf' }}@if(isset($mode['npc_attack'])) · Vorlage {{ $mode['npc_attack'] >= 0 ? '+' : '' }}{{ $mode['npc_attack'] }}/{{ $mode['npc_damage'] >= 0 ? '+' : '' }}{{ $mode['npc_damage'] }}S @endif @if(($mode['attack_count'] ?? 1) > 1) · {{ $mode['attack_count'] }} Angriffe pro Runde @endif @if($mode['runup'] ?? 0) · mindestens {{ $mode['runup'] / 100 }} m Anlauf @endif</p>@endforeach @endforeach</dd></div>
+    @if($profile['npc']['abilities'])<div><dt class="font-semibold">Besondere Fähigkeiten</dt><dd>{{ implode(', ', $profile['npc']['abilities']) }}. Fehlende Zahlenwirkungen entscheidet die Leitung mit Begründung im Kampf.</dd></div>@endif
+    @if($profile['npc']['configuration'])<div><dt class="font-semibold">Vorlagenvariante</dt><dd>{{ $profile['npc']['configuration']['rank'] ?? $profile['npc']['configuration']['weapon'] ?? '' }} {{ $profile['npc']['configuration']['profession'] ?? '' }}</dd></div>@endif
+    @if($profile['npc']['notes'])<div><dt class="font-semibold">Regelhinweis</dt><dd>{{ $profile['npc']['notes'] }}</dd></div>@endif
+    <div><dt class="font-semibold">Regelquelle</dt><dd>Basisregelwerk · Seite {{ $profile['npc']['page'] }} · Vorlage {{ $profile['npc']['template_name'] }}</dd></div>
+</dl>

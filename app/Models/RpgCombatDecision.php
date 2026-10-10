@@ -20,7 +20,7 @@ class RpgCombatDecision extends Model
     {
         return ['side' => 'integer', 'controller_side' => 'integer', 'token' => 'integer', 'context' => 'array',
             'response' => 'array', 'automatic' => 'boolean', 'opened_at' => 'immutable_datetime',
-            'due_at' => 'immutable_datetime', 'resolved_at' => 'immutable_datetime'];
+            'due_at' => 'immutable_datetime', 'reminder_at' => 'immutable_datetime', 'reminded_at' => 'immutable_datetime', 'resolved_at' => 'immutable_datetime'];
     }
 
     public function combat(): BelongsTo
@@ -35,6 +35,7 @@ class RpgCombatDecision extends Model
             'defense' => 'Verteidigen', 'damage' => 'Schaden würfeln', 'fumble' => 'Patzer abfangen',
             'strength' => 'Niederwerfen widerstehen', 'resistance' => 'Entwaffnen widerstehen',
             'psychic_resistance' => 'Psychisch widerstehen', 'technology' => 'Benutzungsprobe', 'ruling' => 'Regelfrage entscheiden',
+            'npc_resistance' => 'Sonderfähigkeit widerstehen', 'npc_order' => 'Befehl für beherrschten NSC',
             default => 'Entscheidung treffen',
         };
     }
