@@ -290,6 +290,36 @@ Stornierungen und Löschungen während des Würfelns.
 
 ### Übungskämpfe
 
+Die aktuelle, aktive Leitung der AG Rollenspiel verwaltet unter **Meine Charaktere**
+auch einen gemeinsamen NSC-Bestand. Zur Auswahl stehen ausschließlich die 23
+Vorlagen von Androne bis Jacob Smythe aus Regelwerk S. 57–61. Allgemeine NSCs
+können einen optionalen Namen erhalten. Aruula, Matthew Drax (Vorlage Maddrax)
+und Jacob Smythe haben feste Namen und dürfen jeweils nur einmal vorhanden sein.
+NSCs benötigen weder Charakterplätze noch Baxx. Beim Daa’mure sind alle sieben
+Ränge verfügbar; zusätzliche FP müssen vollständig und begründet verteilt werden.
+
+Die Leitung fordert mit einem NSC den Charakter eines anderen aktiven AG-Mitglieds
+heraus. Das Mitglied nimmt an oder lehnt ab. Erst bei Annahme werden NSC und
+Spielercharakter für weitere Kämpfe gesperrt. Im NSC-Kampf steuert die Leitung den
+NSC und entscheidet auch die Regelfragen. Gedruckte K-Boni werden vollständig
+übernommen; Attribute, Rüstung und Vorteile werden darin nicht doppelt gerechnet.
+Klauenfolgen, Wisaau-Anlauf und Verschlingen haben eigene Kampfzustände.
+Nicht bezifferte Sonderfähigkeiten benötigen eine protokollierte SL-Auslegung
+mit begrenzten Wirkungsparametern und serverseitigen Würfen.
+
+Leitungseingaben werden niemals automatisch ausgeführt. Nach 24 Stunden entsteht
+eine einmalige Mail-Erinnerung; Spielerentscheidungen behalten ihre automatische
+24-Stunden-Frist. Ein Leitungswechsel überträgt laufende NSCs und offene Aufgaben.
+Fehlt eine aktive Leitung, pausieren Kämpfe und Restfristen bis zur Übernahme.
+Auch NSC-Kämpfe ändern ausschließlich die Kampfsnapshots, niemals Originalwerte.
+Einladungen, offene Eingaben und Übernahmen nutzen die bestehende Mail-Outbox;
+Dashboard-Nachrichten nennen den NSC und den herausgeforderten Charakter.
+
+Vor Nutzung die neue Migration mit `php artisan migrate` ausführen. Gezielte
+Regressionen: `php artisan test --filter 'RpgNpc|RpgCombat'`, die separate
+MariaDB-Suite und `tests/e2e/rpg-npcs.spec.js` zusammen mit
+`tests/e2e/rpg-combats.spec.js`. Die vollständige PHP-Suite bleibt Pflicht.
+
 Unter **Übungskämpfe** (`/rpg/uebungskaempfe`, auch unter „Meine Charaktere“)
 können aktive AG-Mitglieder andere Mitglieder mit gespeicherten Charakteren
 herausfordern. Die Einladung enthält Startdistanz und Rundenlimit und verfällt
@@ -304,7 +334,7 @@ AG-Leitung entscheidet solche Fälle mit Begründung, sofern sie nicht selbst
 beteiligt ist. Gleichzeitige Ansagen bleiben bis zur gemeinsamen Aufdeckung
 verborgen. Charakteroriginale, EP und Baxx ändern sich durch Übungskämpfe nicht.
 
-Jede neue Entscheidung erhält 24 Stunden; nach Fristablauf verarbeitet der
+Bei Spielerduellen erhält jede neue Entscheidung 24 Stunden; nach Fristablauf verarbeitet der
 Server ausschließlich diesen Schritt mit einer gültigen Standardentscheidung.
 Fristen werden in UTC gespeichert und in deutscher Ortszeit angezeigt.
 Regelfragen pausieren andere Entscheidungen mit deren verbleibender Restzeit.

@@ -46,15 +46,17 @@ final class CombatStats
         return $actor['armor_broken'] ? 0 : (int) ($actor['profile']['armor']['movementModifier'] ?? 0);
     }
 
-    public static function protection(array $actor): int
+    public static function protection(array $actor, bool $ordinaryWeapon = true): int
     {
-        return self::armor($actor) + self::advantage($actor, 'Panzerung') + (self::advantage($actor, 'Zäh') ? 1 : 0);
+        return self::armor($actor) + self::advantage($actor, 'Panzerung') + (self::advantage($actor, 'Zäh') ? 1 : 0)
+            + array_sum(array_column(array_filter($actor['effects'] ?? [], fn ($e) => $e['type'] === 'protection'
+                && ($ordinaryWeapon || ($e['scope'] ?? null) !== 'ordinary_weapons')), 'value'));
     }
 
     public static function weapon(array $actor, string $id, bool $held = true): array
     {
         $weapon = $actor['weapons'][$id] ?? throw new InvalidArgumentException('Diese Waffe ist nicht vorhanden.');
-        if ($weapon['broken'] || $weapon['position'] !== null || ($held && ! $weapon['natural'] && ! in_array($id, $actor['held'], true))) {
+        if ($weapon['broken'] || ($weapon['stuck'] ?? false) || $weapon['position'] !== null || ($held && ! $weapon['natural'] && ! in_array($id, $actor['held'], true))) {
             throw new InvalidArgumentException('Diese Waffe kann gerade nicht eingesetzt werden.');
         }
         if (self::disadvantage($actor, 'Primitiv') && $weapon['education'] > 0) {
@@ -95,6 +97,12 @@ final class CombatStats
         } elseif ($distance > 100) {
             throw new InvalidArgumentException('Das Ziel ist nicht in Nahkampfreichweite.');
         }
+        if (isset($mode['npc_attack_offsets'])) {
+            $modifiers['NSC-Vorlagenabgleich'] = $mode['npc_attack_offsets'][$attribute];
+        }
+        if (isset($actor['profile']['npc']) || array_any($actor['effects'], fn ($e) => in_array($e['type'], ['blind', 'paralyzed'], true))) {
+            $modifiers['Sonderfähigkeit'] = -array_sum(array_column(array_filter($actor['effects'], fn ($e) => in_array($e['type'], ['blind', 'paralyzed'], true)), 'value'));
+        }
         $aim = $input['aim'] ?? 0;
         if (! is_int($aim) || $aim < 0 || $aim > CombatMath::aimedLimit(array_sum($modifiers))) {
             throw new InvalidArgumentException('Unzulässiger gezielter Schlag.');
@@ -106,12 +114,12 @@ final class CombatStats
 
     public static function defense(array $actor, string $kind, array $rulings, int $round, bool $ranged, bool $knockdown = false): array
     {
-        if (! in_array($kind, ['parry', 'dodge'], true) || ($kind === 'parry' && ($ranged || $actor['parried'] || $actor['blocked_until'] >= $round))) {
+        if (! in_array($kind, ['parry', 'dodge'], true) || ($kind === 'parry' && ($ranged || $actor['parried'] || $actor['blocked_until'] >= $round || ($actor['profile']['npc']['parry_allowed'] ?? true) === false))) {
             throw new InvalidArgumentException('Diese Verteidigung ist nicht möglich.');
         }
         $skill = $kind === 'parry' ? 'Nahkampf' : 'Athletik';
 
-        return [$skill => self::skill($actor, $skill), 'GE' => self::attribute($actor, 'ge'),
+        $modifiers = [$skill => self::skill($actor, $skill), 'GE' => self::attribute($actor, 'ge'),
             'Verletzungen' => -self::vm($actor, $rulings), 'Rüstung' => self::bm($actor),
             'Schild' => $actor['shield'] && ! $actor['shield_broken'] ? 1 : 0,
             'Kaltblütig' => self::advantage($actor, 'Kaltblütig') ? 1 : 0,
@@ -120,6 +128,15 @@ final class CombatStats
             'Volle Verteidigung' => $actor['full_defense'] ? 2 : 0,
             'Bodenlage / Patzer' => $actor['blocked_until'] >= $round || ($actor['prone'] && ($rulings['prone'] ?? 'penalty') === 'penalty') ? -2 : 0,
             'Niederwerfen' => $knockdown ? -2 : 0];
+        if (isset($actor['profile']['npc']['defense_offsets'][$kind])) {
+            $modifiers['NSC-Vorlagenabgleich'] = $actor['profile']['npc']['defense_offsets'][$kind];
+        }
+        $penalty = array_sum(array_column(array_filter($actor['effects'], fn ($e) => in_array($e['type'], ['blind', 'paralyzed'], true)), 'value'));
+        if ($penalty) {
+            $modifiers['Sonderfähigkeit'] = -$penalty;
+        }
+
+        return $modifiers;
     }
 
     public static function damage(array $attacker, array $defender, array $attack, array $rulings): array
@@ -127,10 +144,10 @@ final class CombatStats
         $mode = $attack['mode'];
         $ranged = $mode['kind'] === 'ranged';
         $natural = $attack['weapon']['id'] === 'natural';
-        $weaponDamage = $natural && ($rulings['natural_weapons'] ?? 'weapon') === 'bonus' ? 0 : $mode['damage'];
+        $weaponDamage = $natural && ! isset($mode['npc_damage_offset']) && ($rulings['natural_weapons'] ?? 'weapon') === 'bonus' ? 0 : $mode['damage'];
         $attribute = $ranged ? 'wa' : 'st';
 
-        return [strtoupper($attribute) => self::attribute($attacker, $attribute), 'Waffe' => $weaponDamage,
+        $modifiers = [strtoupper($attribute) => self::attribute($attacker, $attribute), 'Waffe' => $weaponDamage,
             'Gezielter Schlag' => $attack['input']['aim'] ?? 0,
             'Feuerart' => $ranged ? CombatMath::fireMode($attack['input']['fire'] ?? 'E', $mode['fireRate'])['damage'] : 0,
             'Kritischer Treffer' => $attack['critical'] ?? 0,
@@ -139,6 +156,11 @@ final class CombatStats
             'Taratzenfutter' => self::disadvantage($defender, 'Taratzenfutter') ? 1 : 0,
             'RO des Ziels' => ($attack['vulnerable'] ?? false) ? 0 : -self::attribute($defender, 'ro'),
             'Schutz des Ziels' => -self::protection($defender)];
+        if (isset($mode['npc_damage_offset'])) {
+            $modifiers['NSC-Vorlagenabgleich'] = $mode['npc_damage_offset'];
+        }
+
+        return $modifiers;
     }
 
     public static function psychicDefense(array $actor, array $rulings): array

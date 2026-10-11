@@ -26,13 +26,20 @@ final class CombatQuery
         Gate::forUser($user)->authorize('view', $combat);
         $combat->loadMissing('participants');
         $state = $combat->state;
-        $side = $combat->participants->firstWhere('owner_id', $user->id)?->side;
+        $authority = app(CombatAuthority::class);
+        $sides = $authority->sides($combat, $user);
+        $side = count($sides) === 1 ? $sides[0] : null;
         $decisions = $combat->decisions()->whereIn('status', ['pending', 'paused'])->orderBy('id')->get()->map(function ($d) use ($user, $combat) {
-            $allowed = $d->type === 'ruling' ? Gate::forUser($user)->allows('rule', $combat)
-                : $combat->participants->firstWhere('side', $d->controller_side)?->owner_id === $user->id;
+            $allowed = app(CombatAuthority::class)->canDecide($combat, $d, $user);
+            $context = $d->context;
+            if (! $allowed) {
+                unset($context['request']);
+            }
 
             return ['id' => $d->id, 'type' => $d->type, 'side' => $d->side, 'controller' => $d->controller_side, 'status' => $d->status,
-                'due_at' => $d->due_at, 'allowed' => $allowed && $d->status === 'pending', 'context' => $d->context];
+                'due_at' => $d->due_at, 'reminder_at' => $d->reminder_at, 'timeout_policy' => $d->timeout_policy,
+                'allowed' => $allowed && $d->status === 'pending' && ! $combat->suspension
+                    && ($combat->kind !== 'npc_vs_player' || app(CombatAuthority::class)->leader($combat) !== null), 'context' => $context];
         });
         // Never serialize continuation inputs or sealed simultaneous declarations.
         $actors = $state['actors'] ?? [];
@@ -43,7 +50,7 @@ final class CombatQuery
         }
         $events = $combat->events()->when($before > 0, fn ($q) => $q->where('sequence', '<', $before))->orderByDesc('sequence')->limit(100)->get();
 
-        return compact('combat', 'side', 'decisions', 'actors', 'events') + ['round' => $state['round'] ?? 0, 'seconds' => $state['seconds'] ?? 0,
+        return compact('combat', 'side', 'sides', 'decisions', 'actors', 'events') + ['round' => $state['round'] ?? 0, 'seconds' => $state['seconds'] ?? 0,
             'abort_offer' => $state['abort_offer'] ?? null, 'rules' => $state['rules'] ?? [], 'rulings' => RpgCombatRules::rulings()];
     }
 
@@ -51,13 +58,13 @@ final class CombatQuery
     {
         return $this->listing($user)->whereIn('status', ['challenged', 'preparing', 'active', 'awaiting_ruling'])
             ->where(fn ($q) => $q->whereHas('participants', fn ($p) => $p->where('owner_id', $user->id))
-                ->orWhereHas('decisions', fn ($d) => $d->where('type', 'ruling')->where('status', 'pending')))
+                ->orWhereHas('decisions', fn ($d) => $d->where('type', 'ruling')->where('status', 'pending'))
+                ->when(app(RpgAccess::class)->isLeader($user), fn ($q) => $q->orWhere('kind', 'npc_vs_player')))
             ->with(['decisions' => fn ($q) => $q->whereIn('status', ['pending', 'paused'])])
             ->latest('id')->limit(20)->get()->map(function ($combat) use ($user) {
-                $side = $combat->participants->firstWhere('owner_id', $user->id)?->side;
-                $tasks = $combat->decisions->filter(fn ($d) => $d->type === 'ruling'
-                    ? Gate::forUser($user)->allows('rule', $combat)
-                    : $side !== null && $d->controller_side === $side)
+                $sides = app(CombatAuthority::class)->sides($combat, $user);
+                $side = in_array(2, $sides, true) ? 2 : ($sides[0] ?? null);
+                $tasks = $combat->decisions->filter(fn ($d) => app(CombatAuthority::class)->canDecide($combat, $d, $user))
                     ->map(fn ($d) => ['label' => RpgCombatDecision::typeLabel($d->type), 'due_at' => $d->due_at])->values()->all();
                 if ($combat->status === 'challenged') {
                     $tasks[] = ['label' => $side === 2 ? 'Herausforderung annehmen oder ablehnen' : 'Annahme der Herausforderung ausstehend', 'due_at' => $combat->expires_at];

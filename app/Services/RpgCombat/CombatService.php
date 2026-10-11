@@ -8,6 +8,7 @@ use App\Models\RpgCombat;
 use App\Models\RpgCombatDecision;
 use App\Models\RpgCombatDelivery;
 use App\Models\RpgCombatMilestone;
+use App\Models\RpgNpc;
 use App\Models\User;
 use App\Services\RpgAccess;
 use App\Support\RpgCombatRules;
@@ -19,10 +20,13 @@ use InvalidArgumentException;
 
 final class CombatService
 {
-    public function __construct(private RpgAccess $access, private CombatSnapshotFactory $snapshots, private CombatEngine $engine, private AutomaticDecision $automatic) {}
+    public function __construct(private RpgAccess $access, private CombatSnapshotFactory $snapshots, private CombatEngine $engine, private AutomaticDecision $automatic, private CombatAuthority $authority, private NpcCombatSnapshotFactory $npcSnapshots) {}
 
     public function challenge(User $user, array $input): RpgCombat
     {
+        if (($input['kind'] ?? '') === 'npc_vs_player' || isset($input['npc_id'])) {
+            return $this->challengeNpc($user, $input);
+        }
         $data = Validator::make($input, ['submission_key' => 'required|uuid', 'character_id' => 'required|integer|min:1',
             'opponent_id' => 'required|integer|different:character_id|min:1', 'revision' => 'required|integer|min:0', 'opponent_revision' => 'required|integer|min:0',
             'distance' => 'required|integer|min:1|max:'.config('rpg-combat.maximum_start_distance')])->validate();
@@ -63,15 +67,63 @@ final class CombatService
         }, 3);
     }
 
-    public function command(User $user, int $id, string $command, string $key): RpgCombat
+    private function challengeNpc(User $user, array $input): RpgCombat
+    {
+        $this->ensure(array_diff(array_keys($input), ['kind', 'npc_id', 'npc_revision', 'opponent_id', 'opponent_revision', 'distance', 'submission_key']) === [], 'Unzulässige NSC-Herausforderungsdaten.');
+        $data = Validator::make($input, ['submission_key' => 'required|uuid', 'npc_id' => 'required|integer|min:1',
+            'npc_revision' => 'required|integer|min:0', 'opponent_id' => 'required|integer|min:1', 'opponent_revision' => 'required|integer|min:0',
+            'distance' => 'required|integer|min:1|max:'.config('rpg-combat.maximum_start_distance')])->validate();
+
+        return DB::transaction(function () use ($user, $data) {
+            $team = $this->access->requireLeader($user, lock: true);
+            abort_unless(config('rpg-combat.enabled'), 403);
+            $hash = $this->hash($data);
+            if ($existing = RpgCombat::where('submission_key', $data['submission_key'])->first()) {
+                abort_unless($existing->kind === 'npc_vs_player' && $existing->team_id === $team->id && $existing->submission_hash === $hash, 409);
+
+                return $existing;
+            }
+            $other = RpgCharacter::lockForUpdate()->findOrFail($data['opponent_id']);
+            $npc = RpgNpc::lockForUpdate()->findOrFail($data['npc_id']);
+            abort_unless($npc->team_id === $team->id && $other->user_id !== $user->id && $this->access->isMember($other->user_id, $team), 403);
+            $this->ensure($npc->revision === (int) $data['npc_revision'] && $other->revision === (int) $data['opponent_revision'], 'Ein Teilnehmer wurde geändert. Bitte die Auswahl aktualisieren.');
+            $this->ensure(! DB::table('rpg_combat_npc_locks')->where('rpg_npc_id', $npc->id)->exists()
+                && ! DB::table('rpg_combat_character_locks')->where('rpg_character_id', $other->id)->exists(), 'Ein Teilnehmer befindet sich bereits in einem Kampf.');
+            $duplicate = RpgCombat::where('status', 'challenged')->where('expires_at', '>', now('UTC'))
+                ->whereHas('participants', fn ($q) => $q->where('rpg_npc_id', $npc->id))
+                ->whereHas('participants', fn ($q) => $q->where('rpg_character_id', $other->id))->exists();
+            $this->ensure(! $duplicate, 'Für dieses Paar besteht bereits eine Herausforderung.');
+            $combat = RpgCombat::create(['team_id' => $team->id, 'created_by' => $user->id, 'leader_id' => $user->id, 'kind' => 'npc_vs_player',
+                'submission_key' => $data['submission_key'], 'submission_hash' => $hash, 'rule_version' => RpgCombatRules::NPC_VERSION,
+                'distance' => $data['distance'] * 100, 'round_limit' => config('rpg-combat.round_limit'),
+                'expires_at' => now('UTC')->addDays(config('rpg-combat.invitation_days'))]);
+            foreach ([[$npc, $this->npcSnapshots->make($npc)], [$other, $this->snapshots->make($other)]] as $index => [$entity, $snapshot]) {
+                $isNpc = $index === 0;
+                $combat->participants()->create(['side' => $index + 1, 'participant_kind' => $isNpc ? 'npc' : 'player',
+                    'rpg_npc_id' => $isNpc ? $entity->id : null, 'rpg_character_id' => $isNpc ? null : $entity->id,
+                    'owner_id' => $isNpc ? null : $entity->user_id, 'character_revision' => $entity->revision, 'character_name' => $entity->displayName(),
+                    'snapshot_hash' => $this->hash($snapshot), 'snapshot' => $snapshot]);
+            }
+            $this->log($combat, [['kind' => 'challenged', 'data' => ['message' => 'NSC-Herausforderung für eine offene, ebene Arena erstellt.',
+                'distance_cm' => $combat->distance, 'round_limit' => $combat->round_limit, 'rule_version' => $combat->rule_version,
+                'rulebook_sha256' => RpgCombatRules::RULEBOOK_SHA256]]], $user);
+            $this->milestone($combat, 'challenged');
+            $this->delivery($combat, $other->user_id, 'invitation');
+
+            return $combat;
+        }, 3);
+    }
+
+    public function command(User $user, int $id, string $command, string $key, ?int $requestedSide = null): RpgCombat
     {
         Validator::make(['key' => $key], ['key' => 'required|uuid'])->validate();
 
-        return $this->locked($id, function (RpgCombat $combat) use ($user, $command, $key, $id) {
+        return $this->locked($id, function (RpgCombat $combat) use ($user, $command, $key, $id, $requestedSide) {
             Gate::forUser($user)->authorize('view', $combat);
-            $side = $combat->participants->firstWhere('owner_id', $user->id)?->side;
-            abort_unless($side, 403);
-            $hash = $this->hash([$id, $command, $user->id]);
+            $sides = $this->authority->sides($combat, $user);
+            $side = $requestedSide ?? (in_array($command, ['accept', 'decline'], true) ? 2 : ($command === 'withdraw' ? 1 : (count($sides) === 1 ? $sides[0] : null)));
+            abort_unless($side && in_array($side, $sides, true), 403);
+            $hash = $this->hash($combat->kind === 'npc_vs_player' ? [$id, $command, $user->id, $side] : [$id, $command, $user->id]);
             if ($previous = DB::table('rpg_combat_commands')->where('submission_key', $key)->first()) {
                 abort_unless($previous->input_hash === $hash, 409);
 
@@ -85,18 +137,24 @@ final class CombatService
                 $this->ensure($combat->status === 'challenged', 'Diese Einladung ist nicht mehr offen.');
                 if ($command === 'accept') {
                     foreach ($combat->participants as $participant) {
-                        $this->ensure($participant->character->revision === $participant->character_revision, 'Ein Charakter wurde geändert. Bitte eine neue Herausforderung erstellen.');
-                        $this->ensure($this->hash($this->snapshots->make($participant->character)) === $participant->snapshot_hash, 'Charakterdaten stimmen nicht mehr mit der Vorschau überein.');
+                        $entity = $participant->participant_kind === 'npc' ? $participant->npc : $participant->character;
+                        $this->ensure($entity->revision === $participant->character_revision, 'Ein Charakter wurde geändert. Bitte eine neue Herausforderung erstellen.');
+                        $snapshot = $participant->participant_kind === 'npc' ? $this->npcSnapshots->make($entity) : $this->snapshots->make($entity);
+                        $this->ensure($this->hash($snapshot) === $participant->snapshot_hash, 'Charakterdaten stimmen nicht mehr mit der Vorschau überein.');
                     }
                     $this->ensure(! DB::table('rpg_combat_character_locks')->whereIn('rpg_character_id', $combat->participants->pluck('rpg_character_id'))->exists(), 'Ein Charakter kämpft bereits.');
                     foreach ($combat->participants as $participant) {
-                        DB::table('rpg_combat_character_locks')->insert(['rpg_character_id' => $participant->rpg_character_id, 'rpg_combat_id' => $combat->id]);
+                        $npc = $participant->participant_kind === 'npc';
+                        $table = $npc ? 'rpg_combat_npc_locks' : 'rpg_combat_character_locks';
+                        $field = $npc ? 'rpg_npc_id' : 'rpg_character_id';
+                        $this->ensure(! DB::table($table)->where($field, $participant->$field)->exists(), 'Ein Teilnehmer kämpft bereits.');
+                        DB::table($table)->insert([$field => $participant->$field, 'rpg_combat_id' => $combat->id]);
                     }
                     $combat->accepted_at = now('UTC');
                     $this->persist($combat, $this->engine->start($combat->participants->pluck('snapshot')->all(), $combat->distance, $combat->round_limit), $user);
                     $this->milestone($combat, 'started');
                     foreach ($combat->participants as $participant) {
-                        $this->delivery($combat, $participant->owner_id, 'started');
+                        $this->delivery($combat, $this->authority->controller($combat, $participant->side), 'started');
                     }
                 } else {
                     $this->close($combat, $command === 'decline' ? 'declined' : 'withdrawn', null, $user);
@@ -132,8 +190,7 @@ final class CombatService
             }
             $decision = $combat->decisions()->lockForUpdate()->findOrFail($decisionId);
             if ($user) {
-                $allowed = $decision->type === 'ruling' ? Gate::forUser($user)->allows('rule', $combat)
-                    : $combat->participants->firstWhere('side', $decision->controller_side)?->owner_id === $user->id;
+                $allowed = $this->authority->canDecide($combat, $decision, $user);
                 abort_unless($allowed, 403);
             }
             if ($decision->status === 'resolved') {
@@ -144,8 +201,9 @@ final class CombatService
             if (! $this->maintain($combat)) {
                 return;
             }
-            $this->ensure($decision->status === 'pending' && $decision->due_at !== null, 'Diese Entscheidung ist pausiert oder beendet.');
-            $timedOut = now('UTC')->greaterThanOrEqualTo($decision->due_at);
+            $decision->refresh();
+            $this->ensure($decision->status === 'pending', 'Diese Entscheidung ist pausiert oder beendet.');
+            $timedOut = $decision->timeout_policy === 'automatic' && $decision->due_at !== null && now('UTC')->greaterThanOrEqualTo($decision->due_at);
             if (! $user && ! $timedOut) {
                 return;
             }
@@ -170,14 +228,49 @@ final class CombatService
         $this->locked($id, fn (RpgCombat $combat) => $this->maintain($combat));
     }
 
+    public function remind(int $id, int $decisionId): void
+    {
+        $this->locked($id, function (RpgCombat $combat) use ($decisionId) {
+            if (! $this->maintain($combat)) {
+                return;
+            }
+            $decision = $combat->decisions()->lockForUpdate()->find($decisionId);
+            if (! $decision || $decision->status !== 'pending' || $decision->timeout_policy !== 'manual_leader'
+                || ! $decision->reminder_at || $decision->reminder_at->isFuture() || $decision->reminded_at) {
+                return;
+            }
+            if ($recipient = $this->authority->recipient($combat, $decision)) {
+                $this->delivery($combat, $recipient, 'reminder', $decision);
+                $decision->update(['reminded_at' => now('UTC'), 'reminder_at' => null]);
+            }
+        });
+    }
+
+    private function pauseDecision(RpgCombatDecision $decision): void
+    {
+        $decision->update(['status' => 'paused',
+            'remaining_seconds' => $decision->due_at ? max(0, (int) now('UTC')->diffInSeconds($decision->due_at, false)) : null,
+            'remaining_reminder_seconds' => $decision->reminder_at ? max(0, (int) now('UTC')->diffInSeconds($decision->reminder_at, false)) : null,
+            'due_at' => null, 'reminder_at' => null]);
+    }
+
+    private function resumeDecision(RpgCombatDecision $decision): void
+    {
+        $decision->update(['status' => 'pending',
+            'due_at' => $decision->remaining_seconds !== null ? now('UTC')->addSeconds($decision->remaining_seconds) : null,
+            'reminder_at' => $decision->remaining_reminder_seconds !== null ? now('UTC')->addSeconds($decision->remaining_reminder_seconds) : null,
+            'remaining_seconds' => null, 'remaining_reminder_seconds' => null]);
+    }
+
     private function locked(int $id, callable $callback): RpgCombat
     {
         return DB::transaction(function () use ($id, $callback) {
             $this->access->team(lock: true);
             $reference = RpgCombat::with('participants')->findOrFail($id);
             RpgCharacter::whereIn('id', $reference->participants->pluck('rpg_character_id')->filter())->orderBy('id')->lockForUpdate()->get();
+            RpgNpc::whereIn('id', $reference->participants->pluck('rpg_npc_id')->filter())->orderBy('id')->lockForUpdate()->get();
             $combat = RpgCombat::lockForUpdate()->findOrFail($id);
-            $combat->load('participants.character');
+            $combat->load(['participants.character', 'participants.npc']);
             $callback($combat);
 
             return $combat->fresh(['participants']);
@@ -190,7 +283,10 @@ final class CombatService
             return false;
         }
         $team = $this->access->team();
-        if (! $team || $combat->team_id !== $team->id || $combat->participants->contains(fn ($p) => ! $p->character || $p->character->user_id !== $p->owner_id || ! $this->access->isMember($p->owner_id, $team))) {
+        $expected = $combat->kind === 'npc_vs_player' ? ['npc', 'player'] : ['player', 'player'];
+        if (! $team || $combat->team_id !== $team->id || $combat->participants->pluck('participant_kind')->all() !== $expected || $combat->participants->contains(fn ($p) => $p->participant_kind === 'npc'
+            ? ! $p->npc || $p->npc->team_id !== $team->id || $p->rpg_character_id !== null || $p->owner_id !== null
+            : ! $p->character || $p->rpg_npc_id !== null || $p->character->user_id !== $p->owner_id || ! $this->access->isMember($p->owner_id, $team))) {
             $this->close($combat, 'membership_changed');
 
             return false;
@@ -200,9 +296,39 @@ final class CombatService
 
             return false;
         }
+        if ($combat->kind === 'npc_vs_player') {
+            $leader = $this->authority->leader($combat);
+            if (! $leader) {
+                if (! $combat->suspension) {
+                    $combat->update(['suspension' => ['reason' => 'leader_unavailable'], 'revision' => $combat->revision + 1]);
+                    foreach ($combat->decisions()->where('status', 'pending')->get() as $decision) {
+                        $this->pauseDecision($decision);
+                    }
+                }
+
+                return false;
+            }
+            if ($combat->suspension) {
+                $combat->update(['suspension' => null, 'revision' => $combat->revision + 1]);
+                foreach ($combat->decisions()->where('status', 'paused')->get() as $decision) {
+                    if ($decision->type === 'ruling' || ($combat->state['continuation'] ?? null) === null) {
+                        $this->resumeDecision($decision);
+                    }
+                }
+            }
+            if ($combat->leader_id !== $leader) {
+                $combat->update(['leader_id' => $leader, 'revision' => $combat->revision + 1]);
+                $this->delivery($combat, $leader, 'handover');
+                foreach ($combat->decisions()->where('status', 'pending')->get() as $decision) {
+                    if ($this->authority->manual($combat, $decision)) {
+                        $this->delivery($combat, $leader, 'decision', $decision);
+                    }
+                }
+            }
+        }
         // A new leader receives the open case without resetting its deadline.
         foreach ($combat->decisions()->where('type', 'ruling')->where('status', 'pending')->get() as $decision) {
-            if (! $combat->participants->contains('owner_id', $team->user_id) && $this->access->isMember($team->user_id, $team)) {
+            if (($combat->kind === 'npc_vs_player' || ! $combat->participants->contains('owner_id', $team->user_id)) && $this->access->isMember($team->user_id, $team)) {
                 $this->delivery($combat, $team->user_id, 'decision', $decision);
             }
         }
@@ -227,16 +353,20 @@ final class CombatService
         }
         foreach ($state['tasks'] as $task) {
             $paused = $state['continuation'] !== null && $task['type'] !== 'ruling';
+            $probe = new RpgCombatDecision(['side' => $task['side'], 'controller_side' => $task['controller'], 'type' => $task['type']]);
+            $manual = $this->authority->manual($combat, $probe);
+            $deadline = now('UTC')->addHours(config('rpg-combat.decision_hours'));
             $decision = $combat->decisions()->firstOrCreate(['token' => $task['token']], ['side' => $task['side'], 'controller_side' => $task['controller'], 'type' => $task['type'],
-                'context' => $task['context'], 'opened_at' => now('UTC'), 'due_at' => now('UTC')->addHours(config('rpg-combat.decision_hours'))]);
-            if ($paused && $decision->due_at) {
-                $decision->update(['remaining_seconds' => max(0, (int) now('UTC')->diffInSeconds($decision->due_at, false)), 'due_at' => null, 'status' => 'paused']);
+                'context' => $task['context'], 'opened_at' => now('UTC'), 'timeout_policy' => $manual ? 'manual_leader' : 'automatic',
+                'due_at' => $manual ? null : $deadline, 'reminder_at' => $manual ? $deadline : null]);
+            if ($paused && $decision->status === 'pending') {
+                $this->pauseDecision($decision);
             } elseif (! $paused && $decision->status === 'paused') {
-                $decision->update(['due_at' => now('UTC')->addSeconds($decision->remaining_seconds), 'remaining_seconds' => null, 'status' => 'pending']);
+                $this->resumeDecision($decision);
             }
             if (! $paused) {
-                $recipient = $task['controller'] ? $combat->participants->firstWhere('side', $task['controller'])?->owner_id : $this->access->team()?->user_id;
-                if ($recipient && ($task['controller'] || ! $combat->participants->contains('owner_id', $recipient))) {
+                $recipient = $this->authority->recipient($combat, $decision);
+                if ($recipient && ($combat->kind === 'npc_vs_player' || $task['controller'] || ! $combat->participants->contains('owner_id', $recipient))) {
                     $this->delivery($combat, $recipient, 'decision', $decision);
                 }
             }
@@ -255,6 +385,8 @@ final class CombatService
             'result' => $reason, 'completed_at' => now('UTC'), 'revision' => $combat->revision + 1]);
         $combat->decisions()->whereIn('status', ['pending', 'paused'])->update(['status' => 'cancelled', 'resolved_at' => now('UTC')]);
         DB::table('rpg_combat_character_locks')->where('rpg_combat_id', $combat->id)->delete();
+        DB::table('rpg_combat_npc_locks')->where('rpg_combat_id', $combat->id)->delete();
+        RpgCombatDelivery::where('rpg_combat_id', $combat->id)->whereIn('status', ['pending', 'processing'])->update(['status' => 'cancelled']);
         if ($log) {
             $this->log($combat, [['kind' => 'completed', 'data' => ['message' => 'Übungskampf beendet.', 'reason' => $reason, 'winner' => $winner]]], $user, 'system');
         }
@@ -277,7 +409,7 @@ final class CombatService
         $combat->loadMissing('participants.owner');
         [$a, $b] = $combat->participants->all();
         $milestone = RpgCombatMilestone::firstOrCreate(['rpg_combat_id' => $combat->id, 'kind' => $kind], [
-            'challenger_name' => $a->owner?->nicknameOrName() ?? 'Ehemaliges Mitglied', 'defender_name' => $b->owner?->nicknameOrName() ?? 'Ehemaliges Mitglied',
+            'challenger_kind' => $a->participant_kind, 'challenger_name' => $a->participant_kind === 'npc' ? (User::find($this->authority->leader($combat))?->nicknameOrName() ?? 'AG-Leitung') : ($a->owner?->nicknameOrName() ?? 'Ehemaliges Mitglied'), 'defender_name' => $b->owner?->nicknameOrName() ?? 'Ehemaliges Mitglied',
             'challenger_character' => $a->character_name, 'defender_character' => $b->character_name, 'winner_side' => $combat->winner_side, 'result' => $combat->result]);
         if ($milestone->wasRecentlyCreated) {
             Activity::create(['user_id' => $combat->created_by, 'subject_type' => RpgCombatMilestone::class, 'subject_id' => $milestone->id, 'action' => 'rpg_combat_'.$kind]);
@@ -286,8 +418,12 @@ final class CombatService
 
     private function delivery(RpgCombat $combat, int $recipient, string $kind, ?RpgCombatDecision $decision = null): void
     {
-        RpgCombatDelivery::firstOrCreate(['event_key' => implode(':', [$combat->id, $kind, $decision?->id ?? 0, $recipient])], [
+        $delivery = RpgCombatDelivery::firstOrCreate(['event_key' => implode(':', [$combat->id, $kind, $decision?->id ?? 0, $recipient])], [
             'rpg_combat_id' => $combat->id, 'rpg_combat_decision_id' => $decision?->id, 'recipient_id' => $recipient, 'kind' => $kind]);
+        if ($decision?->status === 'pending' && $delivery->status === 'cancelled' && ! $delivery->sent_at) {
+            // A mail cancelled while a ruling paused its decision becomes actionable on resume.
+            $delivery->update(['status' => 'pending', 'claimed_at' => null]);
+        }
     }
 
     private function hash(array $input): string

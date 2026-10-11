@@ -19,7 +19,9 @@ class RpgCombatMilestone extends Model
     public function message(): string
     {
         return match ($this->kind) {
-            'challenged' => "{$this->challenger_name} hat mit {$this->challenger_character} den Charakter {$this->defender_character} von {$this->defender_name} zum Übungskampf herausgefordert.",
+            'challenged' => $this->challenger_kind === 'npc'
+                ? "{$this->challenger_character} fordert {$this->defender_character} von {$this->defender_name} zum Übungskampf heraus! NSC der AG-Leitung {$this->challenger_name}."
+                : "{$this->challenger_name} hat mit {$this->challenger_character} den Charakter {$this->defender_character} von {$this->defender_name} zum Übungskampf herausgefordert.",
             'started' => "{$this->defender_name} hat die Herausforderung angenommen. {$this->challenger_character} und {$this->defender_character} beginnen ihren Übungskampf.",
             default => "Der Übungskampf zwischen {$this->challenger_character} und {$this->defender_character} ist beendet. ".($this->winner_side
                 ? ($this->winner_side === 1 ? $this->challenger_character : $this->defender_character).' hat gewonnen.'

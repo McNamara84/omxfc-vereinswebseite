@@ -7,6 +7,9 @@
       <file>tests/Feature/RpgCombatHttpTest.php</file>
       <file>tests/Feature/RpgCombatDeadlineTest.php</file>
       <file>tests/Feature/RpgCombatIntegrityTest.php</file>
+      <file>tests/Feature/RpgNpcTest.php</file>
+      <file>tests/Feature/RpgNpcCombatTest.php</file>
+      <file>tests/Feature/RpgNpcEngineTest.php</file>
     </testsuite>
   </testsuites>
   <source>
@@ -19,6 +22,12 @@
       <file>app/Models/RpgCombatEvent.php</file>
       <file>app/Models/RpgCombatMilestone.php</file>
       <file>app/Models/RpgCombatParticipant.php</file>
+      <file>app/Models/RpgNpc.php</file>
+      <file>app/Services/RpgNpcService.php</file>
+      <file>app/Support/RpgNpcCatalog.php</file>
+      <file>app/Support/CombatHash.php</file>
+      <file>app/Policies/RpgNpcPolicy.php</file>
+      <file>app/Http/Controllers/RpgNpcController.php</file>
       <file>app/Support/RpgCombatRules.php</file>
       <file>app/Policies/RpgCombatPolicy.php</file>
       <file>app/Http/Controllers/RpgCombatController.php</file>

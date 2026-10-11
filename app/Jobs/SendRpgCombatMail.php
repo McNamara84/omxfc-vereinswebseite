@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Mail\RpgCombatMail;
 use App\Models\RpgCombatDelivery;
 use App\Models\User;
+use App\Services\RpgCombat\CombatAuthority;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -46,14 +47,15 @@ class SendRpgCombatMail implements ShouldBeUnique, ShouldQueue
             $combat = $delivery->combat;
             $decision = $delivery->decision;
             $valid = $user && $combat && Gate::forUser($user)->allows('view', $combat);
+            $valid = $valid && ($combat->kind !== 'npc_vs_player' || app(CombatAuthority::class)->leader($combat) !== null);
             if ($decision) {
-                $valid = $valid && $decision->status === 'pending' && $decision->due_at?->isFuture() && ($decision->type === 'ruling'
-                    ? Gate::forUser($user)->allows('rule', $combat)
-                    : $combat->participants->firstWhere('side', $decision->controller_side)?->owner_id === $user->id);
+                $valid = $valid && ! $combat->suspension && $decision->status === 'pending'
+                    && ($decision->timeout_policy === 'manual_leader' || $decision->due_at?->isFuture())
+                    && app(CombatAuthority::class)->canDecide($combat, $decision, $user);
             } elseif ($delivery->kind === 'invitation') {
                 $valid = $valid && $combat->status === 'challenged' && $combat->expires_at->isFuture();
             } else {
-                $valid = $valid && $combat->isOpen();
+                $valid = $valid && $combat->isOpen() && in_array($user->id, $combat->participants->map(fn ($p) => app(CombatAuthority::class)->controller($combat, $p->side))->all(), true);
             }
             if (! $valid) {
                 $delivery->update(['status' => 'cancelled']);

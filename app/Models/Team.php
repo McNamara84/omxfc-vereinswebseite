@@ -183,6 +183,9 @@ class Team extends JetstreamTeam
         static::deleting(fn (self $team) => app(RpgCheckLifecycle::class)->team($team->id));
         static::deleting(fn (self $team) => app(CombatLifecycle::class)->team($team->id));
         static::updated(function (self $team) {
+            if ($team->wasChanged('user_id') || $team->wasChanged('name')) {
+                app(CombatLifecycle::class)->leadership($team->id);
+            }
             if (
                 $team->wasChanged('name') &&
                 ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder')

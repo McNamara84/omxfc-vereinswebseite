@@ -2,6 +2,7 @@
 
 namespace App\Services\RpgCombat;
 
+use App\Support\RpgCombatRules;
 use InvalidArgumentException;
 
 trait ResolvesCombatAttacks
@@ -49,6 +50,9 @@ trait ResolvesCombatAttacks
         if ($state['tasks'] !== [] || $state['continuation'] !== null) {
             return;
         }
+        if ($state['version'] === RpgCombatRules::NPC_VERSION && count($state['group']) === 1 && $this->ended($state)) {
+            return;
+        }
         if ($state['queue'] === []) {
             $state['pending'] = null;
             if ($state['phase'] === 'round_effects') {
@@ -61,12 +65,18 @@ trait ResolvesCombatAttacks
         }
         $attack = array_shift($state['queue']);
         $state['pending'] = $attack;
+        if ($attack['kind'] === 'npc_ability') {
+            $state['pending'] = null;
+            $this->resolveNpcEffect($state, $attack['interpretation']);
+
+            return;
+        }
         if ($attack['kind'] === 'psychic') {
             $this->psychicAttack($state, $attack);
 
             return;
         }
-        if (in_array($attack['kind'], ['burn', 'psychic_damage'], true)) {
+        if (in_array($attack['kind'], ['burn', 'psychic_damage', 'npc_acid'], true)) {
             $this->task($state, 'damage', $attack['side']);
 
             return;
@@ -129,6 +139,7 @@ trait ResolvesCombatAttacks
             $this->event($state, 'defense_fumble', $side, ['message' => 'Verteidigungspatzer: Handlungen dieser und nächster Runde entfallen; nur Ausweichen mit zusätzlich −2.', 'pages' => '48']);
         }
         $state['pending']['critical'] = CombatMath::criticalDamage($attack['roll'], $defense['total']);
+        $state['pending']['swallow'] = ($attack['mode']['swallow'] ?? false) && $attack['roll']['total'] - $defense['total'] >= 4;
         if ($attack['kind'] === 'psychic') {
             $this->finishPsychic($state, true);
 
@@ -208,7 +219,7 @@ trait ResolvesCombatAttacks
         $side = $task['side'];
         $actor = $this->reactionActor($state, $side);
         $attack = $state['pending'];
-        $damageModifier = $attack['mode']['damage'] + CombatStats::attribute($state['actors'][$attack['side']], 'st');
+        $damageModifier = $attack['mode']['damage'] + CombatStats::attribute($state['actors'][$attack['side']], 'st') + ($attack['mode']['npc_damage_offset'] ?? 0);
         $result = CombatMath::result($this->roll($state, $side, ['ST × 3' => 3 * CombatStats::attribute($actor, 'st'),
             'Verletzungen' => -CombatStats::vm($actor, $state['rules'])], 'Niederwerfen widerstehen', '28, 49'), 6 + $damageModifier);
         if (! $result['success']) {
@@ -272,14 +283,34 @@ trait ResolvesCombatAttacks
         $target = $attack['target'];
         $actor = $state['actors'][$attack['side']];
         $defender = $this->reactionActor($state, $target);
-        if (CombatStats::disadvantage($defender, 'Verwundbarkeit') && $this->defer($state, ['vulnerability'], $task, $input)) {
+        $snakke = ($defender['profile']['npc']['template_key'] ?? '') === 'snaekke';
+        $ordinaryWeapon = ! in_array($attack['kind'], ['burn', 'psychic_damage', 'npc_acid'], true);
+        if ($snakke && $ordinaryWeapon && ! isset($state['npc_interpretations'][$task['token']])
+            && ! array_any($defender['effects'], fn ($e) => $e['type'] === 'protection')) {
+            $this->requestNpcRuling($state, $task, $input, 'Besonderer Schutz gegen gewöhnliche Waffen', $target, $target);
+
             return;
         }
-        $attack['vulnerable'] = ($state['rules']['vulnerability'] ?? 'normal') === 'vulnerable';
-        if (in_array($attack['kind'], ['burn', 'psychic_damage'], true)) {
+        if (! $snakke && CombatStats::disadvantage($defender, 'Verwundbarkeit') && $this->defer($state, ['vulnerability'], $task, $input)) {
+            return;
+        }
+        if (isset($state['npc_interpretations'][$task['token']])) {
+            $state['npc_protection'] = $state['npc_interpretations'][$task['token']]['modifier'];
+            if ($state['npc_interpretations'][$task['token']]['entangle'] ?? false) {
+                $id = $attack['input']['weapon'];
+                $this->ensure(! $attack['weapon']['natural'] && $attack['mode']['kind'] === 'melee', 'Nur geführte Nahkampfwaffen können im Schleim steckenbleiben.');
+                $state['actors'][$attack['side']]['weapons'][$id]['stuck'] = true;
+                $state['actors'][$attack['side']]['held_by'] = $target;
+                $state['actors'][$attack['side']]['held'] = array_values(array_diff($state['actors'][$attack['side']]['held'], [$id]));
+                $this->event($state, 'npc_weapon_held', $attack['side'], ['message' => 'Waffe im Snäkke-Schleim festgehalten. Befreiung anfordern oder andere Waffe benutzen.', 'pages' => '60']);
+            }
+            unset($state['npc_interpretations'][$task['token']]);
+        }
+        $attack['vulnerable'] = $snakke ? $attack['kind'] === 'burn' : ($state['rules']['vulnerability'] ?? 'normal') === 'vulnerable';
+        if (in_array($attack['kind'], ['burn', 'psychic_damage', 'npc_acid'], true)) {
             $modifiers = ['Kraft' => $attack['damage'], 'Verletzungen des Ziels' => CombatStats::vm($defender, $state['rules']),
                 'RO des Ziels' => $attack['vulnerable'] ? 0 : -CombatStats::attribute($defender, 'ro'),
-                'Schutz des Ziels' => -CombatStats::protection($defender), 'Taratzenfutter' => CombatStats::disadvantage($defender, 'Taratzenfutter') ? 1 : 0];
+                'Schutz des Ziels' => -CombatStats::protection($defender, false), 'Taratzenfutter' => CombatStats::disadvantage($defender, 'Taratzenfutter') ? 1 : 0];
         } elseif ($attack['kind'] === 'object') {
             $object = $attack['input']['target'];
             $robustness = (int) ($state['rules']['object_material'] ?? '2');
@@ -287,6 +318,10 @@ trait ResolvesCombatAttacks
                 'Kritischer Treffer' => $attack['critical'], 'Objektrobustheit' => -$robustness];
         } else {
             $modifiers = CombatStats::damage($actor, $defender, $attack, $state['rules']);
+        }
+        if ($snakke && $ordinaryWeapon) {
+            $modifiers['Snäkke-Schutz (SL-Auslegung)'] = -($state['npc_protection'] ?? 0);
+            unset($state['npc_protection']);
         }
         $roll = $this->roll($state, $attack['side'], $modifiers, 'Schadenswurf', '47, 50', 1);
         unset($state['rules']['vulnerability']);
@@ -333,6 +368,15 @@ trait ResolvesCombatAttacks
     private function finishAttack(array &$state): void
     {
         $attack = $state['pending'];
+        if ($attack['swallow'] ?? false) {
+            $state['pending'] = null;
+            if (! in_array(4, $state['actors'][$attack['target']]['wounds'], true) && ! isset($state['actors'][$attack['target']]['swallowed_by'])) {
+                $ability = collect($state['actors'][$attack['side']]['profile']['npc']['abilities'])->first(fn ($a) => str_contains($a, 'Verschlingen'));
+                $this->requestNpcRuling($state, ['type' => '_npc_effect', 'side' => $attack['side'], 'context' => []], [], $ability, $attack['side'], $attack['target']);
+
+                return;
+            }
+        }
         if (($attack['weapon']['id'] ?? '') === 'driller' && ! ($attack['secondary'] ?? false) && ! ($attack['not_fired'] ?? false)
             && ($state['rules']['driller'] ?? 'self') === 'self' && $attack['distance'] <= 300) {
             $secondary = $attack;

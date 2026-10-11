@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RpgCharacter;
 use App\Models\RpgCombat;
+use App\Models\RpgNpc;
 use App\Services\RpgAccess;
 use App\Services\RpgCombat\CombatQuery;
 use App\Services\RpgCombat\CombatService;
@@ -24,7 +25,9 @@ class RpgCombatController extends Controller
         $team = $this->access->team();
         $characters = RpgCharacter::with('user')->whereIn('user_id', $team->activeUsers()->select('users.id'))->orderBy('character_name')->get();
 
-        return response()->view('rpg.combats.create', ['characters' => $characters, 'submissionKey' => (string) Str::uuid()])->header('Cache-Control', 'private, no-store');
+        return response()->view('rpg.combats.create', ['characters' => $characters, 'submissionKey' => (string) Str::uuid(),
+            'npcs' => $this->access->isLeader($request->user()) ? RpgNpc::where('team_id', $team->id)->get() : collect(),
+            'selectedNpc' => (int) $request->query('npc_id', 0)])->header('Cache-Control', 'private, no-store');
     }
 
     public function store(Request $request)
@@ -48,8 +51,8 @@ class RpgCombatController extends Controller
 
     public function command(Request $request, RpgCombat $combat)
     {
-        $input = $request->validate(['command' => 'required|in:accept,decline,withdraw,surrender,abort', 'submission_key' => 'required|uuid']);
-        $this->service->command($request->user(), $combat->id, $input['command'], $input['submission_key']);
+        $input = $request->validate(['command' => 'required|in:accept,decline,withdraw,surrender,abort', 'submission_key' => 'required|uuid', 'side' => 'sometimes|integer|in:1,2']);
+        $this->service->command($request->user(), $combat->id, $input['command'], $input['submission_key'], isset($input['side']) ? (int) $input['side'] : null);
 
         return redirect()->route('rpg.combats.show', $combat);
     }
@@ -58,12 +61,12 @@ class RpgCombatController extends Controller
     {
         $input = $request->except('_token');
         // HTML controls carry strings; normalize only known numeric and boolean fields.
-        foreach (['mode', 'aim', 'move', 'duration', 'range', 'strength', 'damage', 'displacement'] as $key) {
+        foreach (['mode', 'aim', 'move', 'duration', 'range', 'strength', 'damage', 'displacement', 'modifier', 'difficulty'] as $key) {
             if (isset($input[$key]) && is_string($input[$key]) && preg_match('/^-?\d+$/D', $input[$key])) {
                 $input[$key] = (int) $input[$key];
             }
         }
-        foreach (['shield', 'full_defense', 'abort'] as $key) {
+        foreach (['shield', 'full_defense', 'abort', 'entangle'] as $key) {
             if (isset($input[$key]) && in_array($input[$key], ['0', '1'], true)) {
                 $input[$key] = $input[$key] === '1';
             }

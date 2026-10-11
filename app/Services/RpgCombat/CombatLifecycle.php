@@ -9,6 +9,16 @@ use Illuminate\Support\Facades\Schema;
 
 final class CombatLifecycle
 {
+    public function leadership(int $teamId): void
+    {
+        if (! Schema::hasColumn('rpg_combats', 'kind')) {
+            return;
+        }
+        foreach (RpgCombat::where('team_id', $teamId)->where('kind', 'npc_vs_player')->whereIn('status', RpgCombat::OPEN_STATUSES)->orderBy('id')->pluck('id') as $id) {
+            app(CombatService::class)->sweep($id);
+        }
+    }
+
     public function character(int $id): void
     {
         $this->cancel(fn ($q) => $q->whereHas('participants', fn ($p) => $p->where('rpg_character_id', $id)));

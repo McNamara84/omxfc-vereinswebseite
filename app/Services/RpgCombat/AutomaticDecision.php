@@ -9,6 +9,9 @@ final class AutomaticDecision
 {
     public function input(array $state, array $task): array
     {
+        if ($task['type'] === 'npc_order') {
+            return ['description' => 'Abwarten und keine offensive Handlung ausführen.'];
+        }
         $side = $task['side'];
         $actor = $state['actors'][$side] ?? null;
         if ($task['type'] === 'ruling') {
@@ -37,6 +40,9 @@ final class AutomaticDecision
         }
         if ($task['type'] !== 'action') {
             return [];
+        }
+        if (isset($actor['swallowed_by'])) {
+            return ['kind' => 'npc_ability', 'ability' => 'Befreiung'];
         }
         if ($actor['prone']) {
             return ['kind' => 'stand'];

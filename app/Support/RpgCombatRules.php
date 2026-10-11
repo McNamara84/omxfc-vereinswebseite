@@ -6,6 +6,8 @@ final class RpgCombatRules
 {
     public const VERSION = 'maddrax-2007-duel-v1';
 
+    public const NPC_VERSION = 'maddrax-2007-npc-duel-v1';
+
     public const CATALOG_VERSION = 'maddrax-2007-equipment-v2';
 
     public const RULEBOOK_SHA256 = '6f70cc6b0f2f22b5a1c7cada0c287e81e56aa1fc0fe3c8516aed2497a24e9cf0';

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\RpgCharacter;
+use App\Models\RpgNpc;
 use App\Models\User;
 use App\Services\RpgAccess;
 use App\Services\RpgCharacterSheetService;
@@ -39,6 +40,8 @@ class RpgCharacterController extends Controller
                 ->latest()
                 ->get(),
             'slotSummary' => $this->slotService->summary($user),
+            'npcs' => app(RpgAccess::class)->isLeader($user)
+                ? RpgNpc::where('team_id', app(RpgAccess::class)->team()->id)->orderBy('id')->get() : collect(),
         ]);
     }
 

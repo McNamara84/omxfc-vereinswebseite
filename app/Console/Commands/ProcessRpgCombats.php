@@ -22,8 +22,10 @@ class ProcessRpgCombats extends Command
         }
         $failures = 0;
         // Capture before processing: newly opened decisions always get their full own deadline.
-        $due = RpgCombatDecision::where('status', 'pending')->where('due_at', '<=', now('UTC'))->orderBy('due_at')
+        $due = RpgCombatDecision::where('status', 'pending')->where('timeout_policy', 'automatic')->where('due_at', '<=', now('UTC'))->orderBy('due_at')
             ->limit(config('rpg-combat.deadline_batch_size'))->get(['id', 'rpg_combat_id']);
+        $reminders = RpgCombatDecision::where('status', 'pending')->where('timeout_policy', 'manual_leader')->whereNull('reminded_at')
+            ->where('reminder_at', '<=', now('UTC'))->orderBy('reminder_at')->limit(config('rpg-combat.deadline_batch_size'))->get(['id', 'rpg_combat_id']);
         RpgCombat::whereIn('status', ['challenged', 'preparing', 'active', 'awaiting_ruling'])->select('id')->chunkById(100, function ($combats) use ($service, &$failures) {
             foreach ($combats as $combat) {
                 try {
@@ -40,6 +42,14 @@ class ProcessRpgCombats extends Command
                 if ($fresh?->status === 'pending' && $fresh->due_at && now('UTC')->greaterThanOrEqualTo($fresh->due_at)) {
                     $service->decide(null, $decision->rpg_combat_id, $decision->id);
                 }
+            } catch (\Throwable $error) {
+                report($error);
+                $failures++;
+            }
+        }
+        foreach ($reminders as $decision) {
+            try {
+                $service->remind($decision->rpg_combat_id, $decision->id);
             } catch (\Throwable $error) {
                 report($error);
                 $failures++;

@@ -12,6 +12,7 @@ use App\Models\Poll;
 use App\Models\RpgCharacter;
 use App\Models\RpgCheck;
 use App\Models\RpgCombat;
+use App\Models\RpgNpc;
 use App\Models\Team;
 use App\Models\ThreeDModel;
 use App\Models\Todo;
@@ -26,6 +27,7 @@ use App\Policies\PollPolicy;
 use App\Policies\RpgCharacterPolicy;
 use App\Policies\RpgCheckPolicy;
 use App\Policies\RpgCombatPolicy;
+use App\Policies\RpgNpcPolicy;
 use App\Policies\TeamPolicy;
 use App\Policies\ThreeDModelPolicy;
 use App\Policies\TodoPolicy;
@@ -57,6 +59,7 @@ class AuthServiceProvider extends ServiceProvider
         RpgCharacter::class => RpgCharacterPolicy::class,
         RpgCheck::class => RpgCheckPolicy::class,
         RpgCombat::class => RpgCombatPolicy::class,
+        RpgNpc::class => RpgNpcPolicy::class,
     ];
 
     /**
@@ -70,6 +73,7 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('access-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isMember($user->id));
         Gate::define('access-rpg-combats', fn (User $user): bool => config('rpg-combat.enabled') && app(RpgAccess::class)->isMember($user->id));
         Gate::define('manage-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
+        Gate::define('manage-rpg-npcs', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
 
         Gate::define('access-dashboard', function (User $user) {
             return $user->currentTeam !== null

@@ -20,6 +20,6 @@ class RpgCombatPolicy
     public function rule(User $user, RpgCombat $combat): bool
     {
         return $this->view($user, $combat) && app(RpgAccess::class)->isLeader($user)
-            && ! $combat->participants->contains('owner_id', $user->id);
+            && ($combat->kind === 'npc_vs_player' || ! $combat->participants->contains('owner_id', $user->id));
     }
 }
