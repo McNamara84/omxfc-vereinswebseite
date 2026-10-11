@@ -16,7 +16,6 @@ export default async function globalSetup() {
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
-    process.env.APP_KEY = process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=';
     process.env.APP_CONFIG_CACHE = 'bootstrap/cache/config-playwright.php';
     process.env.DB_CONNECTION = 'sqlite';
     process.env.DB_DATABASE = runtimeDatabasePath;
@@ -73,19 +72,9 @@ export default async function globalSetup() {
         throw new Error('Failed to load SQLite schema dump for Playwright.');
     }
 
-    await runArtisan(['migrate']);
-
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\RewardSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\BaxxEarningRuleSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoCategorySeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\DashboardSampleSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\ArbeitsgruppenPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\BookPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\FanfictionPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\KompendiumPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\FantreffenPlaywrightSeeder']);
-    await runArtisan(['db:seed', '--class=Database\\Seeders\\CoverRatingPlaywrightSeeder']);
+    // One application bootstrap replaces twelve separate Artisan processes.
+    // The schema dump above still precedes the regular migration validation.
+    await runArtisan(['migrate', '--seed', '--seeder=Database\\Seeders\\PlaywrightSuiteSeeder']);
 
     fs.writeFileSync(readyFilePath, 'ready\n');
 }

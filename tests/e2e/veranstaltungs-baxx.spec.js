@@ -28,8 +28,10 @@ test('Bestätigte Teilnahme wird beim Archivieren einmalig vergütet und gesperr
     const amount = page.getByLabel('Baxx für bestätigte Teilnahme');
     await expect(amount).toHaveValue('10');
     await amount.fill('23');
-    await page.getByRole('button', { name: 'Änderungen speichern', exact: true }).click();
-    await page.waitForLoadState('networkidle');
+    await Promise.all([
+        page.waitForNavigation(),
+        page.click('form:has(input[name="teilnahme_baxx"]) button[type="submit"]', { strict: true }),
+    ]);
     await page.reload();
     await expect(amount).toHaveValue('23');
 

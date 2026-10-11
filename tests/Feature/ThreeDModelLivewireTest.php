@@ -412,14 +412,19 @@ class ThreeDModelLivewireTest extends TestCase
 
         $user = $this->actingMemberWithPoints(20);
 
-        $model = $this->createModelWithReward(10);
+        $model = $this->createModelWithReward(10, ['file_format' => 'stl']);
         $this->purchaseModelForUser($model, $user);
 
         Storage::disk('private')->put($model->file_path, 'fake-content');
 
-        $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
+        // MIME coverage must not depend on the factory's random format choice.
+        foreach (['stl' => 'model/stl', 'obj' => 'text/plain', 'fbx' => 'application/octet-stream'] as $format => $mime) {
+            $model->update(['file_format' => $format]);
+            $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
 
-        $response->assertOk();
+            $response->assertOk()->assertHeader('Content-Type')->assertStreamedContent('fake-content');
+            $this->assertSame($mime, explode(';', $response->headers->get('Content-Type'), 2)[0]);
+        }
     }
 
     public function test_download_ohne_genuegend_baxx_wird_abgelehnt(): void

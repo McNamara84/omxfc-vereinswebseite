@@ -1,0 +1,148 @@
+<?php
+
+namespace Tests\Integration;
+
+use App\Models\Team;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\TestCase;
+
+#[CoversClass(Team::class)]
+class TeamMembersTeamTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Team::clearMembersTeamCache();
+    }
+
+    public function test_members_team_returns_correct_team(): void
+    {
+        $team = Team::membersTeam();
+
+        $this->assertNotNull($team);
+        $this->assertSame('Mitglieder', $team->name);
+    }
+
+    public function test_members_team_is_cached_after_first_call(): void
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        Team::membersTeam();
+        Team::membersTeam();
+
+        $this->assertTeamsQueryCount(1);
+    }
+
+    public function test_clear_members_team_cache_resets_cache(): void
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        Team::membersTeam();
+        Team::clearMembersTeamCache();
+        Team::membersTeam();
+
+        $this->assertTeamsQueryCount(2);
+    }
+
+    public function test_members_team_cache_not_cleared_when_description_updated(): void
+    {
+        $team = Team::membersTeam();
+        $team->update(['description' => 'updated']);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $cachedTeam = Team::membersTeam();
+
+        $this->assertTeamsQueryCount(0);
+        $this->assertSame('updated', $cachedTeam->description);
+    }
+
+    public function test_members_team_cache_cleared_when_name_changes(): void
+    {
+        $team = Team::membersTeam();
+        $team->update(['name' => 'Mitglieder-renamed']);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $renamedTeam = Team::membersTeam();
+
+        $this->assertTeamsQueryCount(1);
+        $this->assertNull($renamedTeam);
+    }
+
+    public function test_members_team_ignores_stale_cached_team_id(): void
+    {
+        $team = Team::membersTeam();
+
+        Team::clearMembersTeamCache();
+        cache()->forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $team->update(['name' => 'Archiviertes Team']);
+        $replacement = Team::factory()->create(['name' => 'Mitglieder']);
+
+        $resolvedTeam = Team::membersTeam();
+
+        $this->assertNotNull($resolvedTeam);
+        $this->assertTrue($resolvedTeam->is($replacement));
+    }
+
+    public function test_members_team_rejects_case_variant_names_even_with_ci_collation(): void
+    {
+        Team::membersTeam()?->delete();
+        Team::factory()->create([
+            'name' => 'mitglieder',
+            'personal_team' => false,
+        ]);
+        Team::clearMembersTeamCache();
+
+        $this->assertNull(Team::membersTeam());
+    }
+
+    public function test_members_team_returns_null_when_not_found(): void
+    {
+        $team = Team::membersTeam();
+        $team->delete();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $firstCall = Team::membersTeam();
+        $secondCall = Team::membersTeam();
+        $thirdCall = Team::membersTeam();
+
+        $this->assertNull($firstCall);
+        $this->assertNull($secondCall);
+        $this->assertNull($thirdCall);
+        $this->assertTeamsQueryCount(3);
+    }
+
+    public function test_members_team_cache_cleared_on_team_delete(): void
+    {
+        $team = Team::membersTeam();
+        $team->delete();
+        Team::factory()->create(['name' => 'Mitglieder']);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $newTeam = Team::membersTeam();
+
+        $this->assertTeamsQueryCount(1);
+        $this->assertNotSame($team->id, $newTeam->id);
+    }
+
+    private function assertTeamsQueryCount(int $expectedCount): void
+    {
+        $teamsQueries = array_filter(
+            DB::getQueryLog(),
+            static fn (array $entry): bool => preg_match('/\bfrom\s+["`]?teams["`]?\b/i', $entry['query']) === 1
+        );
+
+        $this->assertCount($expectedCount, $teamsQueries);
+    }
+}

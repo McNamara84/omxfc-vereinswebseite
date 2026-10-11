@@ -832,17 +832,170 @@ geprüft. Die MariaDB-Prüfung bestätigt Initialisierung, Benutzerwechsel und
 Datenerhalt nach einem Neustart; nginx-Konfiguration und Typesense-Healthcheck
 sind ebenfalls erfolgreich.
 
-Die PHP-Suite ist weiterhin nicht vollständig grün: Der vollständige isolierte
-Lauf enthält 3571 erfolgreiche, 35 übersprungene und 37 fehlgeschlagene Tests.
-Ein Teil der Fehler betrifft versionierte Testdaten, die der Docker-Build
-absichtlich ausschließt. Mit Kopien dieser Daten liefern die sieben betroffenen
+Beim damaligen Upgrade war die PHP-Suite nicht vollständig grün: Der isolierte
+Lauf enthielt 3571 erfolgreiche, 35 übersprungene und 37 fehlgeschlagene Tests.
+Ein Teil der Fehler betraf versionierte Testdaten, die der Docker-Build
+absichtlich ausschließt. Mit Kopien dieser Daten lieferten die sieben betroffenen
 Testklassen sowohl im bisherigen Image als auch mit den neuen Abhängigkeiten
-identische Ergebnisse: 170 erfolgreich, 26 fehlgeschlagen. Diese bestehenden
-Fehler betreffen den Romantausch, darunter einen fehlenden `title`-Schlüssel und
-ein fehlendes `wire:navigate`. Der Vergleich bestätigt keine vollständig
-erfolgreiche PHP-Suite; vor einem Release bleibt deren erfolgreicher Lauf nötig.
+identische Ergebnisse: 170 erfolgreich, 26 fehlgeschlagen. Die damaligen Befunde
+betrafen den Romantausch, darunter einen fehlenden `title`-Schlüssel und ein
+fehlendes `wire:navigate`. Die erneute vollständige PHP-Abnahme im folgenden
+Testrefactoring ist erfolgreich; Messbedingungen und Ergebnisse sind dort
+dokumentiert.
 
 ## Tests & Qualitätssicherung
+
+Für Windows und Docker gibt es einen eigenen Test-Stack. Er kopiert die aktuellen
+Quellen in kurzlebige Container und verwendet native Linux-Abhängigkeiten. Die
+Entwicklungsdatenbank und Entwicklungscontainer werden dabei nicht verwendet.
+Mitversionierte Buchdaten und das Protokoll-PDF werden als Testfixtures kopiert.
+SQLite-Tests laufen im Speicher; die drei MariaDB-Suiten erhalten eigene
+Testdatenbanken in einem flüchtigen MariaDB-Container ohne freigegebenen Hostport.
+
+```powershell
+# Einmalig und nach Änderungen an Abhängigkeiten oder Testimages:
+npm ci
+docker compose -f docker-compose.tests.yml build php node browser
+
+# Kurze Entwicklungsrunde: reine PHP-Unit-Tests, alle Vitest-Tests,
+# portable Node-Prüfungen. Dies ist eine Teilmenge der vollständigen Suite.
+npm run test:fast
+
+# Alle regulären lokalen Prüfungen einschließlich MariaDB, Architektur,
+# Deploymenthelfer, Playwright und Pest-Browser-Regression:
+npm run test:all
+
+# PHP allein; weitere Pest-Argumente werden weitergereicht:
+node tools/testing/run.mjs php --filter=Kompendium
+node tools/testing/run.mjs unit
+node tools/testing/run.mjs mariadb
+
+# Ausschließlich den eigenen Test-Stack und dessen Asset-Cache aufräumen:
+docker compose -f docker-compose.tests.yml down --volumes
+```
+
+Der vollständige Einstieg baut die Frontend-Assets einmal in einem eigenen
+Docker-Volume. Er benötigt dafür keinen PHP-Vendor-Baum auf Windows und verändert
+keine Entwicklungs-Assets. Ein Testfehler beendet den Ablauf mit dessen Exitcode.
+Die manuell gestarteten MariaDB-Container bleiben bis zum Aufräumen verfügbar.
+Für eine vorhandene vollständige Host-Installation kann `TEST_RUNTIME=host`
+gesetzt werden; die Deploymenthelfer benötigen eine Linux-Shell mit PHP und Node.
+Die zusätzlichen Sandbox-, Screenshot- und Typesense-Prüfungen bleiben opt-in.
+
+Die isolierten Docker-Testcontainer erzeugen beim Start einen zufälligen
+Laravel-Schlüssel. Playwright erzeugt bei Bedarf ebenfalls einen Schlüssel und
+reicht ihn gemeinsam an Seeder, Webserver und Testprozesse weiter. Ein bereits
+übergebener `APP_KEY` wird beibehalten. Feste Testschlüssel werden nicht eingecheckt.
+
+`tests/Unit` enthält jetzt 33 Dateien ohne Laravel-TestCase. 68 bisherige
+Unit-Dateien mit Framework-Abhängigkeiten liegen unter `tests/Integration`;
+ihre Testfälle bleiben erhalten. `RefreshDatabase` seedet die Standardfixtures
+beim Aufbau des Schemas und stellt sie anschließend per Transaktions-Rollback
+wieder her. Eigene Seeder einzelner Fachtests bleiben bestehen. Das statische Inventar in
+`tests/test-suite-inventory.json` kann mit
+`node tools/testing/inventory.mjs tests/test-suite-inventory.json` erneuert werden.
+Die PHP-Attribute werden ohne verschachtelte Regex-Wiederholungen ausgewertet;
+ein begrenzter Subprozess-Test schützt vor dem von CodeQL erkannten Backtracking.
+
+Vitest verwendet standardmäßig zwei Worker. Mit `VITEST_WORKERS=1` lässt sich
+ein serieller Diagnosevergleich durchführen. `npm run test:changed` und TIA sind
+zusätzliche lokale Einstiege; im PR laufen weiterhin alle funktionalen Prüfungen.
+Der nachweislich doppelte PayPal-Sichtbarkeitstest ist in `spenden.spec.js`
+abgedeckt. Der Homepage-Zeitmessungslauf wird separat über
+`npm run test:e2e:benchmark` und den bisherigen Performance-Workflow ausgeführt.
+
+Die Coverage-Untergrenzen in `tests/coverage-baselines/` stammen aus vollständigen
+erfolgreichen Läufen vor dem Refactoring. PHP umfasst unverändert den Anwendungscode
+unter `app`; JavaScript behält den bisherigen V8-Quellenumfang. PHP-Zeilen und
+vollständig abgedeckte Methoden sowie JS-Zeilen, Statements, Functions und Branches
+dürfen insgesamt und je Datei nicht sinken. Für unveränderte Quellen muss zudem
+jede zuvor abgedeckte Stelle weiterhin abgedeckt sein. Der Vergleich verwendet
+ungerundete Zähler. Fehlende Berichte und Dateien führen zum Fehler. Im PR wird
+zusätzlich die Baseline des Zielbranches geprüft; eine abgesenkte Baseline im PR
+kann den Vergleich daher nicht umgehen. Änderungen an abgedeckten Quellen
+erfordern zusätzlich die fachliche Prüfung der bisherigen Testverträge.
+
+```sh
+# JavaScript nach npm run test:coverage:
+node tools/testing/coverage.mjs js coverage/coverage-final.json coverage/js-snapshot.json
+node tools/testing/check-coverage.mjs tests/coverage-baselines/javascript.json coverage/js-snapshot.json
+
+# PHP mit Xdebug nach composer test:coverage:
+php tools/testing/php-coverage.php coverage/php-snapshot.json coverage/php.php
+node tools/testing/check-coverage.mjs tests/coverage-baselines/php.json coverage/php-snapshot.json
+```
+
+PHP-Coverage wird in CI aus den beiden regulären Pest-Shards zusammengeführt;
+ein zusätzlicher vollständiger PHP-Coverage-Lauf entfällt. Die PHP-13-Serialisierung
+wird mit dem installierten Coverage-Merger verarbeitet, der Laufzeit und Treiber
+der Shards abgleicht. PHP-Artefakte werden ausschließlich aus demselben Workflow
+geladen; die versionierten Referenzen sind JSON. Vitest läuft im PR einmal mit
+Coverage. Weitere Badge-Aufbereitung, Mutation und Leckdiagnosen laufen auf main
+oder regelmäßig. Die Browsermatrix umfasst weiterhin Chromium und Firefox, nun
+mit zwei getrennten Shards pro Browser und jeweils einem Worker. Neue PR-Pushes
+brechen veraltete Prüfungen ab; main-Läufe werden nicht auf diese Weise abgebrochen.
+
+Im lokalen Docker-Vergleich mit PHP 8.5.11, denselben Abhängigkeiten und
+Reihenfolgen-Seed 23 sank der vollständige PHP-Lauf ohne Coverage von 463,66 auf
+212,71 Sekunden, rund 54 %. Alle 3643 bisherigen Fälle bleiben
+erhalten; hinzu kommen zwei Fälle zur Fixture-Isolation und ein reiner Unit-Test.
+Der abschließende Lauf enthält 3611 erfolgreiche Fälle und dieselben 35
+SQLite-bedingten Skips; die MariaDB-Suiten
+bestehen separat mit 286, 21 und 8 Fällen ohne Skips. JS-Coverage blieb unter
+Windows und Linux identisch. Zwei wiederholte Windows-Vergleiche mit warmem Cache
+und allen 450 Vitest-Fällen benötigten mit einem Worker 33,95/33,53 Sekunden und
+mit zwei Workern 17,71/16,87 Sekunden. Der Linux-Vergleich mit Coverage benötigte
+31,32/16,49 Sekunden; dort ist Cache-Aufwärmung enthalten.
+Tatsächliche PR-Gesamtzeit, Queue-Zeit und
+Runner-Minuten müssen nach dem ersten CI-Lauf dieser Änderung verglichen werden.
+Die lokalen Messungen stammen aus Docker Desktop mit 16 CPUs und etwa 15,6 GiB RAM.
+
+Die Browserprüfungen behalten ihre fachlichen Assertions. Der dreifache
+Rassenwechsel im RPG-Editor benötigt unter Linux-WebKit gemessene 40 Sekunden;
+nur dieser Fall erhält dort 60 Sekunden Testbudget.
+Die vier Erweiterungsfälle verwenden beim Wechsel zwischen Basisdaten und
+Editor native Mausklicks mit den normalen Stabilitätsprüfungen und prüfen
+zusätzlich, dass der Weiter-Button sichtbar ist. Alle Eingaben und fachlichen
+Assertions bleiben erhalten. Die Fokusprüfung beginnt
+mit definierter Maus- und Fokusposition und prüft zusätzlich den tatsächlichen
+Fokus. Der Theme-Test wartet vor dem Zurücksetzen der Präferenzen auf seine
+Initialisierungshilfe und prüft seine Bedingungen ohne Abhängigkeit von
+Animation Frames. Die beiden Theme-Wechsel erhalten nur unter WebKit 60 Sekunden,
+da Trace-Aufzeichnungen dort einzelne Browseraufrufe mit etwa fünf Sekunden zeigen.
+Formularnavigationen werden vor nachfolgenden Prüfungen ausdrücklich abgewartet;
+Login- und Speicheraktionen verwenden eindeutige Formularselektoren.
+Der Trace des JavaScript-freien NPC-Tests zeigt, dass WebKit bereits beim
+Probe-Klick des gemeinsamen Locator-Helfers das Formular absendet. Native
+Einzelklicks verhindern dort eine zweite Aktion auf dem bereits verlassenen
+Formular; die wiederholte Fixture-Prüfung bleibt vollständig erhalten.
+Der Clipboard-Test wartet auf das tatsächliche Ergebnis statt einer festen Pause,
+der Taratze-Test auf die von Alpine ergänzten Formulardaten und der Feedback-Audit
+auf den initialisierten Checkbox-Namen. Alle bisherigen fachlichen und
+Accessibility-Assertions bleiben bestehen.
+
+Der Coverage-Vergleich deckte außerdem zwei bisher beiläufig geprüfte Fälle auf.
+Der bestehende 3D-Downloadtest prüft nun alle unterstützten MIME-Typen mit festen
+Formaten statt einer zufälligen Factory-Auswahl. Ein zusätzlicher reiner Unit-Test
+sichert ab, dass eine leere Dashboard-ID-Liste ohne Datenbankzugriff eine leere
+Collection ergibt. Die PHP-Untergrenze umfasst 25806 von 30018 Zeilen und 1994
+von 2926 vollständig abgedeckten Methoden. Der neue Bericht erreicht 25808 Zeilen
+und 1995 Methoden, ohne zuvor abgedeckte Stellen zu verlieren.
+Die JS-Untergrenzen betragen 3167/3758
+Zeilen, 3493/4202 Statements, 893/1037 Functions und 2131/3014 Branches.
+Die Playwright-Konfigurationsprüfungen setzen ihren lokalen beziehungsweise
+CI-Modus ausdrücklich und stellen danach alle geänderten Umgebungsvariablen
+wieder her. Mit dem zusätzlichen CI-Vertrag enthält Vitest 451 Fälle und deckt
+in beiden Modi identisch 2136 Branches ab. Die Laufzeitmessungen oben stammen
+weiterhin aus den ursprünglichen 450 Fällen.
+Die Testzuordnung, Messbedingungen und Abnahmen stehen in
+`tests/refactoring-results.json`.
+Bei der Abnahme reproduzierte bestehende Anwendungsfehler mit separaten
+Folgeaufgaben stehen in [tests/KNOWN_APPLICATION_ISSUES.md](tests/KNOWN_APPLICATION_ISSUES.md).
+Die Browserabnahme kombiniert vollständige Läufe mit gezielten Nachläufen der
+abschließenden Fixture-Korrekturen. Für WebKit ergibt diese Abnahme 226 erfolgreiche
+Fälle, zwei bestehende manuelle Export-Skips und den bekannten Menüfehler.
+Der vollständige lokale Browserbefehl meldet diesen Fehler weiterhin; die Prüfung
+bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 
 | Zweck                        | Befehl |
 |------------------------------|--------|
@@ -868,7 +1021,7 @@ erfolgreiche PHP-Suite; vor einem Release bleibt deren erfolgreicher Lauf nötig
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5 trennt fünf reine Node-Testdateien von 26 DOM-Testdateien; die Ressourcenleckprüfung läuft ebenfalls in CI. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf Push, PR, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5 trennt fünf reine Node-Testdateien von 26 DOM-Testdateien; die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
 Die PHPUnit-13.4-Diagnosen `test:stability:repeat` und `test:stability:retry` sind manuelle Zusatzprüfungen. Retry ersetzt keinen regulär erfolgreichen Testlauf.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.

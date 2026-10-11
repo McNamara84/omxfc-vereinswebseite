@@ -1,0 +1,81 @@
+name: omxfc-tests
+
+services:
+  assets:
+    image: ${TEST_NODE_IMAGE:-omxfc-test-node:local}
+    entrypoint: ['sh', '/source/docker/tests/start-php.sh']
+    working_dir: /var/www/html
+    command: ['node', 'node_modules/vite/bin/vite.js', 'build']
+    environment:
+      TEST_USE_SHARED_ASSETS: '1'
+    volumes:
+      - .:/source:ro
+      - assets:/var/www/html/public/build
+
+  node:
+    image: ${TEST_NODE_IMAGE:-omxfc-test-node:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test-node
+    entrypoint: ['sh', '/source/docker/tests/start-php.sh']
+    working_dir: /var/www/html
+    volumes:
+      - .:/source:ro
+
+  browser:
+    image: ${TEST_BROWSER_IMAGE:-omxfc-test-browser:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test-browser
+    entrypoint: ['sh', '/source/docker/tests/start-php.sh']
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: testing
+      TEST_USE_SHARED_ASSETS: '1'
+      PLAYWRIGHT_WORKERS: ${PLAYWRIGHT_WORKERS:-1}
+      PLAYWRIGHT_REUSE_EXISTING_SERVER: ${PLAYWRIGHT_REUSE_EXISTING_SERVER:-0}
+    volumes:
+      - .:/source:ro
+      - assets:/var/www/html/public/build:ro
+
+  php:
+    image: ${TEST_PHP_IMAGE:-omxfc-test-php:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    entrypoint: ['sh', '/source/docker/tests/start-php.sh']
+    working_dir: /var/www/html
+    environment:
+      APP_ENV: testing
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USERNAME: omxfc_test
+      DB_PASSWORD: omxfc_test_password
+      MADDRAXIKON_IDENTITY_HMAC_PEPPERS: test-v1:0123456789abcdef0123456789abcdef
+      TEST_USE_SHARED_ASSETS: '1'
+    volumes:
+      - .:/source:ro
+      - assets:/var/www/html/public/build:ro
+
+  db:
+    image: mariadb:13.0.2@sha256:f1bba652ba57bea3099ca2fe1af692af537c27d96e0bcde39dce29e2ba1ec4f3
+    environment:
+      MARIADB_ROOT_PASSWORD: omxfc_root_test_password
+      MARIADB_DATABASE: omxfc_maddraxikon_test
+      MARIADB_USER: omxfc_test
+      MARIADB_PASSWORD: omxfc_test_password
+    volumes:
+      - ./docker/tests/databases.sql:/docker-entrypoint-initdb.d/test-databases.sql:ro
+    tmpfs:
+      - /var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mariadb-admin', 'ping', '-h', '127.0.0.1', '-uroot', '-pomxfc_root_test_password']
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  assets:

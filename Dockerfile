@@ -148,3 +148,24 @@ RUN composer dump-autoload --optimize --no-interaction \
     && chmod -R 775 storage bootstrap/cache public/vendor/livewire
 
 EXPOSE 9000
+
+# Native Linux test tools avoid Windows bind-mount overhead for dependencies.
+# Both stages reuse the same PHP/dependency build as the isolated test runner.
+FROM node:26.11.1-trixie-slim@sha256:193fe51b64e77981119c98c2002c9e32a70e2f006fb4d25068ce0558998917f0 AS test-node-bin
+
+FROM development AS test-node
+
+COPY --from=test-node-bin /usr/local/bin/node /usr/local/bin/node
+COPY --from=test-node-bin /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
+    && npm install --global npm@12.2.0 --ignore-scripts \
+    && sh docker/patch-npm-security.sh \
+    && npm ci
+
+FROM test-node AS test-browser
+
+RUN node node_modules/playwright/cli.js install --with-deps chromium firefox webkit
+
+# Preserve the previous default build result; test tools are explicit targets.
+FROM development AS development-default

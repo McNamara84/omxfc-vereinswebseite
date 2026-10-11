@@ -15,14 +15,20 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: playwright-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         # WebKit auf Linux CI ist instabil (Timeout-Probleme)
         browser: [chromium, firefox]
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
@@ -30,9 +36,16 @@ jobs:
           php-version: '8.5'
           tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
           extensions: zip, sockets
+          coverage: none
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
+          cache: npm
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-playwright-composer-${{ hashFiles('composer.lock') }}
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate
@@ -121,15 +134,15 @@ jobs:
           if [ -n "$SHUFFLE_SEED" ]; then
             case "$SHUFFLE_SEED" in *[!0-9]*) echo 'Shuffle seed must be numeric.'; exit 1 ;; esac
             echo "Playwright shuffle seed: $SHUFFLE_SEED"
-            npx playwright test --project="$BROWSER_PROJECT" --shuffle="$SHUFFLE_SEED"
+            npx playwright test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2 --shuffle="$SHUFFLE_SEED"
           else
-            npx playwright test --project="$BROWSER_PROJECT"
+            npx playwright test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2
           fi
       - name: Upload browser failure diagnostics
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-${{ matrix.browser }}
+          name: playwright-${{ matrix.browser }}-${{ matrix.shard }}
           path: |
             test-results/
             playwright-report/

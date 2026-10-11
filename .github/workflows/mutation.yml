@@ -3,8 +3,6 @@ name: Mutation tests
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '35 3 * * 0'

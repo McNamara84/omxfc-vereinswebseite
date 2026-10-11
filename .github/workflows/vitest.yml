@@ -5,9 +5,16 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '20 3 * * *'
 
 permissions:
   contents: read
+
+concurrency:
+  group: vitest-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   vitest:
@@ -22,7 +29,8 @@ jobs:
         with:
           php-version: '8.5'
           tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, pdo_mysql, xdebug, sockets
+          extensions: uri, zip, sockets
+          coverage: none
 
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -37,13 +45,31 @@ jobs:
           sh docker/patch-npm-security.sh
           npm ci
 
-      - name: Run Vitest unit tests
-        run: npm run test:vitest
+      - name: Run Vitest tests once with coverage
+        run: npm run test:coverage
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+      - name: Fetch protected PR baseline
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
+      - name: Compare JavaScript coverage
+        # The base commit is fetched separately so checkout remains shallow.
+        # The checker rejects both lowered floors and actual coverage losses.
+        run: |
+          node tools/testing/coverage.mjs js coverage/coverage-final.json coverage/js-snapshot.json
+          node tools/testing/check-coverage.mjs tests/coverage-baselines/javascript.json coverage/js-snapshot.json
+      - name: Upload JavaScript coverage
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: js-coverage-summary
+          path: coverage/
+          if-no-files-found: error
       - name: Verify release gate and deployment preparation
         run: npm run test:deployment
       - name: Check asynchronous resource leaks
+        if: github.event_name != 'pull_request'
         run: npm run test:leaks
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1

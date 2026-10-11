@@ -849,9 +849,7 @@ class KompendiumAdminTest extends TestCase
             'status' => 'hochgeladen',
         ]);
 
-        Log::shouldReceive('warning')
-            ->once()
-            ->withArgs(fn ($msg, $ctx) => str_contains($msg, 'Datei fehlt') && $ctx['roman_id'] === $roman->id);
+        Log::spy();
 
         Livewire::actingAs($this->admin)
             ->test(KompendiumAdminDashboard::class)
@@ -863,5 +861,8 @@ class KompendiumAdminTest extends TestCase
         // DB wurde trotzdem aktualisiert (Titel-Korrektur ist trotzdem sinnvoll)
         $roman->refresh();
         $this->assertEquals('NeuerName', $roman->titel);
+        Log::shouldHaveReceived('warning')
+            ->once()
+            ->withArgs(fn ($msg, $ctx = []) => str_contains($msg, 'Datei fehlt') && ($ctx['roman_id'] ?? null) === $roman->id);
     }
 }

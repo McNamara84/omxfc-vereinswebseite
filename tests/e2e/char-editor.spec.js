@@ -185,18 +185,25 @@ const completeValidTechnoExport = async (page) => {
 };
 
 test.describe('RPG Charakter-Editor', () => {
-    test('Erweiterung: bewahrt die neuesten marsianischen Eingaben nach wiederholten Rassenwechseln', async ({ page }) => {
+    test('Erweiterung: bewahrt die neuesten marsianischen Eingaben nach wiederholten Rassenwechseln', async ({ page }, testInfo) => {
+        // The three complete edit cycles take about 40s in native Linux WebKit.
+        // Keep all cycles and assertions; Chromium/Firefox retain their budget.
+        if (testInfo.project.name === 'webkit') test.setTimeout(60000);
+
         await openAdvancedEditor(page, { race: 'Marsianer', culture: 'Marsianische Städter' });
         for (const [replacement, points, drivingPoints] of [['Heiler', '3', '1'], ['Heimlichkeit', '2', '2'], ['Nahkampf', '1', '3']]) {
             await page.locator('#marsianer-replacement-skill').selectOption(replacement);
             await page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`).fill(points);
             await page.locator('input[name="praekristofluu_skill_points[Fahren]"]').fill(drivingPoints);
-            await page.getByTestId('char-editor-edit-basics').click();
+            // Native actions keep pointer/stability checks for this mode switch;
+            // the shared Locator helper forces clicks during WebKit layout.
+            await page.click('[data-testid="char-editor-edit-basics"]', { strict: true });
+            await expect(page.getByTestId('char-editor-continue-button')).toBeVisible();
             await page.locator('#race').selectOption('Morlock');
             await expect(page.locator('#culture')).toHaveValue('Ruinenbewohner');
             await page.locator('#race').selectOption('Marsianer');
             await expect(page.locator('#culture')).toHaveValue('Marsianische Städter');
-            await page.getByTestId('char-editor-continue-button').click();
+            await page.click('[data-testid="char-editor-continue-button"]', { strict: true });
             await expect(page.locator('#marsianer-replacement-skill')).toHaveValue(replacement);
             await expect(page.locator(`input[name="praekristofluu_skill_points[${replacement}]"]`)).toHaveValue(points);
             await expect(page.locator('input[name="praekristofluu_skill_points[Fahren]"]')).toHaveValue(drivingPoints);
@@ -268,9 +275,10 @@ test.describe('RPG Charakter-Editor', () => {
             }
             await page.getByTestId('rule-source-expansion-1').click();
             await expect(page.getByTestId('rule-source-expansion-1')).toBeChecked();
-            await page.getByTestId('char-editor-edit-basics').click();
+            await page.click('[data-testid="char-editor-edit-basics"]', { strict: true });
+            await expect(page.getByTestId('char-editor-continue-button')).toBeVisible();
             await expect(page.locator('#race')).toBeEnabled();
-            await page.getByTestId('char-editor-continue-button').click();
+            await page.click('[data-testid="char-editor-continue-button"]', { strict: true });
             await page.getByTestId('char-editor-form').evaluate((form, selectedRace) => {
                 const state = window.Alpine.$data(form);
                 state.attributes.st = 1;
@@ -735,8 +743,12 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(description).toContainText('Muskelkraft');
         await expect(description).toHaveClass(/sr-only/);
 
+        // Start keyboard focus independently of the previous pointer position.
+        await page.mouse.move(0, 0);
+        await strengthInput.focus();
         await helpButton.focus();
 
+        await expect(helpButton).toBeFocused();
         await expect(helpButton).toHaveAttribute('aria-expanded', 'true');
         await expect(description).not.toHaveClass(/sr-only/);
         await expect(description).toContainText('2W6 + Attributswert x 3');
@@ -1197,6 +1209,12 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(checkbox(page, 'disadvantages[]', 'Primitiv')).toBeDisabled();
         await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeChecked();
         await expect(checkbox(page, 'disadvantages[]', 'Gejagt')).toBeDisabled();
+
+        // Alpine inserts the submitted mirrors after updating the visible inputs.
+        await expect.poll(() => page.getByTestId('char-editor-form').evaluate(form => {
+            const data = new FormData(form);
+            return ['st', 'wa', 'in', 'au'].map(attribute => data.get(`attributes[${attribute}]`));
+        })).toEqual(['1', '1', '-1', '-1']);
 
         const payload = await page.getByTestId('char-editor-form').evaluate((form) => {
             const data = new FormData(form);

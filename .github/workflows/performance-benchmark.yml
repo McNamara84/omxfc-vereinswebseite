@@ -7,9 +7,9 @@ permissions:
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: '50 3 * * 1'
 
 jobs:
   benchmark:
@@ -63,7 +63,7 @@ jobs:
         id: run_homepage_benchmark
         env:
           PERFORMANCE_RESULTS_DIR: playwright-performance
-        run: npx playwright test tests/e2e/homepage-performance.spec.js --project=chromium --reporter=line
+        run: npx playwright test --config=playwright.benchmark.config.js --project=chromium --reporter=line
 
       - name: Publish homepage performance metrics
         if: always()

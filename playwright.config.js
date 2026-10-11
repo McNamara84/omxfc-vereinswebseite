@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { randomBytes } from 'node:crypto';
 import path from 'path';
 import { formatDockerServiceCommand, formatPhpCommand, shouldUseDockerPhp, toPhpRuntimePath } from './tests/e2e/utils/php.js';
 import { resolvePlaywrightRunToken } from './tests/e2e/utils/playwright-run-token.js';
@@ -13,6 +14,9 @@ const playwrightViteDevServerUrl = process.env.VITE_DEV_SERVER_URL
   ?? process.env.DOCKER_DEV_VITE_DEV_SERVER_URL
   ?? `http://localhost:${vitePort}`;
 process.env.PLAYWRIGHT_RUN_TOKEN = playwrightRunToken;
+const playwrightApplicationKey = process.env.APP_KEY ?? `base64:${randomBytes(32).toString('base64')}`;
+// Setup, web server and test workers must share the same key for this run.
+process.env.APP_KEY = playwrightApplicationKey;
 const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS ?? NaN);
 const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorkers > 0
   ? configuredWorkers
@@ -22,7 +26,7 @@ const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorke
 const phpEnvironment = {
   APP_ENV: 'testing',
   APP_DEBUG: 'false',
-  APP_KEY: process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=',
+  APP_KEY: playwrightApplicationKey,
   APP_CONFIG_CACHE: 'bootstrap/cache/config-playwright.php',
   DB_CONNECTION: 'sqlite',
   DB_DATABASE: databasePath,
