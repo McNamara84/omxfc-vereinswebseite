@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.17.0",
+    "pub_date": "2026-10-11",
+    "notes": [
+      "[New] Der Rollenspiel-Charaktereditor unterstützt die erste Erweiterung von Stefan Küppers mit Agarthern, Marsianern, Morlocks, der Kultur Marsianische Städter sowie den Ausbildungen Gladiator und Priester. Die verwendeten Regelquellen lassen sich pro Charakter wählen.",
+      "[New] Die Leitung der AG Rollenspiel kann Erfahrungspunkte für abgeschlossene Abenteuer vergeben. Charakterbesitzer können Verbesserungen mit Kostenvorschau beantragen; genehmigte Änderungen und EP-Buchungen erscheinen im Charakterverlauf und auf dem PDF-Bogen.",
+      "[New] Mitglieder der AG Rollenspiel können angeforderte Attributs-, Fertigkeits- und Widerstandsproben direkt auf der Webseite würfeln. Offene und verdeckte Proben werden unterstützt; persönliche Dashboard-Hinweise zeigen anstehende Würfe.",
+      "[New] Aktive Mitglieder der AG Rollenspiel können sich mit gespeicherten Charakteren zu Übungskämpfen herausfordern. Die Webseite begleitet den Kampf mit Würfen, Protokoll, Benachrichtigungen und Regelfragen an die AG-Leitung, ohne die Originalcharaktere zu verändern.",
+      "[New] Die Leitung der AG Rollenspiel kann einen gemeinsamen Bestand aus 23 NSC-Vorlagen des Regelwerks verwalten und damit Spielercharaktere zu Übungskämpfen herausfordern. NSCs benötigen weder Charakterplätze noch Baxx.",
+      "[New] Für bestätigte Teilnahmen an neu archivierten Veranstaltungen erhalten berechtigte Mitglieder einmalig Baxx. Admin und Vorstand können den Betrag festlegen; Teilnahmebestätigungen und vergebene Baxx erscheinen in der Anmeldungsübersicht und im CSV-Export.",
+      "[Improved] Cover-Bewertungen starten jetzt mit Serienauswahl und Fortschrittsübersicht. Eine bildzentrierte Vollbildsitzung mit automatischer Browser-Ausweichansicht und Tastaturbedienung erleichtert das Bewerten mehrerer Cover.",
+      "[Improved] Das Kompendium unterstützt optional eine kombinierte Volltext- und Bedeutungssuche, um bei entsprechender Aktivierung auch inhaltlich verwandte Textstellen zu finden.",
+      "[Improved] Regelhilfen zu Vor- und Nachteilen im Charaktereditor lassen sich per Klick, Tastatur und Touch öffnen und schließen, ohne die gewählte Eigenschaft zu verändern.",
+      "[Improved] Formularfelder und Hinweise sind für Tastaturbedienung und Screenreader besser zugänglich. Profilhinweise lassen sich gezielt öffnen; Fehlermeldungen beim Romantausch sind dem betroffenen Feld klarer zugeordnet.",
+      "[Improved] Das Dashboard zeigt seine Inhalte, während der Aktivitätsfeed nachgeladen wird, und kennzeichnet den aktuell gewählten Aktivitätsfilter deutlicher.",
+      "[Improved] Die geführte Hauptmenü-Tour erklärt jetzt auch den Bereich Meine Charaktere mit EP-Stand, Verbesserungsanträgen und PDF-Charakterbögen.",
+      "[Improved] In der Belohnungsverwaltung lassen sich Käufe und Downloads unabhängig voneinander nach den unterstützten Tabellenspalten sortieren.",
+      "[Fixed] Gespeicherte Rollenspiel-Charaktere mit gültigen Attribut- und Fertigkeitswerten werden beim Start eines Übungskampfs nicht mehr irrtümlich abgewiesen.",
+      "[Fixed] Präzisions- und Schadensmodifikatoren für geworfene Steine, Schleudern und Bögen entsprechen jetzt den Vorgaben des Rollenspiel-Regelwerks.",
+      "[Fixed] Ausrüstung und Notizen auf PDF-Charakterbögen werden nicht mehr vom Regelquellen-Fußbereich überlagert oder abgeschnitten; auch wiederholte PDF-Exporte funktionieren zuverlässiger.",
+      "[Fixed] Rollenspiel-Formulare zur EP-Vergabe und Charakterverbesserung passen sich auf schmalen Mobilbildschirmen korrekt an.",
+      "[Fixed] Coverbilder werden beim Import entsprechend ihrer gespeicherten Bildausrichtung korrekt gedreht und skaliert.",
+      "[Fixed] Der Mitgliedsantrag prüft Eingaben wieder unmittelbar beim Verlassen eines Formularfelds.",
+      "[Fixed] Gleichzeitige Veranstaltungsanmeldungen erzeugen keine doppelten Anmeldungen derselben Person mehr.",
+      "[Fixed] Fantreffen-Anmeldungen im Aktivitätsfeed verweisen auf das nächste Treffen statt auf einen veralteten Veranstaltungsort."
+    ]
+  },
+  {
     "version": "1.16.1",
     "pub_date": "2026-09-13",
     "notes": [
