@@ -654,12 +654,17 @@ synchronisiert oder neu aufgebaut werden.
 
 Der [Septemberbericht](DEPENDENCY-UPDATE.md) bleibt als historischer Stand erhalten.
 
-Stand der Aktualisierung: **10. Oktober 2026**. PHP 8.5.11 basiert auf Debian
+Stand der Aktualisierung: **11. Oktober 2026**. PHP 8.5.11 basiert auf Debian
 Trixie; Node 26.11.1 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
+nginx 1.30.5 bleibt die [aktuelle Stable-Version](https://nginx.org/en/download.html)
+und enthält die derzeit veröffentlichten [nginx-Sicherheitskorrekturen](https://nginx.org/en/security_advisories.html).
+Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
+Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
+Betriebssystemupdates ein; ein aktueller Image-Tag allein ersetzt diesen Schritt nicht.
 Typesense wird über `docker/typesense.Dockerfile` mit den aktuellen Ubuntu-
 Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
 OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
@@ -680,6 +685,12 @@ Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
 aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
+
+Die erneute vollständige Auflösung vom 11. Oktober aktualisiert
+`intervention/image` auf 4.3.5, `amphp/http-server` auf 3.4.7,
+`brianium/paratest` auf 7.26.1 und `tinybench` auf 6.2.2.
+Die übrigen direkten Composer- und npm-Abhängigkeiten sowie die CI-Actions
+verwenden bereits die aktuellen kompatiblen stabilen Releases.
 
 Auch das Werkzeug für die JS-Coverage-Badge ist als Dev-Abhängigkeit exakt im
 Lockfile gepinnt (`make-coverage-badge` 1.2.0). Der Workflow verwendet die lokale
@@ -767,15 +778,69 @@ Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 Auch npm 12.2.0 selbst erhält über `docker/patch-npm-security.sh` überprüfte
 Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
 unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
+Der undici-Patch verwendet nun [6.29.0](https://github.com/nodejs/undici/releases/tag/v6.29.0),
+die aktuelle Version des von npm verwendeten 6.x-Zweigs. Zusätzlich werden
+`ip-address` 10.7.3, `postcss-selector-parser` 7.1.6 und `http-cache-semantics`
+4.3.0 ersetzt, da der Image-Scan veraltete npm-interne Versionen gefunden hat.
+Alle Ersetzungen bleiben innerhalb der bisherigen Major-Versionen und verwenden
+exakte Versionen samt Lockfile-Integrität. Der Patch prüft die installierten
+Versionen direkt gegen dieses Manifest, damit auch künftige Dependabot-Updates
+ohne eine zweite Versionsangabe im Shellskript funktionieren.
 
 Der Service-Image-Scan verwendet dieselbe Regel wie der Produktionsscan:
 Hohe und kritische Befunde mit verfügbarem Fix blockieren die CI. Befunde ohne
 Fix bleiben als Warnung, in der Job-Zusammenfassung und im vollständigen
 JSON-Artefakt sichtbar; sie gelten damit nicht als behoben. Die Berichte werden
 auch bei einem fehlgeschlagenen Sicherheitscheck für 14 Tage gespeichert.
+Auch für PHP-FPM und das PHP-CLI-Image der Browsertests baut der Check jetzt
+die tatsächlich verwendeten Stufen samt OS-Updates und Erweiterungen. Die
+ungeänderten Upstream-Images werden zusätzlich separat erfasst.
 Scanner- und Datenbankfehler führen weiterhin zum Abbruch. Das selbst gebaute
 Typesense-Image wird zusätzlich auf sämtliche hohen und kritischen Befunde
 geprüft und bei solchen Befunden blockiert.
+
+Der lokale Scan vom 11. Oktober mit Grype 0.120.1 und der Datenbank vom
+10. Oktober erfasst folgende High/Critical-Befunde (Anzahl der Paketzuordnungen,
+keine Aussage über die Erreichbarkeit im Anwendungscode):
+
+| Neu gebautes Image | Critical | High | Davon mit verfügbarem Fix |
+| --- | ---: | ---: | ---: |
+| Composer, Node, nginx, Typesense, MariaDB | 0 | 0 | 0 |
+| PHP-FPM-Basis und Production (je Image) | 35 | 192 | 0 |
+| PHP-CLI für Browsertests | 18 | 137 | 0 |
+
+Die PHP-Befunde bleiben trotz der verfügbaren Debian-Updates bestehen und werden
+nicht als behoben oder als automatisch ungefährlich eingestuft. Die CI blendet
+sie nicht aus. Auch die anderen Images enthalten weiterhin niedriger eingestufte
+Befunde. Composer und beide npm-Lockfile-Audits melden keine bekannten
+Sicherheitslücken oder aufgegebenen Composer-Pakete.
+
+Bei MariaDB meldet Grype drei niedrig beziehungsweise mittel eingestufte Befunde
+mit Fix. Zwei betreffen die Versionsnummer des Übergangspakets `coreutils`, das
+nur Dokumentation enthält: Das tatsächlich installierte `gnu-coreutils` hat
+bereits die gemeldete korrigierte Version 9.7-3ubuntu2.1. Der dritte betrifft
+`github.com/moby/sys/user` im aktuellen gosu 1.19; ein aktualisiertes offizielles
+gosu-Release ist noch nicht verfügbar. Das [Advisory](https://github.com/advisories/GHSA-mjcv-p78q-w5fw)
+beschreibt einen DoS beim Lesen manipulierter Benutzer- und Gruppendateien.
+`/etc/passwd` und `/etc/group` dürfen deshalb nicht aus unvertrauenswürdigen
+Quellen eingebunden werden. Auch dieser Befund bleibt im Bericht sichtbar.
+
+Die Aktualisierung wurde mit strenger Composer-Validierung, Plattformprüfung,
+Composer- und npm-Audits, 450 erfolgreichen Vitest-Tests, 53 erfolgreichen
+Deploymenttests, dem Vite-Build und den Docker-Builds für Anwendung und Services
+geprüft. Die MariaDB-Prüfung bestätigt Initialisierung, Benutzerwechsel und
+Datenerhalt nach einem Neustart; nginx-Konfiguration und Typesense-Healthcheck
+sind ebenfalls erfolgreich.
+
+Die PHP-Suite ist weiterhin nicht vollständig grün: Der vollständige isolierte
+Lauf enthält 3571 erfolgreiche, 35 übersprungene und 37 fehlgeschlagene Tests.
+Ein Teil der Fehler betrifft versionierte Testdaten, die der Docker-Build
+absichtlich ausschließt. Mit Kopien dieser Daten liefern die sieben betroffenen
+Testklassen sowohl im bisherigen Image als auch mit den neuen Abhängigkeiten
+identische Ergebnisse: 170 erfolgreich, 26 fehlgeschlagen. Diese bestehenden
+Fehler betreffen den Romantausch, darunter einen fehlenden `title`-Schlüssel und
+ein fehlendes `wire:navigate`. Der Vergleich bestätigt keine vollständig
+erfolgreiche PHP-Suite; vor einem Release bleibt deren erfolgreicher Lauf nötig.
 
 ## Tests & Qualitätssicherung
 
