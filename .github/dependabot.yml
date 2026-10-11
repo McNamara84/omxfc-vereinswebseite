@@ -118,6 +118,12 @@ updates:
         update-types: [version-update:semver-major]
       - dependency-name: brace-expansion
         update-types: [version-update:semver-major]
+      - dependency-name: http-cache-semantics
+        update-types: [version-update:semver-major]
+      - dependency-name: ip-address
+        update-types: [version-update:semver-major]
+      - dependency-name: postcss-selector-parser
+        update-types: [version-update:semver-major]
     groups:
       npm-bundled-security:
         patterns: ["*"]

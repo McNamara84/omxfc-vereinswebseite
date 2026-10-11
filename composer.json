@@ -30,7 +30,7 @@
         "ext-zip": "*",
         "php": "~8.5.0",
         "dompdf/dompdf": "^3.1.6",
-        "intervention/image": "^4.3.4",
+        "intervention/image": "^4.3.5",
         "laravel/framework": "^13.35.0",
         "laravel/jetstream": "^5.5.3",
         "laravel/sanctum": "^4.3.3",
