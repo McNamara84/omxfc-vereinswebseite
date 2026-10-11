@@ -4,18 +4,21 @@ import { spawnSync } from 'node:child_process';
 import { createPhpProcess } from './utils/php.js';
 
 function fixture() {
-    const command = createPhpProcess(['tests/e2e/create-rpg-combat-fixture.php'], { env: process.env });
+    const command = createPhpProcess(['tests/e2e/create-rpg-combat-fixture.php', 'npc'], { env: process.env });
     const result = spawnSync(command.command, command.args, { env: process.env, shell: command.shell, encoding: 'utf8', windowsHide: true });
     if (result.error || result.status !== 0) throw new Error(result.stderr || result.error?.message);
     return JSON.parse(result.stdout.trim());
 }
 
-async function login(page, email) {
+async function login(page, email, { waitForActivityFeed = true } = {}) {
     await page.goto('/login');
     await page.locator('[name="email"]').fill(email);
     await page.locator('[name="password"]').fill('password');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
+    if (waitForActivityFeed) {
+        await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
+    }
 }
 
 async function challenge(page, npcUrl, character) {
@@ -77,20 +80,36 @@ test('leader creates NPC; member declines, accepts and reacts; practice leaves o
     } finally { await context.close(); }
 });
 
-test('fixed special character can be created without JavaScript', async ({ browser, baseURL }) => {
+test('fixed special character can be created without JavaScript after repeated fixture setup', async ({ browser, baseURL }) => {
     test.setTimeout(120000);
-    const data = fixture();
-    const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
-    const page = await context.newPage();
-    try {
-        await login(page, data.leader);
-        await page.goto('/rpg/charaktere/nscs/neu?template_key=maddrax');
-        await expect(page.getByLabel('Optionaler Name')).toHaveCount(0);
-        await page.getByRole('button', { name: 'Vorschau berechnen' }).click();
-        await page.getByTestId('npc-create').click();
-        await expect(page.getByRole('heading', { name: 'Matthew Drax', exact: true })).toBeVisible();
-        await expect(page.getByText('NSC-Name ändern', { exact: true })).toHaveCount(0);
-    } finally { await context.close(); }
+    const createdUrls = [];
+    let previousCombatUrl;
+    // A retry or another browser must be able to create the same unique template anew.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        const data = fixture();
+        const context = await browser.newContext({ baseURL, javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
+        const page = await context.newPage();
+        try {
+            await login(page, data.leader, { waitForActivityFeed: false });
+            if (previousCombatUrl) {
+                expect((await page.goto(previousCombatUrl)).status()).toBe(404);
+                expect((await page.goto(createdUrls[0])).status()).toBe(404);
+            }
+            await page.goto('/rpg/charaktere/nscs/neu?template_key=maddrax');
+            await expect(page.getByLabel('Optionaler Name')).toHaveCount(0);
+            await page.getByRole('button', { name: 'Vorschau berechnen' }).click();
+            await page.getByTestId('npc-create').click();
+            await expect(page.getByRole('heading', { name: 'Matthew Drax', exact: true })).toBeVisible();
+            await expect(page.getByText('NSC-Name ändern', { exact: true })).toHaveCount(0);
+            await expect(page).toHaveURL(/\/rpg\/charaktere\/nscs\/\d+$/);
+            createdUrls.push(page.url());
+            if (attempt === 0) {
+                // Also leave an unfinished invitation, as a failed attempt can do.
+                previousCombatUrl = await challenge(page, page.url(), data.characters.other.id);
+            }
+        } finally { await context.close(); }
+    }
+    expect(new Set(createdUrls).size).toBe(2);
 });
 
 test('leader distributes exact rank points and selects a published bandit weapon', async ({ page }) => {

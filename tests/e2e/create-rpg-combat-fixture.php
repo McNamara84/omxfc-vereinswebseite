@@ -3,12 +3,14 @@
 use App\Models\RpgCharacter;
 use App\Models\RpgCombat;
 use App\Models\RpgCombatDecision;
+use App\Models\RpgNpc;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\RpgCombat\CombatDice;
 use App\Services\RpgCombat\CombatService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
@@ -42,6 +44,13 @@ foreach (['leader', 'player', 'other', 'outsider', 'replacement'] as $role) {
     $users[$role] = $user;
 }
 $team = Team::firstOrCreate(['name' => 'AG Rollenspiel'], ['user_id' => $users['leader']->id, 'personal_team' => false]);
+if ($scenario === 'npc') {
+    // Browser projects and retries share the inventory, including unique special templates.
+    DB::transaction(function () use ($team): void {
+        RpgCombat::where('team_id', $team->id)->where('kind', 'npc_vs_player')->delete();
+        RpgNpc::where('team_id', $team->id)->delete();
+    });
+}
 $team->update(['user_id' => $users['leader']->id]);
 foreach (['leader', 'player', 'other', 'replacement'] as $role) {
     $team->users()->syncWithoutDetaching([$users[$role]->id => ['role' => 'Mitglied']]);
@@ -50,7 +59,7 @@ $characters = [];
 foreach (['player' => 'Arkon', 'other' => 'Mira'] as $role => $name) {
     $attributes = ['st' => $role === 'player' ? 5 : 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
     $skillValue = $role === 'player' ? 20 : 0;
-    if ($scenario === 'invitation') {
+    if (in_array($scenario, ['invitation', 'npc'], true)) {
         // Match the numeric strings persisted by the character editor.
         $attributes = array_map('strval', $attributes);
         $skillValue = (string) $skillValue;
