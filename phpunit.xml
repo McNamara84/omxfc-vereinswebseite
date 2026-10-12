@@ -7,6 +7,10 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+            <exclude>tests/Integration/TypesenseInternalSnapshotTest.php</exclude>
+        </testsuite>
     </testsuites>
     <source>
         <include>

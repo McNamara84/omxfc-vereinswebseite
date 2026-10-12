@@ -1,0 +1,1006 @@
+{
+  "schema": 1,
+  "measuredAt": "2026-10-11",
+  "baselineCommit": "7b509af193e78a3cfacd098d3d0c0db76c3474e5",
+  "environment": {
+    "localReference": "Windows / Docker Desktop, native Linux PHP dependencies",
+    "cpus": 16,
+    "memoryGiB": 15.58,
+    "php": "8.5.11",
+    "node": "26.11.1",
+    "npm": "12.2.0",
+    "pest": "5.3.1",
+    "phpunit": "13.4.1",
+    "vitest": "5.0.3",
+    "playwright": "1.64.0",
+    "xdebug": "3.5.3",
+    "composerLockSha256": "3661f80e1785d3aec1aab5eef38fefd331d001517076bcd2214d4020b52e2936"
+  },
+  "changes": {
+    "movedTests": [
+      {
+        "from": "tests/Unit/BrowserStatsServiceTest.php",
+        "to": "tests/Integration/BrowserStatsServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/AuktionPolicyTest.php",
+        "to": "tests/Integration/AuktionPolicyTest.php"
+      },
+      {
+        "from": "tests/Unit/AuktionModelTest.php",
+        "to": "tests/Integration/AuktionModelTest.php"
+      },
+      {
+        "from": "tests/Unit/CoverImageSecurityTest.php",
+        "to": "tests/Integration/CoverImageSecurityTest.php"
+      },
+      {
+        "from": "tests/Unit/DatabaseConnectionResolverTest.php",
+        "to": "tests/Integration/DatabaseConnectionResolverTest.php"
+      },
+      {
+        "from": "tests/Unit/DatabaseDumpServiceTest.php",
+        "to": "tests/Integration/DatabaseDumpServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/DatabaseMaintenanceAuditLoggerTest.php",
+        "to": "tests/Integration/DatabaseMaintenanceAuditLoggerTest.php"
+      },
+      {
+        "from": "tests/Unit/DatabaseMaintenanceLimitServiceTest.php",
+        "to": "tests/Integration/DatabaseMaintenanceLimitServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/DatabaseRestoreServiceTest.php",
+        "to": "tests/Integration/DatabaseRestoreServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/DownloadModelTest.php",
+        "to": "tests/Integration/DownloadModelTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorFingerprintTest.php",
+        "to": "tests/Integration/ErrorFingerprintTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorIncidentContextCollectorTest.php",
+        "to": "tests/Integration/ErrorIncidentContextCollectorTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorIncidentReporterTest.php",
+        "to": "tests/Integration/ErrorIncidentReporterTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorIncidentReportMailTest.php",
+        "to": "tests/Integration/ErrorIncidentReportMailTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorNotificationPolicyTest.php",
+        "to": "tests/Integration/ErrorNotificationPolicyTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorNotificationThrottleTest.php",
+        "to": "tests/Integration/ErrorNotificationThrottleTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorReportRecipientResolverTest.php",
+        "to": "tests/Integration/ErrorReportRecipientResolverTest.php"
+      },
+      {
+        "from": "tests/Unit/ErrorReportSanitizerTest.php",
+        "to": "tests/Integration/ErrorReportSanitizerTest.php"
+      },
+      {
+        "from": "tests/Unit/FanfictionBildTagTest.php",
+        "to": "tests/Integration/FanfictionBildTagTest.php"
+      },
+      {
+        "from": "tests/Unit/FeedbackDeliveryServiceTest.php",
+        "to": "tests/Integration/FeedbackDeliveryServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/FeedbackRecipientResolverTest.php",
+        "to": "tests/Integration/FeedbackRecipientResolverTest.php"
+      },
+      {
+        "from": "tests/Unit/FeedbackSubmissionThrottleTest.php",
+        "to": "tests/Integration/FeedbackSubmissionThrottleTest.php"
+      },
+      {
+        "from": "tests/Unit/FeedbackSessionServiceTest.php",
+        "to": "tests/Integration/FeedbackSessionServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/FortifyLoginRateLimiterTest.php",
+        "to": "tests/Integration/FortifyLoginRateLimiterTest.php"
+      },
+      {
+        "from": "tests/Unit/KassenbuchEntryPolicyTest.php",
+        "to": "tests/Integration/KassenbuchEntryPolicyTest.php"
+      },
+      {
+        "from": "tests/Unit/KompendiumPathValidationTest.php",
+        "to": "tests/Integration/KompendiumPathValidationTest.php"
+      },
+      {
+        "from": "tests/Unit/KompendiumSearchServiceIndexExistsTest.php",
+        "to": "tests/Integration/KompendiumSearchServiceIndexExistsTest.php"
+      },
+      {
+        "from": "tests/Unit/LaravelLogExcerptExtractorTest.php",
+        "to": "tests/Integration/LaravelLogExcerptExtractorTest.php"
+      },
+      {
+        "from": "tests/Unit/KompendiumSearchServiceRemoveFromIndexTest.php",
+        "to": "tests/Integration/KompendiumSearchServiceRemoveFromIndexTest.php"
+      },
+      {
+        "from": "tests/Unit/KompendiumSearchQueryParserTest.php",
+        "to": "tests/Integration/KompendiumSearchQueryParserTest.php"
+      },
+      {
+        "from": "tests/Unit/Logging/RedactSensitiveLogContextTest.php",
+        "to": "tests/Integration/Logging/RedactSensitiveLogContextTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonArticleParserTest.php",
+        "to": "tests/Integration/MaddraxikonArticleParserTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonApiClientTest.php",
+        "to": "tests/Integration/MaddraxikonApiClientTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonCategoryPaginatorTest.php",
+        "to": "tests/Integration/MaddraxikonCategoryPaginatorTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonDatasetValidatorTest.php",
+        "to": "tests/Integration/MaddraxikonDatasetValidatorTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonCrawlerHttpClientTest.php",
+        "to": "tests/Integration/MaddraxikonCrawlerHttpClientTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonJobsTest.php",
+        "to": "tests/Integration/MaddraxikonJobsTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonNamespaceHealthServiceTest.php",
+        "to": "tests/Integration/MaddraxikonNamespaceHealthServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonRefreshLockTest.php",
+        "to": "tests/Integration/MaddraxikonRefreshLockTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxikonReleaseDateParserTest.php",
+        "to": "tests/Integration/MaddraxikonReleaseDateParserTest.php"
+      },
+      {
+        "from": "tests/Unit/MaddraxiversumBaxxServiceTest.php",
+        "to": "tests/Integration/MaddraxiversumBaxxServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/MeetingScheduleServiceTest.php",
+        "to": "tests/Integration/MeetingScheduleServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/MembersTeamProviderTest.php",
+        "to": "tests/Integration/MembersTeamProviderTest.php"
+      },
+      {
+        "from": "tests/Unit/NewsletterImageServiceTest.php",
+        "to": "tests/Integration/NewsletterImageServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/NewsletterTopicsTest.php",
+        "to": "tests/Integration/NewsletterTopicsTest.php"
+      },
+      {
+        "from": "tests/Unit/PageControllerProtokolleTest.php",
+        "to": "tests/Integration/PageControllerProtokolleTest.php"
+      },
+      {
+        "from": "tests/Unit/ReviewBaxxServiceTest.php",
+        "to": "tests/Integration/ReviewBaxxServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/ReviewFormattedContentTest.php",
+        "to": "tests/Integration/ReviewFormattedContentTest.php"
+      },
+      {
+        "from": "tests/Unit/RewardModelTest.php",
+        "to": "tests/Integration/RewardModelTest.php"
+      },
+      {
+        "from": "tests/Unit/RewardServiceTest.php",
+        "to": "tests/Integration/RewardServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/RomanExcerptSearchIndexTest.php",
+        "to": "tests/Integration/RomanExcerptSearchIndexTest.php"
+      },
+      {
+        "from": "tests/Unit/RomanExcerptTest.php",
+        "to": "tests/Integration/RomanExcerptTest.php"
+      },
+      {
+        "from": "tests/Unit/RomantauschInfoProviderTest.php",
+        "to": "tests/Integration/RomantauschInfoProviderTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/KompendiumSearchSorterTest.php",
+        "to": "tests/Integration/Services/KompendiumSearchSorterTest.php"
+      },
+      {
+        "from": "tests/Unit/TeamActiveUsersTest.php",
+        "to": "tests/Integration/TeamActiveUsersTest.php"
+      },
+      {
+        "from": "tests/Unit/TeamMembersTeamTest.php",
+        "to": "tests/Integration/TeamMembersTeamTest.php"
+      },
+      {
+        "from": "tests/Unit/TeamPointServiceTest.php",
+        "to": "tests/Integration/TeamPointServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/KompendiumServiceTest.php",
+        "to": "tests/Integration/Services/KompendiumServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/MaddraxDataServiceTest.php",
+        "to": "tests/Integration/Services/MaddraxDataServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/ThemeBootstrapPartialTest.php",
+        "to": "tests/Integration/ThemeBootstrapPartialTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/NextcloudGalleryServiceTest.php",
+        "to": "tests/Integration/Services/NextcloudGalleryServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/UserRoleServiceTest.php",
+        "to": "tests/Integration/UserRoleServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/Romantausch/SwapMatchingServiceTest.php",
+        "to": "tests/Integration/Services/Romantausch/SwapMatchingServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/UserRoleTest.php",
+        "to": "tests/Integration/UserRoleTest.php"
+      },
+      {
+        "from": "tests/Unit/WebsiteFeedbackReceivedMailTest.php",
+        "to": "tests/Integration/WebsiteFeedbackReceivedMailTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/Romantausch/RomantauschBaxxServiceTest.php",
+        "to": "tests/Integration/Services/Romantausch/RomantauschBaxxServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/Romantausch/BookPhotoServiceTest.php",
+        "to": "tests/Integration/Services/Romantausch/BookPhotoServiceTest.php"
+      },
+      {
+        "from": "tests/Unit/Services/Romantausch/BundleServiceTest.php",
+        "to": "tests/Integration/Services/Romantausch/BundleServiceTest.php"
+      }
+    ],
+    "removedTests": [
+      {
+        "from": "tests/e2e/spenden-page.spec.js",
+        "assertion": "PayPal donation link is visible",
+        "replacement": "tests/e2e/spenden.spec.js",
+        "replacementAssertions": [
+          "PayPal link is visible",
+          "Donation URL is correct"
+        ]
+      }
+    ],
+    "movedDiagnostics": [
+      {
+        "from": "tests/e2e/homepage-performance.spec.js",
+        "to": "tests/e2e/homepage-performance.benchmark.js",
+        "command": "npm run test:e2e:benchmark",
+        "ci": "main, weekly, manual"
+      }
+    ],
+    "addedCases": [
+      "Tests\\Unit\\DashboardActivityQueryTest::Empty ids return an empty collection without accessing the database",
+      "Tests\\Integration\\TestDatabaseIsolationTest::Standard fixtures can be modified inside the test transaction",
+      "Tests\\Integration\\TestDatabaseIsolationTest::Standard fixtures have no changes from previous tests"
+    ],
+    "browserFixtureCorrections": [
+      {
+        "file": "tests/e2e/char-editor.spec.js",
+        "scenario": "Three repeated Marsian race edit cycles",
+        "change": "Measured 40s Linux WebKit execution exceeds the original 30s budget. Only this WebKit case receives 60s; every edit cycle and assertion is retained."
+      },
+      {
+        "file": "tests/e2e/char-editor.spec.js",
+        "scenario": "Attribute help via focus and hover",
+        "change": "Reset pointer and keyboard focus before the focus scenario; additionally assert actual focus. All prior ARIA and hover assertions are retained."
+      },
+      {
+        "file": "tests/e2e/dark-mode.spec.js",
+        "scenario": "System preference change",
+        "change": "Wait for the theme-sync helper before clearing stored preferences and changing the emulated media preference. All theme assertions are retained."
+      },
+      {
+        "file": "tests/e2e/char-editor.spec.js",
+        "scenario": "Edit/continue transitions in four expansion cases",
+        "change": "Use native strict Playwright mouse actions instead of the shared forced Locator actions at the mode switches. Add visible continue-button assertions. Both initially failing WebKit cases passed twice; all four affected cases passed in all three browsers. Every original assertion and input cycle is retained."
+      },
+      {
+        "file": "tests/e2e/char-editor.spec.js",
+        "scenario": "Taratze submitted attribute mirrors",
+        "change": "Poll the submitted FormData until the Alpine mirrors match the already asserted inputs; all original payload and rule assertions remain."
+      },
+      {
+        "file": "tests/e2e/dark-mode.spec.js",
+        "scenario": "System and storage preference changes",
+        "change": "Poll conditions at a fixed interval instead of depending on animation frames. Only these two WebKit cases receive 60s: traces show individual evaluate calls taking about 5s and exhausting the original 30s budget. All preference and theme checks remain."
+      },
+      {
+        "file": "tests/e2e/mitglieder.spec.js",
+        "scenario": "Copy one member email address",
+        "change": "Use a native strict pointer action and wait for the clipboard stub result instead of sleeping for 500ms. Preserve the clipboard assertions."
+      },
+      {
+        "file": "tests/e2e/rpg-npcs.spec.js",
+        "scenario": "Shared login/challenge and JavaScript-disabled preview/create",
+        "change": "Scope the login selector to the password form and perform native strict clicks. The WebKit trace proves that the shared Locator helper trial action submits the JavaScript-disabled create form, then its forced click waits for the removed button until timeout. Native actions submit once. All three NPC scenarios are verified in all three browsers, retaining both fixture cycles and all assertions."
+      },
+      {
+        "file": "tests/e2e/rpg-combats.spec.js",
+        "scenario": "Polling document identity and overdue preparation",
+        "change": "Use one native form-submit click and wait for its POST redirect before continuing. Install the document marker after the completed roll navigation and reopen the overdue fight after the acceptance navigation. The marker, polling, permission, combat and pageerror assertions are unchanged."
+      },
+      {
+        "file": "tests/e2e/veranstaltungs-baxx.spec.js",
+        "scenario": "Saved participation reward",
+        "change": "Wait for the scoped save-form navigation before reloading and checking the saved amount; reward and locking assertions remain."
+      },
+      {
+        "file": "tests/e2e/website-feedback.spec.js",
+        "scenario": "Anonymous feedback accessibility",
+        "change": "Wait for the fully initialized checkbox with its accessible name before running the unchanged Axe audit."
+      }
+    ],
+    "retainedCases": "All other PHP, Vitest, Node, architecture, MariaDB, regular browser and opt-in checks are retained. Similar domain tests with different assertions were not treated as duplicates.",
+    "productBehaviorChanges": false
+  },
+  "php": {
+    "before": {
+      "cases": 3643,
+      "passed": 3608,
+      "skipped": 35,
+      "assertions": 15847
+    },
+    "after": {
+      "cases": 3646,
+      "passed": 3611,
+      "skipped": 35,
+      "assertions": 15865
+    },
+    "missingCases": 0,
+    "timing": {
+      "orderSeed": 23,
+      "coverage": false,
+      "baselineSeconds": 463.66,
+      "firstRefactoredSeconds": 246.16,
+      "finalRefactoredSeconds": 212.71,
+      "caveat": "Same dependencies and random seed. Local container timings, not a GitHub runner benchmark. The original fixture/logging infrastructure was repaired before the comparable baseline."
+    },
+    "coverage": {
+      "before": {
+        "lines": {
+          "total": 30018,
+          "covered": 25806
+        },
+        "functions": {
+          "total": 2926,
+          "covered": 1994
+        }
+      },
+      "after": {
+        "lines": {
+          "total": 30018,
+          "covered": 25808
+        },
+        "functions": {
+          "total": 2926,
+          "covered": 1995
+        }
+      },
+      "sourceFiles": 531,
+      "lostFiles": 0,
+      "lostCoveredUnits": 0,
+      "unchangedSourceFilter": "app/**/*.php",
+      "input": "Two disjoint complete-suite PHP shards plus a targeted run of the final deterministic 3D download and empty-dashboard contracts. Their union contains all 3646 final cases."
+    },
+    "shardVerification": {
+      "originalShardsCases": [
+        1676,
+        1969
+      ],
+      "overlap": 0,
+      "missingCasesAfterSupplement": 0
+    }
+  },
+  "javascript": {
+    "passed": 450,
+    "failed": 0,
+    "warmWindowsWorkerComparisons": [
+      {
+        "workers": 1,
+        "seconds": 33.95373583984375,
+        "passed": 450,
+        "failed": 0
+      },
+      {
+        "workers": 2,
+        "seconds": 17.706707275390624,
+        "passed": 450,
+        "failed": 0
+      },
+      {
+        "workers": 1,
+        "seconds": 33.52734716796875,
+        "passed": 450,
+        "failed": 0
+      },
+      {
+        "workers": 2,
+        "seconds": 16.869260986328126,
+        "passed": 450,
+        "failed": 0
+      }
+    ],
+    "coverage": {
+      "before": {
+        "lines": {
+          "total": 3758,
+          "covered": 3167
+        },
+        "statements": {
+          "total": 4202,
+          "covered": 3493
+        },
+        "functions": {
+          "total": 1037,
+          "covered": 893
+        },
+        "branches": {
+          "total": 3014,
+          "covered": 2131
+        }
+      },
+      "after": {
+        "lines": {
+          "total": 3758,
+          "covered": 3167
+        },
+        "statements": {
+          "total": 4202,
+          "covered": 3493
+        },
+        "functions": {
+          "total": 1037,
+          "covered": 893
+        },
+        "branches": {
+          "total": 3014,
+          "covered": 2131
+        }
+      },
+      "sourceFiles": 40,
+      "verifiedPlatforms": [
+        "Windows",
+        "Linux"
+      ],
+      "lostCoveredUnits": 0
+    },
+    "resourceLeakCheck": "450 passed, no asynchronous leaks with two workers"
+  },
+  "mariadb": [
+    {
+      "suite": "phpunit.mariadb.xml",
+      "passed": 286,
+      "assertions": 1559,
+      "skipped": 0,
+      "seconds": 52.21
+    },
+    {
+      "suite": "phpunit.rpg-mariadb.xml",
+      "passed": 21,
+      "assertions": 215,
+      "skipped": 0,
+      "seconds": 66.81
+    },
+    {
+      "suite": "phpunit.veranstaltungs-baxx-mariadb.xml",
+      "passed": 8,
+      "assertions": 86,
+      "skipped": 0,
+      "seconds": 33.66
+    }
+  ],
+  "browsers": {
+    "originalCasesPerProject": 231,
+    "functionalCasesPerProject": 229,
+    "removedDuplicateCasesPerProject": 1,
+    "separatedBenchmarkCasesPerProject": 1,
+    "runs": {
+      "chromium": {
+        "cases": 229,
+        "shards": [
+          {
+            "startTime": "2026-10-11T06:01:02.760Z",
+            "duration": 361340.82899999997,
+            "expected": 114,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          {
+            "startTime": "2026-10-11T06:01:08.747Z",
+            "duration": 421558.012,
+            "expected": 113,
+            "skipped": 2,
+            "unexpected": 0,
+            "flaky": 0
+          }
+        ],
+        "missingFunctionalCases": 0,
+        "overlappingCases": 0
+      },
+      "firefox": {
+        "cases": 229,
+        "shards": [
+          {
+            "startTime": "2026-10-11T06:01:02.500Z",
+            "duration": 520506.351,
+            "expected": 114,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          {
+            "startTime": "2026-10-11T06:01:05.623Z",
+            "duration": 569428.105,
+            "expected": 113,
+            "skipped": 2,
+            "unexpected": 0,
+            "flaky": 0
+          }
+        ],
+        "missingFunctionalCases": 0,
+        "overlappingCases": 0
+      },
+      "webkit": {
+        "cases": 229,
+        "execution": "Complete single-process local suite followed by targeted verification of the final fixture changes in all three browsers; unchanged local tracing profile and no test retries",
+        "completeRunBeforeFinalFixtureCorrections": {
+          "startTime": "2026-10-11T11:28:14.284Z",
+          "duration": 2150790.9839999997,
+          "expected": 215,
+          "skipped": 2,
+          "unexpected": 12,
+          "flaky": 0
+        },
+        "intermediateStabilityVerification": {
+          "startTime": "2026-10-11T12:21:23.923Z",
+          "duration": 352201.242,
+          "expected": 19,
+          "skipped": 0,
+          "unexpected": 2,
+          "flaky": 0
+        },
+        "intermediateNavigationVerification": {
+          "startTime": "2026-10-11T12:28:35.738Z",
+          "duration": 394184.904,
+          "expected": 19,
+          "skipped": 0,
+          "unexpected": 2,
+          "flaky": 0
+        },
+        "finalNativeFormVerification": {
+          "startTime": "2026-10-11T12:37:22.547Z",
+          "duration": 269771.964,
+          "expected": 15,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "finalEditorVerification": {
+          "startTime": "2026-10-11T11:41:26.905Z",
+          "duration": 213676.684,
+          "expected": 12,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "finalCaseResults": {
+          "expected": 226,
+          "skipped": 2,
+          "unexpected": 1
+        },
+        "missingFunctionalCases": 0,
+        "additionalRegressions": 0,
+        "knownApplicationFailures": [
+          "member-navigation.spec.js:member-navigation.spec.js / mobile member drawer opens, closes with escape and closes after navigation"
+        ],
+        "completeRunExitCode": 1
+      }
+    },
+    "finalChromiumFirefoxContracts": {
+      "startTime": "2026-10-11T07:02:04.275Z",
+      "duration": 75402.618,
+      "expected": 6,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "finalAllBrowserEditorContracts": {
+      "startTime": "2026-10-11T11:41:26.905Z",
+      "duration": 213676.684,
+      "expected": 12,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "benchmark": {
+      "startTime": "2026-10-11T06:34:36.628Z",
+      "duration": 20925.875,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "pestModalRegression": {
+      "passed": 1,
+      "assertions": 77,
+      "seconds": 7.04
+    },
+    "webkitVerification": "Complete single-process local suite plus final affected-case reruns verifies 226 passing cases, two existing manual export skips and one unchanged mobile overlay application failure reproduced against the original test and seeding. The raw complete run had 12 failures before the final fixture corrections; this final count combines that run with explicit targeted reruns, rather than claiming a green complete WebKit execution. The known failing test remains strict. See tests/KNOWN_APPLICATION_ISSUES.md.",
+    "intermediateAllBrowserNavigationContracts": {
+      "startTime": "2026-10-11T12:28:35.738Z",
+      "duration": 394184.904,
+      "expected": 19,
+      "skipped": 0,
+      "unexpected": 2,
+      "flaky": 0
+    },
+    "finalAllBrowserNativeFormContracts": {
+      "startTime": "2026-10-11T12:37:22.547Z",
+      "duration": 269771.964,
+      "expected": 15,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    }
+  },
+  "checks": {
+    "node": "64 complete Linux Node tests passed; the two subsequently added protected-baseline subprocess tests passed on both Windows and Linux (66 total retained/new checks)",
+    "portableWindowsNode": "16 passed",
+    "fastCommand": "Final Docker entrypoint: 496 isolated PHP Unit tests, 450 Vitest tests and 16 portable Node checks passed",
+    "architecture": "6 passed / 14 assertions",
+    "phpstan": "passed",
+    "rector": "passed",
+    "profanity": "passed",
+    "pintChangedPhp": "passed",
+    "composerValidation": "passed",
+    "workflowActionlint": "passed",
+    "imageBuilds": [
+      "php",
+      "node",
+      "browser"
+    ],
+    "isolatedAssetBuild": "passed"
+  },
+  "performanceSources": {
+    "eliminatedWork": "One proven duplicate browser test and redundant PR coverage/diagnostic executions",
+    "reducedSetup": "Seed once per schema and transaction rollback; one browser seeder process instead of twelve Artisan bootstraps; one isolated local asset build",
+    "concurrency": "Two Vitest workers and two independent CI shards per existing browser; PHP keeps its existing two CI shards",
+    "deferred": "Shared writable PHP fixtures prevent safe global PHP process parallelism; extra domains and authentication-state reuse require a proven assertion/isolation benefit before removal."
+  },
+  "ciMeasurements": {
+    "status": "All five functional/dependency/image workflows and the PHP coverage gate passed on 739801ff. The separate CodeQL alert check and GitGuardian check failed. Their source fixes are verified locally; the next remote CodeQL analysis and classification of the historical GitGuardian test-key incident remain pending. CI performance comparison remains separate.",
+    "comparableMetrics": [
+      "PR wall-clock duration",
+      "queue duration",
+      "runner minutes",
+      "critical path including setup and coverage"
+    ],
+    "runnerResources": "Existing GitHub-hosted runner type; no paid service added",
+    "coverage": "Merged artifacts from the required PHP shards; one regular Vitest coverage run",
+    "functionalPrCoverage": "All PHP, MariaDB, Vitest, Node and regular Chromium/Firefox checks remain required by the workflow triggers"
+  },
+  "ciCorrections": [
+    {
+      "measuredAt": "2026-10-11",
+      "refactoringCommit": "03ea7d0f6c1084175177daea7aa4bf127d7dc512",
+      "failedRun": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38148754418",
+      "cause": "The two Playwright configuration smoke tests inherited CI from the runner. The original local/Linux baseline exercised local branches, while the CI run omitted seven previously covered configuration branches.",
+      "correction": "Stub and restore the configuration environment for local tests. Add an explicit CI configuration contract covering browser projects, worker count, retries, server reuse, forbidOnly and trace settings. All prior cases and coverage floors remain.",
+      "reproduction": {
+        "environment": "Linux / Docker, CI=true",
+        "passedTests": 450,
+        "coverageGateExitCode": 1,
+        "metrics": {
+          "lines": {
+            "total": 3758,
+            "covered": 3167
+          },
+          "statements": {
+            "total": 4202,
+            "covered": 3493
+          },
+          "functions": {
+            "total": 1037,
+            "covered": 893
+          },
+          "branches": {
+            "total": 3014,
+            "covered": 2129
+          }
+        }
+      },
+      "verification": {
+        "tests": 451,
+        "platforms": [
+          "Linux / Docker with CI=true",
+          "Windows local mode"
+        ],
+        "coverageGateExitCode": 0,
+        "coverage": {
+          "lines": {
+            "total": 3758,
+            "covered": 3167
+          },
+          "statements": {
+            "total": 4202,
+            "covered": 3493
+          },
+          "functions": {
+            "total": 1037,
+            "covered": 893
+          },
+          "branches": {
+            "total": 3014,
+            "covered": 2136
+          }
+        },
+        "lostCoveredUnits": 0,
+        "identicalCoverageAcrossModes": true,
+        "nodeChecks": {
+          "tests": 66,
+          "failed": 0,
+          "skipped": 0,
+          "environment": "Linux / Docker with CI=true"
+        },
+        "note": "The earlier timing and coverage measurements in this report remain historical measurements of the 450-case refactoring suite."
+      },
+      "otherRefactoringWorkflows": {
+        "php": {
+          "conclusion": "success",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38148754494"
+        },
+        "playwright": {
+          "conclusion": "success",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38148754458"
+        },
+        "serviceImageSecurity": "success",
+        "dependencyReview": "success"
+      },
+      "remoteFixVerification": {
+        "conclusion": "success",
+        "commit": "739801ff6c4296356bca18f76c72e7200dc6bdbb",
+        "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860070"
+      }
+    },
+    {
+      "measuredAt": "2026-10-11",
+      "inspectedCommit": "739801ff6c4296356bca18f76c72e7200dc6bdbb",
+      "successfulWorkflows": [
+        {
+          "name": "JS Unit Tests",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860070",
+          "conclusion": "success"
+        },
+        {
+          "name": "Service image security scan",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860193",
+          "conclusion": "success"
+        },
+        {
+          "name": "Dependency Review",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860090",
+          "conclusion": "success"
+        },
+        {
+          "name": "PHP Unit Tests",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860054",
+          "conclusion": "success"
+        },
+        {
+          "name": "Playwright Tests",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/38150860139",
+          "conclusion": "success"
+        }
+      ],
+      "failedChecks": [
+        {
+          "name": "CodeQL",
+          "url": "https://github.com/McNamara84/omxfc-vereinswebseite/runs/114504011599",
+          "cause": "The PHP attribute matcher in tools/testing/inventory.mjs contained nested overlapping regex repetitions, producing exponential backtracking."
+        },
+        {
+          "name": "GitGuardian Security Checks",
+          "incident": "https://dashboard.gitguardian.com/workspace/373613/incidents/21109513",
+          "cause": "docker-compose.tests.yml introduced the existing shared Playwright test APP_KEY as a hardcoded container environment value in commit 03ea7d0f."
+        }
+      ],
+      "correction": "Read adjacent PHP attributes explicitly. Generate an ephemeral APP_KEY per disposable Docker container and, when needed, per Playwright run. Share it with setup, web server and workers; retain a supplied key. Remove all hardcoded occurrences from these test paths. Keep sample inventory declarations in a separate JSON fixture so they are not counted as real tests.",
+      "verification": {
+        "inventory": {
+          "unchangedExistingFiles": 441,
+          "newTests": 3,
+          "originalMatcherTimeoutMilliseconds": 2000,
+          "replacementMilliseconds": 1.0264999999999418,
+          "boundedRegressionPassedOn": [
+            "Windows",
+            "Linux / Docker"
+          ]
+        },
+        "php": {
+          "passed": 3611,
+          "skipped": 35,
+          "assertions": 15865,
+          "seconds": 235.53,
+          "note": "Complete suite with a generated container key; concurrent verification runs make this unsuitable as a new performance comparison."
+        },
+        "vitest": {
+          "passed": 451,
+          "platforms": [
+            "Windows local mode",
+            "Linux / Docker with CI=true"
+          ],
+          "coverage": {
+            "lines": {
+              "total": 3760,
+              "covered": 3169
+            },
+            "statements": {
+              "total": 4204,
+              "covered": 3495
+            },
+            "functions": {
+              "total": 1037,
+              "covered": 893
+            },
+            "branches": {
+              "total": 3014,
+              "covered": 2136
+            }
+          },
+          "coverageRegressions": 0,
+          "sameCoverageAcrossModes": true,
+          "floorsChanged": false
+        },
+        "node": {
+          "completeLinuxChecksPassed": 69,
+          "failed": 0,
+          "skipped": 0,
+          "finalPortableWindowsChecksPassed": 19,
+          "finalLinuxInventoryChecksPassed": 3
+        },
+        "keyPropagation": {
+          "keyBytes": 32,
+          "laravelMatchesEnvironment": true,
+          "encryptionRoundTrip": true,
+          "childProcessMatches": true
+        },
+        "browserAuthenticationAndNavigation": {
+          "projects": [
+            "chromium",
+            "firefox"
+          ],
+          "containerGeneratedKey": {
+            "startTime": "2026-10-11T15:33:00.950Z",
+            "duration": 44029.2,
+            "expected": 4,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "playwrightGeneratedKey": {
+            "startTime": "2026-10-11T15:36:27.570Z",
+            "duration": 36501.064999999995,
+            "expected": 4,
+            "skipped": 0,
+            "unexpected": 0,
+            "flaky": 0
+          },
+          "retries": 0
+        },
+        "composeConfiguration": "passed"
+      },
+      "remainingExternalSteps": {
+        "codeql": "Push this fix and confirm a new CodeQL alert check; its analysis was not run locally.",
+        "gitguardian": "The incident also references the already pushed original PR commit. A new removal commit does not remove that occurrence. Classify the dedicated test key as a test credential in GitGuardian; no checks or branch protections were disabled and history was not rewritten."
+      }
+    }
+  ],
+  "reviewCorrections": {
+    "verifiedAt": "2026-10-12",
+    "reviewedCommit": "d98645c9787b26d73e57d2a2019ab09521dee0f6",
+    "changes": [
+      "Deleted coverage sources leave the comparable baseline; existing sources omitted from instrumentation still fail local and protected PR comparisons.",
+      "Unchanged renames preserve per-file and per-location coverage using the source hash.",
+      "Disposable containers synchronize current public sources and deletions while preserving mounted build and generated vendor assets.",
+      "The static inventory records parameterized test.each/it.each title templates, including nested datasets."
+    ],
+    "verification": {
+      "completeNodeLinux": { "passed": 76, "failed": 0, "skipped": 0 },
+      "finalReviewRegressionTestsLinux": { "passed": 19, "failed": 0, "skipped": 0 },
+      "portableNodeWindows": { "passed": 24, "failed": 0, "skipped": 0 },
+      "phpPublicAssetTests": { "passed": 20, "assertions": 47, "failed": 0 },
+      "publicRunnerIntegration": {
+        "updatedSourcesMatchCheckout": true,
+        "deletedSourcesRemoved": true,
+        "readOnlySharedBuildPreserved": true,
+        "generatedLivewireAssetsPreserved": true
+      },
+      "inventory": { "files": 443, "previouslyMissingVitestParameterizedDeclarationsAdded": 10 },
+      "vitest": {
+        "passed": 451,
+        "coverage": {
+          "lines": { "total": 3760, "covered": 3169 },
+          "statements": { "total": 4204, "covered": 3495 },
+          "functions": { "total": 1037, "covered": 893 },
+          "branches": { "total": 3014, "covered": 2136 }
+        },
+        "coverageRegressions": 0,
+        "sameMetricsAsReviewedCommit": true,
+        "localAndProtectedBaselineChecksPassed": true
+      },
+      "coverageFloorsChanged": false,
+      "scope": "Application code and functional tests were unchanged. PHP validation reran the affected public-asset tests; the complete PHP suite and PHP coverage were not rerun in this review round."
+    }
+  },
+  "reviewFollowUps": [
+    {
+      "verifiedAt": "2026-10-12",
+      "reviewedCommit": "e8e778c181fc5159e3874e44adc0d6913a7ad9e2",
+      "findings": {
+        "npmCoverageCheck": {
+          "valid": true,
+          "resolution": "The npm command now regenerates the JavaScript snapshot from coverage-final.json and invokes the same baseline checker as CI without additional arguments."
+        },
+        "literalNodeGlob": {
+          "valid": false,
+          "reason": "The required Node 26 test runner expands glob arguments itself. Real subprocess fixtures verify matching files and failure propagation with shell=false; the actual test:all Node step also passes through spawn and the disposable runner unchanged.",
+          "documentation": "https://nodejs.org/api/test.html#running-tests-from-the-command-line"
+        }
+      },
+      "verification": {
+        "completeNodeStepLinux": { "passed": 80, "failed": 0, "skipped": 0 },
+        "portableNodeStepWindows": { "passed": 28, "failed": 0, "skipped": 0 },
+        "npmCheckRejectsStaleSnapshotsAndMissingMeasurements": true,
+        "vitestPassed": 451,
+        "coverageRegressionsAgainstPreviousReview": 0,
+        "sameCoverageMetricsAsPreviousReview": true,
+        "coverageFloorsChanged": false,
+        "inventoryFiles": 444,
+        "scope": "Verified the complete Node step of test:all, portable Windows Node subset and complete Vitest coverage. PHP, MariaDB and browser suites were not rerun in this review round."
+      }
+    }
+  ]
+}

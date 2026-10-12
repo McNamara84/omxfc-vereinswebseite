@@ -27,6 +27,7 @@ test.describe('Website feedback', () => {
         const modal = page.getByTestId('website-feedback-modal');
         await expect(modal).toBeVisible();
         await expect(page.getByRole('heading', { name: 'Website-Feedback' })).toBeVisible();
+        await expect(modal.getByRole('checkbox', { name: 'Anonym an Admins und Vorstand senden' })).toBeVisible();
 
         const accessibility = await new AxeBuilder({ page })
             .include('[data-testid="website-feedback-modal"]')

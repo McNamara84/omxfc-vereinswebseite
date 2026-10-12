@@ -27,6 +27,14 @@ async function challenge(page, data) {
     return page.url();
 }
 
+async function submitAndWait(page, name) {
+    // Use one native mouse action and finish the POST redirect before continuing.
+    await Promise.all([
+        page.waitForNavigation(),
+        page.click(`button:text-is(${JSON.stringify(name)})`, { strict: true }),
+    ]);
+}
+
 test('two members challenge, accept, roll, react, and publish milestones', async ({ page, browser, baseURL }) => {
     test.setTimeout(240000);
     const data = fixture();
@@ -43,15 +51,16 @@ test('two members challenge, accept, roll, react, and publish milestones', async
         await expect(other.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
         await expect(other.getByRole('region', { name: 'Persönliche Übungskämpfe' })).toContainText(data.characters.player.name);
         await other.goto(url);
-        await other.getByRole('button', { name: 'Bedingungen annehmen und starten' }).click();
+        await submitAndWait(other, 'Bedingungen annehmen und starten');
         await page.goto(url);
-        await page.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
-        await other.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
+        await submitAndWait(page, 'Entscheidung bestätigen');
+        await submitAndWait(other, 'Entscheidung bestätigen');
         await page.goto(url);
-        await page.getByRole('button', { name: 'Jetzt würfeln' }).click();
+        // The document marker must belong to the completed form navigation.
+        await submitAndWait(page, 'Jetzt würfeln');
         await page.evaluate(() => { window.combatPollingDocument = true; });
         await other.goto(url);
-        await other.getByRole('button', { name: 'Jetzt würfeln' }).click();
+        await submitAndWait(other, 'Jetzt würfeln');
         await page.bringToFront();
         const action = page.getByRole('combobox', { name: 'Handlung', exact: true });
         await expect(action).toBeVisible({ timeout: 20000 });
@@ -69,17 +78,17 @@ test('two members challenge, accept, roll, react, and publish milestones', async
         await expect(decisionForm.locator('[name="weapon"]')).toBeVisible();
         await expect(decisionForm.locator('[name="weapon"]')).toBeEnabled();
         expect(await decisionForm.evaluate(form => [...new FormData(form).keys()].filter(key => key !== '_token').sort())).toEqual(['aim', 'fire', 'kind', 'mode', 'move', 'weapon']);
-        await page.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
+        await submitAndWait(page, 'Entscheidung bestätigen');
         await other.goto(url);
-        await other.getByRole('button', { name: 'Entscheidung bestätigen', exact: true }).click();
+        await submitAndWait(other, 'Entscheidung bestätigen');
         await page.goto(url);
-        await page.getByRole('button', { name: 'Jetzt würfeln' }).click();
+        await submitAndWait(page, 'Jetzt würfeln');
         await expect(page.getByRole('region', { name: 'Kampfprotokoll' })).toContainText('Schadenswurf');
         await other.goto(url);
         const terminate = other.getByText('Kampf beenden', { exact: true });
         if (await terminate.count()) {
             await terminate.click();
-            await other.getByRole('button', { name: 'Aufgeben (Gegner gewinnt)' }).click();
+            await submitAndWait(other, 'Aufgeben (Gegner gewinnt)');
         }
         await expect(other.getByText('Gewonnen:', { exact: false })).toBeVisible();
         const audit = await new AxeBuilder({ page: other }).include('[data-rpg-combat]').analyze();
@@ -100,7 +109,8 @@ test('overdue preparations advance and a stranger cannot read combat data', asyn
     try {
         await login(other, data.other);
         await other.goto(url);
-        await other.getByRole('button', { name: 'Bedingungen annehmen und starten' }).click();
+        // Finish the acceptance redirect before expiring and reopening the fight.
+        await submitAndWait(other, 'Bedingungen annehmen und starten');
         const result = fixture('expire', url.split('/').pop());
         expect(result.automatic).toBe(2);
         await other.goto(url);

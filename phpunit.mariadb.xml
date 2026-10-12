@@ -35,10 +35,10 @@
             <file>tests/Feature/MaddraxikonRewardServiceTest.php</file>
             <file>tests/Feature/MaddraxikonSnapshotRepositoryTest.php</file>
             <file>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</file>
-            <file>tests/Unit/MaddraxikonApiClientTest.php</file>
-            <file>tests/Unit/MaddraxikonJobsTest.php</file>
-            <file>tests/Unit/MaddraxikonNamespaceHealthServiceTest.php</file>
-            <file>tests/Unit/TeamMembersTeamTest.php</file>
+            <file>tests/Integration/MaddraxikonApiClientTest.php</file>
+            <file>tests/Integration/MaddraxikonJobsTest.php</file>
+            <file>tests/Integration/MaddraxikonNamespaceHealthServiceTest.php</file>
+            <file>tests/Integration/TeamMembersTeamTest.php</file>
         </testsuite>
     </testsuites>
     <source>

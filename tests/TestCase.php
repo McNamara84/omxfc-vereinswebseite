@@ -15,6 +15,10 @@ use PHPUnit\Framework\Assert;
 
 abstract class TestCase extends BaseTestCase
 {
+    // RefreshDatabase seeds once when the process builds its schema. Each test
+    // rolls back to these same fixtures instead of rebuilding them in setUp().
+    protected $seed = true;
+
     private static bool $bladeIconsManifestReady = false;
 
     /**
@@ -49,6 +53,15 @@ abstract class TestCase extends BaseTestCase
             ));
         }
 
+        // Install the network stub before RefreshDatabase invokes the seeder.
+        // A seeder may create a user whose observer resolves coordinates.
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => Http::response([[
+                'lat' => self::DEFAULT_LAT,
+                'lon' => self::DEFAULT_LON,
+            ]], 200),
+        ]);
+
         return $application;
     }
 
@@ -74,10 +87,6 @@ abstract class TestCase extends BaseTestCase
             ]], 200),
         ]);
 
-        // Seed the database so default entities such as the "Mitglieder" team
-        // are available to the tests. Seeding occurs after HTTP calls are
-        // faked to avoid real network requests.
-        $this->seed();
     }
 
     private function ensureBladeIconsManifest(): void

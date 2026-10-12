@@ -53,7 +53,9 @@ test.describe('dark mode respects preferences', () => {
 test.describe('system preference change handling', () => {
   test.use({ colorScheme: 'light' });
 
-  test('updates theme when system preference changes and no stored preference exists', async ({ page }) => {
+  test('updates theme when system preference changes and no stored preference exists', async ({ page, browserName }) => {
+    // Native Linux WebKit can take about 5s per evaluate; retain every theme check.
+    if (browserName === 'webkit') test.setTimeout(60_000);
     await page.addInitScript(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
@@ -63,6 +65,8 @@ test.describe('system preference change handling', () => {
     await page.goto('/');
     let hasDarkClass = await page.evaluate(() => document.documentElement.classList.contains('dark'));
     expect(hasDarkClass).toBe(false);
+
+    await page.waitForFunction(() => typeof window.__omxfcApplyStoredTheme === 'function', undefined, { polling: 100 });
 
     // Alpine $persist schreibt beim Init automatisch das aktuelle Theme in localStorage.
     // Damit der Change-Handler die Systempräferenz-Änderung nicht als "User hat Theme gewählt"
@@ -79,26 +83,28 @@ test.describe('system preference change handling', () => {
     // Playwright emuliert die Präferenz zuverlässig, feuert das MQL-Change-Event
     // in CI aber nicht in jedem Chromium-Lauf deterministisch. Deshalb nach dem
     // Emulationswechsel die bestehende Theme-Sync-Hilfe explizit ausführen.
-    await page.waitForFunction(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+    await page.waitForFunction(() => window.matchMedia('(prefers-color-scheme: dark)').matches, undefined, { polling: 100 });
 
     const applied = await page.evaluate(() => window.__omxfcApplyStoredTheme?.());
 
     expect(applied).toBe(true);
-    await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+    await page.waitForFunction(() => document.documentElement.classList.contains('dark'), undefined, { polling: 100 });
 
     // daisyUI uses 'coffee' theme for dark mode
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
     expect(currentTheme).toBe('coffee');
   });
 
-  test('reacts to storage theme updates', async ({ page }) => {
+  test('reacts to storage theme updates', async ({ page, browserName }) => {
+    if (browserName === 'webkit') test.setTimeout(60_000);
     await page.addInitScript(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
     });
 
     await page.goto('/');
-    await page.waitForFunction(() => typeof window.__omxfcApplyStoredTheme === 'function');
+    // Headless WebKit can stop animation frames on an otherwise idle page.
+    await page.waitForFunction(() => typeof window.__omxfcApplyStoredTheme === 'function', undefined, { polling: 100 });
     const applied = await page.evaluate(() => {
       window.localStorage.setItem('mary-theme', JSON.stringify('coffee'));
       window.localStorage.setItem('mary-class', JSON.stringify('dark'));

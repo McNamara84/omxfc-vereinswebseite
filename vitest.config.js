@@ -5,6 +5,10 @@ import { defineConfig } from 'vitest/config';
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const nodeTestFiles = ['docker-utils', 'php-utils', 'navigation-utils', 'performance-metrics', 'playwright-node-utils']
     .map(name => `**/${name}.test.js`);
+const configuredWorkers = Number(process.env.VITEST_WORKERS ?? 2);
+if (!Number.isInteger(configuredWorkers) || configuredWorkers < 1) {
+    throw new Error('VITEST_WORKERS must be a positive integer.');
+}
 
 export default defineConfig({
     resolve: {
@@ -13,6 +17,7 @@ export default defineConfig({
         },
     },
     test: {
+        maxWorkers: configuredWorkers,
         environment: 'jsdom',
         environmentOptions: {
             jsdom: {
@@ -28,7 +33,7 @@ export default defineConfig({
         ],
         coverage: {
             provider: 'v8',
-            reporter: ['json-summary'],
+            reporter: ['json', 'json-summary'],
             reportsDirectory: 'coverage',
         },
     },

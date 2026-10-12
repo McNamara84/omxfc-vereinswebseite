@@ -31,7 +31,7 @@ describe('playwright run token helper', () => {
 describe('playwright docker harness', () => {
     it('plant pro Browserprojekt eigene Ports und Tokens', () => {
         const runs = createProjectRuns({
-            args: ['tests/e2e/homepage-performance.spec.js'],
+            args: ['tests/e2e/spenden.spec.js'],
             env: {
                 CI: '1',
                 PLAYWRIGHT_PORT: '8100',
@@ -40,10 +40,10 @@ describe('playwright docker harness', () => {
         });
 
         expect(runs).toHaveLength(2);
-        expect(runs[0].args).toEqual(['tests/e2e/homepage-performance.spec.js', '--project', 'chromium']);
+        expect(runs[0].args).toEqual(['tests/e2e/spenden.spec.js', '--project', 'chromium']);
         expect(runs[0].env.PLAYWRIGHT_PORT).toBe('8100');
         expect(runs[0].env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^docker-chromium-/);
-        expect(runs[1].args).toEqual(['tests/e2e/homepage-performance.spec.js', '--project', 'firefox']);
+        expect(runs[1].args).toEqual(['tests/e2e/spenden.spec.js', '--project', 'firefox']);
         expect(runs[1].env.PLAYWRIGHT_PORT).toBe('8101');
         expect(runs[1].env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^docker-firefox-/);
     });
@@ -102,7 +102,7 @@ describe('playwright docker harness', () => {
         });
 
         const exitCode = await main({
-            argv: ['tests/e2e/homepage-performance.spec.js', '--project=webkit'],
+            argv: ['tests/e2e/spenden.spec.js', '--project=webkit'],
             env: {
                 PLAYWRIGHT_RUN_TOKEN: 'provided-token',
                 PLAYWRIGHT_PORT: '8100',
@@ -150,7 +150,7 @@ describe('playwright docker harness', () => {
         });
 
         const exitCode = await main({
-            argv: ['tests/e2e/homepage-performance.spec.js', '--project=webkit'],
+            argv: ['tests/e2e/spenden.spec.js', '--project=webkit'],
             env: {
                 PLAYWRIGHT_RUN_TOKEN: 'provided-token',
                 PLAYWRIGHT_PORT: '8100',
@@ -170,42 +170,75 @@ describe('playwright docker harness', () => {
         expect(spawnFn.mock.calls[1][1]).toEqual([
             expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
             'test',
-            'tests/e2e/homepage-performance.spec.js',
+            'tests/e2e/spenden.spec.js',
             '--project=webkit',
         ]);
     });
 });
 
 describe('playwright config smoke import', () => {
-    const originalRunToken = process.env.PLAYWRIGHT_RUN_TOKEN;
+    beforeEach(() => {
+        // Exercise local defaults even when Vitest itself runs on a CI runner.
+        vi.stubEnv('CI', undefined);
+        vi.stubEnv('APP_KEY', undefined);
+        vi.stubEnv('PLAYWRIGHT_USE_DOCKER', undefined);
+        vi.stubEnv('PLAYWRIGHT_WORKERS', undefined);
+        vi.stubEnv('PLAYWRIGHT_REUSE_EXISTING_SERVER', undefined);
+        vi.stubEnv('PLAYWRIGHT_RUN_TOKEN', undefined);
+        vi.stubEnv('PLAYWRIGHT_USE_VITE_HOT', undefined);
+        vi.resetModules();
+    });
 
     afterEach(() => {
-        if (typeof originalRunToken === 'undefined') {
-            delete process.env.PLAYWRIGHT_RUN_TOKEN;
-            return;
-        }
-
-        process.env.PLAYWRIGHT_RUN_TOKEN = originalRunToken;
+        vi.unstubAllEnvs();
     });
 
     it('laedt die Config und setzt einen konsistenten Run-Token', async () => {
-        delete process.env.PLAYWRIGHT_RUN_TOKEN;
-        delete process.env.PLAYWRIGHT_USE_VITE_HOT;
-        vi.resetModules();
-
         const { default: config } = await import('../../playwright.config.js');
 
         expect(process.env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^local-/);
         expect(config.webServer.env.PLAYWRIGHT_RUN_TOKEN).toBe(process.env.PLAYWRIGHT_RUN_TOKEN);
+        const applicationKey = config.webServer.env.APP_KEY;
+        expect(applicationKey).toBe(process.env.APP_KEY);
+        expect(applicationKey).toMatch(/^base64:[A-Za-z0-9+/]{43}=$/);
+        expect(Buffer.from(applicationKey.slice(7), 'base64')).toHaveLength(32);
+        vi.resetModules();
+        const reloadedConfig = (await import('../../playwright.config.js')).default;
+        expect(reloadedConfig.webServer.env.APP_KEY).toBe(applicationKey);
         expect(config.webServer.env.PLAYWRIGHT_USE_VITE_HOT).toBe('0');
+        expect(config.projects.map(project => project.name)).toEqual(['chromium', 'firefox', 'webkit']);
+        expect(config.workers).toBeUndefined();
+        expect(config.retries).toBe(0);
+        expect(config.forbidOnly).toBe(false);
+        expect(config.webServer.reuseExistingServer).toBe(true);
+        expect(config.use.trace).toBe('retain-on-failure-and-retries');
     });
 
     it('reicht PLAYWRIGHT_USE_VITE_HOT explizit an den Webserver weiter', async () => {
-        process.env.PLAYWRIGHT_USE_VITE_HOT = '1';
-        vi.resetModules();
+        vi.stubEnv('PLAYWRIGHT_USE_VITE_HOT', '1');
 
         const { default: config } = await import('../../playwright.config.js');
 
         expect(config.webServer.env.PLAYWRIGHT_USE_VITE_HOT).toBe('1');
+    });
+
+    it('isoliert CI-Browser, Worker, Server und Diagnoseeinstellungen von lokalen Defaults', async () => {
+        vi.stubEnv('CI', 'true');
+        const suppliedKey = `base64:${Buffer.alloc(32, 7).toString('base64')}`;
+        vi.stubEnv('APP_KEY', suppliedKey);
+
+        const { default: config } = await import('../../playwright.config.js');
+
+        expect(config.projects.map(project => project.name)).toEqual(['chromium', 'firefox']);
+        expect(config.webServer.env.APP_KEY).toBe(suppliedKey);
+        expect(process.env.APP_KEY).toBe(suppliedKey);
+        expect(config.workers).toBe(1);
+        expect(config.retries).toBe(1);
+        expect(config.forbidOnly).toBe(true);
+        expect(config.webServer.reuseExistingServer).toBe(false);
+        expect(config.use.trace).toEqual({
+            mode: 'on-first-retry',
+            snapshots: { dom: true, aria: true, screen: true },
+        });
     });
 });

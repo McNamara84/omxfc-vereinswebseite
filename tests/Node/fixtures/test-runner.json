@@ -1,0 +1,6 @@
+{
+    "alpha": "import test from 'node:test';\ntest('glob fixture alpha', () => {});",
+    "beta": "import test from 'node:test';\ntest('glob fixture beta', () => {});",
+    "failingBeta": "import test from 'node:test';\ntest('glob fixture beta', () => { throw new Error('fixture failure'); });",
+    "ignored": "throw new Error('nonmatching fixture executed');"
+}

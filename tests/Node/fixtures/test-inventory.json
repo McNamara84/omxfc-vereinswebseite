@@ -1,0 +1,11 @@
+{
+    "attributes": "public function test_named_case() {}\n#[Test]\n#[DataProvider('examples')]\npublic function attributed_case() {}\n#[\\PHPUnit\\Framework\\Attributes\\Test]\npublic function qualified_case() {}\n#[Test]\npublic string $property;\npublic function helper() {}\npublic function examples() {}",
+    "classifications": {
+        "tests/Feature/ExampleTest.php": "use RefreshDatabase; it('a feature case', function () { ExampleSeeder::class; });",
+        "tests/e2e/example.spec.js": "test('a browser case', async () => {});",
+        "tests/e2e/homepage-performance.benchmark.js": "test('a performance case', async () => {});",
+        "tests/Integration/ExampleMariaDbTest.php": "use Tests\\TestCase; public function test_database_case() {}"
+    },
+    "backtrackingSuffix": "not_a_method;\npublic function helper() {}\npublic function test_valid_case() {}",
+    "parameterized": "test.each([\n  ['missing', undefined],\n  ['rejects', vi.fn().mockRejectedValue(new Error('denied )'))],\n  // Ignore parentheses in comments: ) (\n  ['throws', vi.fn(() => { throw new Error('blocked'); })],\n  /* more ) ( */\n])('nested case %s', async (_label, handler) => {});\nit.each(['stop()', 'destroy()'])(\n  'multiline case %s',\n  async method => {},\n);\nit . each ( [{ value: `text )` }, { value: ')'}] ) (`spaced case $value`, value => {});\ntest(\"an 'ordinary' case\", () => {});"
+}

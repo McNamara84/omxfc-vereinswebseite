@@ -132,10 +132,11 @@ test.describe('Mitgliederliste', () => {
         }));
         console.log('[DEBUG] Copy button info:', JSON.stringify(buttonInfo));
         
-        await copyButton.click();
+        // Keep native pointer/stability checks while the popover settles.
+        await page.click('[data-members-table] tbody tr:first-child [data-copy-email]', { strict: true });
         
         // DEBUG: Check __copiedText immediately after click
-        await page.waitForTimeout(500);
+        await expect.poll(() => page.evaluate(() => window.__copiedText?.trim())).toBe(email?.trim());
         const copiedImmediate = await page.evaluate(() => window.__copiedText);
         console.log('[DEBUG] __copiedText after click:', copiedImmediate);
 

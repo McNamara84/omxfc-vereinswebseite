@@ -14,7 +14,8 @@ async function login(page, email, { waitForActivityFeed = true } = {}) {
     await page.goto('/login');
     await page.locator('[name="email"]').fill(email);
     await page.locator('[name="password"]').fill('password');
-    await page.locator('button[type="submit"]').click();
+    // Scope the login form and perform one native action, also without JS.
+    await page.click('form:has(input[name="password"]) button[type="submit"]', { strict: true });
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
     if (waitForActivityFeed) {
         await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
@@ -23,11 +24,11 @@ async function login(page, email, { waitForActivityFeed = true } = {}) {
 
 async function challenge(page, npcUrl, character) {
     await page.goto(npcUrl);
-    await page.getByRole('link', { name: 'Zum Übungskampf herausfordern' }).click();
+    await page.click('a:text-is("Zum Übungskampf herausfordern")', { strict: true });
     const form = page.locator('form').filter({ has: page.locator('[name="kind"][value="npc_vs_player"]') });
     await form.locator('[name="opponent_id"]').selectOption(String(character));
     await form.locator('[name="distance"]').fill('1');
-    await form.getByRole('button', { name: 'Mit NSC verbindlich herausfordern' }).click();
+    await page.click('form:has(input[name="kind"][value="npc_vs_player"]) button[type="submit"]', { strict: true });
     await page.waitForURL(/\/rpg\/uebungskaempfe\/\d+$/);
     return page.url();
 }
@@ -97,8 +98,10 @@ test('fixed special character can be created without JavaScript after repeated f
             }
             await page.goto('/rpg/charaktere/nscs/neu?template_key=maddrax');
             await expect(page.getByLabel('Optionaler Name')).toHaveCount(0);
-            await page.getByRole('button', { name: 'Vorschau berechnen' }).click();
-            await page.getByTestId('npc-create').click();
+            // WebKit's trial action can submit a JavaScript-disabled form.
+            // Use one native click so the shared helper cannot submit twice.
+            await page.click('button:text-is("Vorschau berechnen")', { strict: true });
+            await page.click('[data-testid="npc-create"]', { strict: true });
             await expect(page.getByRole('heading', { name: 'Matthew Drax', exact: true })).toBeVisible();
             await expect(page.getByText('NSC-Name ändern', { exact: true })).toHaveCount(0);
             await expect(page).toHaveURL(/\/rpg\/charaktere\/nscs\/\d+$/);
