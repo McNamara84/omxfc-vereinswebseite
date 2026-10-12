@@ -884,6 +884,10 @@ gemountete `public/build` und generierte Assets in `public/vendor` bleiben erhal
 Für eine vorhandene vollständige Host-Installation kann `TEST_RUNTIME=host`
 gesetzt werden; die Deploymenthelfer benötigen eine Linux-Shell mit PHP und Node.
 Die zusätzlichen Sandbox-, Screenshot- und Typesense-Prüfungen bleiben opt-in.
+Die vollständige Node-Prüfung übergibt das Dateimuster als einzelnes Argument.
+Der festgelegte [Node-26-Test-Runner](https://nodejs.org/api/test.html#running-tests-from-the-command-line)
+löst es selbst auf und benötigt dafür keine Shell; Subprozess-Tests prüfen die
+Dateiauswahl und die Weitergabe von Fehlern.
 
 Die isolierten Docker-Testcontainer erzeugen beim Start einen zufälligen
 Laravel-Schlüssel. Playwright erzeugt bei Bedarf ebenfalls einen Schlüssel und
@@ -926,13 +930,16 @@ erfordern zusätzlich die fachliche Prüfung der bisherigen Testverträge.
 
 ```sh
 # JavaScript nach npm run test:coverage:
-node tools/testing/coverage.mjs js coverage/coverage-final.json coverage/js-snapshot.json
-node tools/testing/check-coverage.mjs tests/coverage-baselines/javascript.json coverage/js-snapshot.json
+npm run test:coverage:check
 
 # PHP mit Xdebug nach composer test:coverage:
 php tools/testing/php-coverage.php coverage/php-snapshot.json coverage/php.php
 node tools/testing/check-coverage.mjs tests/coverage-baselines/php.json coverage/php-snapshot.json
 ```
+
+`npm run test:coverage:check` erzeugt den JS-Snapshot aus dem zuvor gemessenen
+`coverage/coverage-final.json` neu und prüft ihn mit demselben Gate wie die CI.
+Fehlende Messdaten führen zum Fehler, auch wenn noch ein älterer Snapshot vorliegt.
 
 PHP-Coverage wird in CI aus den beiden regulären Pest-Shards zusammengeführt;
 ein zusätzlicher vollständiger PHP-Coverage-Lauf entfällt. Die PHP-13-Serialisierung

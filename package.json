@@ -30,7 +30,7 @@
         "test:fast": "node tools/testing/run.mjs fast",
         "test:all": "node tools/testing/run.mjs all",
         "test:inventory": "node tools/testing/inventory.mjs",
-        "test:coverage:check": "node tools/testing/coverage.mjs compare",
+        "test:coverage:check": "node tools/testing/coverage.mjs js coverage/coverage-final.json coverage/js-snapshot.json && node tools/testing/check-coverage.mjs tests/coverage-baselines/javascript.json coverage/js-snapshot.json",
         "docker:dev:test:js": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec -T vite npm run test"
     },
     "devDependencies": {

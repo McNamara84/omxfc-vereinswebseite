@@ -6468,6 +6468,17 @@
     "seeders": []
   },
   {
+    "file": "tests/Node/coverage-script.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the npm coverage check generates a fresh snapshot and rejects lost coverage",
+      "the npm coverage check rejects missing measurements despite a stale passing snapshot"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Node/coverage.test.mjs",
     "runner": "node",
     "laravel": false,
@@ -6568,7 +6579,9 @@
       "the fast scope selects only isolated PHP Unit and retains all JS tests",
       "the complete scope includes all three MariaDB suites and regular browsers",
       "explicit PHP filters are forwarded as arguments and unknown scopes fail",
-      "a failed command stops the sequence and propagates its exit code"
+      "a failed command stops the sequence and propagates its exit code",
+      "the complete Node command discovers every matching fixture without shell expansion",
+      "a failure discovered through the literal Node glob propagates to the complete runner"
     ],
     "seeders": []
   },

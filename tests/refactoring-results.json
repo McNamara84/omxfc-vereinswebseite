@@ -974,5 +974,33 @@
       "coverageFloorsChanged": false,
       "scope": "Application code and functional tests were unchanged. PHP validation reran the affected public-asset tests; the complete PHP suite and PHP coverage were not rerun in this review round."
     }
-  }
+  },
+  "reviewFollowUps": [
+    {
+      "verifiedAt": "2026-10-12",
+      "reviewedCommit": "e8e778c181fc5159e3874e44adc0d6913a7ad9e2",
+      "findings": {
+        "npmCoverageCheck": {
+          "valid": true,
+          "resolution": "The npm command now regenerates the JavaScript snapshot from coverage-final.json and invokes the same baseline checker as CI without additional arguments."
+        },
+        "literalNodeGlob": {
+          "valid": false,
+          "reason": "The required Node 26 test runner expands glob arguments itself. Real subprocess fixtures verify matching files and failure propagation with shell=false; the actual test:all Node step also passes through spawn and the disposable runner unchanged.",
+          "documentation": "https://nodejs.org/api/test.html#running-tests-from-the-command-line"
+        }
+      },
+      "verification": {
+        "completeNodeStepLinux": { "passed": 80, "failed": 0, "skipped": 0 },
+        "portableNodeStepWindows": { "passed": 28, "failed": 0, "skipped": 0 },
+        "npmCheckRejectsStaleSnapshotsAndMissingMeasurements": true,
+        "vitestPassed": 451,
+        "coverageRegressionsAgainstPreviousReview": 0,
+        "sameCoverageMetricsAsPreviousReview": true,
+        "coverageFloorsChanged": false,
+        "inventoryFiles": 444,
+        "scope": "Verified the complete Node step of test:all, portable Windows Node subset and complete Vitest coverage. PHP, MariaDB and browser suites were not rerun in this review round."
+      }
+    }
+  ]
 }

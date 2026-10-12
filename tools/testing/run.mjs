@@ -17,8 +17,9 @@ export function commandsFor(scope, { runtime = 'docker', args = [], node = proce
     if (['fast', 'all', 'php', 'unit'].includes(scope)) commands.push({ ...php(['vendor/bin/pest', ...(['fast', 'unit'].includes(scope) ? ['--testsuite=Unit'] : []), '--compact', '--timeout=1800', ...args]), env: sqliteEnvironment });
     if (['fast', 'all'].includes(scope)) {
         commands.push({ command: node, args: ['node_modules/vitest/vitest.mjs', 'run', '--config', 'vitest.config.js'] });
+        // Node 26 expands --test glob patterns itself, including when shell is false.
         commands.push(scope === 'fast'
-            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs'] }
+            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/coverage-script.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs'] }
             : runtime === 'docker'
             ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'node', 'node', '--test', 'tests/Node/*.test.mjs'] }
             : { command: node, args: ['--test', 'tests/Node/*.test.mjs'] });
