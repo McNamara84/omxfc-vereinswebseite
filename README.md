@@ -878,6 +878,9 @@ Der vollständige Einstieg baut die Frontend-Assets einmal in einem eigenen
 Docker-Volume. Er benötigt dafür keinen PHP-Vendor-Baum auf Windows und verändert
 keine Entwicklungs-Assets. Ein Testfehler beendet den Ablauf mit dessen Exitcode.
 Die manuell gestarteten MariaDB-Container bleiben bis zum Aufräumen verfügbar.
+Bei jedem Containerstart werden auch die aktuellen Quellen aus `public/`
+übernommen und inzwischen gelöschte statische Dateien entfernt. Das separat
+gemountete `public/build` und generierte Assets in `public/vendor` bleiben erhalten.
 Für eine vorhandene vollständige Host-Installation kann `TEST_RUNTIME=host`
 gesetzt werden; die Deploymenthelfer benötigen eine Linux-Shell mit PHP und Node.
 Die zusätzlichen Sandbox-, Screenshot- und Typesense-Prüfungen bleiben opt-in.
@@ -894,6 +897,8 @@ beim Aufbau des Schemas und stellt sie anschließend per Transaktions-Rollback
 wieder her. Eigene Seeder einzelner Fachtests bleiben bestehen. Das statische Inventar in
 `tests/test-suite-inventory.json` kann mit
 `node tools/testing/inventory.mjs tests/test-suite-inventory.json` erneuert werden.
+Es erfasst auch die Titelvorlagen von `test.each` und `it.each`, jeweils einmal
+pro Deklaration; die Zahl der zur Laufzeit erzeugten Datensätze steht im Testbericht.
 Die PHP-Attribute werden ohne verschachtelte Regex-Wiederholungen ausgewertet;
 ein begrenzter Subprozess-Test schützt vor dem von CodeQL erkannten Backtracking.
 
@@ -910,7 +915,11 @@ unter `app`; JavaScript behält den bisherigen V8-Quellenumfang. PHP-Zeilen und
 vollständig abgedeckte Methoden sowie JS-Zeilen, Statements, Functions und Branches
 dürfen insgesamt und je Datei nicht sinken. Für unveränderte Quellen muss zudem
 jede zuvor abgedeckte Stelle weiterhin abgedeckt sein. Der Vergleich verwendet
-ungerundete Zähler. Fehlende Berichte und Dateien führen zum Fehler. Im PR wird
+ungerundete Zähler. Fehlende Berichte und weiterhin vorhandene Quelldateien ohne
+Messdaten führen zum Fehler. Tatsächlich gelöschte Quellen entfallen auch aus der
+globalen Vergleichsbasis, damit ihre Entfernung den verbleibenden Quellen keine
+Regression zuschreibt. Unverändert umbenannte Quellen behalten anhand ihres
+Quellhashs die bisherige Abdeckung je Datei und Stelle. Im PR wird
 zusätzlich die Baseline des Zielbranches geprüft; eine abgesenkte Baseline im PR
 kann den Vergleich daher nicht umgehen. Änderungen an abgedeckten Quellen
 erfordern zusätzlich die fachliche Prüfung der bisherigen Testverträge.

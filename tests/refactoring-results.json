@@ -937,5 +937,42 @@
         "gitguardian": "The incident also references the already pushed original PR commit. A new removal commit does not remove that occurrence. Classify the dedicated test key as a test credential in GitGuardian; no checks or branch protections were disabled and history was not rewritten."
       }
     }
-  ]
+  ],
+  "reviewCorrections": {
+    "verifiedAt": "2026-10-12",
+    "reviewedCommit": "d98645c9787b26d73e57d2a2019ab09521dee0f6",
+    "changes": [
+      "Deleted coverage sources leave the comparable baseline; existing sources omitted from instrumentation still fail local and protected PR comparisons.",
+      "Unchanged renames preserve per-file and per-location coverage using the source hash.",
+      "Disposable containers synchronize current public sources and deletions while preserving mounted build and generated vendor assets.",
+      "The static inventory records parameterized test.each/it.each title templates, including nested datasets."
+    ],
+    "verification": {
+      "completeNodeLinux": { "passed": 76, "failed": 0, "skipped": 0 },
+      "finalReviewRegressionTestsLinux": { "passed": 19, "failed": 0, "skipped": 0 },
+      "portableNodeWindows": { "passed": 24, "failed": 0, "skipped": 0 },
+      "phpPublicAssetTests": { "passed": 20, "assertions": 47, "failed": 0 },
+      "publicRunnerIntegration": {
+        "updatedSourcesMatchCheckout": true,
+        "deletedSourcesRemoved": true,
+        "readOnlySharedBuildPreserved": true,
+        "generatedLivewireAssetsPreserved": true
+      },
+      "inventory": { "files": 443, "previouslyMissingVitestParameterizedDeclarationsAdded": 10 },
+      "vitest": {
+        "passed": 451,
+        "coverage": {
+          "lines": { "total": 3760, "covered": 3169 },
+          "statements": { "total": 4204, "covered": 3495 },
+          "functions": { "total": 1037, "covered": 893 },
+          "branches": { "total": 3014, "covered": 2136 }
+        },
+        "coverageRegressions": 0,
+        "sameMetricsAsReviewedCommit": true,
+        "localAndProtectedBaselineChecksPassed": true
+      },
+      "coverageFloorsChanged": false,
+      "scope": "Application code and functional tests were unchanged. PHP validation reran the affected public-asset tests; the complete PHP suite and PHP coverage were not rerun in this review round."
+    }
+  }
 }

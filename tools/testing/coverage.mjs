@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { lstatSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -72,7 +72,7 @@ export function validateSnapshot(snapshot) {
     const names = snapshot.language === 'php' ? ['lines', 'functions'] : metricNames;
     const totals = Object.fromEntries(names.map(name => [name, { total: 0, covered: 0 }]));
     for (const [filename, file] of Object.entries(snapshot.files)) {
-        if (path.posix.isAbsolute(filename) || /^[a-z]:/i.test(filename) || filename.includes('\\') || filename.split('/').includes('..') || !/^[a-f0-9]{64}$/.test(file.hash)) throw new Error(`Invalid coverage source: ${filename}`);
+        if (path.posix.isAbsolute(filename) || /^[a-z]:/i.test(filename) || filename.includes('\\') || filename.includes('\0') || filename.split('/').some(part => !part || part === '.' || part === '..') || !/^[a-f0-9]{64}$/.test(file.hash)) throw new Error(`Invalid coverage source: ${filename}`);
         for (const name of names) {
             const value = file.metrics?.[name];
             const units = file.units?.[name];
@@ -95,26 +95,49 @@ function hasRegressed(before, after) {
     return BigInt(after.covered) * BigInt(before.total) < BigInt(before.covered) * BigInt(after.total);
 }
 
-export function compareCoverage(baseline, candidate) {
+// Call only through compareCoverage, after validating the snapshot paths.
+export function checkoutSourceExists(filename) {
+    try { lstatSync(path.resolve(filename)); return true; }
+    catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return false;
+        throw error;
+    }
+}
+
+export function compareCoverage(baseline, candidate, { sourceExists = () => true } = {}) {
     validateSnapshot(baseline);
     validateSnapshot(candidate);
     if (baseline.language !== candidate.language || baseline.profile !== candidate.profile) throw new Error('Coverage profiles are not comparable');
+    const claimedRenames = new Set();
+    const comparableFiles = Object.entries(baseline.files).flatMap(([filename, before]) => {
+        let candidateFilename = filename;
+        let after = candidate.files[filename];
+        if (!after && sourceExists(filename) === false) {
+            // Preserve the per-file and per-location contract for unchanged renames.
+            const renamed = Object.entries(candidate.files).find(([name, file]) => !baseline.files[name] && !claimedRenames.has(name) && file.hash === before.hash);
+            if (!renamed) return [];
+            [candidateFilename, after] = renamed;
+            claimedRenames.add(candidateFilename);
+        }
+        return [{ filename, candidateFilename, before, after }];
+    });
     const regressions = [];
     for (const name of Object.keys(baseline.metrics)) {
-        if (hasRegressed(baseline.metrics[name], candidate.metrics[name])) regressions.push(`Total ${name} coverage decreased`);
+        const retained = comparableFiles.reduce((total, { before }) => ({ total: total.total + before.metrics[name].total, covered: total.covered + before.metrics[name].covered }), { total: 0, covered: 0 });
+        if (hasRegressed(retained, candidate.metrics[name])) regressions.push(`Total ${name} coverage decreased`);
     }
-    for (const [filename, before] of Object.entries(baseline.files)) {
-        const after = candidate.files[filename];
+    for (const { filename, candidateFilename, before, after } of comparableFiles) {
         if (!after) {
             regressions.push(`Source file missing from coverage: ${filename}`);
             continue;
         }
+        const label = candidateFilename === filename ? filename : `${filename} -> ${candidateFilename}`;
         for (const name of Object.keys(before.metrics)) {
-            if (hasRegressed(before.metrics[name], after.metrics[name])) regressions.push(`${filename}: ${name} coverage decreased`);
+            if (hasRegressed(before.metrics[name], after.metrics[name])) regressions.push(`${label}: ${name} coverage decreased`);
             if (before.hash === after.hash) {
                 for (const [id, covered] of Object.entries(before.units[name])) {
-                    if (!(id in after.units[name])) regressions.push(`${filename}: ${name} ${id} missing from coverage`);
-                    else if (covered && !after.units[name][id]) regressions.push(`${filename}: previously covered ${name} ${id} is uncovered`);
+                    if (!(id in after.units[name])) regressions.push(`${label}: ${name} ${id} missing from coverage`);
+                    else if (covered && !after.units[name][id]) regressions.push(`${label}: previously covered ${name} ${id} is uncovered`);
                 }
             }
         }
@@ -159,7 +182,7 @@ export function runCoverageCommand(args) {
     } else if (command === 'merge' && files.length >= 3) {
         write(files[0], mergeSnapshots(files.slice(1).map(read)));
     } else if (command === 'compare' && files.length === 2) {
-        const regressions = compareCoverage(read(files[0]), read(files[1]));
+        const regressions = compareCoverage(read(files[0]), read(files[1]), { sourceExists: checkoutSourceExists });
         if (regressions.length) throw new Error(`Coverage regression:\n${regressions.slice(0, 40).join('\n')}${regressions.length > 40 ? `\n... ${regressions.length} regressions` : ''}`);
         console.log('Coverage preserved globally, per file, and at unchanged source locations.');
     } else {

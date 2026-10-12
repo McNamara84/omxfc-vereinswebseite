@@ -101,6 +101,7 @@
       "Erweiterung: bewahrt die neuesten marsianischen Eingaben nach wiederholten Rassenwechseln",
       "Erweiterung ist mobil im Dark Mode per Tastatur bedienbar",
       "Erweiterung ist voreingestellt, beschriftet und ohne verwendete Inhalte abschaltbar",
+      "Erweiterung: ${race} lässt sich mit allen Regelboni speichern",
       "Erweiterung: gewählte Ausbildung verhindert das Abschalten und wird nach Abwahl ausgeblendet",
       "erzeugt gueltige kurze Testuser-Mailadressen fuer CI",
       "lädt ohne Persist-Fehler und sperrt den Formularfluss initial korrekt",
@@ -413,6 +414,7 @@
       "member shell exposes a collapsible desktop sidebar with one active link",
       "mobile member drawer opens, closes with escape and closes after navigation",
       "member navigation transitions only the content region and respects reduced motion",
+      "member shell switches navigation correctly at ${width}px",
       "authenticated users retain the public navbar on public routes"
     ],
     "seeders": []
@@ -6458,7 +6460,10 @@
     "database": false,
     "methods": [
       "a lowered PR baseline cannot hide lost coverage against the protected base",
-      "a missing base commit fails instead of silently accepting the local floor"
+      "a missing base commit fails instead of silently accepting the local floor",
+      "deleted sources pass local and protected PR comparisons with an unchanged or updated floor",
+      "existing sources omitted from instrumentation fail even if the PR removes them from its floor",
+      "unchanged source renames pass but retain their protected coverage contract"
     ],
     "seeders": []
   },
@@ -6474,7 +6479,8 @@
       "missing reports, missing files and incompatible profiles fail",
       "raw fractions detect losses hidden by percentage rounding",
       "shards merge the union of coverage without double-counting",
-      "inconsistent counters and invalid source paths are rejected"
+      "inconsistent counters and invalid source paths are rejected",
+      "source existence is checked only after validating all snapshot paths"
     ],
     "seeders": []
   },
@@ -6492,6 +6498,7 @@
       "later 13.0 deployments preserve the active database copy instead of reopening the 12.3 volume",
       "split storage and the existing /typesense-data mount survive both rollout and recovery",
       "incomplete split storage and missing Typesense mounts are rejected before downtime",
+      "12.3 upgrade failure during ${operation} restores the untouched original database",
       "an unclean shutdown refuses copying and restores the original database first",
       "an unexpected deployed version is recovered before the app can start",
       "retention removes expired database copies while preserving those needed by recent rollbacks",
@@ -6502,6 +6509,7 @@
       "malformed resolved configuration fails without revealing its private contents",
       "concurrent Compose JSON validation never reads incomplete fixture state",
       "the PHP fixture forwards complete error output before returning its failure status",
+      "failure during ${operation} restores service availability and retains failure status",
       "expired tags, orphan code volumes and private dumps are removed; recent sets and shared volumes survive",
       "retention preserves a code volume used by a stopped container and an active rollback image tag",
       "retention keeps an expired backup used as an active Compose input",
@@ -6510,6 +6518,17 @@
       "recognized legacy rollback backups are expired without deleting manual backups",
       "failed recovery keeps maintenance enabled, reports its backup and preserves the original exit code",
       "termination during maintenance restores the original services and returns the signal exit status"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/public-sync.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "public sources refresh edits, additions and deletions while preserving generated assets",
+      "a missing public source fails before deleting existing container files"
     ],
     "seeders": []
   },
@@ -6533,6 +6552,7 @@
     "methods": [
       "PHP inventory recognizes named tests and adjacent short and qualified Test attributes",
       "inventory retains Pest and browser cases, manual classifications and seeder metadata",
+      "inventory includes test.each and it.each title templates with nested datasets",
       "the CodeQL repeated-attribute input finishes within a bounded subprocess"
     ],
     "seeders": [
@@ -7055,11 +7075,12 @@
     "database": false,
     "methods": [
       "setzt window.Alpine auf das übergebene Modul",
-      "gibt mode ",
+      "gibt mode \"standalone\" zurück",
       "ruft Alpine.start() auf",
       "registriert übergebene Plugins auf dem eigenen Alpine",
       "funktioniert ohne Plugins",
       "überschreibt window.Alpine NICHT",
+      "gibt mode \"livewire\" zurück",
       "ruft NICHT Alpine.start() auf dem App-Modul auf",
       "ruft NICHT Alpine.start() auf Livewires Alpine auf",
       "registriert im Livewire-Modus keine Plugins aus dem App-Bundle",
@@ -7089,7 +7110,8 @@
       "nutzt { once: true } um doppelte Ausführung zu vermeiden",
       "initialisiert Alpine im Standalone-Modus wenn DOMContentLoaded feuert (kein Livewire)",
       "erkennt Livewires Alpine wenn DOMContentLoaded feuert und registriert nichts nach",
-      "führt initAlpine sofort aus bei readyState ",
+      "führt initAlpine sofort aus bei readyState \"interactive\"",
+      "führt initAlpine sofort aus bei readyState \"complete\"",
       "erkennt vorhandenes Livewire-Alpine sofort ohne Plugin-Nachregistrierung",
       "verhindert Standalone-Start wenn Livewire-Script noch laden muss",
       "startet Alpine standalone wenn kein Livewire auf der Seite ist"
@@ -7278,15 +7300,19 @@
       "setzt das Kauf-Flag synchron im Hidden Input wenn ein voller Speicher bestaetigt wird",
       "bricht Speichern ab wenn ein voller Speicher nicht bestaetigt wird",
       "aktiviert die Erweiterung für neue Charaktere und filtert Ausbildungen beim Abschalten",
+      "wendet Rasse %s und ihre verpflichtende Kultur %s an",
       "übernimmt Morlock-Boni und addiert die Ruinenbewohner-Kultur",
       "tauscht bei Agarthern Feuerwaffen gegen Nahkampf und behält zwölf Rassenpunkte",
+      "addiert den marsianischen Kulturbonus %s",
       "wechselt die Ersatzfertigkeit ohne zusätzliche Poolpunkte und erhält fixe Berufspunkte",
       "ignoriert unzulässige Ersatzfertigkeiten und Kulturboni",
       "benötigt Kind zweier Welten bei Intuition als marsianischer Ersatzfertigkeit",
       "erhält bezahlte Punkte beim Wechsel marsianischer Wahlboni ohne zusätzliche FP-Kosten",
       "entfernt beim Ersatzfertigkeitswechsel nur Poolboni und erhält gekaufte Fertigkeitspunkte",
       "verändert bei einem blockierten Abschaltversuch keine Charakterwerte",
+      "verhindert das Abschalten bei gewählter Ausbildung %s",
       "sperrt erzwungene Auswahlen deaktivierter Quellen",
+      "reaktiviert eine deaktivierte oder alte Auswahl nach Fehlern nicht: %j",
       "stellt marsianische Quellen, Ersatzfertigkeit, Pool und Kulturbonus wieder her",
       "entfernt Erweiterungsboni beim Wechsel zu einer Basisrasse",
       "stellt beim Rückwechsel die marsianische Ersatzfertigkeit und deren Punkte wieder her",
@@ -7302,9 +7328,12 @@
     "database": false,
     "methods": [
       "starts native fullscreen directly from the trigger and focuses the cover",
+      "keeps the CSS fallback active when requestFullscreen %s",
       "ends native fullscreen, restores scroll and returns focus",
+      "does not restore scroll during %s before a session has started",
       "restores an owned scroll position only once across repeated cleanup",
       "returns focus to the overview state when the saved trigger became disabled",
+      "exits fullscreen when a stale request resolves after %s",
       "blocks a restart until a stopped fullscreen request has settled",
       "blocks a restart until the previous native fullscreen exit has settled",
       "closes the session when the browser leaves a previously active native fullscreen",
@@ -7575,6 +7604,7 @@
     "methods": [
       "registers once before a later Alpine startup without manually initializing roots",
       "registers immediately and initializes both existing root types when Alpine is present",
+      "repairs a previously failed %s root before initializing it",
       "preserves already functional forms and displays during repeated module registration",
       "registers providers even when Alpine does not expose hydration APIs",
       "ignores an init event without an available Alpine registration API",
@@ -7594,6 +7624,7 @@
       "cleans timers, requests and listeners on navigation",
       "discards a response whose body finishes loading after navigation",
       "does not report an intentional fetch abort as a connection failure",
+      "stops on authentication or authorization status %s",
       "recovers from server and network failures",
       "deduplicates characters and uses shared settings without UI or result fields",
       "opposed checks have two independent specifications and no difficulty",
@@ -7701,7 +7732,8 @@
       "applies and prepares the dark system theme without marking it explicit",
       "treats an existing maryUI value as an explicit preference",
       "migrates the former theme key and preserves the explicit choice",
-      "continues following system changes for an automatically persisted value"
+      "continues following system changes for an automatically persisted value",
+      "refreshes an automatically persisted $storedTheme theme from the current system preference"
     ],
     "seeders": []
   },

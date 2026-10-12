@@ -51,3 +51,12 @@ test('inconsistent counters and invalid source paths are rejected', () => {
     assert.throws(() => validateSnapshot(candidate), /Inconsistent total/);
     assert.throws(() => snapshot(undefined, '../secret.php'), /Invalid coverage source/);
 });
+
+test('source existence is checked only after validating all snapshot paths', () => {
+    for (const filename of ['../secret.php', '/secret.php', 'C:/secret.php', 'app\\secret.php', 'app/./secret.php', 'app//secret.php', 'app/secret\0.php', '']) {
+        const baseline = snapshot();
+        baseline.files[filename] = baseline.files['app/example.php'];
+        delete baseline.files['app/example.php'];
+        assert.throws(() => compareCoverage(baseline, snapshot(), { sourceExists: () => assert.fail('An invalid path reached the filesystem callback') }), /Invalid coverage source/);
+    }
+});

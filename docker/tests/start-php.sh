@@ -24,6 +24,7 @@ cp /source/artisan /source/server.php /source/composer.json /source/composer.loc
 cp /source/package.json /source/package-lock.json /source/vite.config.js /source/vitest.config.js /source/playwright.config.js /source/playwright.benchmark.config.js .
 cp /source/phpunit*.xml .
 cp /source/.env.testing .env
+sh docker/tests/sync-public.sh
 if [ "${TEST_USE_SHARED_ASSETS:-0}" != '1' ] && [ -d /source/public/build ]; then
     mkdir -p public/build
     cp -a /source/public/build/. public/build/

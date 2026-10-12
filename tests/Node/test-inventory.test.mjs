@@ -36,6 +36,13 @@ test('inventory retains Pest and browser cases, manual classifications and seede
     assert.equal(entries['tests/Integration/ExampleMariaDbTest.php'].runner, 'mariadb');
 });
 
+test('inventory includes test.each and it.each title templates with nested datasets', t => {
+    const root = fixture(t, { 'tests/Vitest/Parameterized.test.js': examples.parameterized });
+    const [entry] = inventory(root);
+    assert.equal(entry.runner, 'vitest');
+    assert.deepEqual(entry.methods, ['nested case %s', 'multiline case %s', 'spaced case $value', "an 'ordinary' case"]);
+});
+
 test('the CodeQL repeated-attribute input finishes within a bounded subprocess', t => {
     const repeated = (String.raw`#[\\\]` + ' ').repeat(10000);
     const root = fixture(t, { 'tests/Unit/RepeatedTest.php': `${repeated}\n${examples.backtrackingSuffix}` });

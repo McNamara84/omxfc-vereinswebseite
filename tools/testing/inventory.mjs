@@ -29,13 +29,61 @@ function phpTestMethods(source) {
     return methods;
 }
 
+function quotedEnd(source, start) {
+    const quote = source[start];
+    for (let index = start + 1; index < source.length; index++) {
+        if (source[index] === '\\') index++;
+        else if (source[index] === quote) return index;
+    }
+    return -1;
+}
+
+function callEnd(source, start) {
+    let depth = 0;
+    for (let index = start; index < source.length; index++) {
+        if (['\'', '"', '`'].includes(source[index])) {
+            index = quotedEnd(source, index);
+            if (index < 0) return -1;
+        } else if (source.startsWith('//', index)) {
+            const end = source.indexOf('\n', index + 2);
+            if (end < 0) return -1;
+            index = end;
+        } else if (source.startsWith('/*', index)) {
+            const end = source.indexOf('*/', index + 2);
+            if (end < 0) return -1;
+            index = end + 1;
+        } else if (source[index] === '(') depth++;
+        else if (source[index] === ')' && --depth === 0) return index;
+    }
+    return -1;
+}
+
+function declaredTestCases(source) {
+    const cases = [];
+    for (const match of source.matchAll(/\b(?:it|test)\s*(\.\s*each\s*)?\(/g)) {
+        let start = match.index + match[0].length;
+        if (match[1]) {
+            const end = callEnd(source, start - 1);
+            if (end < 0) continue;
+            start = end + 1;
+            while (/\s/.test(source[start] ?? '') && start < source.length) start++;
+            if (source[start++] !== '(') continue;
+        }
+        while (/\s/.test(source[start] ?? '') && start < source.length) start++;
+        if (!['\'', '"', '`'].includes(source[start])) continue;
+        const end = quotedEnd(source, start);
+        if (end >= 0) cases.push(source.slice(start + 1, end));
+    }
+    return cases;
+}
+
 export function inventory(root = process.cwd()) {
     return walk(path.join(root, 'tests')).flatMap(filename => {
         const relative = path.relative(root, filename).split(path.sep).join('/');
         if (!/(Test\.php|\.test\.(js|mjs)|\.(spec|benchmark)\.js)$/.test(relative) && relative !== 'tests/Arch.php') return [];
         const source = readFileSync(filename, 'utf8');
         const classMethods = phpTestMethods(source);
-        const declaredCases = [...source.matchAll(/\b(?:it|test)\(\s*['"]([^'"\n]+)/g)].map(match => match[1]);
+        const declaredCases = declaredTestCases(source);
         const directory = relative.split('/')[1];
         let runner = { Unit: 'php-unit', Feature: 'php-feature', Integration: 'php-integration', Vitest: 'vitest', Node: 'node', e2e: 'playwright', Browser: 'pest-browser' }[directory] ?? 'architecture';
         if (/MariaDb/.test(path.basename(filename))) runner = 'mariadb';
