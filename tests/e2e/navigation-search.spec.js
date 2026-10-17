@@ -107,6 +107,7 @@ for (const shortcut of ['Control+k', 'Meta+k']) {
         const drawer = page.locator('#member-drawer');
         const opener = page.getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Dashboard', exact: true, includeHidden: true });
         await expect(drawer).toBeChecked();
+        await expect(opener).toBeVisible();
         await opener.focus();
         await expect(opener).toBeFocused();
 
