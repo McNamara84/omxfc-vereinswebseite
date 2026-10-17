@@ -38,6 +38,7 @@
 </head>
 
 <body class="font-sans antialiased">
+    <x-ui.skip-link />
     <x-banner />
     <div class="omxfc-app-shell min-h-screen bg-base-200">
         @unless($isMinimalTestLayout)
@@ -45,11 +46,10 @@
         @endunless
 
         {{-- Main Content --}}
-        <main class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
+        <main id="main-content" tabindex="-1" class="relative w-full scroll-mt-24 pb-12 pt-3 sm:pt-5 lg:pb-16">
             {{ $slot }}
         </main>
 
-        @include('layouts.partials.tour-runner')
 
         <!-- Footer -->
         @persist('footer')
@@ -65,6 +65,7 @@
     @stack('scripts')
 
     @unless($isMinimalTestLayout)
+        @include('navigation.spotlight', ['scope' => 'public'])
         @persist('toast')
             <x-toast />
         @endpersist

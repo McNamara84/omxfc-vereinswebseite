@@ -2,7 +2,7 @@
 
 $tours = [
     'hauptmenue' => [
-        'version' => 6,
+        'version' => 7,
         'title' => 'Hauptmenü entdecken',
         'description' => 'Führt neue Mitglieder durch Navbar, Sidebar, aktuelle Hinweise und das Profilmenü.',
         'self_service_enabled' => true,
@@ -56,7 +56,7 @@ $tours = [
             [
                 'key' => 'section-community',
                 'title' => 'Bereich Community',
-                'description' => 'Hier bündelt der Verein Austausch, Profile, Rezensionen und weitere Community-Inhalte.',
+                'description' => 'Hier findest du die Funktionen aus Community.',
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="section-community"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="section-community"]',
@@ -92,46 +92,6 @@ $tours = [
                 ],
             ],
             [
-                'key' => 'community-cover-ratings',
-                'title' => 'Cover-Bewertungen',
-                'description' => 'Bewerte Titelbilder mit Brinas und entdecke anschließend die anonymisierten Ergebnisse der Community.',
-                'config_enabled' => 'cover-ratings.enabled',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-cover-ratings"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-cover-ratings"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-community"]'],
-                ],
-            ],
-            [
-                'key' => 'community-reviews',
-                'title' => 'Rezensionen',
-                'description' => 'Hier liest und schreibst du Rezensionen und verfolgst Kommentare dazu.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-reviews"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-reviews"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-community"]'],
-                ],
-            ],
-            [
-                'key' => 'community-fanfiction',
-                'title' => 'Fanfiction',
-                'description' => 'Im Fanfiction-Bereich findest du veröffentlichte Texte und später den Weg zum eigenen Beitrag.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-fanfiction"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-fanfiction"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-community"]'],
-                ],
-            ],
-            [
                 'key' => 'community-swap',
                 'title' => 'Tauschbörse',
                 'description' => 'Über die Tauschbörse bietest du Hefte an, suchst Ausgaben und koordinierst Tausche.',
@@ -159,8 +119,8 @@ $tours = [
             ],
             [
                 'key' => 'section-content',
-                'title' => 'Bereich Inhalte',
-                'description' => 'Unter Inhalte liegen Nachschlagewerke, Downloads, Statistik und weitere Maddrax-Angebote.',
+                'title' => 'Bereich Lesen & Entdecken',
+                'description' => 'Hier findest du die Funktionen aus Lesen & Entdecken.',
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="section-content"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="section-content"]',
@@ -170,12 +130,39 @@ $tours = [
                 ],
             ],
             [
-                'key' => 'content-maddraxiversum',
-                'title' => 'Maddraxiversum',
-                'description' => 'Das Maddraxiversum bündelt spielerische und experimentelle Vereinsinhalte.',
+                'key' => 'community-reviews',
+                'title' => 'Rezensionen',
+                'description' => 'Hier liest und schreibst du Rezensionen und verfolgst Kommentare dazu.',
                 'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="content-maddraxiversum"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="content-maddraxiversum"]',
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-reviews"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-reviews"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-content"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-content"]'],
+                ],
+            ],
+            [
+                'key' => 'community-cover-ratings',
+                'title' => 'Cover-Bewertungen',
+                'description' => 'Bewerte Titelbilder mit Brinas und entdecke anschließend die anonymisierten Ergebnisse der Community.',
+                'config_enabled' => 'cover-ratings.enabled',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-cover-ratings"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-cover-ratings"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-content"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-content"]'],
+                ],
+            ],
+            [
+                'key' => 'community-fanfiction',
+                'title' => 'Fanfiction',
+                'description' => 'Im Fanfiction-Bereich findest du veröffentlichte Texte und später den Weg zum eigenen Beitrag.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="community-fanfiction"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="community-fanfiction"]',
                 ],
                 'reveal' => [
                     'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-content"]'],
@@ -222,6 +209,19 @@ $tours = [
                 ],
             ],
             [
+                'key' => 'content-maddraxiversum',
+                'title' => 'Maddraxiversum',
+                'description' => 'Das Maddraxiversum bündelt spielerische und experimentelle Vereinsinhalte.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="content-maddraxiversum"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="content-maddraxiversum"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-content"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-content"]'],
+                ],
+            ],
+            [
                 'key' => 'content-stats',
                 'title' => 'Statistik',
                 'description' => 'In der Statistik findest du Auswertungen zu Romanen, Zyklen, Autor:innen und Rezensionen.',
@@ -236,40 +236,14 @@ $tours = [
             ],
             [
                 'key' => 'section-events',
-                'title' => 'Bereich Veranstaltungen',
-                'description' => 'Hier findest du Treffen, Termine und Rückblicke auf Vereinsveranstaltungen.',
+                'title' => 'Bereich Termine & Treffen',
+                'description' => 'Hier findest du die Funktionen aus Termine & Treffen.',
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="section-events"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="section-events"]',
                 ],
                 'reveal' => [
                     'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]'],
-                ],
-            ],
-            [
-                'key' => 'events-photos',
-                'title' => 'Fotos',
-                'description' => 'Die Fotogalerie sammelt Bilder vergangener Treffen und anderer Veranstaltungen.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="events-photos"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="events-photos"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-events"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-events"]'],
-                ],
-            ],
-            [
-                'key' => 'events-meetings',
-                'title' => 'Meetings',
-                'description' => 'Über Meetings erreichst du laufende und vergangene interne oder digitale Runden.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="events-meetings"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="events-meetings"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-events"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-events"]'],
                 ],
             ],
             [
@@ -286,9 +260,125 @@ $tours = [
                 ],
             ],
             [
+                'key' => 'events-meetings',
+                'title' => 'Online-Treffen',
+                'description' => 'Über Meetings erreichst du laufende und vergangene interne oder digitale Runden.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="events-meetings"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="events-meetings"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-events"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-events"]'],
+                ],
+            ],
+            [
+                'key' => 'events-photos',
+                'title' => 'Veranstaltungsfotos',
+                'description' => 'Die Fotogalerie sammelt Bilder vergangener Treffen und anderer Veranstaltungen.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="events-photos"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="events-photos"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-events"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-events"]'],
+                ],
+            ],
+            [
+                'key' => 'section-projects',
+                'title' => 'Bereich Projekte & Mitmachen',
+                'description' => 'Hier findest du die Funktionen aus Projekte & Mitmachen.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="section-projects"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="section-projects"]',
+                ],
+                'reveal' => [
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]'],
+                ],
+            ],
+            [
+                'key' => 'baxx-todos',
+                'title' => 'Challenges & Baxx',
+                'description' => 'Hier findest du Aufgaben und Challenges, mit denen du Baxx sammelst.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="baxx-todos"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="baxx-todos"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
+                'key' => 'baxx-rewards',
+                'title' => 'Belohnungen einlösen',
+                'description' => 'Im Belohnungsbereich gibst du gesammelte Baxx für freigeschaltete Extras aus.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="baxx-rewards"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="baxx-rewards"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-hoerbuecher',
+                'title' => 'Fanhörbücher (EARDRAX)',
+                'description' => 'Hier steuerst du im passenden Teamkontext die Arbeit rund um Fanhörbücher.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-hoerbuecher"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-hoerbuecher"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-manage',
+                'title' => 'AG verwalten',
+                'description' => 'Wenn du eine Arbeitsgruppe leitest, gelangst du hier in deren Verwaltung.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-manage"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-manage"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-char-editor',
+                'title' => 'Charakter-Editor',
+                'description' => 'Wenn du in der AG Rollenspiel aktiv bist oder den globalen Adminzugriff hast, erreichst du hier den Charakter-Editor.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-char-editor"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-char-editor"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-characters',
+                'title' => 'Meine Charaktere',
+                'description' => 'Hier verwaltest du gespeicherte Charaktere, siehst ihren EP-Stand und öffnest die PDF-Charakterbögen. Als AG-Mitglied kannst du Verbesserungen beantragen; die AG-Leitung vergibt EP und prüft Anträge.',
+                'selectors' => [
+                    'desktop' => '[data-tour-key="teams-characters"]',
+                    'mobile' => '[data-tour-key="teams-characters"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-key="section-projects"]'],
+                    'mobile' => ['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-projects"]'],
+                ],
+            ],
+            [
                 'key' => 'section-club',
                 'title' => 'Bereich Verein',
-                'description' => 'Der Vereinsbereich bündelt Regeln, Protokolle, Newsletter und weitere formale Informationen.',
+                'description' => 'Hier findest du die Funktionen aus Verein.',
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="section-club"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="section-club"]',
@@ -350,119 +440,16 @@ $tours = [
                 ],
             ],
             [
-                'key' => 'section-baxx',
-                'title' => 'Bereich Baxx',
-                'description' => 'In diesem Bereich dreht sich alles um Vereinswährung, Aufgaben und Belohnungen.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="section-baxx"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="section-baxx"]',
-                ],
-                'reveal' => [
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]'],
-                ],
+                'key' => 'navigation-search',
+                'title' => 'Suche',
+                'description' => 'Suche nach einer Seite oder Funktion, auch mit bisherigen Bezeichnungen.',
+                'selectors' => ['desktop' => '[data-tour-key="navigation-search"]', 'mobile' => '[data-tour-key="navigation-search"]'],
             ],
             [
-                'key' => 'baxx-todos',
-                'title' => 'Baxx verdienen',
-                'description' => 'Hier findest du Aufgaben und Challenges, mit denen du Baxx sammelst.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="baxx-todos"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="baxx-todos"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-baxx"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-baxx"]'],
-                ],
-            ],
-            [
-                'key' => 'baxx-rewards',
-                'title' => 'Belohnungen einlösen',
-                'description' => 'Im Belohnungsbereich gibst du gesammelte Baxx für freigeschaltete Extras aus.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="baxx-rewards"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="baxx-rewards"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-baxx"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-baxx"]'],
-                ],
-            ],
-            [
-                'key' => 'section-teams',
-                'title' => 'Bereich Teams & AG',
-                'description' => 'Dieser Bereich erscheint, wenn du in Arbeitsgruppen aktiv bist oder Teamzugänge hast.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="section-teams"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="section-teams"]',
-                ],
-                'reveal' => [
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]'],
-                ],
-            ],
-            [
-                'key' => 'teams-hoerbuecher',
-                'title' => 'EARDRAX Dashboard',
-                'description' => 'Hier steuerst du im passenden Teamkontext die Arbeit rund um Fanhörbücher.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-hoerbuecher"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-hoerbuecher"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
-                ],
-            ],
-            [
-                'key' => 'teams-kompendium',
-                'title' => 'Kompendium-Teamzugang',
-                'description' => 'Je nach Arbeitsgruppe findest du hier den teambezogenen Einstieg in das Kompendium.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-kompendium"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-kompendium"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
-                ],
-            ],
-            [
-                'key' => 'teams-manage',
-                'title' => 'AG verwalten',
-                'description' => 'Wenn du eine Arbeitsgruppe leitest, gelangst du hier in deren Verwaltung.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-manage"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-manage"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
-                ],
-            ],
-            [
-                'key' => 'teams-char-editor',
-                'title' => 'Charakter-Editor',
-                'description' => 'Wenn du in der AG Rollenspiel aktiv bist oder den globalen Adminzugriff hast, erreichst du hier den Charakter-Editor.',
-                'selectors' => [
-                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-char-editor"]',
-                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-char-editor"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
-                ],
-            ],
-            [
-                'key' => 'teams-characters',
-                'title' => 'Meine Charaktere',
-                'description' => 'Hier verwaltest du gespeicherte Charaktere, siehst ihren EP-Stand und öffnest die PDF-Charakterbögen. Als AG-Mitglied kannst du Verbesserungen beantragen; die AG-Leitung vergibt EP und prüft Anträge.',
-                'selectors' => [
-                    'desktop' => '[data-tour-key="teams-characters"]',
-                    'mobile' => '[data-tour-key="teams-characters"]',
-                ],
-                'reveal' => [
-                    'desktop' => ['[data-tour-key="section-teams"]'],
-                    'mobile' => ['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-teams"]'],
-                ],
+                'key' => 'public-site-switch',
+                'title' => 'Zur öffentlichen Website',
+                'description' => 'Hier wechselst du zur öffentlichen Startseite. Über Zum Mitgliederbereich kommst du zurück.',
+                'selectors' => ['desktop' => '[data-tour-key="public-site-switch"]', 'mobile' => '[data-tour-key="public-site-switch"]'],
             ],
             [
                 'key' => 'profile-settings',

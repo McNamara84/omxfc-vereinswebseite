@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
 class HomePageContentTest extends TestCase
@@ -173,9 +174,10 @@ class HomePageContentTest extends TestCase
 
         $response = $this->actingAs($user)->get('/');
 
-        $response->assertOk()
-            ->assertSee('href="'.route('reviews.index').'"', false)
-            ->assertDontSee('href="'.route('mitglied.werden').'"', false);
+        $response->assertOk();
+        $card = (new Crawler($response->getContent()))->filter('#latest-reviews-card');
+        $this->assertCount(1, $card->filter('a[href="'.route('reviews.index').'"]'));
+        $this->assertCount(0, $card->filter('a[href="'.route('mitglied.werden').'"]'));
     }
 
     public function test_latest_reviews_rendered_by_livewire_component(): void

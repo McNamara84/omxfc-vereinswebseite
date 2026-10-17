@@ -7,9 +7,16 @@ use App\Models\User;
 
 class NavigationBuilder
 {
-    public function build(?User $user, array $context = []): array
+    public function build(?User $user, array $context = [], ?string $scope = null): array
     {
-        $entries = $user ? config('navigation.auth', []) : config('navigation.guest', []);
+        $scope ??= $user ? 'member' : 'public';
+        if (! in_array($scope, ['member', 'public'], true)) {
+            throw new \InvalidArgumentException('Unknown navigation scope.');
+        }
+        if ($scope === 'member' && ! app(NavigationContext::class)->canAccessMembers($user)) {
+            return ['featured' => [], 'sections' => []];
+        }
+        $entries = config($scope === 'member' ? 'navigation.auth' : 'navigation.guest', []);
         $visibilityState = $this->buildVisibilityState($user);
 
         $resolvedEntries = $this->resolveEntries($entries, $user, $context, $visibilityState);
@@ -79,13 +86,20 @@ class NavigationBuilder
             ];
         }
 
+        $href = isset($entry['href']) ? $entry['href'] : route($entry['route']);
+        $active = $this->isActive($entry['active_patterns'] ?? [$entry['route']]);
+        $current = $active && request()->url() === strtok($href, '?');
+
         return [
             'layout' => $entry['layout'] ?? 'section',
             'title' => $entry['title'],
             'tour_key' => $entry['tour_key'] ?? null,
             'icon' => $entry['icon'] ?? null,
-            'href' => isset($entry['href']) ? $entry['href'] : route($entry['route']),
-            'active' => $this->isActive($entry['active_patterns'] ?? [$entry['route']]),
+            'href' => $href,
+            'key' => $entry['route'] ?? $href,
+            'search_aliases' => $entry['search_aliases'] ?? [],
+            'active' => $active,
+            'aria_current' => $current ? 'page' : ($active ? 'location' : null),
             'accent' => (bool) ($entry['accent'] ?? false),
         ];
     }
@@ -99,7 +113,7 @@ class NavigationBuilder
     {
         if (isset($definition['visible_any'])) {
             $matchesAny = collect($definition['visible_any'])
-                ->contains(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context, $visibilityState));
+                ->contains(fn (array $predicate): bool => $this->passesVisibility($predicate, $user, $context, $visibilityState));
 
             if (! $matchesAny) {
                 return false;
@@ -108,7 +122,7 @@ class NavigationBuilder
 
         if (isset($definition['visible_all'])) {
             $matchesAll = collect($definition['visible_all'])
-                ->every(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context, $visibilityState));
+                ->every(fn (array $predicate): bool => $this->passesVisibility($predicate, $user, $context, $visibilityState));
 
             if (! $matchesAll) {
                 return false;

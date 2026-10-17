@@ -6,24 +6,19 @@
 @php
     $featuredNavigation = $navigation['featured'] ?? [];
     $sectionNavigation = $navigation['sections'] ?? [];
-    $navigationUser = auth()->user();
-    $membersTeamRole = $navigationUser?->mitgliederTeamRole();
-    $brandHref = $navigationUser
-        && $navigationUser->hasVerifiedEmail()
-        && $navigationUser->currentTeam
-        && $membersTeamRole instanceof \App\Enums\Role
-        && $membersTeamRole !== \App\Enums\Role::Anwaerter
-        && \Illuminate\Support\Facades\Gate::forUser($navigationUser)->allows('access-dashboard')
-            ? route('dashboard')
-            : route('home');
+    $brandHref = $publicHome;
 @endphp
 
-<div x-data="{ mobileOpen: false }">
+<div x-data="{ mobileOpen: false }"
+    x-on:keydown.escape="if (mobileOpen) { $event.stopPropagation(); mobileOpen = false; $refs.mobileToggle.focus() }"
+    x-on:livewire:navigating.document="mobileOpen = false"
+    x-on:navigation-search-opening.window="mobileOpen = false"
+    x-on:resize.window="if (window.innerWidth >= 1280) mobileOpen = false">
     <nav aria-label="Hauptnavigation">
         <x-mary-nav sticky>
             <x-slot:brand>
                 <div class="flex items-center gap-3">
-                    <a href="{{ $brandHref }}" wire:navigate class="shrink-0 rounded-full bg-base-100/80 p-1 ring-1 ring-base-content/10 transition hover:ring-primary/30" data-testid="navigation-brand-link">
+                    <a href="{{ $brandHref }}" wire:navigate class="shrink-0 rounded-full bg-base-100/80 p-1 ring-1 ring-base-content/10 transition hover:ring-primary/30" data-testid="navigation-brand-link" aria-label="Öffentliche Startseite">
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
 
@@ -42,6 +37,7 @@
                                 <a
                                     href="{{ $item['href'] }}"
                                     wire:navigate
+                                    @if($item['aria_current']) aria-current="{{ $item['aria_current'] }}" @endif
                                     data-tour-device="desktop"
                                     @if($item['tour_key'] ?? null)
                                         data-tour-key="{{ $item['tour_key'] }}"
@@ -86,11 +82,12 @@
                                             <a
                                                 href="{{ $item['href'] }}"
                                                 wire:navigate
+                                                @if($item['aria_current']) aria-current="{{ $item['aria_current'] }}" @endif
                                                 data-tour-device="desktop"
                                                 @if($item['tour_key'] ?? null)
                                                     data-tour-key="{{ $item['tour_key'] }}"
                                                 @endif
-                                                class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
+                                                @class(['my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap', 'bg-primary/12 font-semibold' => $item['active']])
                                             >
                                                 @if($item['icon'] ?? null)
                                                     <x-mary-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
@@ -106,44 +103,22 @@
                 </div>
             </x-slot:brand>
 
-            <x-slot:actions>
+            <x-slot:actions class="gap-1">
+                <x-ui.search-trigger />
+                @if($canAccessMembers)
+                    <a href="{{ route('dashboard') }}" wire:navigate class="btn btn-ghost min-h-11 min-w-11 px-2" aria-label="Zum Mitgliederbereich" data-testid="member-site-switch">
+                        <x-mary-icon name="o-user-group" class="h-5 w-5" aria-hidden="true" />
+                        <span class="hidden 2xl:inline">Zum Mitgliederbereich</span>
+                    </a>
+                @endif
                 <x-ui.theme-trigger />
 
-                {{-- Profil-Dropdown / Login (Desktop) --}}
-                <div class="hidden xl:flex xl:items-center">
-                    @auth
-                        <x-mary-dropdown right>
-                            <x-slot:trigger
-                                class="flex items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-                                data-testid="profile-menu-trigger"
-                                data-tour-device="desktop"
-                                data-tour-key="profile-menu"
-                                aria-label="Profilmenü von {{ Auth::user()->name }} öffnen"
-                                aria-expanded="false"
-                                x-bind:aria-expanded="open.toString()"
-                                x-bind:data-tour-open="open ? 'true' : 'false'"
-                                x-on:keydown.escape.window="if (open) { open = false; $refs.button.focus() }"
-                            >
-                                <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="" />
-                            </x-slot:trigger>
-                            <x-mary-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
-                            <x-mary-menu-separator />
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80">
-                                        <x-mary-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
-                                        <span>Ausloggen</span>
-                                    </button>
-                                </form>
-                            </li>
-                        </x-mary-dropdown>
-                    @endauth
-
-                    @guest
-                        <x-mary-button label="Login" link="{{ route('login') }}" wire:navigate class="btn-ghost btn-sm" />
-                    @endguest
-                </div>
+                @auth
+                    <livewire:navigation-menu variant="member-profile" :key="'public-profile-menu'" />
+                @endauth
+                @guest
+                    <x-mary-button label="Login" :link="route('login')" wire:navigate class="btn-ghost btn-sm hidden xl:inline-flex" />
+                @endguest
 
                 {{-- Hamburger (Mobile) --}}
                 <div class="-mr-2 flex items-center xl:hidden">
@@ -156,6 +131,7 @@
                         data-tour-device="mobile"
                         data-tour-key="mobile-menu-toggle"
                         aria-controls="mobile-navigation"
+                        x-ref="mobileToggle"
                         class="btn btn-ghost btn-sm"
                     >
                         <x-mary-icon x-show="!mobileOpen" name="o-bars-3" class="w-6 h-6" aria-hidden="true" />
@@ -176,7 +152,7 @@
             <x-mary-menu class="p-2" data-testid="mobile-navigation-menu">
                 <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-featured-heading">Schnellzugriff</li>
                 @foreach($featuredNavigation as $item)
-                    <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
+                    <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" :active="$item['active']" :aria-current="$item['aria_current']" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                 @endforeach
 
                 <li role="separator" aria-hidden="true">
@@ -203,7 +179,7 @@
                             </summary>
                             <ul class="mary-hideable">
                         @foreach($section['items'] as $item)
-                                <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
+                                <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" :active="$item['active']" :aria-current="$item['aria_current']" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                         @endforeach
                             </ul>
                         </details>
@@ -213,19 +189,6 @@
                 <li role="separator" aria-hidden="true">
                     <hr class="my-3 border-t-[length:var(--border)] border-base-content/10" />
                 </li>
-
-                @auth
-                    <x-mary-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" data-tour-device="mobile" data-tour-key="profile-settings" />
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap">
-                                <x-mary-icon name="o-arrow-right-on-rectangle" class="h-5 w-5 shrink-0" />
-                                <span>Ausloggen</span>
-                            </button>
-                        </form>
-                    </li>
-                @endauth
 
                 @guest
                     <x-mary-menu-item title="Login" :link="route('login')" wire:navigate icon="o-arrow-right-on-rectangle" />

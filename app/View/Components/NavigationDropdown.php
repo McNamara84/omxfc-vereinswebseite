@@ -21,6 +21,8 @@ class NavigationDropdown extends Dropdown
             <details
                 x-data="{open: false}"
                 @click.outside="open = false"
+                @keydown.escape.stop="if (open) { open = false; $refs.button.focus() }"
+                @navigation-search-opening.window="open = false"
                 :open="open"
                 @class([
                     'overflow-visible',
@@ -31,7 +33,7 @@ class NavigationDropdown extends Dropdown
                 ])
             >
                 @if($trigger)
-                    <summary x-ref="button" @click.prevent="open = !open" {{ $trigger->attributes->class(['list-none']) }}>
+                    <summary x-ref="button" @click.prevent="open = !open" x-bind:aria-expanded="open.toString()" {{ $trigger->attributes->class(['list-none']) }}>
                         {{ $trigger }}
                     </summary>
                 @else

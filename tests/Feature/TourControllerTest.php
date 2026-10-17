@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\TourAssignment;
 use App\Models\User;
 use App\Services\TourAssignmentService;
+use App\Services\TourRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
@@ -51,7 +52,7 @@ class TourControllerTest extends TestCase
             ->assertJsonPath('tour.assignment_id', $assignment->id)
             ->assertJsonPath('tour.key', 'hauptmenue')
             ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value)
-            ->assertJsonCount(36, 'tour.steps');
+            ->assertJsonCount(count(app(TourRegistry::class)->definition('hauptmenue')->steps), 'tour.steps');
     }
 
     public function test_current_conditionally_includes_cover_ratings_navigation_step(): void
@@ -111,7 +112,7 @@ class TourControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tour.current_step_key', 'profile-settings')
             ->assertJsonPath('tour.status', TourAssignmentStatus::InProgress->value)
-            ->assertJsonPath('tour.current_step_index', 35);
+            ->assertJsonPath('tour.current_step_index', collect(app(TourRegistry::class)->definition('hauptmenue')->steps)->search(fn ($step) => $step['key'] === 'profile-settings'));
 
         $this->assertDatabaseHas('tour_assignments', [
             'id' => $assignment->id,
@@ -130,10 +131,10 @@ class TourControllerTest extends TestCase
         $response = $this->actingAs($member)
             ->getJson(route('touren.current'))
             ->assertOk()
-            ->assertJsonPath('tour.version', 6);
+            ->assertJsonPath('tour.version', 7);
         $steps = collect($response->json('tour.steps'));
         $this->assertSame(1, $steps->where('key', 'teams-characters')->count());
-        $this->assertSame(6, $previous->fresh()->metadata['superseded_by_version']);
+        $this->assertSame(7, $previous->fresh()->metadata['superseded_by_version']);
         $this->assertNotSame($previous->id, $response->json('tour.assignment_id'));
 
         $this->postJson(route('touren.progress', $response->json('tour.assignment_id')), ['step_key' => 'teams-characters'])

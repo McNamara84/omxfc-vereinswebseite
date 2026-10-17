@@ -233,7 +233,7 @@ class DashboardTest extends TestCase
         $response->assertSeeText('Willkommen zurück, Alex');
         $response->assertDontSeeText('Willkommen zurück, DashboardNick');
         $response->assertSeeText('Schnellstart');
-        $response->assertSeeText('Baxx verdienen');
+        $response->assertSeeText('Challenges & Baxx');
         $response->assertSeeText('Veranstaltung');
         $response->assertDontSeeText('Fantreffen verwalten');
     }
@@ -258,7 +258,7 @@ class DashboardTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
         $quickActions = collect($response->viewData('quickActions'));
         $tasks = collect($response->viewData('tasks'));
-        $earnBaxxAction = $quickActions->firstWhere('title', 'Baxx verdienen');
+        $earnBaxxAction = $quickActions->firstWhere('title', 'Challenges & Baxx');
         $verificationTask = $tasks->firstWhere('key', 'verification');
         $applicantTask = $tasks->firstWhere('key', 'applicants');
 
