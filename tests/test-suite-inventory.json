@@ -5374,6 +5374,18 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/BundledDownloadLocatorTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_reports_the_size_of_bundled_rulebooks_without_database_seeding",
+      "test_returns_no_size_for_a_missing_bundled_download",
+      "test_returns_no_size_for_a_path_outside_the_download_directory"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/CoverImageSecurityTest.php",
     "runner": "php-integration",
     "laravel": true,
