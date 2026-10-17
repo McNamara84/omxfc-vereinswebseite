@@ -67,17 +67,12 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
         // Navigiere zum Dashboard
         await page.goto('/dashboard');
 
-        // Öffne das Vorstand-Dropdown im Desktop-Menü
-        const vorstandDropdown = page.locator('nav').getByRole('button', { name: /Vorstand/i });
-
-        // Desktop: Klicke auf Vorstand-Dropdown wenn sichtbar
-        if (await vorstandDropdown.isVisible()) {
-            await vorstandDropdown.click();
-            await expect(page.getByRole('link', { name: 'Fanfiction' }).first()).toBeVisible();
-        }
+        const sidebar = page.getByTestId('member-sidebar-navigation');
+        await sidebar.getByText('Vorstand', { exact: true }).click();
+        await expect(sidebar.getByRole('link', { name: 'Fanfiction verwalten', exact: true })).toBeVisible();
     });
 
-    test('Community-Menü enthält Fanfiction-Unterpunkt', async ({ page }) => {
+    test('Lesen & Entdecken enthält Fanfiction-Unterpunkt', async ({ page }) => {
         // Login als Mitglied
         await page.goto('/login');
         await page.fill('input[name="email"]', 'playwright-member@example.com');
@@ -87,16 +82,9 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
 
         await page.goto('/dashboard');
 
-        // Öffne das Community-Dropdown
-        const communityDropdown = page.locator('nav').getByRole('button', { name: /Community/i });
-
-        if (await communityDropdown.isVisible()) {
-            await communityDropdown.click();
-
-            // Fanfiction sollte im Community-Dropdown sichtbar sein
-            const fanfictionLink = page.locator('nav [data-tour-device="desktop"][data-tour-key="community-fanfiction"]');
-            await expect(fanfictionLink).toBeVisible();
-        }
+        const sidebar = page.getByTestId('member-sidebar-navigation');
+        await sidebar.getByText('Lesen & Entdecken', { exact: true }).click();
+        await expect(sidebar.getByRole('link', { name: 'Fanfiction', exact: true })).toBeVisible();
     });
 });
 
@@ -114,8 +102,7 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction');
 
         await expect(page).toHaveURL(/vorstand\/fanfiction/);
-        // maryUI x-header rendert title als div, nicht als heading
-        await expect(page.getByText('Fanfiction verwalten')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Fanfiction verwalten', exact: true })).toBeVisible();
     });
 
     test('Vorstand sieht Liste der Fanfictions mit Status', async ({ page }) => {

@@ -103,7 +103,7 @@
                 </div>
             </x-slot:brand>
 
-            <x-slot:actions class="gap-1">
+            <x-slot:actions class="gap-1! sm:gap-2!">
                 <x-ui.search-trigger />
                 @if($canAccessMembers)
                     <a href="{{ route('dashboard') }}" wire:navigate class="btn btn-ghost min-h-11 min-w-11 px-2" aria-label="Zum Mitgliederbereich" data-testid="member-site-switch">
@@ -121,7 +121,7 @@
                 @endguest
 
                 {{-- Hamburger (Mobile) --}}
-                <div class="-mr-2 flex items-center xl:hidden">
+                <div class="flex items-center xl:hidden">
                     <button
                         type="button"
                         @click="mobileOpen = !mobileOpen"
@@ -132,11 +132,11 @@
                         data-tour-key="mobile-menu-toggle"
                         aria-controls="mobile-navigation"
                         x-ref="mobileToggle"
-                        class="btn btn-ghost btn-sm"
+                        class="btn btn-ghost min-h-11 min-w-11 px-2"
                     >
                         <x-mary-icon x-show="!mobileOpen" name="o-bars-3" class="w-6 h-6" aria-hidden="true" />
                         <x-mary-icon x-show="mobileOpen" x-cloak name="o-x-mark" class="w-6 h-6" aria-hidden="true" />
-                        <span class="text-sm" aria-hidden="true" x-text="mobileOpen ? 'Schließen' : 'Menü'">Menü</span>
+                        <span class="hidden text-sm sm:inline" aria-hidden="true" x-text="mobileOpen ? 'Schließen' : 'Menü'">Menü</span>
                         <span class="sr-only" x-text="mobileOpen ? 'Menü schließen' : 'Menü öffnen'">Menü öffnen</span>
                     </button>
                 </div>

@@ -140,16 +140,36 @@ test('skip link reaches actual content and fanfiction preview has the public she
 });
 
 test('public navigation stays within its viewport for guests and members', async ({ page }) => {
-    test.setTimeout(60_000);
-    for (const width of [375, 768, 1024, 1280, 1440, 1920]) {
+    test.setTimeout(90_000);
+    const widths = [375, 390, 768, 1023, 1024, 1279, 1280, 1440, 1920];
+    const expectControlsInViewport = async (width, member = false) => {
+        const controls = ['navigation-search-trigger', 'theme-toggle'];
+        if (member) controls.push('member-site-switch', 'profile-menu-trigger');
+        if (width < 1280) {
+            const toggle = page.locator('button[aria-controls="mobile-navigation"]');
+            await expect(toggle).toBeVisible();
+            const bounds = await toggle.boundingBox();
+            expect(bounds.x + bounds.width).toBeLessThanOrEqual(width);
+        }
+        for (const id of controls) {
+            const control = page.getByTestId(id);
+            await expect(control).toBeVisible();
+            const bounds = await control.boundingBox();
+            expect(bounds.x, `${id} at ${width}px`).toBeGreaterThanOrEqual(0);
+            expect(bounds.x + bounds.width, `${id} at ${width}px`).toBeLessThanOrEqual(width);
+        }
+    };
+    for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto('/satzung');
+        await expectControlsInViewport(width);
         expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `guest at ${width}px`).toBe(false);
     }
     await login(page);
-    for (const width of [375, 768, 1024, 1280, 1440, 1920]) {
+    for (const width of widths) {
         await page.setViewportSize({ width, height: 900 });
         await page.goto('/satzung');
+        await expectControlsInViewport(width, true);
         expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), `member at ${width}px`).toBe(false);
     }
     if (process.env.NAVIGATION_CAPTURE_PREVIEWS === '1') {

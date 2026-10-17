@@ -11,7 +11,7 @@
     @if($tasks === [])
         <p class="rounded-xl bg-success/8 px-3 py-2 text-sm text-base-content/70">Aktuell nichts offen.</p>
     @else
-        <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-4">
             @foreach($tasks as $task)
                 @php($taskTag = filled($task['href'] ?? null) ? 'a' : 'div')
                 <{{ $taskTag }}
@@ -19,7 +19,7 @@
                         href="{{ $task['href'] }}" wire:navigate
                     @endif
                     @class([
-                    'flex items-center gap-3 rounded-xl border px-3 py-2.5 transition hover:border-primary/30 hover:bg-primary/5',
+                    'flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2.5 transition hover:border-primary/30 hover:bg-primary/5',
                     'border-primary/25 bg-primary/5' => ($task['count'] ?? 0) > 0,
                     'border-base-content/10 bg-base-200/35' => ($task['count'] ?? 0) === 0,
                     'hover:border-base-content/10 hover:bg-base-200/35' => $taskTag === 'div',

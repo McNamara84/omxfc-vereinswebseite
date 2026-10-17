@@ -16,9 +16,11 @@ use App\View\Components\NavigationMenuSeparator;
 use App\View\Components\NavigationMenuSub;
 use App\View\Components\NavigationThemeToggle;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Vite;
 use Mary\View\Components\Button as MaryButton;
 use Mary\View\Components\Dropdown;
@@ -30,6 +32,8 @@ use Mary\View\Components\MenuItem;
 use Mary\View\Components\MenuSeparator;
 use Mary\View\Components\Nav as MaryNav;
 use Mary\View\Components\ThemeToggle;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Tests\TestCase;
 
 class AppServiceProviderTest extends TestCase
@@ -41,6 +45,35 @@ class AppServiceProviderTest extends TestCase
     private const TEST_VITE_ASSET = 'assets/app-service-provider-test.css';
 
     private const TEST_VITE_SCRIPT_ASSET = 'assets/app-service-provider-test.js';
+
+    public function test_command_starting_creates_fresh_console_and_scheduler_execution_context(): void
+    {
+        $previousExecutionId = null;
+
+        foreach (['schedule:run' => 'scheduler', 'queue:work' => 'console'] as $command => $type) {
+            event(new CommandStarting($command, new ArrayInput([]), new NullOutput));
+
+            $executionId = Context::get('execution_id');
+            $this->assertNotEmpty($executionId);
+            $this->assertNotSame($previousExecutionId, $executionId);
+            $this->assertSame($executionId, Context::get('correlation_id'));
+            $this->assertSame($type, Context::get('execution_type'));
+            $this->assertSame($command, Context::get('execution_name'));
+            $previousExecutionId = $executionId;
+        }
+    }
+
+    public function test_guest_layout_component_preserves_page_metadata_and_content(): void
+    {
+        $this->withoutVite();
+
+        $html = Blade::render('<x-guest-layout title="Gastseite" description="Beschreibung der Gastseite">Öffentlicher Inhalt</x-guest-layout>');
+
+        $this->assertStringContainsString('<title>Gastseite</title>', $html);
+        $this->assertStringContainsString('content="Beschreibung der Gastseite"', $html);
+        $this->assertStringContainsString('Öffentlicher Inhalt', $html);
+        $this->assertStringContainsString('property="og:image"', $html);
+    }
 
     public function test_password_reset_does_not_change_existing_verified_timestamp(): void
     {
