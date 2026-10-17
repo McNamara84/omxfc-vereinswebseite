@@ -28,7 +28,7 @@ test('profile dropdown is keyboard accessible and has no nested interactive cont
 
     const accessibilityScanResults = await new AxeBuilder({ page })
         .include('nav[aria-label="Kopfleiste des Mitgliederbereichs"]')
-        .withRules(['nested-interactive'])
+        .withRules(['nested-interactive', 'label-content-name-mismatch'])
         .analyze();
 
     expect(accessibilityScanResults.violations).toEqual([]);

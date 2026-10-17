@@ -4,6 +4,7 @@ namespace App\View\Components\Concerns;
 
 trait HasAccessibleLabel
 {
+    /** @param array<string, mixed> $attributes */
     public function withAttributes(array $attributes): static
     {
         // Mary's fieldset legend names the group, but not its input. Keep an

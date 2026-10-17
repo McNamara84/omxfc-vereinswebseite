@@ -40,6 +40,11 @@
 @php
     $errorFieldName = $errorField ?? $attributes->get('name');
     $hasError = $errors->has($errorFieldName);
+    $selectAttributes = $attributes->whereDoesntStartWith('class');
+
+    if ($label && ! $attributes->has('aria-label') && ! $attributes->has('aria-labelledby')) {
+        $selectAttributes = $selectAttributes->merge(['aria-label' => $label]);
+    }
 @endphp
 
 <div>
@@ -63,7 +68,7 @@
                     ])
                 }}
             >
-                <select {{ $attributes->whereDoesntStartWith('class') }}>
+                <select {{ $selectAttributes }}>
                     @if($placeholder)
                         <option
                             value="{{ $placeholderValue }}"

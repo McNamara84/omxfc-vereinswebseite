@@ -12,7 +12,7 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="space-y-2">
                 <div class="flex items-center gap-2">
-                    <h2 class="text-lg font-semibold text-base-content">Suchbegriff</h2>
+                    <h2 id="kompendium-search-heading" class="text-lg font-semibold text-base-content">Suchbegriff</h2>
                     <button
                         type="button"
                         class="btn btn-circle btn-ghost btn-sm"
@@ -39,6 +39,7 @@
                 icon="o-magnifying-glass"
                 maxlength="{{ \App\Services\KompendiumSearchLogService::MAX_QUERY_LENGTH }}"
                 data-testid="kompendium-search"
+                aria-labelledby="kompendium-search-heading"
             />
 
             <x-button

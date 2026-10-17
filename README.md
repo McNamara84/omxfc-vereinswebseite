@@ -652,19 +652,22 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Der [Septemberbericht](DEPENDENCY-UPDATE.md) bleibt als historischer Stand erhalten.
+Der [Ausführungsbericht vom 17. Oktober](docs/dependency-review-2026-10-17.md)
+enthält Versionsentscheidungen, Featureeinsatz und aktuelle Prüfergebnisse.
 
-Stand der Aktualisierung: **11. Oktober 2026**. PHP 8.5.11 basiert auf Debian
-Trixie; Node 26.11.1 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
+Stand der Aktualisierung: **17. Oktober 2026**. PHP 8.5.11 basiert auf Debian
+Trixie; Node 26.12.0 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
-MariaDB 13.0.2, nginx 1.30.5 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
+MariaDB 13.0.2, nginx 1.30.6 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
-nginx 1.30.5 bleibt die [aktuelle Stable-Version](https://nginx.org/en/download.html)
-und enthält die derzeit veröffentlichten [nginx-Sicherheitskorrekturen](https://nginx.org/en/security_advisories.html).
+nginx 1.30.6 enthält die [Sicherheitskorrekturen vom 14. Oktober](https://nginx.org/en/CHANGES-1.30).
 Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
 Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
 Betriebssystemupdates ein; ein aktueller Image-Tag allein ersetzt diesen Schritt nicht.
+Für eine erneute Sicherheitsabnahme mit `--no-cache` bauen, wie es die CI bereits
+tut. Auch nachgelagerte Stufen müssen die aktualisierte OS-Basis übernehmen;
+ein nur teilweise umgangener Build-Cache reicht dafür als Nachweis nicht aus.
 Typesense wird über `docker/typesense.Dockerfile` mit den aktuellen Ubuntu-
 Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
 OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
@@ -682,15 +685,32 @@ verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselb
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.1 unterstützt jetzt PHPUnit 13.4.1. maryUI 2.9.10 benötigt
+aktualisiert. Pest 5.3.2 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.2;
+deshalb ist 13.4.2 statt der neueren inkompatiblen 13.4.3 installiert. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
 
-Die erneute vollständige Auflösung vom 11. Oktober aktualisiert
-`intervention/image` auf 4.3.5, `amphp/http-server` auf 3.4.7,
-`brianium/paratest` auf 7.26.1 und `tinybench` auf 6.2.2.
-Die übrigen direkten Composer- und npm-Abhängigkeiten sowie die CI-Actions
-verwenden bereits die aktuellen kompatiblen stabilen Releases.
+Die vollständige Auflösung vom 17. Oktober aktualisiert unter anderem Laravel
+auf 13.37.0, ParaTest auf 7.27.2, League URI auf 7.9.0 und Symfony-Komponenten
+auf 8.1.9. Vitest/Coverage 5.0.5, Playwright 1.64.1 mit passenden Browsern,
+axe 4.14.0, daisyUI 5.7.50, jsdom 30.1.3 und Zod 4.6.7 sind gemeinsam geprüft.
+Alle 15 externen GitHub-Action-Pins wurden gegen die veröffentlichten Tags
+verifiziert. Die bereits aktuellen Pakete bleiben in ihren unterstützten Linien.
+
+Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
+der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
+ihre Farben direkt aus `aria-pressed` ab. Die neue axe-Regel
+`label-content-name-mismatch` prüft sichtbare Formularbeschriftungen; Ladeanzeigen
+werden zusätzlich im Hochkontrastmodus getestet.
+
+Laravel 13.37 liefert bei `ScheduledTaskFailed` die Laufzeit in Sekunden. Der
+automatisch entdeckte Listener `LogScheduledTaskFailure` protokolliert dazu
+Taskkennung, Laufzeit (gegebenenfalls `null`) und Exception-Typ. Befehlsargumente
+und Exception-Nachrichten werden dabei nicht übernommen; Laravel meldet die
+Exception bereits separat und stellt die Korrelation über den Logging-Kontext her.
+Für die konfigurierte Standardqueue lässt sich die Fehlerliste gezielt mit
+`php artisan queue:failed --queue=default` eingrenzen; beim Einsatz einer anderen
+Queue ist deren tatsächlicher Name zu verwenden.
 
 Auch das Werkzeug für die JS-Coverage-Badge ist als Dev-Abhängigkeit exakt im
 Lockfile gepinnt (`make-coverage-badge` 1.2.0). Der Workflow verwendet die lokale
@@ -778,9 +798,9 @@ Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 Auch npm 12.2.0 selbst erhält über `docker/patch-npm-security.sh` überprüfte
 Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
 unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
-Der undici-Patch verwendet nun [6.29.0](https://github.com/nodejs/undici/releases/tag/v6.29.0),
+Der undici-Patch verwendet nun [6.29.1](https://github.com/nodejs/undici/releases/tag/v6.29.1),
 die aktuelle Version des von npm verwendeten 6.x-Zweigs. Zusätzlich werden
-`ip-address` 10.7.3, `postcss-selector-parser` 7.1.6 und `http-cache-semantics`
+`ip-address` 10.7.4, `postcss-selector-parser` 7.1.6 und `http-cache-semantics`
 4.3.0 ersetzt, da der Image-Scan veraltete npm-interne Versionen gefunden hat.
 Alle Ersetzungen bleiben innerhalb der bisherigen Major-Versionen und verwenden
 exakte Versionen samt Lockfile-Integrität. Der Patch prüft die installierten
@@ -799,15 +819,15 @@ Scanner- und Datenbankfehler führen weiterhin zum Abbruch. Das selbst gebaute
 Typesense-Image wird zusätzlich auf sämtliche hohen und kritischen Befunde
 geprüft und bei solchen Befunden blockiert.
 
-Der lokale Scan vom 11. Oktober mit Grype 0.120.1 und der Datenbank vom
-10. Oktober erfasst folgende High/Critical-Befunde (Anzahl der Paketzuordnungen,
+Der lokale Linux-Scan vom 17. Oktober mit Grype 0.120.1 und der Datenbank vom
+16. Oktober erfasst folgende High/Critical-Befunde (Anzahl der Paketzuordnungen,
 keine Aussage über die Erreichbarkeit im Anwendungscode):
 
 | Neu gebautes Image | Critical | High | Davon mit verfügbarem Fix |
 | --- | ---: | ---: | ---: |
 | Composer, Node, nginx, Typesense, MariaDB | 0 | 0 | 0 |
-| PHP-FPM-Basis und Production (je Image) | 35 | 192 | 0 |
-| PHP-CLI für Browsertests | 18 | 137 | 0 |
+| PHP-FPM-Basis und Production (je Image) | 28 | 186 | 0 |
+| PHP-CLI für Browsertests | 13 | 132 | 0 |
 
 Die PHP-Befunde bleiben trotz der verfügbaren Debian-Updates bestehen und werden
 nicht als behoben oder als automatisch ungefährlich eingestuft. Die CI blendet
@@ -826,13 +846,17 @@ beschreibt einen DoS beim Lesen manipulierter Benutzer- und Gruppendateien.
 Quellen eingebunden werden. Auch dieser Befund bleibt im Bericht sichtbar.
 
 Die Aktualisierung wurde mit strenger Composer-Validierung, Plattformprüfung,
-Composer- und npm-Audits, 450 erfolgreichen Vitest-Tests, 53 erfolgreichen
-Deploymenttests, dem Vite-Build und den Docker-Builds für Anwendung und Services
-geprüft. Die MariaDB-Prüfung bestätigt Initialisierung, Benutzerwechsel und
-Datenerhalt nach einem Neustart; nginx-Konfiguration und Typesense-Healthcheck
-sind ebenfalls erfolgreich.
+Composer-/npm-Audits, 3.619 erfolgreichen PHP-Fällen (35 bestehende Skips), 451
+Vitest-Tests, 80 Linux-Deploymenttests, den drei MariaDB-Suiten, Vite-/Docker-Builds
+und den unveränderten Coverage-Untergrenzen geprüft. Die vollständigen
+Chromium-/Firefox-Läufe und gezielten Nachprüfungen, einschließlich neuer
+Accessibility-Treffer, sind im [Ausführungsbericht](docs/dependency-review-2026-10-17.md)
+getrennt protokolliert. maryUI-Tabs/-Sortierung, Hochkontrast und der reparierte
+Drawer bestehen zusätzlich unter WebKit. Die realen Serviceprüfungen bestätigen
+MariaDB-Initialisierung, Persistenz und Upgrade/Rollback, Typesense-Snapshot/Suche
+sowie nginx/PHP-Routing, Assets, Dateischutz und queryfreie Accesslogs.
 
-Beim damaligen Upgrade war die PHP-Suite nicht vollständig grün: Der isolierte
+Beim früheren Upgrade vom 11. Oktober war die PHP-Suite nicht vollständig grün: Der isolierte
 Lauf enthielt 3571 erfolgreiche, 35 übersprungene und 37 fehlgeschlagene Tests.
 Ein Teil der Fehler betraf versionierte Testdaten, die der Docker-Build
 absichtlich ausschließt. Mit Kopien dieser Daten lieferten die sieben betroffenen
@@ -1053,7 +1077,7 @@ Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.11.1 und gepatchtem npm 12.2.0 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.12.0 und gepatchtem npm 12.2.0 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

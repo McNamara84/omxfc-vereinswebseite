@@ -22,6 +22,12 @@ test('member shell exposes a collapsible desktop sidebar with one active link', 
   await expect(sidebar.locator('[aria-current="page"]')).toHaveCount(1);
   await expect(sidebar.locator('[aria-current="page"]')).toContainText('Dashboard');
 
+  const expandedNames = await new AxeBuilder({ page })
+    .include('[data-testid="member-sidebar-navigation"]')
+    .withRules(['label-content-name-mismatch'])
+    .analyze();
+  expect(expandedNames.violations).toEqual([]);
+
   await page.getByText('Navigation einklappen', { exact: true }).click();
   await expect(sidebar.getByText('Community', { exact: true })).toBeHidden();
 
@@ -59,13 +65,17 @@ test('mobile member drawer opens, closes with escape and closes after navigation
   await expect(toggle).toBeFocused();
 
   await toggle.click();
-  const overlayBox = await page.locator('label.drawer-overlay[for="member-drawer"]').boundingBox();
+  const overlay = page.locator('label.drawer-overlay[for="member-drawer"]');
+  await expect(overlay).toBeVisible();
+  const overlayBox = await overlay.boundingBox();
   expect(overlayBox).not.toBeNull();
   await page.mouse.click(overlayBox.x + overlayBox.width - 8, overlayBox.y + 100);
   await expect(drawer).not.toBeChecked();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
   await toggle.click();
+  await expect(drawer).toBeChecked();
+  await expect(sidebar).toBeVisible();
   await sidebar.getByText('Community', { exact: true }).click();
   await sidebar.getByRole('link', { name: 'Mitgliederliste', exact: true }).click();
   await expect(page).toHaveURL(/\/mitglieder$/, { timeout: 15_000 });

@@ -1,10 +1,11 @@
 @auth
+    @php($profileMenuName = Auth::user()->publicFirstName() ?: Auth::user()->nicknameOrName())
     <x-mary-dropdown right>
         <x-slot:trigger
             class="flex min-h-11 items-center gap-2 rounded-full px-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             data-testid="profile-menu-trigger"
             data-tour-key="profile-menu"
-            aria-label="Profilmenü von {{ Auth::user()->name }} öffnen"
+            aria-label="Profilmenü von {{ $profileMenuName }} öffnen"
             aria-expanded="false"
             x-bind:aria-expanded="open.toString()"
             x-bind:data-tour-open="open ? 'true' : 'false'"
@@ -12,7 +13,7 @@
         >
             <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="" />
             <span class="hidden max-w-36 truncate text-sm font-semibold text-base-content md:block">
-                {{ Auth::user()->publicFirstName() ?: Auth::user()->nicknameOrName() }}
+                {{ $profileMenuName }}
             </span>
             <x-mary-icon name="o-chevron-down" class="hidden h-4 w-4 md:block" aria-hidden="true" />
         </x-slot:trigger>

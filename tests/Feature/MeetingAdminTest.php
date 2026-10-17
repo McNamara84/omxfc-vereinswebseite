@@ -90,6 +90,21 @@ class MeetingAdminTest extends TestCase
             ->assertSee('Treffen anlegen');
     }
 
+    public function test_rhythm_help_preserves_visible_instructions_and_selected_week(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(MeetingAdmin::class)
+            ->call('openForm')
+            ->set('week_of_month', '2')
+            ->assertSee('zweiten Dienstag im Monat')
+            ->assertSee('week-of-month-hint')
+            ->assertSet('week_of_month', '2')
+            ->set('rhythm_type', MeetingRhythmType::EveryNWeeks->value)
+            ->assertDontSee('week-of-month-hint')
+            ->assertSee('Startdatum');
+    }
+
     public function test_vorstand_can_update_meeting(): void
     {
         $vorstand = $this->actingVorstand();

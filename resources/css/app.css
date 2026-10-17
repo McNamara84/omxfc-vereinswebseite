@@ -526,6 +526,14 @@ details.dropdown:has(> summary.btn-sm) > ul.menu {
     font-weight: 600;
 }
 
+/* WebKit can retain the overlay's hidden visibility after the drawer opens.
+   Use the actual checkbox state, matching the sidebar's own open state. */
+@media (width < 64rem) {
+    .omxfc-app-shell .drawer-toggle:checked ~ .drawer-side > .drawer-overlay {
+        visibility: visible;
+    }
+}
+
 /* DaisyUI-Modal-Hintergrund: Die produktive Modal-Kette läuft über
     `dialog.modal`, den nativen `::backdrop` und bei Mary zusätzlich über ein
     internes `.modal-backdrop`-Element. DaisyUI liefert diese Regeln in einem

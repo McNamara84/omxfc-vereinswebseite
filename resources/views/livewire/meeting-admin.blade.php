@@ -56,17 +56,14 @@
 
                 @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyNthWeekday->value)
                     <div class="grid gap-4 md:grid-cols-2">
-                        <div class="space-y-2">
-                            <label for="week_of_month" class="text-sm font-medium text-base-content">Woche im Monat *</label>
-                            <select id="week_of_month" wire:model="week_of_month" class="select select-bordered w-full">
-                                @foreach ($weekOfMonthOptions as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @error('week_of_month')
-                                <p class="text-sm text-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <x-select
+                            id="week_of_month"
+                            label="Woche im Monat *"
+                            wire:model="week_of_month"
+                            :options="collect($weekOfMonthOptions)->map(fn ($label, $value) => ['id' => $value, 'name' => $label])->values()->all()"
+                            popover="Gemeint ist der erste bis fünfte gewählte Wochentag im Monat, nicht die Kalenderwoche."
+                            aria-describedby="week-of-month-hint"
+                        />
 
                         <div class="space-y-2">
                             <label for="weekday" class="text-sm font-medium text-base-content">Wochentag *</label>
@@ -80,6 +77,7 @@
                             @enderror
                         </div>
                     </div>
+                    <p id="week-of-month-hint" class="text-sm text-base-content/70">Beispiel: 2. Woche und Dienstag bedeutet den zweiten Dienstag im Monat. Ein fünfter Termin wird in Monaten ohne diesen Wochentag ausgelassen.</p>
                 @endif
 
                 @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyDayOfMonth->value)
@@ -90,7 +88,7 @@
 
                 @if ($rhythm_type === \App\Enums\MeetingRhythmType::EveryNWeeks->value)
                     <div class="grid gap-4 md:grid-cols-2">
-                        <x-input label="Startdatum *" type="date" wire:model="starts_on" />
+                        <x-input label="Startdatum *" type="date" wire:model="starts_on" popover="Das Startdatum ist der erste Termin. Weitere Termine folgen im gewählten Wochenabstand." />
                         <x-input label="Alle X Wochen *" type="number" min="1" max="52" wire:model="interval_weeks" />
                     </div>
                 @endif

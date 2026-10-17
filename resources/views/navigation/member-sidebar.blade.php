@@ -25,7 +25,7 @@
         <a
             href="{{ route('profile.show') }}"
             wire:navigate
-            aria-label="Profil von {{ $sidebarUserSummary['name'] }} öffnen"
+            aria-label="Profil von {{ $sidebarUserSummary['name'] }} {{ $sidebarUserSummary['role'] }} öffnen"
             title="Profil von {{ $sidebarUserSummary['name'] }} öffnen"
             class="mx-2 mt-2 block rounded-2xl bg-base-200/65 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
@@ -74,7 +74,7 @@
                     :icon="$item['icon']"
                     :active="$item['active']"
                     :aria-current="$item['active'] ? 'page' : null"
-                    :aria-label="$item['title']"
+                    :aria-label="$item['accent'] ? $item['title'] . ' Aktuell' : $item['title']"
                     :title="$item['title']"
                     :badge="$item['accent'] ? 'Aktuell' : null"
                     badge-classes="badge-soft badge-primary"
