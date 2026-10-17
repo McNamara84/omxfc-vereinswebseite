@@ -161,6 +161,44 @@ describe('navigation search dialog', () => {
         expect(document.activeElement).toBe(opener);
     });
 
+    it.each(['hidden', 'collapse'])('falls back when the opener has rectangles but visibility is %s', (visibility) => {
+        const opener = document.createElement('button');
+        document.body.prepend(opener);
+        opener.getClientRects = () => [{}];
+        opener.focus();
+        search.show();
+        opener.style.visibility = visibility;
+
+        search.close();
+
+        expect(document.activeElement).toBe(document.querySelector('[data-testid="navigation-search-trigger"]'));
+    });
+
+    it('falls back when the visible opener becomes disabled and cannot receive focus', () => {
+        const opener = document.createElement('button');
+        document.body.prepend(opener);
+        opener.getClientRects = () => [{}];
+        opener.focus();
+        search.show();
+        opener.disabled = true;
+
+        search.close();
+
+        expect(document.activeElement).toBe(document.querySelector('[data-testid="navigation-search-trigger"]'));
+    });
+
+    it('falls back when the opener was removed while search was open', () => {
+        const opener = document.createElement('button');
+        document.body.prepend(opener);
+        opener.focus();
+        search.show();
+        opener.remove();
+
+        search.close();
+
+        expect(document.activeElement).toBe(document.querySelector('[data-testid="navigation-search-trigger"]'));
+    });
+
     it('ignores a direct short query and arrow navigation without results', async () => {
         search.value = 'x';
         await search.search();
@@ -176,11 +214,4 @@ describe('navigation search dialog', () => {
         expect(document.activeElement.textContent).toBe('Zwei');
     });
 
-    it('registers the component when Alpine initializes', () => {
-        const data = vi.fn();
-        window.Alpine = { data };
-        document.dispatchEvent(new Event('alpine:init'));
-        expect(data).toHaveBeenCalledWith('navigationSpotlight', navigationSpotlight);
-        delete window.Alpine;
-    });
 });

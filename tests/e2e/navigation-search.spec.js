@@ -99,6 +99,34 @@ test('public mobile menu closes with Escape and focus returns to its toggle', as
     await expect(toggle).toBeFocused();
 });
 
+for (const shortcut of ['Control+k', 'Meta+k']) {
+    test(`search opened with ${shortcut} from a mobile drawer link returns focus to the search button`, async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 });
+        await login(page);
+        await page.getByTestId('member-drawer-toggle').click();
+        const drawer = page.locator('#member-drawer');
+        const opener = page.getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Dashboard', exact: true, includeHidden: true });
+        await expect(drawer).toBeChecked();
+        await opener.focus();
+        await expect(opener).toBeFocused();
+
+        await page.keyboard.press(shortcut);
+
+        const dialog = page.getByRole('dialog', { name: 'Seite oder Funktion suchen' });
+        await expect(dialog).toBeVisible();
+        await expect(drawer).not.toBeChecked();
+        await expect(opener).toBeHidden();
+        expect(await opener.evaluate(element => element.getClientRects().length)).toBeGreaterThan(0);
+        await expectInputFocus(dialog);
+        await page.keyboard.press('Escape');
+
+        await expect(dialog).not.toBeVisible();
+        await expect(page.getByTestId('navigation-search-trigger')).toBeFocused();
+        await page.keyboard.press('Enter');
+        await expect(dialog).toBeVisible();
+    });
+}
+
 for (const theme of ['caramellatte', 'coffee']) {
     test(`search dialog is accessible in ${theme} and keeps one focus surface on mobile`, async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 844 });

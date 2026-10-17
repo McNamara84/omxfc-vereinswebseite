@@ -33,9 +33,13 @@ export function navigationSpotlight(config) {
             this.$refs.dialog.close();
             this.reset();
             if (restore && wasOpen) this.$nextTick(() => {
-                const target = this.trigger?.isConnected && this.trigger.getClientRects().length
-                    ? this.trigger : document.querySelector('[data-testid="navigation-search-trigger"]');
-                target?.focus();
+                const target = this.trigger;
+                const visible = target?.isConnected && target.getClientRects().length
+                    && window.getComputedStyle(target).visibility === 'visible';
+                if (visible) target.focus();
+                if (!visible || document.activeElement !== target) {
+                    document.querySelector('[data-testid="navigation-search-trigger"]')?.focus();
+                }
             });
         },
         shortcut(event) {
@@ -93,8 +97,30 @@ export function navigationSpotlight(config) {
     };
 }
 
-const register = () => {
-    if (typeof window.Alpine?.data === 'function') window.Alpine.data('navigationSpotlight', navigationSpotlight);
-};
-document.addEventListener('alpine:init', register);
-if (window.Alpine) register();
+function hydrateExistingSpotlights(Alpine) {
+    if (typeof Alpine.initTree !== 'function'
+        || typeof Alpine.destroyTree !== 'function'
+        || typeof Alpine.$data !== 'function') return;
+
+    document.querySelectorAll('[x-data="navigationSpotlight"], [x-data^="navigationSpotlight("]').forEach((element) => {
+        const scope = element._x_dataStack ? Alpine.$data(element) : null;
+        // Keep active searches and their listeners intact; repair only failed roots.
+        if (scope && typeof scope.show === 'function'
+            && typeof scope.search === 'function' && Array.isArray(scope.results)) return;
+        if (element._x_dataStack) Alpine.destroyTree(element);
+        Alpine.initTree(element);
+    });
+}
+
+function registerNavigationSpotlight({ hydrateExisting = false } = {}) {
+    const Alpine = window.Alpine;
+    if (typeof Alpine?.data !== 'function') return;
+    Alpine.data('navigationSpotlight', navigationSpotlight);
+    if (hydrateExisting) hydrateExistingSpotlights(Alpine);
+}
+
+if (typeof window.Alpine?.data === 'function') {
+    registerNavigationSpotlight({ hydrateExisting: true });
+} else {
+    document.addEventListener('alpine:init', () => registerNavigationSpotlight(), { once: true });
+}
