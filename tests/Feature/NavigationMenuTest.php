@@ -376,7 +376,7 @@ class NavigationMenuTest extends TestCase
         $expectedProfileLabel = "Profil von {$member->nicknameOrName()} öffnen";
 
         $this->assertCount(1, $profileLink);
-        $this->assertSame($expectedProfileLabel, $profileLink->attr('aria-label'));
+        $this->assertSame("Profil von {$member->nicknameOrName()} Mitglied öffnen", $profileLink->attr('aria-label'));
         $this->assertSame($expectedProfileLabel, $profileLink->attr('title'));
         $this->assertCount(0, $sidebar->filter('ul.menu > hr'));
         $this->assertGreaterThanOrEqual(2, $sidebar->filter('ul.menu > li[role="separator"]')->count());
@@ -442,6 +442,20 @@ class NavigationMenuTest extends TestCase
         $this->assertCount(0, $trigger->filter('button, a, input, select, textarea'));
         $this->assertCount(0, $crawler->filter('nav details > ul > div'));
         $this->assertGreaterThan(0, $crawler->filter('nav details > ul > li')->count());
+    }
+
+    public function test_member_profile_menu_includes_its_visible_name_in_the_accessible_name(): void
+    {
+        $this->actingMember(attributes: ['name' => 'Interner Kontoname', 'vorname' => 'Ada']);
+
+        $response = $this->withoutVite()->get('/dashboard');
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+        $trigger = $crawler->filter('summary[data-testid="profile-menu-trigger"]');
+        $this->assertCount(1, $trigger);
+        $this->assertSame('Ada', trim($trigger->filter('span')->text()));
+        $this->assertSame('Profilmenü von Ada öffnen', $trigger->attr('aria-label'));
     }
 
     public function test_admin_users_see_admin_menu_with_statistik_link(): void

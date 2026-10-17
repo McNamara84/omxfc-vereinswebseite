@@ -10,4 +10,11 @@ parameters:
         - app/Support/MaddraxikonIdentityHmacPeppers.php
         - app/Support/ScheduleInventory.php
         - app/Support/CoverRatings/CoverSyncInterval.php
+        - app/Listeners/LogScheduledTaskFailure.php
+        - app/View/Components/AccessibleInput.php
+        - app/View/Components/AccessiblePassword.php
+        - app/View/Components/AccessibleSelect.php
+        - app/View/Components/AccessibleTextarea.php
+        - app/View/Components/AccessibleFile.php
+        - app/View/Components/Concerns/HasAccessibleLabel.php
     tmpDir: /tmp/omxfc-phpstan

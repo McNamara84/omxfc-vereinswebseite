@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\KompendiumRoman;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -18,6 +20,22 @@ class KompendiumPlaywrightSeeder extends Seeder
     public function run(): void
     {
         $team = Team::membersTeam();
+
+        // Keep the search fixture separate from users whose locked rewards
+        // are exercised by other browser tests.
+        $searchMember = User::factory()->create([
+            'email' => 'playwright-kompendium@example.com',
+            'current_team_id' => $team->id,
+        ]);
+        $team->users()->attach($searchMember, ['role' => 'Mitglied']);
+        $reward = Reward::where('slug', 'kompendium')->firstOrFail();
+        RewardPurchase::create([
+            'user_id' => $searchMember->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => $team->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
 
         // Stelle sicher, dass der Admin-User existiert
         $admin = User::firstWhere('email', 'info@maddraxikon.com');

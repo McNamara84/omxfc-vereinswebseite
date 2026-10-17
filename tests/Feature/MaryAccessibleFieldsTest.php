@@ -54,4 +54,24 @@ class MaryAccessibleFieldsTest extends TestCase
         $this->assertCount(2, $ids);
         $this->assertNotSame($ids[0], $ids[1]);
     }
+
+    public function test_server_rendered_select_keeps_its_name_selection_and_disabled_options(): void
+    {
+        $html = Blade::render('<x-form-select name="condition" label="Zustand" value="0" :options="$options" />', [
+            'options' => [['id' => 0, 'name' => 'Neu'], ['id' => 1, 'name' => 'Beschädigt', 'disabled' => true]],
+        ]);
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $xpath = new DOMXPath($dom);
+
+        $this->assertSame('Zustand', $xpath->query('//select')->item(0)->getAttribute('aria-label'));
+        $this->assertSame('0', $xpath->query('//option[@selected]')->item(0)->getAttribute('value'));
+        $this->assertSame('1', $xpath->query('//option[@disabled]')->item(0)->getAttribute('value'));
+
+        $html = Blade::render('<x-form-select name="condition" label="Zustand" aria-labelledby="condition-label" />');
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $select = $dom->getElementsByTagName('select')->item(0);
+        $this->assertSame('condition-label', $select->getAttribute('aria-labelledby'));
+        $this->assertFalse($select->hasAttribute('aria-label'));
+    }
 }
