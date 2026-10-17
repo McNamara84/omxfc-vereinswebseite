@@ -652,9 +652,6 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Der [Ausführungsbericht vom 17. Oktober](docs/dependency-review-2026-10-17.md)
-enthält Versionsentscheidungen, Featureeinsatz und aktuelle Prüfergebnisse.
-
 Stand der Aktualisierung: **17. Oktober 2026**. PHP 8.5.11 basiert auf Debian
 Trixie; Node 26.12.0 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
@@ -848,10 +845,9 @@ Quellen eingebunden werden. Auch dieser Befund bleibt im Bericht sichtbar.
 Die Aktualisierung wurde mit strenger Composer-Validierung, Plattformprüfung,
 Composer-/npm-Audits, 3.619 erfolgreichen PHP-Fällen (35 bestehende Skips), 451
 Vitest-Tests, 80 Linux-Deploymenttests, den drei MariaDB-Suiten, Vite-/Docker-Builds
-und den unveränderten Coverage-Untergrenzen geprüft. Die vollständigen
-Chromium-/Firefox-Läufe und gezielten Nachprüfungen, einschließlich neuer
-Accessibility-Treffer, sind im [Ausführungsbericht](docs/dependency-review-2026-10-17.md)
-getrennt protokolliert. maryUI-Tabs/-Sortierung, Hochkontrast und der reparierte
+und den unveränderten Coverage-Untergrenzen geprüft. Die Browserabnahme umfasst
+vollständige Chromium-/Firefox-Läufe und erfolgreiche gezielte Nachprüfungen
+nach Accessibility-Korrekturen. maryUI-Tabs/-Sortierung, Hochkontrast und der reparierte
 Drawer bestehen zusätzlich unter WebKit. Die realen Serviceprüfungen bestätigen
 MariaDB-Initialisierung, Persistenz und Upgrade/Rollback, Typesense-Snapshot/Suche
 sowie nginx/PHP-Routing, Assets, Dateischutz und queryfreie Accesslogs.
