@@ -11,7 +11,7 @@
 >
     <x-mary-button
         type="button"
-        class="tooltip tooltip-bottom btn-circle btn-ghost min-h-11 min-w-11 border border-base-content/10 bg-base-100/65"
+        class="tooltip tooltip-left btn-circle btn-ghost min-h-11 min-w-11 border border-base-content/10 bg-base-100/65"
         data-testid="theme-toggle"
         data-theme-toggle-trigger
         aria-label="Dunkles Design aktivieren"

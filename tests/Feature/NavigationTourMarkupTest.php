@@ -42,11 +42,11 @@ class NavigationTourMarkupTest extends TestCase
         $this->assertSame('show ? \'true\' : \'false\'', $crawler->filter('[data-tour-key="section-community"]')->attr('x-bind:data-tour-open'));
     }
 
-    public function test_main_navigation_tour_uses_version_six_and_shared_sidebar_selectors(): void
+    public function test_main_navigation_tour_uses_version_seven_and_shared_sidebar_selectors(): void
     {
         $tour = config('tours.hauptmenue');
 
-        $this->assertSame(6, $tour['version']);
+        $this->assertSame(7, $tour['version']);
         $this->assertStringContainsString('Sidebar', $tour['description']);
 
         foreach ($tour['steps'] as $step) {
@@ -101,7 +101,7 @@ class NavigationTourMarkupTest extends TestCase
                 }
             }
         }
-        $this->assertSame(['[data-tour-key="section-teams"]'], $step['reveal']['desktop']);
-        $this->assertSame(['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-teams"]'], $step['reveal']['mobile']);
+        $this->assertSame(['[data-tour-key="section-projects"]'], $step['reveal']['desktop']);
+        $this->assertSame(['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-projects"]'], $step['reveal']['mobile']);
     }
 }

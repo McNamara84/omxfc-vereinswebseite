@@ -14,6 +14,7 @@ import './alpine/char-editor';
 import './alpine/rpg-progression';
 import './alpine/rpg-checks';
 import './cover-ratings/session';
+import './navigation-search';
 import { scheduleInitAlpine } from './alpine-init';
 
 scheduleInitAlpine(Alpine, [anchor, focus, persist, collapse]);

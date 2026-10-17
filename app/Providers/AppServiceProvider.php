@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Enums\PollVisibility;
 use App\Http\Middleware\EnsureAdmin;
 use App\Http\Middleware\EnsureMaddraxikonAdmin;
 use App\Jobs\SendErrorIncidentReport;
@@ -12,9 +11,9 @@ use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
-use App\Services\Polls\ActivePollResolver;
 use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
+use App\Support\Navigation\NavigationContext;
 use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\AccessibleFile;
 use App\View\Components\AccessibleInput;
@@ -27,13 +26,13 @@ use App\View\Components\NavigationDropdown;
 use App\View\Components\NavigationMain;
 use App\View\Components\NavigationMenuSeparator;
 use App\View\Components\NavigationMenuSub;
+use App\View\Components\NavigationSpotlight;
 use App\View\Components\NavigationThemeToggle;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
@@ -208,32 +207,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('navigation-menu', function ($view) {
-            $navigationContext = [
-                'activePollMenuLabel' => null,
-                'showActivePollForAuth' => false,
-                'showActivePollForGuest' => false,
-            ];
-
-            if (Schema::hasTable('polls')) {
-                $cacheKey = 'polls.active_for_menu.v2';
-                $navigationContext = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-                    $poll = app(ActivePollResolver::class)->current();
-                    $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
-
-                    return [
-                        'activePollMenuLabel' => $poll?->menu_label,
-                        'showActivePollForAuth' => (bool) ($poll && $isWithinWindow),
-                        'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
-                    ];
-                });
-            }
-
+            $context = app(NavigationContext::class);
+            $scope = ($view->getData()['variant'] ?? 'public-navbar') === 'member-sidebar' ? 'member' : 'public';
             $view->with([
-                'activePollForMenu' => null,
-                'activePollMenuLabel' => $navigationContext['activePollMenuLabel'],
-                'showActivePollForAuth' => $navigationContext['showActivePollForAuth'],
-                'showActivePollForGuest' => $navigationContext['showActivePollForGuest'],
-                'navigation' => app(NavigationBuilder::class)->build(Auth::user(), $navigationContext),
+                'navigation' => app(NavigationBuilder::class)->build(Auth::user(), $context->polls(), $scope),
+                'canAccessMembers' => $context->canAccessMembers(Auth::user()),
+                'publicHome' => $context->publicHome(Auth::user()),
             ]);
         });
 
@@ -276,6 +255,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('mary-menu-separator', NavigationMenuSeparator::class);
         Blade::component('mary-menu-sub', NavigationMenuSub::class);
         Blade::component('mary-nav', MaryNav::class);
+        Blade::component('mary-spotlight', NavigationSpotlight::class);
         Blade::component('mary-popover', AccessiblePopover::class);
         foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
             if (! $useTestingComponents) {

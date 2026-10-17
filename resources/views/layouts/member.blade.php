@@ -36,11 +36,12 @@
 </head>
 
 <body class="font-sans antialiased">
+    <x-ui.skip-link />
     <x-banner />
 
     @if ($isMinimalTestLayout)
         <div class="omxfc-app-shell min-h-screen bg-base-200">
-            <main class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
+            <main id="main-content" tabindex="-1" class="relative w-full scroll-mt-24 pb-12 pt-3 sm:pt-5 lg:pb-16">
                 {{ $slot }}
             </main>
         </div>
@@ -64,8 +65,11 @@
                     drawer.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             }"
-            x-init="$nextTick(() => { const drawer = drawerElement(); if (drawer) drawer.addEventListener('change', () => syncMemberDrawer()); document.addEventListener('livewire:navigated', () => closeMemberDrawer()); syncMemberDrawer() })"
+            x-init="$nextTick(() => syncMemberDrawer())"
+            x-on:change="if ($event.target.id === 'member-drawer') syncMemberDrawer()"
+            x-on:livewire:navigated.document="closeMemberDrawer()"
             x-on:member-drawer-close.window="closeMemberDrawer()"
+            x-on:resize.window="if (window.innerWidth >= 1024) closeMemberDrawer()"
             x-on:keydown.escape.window="if (memberDrawerOpen) { closeMemberDrawer(); $nextTick(() => $refs.memberDrawerToggle?.focus()) }"
         >
             @include('navigation.member-navbar')
@@ -77,7 +81,8 @@
 
                 <x-slot:content class="!p-0">
                     <div
-                        class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16"
+                        id="main-content" tabindex="-1"
+                        class="relative w-full scroll-mt-24 pb-12 pt-3 sm:pt-5 lg:pb-16"
                         data-testid="member-content"
                         wire:transition.navigate="member-content"
                     >
@@ -98,6 +103,7 @@
     @stack('scripts')
 
     @unless($isMinimalTestLayout)
+        @include('navigation.spotlight', ['scope' => 'member'])
         @persist('toast')
             <x-toast />
         @endpersist

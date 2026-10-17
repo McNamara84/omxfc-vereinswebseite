@@ -124,7 +124,7 @@ class DashboardController extends Controller
     private function buildQuickActions(): array
     {
         return [
-            ['title' => 'Baxx verdienen', 'href' => route('todos.index'), 'icon' => 'o-bolt'],
+            ['title' => 'Challenges & Baxx', 'href' => route('todos.index'), 'icon' => 'o-bolt'],
             ['title' => 'Tauschbörse', 'href' => route('romantausch.index'), 'icon' => 'o-arrows-right-left'],
             ['title' => 'Rezensionen', 'href' => route('reviews.index'), 'icon' => 'o-book-open'],
             ['title' => 'Veranstaltung', 'href' => route('veranstaltungen.aktuell'), 'icon' => 'o-calendar-days'],

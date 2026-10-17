@@ -16,6 +16,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
   - [Hauptfunktionen](#hauptfunktionen)
   - [Technologie-Stack](#technologie-stack)
+  - [Navigation und Menüsuche](#navigation-und-menüsuche)
   - [Voraussetzungen](#voraussetzungen)
   - [Lokale Entwicklung](#lokale-entwicklung)
     - [Docker Compose Dev-Stack (empfohlen)](#docker-compose-dev-stack-empfohlen)
@@ -56,6 +57,16 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Leaflet sowie lokal gebündelte Figtree- und Space-Grotesk-Schriften.
 - **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
+
+## Navigation und Menüsuche
+
+Der Mitgliederbereich gliedert sich in **Community**, **Lesen & Entdecken**, **Termine & Treffen**, **Projekte & Mitmachen** und **Verein**. Verwaltungs- und AG-Funktionen erscheinen entsprechend den bestehenden Berechtigungen. „Challenges & Baxx“ ersetzt die bisherige Navigationsbezeichnung „Baxx verdienen“.
+
+Auf öffentlichen Seiten bleibt die öffentliche Navigation auch nach der Anmeldung erhalten. **Zum Mitgliederbereich** und **Zur öffentlichen Website** wechseln zwischen den Bereichen. Der bewusste Aufruf der öffentlichen Startseite verwendet `/?ansicht=oeffentlich`; ein gewöhnlicher Aufruf von `/` führt berechtigte Mitglieder weiterhin zum Dashboard.
+
+Die **Suche** in der Kopfleiste öffnet sich auch mit **Strg+K** beziehungsweise **Cmd+K**. Sie findet freigegebene Menüziele ab zwei Zeichen, einschließlich bisheriger Begriffe wie „Baxx verdienen“ und „Meetings“. Sie durchsucht keine Dokumente oder personenbezogenen Datensätze. Escape schließt den Dialog und gibt den Tastaturfokus zurück. Ein Sprunglink **Zum Hauptinhalt** überspringt die Navigation.
+
+Die Definitionen und Suchsynonyme stehen in `config/navigation.php`. `NavigationContext` bestimmt Zugangs- und Umfragekontext, `NavigationBuilder` filtert die Einträge und markiert aktuelle Bereiche, `NavigationSearch` durchsucht die freigegebenen Ziele. Der maryUI-Endpunkt `/mary/spotlight` wendet diese Filter auch bei direkten HTTP-Anfragen an.
 
 ## Voraussetzungen
 

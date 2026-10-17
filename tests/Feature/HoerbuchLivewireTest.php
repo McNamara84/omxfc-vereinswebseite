@@ -1117,7 +1117,7 @@ class HoerbuchLivewireTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertSee('EARDRAX Dashboard');
+            ->assertSee('Fanhörbücher (EARDRAX)');
     }
 
     public function test_vorstand_sees_eardrax_dashboard_link_in_navigation(): void
@@ -1126,7 +1126,7 @@ class HoerbuchLivewireTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertSee('EARDRAX Dashboard');
+            ->assertSee('Fanhörbücher (EARDRAX)');
     }
 
     public function test_kassenwart_sees_eardrax_dashboard_link_in_navigation(): void
@@ -1135,7 +1135,7 @@ class HoerbuchLivewireTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertSee('EARDRAX Dashboard');
+            ->assertSee('Fanhörbücher (EARDRAX)');
     }
 
     public function test_ag_member_sees_eardrax_dashboard_link_in_navigation(): void
@@ -1144,7 +1144,7 @@ class HoerbuchLivewireTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertSee('EARDRAX Dashboard');
+            ->assertSee('Fanhörbücher (EARDRAX)');
     }
 
     public function test_member_does_not_see_eardrax_dashboard_link_in_navigation(): void
@@ -1153,7 +1153,7 @@ class HoerbuchLivewireTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('dashboard'))
-            ->assertDontSee('EARDRAX Dashboard');
+            ->assertDontSee('Fanhörbücher (EARDRAX)');
     }
 
     protected function tearDown(): void

@@ -47,4 +47,20 @@ test.describe('Dashboard overview', () => {
         await expectDashboardMetrics(page);
         await expect(page.locator('[data-dashboard-top-summary]')).toContainText(/Top 3 Baxx-Sammler/i);
     });
+
+    test('mobile task cards keep their text and badges inside the dashboard panel', async ({ page }) => {
+        await page.setViewportSize({ width: 375, height: 844 });
+        await login(page, 'info@maddraxikon.com');
+
+        const panel = page.getByTestId('dashboard-tasks');
+        const task = page.getByTestId('dashboard-task-verification');
+        await expect(task).toBeVisible();
+        await expect(task.locator('.badge')).toBeVisible();
+
+        const bounds = await panel.boundingBox();
+        const card = await task.boundingBox();
+        expect(card.x).toBeGreaterThanOrEqual(bounds.x);
+        expect(card.x + card.width).toBeLessThanOrEqual(bounds.x + bounds.width);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+    });
 });

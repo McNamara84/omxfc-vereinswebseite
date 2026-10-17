@@ -5,4 +5,4 @@
 	);
 @endphp
 
-<img src="{{ $logoSrc }}" alt="{{ config('app.name') }}" class="h-9 w-auto">
+<img src="{{ $logoSrc }}" alt="{{ config('app.name') }}" {{ $attributes->class(['h-9 w-auto shrink-0']) }}>

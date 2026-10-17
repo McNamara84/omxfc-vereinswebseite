@@ -20,7 +20,7 @@
             <a
                 href="{{ route('dashboard') }}"
                 wire:navigate
-                class="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                class="flex min-w-0 shrink-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:shrink"
                 data-testid="member-navigation-brand-link"
             >
                 <x-application-mark class="block h-9 w-auto shrink-0" />
@@ -30,7 +30,14 @@
             </a>
         </x-slot:brand>
 
-        <x-slot:actions class="gap-2">
+        <x-slot:actions class="gap-1! sm:gap-2!">
+            <a href="{{ app(\App\Support\Navigation\NavigationContext::class)->publicHome(auth()->user()) }}" wire:navigate
+                class="btn btn-ghost min-h-11 min-w-11 px-2" aria-label="Zur öffentlichen Website"
+                data-testid="public-site-switch" data-tour-key="public-site-switch">
+                <x-mary-icon name="o-globe-alt" class="h-5 w-5" aria-hidden="true" />
+                <span class="hidden xl:inline">Zur öffentlichen Website</span>
+            </a>
+            <x-ui.search-trigger />
             <x-ui.theme-trigger />
             @auth
                 <livewire:navigation-menu variant="member-profile" :key="'member-profile-menu'" />

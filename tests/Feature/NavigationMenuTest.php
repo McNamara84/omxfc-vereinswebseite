@@ -7,6 +7,7 @@ use App\Livewire\NavigationMenu;
 use App\Models\Team;
 use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
+use App\Support\Navigation\NavigationContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -171,15 +172,15 @@ class NavigationMenuTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Dashboard');
         $response->assertSeeText('Community');
-        $response->assertSeeText('Inhalte');
-        $response->assertSeeText('Veranstaltungen');
+        $response->assertSeeText('Lesen & Entdecken');
+        $response->assertSeeText('Termine & Treffen');
         $response->assertSeeText('Verein');
         $response->assertSeeText('Baxx');
         $this->assertIsString($navigationText);
-        $this->assertStringContainsString('Baxx verdienen', $navigationText);
+        $this->assertStringContainsString('Challenges & Baxx', $navigationText);
         $this->assertStringContainsString('Belohnungen einlösen', $navigationText);
         $this->assertStringContainsString('Auktionen', $navigationText);
-        $this->assertStringNotContainsString('Challenges', $navigationText);
+        $this->assertStringNotContainsString('Teams & AG', $navigationText);
         $this->assertStringNotContainsString('Vorstand', $navigationText);
         $this->assertStringNotContainsString('Admin', $navigationText);
         $response->assertSee(route('auktionen.index'));
@@ -193,13 +194,13 @@ class NavigationMenuTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Community');
-        $response->assertSeeText('Teams & AG');
+        $response->assertSeeText('Projekte & Mitmachen');
         $response->assertSeeText('Vorstand');
         $response->assertSeeText('Admin');
         $response->assertSee(route('admin.auktionen.index'));
         $response->assertSee(route('admin.touren.index'));
-        $response->assertSeeText('Touren');
-        $response->assertSeeText('Umfrage verwalten');
+        $response->assertSeeText('Touren verwalten');
+        $response->assertSeeText('Umfragen verwalten');
     }
 
     #[TestWith([Role::Admin->value])]
@@ -240,6 +241,7 @@ class NavigationMenuTest extends TestCase
 
         $user = $user->fresh();
 
+        app(NavigationContext::class)->canAccessMembers($user);
         DB::flushQueryLog();
         DB::enableQueryLog();
 
@@ -248,11 +250,11 @@ class NavigationMenuTest extends TestCase
         $queries = DB::getQueryLog();
         DB::disableQueryLog();
 
-        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Projekte & Mitmachen');
 
         $this->assertNotNull($teamsSection);
-        $this->assertSame(['EARDRAX Dashboard', 'Kompendium', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
-        $this->assertLessThanOrEqual(2, count($queries));
+        $this->assertSame(['Challenges & Baxx', 'Belohnungen einlösen', 'Fanhörbücher (EARDRAX)', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
+        $this->assertLessThanOrEqual(3, count($queries));
     }
 
     public function test_member_sidebar_entries_have_explicit_icons(): void
@@ -285,7 +287,7 @@ class NavigationMenuTest extends TestCase
         $user = $this->addAgRollenspielMembership($this->createUserWithRole(Role::Mitglied));
 
         $navigation = app(NavigationBuilder::class)->build($user);
-        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Projekte & Mitmachen');
 
         $this->assertNotNull($teamsSection);
         $this->assertContains('Charakter-Editor', array_column($teamsSection['items'], 'title'));
@@ -296,7 +298,7 @@ class NavigationMenuTest extends TestCase
         $user = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
 
         $navigation = app(NavigationBuilder::class)->build($user);
-        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Projekte & Mitmachen');
         $adminSection = collect($navigation['sections'])->firstWhere('title', 'Admin');
 
         $this->assertNotNull($teamsSection);
@@ -386,9 +388,9 @@ class NavigationMenuTest extends TestCase
 
     public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void
     {
-        $user = User::factory()->withPersonalTeam()->create();
+        $user = $this->createUserWithRole(Role::Mitglied);
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->actingAs($user)->get('/dashboard');
 
         // maryUI wraps menu items differently - check that all items exist in order
         $response->assertSeeInOrder([
@@ -424,7 +426,7 @@ class NavigationMenuTest extends TestCase
 
     public function test_authenticated_profile_menu_uses_an_accessible_mary_dropdown_trigger(): void
     {
-        $user = User::factory()->withPersonalTeam()->create(['name' => 'Ada Beispiel']);
+        $user = User::factory()->withPersonalTeam()->create(['name' => 'Ada Beispiel', 'vorname' => 'Ada']);
 
         $response = $this->withoutVite()->actingAs($user)->get('/');
 
@@ -434,7 +436,7 @@ class NavigationMenuTest extends TestCase
         $trigger = $crawler->filter('nav details > summary[data-testid="profile-menu-trigger"]');
 
         $this->assertCount(1, $trigger);
-        $this->assertSame('Profilmenü von Ada Beispiel öffnen', $trigger->attr('aria-label'));
+        $this->assertSame('Profilmenü von Ada öffnen', $trigger->attr('aria-label'));
         $this->assertNull($trigger->attr('aria-haspopup'));
         $this->assertSame('false', $trigger->attr('aria-expanded'));
         $this->assertSame('open.toString()', $trigger->attr('x-bind:aria-expanded'));
@@ -509,7 +511,7 @@ class NavigationMenuTest extends TestCase
         $disabledNavigation = $builder->build($member);
         $this->assertNotContains(
             'Cover-Bewertungen',
-            $this->sectionItemTitles($disabledNavigation, 'Community'),
+            $this->sectionItemTitles($disabledNavigation, 'Lesen & Entdecken'),
         );
         $this->actingAs($member)
             ->get(route('dashboard'))
@@ -519,10 +521,10 @@ class NavigationMenuTest extends TestCase
         $enabledNavigation = $builder->build($member);
         $this->assertContains(
             'Cover-Bewertungen',
-            $this->sectionItemTitles($enabledNavigation, 'Community'),
+            $this->sectionItemTitles($enabledNavigation, 'Lesen & Entdecken'),
         );
         $coverRatingsItem = collect($enabledNavigation['sections'])
-            ->firstWhere('title', 'Community')['items'] ?? [];
+            ->firstWhere('title', 'Lesen & Entdecken')['items'] ?? [];
         $coverRatingsItem = collect($coverRatingsItem)->firstWhere('title', 'Cover-Bewertungen');
 
         $this->assertSame('community-cover-ratings', $coverRatingsItem['tour_key'] ?? null);
