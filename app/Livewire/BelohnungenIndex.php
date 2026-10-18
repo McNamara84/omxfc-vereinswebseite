@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Reward;
+use App\Services\BildersucheAccessService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
@@ -69,13 +70,17 @@ class BelohnungenIndex extends Component
         $walletAvailableBaxx = $this->hasAvailableWallet ? $this->availableBaxx : null;
 
         $query = Reward::active()->orderBy('sort_order')->orderBy('cost_baxx');
+        if (! config('bildersuche.enabled') || ! app(BildersucheAccessService::class)->isEligible($user)) {
+            $query->where('slug', '!=', 'bildersuche');
+        }
 
         if ($this->categoryFilter !== 'alle') {
             $query->byCategory($this->categoryFilter);
         }
 
-        $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx) {
-            $purchased = in_array($reward->slug, $unlockedRewardSlugs, true);
+        $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx, $user) {
+            $agAccess = $reward->slug === 'bildersuche' && $user->isMemberOfTeam('AG Maddraxikon');
+            $purchased = $agAccess || in_array($reward->slug, $unlockedRewardSlugs, true);
             $canAfford = $walletAvailableBaxx !== null && $walletAvailableBaxx >= $reward->cost_baxx;
             $missingBaxx = $walletAvailableBaxx !== null && ! $canAfford
                 ? $reward->cost_baxx - $walletAvailableBaxx
@@ -88,6 +93,8 @@ class BelohnungenIndex extends Component
                 'category' => $reward->category,
                 'cost_baxx' => $reward->cost_baxx,
                 'purchased' => $purchased,
+                'ag_access' => $agAccess,
+                'feature_url' => $reward->slug === 'bildersuche' && $purchased ? route('bildersuche.index') : null,
                 'can_afford' => $canAfford,
                 'wallet_unavailable' => $walletAvailableBaxx === null,
                 'missing_baxx' => $missingBaxx,

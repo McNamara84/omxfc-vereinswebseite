@@ -3,6 +3,7 @@
 namespace App\Services\Maddraxikon;
 
 use App\Exceptions\MaddraxikonApiException;
+use App\Support\CoverRatings\CoverKeywords;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
@@ -15,6 +16,82 @@ class MaddraxikonApiClient
     public function __construct(
         private readonly MaddraxikonApiRequestGuard $requestGuard,
     ) {}
+
+    /** @param list<string> $fileTitles
+     * @return array<string, array{keywords: ?array, error: ?string}>
+     */
+    public function coverKeywords(array $fileTitles): array
+    {
+        $results = [];
+        $titles = [];
+        foreach (array_unique($fileTitles) as $title) {
+            try {
+                $titles[CoverKeywords::fileTitle($title)][] = $title;
+            } catch (\InvalidArgumentException $exception) {
+                $results[$title] = ['keywords' => null, 'error' => $exception->getMessage()];
+            }
+        }
+
+        foreach (array_chunk($titles, 25, true) as $batch) {
+            try {
+                $found = [];
+                $offset = 0;
+                $conditions = implode(' OR ', array_map(fn (string $title): string => '[['.$title.']]', array_keys($batch)));
+                do {
+                    $payload = $this->request([
+                        'action' => 'ask',
+                        'query' => $conditions.'|?Schlagworte|limit=50|offset='.$offset,
+                    ]);
+                    $pages = data_get($payload, 'query.results');
+                    if (! is_array($pages) || ! empty($payload['errors']) || ! empty($payload['warnings'])
+                        || ! empty($payload['query']['errors']) || ! empty($payload['query']['warnings'])) {
+                        throw new MaddraxikonApiException('Ungültige oder unvollständige Schlagwortantwort.');
+                    }
+                    foreach ($pages as $key => $page) {
+                        if (! is_array($page) || ! is_string($key)) {
+                            throw new MaddraxikonApiException('Ungültiger Schlagwort-Dateieintrag.');
+                        }
+                        $canonical = CoverKeywords::fileTitle($key);
+                        if (! isset($batch[$canonical]) || isset($found[$canonical])) {
+                            throw new MaddraxikonApiException('Unerwarteter oder wiederholter Schlagwort-Dateieintrag.');
+                        }
+                        $keywords = data_get($page, 'printouts.Schlagworte');
+                        if (($page['namespace'] ?? null) !== 6 || ! in_array($page['exists'] ?? null, [true, 1, '1'], true)
+                            || ! is_string($page['fulltext'] ?? null) || CoverKeywords::fileTitle($page['fulltext']) !== $canonical
+                            || ! is_array($keywords)) {
+                            $found[$canonical] = ['keywords' => null, 'error' => 'Keine verlässlichen Schlagworte für diese Datei.'];
+
+                            continue;
+                        }
+                        try {
+                            $found[$canonical] = ['keywords' => array_values(CoverKeywords::values($keywords)), 'error' => null];
+                        } catch (\InvalidArgumentException $exception) {
+                            $found[$canonical] = ['keywords' => null, 'error' => $exception->getMessage()];
+                        }
+                    }
+                    $next = $payload['query-continue-offset'] ?? null;
+                    if ($next !== null && (! is_int($next) || $next <= $offset || $next > 250)) {
+                        throw new MaddraxikonApiException('Ungültige Schlagwort-Fortsetzung.');
+                    }
+                    $offset = $next ?? $offset;
+                } while ($next !== null);
+
+                foreach ($batch as $canonical => $originals) {
+                    foreach ($originals as $original) {
+                        $results[$original] = $found[$canonical] ?? ['keywords' => null, 'error' => 'Datei fehlt in der Schlagwortantwort.'];
+                    }
+                }
+            } catch (\InvalidArgumentException|MaddraxikonApiException $exception) {
+                foreach ($batch as $originals) {
+                    foreach ($originals as $original) {
+                        $results[$original] = ['keywords' => null, 'error' => mb_substr($exception->getMessage(), 0, 2000)];
+                    }
+                }
+            }
+        }
+
+        return $results;
+    }
 
     /**
      * @return list<array<string, mixed>>

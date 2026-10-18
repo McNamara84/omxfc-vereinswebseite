@@ -26,6 +26,8 @@ export default async function globalSetup() {
     process.env.MAIL_MAILER = 'array';
     process.env.COVER_RATINGS_ENABLED = 'true';
     process.env.COVER_RATINGS_SYNC_ENABLED = 'false';
+    process.env.BILDERSUCHE_ENABLED = 'true';
+    process.env.BILDERSUCHE_SYNC_ENABLED = 'false';
 
     if (fs.existsSync(databasePath)) {
         fs.rmSync(databasePath);

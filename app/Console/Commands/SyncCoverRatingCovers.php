@@ -16,7 +16,7 @@ class SyncCoverRatingCovers extends Command
         {--series= : Nur einen stabilen Serien-Key synchronisieren}
         {--force : Geänderte Titelbilder und identische Fingerprints erneut verarbeiten}';
 
-    protected $description = 'Synchronisiert Cover aus dem Maddraxikon für die Cover-Bewertungen.';
+    protected $description = 'Synchronisiert Cover und aktivierte Bildersuche-Schlagworte aus dem Maddraxikon.';
 
     public function handle(BookCoverSyncRunner $runner): int
     {
@@ -85,6 +85,6 @@ class SyncCoverRatingCovers extends Command
             $this->comment('Dry-Run: Es wurden keine Dateien oder Datenbankwerte verändert.');
         }
 
-        return $counts['failed'] === 0 ? self::SUCCESS : self::FAILURE;
+        return $counts['failed'] === 0 && ($counts['keywords_failed'] ?? 0) === 0 ? self::SUCCESS : self::FAILURE;
     }
 }

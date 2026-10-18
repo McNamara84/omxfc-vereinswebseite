@@ -93,9 +93,16 @@ class RewardService
         }
 
         return DB::transaction(function () use ($user, $reward) {
-            RewardPurchase::where('user_id', $user->id)
-                ->lockForUpdate()
-                ->count();
+            // A user row exists even before their first purchase. Serialize all
+            // wallet spending before reading purchases or the available balance.
+            $user = User::query()->lockForUpdate()->findOrFail($user->id);
+            $reward = Reward::query()->findOrFail($reward->id);
+            if (! $reward->is_active) {
+                throw ValidationException::withMessages(['reward' => 'Diese Belohnung ist derzeit nicht verfügbar.']);
+            }
+            if ($reward->slug === 'bildersuche') {
+                app(BildersucheAccessService::class)->assertPurchasable($user);
+            }
 
             $existingPurchase = RewardPurchase::where('user_id', $user->id)
                 ->where('reward_id', $reward->id)

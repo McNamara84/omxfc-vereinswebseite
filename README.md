@@ -27,6 +27,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
   - [Maddraxikon-Baxx-Regeln verwalten](#maddraxikon-baxx-regeln-verwalten)
   - [Maddraxikon-Bewertungen in Rezensionen](#maddraxikon-bewertungen-in-rezensionen)
   - [Cover-Bewertungen](#cover-bewertungen)
+  - [Maddrax-Bildersuche](#maddrax-bildersuche)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
     - [Funktionen](#funktionen)
     - [Konfiguration](#konfiguration)
@@ -553,6 +554,80 @@ COVER_RATINGS_IMAGE_DISK=private
 Das Synchronisationsintervall akzeptiert ausschließlich echte Teiler eines
 Tages: `1`, `2`, `3`, `4`, `6`, `8`, `12` oder `24`. Andere Werte fallen aus
 Sicherheitsgründen auf den täglichen Lauf zurück.
+
+## Maddrax-Bildersuche
+
+Unter `/bildersuche` finden Mitglieder Cover anhand der im Maddraxikon gepflegten
+Schlagworte. Alle eingegebenen Begriffe müssen auf demselben Cover vorkommen;
+Wortteile und unterschiedliche Groß-/Kleinschreibung werden berücksichtigt.
+`Aruula Schwert` sucht beispielsweise nach beiden Motiven, `Drax` findet auch
+`Matthew Drax`. Durchsucht werden ausschließlich Schlagworte, keine Romantitel.
+
+Die Galerie umfasst die sechs bereits unterstützten Serien, bietet einen
+Serienfilter und zeigt 24 Treffer pro Seite. Ein Klick öffnet das Cover vergrößert
+mit sämtlichen Schlagworten, Quellenangaben und einem Link zur Dateiseite im
+Maddraxikon. Die Zahl „durchsuchbare Cover“ beschreibt den derzeitigen Bestand;
+eine vollständig abgeschlossene Verschlagwortung wird nicht vorausgesetzt.
+
+Verifizierte Vereinsmitglieder der **AG Maddraxikon** erhalten automatisch Zugang.
+Andere Mitglieder schalten die Bildersuche einmalig für **100 Baxx** frei, direkt
+auf der Seite oder im Belohnungsbereich. Die Kompendium-Freischaltung ist davon
+unabhängig. AG-Mitgliedern wird kein kostenpflichtiger Kauf angeboten. Der
+Menüpunkt steht bei aktiviertem Feature unter **Lesen & Entdecken**, neben dem
+Kompendium, und ist auch über die Menüsuche erreichbar.
+
+Zur Einführung zunächst Migrationen ausführen und den Import aktivieren:
+
+```dotenv
+COVER_RATINGS_SYNC_ENABLED=true
+BILDERSUCHE_SYNC_ENABLED=true
+BILDERSUCHE_ENABLED=false
+```
+
+```bash
+php artisan cover-ratings:sync-covers --dry-run --series=maddrax
+php artisan cover-ratings:sync-covers
+```
+
+Anschließend `BILDERSUCHE_ENABLED=true` setzen, den Konfigurationscache erneuern
+und die Queue-Worker gemäß dem bestehenden Deployment-Verfahren neu laden.
+Im lokalen Docker-Stack heißen die entsprechenden Variablen
+`DOCKER_DEV_COVER_RATINGS_SYNC_ENABLED`, `DOCKER_DEV_BILDERSUCHE_SYNC_ENABLED`
+und `DOCKER_DEV_BILDERSUCHE_ENABLED` in `.env.docker.dev.local`.
+
+Der bestehende Cover-Scheduler übernimmt danach auch die Schlagworte, standardmäßig
+täglich um 03:15 Uhr in der Scheduler-Zeitzone. Es gibt keinen zusätzlichen
+Scheduler. Der Bildersuche-Schalter ist unabhängig von `COVER_RATINGS_ENABLED`;
+die Bildersuche benötigt keine aktivierte Bewertungsoberfläche.
+
+Der API-Abgleich liest die semantische Eigenschaft `Schlagworte` der jeweiligen
+Dateiseite. Er aktualisiert Schlagworte auch bei unveränderter Bilddatei.
+Ausdrücklich leere Schlagwortlisten entfernen alte Zuordnungen; fehlende oder
+fehlerhafte Antworten bewahren den letzten gültigen Stand. Der CLI-Bericht trennt
+Bild- und Schlagwortergebnisse (`keywords_updated`, `keywords_unchanged`,
+`keywords_empty`, `keywords_failed`). Teilausfälle liefern einen Fehlerstatus und
+werden vom Queue-Job protokolliert. `--force` ist für reine Schlagwortänderungen
+nicht nötig. `--book` verwendet eine lokale Buch-ID.
+
+Manuelle und geplante Abgleiche verwenden dieselbe Lauf-Sperre (maximal zwei
+Stunden). Der Queue-Job hat ein Zeitlimit von 330 Sekunden; `retry_after` bzw. die
+SQS-Sichtbarkeitsdauer muss darüber liegen (Datenbank-Queue: Standard 420 Sekunden).
+Den ersten umfangreichen Bildimport über die CLI ausführen, bei Bedarf nach Serie
+aufteilen. Nach einem hart abgebrochenen Prozess kann die Sperre bis zu ihrem
+Ablauf bestehen bleiben. Die CLI begrenzt lange Läufe vor Ablauf der Sperre.
+
+Zum Abschalten genügt `BILDERSUCHE_ENABLED=false`; der Keyword-Abgleich lässt sich
+separat deaktivieren. Bestehende Cover, Bewertungen und Käufe bleiben erhalten.
+Die Suche arbeitet lokal und benötigt beim Suchen keine Verbindung zum Wiki.
+
+Gezielte Prüfungen im isolierten Teststack:
+
+```powershell
+node tools/testing/run.mjs php --filter='Bildersuche|BookCoverKeyword|CoverKeywords|MaddraxikonCoverKeywords|BookCoverSynchronization|RewardService|CoverRatingFeature|Navigation'
+docker compose -f docker-compose.tests.yml up -d --wait db
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps php php vendor/bin/pest --configuration phpunit.mariadb.xml --filter='Bildersuche|BookCoverKeyword' --compact
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps browser node node_modules/playwright/cli.js test tests/e2e/bildersuche.spec.js
+```
 
 ## Maddrax-Fantreffen 2026 Event-System
 
