@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\BildersucheAccessService;
 use App\Services\RewardService;
 use App\Support\Navigation\NavigationBuilder;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -20,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesBildersucheCover;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -69,6 +71,61 @@ class BildersucheAccessTest extends TestCase
             ->assertDontSee('href="javascript:', false)->assertDontSee('<script>alert(2)</script>', false)
             ->call('closePreview')->assertSet('previewId', null);
         $this->assertDatabaseCount('reward_purchases', 0);
+    }
+
+    #[TestWith([false, false, true])]
+    #[TestWith([false, true, true])]
+    #[TestWith([true, false, false])]
+    #[TestWith([true, true, true])]
+    public function test_ag_access_matches_the_applications_email_verification_requirement(bool $requiresVerification, bool $verified, bool $allowed): void
+    {
+        $user = $this->actingAdmin();
+        $ag = $this->joinAg($user);
+        $user->forceFill(['current_team_id' => $ag->id, 'email_verified_at' => $verified ? now() : null])->save();
+        if ($requiresVerification) {
+            $model = new class extends User implements MustVerifyEmail
+            {
+                protected $table = 'users';
+
+                public function getForeignKey(): string
+                {
+                    return 'user_id';
+                }
+            };
+            $user = $model->newFromBuilder($user->getAttributes());
+        }
+        $this->actingAs($user);
+        $access = app(BildersucheAccessService::class);
+        $this->assertSame($allowed, $access->isEligible($user));
+        $this->assertSame($allowed, $access->hasAccess($user));
+        $response = $this->get(route('bildersuche.index'));
+        if (! $allowed) {
+            $response->assertRedirect(route('verification.notice'));
+
+            return;
+        }
+
+        $response->assertOk()->assertSee('bildersuche-query', false);
+        $cover = $this->searchCover(1, ['Aruula', 'Schwert']);
+        Storage::disk('private')->put($cover->small_path, 'webp');
+        Livewire::test(Bildersuche::class)->set('query', 'Aruula Schwert')->call('performSearch')
+            ->assertHasNoErrors()->assertSee('Testroman 1');
+        $this->get(route('bildersuche.cover', [$cover, 'small']))->assertOk();
+        $this->assertSame($verified, $user->fresh()->email_verified_at !== null);
+        $this->assertDatabaseCount('reward_purchases', 0);
+    }
+
+    public function test_member_without_email_confirmation_can_purchase_bildersuche_access(): void
+    {
+        $user = $this->actingMemberWithPoints(100);
+        $user->forceFill(['email_verified_at' => null])->save();
+
+        Livewire::test(Bildersuche::class)->assertSee('100 Baxx')->call('purchase')
+            ->assertHasNoErrors()->assertSee('bildersuche-query', false);
+
+        $this->assertSame(0, app(RewardService::class)->getAvailableBaxx($user));
+        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertDatabaseCount('reward_purchases', 1);
     }
 
     public function test_purchase_unlocks_immediately_and_does_not_allow_a_second_charge(): void
@@ -315,13 +372,13 @@ class BildersucheAccessTest extends TestCase
         Livewire::test(Bildersuche::class)->set('previewId', 999);
     }
 
-    public function test_roles_and_team_switch_do_not_bypass_eligibility(): void
+    public function test_ag_team_switch_preserves_member_access_and_excludes_applicants_and_outsiders(): void
     {
         $admin = $this->actingAdmin();
         $this->assertFalse(app(BildersucheAccessService::class)->hasAccess($admin));
         $ag = $this->joinAg($admin);
-        $admin->forceFill(['current_team_id' => $ag->id, 'email_verified_at' => null])->save();
-        Livewire::test(Bildersuche::class)->assertForbidden();
+        $admin->forceFill(['current_team_id' => $ag->id])->save();
+        Livewire::test(Bildersuche::class)->assertSee('bildersuche-query', false);
         $applicant = $this->createUserWithRole(Role::Anwaerter);
         $this->joinAg($applicant);
         $applicant->forceFill(['current_team_id' => $ag->id])->save();

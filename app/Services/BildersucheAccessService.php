@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\Role;
 use App\Models\User;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -12,7 +13,7 @@ class BildersucheAccessService
     public function isEligible(?User $user): bool
     {
         return $user !== null
-            && $user->email_verified_at !== null
+            && (! ($user instanceof MustVerifyEmail) || $user->hasVerifiedEmail())
             && $user->mitgliederTeamRole() instanceof Role
             && $user->mitgliederTeamRole() !== Role::Anwaerter;
     }

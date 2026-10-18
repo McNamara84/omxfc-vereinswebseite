@@ -571,7 +571,9 @@ mit sämtlichen Schlagworten, Quellenangaben und einem Link zur Dateiseite im
 Maddraxikon. Die Zahl „durchsuchbare Cover“ beschreibt den derzeitigen Bestand;
 eine vollständig abgeschlossene Verschlagwortung wird nicht vorausgesetzt.
 
-Verifizierte Vereinsmitglieder der **AG Maddraxikon** erhalten automatisch Zugang.
+Vereinsmitglieder (keine Anwärter) der **AG Maddraxikon** erhalten automatisch Zugang.
+Eine fehlende E-Mail-Bestätigung sperrt die Bildersuche nur, wenn sie auch im
+übrigen Mitgliederbereich verpflichtend ist.
 Die AG wird über `BILDERSUCHE_AG_TEAM_ID` anhand ihrer festen Datenbank-ID
 zugeordnet. Vor der Freigabe die tatsächliche AG (einschließlich Leitung und
 Mitgliedschaften) prüfen und deren ID konfigurieren; der Teamname allein ist
