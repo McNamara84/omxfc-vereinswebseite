@@ -1,6 +1,8 @@
 const submittedForms = new WeakSet();
 let initialized = false;
 
+const uxForms = root => root.matches?.('form[data-ux-form]') ? [root] : Array.from(root.querySelectorAll('form[data-ux-form]'));
+
 export function revealHashTarget(hash = window.location.hash) {
     let target;
     try { target = document.getElementById(decodeURIComponent(hash.replace(/^#/, ''))); } catch { return false; }
@@ -15,8 +17,7 @@ export function revealHashTarget(hash = window.location.hash) {
 }
 
 export function focusFormErrors(root = document) {
-    const forms = root.matches?.('form[data-ux-form]') ? [root] : root.querySelectorAll('form[data-ux-form]');
-    forms.forEach(form => {
+    uxForms(root).forEach(form => {
         if (!submittedForms.has(form)) return;
         submittedForms.delete(form);
         form.querySelector('[data-ux-error-summary]')?.focus();
@@ -55,8 +56,15 @@ export function registerUxLifecycle() {
     const hooks = () => {
         if (hooksRegistered || !window.Livewire) return;
         hooksRegistered = true;
+        window.Livewire?.hook('commit', ({ component, commit, succeed }) => {
+            const submissions = uxForms(component.el).filter(form => {
+                const method = form.getAttribute('wire:submit')?.split('(')[0].trim();
+                return submittedForms.has(form) && commit.calls?.some(call => call.method === method);
+            });
+            // Field updates can finish before the submission's own response.
+            succeed(() => submissions.forEach(form => focusFormErrors(form)));
+        });
         window.Livewire?.hook('morphed', ({ el }) => {
-            focusFormErrors(el);
             if (el.matches?.('form[data-guard-dirty]')) savingForms.delete(el);
             el.querySelectorAll?.('form[data-guard-dirty]').forEach(form => savingForms.delete(form));
         });

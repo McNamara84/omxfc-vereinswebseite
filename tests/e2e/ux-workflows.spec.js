@@ -1,9 +1,20 @@
 import AxeBuilder from '@axe-core/playwright';
+import { spawnSync } from 'node:child_process';
 import { test, expect } from './test-support.js';
+import { createPhpProcess } from './utils/php.js';
 
-async function login(page, role) {
+function createFixture(scenario) {
+    const command = createPhpProcess(['tests/e2e/create-ux-workflow-fixture.php', scenario], { env: process.env });
+    const result = spawnSync(command.command, command.args, {
+        env: process.env, shell: command.shell, encoding: 'utf8', windowsHide: true,
+    });
+    if (result.error || result.status !== 0) throw new Error(result.stderr || result.error?.message || result.stdout);
+    return JSON.parse(result.stdout.trim());
+}
+
+async function login(page, email) {
     await page.goto('/login');
-    await page.locator('[name=email]').fill(`ux-${role}@example.com`);
+    await page.locator('[name=email]').fill(email);
     await page.locator('[name=password]').fill('password');
     await page.locator('[name=password]').press('Enter');
     await expect(page).toHaveURL(/\/dashboard$/);
@@ -28,8 +39,9 @@ test('membership validation preserves values and focuses linked server errors', 
 });
 
 test('review editing protects unsaved text and saves without an extra leave prompt', async ({ page }) => {
-    await login(page, 'mitglied');
-    await page.goto('/rezensionen/1/erstellen');
+    const fixture = createFixture('review');
+    await login(page, fixture.email);
+    await page.goto(`/rezensionen/${fixture.bookId}/erstellen`);
     const form = page.locator('form[data-guard-dirty]');
     await expect(form).toBeVisible();
     await form.getByRole('textbox', { name: 'Rezensionstitel', exact: true }).fill('Eine Reise durch die Welt von Maddrax');
@@ -46,27 +58,28 @@ test('review editing protects unsaved text and saves without an extra leave prom
     const dialogs = [];
     page.on('dialog', async dialog => { dialogs.push(dialog.message()); await dialog.accept(); });
     await form.getByRole('button', { name: 'Rezension absenden', exact: true }).click();
-    await expect(page).toHaveURL(/\/rezensionen\/1$/);
+    await expect(page).toHaveURL(new RegExp(`/rezensionen/${fixture.bookId}$`));
     await expect(page.getByText('Eine Reise durch die Welt von Maddrax', { exact: true })).toBeVisible();
     expect(dialogs).toEqual([]);
 });
 
 test('governance can reach pending challenges and confirm a completion', async ({ page }) => {
-    await login(page, 'vorstand');
+    const fixture = createFixture('challenge');
+    await login(page, 'ux-vorstand@example.com');
     await page.getByRole('navigation', { name: 'Schnellstart' }).getByRole('link', { name: 'Challenges prüfen' }).click();
     await expect(page).toHaveURL(/filter=pending/);
-    const button = page.getByRole('button', { name: 'Abschluss bestätigen und Baxx vergeben', exact: true }).first();
+    const row = page.getByRole('row').filter({ hasText: fixture.todoTitle });
+    await expect(row).toHaveCount(1);
+    const button = row.getByRole('button', { name: 'Abschluss bestätigen und Baxx vergeben', exact: true });
     await expect(button).toBeVisible();
-    const row = button.locator('xpath=ancestor::tr');
-    const title = await row.locator('td').first().innerText();
     await button.click();
-    await expect(page.getByRole('row').filter({ hasText: title })).toHaveCount(0);
+    await expect(row).toHaveCount(0);
     await expect(page).toHaveURL(/filter=pending/);
 });
 
 test('mobile dashboard quick actions precede statistics and anchor opens governance details', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await login(page, 'admin');
+    await login(page, 'ux-admin@example.com');
     await expect(page.locator('#dashboard-applicants')).not.toHaveAttribute('open');
     await page.getByRole('navigation', { name: 'Schnellstart' }).getByRole('link', { name: 'Mitgliedsanträge' }).click();
     await expect(page.locator('#dashboard-applicants')).toHaveAttribute('open');

@@ -7,7 +7,7 @@ beforeAll(async () => {
     ux = await import('../../resources/js/ux.js');
 });
 beforeEach(() => {
-    document.body.innerHTML = '<form data-ux-form data-guard-dirty><input id="title" name="title" value="Anfang"><input type="hidden" name="_token" value="secret"><textarea name="content">Text</textarea><input type="checkbox" name="accept"></form>';
+    document.body.innerHTML = '<form wire:submit="submit" data-ux-form data-guard-dirty><input id="title" name="title" value="Anfang"><input type="hidden" name="_token" value="secret"><textarea name="content">Text</textarea><input type="checkbox" name="accept"></form>';
     document.dispatchEvent(new Event('livewire:navigated'));
     vi.spyOn(window, 'confirm').mockReturnValue(false);
 });
@@ -125,6 +125,11 @@ describe('unsaved reviews', () => {
 });
 
 describe('form error focus', () => {
+    const commit = (root, calls = [{ method: 'submit' }]) => {
+        let success;
+        hooks.get('commit')({ component: { el: root }, commit: { calls }, succeed: callback => { success = callback; } });
+        return () => success();
+    };
     it('focuses a summary only after a submission, once per submission', () => {
         const form = document.querySelector('form');
         form.insertAdjacentHTML('beforeend', '<div data-ux-error-summary tabindex="-1">Fehler</div>');
@@ -132,7 +137,7 @@ describe('form error focus', () => {
         ux.focusFormErrors();
         expect(document.activeElement).not.toBe(summary);
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        hooks.get('morphed')({ el: form });
+        commit(form)();
         expect(document.activeElement).toBe(summary);
         form.querySelector('#title').focus();
         ux.focusFormErrors();
@@ -142,7 +147,35 @@ describe('form error focus', () => {
         const form = document.querySelector('form');
         const field = form.querySelector('#title'); field.focus();
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-        ux.focusFormErrors();
+        commit(form)();
         expect(document.activeElement).toBe(field);
+    });
+    it('waits for the submit response when an earlier field update morphs the form', () => {
+        const form = document.querySelector('form');
+        const finishFieldUpdate = commit(form, []);
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        const finishSubmission = commit(form);
+        hooks.get('morphed')({ el: form });
+        finishFieldUpdate();
+        form.insertAdjacentHTML('beforeend', '<div data-ux-error-summary tabindex="-1">Fehler</div>');
+        const summary = form.querySelector('[data-ux-error-summary]');
+        finishSubmission();
+        expect(document.activeElement).toBe(summary);
+    });
+    it('ignores unrelated method responses and focuses a nested review form after save', () => {
+        const form = document.querySelector('form');
+        form.setAttribute('wire:submit', 'save()');
+        form.insertAdjacentHTML('beforeend', '<div data-ux-error-summary tabindex="-1">Fehler</div>');
+        const summary = form.querySelector('[data-ux-error-summary]');
+        const wrapper = document.createElement('div');
+        form.replaceWith(wrapper);
+        wrapper.append(form);
+        commit(wrapper, [{ method: 'save' }])();
+        expect(document.activeElement).not.toBe(summary);
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        commit(wrapper, [{ method: 'preview' }])();
+        expect(document.activeElement).not.toBe(summary);
+        commit(wrapper, [{ method: 'save' }])();
+        expect(document.activeElement).toBe(summary);
     });
 });
