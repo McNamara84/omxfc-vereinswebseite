@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\TourRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
@@ -42,11 +43,11 @@ class NavigationTourMarkupTest extends TestCase
         $this->assertSame('show ? \'true\' : \'false\'', $crawler->filter('[data-tour-key="section-community"]')->attr('x-bind:data-tour-open'));
     }
 
-    public function test_main_navigation_tour_uses_version_seven_and_shared_sidebar_selectors(): void
+    public function test_main_navigation_tour_uses_version_eight_and_shared_sidebar_selectors(): void
     {
         $tour = config('tours.hauptmenue');
 
-        $this->assertSame(7, $tour['version']);
+        $this->assertSame(8, $tour['version']);
         $this->assertStringContainsString('Sidebar', $tour['description']);
 
         foreach ($tour['steps'] as $step) {
@@ -66,6 +67,33 @@ class NavigationTourMarkupTest extends TestCase
             ['[data-tour-key="profile-menu"]'],
             $profileStep['reveal']['mobile'] ?? null,
         );
+    }
+
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_bildersuche_tour_step_matches_its_navigation_anchor_and_feature_flag(bool $enabled): void
+    {
+        config(['bildersuche.enabled' => $enabled]);
+        $members = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $members->id]);
+        $members->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $response = $this->actingAs($member)->get(route('dashboard'))->assertOk();
+        $crawler = new Crawler($response->getContent());
+        $step = collect(config('tours.hauptmenue.steps'))->firstWhere('key', 'content-bildersuche');
+        $this->assertNotNull($step);
+        $this->assertSame($enabled, collect(app(TourRegistry::class)->definition('hauptmenue')->steps)->contains('key', 'content-bildersuche'));
+        $keys = array_column(config('tours.hauptmenue.steps'), 'key');
+        $this->assertSame(array_search('content-kompendium', $keys, true) + 1, array_search('content-bildersuche', $keys, true));
+        foreach (['desktop', 'mobile'] as $device) {
+            $anchor = $crawler->filter($step['selectors'][$device]);
+            $this->assertCount($enabled ? 1 : 0, $anchor);
+            if ($enabled) {
+                $this->assertSame(route('bildersuche.index'), $anchor->attr('href'));
+                foreach ($step['reveal'][$device] as $selector) {
+                    $this->assertCount(1, $crawler->filter($selector), $selector);
+                }
+            }
+        }
     }
 
     #[TestWith([Role::Mitglied, false, false])]

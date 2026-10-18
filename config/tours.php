@@ -2,7 +2,7 @@
 
 $tours = [
     'hauptmenue' => [
-        'version' => 7,
+        'version' => 8,
         'title' => 'Hauptmenü entdecken',
         'description' => 'Führt neue Mitglieder durch Navbar, Sidebar, aktuelle Hinweise und das Profilmenü.',
         'self_service_enabled' => true,
@@ -180,6 +180,20 @@ $tours = [
                 'reveal' => [
                     'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-content"]'],
                     'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-content"]'],
+                ],
+            ],
+            [
+                'key' => 'content-bildersuche',
+                'title' => 'Bildersuche',
+                'description' => 'Finde Cover anhand ihrer Motive und Schlagworte. Den Zugang schaltest du mit Baxx frei; Mitglieder der AG Maddraxikon erhalten ihn automatisch.',
+                'config_enabled' => 'bildersuche.enabled',
+                'selectors' => [
+                    'desktop' => '[data-tour-key="content-bildersuche"]',
+                    'mobile' => '[data-tour-key="content-bildersuche"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-key="section-content"]'],
+                    'mobile' => ['[data-tour-key="mobile-menu-toggle"]', '[data-tour-key="section-content"]'],
                 ],
             ],
             [

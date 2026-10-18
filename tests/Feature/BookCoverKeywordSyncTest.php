@@ -11,10 +11,15 @@ use App\Services\BildersucheService;
 use App\Services\CoverRatings\BookCoverKeywordSynchronizer;
 use App\Services\CoverRatings\BookCoverSynchronizer;
 use App\Services\CoverRatings\BookCoverSyncRunner;
+use App\Services\CoverRatings\CoverImageDownloader;
+use App\Services\CoverRatings\CoverImageProcessor;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Mockery;
+use PHPUnit\Framework\Attributes\TestWith;
 use ReflectionMethod;
 use RuntimeException;
 use Tests\Concerns\CreatesBildersucheCover;
@@ -135,6 +140,96 @@ class BookCoverKeywordSyncTest extends TestCase
         $counts = (new BookCoverSyncRunner($api, $images))->run(Book::query());
         $this->assertSame(1, $counts['failed']);
         $this->assertSame(1, $counts['keywords_updated']);
+    }
+
+    #[TestWith([1, false])]
+    #[TestWith([6, false])]
+    #[TestWith([11, false])]
+    #[TestWith([1, true])]
+    #[TestWith([6, true])]
+    #[TestWith([11, true])]
+    public function test_runner_loads_keyword_covers_once_per_batch_instead_of_per_book(int $bookCount, bool $dryRun): void
+    {
+        config(['bildersuche.sync_enabled' => true, 'cover-ratings.sync.batch_size' => 5]);
+        foreach (range(1, $bookCount) as $number) {
+            $this->searchCover($number, ['Aruula']);
+        }
+        $batches = (int) ceil($bookCount / 5);
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->expects('coverImages')->times($batches)->andReturn([]);
+        $api->expects('coverKeywords')->times($batches)->andReturnUsing(fn (array $titles): array => array_fill_keys($titles, ['keywords' => ['Drax'], 'error' => null]));
+        $images = Mockery::mock(BookCoverSynchronizer::class);
+        $images->expects('sync')->times($bookCount)->andReturn('unchanged');
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        try {
+            $counts = (new BookCoverSyncRunner($api, $images))->run(Book::query(), dryRun: $dryRun);
+            $coverQueries = collect(DB::getQueryLog())->pluck('query')->filter(fn (string $sql) => preg_match('/^select .* from [`"]book_covers[`"] /i', $sql));
+            // The write path must retain one locked reread per cover for source-race
+            // protection. All other cover reads belong to the batch preload.
+            $this->assertCount($batches + ($dryRun ? 0 : $bookCount), $coverQueries);
+            $this->assertCount($batches, $coverQueries->filter(fn (string $sql) => str_contains($sql, ' in (')));
+            $this->assertSame($bookCount, $counts['keywords_updated']);
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+    }
+
+    public function test_runner_reads_new_and_replaced_covers_after_image_synchronization(): void
+    {
+        config(['bildersuche.sync_enabled' => true]);
+        Storage::fake('private');
+        $newBook = Book::factory()->mapped(101)->create(['roman_number' => 1]);
+        $existingCover = $this->searchCover(2, ['Aruula']);
+        $existingCover->book->update(['maddraxikon_page_id' => 102]);
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->expects('coverImages')->with([101, 102])->andReturn([
+            101 => ['exists' => true, 'file_title' => 'Datei:New.jpg', 'url' => 'https://example.test/new.jpg'],
+            102 => ['exists' => true, 'file_title' => 'Datei:Replacement.jpg', 'url' => 'https://example.test/replacement.jpg'],
+        ]);
+        $api->expects('coverKeywords')->with(['Datei:New.jpg', 'Datei:Replacement.jpg'])->andReturn([
+            'Datei:New.jpg' => ['keywords' => ['Neues Motiv'], 'error' => null],
+            'Datei:Replacement.jpg' => ['keywords' => ['Anderes Motiv'], 'error' => null],
+        ]);
+        $downloader = Mockery::mock(CoverImageDownloader::class);
+        $downloader->expects('download')->twice()->andReturn(['body' => 'image', 'mime_type' => 'image/jpeg']);
+        $processor = Mockery::mock(CoverImageProcessor::class);
+        $processor->expects('process')->twice()->andReturnUsing(fn (Book $book): array => [
+            'small_path' => "covers/{$book->id}-small.webp", 'large_path' => "covers/{$book->id}-large.webp",
+            'width' => 720, 'height' => 1024, 'mime_type' => 'image/webp',
+        ]);
+        $images = new BookCoverSynchronizer($downloader, $processor);
+        // Deliberately include stale/null preloads supplied by a caller.
+        $counts = (new BookCoverSyncRunner($api, $images))->run(Book::query()->with('cover'));
+
+        $this->assertSame(2, $counts['ready']);
+        $this->assertSame(2, $counts['keywords_updated']);
+        $this->assertSame(['Neues Motiv'], $newBook->cover->keywords()->pluck('keyword')->all());
+        $this->assertSame(['Anderes Motiv'], $existingCover->keywords()->pluck('keyword')->all());
+        $this->assertSame('Datei:Replacement.jpg', $existingCover->fresh()->keywords_source_file_title);
+    }
+
+    public function test_disabled_keyword_sync_does_not_load_covers_or_fetch_keywords(): void
+    {
+        config(['bildersuche.sync_enabled' => false]);
+        $this->searchCover(1, ['Aruula']);
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->expects('coverImages')->andReturn([]);
+        $api->shouldNotReceive('coverKeywords');
+        $images = Mockery::mock(BookCoverSynchronizer::class);
+        $images->expects('sync')->andReturn('unchanged');
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        try {
+            $counts = (new BookCoverSyncRunner($api, $images))->run(Book::query());
+            $this->assertArrayNotHasKey('keywords_updated', $counts);
+            $this->assertEmpty(collect(DB::getQueryLog())->filter(fn (array $entry) => str_contains($entry['query'], 'book_covers')));
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
     }
 
     public function test_runner_dry_run_checks_new_sources_without_creating_rows(): void

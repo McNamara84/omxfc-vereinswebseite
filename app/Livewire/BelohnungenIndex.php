@@ -6,6 +6,7 @@ use App\Models\Reward;
 use App\Services\BildersucheAccessService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -69,10 +70,7 @@ class BelohnungenIndex extends Component
         $unlockedRewardSlugs = $rewardService->getUnlockedRewardSlugs($user);
         $walletAvailableBaxx = $this->hasAvailableWallet ? $this->availableBaxx : null;
 
-        $query = Reward::active()->orderBy('sort_order')->orderBy('cost_baxx');
-        if (! config('bildersuche.enabled') || ! app(BildersucheAccessService::class)->isEligible($user)) {
-            $query->where('slug', '!=', 'bildersuche');
-        }
+        $query = $this->visibleRewardsQuery()->orderBy('sort_order')->orderBy('cost_baxx');
 
         if ($this->categoryFilter !== 'alle') {
             $query->byCategory($this->categoryFilter);
@@ -114,12 +112,22 @@ class BelohnungenIndex extends Component
     #[Computed]
     public function categories(): array
     {
-        return Reward::active()
+        return $this->visibleRewardsQuery()
             ->select('category')
             ->distinct()
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
+    }
+
+    private function visibleRewardsQuery(): Builder
+    {
+        $query = Reward::active();
+        if (! config('bildersuche.enabled') || ! app(BildersucheAccessService::class)->isEligible(Auth::user())) {
+            $query->where('slug', '!=', 'bildersuche');
+        }
+
+        return $query;
     }
 
     #[Computed]

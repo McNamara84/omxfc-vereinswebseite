@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -60,6 +61,53 @@ class BelohnungenIndexTest extends TestCase
         $this->get('/belohnungen')
             ->assertOk()
             ->assertSee('Statistiken');
+    }
+
+    #[TestWith([false, Role::Mitglied, true, true, false])]
+    #[TestWith([true, Role::Mitglied, true, true, true])]
+    #[TestWith([true, Role::Anwaerter, true, true, false])]
+    #[TestWith([true, Role::Mitglied, false, true, false])]
+    #[TestWith([true, Role::Mitglied, true, false, false])]
+    public function test_bildersuche_category_obeys_the_same_visibility_as_its_reward(bool $enabled, Role $role, bool $verified, bool $active, bool $visible): void
+    {
+        config(['bildersuche.enabled' => $enabled]);
+        $user = $this->createUserWithRole($role);
+        $user->forceFill(['email_verified_at' => $verified ? now() : null])->save();
+        $this->actingAs($user);
+        $reward = Reward::where('slug', 'bildersuche')->firstOrFail();
+        $reward->update(['is_active' => $active]);
+
+        $component = Livewire::test(BelohnungenIndex::class);
+        $this->assertSame($visible, in_array('Bildersuche', $component->get('categories'), true));
+        $rewardIds = collect($component->get('rewards'))->flatten(1)->pluck('id')->all();
+        $this->assertSame($visible, in_array($reward->id, $rewardIds, true));
+        if ($visible) {
+            $component->assertSee('value="Bildersuche"', false)->assertSee('Maddrax-Bildersuche');
+        } else {
+            $component->assertDontSee('value="Bildersuche"', false)->assertDontSee('Maddrax-Bildersuche');
+        }
+    }
+
+    public function test_category_remains_available_when_it_contains_another_visible_reward(): void
+    {
+        config(['bildersuche.enabled' => false]);
+        $this->actingMember();
+        Reward::factory()->create(['category' => 'Bildersuche', 'title' => 'Weiteres sichtbares Angebot']);
+        $component = Livewire::test(BelohnungenIndex::class)->set('categoryFilter', 'Bildersuche')
+            ->assertSee('Weiteres sichtbares Angebot')->assertDontSee('Maddrax-Bildersuche');
+        $this->assertContains('Bildersuche', $component->get('categories'));
+    }
+
+    public function test_category_selection_does_not_remove_other_visible_categories(): void
+    {
+        config(['bildersuche.enabled' => true]);
+        $this->actingMember();
+        Reward::factory()->create(['category' => 'Andere Kategorie', 'title' => 'Weiteres Angebot']);
+        $component = Livewire::test(BelohnungenIndex::class)->set('categoryFilter', 'Andere Kategorie')
+            ->assertSee('Weiteres Angebot')->assertDontSee('Maddrax-Bildersuche');
+        $this->assertContains('Bildersuche', $component->get('categories'));
+        $this->assertContains('Andere Kategorie', $component->get('categories'));
+        $component->set('categoryFilter', 'Bildersuche')->assertSee('Maddrax-Bildersuche')->assertDontSee('Weiteres Angebot');
     }
 
     public function test_purchase_reward_deducts_baxx(): void

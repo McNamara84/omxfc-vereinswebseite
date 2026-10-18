@@ -49,7 +49,7 @@ class BookCoverSyncRunner
         }
         $batchSize = (int) config('cover-ratings.sync.batch_size', 25);
 
-        $query->with('cover')->orderBy('books.id')->chunkById(
+        $query->orderBy('books.id')->chunkById(
             $batchSize,
             function ($books) use (&$counts, $force, $dryRun, $report, $keywordsEnabled, $started): void {
                 $this->checkDeadline($started);
@@ -67,7 +67,7 @@ class BookCoverSyncRunner
                     Log::warning('Cover-Quellen konnten nicht abgerufen werden.', ['exception' => $exception::class]);
                 }
 
-                $keywordCovers = [];
+                $imageResults = [];
                 foreach ($books as $book) {
                     $this->checkDeadline($started);
                     $pageId = (int) ($book->maddraxikon_page_id ?? 0);
@@ -78,21 +78,32 @@ class BookCoverSyncRunner
                         $dryRun,
                     );
                     $counts[$result]++;
+                    $imageResults[$book->id] = $result;
 
                     if ($report) {
                         $report($book, $result);
                     }
-                    if ($keywordsEnabled) {
-                        $cover = $book->cover()->first();
-                        // A dry-run can examine a not-yet-persisted proposed source.
-                        if ($dryRun && ! $sourceError && ($sources[$pageId]['exists'] ?? false)
-                            && ($result !== 'changed' || $force || ! $cover?->ratings()->withTrashed()->exists())) {
-                            $cover ??= new BookCover(['book_id' => $book->id]);
-                            $cover->source_file_title = $sources[$pageId]['file_title'] ?? null;
-                        }
-                        if ($cover && filled($cover->source_file_title)) {
-                            $keywordCovers[] = $cover;
-                        }
+                }
+                if (! $keywordsEnabled) {
+                    return;
+                }
+
+                // Image sync may create or replace covers, or retain an old source
+                // after a failure. Load that durable state once for the whole batch.
+                $books->load('cover');
+                $keywordCovers = [];
+                foreach ($books as $book) {
+                    $this->checkDeadline($started);
+                    $pageId = (int) ($book->maddraxikon_page_id ?? 0);
+                    $cover = $book->cover;
+                    // A dry-run can examine a not-yet-persisted proposed source.
+                    if ($dryRun && ! $sourceError && ($sources[$pageId]['exists'] ?? false)
+                        && ($imageResults[$book->id] !== 'changed' || $force || ! $cover?->ratings()->withTrashed()->exists())) {
+                        $cover ??= new BookCover(['book_id' => $book->id]);
+                        $cover->source_file_title = $sources[$pageId]['file_title'] ?? null;
+                    }
+                    if ($cover && filled($cover->source_file_title)) {
+                        $keywordCovers[] = $cover;
                     }
                 }
                 if ($keywordCovers !== []) {
