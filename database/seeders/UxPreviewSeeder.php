@@ -19,11 +19,13 @@ class UxPreviewSeeder extends Seeder
         }
         $team = Team::membersTeam() ?? throw new LogicException('Seed the Playwright suite first.');
         foreach ([
-            ['admin', 'Alex', Role::Admin],
-            ['vorstand', 'Vera', Role::Vorstand],
-            ['kassenwart', 'Klara', Role::Kassenwart],
-            ['mitglied', 'Mara', Role::Mitglied],
-        ] as [$key, $firstName, $role]) {
+            ['admin', 'Alex', Role::Admin, true],
+            ['vorstand', 'Vera', Role::Vorstand, true],
+            ['kassenwart', 'Klara', Role::Kassenwart, true],
+            ['mitglied', 'Mara', Role::Mitglied, true],
+            ['admin-unconfirmed', 'Robin', Role::Admin, false],
+            ['mitglied-unconfirmed', 'Kim', Role::Mitglied, false],
+        ] as [$key, $firstName, $role, $verified]) {
             $user = User::firstWhere('email', 'ux-'.$key.'@example.com');
             if (! $user) {
                 $user = User::factory()->create([
@@ -31,7 +33,7 @@ class UxPreviewSeeder extends Seeder
                     'vorname' => $firstName,
                     'nachname' => $role->value,
                     'email' => 'ux-'.$key.'@example.com',
-                    'email_verified_at' => now(),
+                    'email_verified_at' => $verified ? now() : null,
                     'password' => Hash::make('password'),
                     'current_team_id' => $team->id,
                 ]);

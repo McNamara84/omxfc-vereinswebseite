@@ -31,15 +31,18 @@ class DashboardHomeRedirectTest extends TestCase
             ->assertRedirect(route('dashboard'));
     }
 
-    public function test_unverified_member_still_sees_public_homepage(): void
+    public function test_member_without_email_confirmation_can_enter_dashboard_and_explicitly_visit_public_homepage(): void
     {
         $member = $this->member(Role::Mitglied, verified: false);
 
         $this->withoutVite()
             ->actingAs($member)
-            ->get('/')
+            ->get('/')->assertRedirect(route('dashboard'));
+        $this->get('/dashboard')->assertOk();
+        $this->get('/?ansicht=oeffentlich')
             ->assertOk()
             ->assertSeeText('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!');
+        $this->assertNull($member->fresh()->email_verified_at);
     }
 
     public function test_applicant_is_not_redirected_into_protected_dashboard(): void

@@ -1,13 +1,72 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './test-support.js';
 
-const login = async (page) => {
+const login = async (page, email = 'playwright-member@example.com') => {
   await page.goto('/login');
-  await page.fill('input[name="email"]', 'playwright-member@example.com');
+  await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', 'password');
   await page.locator('input[name="password"]').press('Enter');
   await page.waitForURL(/\/dashboard$/);
 };
+
+for (const role of ['mitglied', 'admin']) {
+  test(`unconfirmed ${role} retains desktop navigation after reload and Livewire navigation`, async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await login(page, `ux-${role}-unconfirmed@example.com`);
+    const sidebar = page.getByTestId('member-sidebar-navigation');
+    const assertMenu = async (active) => {
+      await expect(sidebar.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
+      await expect(sidebar.getByText('Community', { exact: true })).toBeVisible();
+      await expect(sidebar.getByText('Lesen & Entdecken', { exact: true })).toBeVisible();
+      await expect(sidebar.locator('[aria-current="page"]')).toHaveCount(1);
+      await expect(sidebar.locator('[aria-current="page"]')).toHaveText(active);
+      await expect(sidebar.locator('[data-tour-key="section-board"]')).toHaveCount(role === 'admin' ? 1 : 0);
+      await expect(sidebar.locator('[data-tour-key="section-admin"]')).toHaveCount(role === 'admin' ? 1 : 0);
+      await expect(sidebar.getByRole('link', { name: 'Kurznachrichten verwalten', exact: true, includeHidden: true })).toHaveCount(role === 'admin' ? 1 : 0);
+    };
+
+    await assertMenu('Dashboard');
+    await page.reload();
+    await assertMenu('Dashboard');
+    await sidebar.getByText('Lesen & Entdecken', { exact: true }).click();
+    await sidebar.getByRole('link', { name: 'Kompendium', exact: true }).click();
+    await expect(page).toHaveURL(/\/kompendium$/);
+    await assertMenu('Kompendium');
+    await page.reload();
+    await assertMenu('Kompendium');
+    await sidebar.getByRole('link', { name: 'Dashboard', exact: true }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await assertMenu('Dashboard');
+    const collapseToggle = page.getByText('Navigation einklappen', { exact: true }).locator('..');
+    await collapseToggle.click();
+    await expect(sidebar.getByText('Community', { exact: true })).toBeHidden();
+    await collapseToggle.click();
+    await assertMenu('Dashboard');
+  });
+}
+
+test('unconfirmed member can use and reopen the mobile drawer after navigation', async ({ page }) => {
+  test.setTimeout(45_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, 'ux-mitglied-unconfirmed@example.com');
+
+  const toggle = page.getByTestId('member-drawer-toggle');
+  const sidebar = page.getByTestId('member-sidebar-navigation');
+  await toggle.click();
+  await expect(sidebar.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
+  await sidebar.getByText('Community', { exact: true }).click();
+  await sidebar.getByRole('link', { name: 'Mitgliederliste', exact: true }).click();
+  await expect(page).toHaveURL(/\/mitglieder$/);
+  await expect(page.locator('#member-drawer')).not.toBeChecked();
+  await toggle.click();
+  await expect(sidebar.getByRole('link', { name: 'Mitgliederliste', exact: true })).toBeVisible();
+  await expect(sidebar.locator('[aria-current="page"]')).toHaveCount(1);
+  await expect(sidebar.locator('[aria-current="page"]')).toHaveText('Mitgliederliste');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#member-drawer')).not.toBeChecked();
+  await expect(toggle).toBeFocused();
+});
 
 test('member shell exposes a collapsible desktop sidebar with one active link', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

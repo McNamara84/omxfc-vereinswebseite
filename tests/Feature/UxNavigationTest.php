@@ -61,14 +61,24 @@ class UxNavigationTest extends TestCase
         }
     }
 
-    public function test_applicants_unverified_accounts_and_revoked_gate_get_no_shortcuts(): void
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([Role::Admin])]
+    public function test_missing_email_confirmation_does_not_change_role_based_shortcuts(Role $role): void
+    {
+        $member = $this->createUserWithRole($role);
+        $actions = app(NavigationBuilder::class)->quickActions($member);
+        $this->assertNotEmpty($actions);
+        $member->forceFill(['email_verified_at' => null])->save();
+
+        $this->assertSame($actions, app(NavigationBuilder::class)->quickActions($member));
+    }
+
+    public function test_applicants_and_revoked_gate_get_no_shortcuts(): void
     {
         $applicant = $this->createUserWithRole(Role::Anwaerter);
         $this->assertSame([], app(NavigationBuilder::class)->quickActions($applicant));
         $member = $this->createUserWithRole(Role::Mitglied);
         $member->forceFill(['email_verified_at' => null])->save();
-        $this->assertSame([], app(NavigationBuilder::class)->quickActions($member));
-        $member->forceFill(['email_verified_at' => now()])->save();
         Gate::define('access-dashboard', fn () => false);
         $this->assertSame([], app(NavigationBuilder::class)->quickActions($member));
     }
@@ -82,19 +92,24 @@ class UxNavigationTest extends TestCase
         $this->assertNotContains('Mitgliedsanträge', array_column(app(NavigationBuilder::class)->quickActions($member->fresh()), 'title'));
     }
 
-    public function test_public_context_has_fixed_return_link_only_for_eligible_members(): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_public_context_has_fixed_return_link_only_for_eligible_members(bool $verified): void
     {
         $this->get(route('satzung'))->assertOk()->assertDontSee('data-testid="public-context"', false);
-        $this->actingAs($this->createUserWithRole(Role::Mitglied))
-            ->get(route('satzung').'?return=https://example.com')
+        $this->actingMember(attributes: ['email_verified_at' => $verified ? now() : null]);
+        $this->get(route('satzung').'?return=https://example.com')
             ->assertOk()->assertSee('data-testid="public-context"', false)->assertSee('Zurück zum Mitgliederbereich');
         $this->actingAs($this->createUserWithRole(Role::Anwaerter))
             ->get(route('satzung'))->assertOk()->assertDontSee('data-testid="public-context"', false);
     }
 
-    public function test_breadcrumbs_use_authorized_parents_and_plain_group_labels(): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_breadcrumbs_use_authorized_parents_and_plain_group_labels(bool $verified): void
     {
         $member = $this->createUserWithRole(Role::Mitglied);
+        $member->forceFill(['email_verified_at' => $verified ? now() : null])->save();
         request()->setRouteResolver(fn () => (new Route('GET', '/rezensionen/1/erstellen', fn () => null))->name('reviews.create'));
         $page = app(PageNavigation::class)->resolve($member, 'member');
         $this->assertSame('Rezension schreiben', $page['title']);
