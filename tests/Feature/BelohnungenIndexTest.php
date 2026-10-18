@@ -66,7 +66,7 @@ class BelohnungenIndexTest extends TestCase
     #[TestWith([false, Role::Mitglied, true, true, false])]
     #[TestWith([true, Role::Mitglied, true, true, true])]
     #[TestWith([true, Role::Anwaerter, true, true, false])]
-    #[TestWith([true, Role::Mitglied, false, true, false])]
+    #[TestWith([true, Role::Mitglied, false, true, true])]
     #[TestWith([true, Role::Mitglied, true, false, false])]
     public function test_bildersuche_category_obeys_the_same_visibility_as_its_reward(bool $enabled, Role $role, bool $verified, bool $active, bool $visible): void
     {
