@@ -86,20 +86,24 @@ test('mary tabs keep badges and independent table sorting through updates', asyn
         return { purchases: component.get('purchaseSortBy'), downloads: component.get('downloadSortBy') };
     });
 
-    // Seeded downloads and the separate search fixture make both counters real.
-    await expect(purchases.locator('.badge')).toHaveText('1');
+    // Other browser flows can add purchases to the shared database. Keep the
+    // badge assertions scoped to the seeded member, regardless of test order.
+    const purchaseMember = 'Playwright Kompendium-Suchmitglied';
     await expect(downloads.locator('.badge')).toHaveText('2');
     const initial = await state();
     await purchases.click();
     await expect(purchases).toHaveClass(/tab-active/);
+    const purchaseSearch = page.getByPlaceholder('Mitglied suchen...');
+    await purchaseSearch.fill(purchaseMember);
+    await expect(purchases.locator('.badge')).toHaveText('1');
     await clickAndWaitForLivewireUpdate(page, page.getByRole('columnheader', { name: 'Kosten (Baxx)', exact: true }));
     const purchaseSorted = await state();
     expect(purchaseSorted.purchases).toEqual({ column: 'cost_baxx', direction: 'asc' });
     expect(purchaseSorted.downloads).toEqual(initial.downloads);
 
-    await page.getByPlaceholder('Mitglied suchen...').fill('missing-dependency-test-user');
+    await purchaseSearch.fill('missing-dependency-test-user');
     await expect(purchases.locator('.badge')).toHaveCount(0);
-    await page.getByPlaceholder('Mitglied suchen...').fill('');
+    await purchaseSearch.fill(purchaseMember);
     await expect(purchases.locator('.badge')).toHaveText('1');
 
     await downloads.click();
