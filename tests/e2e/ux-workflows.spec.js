@@ -35,8 +35,12 @@ test('review editing protects unsaved text and saves without an extra leave prom
     await form.getByRole('textbox', { name: 'Rezensionstitel', exact: true }).fill('Eine Reise durch die Welt von Maddrax');
     const text = 'Dieser Roman bietet eine spannende Geschichte und interessante Figuren. Besonders überzeugend sind die Atmosphäre und die überraschenden Wendungen, die zum Weiterlesen einladen.';
     await page.getByTestId('review-markdown-input').fill(text);
-    page.once('dialog', dialog => dialog.dismiss());
-    await form.getByRole('link', { name: 'Abbrechen', exact: true }).click();
+    const cancelDialog = page.waitForEvent('dialog');
+    const cancelClick = form.getByRole('link', { name: 'Abbrechen', exact: true }).click();
+    const dialog = await cancelDialog;
+    expect(dialog.type()).toBe('confirm');
+    await dialog.dismiss();
+    await cancelClick;
     await expect(page).toHaveURL(/\/erstellen$/);
     await expect(page.getByTestId('review-markdown-input')).toHaveValue(text);
     const dialogs = [];

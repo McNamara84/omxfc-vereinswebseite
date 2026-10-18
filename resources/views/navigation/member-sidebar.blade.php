@@ -128,9 +128,9 @@
     </div>
     <div class="mary-hideable border-t border-base-content/10 px-5 py-4 text-xs text-base-content/75">
         <div class="flex flex-wrap gap-x-3 gap-y-1">
-            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover">Impressum</a>
-            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover">Datenschutz</a>
-            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover">Changelog</a>
+            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Impressum</a>
+            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Datenschutz</a>
+            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Changelog</a>
         </div>
         <p class="mt-2">OMXFC · Version {{ $appVersion }}</p>
     </div>

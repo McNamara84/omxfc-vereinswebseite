@@ -1,5 +1,5 @@
 <x-ui.panel title="Schnellstart" data-testid="dashboard-quick-actions" class="p-5">
-    <nav class="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 xl:grid-cols-4" aria-label="Schnellstart">
+    <nav class="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4" aria-label="Schnellstart">
         @foreach($quickActions as $action)
             <a href="{{ $action['href'] }}" wire:navigate class="group flex items-center gap-2 rounded-xl border border-base-content/10 bg-base-200/35 px-3 py-3 text-sm font-semibold transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary">
                 <x-icon :name="$action['icon']" class="h-4.5 w-4.5 shrink-0 text-primary" />

@@ -8,6 +8,11 @@ test('navigation and quick-action labels remain readable across responsive bound
     await page.locator('[name=password]').fill('password');
     await page.locator('[name=password]').press('Enter');
     await expect(page).toHaveURL(/\/dashboard$/);
+    const loadedFonts = await page.evaluate(async () => {
+        await document.fonts.ready;
+        return [...document.fonts].filter(font => font.status === 'loaded').map(font => font.family.replaceAll(/["']/g, ''));
+    });
+    expect(loadedFonts).toEqual(expect.arrayContaining(['Figtree Variable', 'Space Grotesk Variable']));
     await page.locator('[data-dashboard-details]').evaluateAll(sections => sections.forEach(section => { section.open = true; }));
     await expect(page.locator('#dashboard-details-community')).toHaveAttribute('open');
     for (const width of widths) {

@@ -12,7 +12,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-    --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 @plugin "@tailwindcss/typography";
@@ -21,7 +21,7 @@
 }
 
 :root {
-    --omxfc-font-display: "Space Grotesk", var(--font-sans);
+    --omxfc-font-display: "Space Grotesk Variable", var(--font-sans);
 }
 
 .font-display {
