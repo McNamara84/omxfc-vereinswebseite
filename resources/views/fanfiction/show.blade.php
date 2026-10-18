@@ -94,7 +94,7 @@
                     @endif
 
                     @if (! $fanfiction->reward->is_active)
-                        <p class="text-sm text-base-content/60 font-medium">
+                        <p class="text-sm text-base-content/75 font-medium">
                             Diese Fanfiction ist derzeit nicht verfügbar.
                         </p>
                     @elseif ($walletWarning)

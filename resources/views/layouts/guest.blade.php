@@ -1,3 +1,5 @@
+@php($pageNavigation = app(\App\Support\Navigation\PageNavigation::class)->resolve(auth()->user(), 'public'))
+@php($title = $title ?? ($pageNavigation['title'] . ' – Offizieller MADDRAX Fanclub e. V.'))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="caramellatte">
     <head>

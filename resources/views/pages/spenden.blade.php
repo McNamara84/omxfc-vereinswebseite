@@ -6,7 +6,7 @@
 @endphp
 
 <x-app-layout title="Spenden – Offizieller MADDRAX Fanclub e. V." description="Unterstütze unseren Fanclub finanziell für Fantreffen, Projekte und Serverkosten.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             :eyebrow="data_get($hero, 'eyebrow')"
             :title="data_get($hero, 'title')"
@@ -21,13 +21,13 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.82fr)] xl:items-start">
-            <div class="space-y-8">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.82fr)] xl:items-start">
+            <div class="space-y-6">
                 <x-ui.panel :title="data_get($impactSection, 'title')" :description="data_get($impactSection, 'description')">
                     <div class="grid gap-4 md:grid-cols-3">
                         @foreach(data_get($impactSection, 'items', []) as $punkt)
                             <article class="rounded-3xl border border-base-content/10 bg-base-100/72 p-5">
-                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">{{ $punkt['eyebrow'] }}</p>
+                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">{{ $punkt['eyebrow'] }}</p>
                                 <h2 class="mt-2 font-display text-xl font-semibold tracking-tight text-base-content">{{ $punkt['title'] }}</h2>
                                 <p class="mt-2 text-sm leading-relaxed text-base-content/72">{{ $punkt['description'] }}</p>
                             </article>
@@ -38,7 +38,7 @@
                 <x-ui.panel :title="data_get($transparencySection, 'title')" :description="data_get($transparencySection, 'description')">
                     <ul class="grid gap-3">
                         @foreach(data_get($transparencySection, 'items', []) as $hinweis)
-                            <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                            <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                                 <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">{{ $loop->iteration }}</span>
                                 <span>
                                     @if(isset($hinweis['email']))

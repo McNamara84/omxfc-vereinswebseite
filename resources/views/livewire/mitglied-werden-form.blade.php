@@ -1,26 +1,20 @@
-<form wire:submit="submit" x-data="{ satzungCheck: @entangle('satzung_check').live }" class="w-full" data-testid="mitglied-werden-form">
-    @if($errors->has('submit'))
-        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
-            {{ $errors->first('submit') }}
-        </div>
-    @elseif($errors->any())
-        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
-            Bitte korrigiere die markierten Felder.
-        </div>
-    @endif
+<form wire:submit="submit" x-data="{ satzungCheck: @entangle('satzung_check').live }" class="w-full" data-testid="mitglied-werden-form" data-ux-form>
+    <x-ui.error-summary :ids="['vorname' => 'membership-vorname', 'nachname' => 'membership-nachname', 'strasse' => 'membership-strasse', 'hausnummer' => 'membership-hausnummer', 'plz' => 'membership-plz', 'stadt' => 'membership-stadt', 'land' => 'membership-land', 'mail' => 'membership-mail', 'passwort' => 'membership-passwort', 'passwort_confirmation' => 'membership-passwort_confirmation', 'telefon' => 'membership-telefon', 'verein_gefunden' => 'membership-verein_gefunden', 'satzung_check' => 'satzung_check', 'mitgliedsbeitrag' => 'mitgliedsbeitrag']" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        <x-input wire:model.live.blur="vorname" name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
+        <h3 class="col-span-full font-display text-lg font-semibold">Persönliche Angaben</h3>
+        <x-input id="membership-vorname" wire:model.live.blur="vorname" name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
 
-        <x-input wire:model.live.blur="nachname" name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
+        <x-input id="membership-nachname" wire:model.live.blur="nachname" name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
 
-        <x-input wire:model.live.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" title="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand benötigt." />
+        <h3 class="col-span-full mt-2 border-t border-base-content/10 pt-4 font-display text-lg font-semibold">Anschrift</h3>
+        <x-input id="membership-strasse" wire:model.live.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" title="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand benötigt." />
 
-        <x-input wire:model.live.blur="hausnummer" name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
+        <x-input id="membership-hausnummer" wire:model.live.blur="hausnummer" name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
 
-        <x-input wire:model.live.blur="plz" name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
+        <x-input id="membership-plz" wire:model.live.blur="plz" name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
 
-        <x-input wire:model.live.blur="stadt" name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
+        <x-input id="membership-stadt" wire:model.live.blur="stadt" name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
 
         @php
             $landOptions = [
@@ -31,7 +25,7 @@
         @endphp
         <x-form-select
             wire:model.live.blur="land"
-            name="land"
+            id="membership-land" name="land"
             label="Land"
             aria-label="Land"
             class="w-full"
@@ -40,12 +34,14 @@
             required
         />
 
-        <x-input wire:model.live.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" title="Wird als Anmeldename für den Mitgliederbereich verwendet." />
+        <h3 class="col-span-full mt-2 border-t border-base-content/10 pt-4 font-display text-lg font-semibold">Dein Zugang</h3>
+        <x-input id="membership-mail" wire:model.live.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" title="Wird als Anmeldename für den Mitgliederbereich verwendet." />
 
-        <x-password wire:model.live.blur="passwort" name="passwort" label="Passwort" required class="w-full" autocomplete="new-password" hint="Mindestens 8 Zeichen." popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort." />
+        <x-password id="membership-passwort" wire:model.live.blur="passwort" name="passwort" label="Passwort" required class="w-full" autocomplete="new-password" hint="Mindestens 8 Zeichen." popover="Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort." />
 
-        <x-password wire:model.live.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
+        <x-password id="membership-passwort_confirmation" wire:model.live.blur="passwort_confirmation" name="passwort_confirmation" label="Passwort wiederholen" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
 
+        <h3 class="col-span-full mt-2 border-t border-base-content/10 pt-4 font-display text-lg font-semibold">Mitgliedsbeitrag</h3>
         <div class="col-span-1 md:col-span-2 w-full space-y-2" x-data="{ beitrag: @entangle('mitgliedsbeitrag') }">
             <label for="mitgliedsbeitrag" class="pt-0 label label-text font-semibold">
                 Jährlicher Mitgliedsbeitrag: <span id="beitrag-output" class="font-semibold text-primary" aria-live="polite" x-text="beitrag + '€'">{{ $mitgliedsbeitrag }}€</span>
@@ -64,7 +60,8 @@
             <p class="text-sm text-base-content/80">Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand.</p>
         </div>
 
-        <x-input wire:model.live.blur="telefon" name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
+        <h3 class="col-span-full mt-2 border-t border-base-content/10 pt-4 font-display text-lg font-semibold">Weitere Angaben (optional)</h3>
+        <x-input id="membership-telefon" wire:model.live.blur="telefon" name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
 
         @php
             $vereinGefundenOptions = [
@@ -79,7 +76,7 @@
         @endphp
         <x-form-select
             wire:model.live.blur="verein_gefunden"
-            name="verein_gefunden"
+            id="membership-verein_gefunden" name="verein_gefunden"
             label="Wie hast du von uns erfahren? (optional)"
             aria-label="Wie hast du von uns erfahren?"
             class="w-full"
@@ -102,13 +99,16 @@
                     Ich habe die <a href="{{ route('satzung') }}" target="_blank" rel="noopener noreferrer" class="link link-primary" onclick="event.stopPropagation()">Satzung</a> gelesen und bin mit ihr einverstanden.
                 </span>
             </label>
-            @error('satzung_check') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            @error('satzung_check') <span id="membership-satzung-error" class="text-error text-sm">{{ $message }}</span> @enderror
         </div>
     </div>
 
+    <p id="membership-consent-help" class="mt-4 text-sm text-base-content/80" x-show="!satzungCheck">Bitte bestätige die Satzung, um deinen Antrag absenden zu können.</p>
+    <p class="mt-2 text-sm text-base-content/80">Nach dem Absenden erhältst du eine E-Mail zur Bestätigung deiner Adresse. Anschließend prüft der Vorstand deinen Antrag.</p>
     <button
         type="submit"
-        class="btn btn-primary mt-6"
+        class="btn btn-primary mt-4 min-h-11"
+        aria-describedby="membership-consent-help"
         disabled
         x-bind:class="{ 'opacity-50 cursor-not-allowed': !satzungCheck }"
         x-bind:disabled="!satzungCheck"

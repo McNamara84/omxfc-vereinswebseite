@@ -8,9 +8,9 @@
     $rendersSlotInBody = ! $hasValueSlot && $hasDefaultSlot;
 @endphp
 @if($href)
-<a href="{{ $href }}" {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-2xl']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
+<a href="{{ $href }}" {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-2xl']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
 @else
-<div {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
+<div {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-sm']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
 @endif
     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
@@ -44,7 +44,7 @@
                 </div>
 
                 @if($href)
-                    <span class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.2em] text-base-content/45">
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.2em] text-base-content/75">
                         Öffnen
                         <x-icon name="o-chevron-right" class="h-4 w-4" />
                     </span>

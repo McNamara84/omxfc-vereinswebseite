@@ -19,6 +19,6 @@
     />
 
     @if($hint)
-        <span class="block text-xs text-base-content/60">{{ $hint }}</span>
+        <span class="block text-xs text-base-content/75">{{ $hint }}</span>
     @endif
 </label>

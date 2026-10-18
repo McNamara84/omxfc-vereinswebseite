@@ -78,12 +78,12 @@
                         <span class="w-16 text-xs text-right tabular-nums">
                             {{ $eintrag['ist'] }}/{{ $eintrag['soll'] }}
                         </span>
-                        <span class="w-12 text-xs text-right tabular-nums text-base-content/60">
+                        <span class="w-12 text-xs text-right tabular-nums text-base-content/75">
                             {{ $eintrag['prozent'] }}%
                         </span>
                     </div>
                 @empty
-                    <p class="text-base-content/60 text-sm text-center py-4">
+                    <p class="text-base-content/75 text-sm text-center py-4">
                         Noch keine Seriendaten verfügbar. Bitte Romane hochladen.
                     </p>
                 @endforelse

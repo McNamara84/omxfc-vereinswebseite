@@ -40,13 +40,13 @@
 
                         <div class="flex items-center ms-2">
                             @if ($token->last_used_at)
-                                <div class="text-sm text-base-content/60">
+                                <div class="text-sm text-base-content/75">
                                     {{ __('Last used') }} {{ $token->last_used_at->diffForHumans() }}
                                 </div>
                             @endif
 
                             @if (Laravel\Jetstream\Jetstream::hasPermissions())
-                                <button class="cursor-pointer ms-6 text-sm text-base-content/60 underline" wire:click="manageApiTokenPermissions({{ $token->id }})">
+                                <button class="cursor-pointer ms-6 text-sm text-base-content/75 underline" wire:click="manageApiTokenPermissions({{ $token->id }})">
                                     {{ __('Permissions') }}
                                 </button>
                             @endif

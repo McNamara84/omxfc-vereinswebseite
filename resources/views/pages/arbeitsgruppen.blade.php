@@ -5,7 +5,7 @@
 @endphp
 
 <x-app-layout title="Arbeitsgruppen – Offizieller MADDRAX Fanclub e. V." description="Überblick über alle Projektteams des Vereins.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Projektteams im Verein"
             title="Arbeitsgruppen des OMXFC e.V."
@@ -20,10 +20,10 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] xl:items-start">
             <div class="space-y-6">
                 @forelse($ags as $ag)
-                    <article class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/88 shadow-xl shadow-base-content/5 backdrop-blur">
+                    <article class="relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/88 shadow-sm backdrop-blur">
                         <div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
                         <div
@@ -104,9 +104,9 @@
             <div class="space-y-6 xl:sticky xl:top-6">
                 <x-ui.panel title="So funktionieren die AGs" description="Arbeitsgruppen sind die produktive Ebene des Vereins. Sie verbinden Austausch, Projektarbeit und Verlässlichkeit.">
                     <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Jede AG bündelt ein klares Thema, damit Aufgaben nicht im allgemeinen Vereinsalltag untergehen.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Leitung, Treffrhythmus und Kontaktweg sind sofort sichtbar, damit Interessierte direkt andocken können.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Öffentliche Gruppen zeigen transparent, wo Zusammenarbeit bereits stattfindet und wo neue Unterstützung sinnvoll ist.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Jede AG bündelt ein klares Thema, damit Aufgaben nicht im allgemeinen Vereinsalltag untergehen.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Leitung, Treffrhythmus und Kontaktweg sind sofort sichtbar, damit Interessierte direkt andocken können.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Öffentliche Gruppen zeigen transparent, wo Zusammenarbeit bereits stattfindet und wo neue Unterstützung sinnvoll ist.</li>
                     </ul>
                 </x-ui.panel>
 

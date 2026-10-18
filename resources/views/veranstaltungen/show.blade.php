@@ -1,8 +1,8 @@
 <x-app-layout
     :title="$veranstaltung->seo_title ?: $veranstaltung->titel"
     :description="$veranstaltung->seo_description ?: ($veranstaltung->teaser ?: $veranstaltung->untertitel)">
-    <div class="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        <section class="rounded-[2rem] bg-gradient-to-br from-[#8B0116] via-[#6e0d14] to-[#3d1014] px-6 py-8 text-white shadow-xl sm:px-8 sm:py-10">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
+        <section class="rounded-2xl bg-gradient-to-br from-[#8B0116] via-[#6e0d14] to-[#3d1014] px-6 py-8 text-white shadow-xl sm:px-8 sm:py-10">
             <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                 <div class="space-y-4">
                     <p class="text-xs font-semibold uppercase tracking-[0.3em] text-white/65">
@@ -19,7 +19,7 @@
                     </div>
                 </div>
 
-                <div class="grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm sm:min-w-80">
+                <div class="grid gap-3 rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm sm:min-w-80">
                     @if ($veranstaltung->datum_von)
                         <div>
                             <p class="text-xs uppercase tracking-[0.2em] text-white/60">Datum</p>
@@ -41,7 +41,7 @@
                         </div>
                     @endif
                     @if ($user?->canManageVeranstaltungen())
-                        <div class="space-y-2 rounded-[1.25rem] border border-white/15 bg-white/8 p-3">
+                        <div class="space-y-2 rounded-xl border border-white/15 bg-white/8 p-3">
                             <p class="text-xs uppercase tracking-[0.2em] text-white/60">Verwaltung</p>
                             <div class="flex flex-wrap gap-2">
                                 <a href="{{ route('admin.veranstaltungen.edit', $veranstaltung) }}" wire:navigate class="btn btn-sm rounded-full border-white text-white hover:bg-white hover:text-[#8B0116]">Veranstaltung bearbeiten</a>
@@ -72,7 +72,7 @@
             </x-ui.panel>
         @endif
 
-        <div class="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.95fr)]">
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.95fr)]">
             <div class="space-y-6">
                 @php($htmlBeschreibung = $veranstaltung->html_beschreibung)
 
@@ -193,7 +193,7 @@
                                                                 <span class="block font-medium">{{ $displayName }} bestellen</span>
                                                                 <span class="block text-sm text-base-content/70">{{ number_format((float) $artikel->preis, 2, ',', '.') }} €</span>
                                                                 @if ($artikel->beschreibung)
-                                                                    <span class="mt-1 block text-sm text-base-content/60">{{ $artikel->beschreibung }}</span>
+                                                                    <span class="mt-1 block text-sm text-base-content/75">{{ $artikel->beschreibung }}</span>
                                                                 @endif
                                                             </span>
                                                         </label>

@@ -79,7 +79,7 @@
                                     <tr data-testid="rpg-character-row">
                                         <td>
                                             <div class="font-medium text-base-content">{{ $character->displayName() }}</div>
-                                            <div class="text-xs text-base-content/60">{{ $characterPayload['player_name'] ?? '' }}</div>
+                                            <div class="text-xs text-base-content/75">{{ $characterPayload['player_name'] ?? '' }}</div>
                                         </td>
                                         <td>{{ $characterPayload['race'] ?? '' }}</td>
                                         <td>{{ $characterPayload['culture'] ?? '' }}</td>

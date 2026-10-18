@@ -31,7 +31,7 @@
         >
             <div class="grid gap-4 lg:grid-cols-2">
                 <div class="rounded-2xl border border-base-300 bg-base-100 p-4">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">Aktuell gültig</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/75">Aktuell gültig</p>
                     @if ($currentPolicy)
                         <h3 class="mt-2 font-semibold text-primary">{{ $currentPolicy->name }}</h3>
                         <p class="mt-1 text-sm text-base-content/70">
@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="rounded-2xl border border-base-300 bg-base-100 p-4">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/55">Nächster Wechsel</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-base-content/75">Nächster Wechsel</p>
                     @if ($nextPolicy)
                         <h3 class="mt-2 font-semibold text-secondary">{{ $nextPolicy->name }}</h3>
                         <p class="mt-1 text-sm text-base-content/70">
@@ -98,7 +98,7 @@
                                 <tr wire:key="maddraxikon-policy-{{ $policy->id }}">
                                     <td>
                                         <div class="font-medium">{{ $policy->name }}</div>
-                                        <div class="text-xs text-base-content/55">
+                                        <div class="text-xs text-base-content/75">
                                             {{ $policy->publisher?->name ?? $policy->creator?->name ?? 'System' }}
                                         </div>
                                     </td>
@@ -116,7 +116,7 @@
                                                 @endforeach
                                             </div>
                                         @else
-                                            <span class="text-sm text-base-content/55">Deaktiviert</span>
+                                            <span class="text-sm text-base-content/75">Deaktiviert</span>
                                         @endif
                                     </td>
                                     <td class="whitespace-nowrap text-sm">
@@ -177,7 +177,7 @@
             <div class="grid gap-4 md:grid-cols-3">
                 @foreach ($featureSwitches as $feature)
                     <div class="rounded-2xl border border-base-300 bg-base-100 p-4">
-                        <p class="text-sm text-base-content/65">{{ $feature['label'] }}</p>
+                        <p class="text-sm text-base-content/75">{{ $feature['label'] }}</p>
                         <div class="mt-2 flex items-center gap-2">
                             <span
                                 @class([
@@ -213,7 +213,7 @@
                     wire:target="dispatchEvaluation"
                     :disabled="! $featureSwitches['awards']['enabled'] || $syncState?->recovery_required_at"
                 />
-                <span class="text-xs text-base-content/55">
+                <span class="text-xs text-base-content/75">
                     Wiki: {{ $wikiKey }}
                 </span>
             </div>
@@ -227,23 +227,23 @@
                 @if ($syncState)
                     <dl class="grid gap-4 text-sm sm:grid-cols-2">
                         <div>
-                            <dt class="text-base-content/60">Watermark</dt>
+                            <dt class="text-base-content/75">Watermark</dt>
                             <dd class="mt-1 font-medium">
                                 {{ $syncState->watermark_at?->copy()->timezone($timezone)->format('d.m.Y H:i:s') ?? '–' }}
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-base-content/60">Letzter Erfolg</dt>
+                            <dt class="text-base-content/75">Letzter Erfolg</dt>
                             <dd class="mt-1 font-medium">
                                 {{ $syncState->last_succeeded_at?->copy()->timezone($timezone)->format('d.m.Y H:i:s') ?? '–' }}
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-base-content/60">Zuletzt importiert</dt>
+                            <dt class="text-base-content/75">Zuletzt importiert</dt>
                             <dd class="mt-1 font-medium">{{ $syncState->last_imported_count }}</dd>
                         </div>
                         <div>
-                            <dt class="text-base-content/60">Fehler in Folge</dt>
+                            <dt class="text-base-content/75">Fehler in Folge</dt>
                             <dd class="mt-1 font-medium">{{ $syncState->consecutive_failures }}</dd>
                         </div>
                     </dl>
@@ -280,7 +280,7 @@
                 description="Diese Prüfung ist der einzige Vorgang auf dieser Seite, der das Maddraxikon direkt abfragt."
             >
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <p class="text-sm text-base-content/65">
+                    <p class="text-sm text-base-content/75">
                         Vergleicht die erlaubten IDs und lokalisierten Namen mit der Wiki-Konfiguration.
                     </p>
                     <x-button
@@ -394,11 +394,11 @@
                         <option value="technical">Technischer Fehler</option>
                     </select>
                 </label>
-                <p class="text-xs text-base-content/55">Maximal 50 neueste Treffer</p>
+                <p class="text-xs text-base-content/75">Maximal 50 neueste Treffer</p>
             </div>
 
             @if ($recentContributions->isEmpty())
-                <p class="py-6 text-center text-sm text-base-content/60">
+                <p class="py-6 text-center text-sm text-base-content/75">
                     Keine Beiträge für diesen Filter vorhanden.
                 </p>
             @else
@@ -425,7 +425,7 @@
                                         <span class="font-medium">
                                             {{ $contribution->user?->name ?? 'Gelöschtes Mitglied' }}
                                         </span>
-                                        <span class="block text-xs text-base-content/55">
+                                        <span class="block text-xs text-base-content/75">
                                             {{ $contribution->accountLink?->wiki_username ?? $contribution->wiki_username }}
                                         </span>
                                     </td>
@@ -438,7 +438,7 @@
                                         >
                                             {{ $contribution->page_title }}
                                         </a>
-                                        <span class="block text-xs text-base-content/55">
+                                        <span class="block text-xs text-base-content/75">
                                             Revision {{ $contribution->revision_id }}
                                         </span>
                                     </td>
@@ -457,7 +457,7 @@
                                                 {{ $contribution->last_evaluation_error }}
                                             </span>
                                         @elseif ($contribution->status_reason)
-                                            <span class="mt-1 block max-w-80 text-xs text-base-content/55">
+                                            <span class="mt-1 block max-w-80 text-xs text-base-content/75">
                                                 {{ $contribution->status_reason }}
                                             </span>
                                         @endif
@@ -515,7 +515,7 @@
             </div>
 
             @if ($recentLinks->isEmpty())
-                <p class="py-6 text-center text-sm text-base-content/60">
+                <p class="py-6 text-center text-sm text-base-content/75">
                     Keine Kontoverknüpfungen für diesen Filter vorhanden.
                 </p>
             @else
@@ -537,7 +537,7 @@
                                     <td>{{ $link->user?->name ?? 'Gelöschtes Mitglied' }}</td>
                                     <td>
                                         <span class="font-medium">{{ $link->wiki_username }}</span>
-                                        <span class="block text-xs text-base-content/55">
+                                        <span class="block text-xs text-base-content/75">
                                             Wiki-ID {{ $link->wiki_user_id }}
                                         </span>
                                     </td>
@@ -575,7 +575,7 @@
             @if ($recentLinkCorrections->isNotEmpty())
                 <div class="mt-6 border-t border-base-300 pt-5">
                     <h3 class="font-semibold">Letzte Zuordnungskorrekturen</h3>
-                    <p class="mb-3 text-xs text-base-content/55">
+                    <p class="mb-3 text-xs text-base-content/75">
                         Unveränderliches Audit der dauerhaft gesperrten Altidentitäten.
                     </p>
                     <div class="overflow-x-auto">
@@ -592,7 +592,7 @@
                                     <tr wire:key="maddraxikon-link-correction-{{ $correction->id }}">
                                         <td>
                                             {{ $correction->affectedUser?->name ?? 'Gelöschtes Mitglied' }}
-                                            <span class="block text-xs text-base-content/55">
+                                            <span class="block text-xs text-base-content/75">
                                                 {{ $correction->old_wiki_username }}
                                             </span>
                                         </td>
@@ -601,7 +601,7 @@
                                         </td>
                                         <td>
                                             {{ $correction->actor?->name ?? 'Gelöschter Admin' }}
-                                            <span class="block text-xs text-base-content/55">
+                                            <span class="block text-xs text-base-content/75">
                                                 {{ $correction->corrected_at->copy()->timezone($timezone)->format('d.m.Y H:i') }}
                                             </span>
                                             <span class="mt-1 block max-w-96 text-xs">
@@ -635,11 +635,11 @@
                         @endforeach
                     </select>
                 </label>
-                <p class="text-xs text-base-content/55">Maximal 50 neueste Treffer</p>
+                <p class="text-xs text-base-content/75">Maximal 50 neueste Treffer</p>
             </div>
 
             @if ($recentRewardEvents->isEmpty())
-                <p class="py-6 text-center text-sm text-base-content/60">
+                <p class="py-6 text-center text-sm text-base-content/75">
                     Keine Baxx-Ereignisse für diesen Filter vorhanden.
                 </p>
             @else
@@ -662,7 +662,7 @@
                                         <span class="font-medium">
                                             {{ $event->user?->name ?? 'Gelöschtes Mitglied' }}
                                         </span>
-                                        <span class="block text-xs text-base-content/55">
+                                        <span class="block text-xs text-base-content/75">
                                             {{ $event->accountLink?->wiki_username ?? 'Verknüpfung gelöscht' }}
                                         </span>
                                     </td>
@@ -674,7 +674,7 @@
                                     <td>
                                         {{ $rewardActionLabels[$event->action_key] ?? $event->action_key }}
                                         @if ($event->measured_added_bytes !== null)
-                                            <span class="block text-xs text-base-content/55">
+                                            <span class="block text-xs text-base-content/75">
                                                 Netto +{{ number_format($event->measured_added_bytes, 0, ',', '.') }} Bytes
                                                 @if ($event->matched_minimum_added_bytes !== null)
                                                     · Stufe ab {{ number_format($event->matched_minimum_added_bytes, 0, ',', '.') }}
@@ -682,7 +682,7 @@
                                             </span>
                                         @endif
                                         @if ($event->rewardPolicy)
-                                            <span class="block text-xs text-base-content/55">
+                                            <span class="block text-xs text-base-content/75">
                                                 Regel: {{ $event->rewardPolicy->name }}
                                             </span>
                                         @endif
@@ -710,12 +710,12 @@
                                             class="badge-outline badge-sm"
                                         />
                                         @if ($event->status_reason)
-                                            <span class="mt-1 block max-w-64 text-xs text-base-content/55">
+                                            <span class="mt-1 block max-w-64 text-xs text-base-content/75">
                                                 {{ $event->status_reason }}
                                             </span>
                                         @endif
                                         @if ($event->status === \App\Enums\MaddraxikonRewardEventStatus::Reversed)
-                                            <span class="mt-1 block max-w-64 text-xs text-base-content/55">
+                                            <span class="mt-1 block max-w-64 text-xs text-base-content/75">
                                                 {{ $event->reversal_reason }}
                                                 @if ($event->reversedBy)
                                                     – {{ $event->reversedBy->name }}

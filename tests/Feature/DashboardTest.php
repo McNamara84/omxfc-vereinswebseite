@@ -35,7 +35,7 @@ class DashboardTest extends TestCase
         return $user;
     }
 
-    public function test_dashboard_renders_three_compact_metric_groups_with_four_metrics_each(): void
+    public function test_dashboard_prioritizes_quick_actions_and_keeps_all_twelve_metrics(): void
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
@@ -58,10 +58,16 @@ class DashboardTest extends TestCase
         foreach ($expectedGroups as $key => $title) {
             $group = $crawler->filter("[data-testid=\"dashboard-metric-group-{$key}\"]");
             $this->assertCount(1, $group);
-            $this->assertSame($title, trim($group->filter('h2')->text()));
-            $this->assertSame($group->filter('h2')->attr('id'), $group->attr('aria-labelledby'));
-            $this->assertCount(4, $group->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
+            if ($key === 'important') {
+                $this->assertSame($title, trim($group->filter('h2')->text()));
+                $this->assertSame($group->filter('h2')->attr('id'), $group->attr('aria-labelledby'));
+            } else {
+                $this->assertSame($title, $group->attr('aria-label'));
+            }
+            $this->assertCount($key === 'important' ? 2 : 4, $group->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
         }
+        $this->assertCount(12, $crawler->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
+        $this->assertLessThan(strpos($response->getContent(), 'dashboard-metric-group-important'), strpos($response->getContent(), 'dashboard-quick-actions'));
     }
 
     #[TestWith([Role::Admin])]

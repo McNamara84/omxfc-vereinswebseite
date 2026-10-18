@@ -68,6 +68,25 @@ Die **Suche** in der Kopfleiste öffnet sich auch mit **Strg+K** beziehungsweise
 
 Die Definitionen und Suchsynonyme stehen in `config/navigation.php`. `NavigationContext` bestimmt Zugangs- und Umfragekontext, `NavigationBuilder` filtert die Einträge und markiert aktuelle Bereiche, `NavigationSearch` durchsucht die freigegebenen Ziele. Der maryUI-Endpunkt `/mary/spotlight` wendet diese Filter auch bei direkten HTTP-Anfragen an.
 
+**Orientierung und Dashboard:** Termine und Spenden sind öffentliche Direktziele. Brotkrumen zeigen den fachlichen Pfad; gemeinsame öffentliche Inhalte sind in der Mitgliederseitenleiste als „Öffentlich“ gekennzeichnet. Berechtigte Mitglieder erhalten auf öffentlichen Seiten einen festen Rückweg zum Dashboard. `PageNavigation` ergänzt die Seitenorientierung und Titel-Fallbacks.
+
+Der Schnellstart folgt unmittelbar auf die offenen Aufgaben. Verwaltungsrollen erhalten Einstiege zu Challenge-Prüfungen und Mitgliedsanträgen. Fortschritt und Community-Zahlen lassen sich auf dem Smartphone aufklappen; Sprunglinks öffnen zugehörige Detailbereiche automatisch. Persönliche Favoriten bleiben eine spätere Erweiterung.
+
+Die gemeinsamen UI-Bausteine verwenden kompakte Seitenköpfe und Panels. Der Mitgliedsantrag bietet verlinkte Fehlermeldungen, Rezensionen schützen ungespeicherte Eingaben beim Verlassen. „Übernahme zurückgeben“ unterscheidet sich von „Abschluss bestätigen und Baxx vergeben“. Die Startseitengalerie wechselt ausschließlich auf Nutzeraktion.
+
+Die [Screenshot-Galerie](docs/UX-Screenshots/index.html), das [Seiteninventar](docs/UX-Seiteninventar.md) und der [Implementierungsplan mit Abnahmestand](docs/Implementierungsplan-UX-Navigation.md) dokumentieren die Umsetzung. `UxPreviewSeeder` stellt ausschließlich in der Umgebung `testing` fiktive Konten für Admin, Vorstand, Kassenwart und Mitglied bereit; die Playwright-Suite bindet ihn ein.
+
+Für gezielte UX-Prüfungen und neue Screenshots:
+
+```powershell
+npm run test -- tests/Vitest/ux.test.js tests/Vitest/dashboard-accessibility.test.js
+npm run docker:dev:test:php -- --filter='UxNavigationTest|Navigation|Dashboard|MitgliedWerden|Rezension|Todo'
+npm run test:e2e:docker -- tests/e2e/ux-roles.spec.js tests/e2e/ux-workflows.spec.js tests/e2e/ux-pages.spec.js --project=chromium
+$env:UX_CAPTURE_SCREENSHOTS = '1'
+npm run test:e2e:docker -- tests/e2e/ux-roles.spec.js --project=chromium
+Remove-Item Env:UX_CAPTURE_SCREENSHOTS
+```
+
 ## Voraussetzungen
 
 | Komponente       | Version / Hinweis                                      |

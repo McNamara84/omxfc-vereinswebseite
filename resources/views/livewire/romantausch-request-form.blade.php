@@ -1,4 +1,4 @@
-<x-member-page class="max-w-6xl space-y-8">
+<x-member-page class="max-w-6xl space-y-6">
     <x-ui.page-header
         :title="$this->isEditing ? 'Gesuch bearbeiten' : 'Neues Gesuch erstellen'"
         eyebrow="Romantauschbörse"
@@ -10,7 +10,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Gesuch" description="Serie, Roman und Mindestzustand bilden die Grundlage für das automatische Matching mit offenen Angeboten.">
             <form wire:submit="save" id="request-form">
             @php
@@ -73,9 +73,9 @@
         <div class="space-y-6 xl:sticky xl:top-6">
             <x-ui.panel title="Treffsichere Gesuche" description="Gute Gesuche machen anderen sofort klar, wonach du suchst und welcher Zustand noch passt.">
                 <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Wähle den exakten Band statt eines ungefähren Bereichs. Das verbessert die Match-Hinweise auf der Übersicht deutlich.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Der gewünschte Zustand sollte ehrlich widerspiegeln, wie kompromissbereit du bist.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Sobald eines deiner eigenen Angebote zu einem fremden Gesuch passt, hebt die Übersicht das direkt hervor.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Wähle den exakten Band statt eines ungefähren Bereichs. Das verbessert die Match-Hinweise auf der Übersicht deutlich.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Der gewünschte Zustand sollte ehrlich widerspiegeln, wie kompromissbereit du bist.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Sobald eines deiner eigenen Angebote zu einem fremden Gesuch passt, hebt die Übersicht das direkt hervor.</li>
                 </ul>
             </x-ui.panel>
         </div>

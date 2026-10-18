@@ -4,7 +4,7 @@
     <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/50">Vorstand</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Vorstand</p>
                 <h1 class="font-display text-4xl font-semibold tracking-tight text-base-content">
                     {{ $isCreate ? 'Neue Auktion' : 'Auktion bearbeiten' }}
                 </h1>
@@ -53,7 +53,7 @@
                     <div class="md:col-span-2">
                         <label for="beschreibung_markdown" class="mb-2 block text-sm font-medium text-base-content">Beschreibung in Markdown</label>
                         <textarea id="beschreibung_markdown" name="beschreibung_markdown" rows="8" class="textarea textarea-bordered w-full">{{ old('beschreibung_markdown', $auktion->beschreibung_markdown) }}</textarea>
-                        <p class="mt-2 text-xs text-base-content/60">Markdown wird beim Anzeigen bereinigt gerendert.</p>
+                        <p class="mt-2 text-xs text-base-content/75">Markdown wird beim Anzeigen bereinigt gerendert.</p>
                     </div>
 
                     <div>
@@ -70,7 +70,7 @@
                             required
                         >
                         @if ($basisFelderGesperrt)
-                            <p class="mt-2 text-xs text-base-content/60">Der Startbetrag ist nach dem ersten Gebot gesperrt.</p>
+                            <p class="mt-2 text-xs text-base-content/75">Der Startbetrag ist nach dem ersten Gebot gesperrt.</p>
                         @endif
                     </div>
 
@@ -88,7 +88,7 @@
                             required
                         >
                         @if ($basisFelderGesperrt)
-                            <p class="mt-2 text-xs text-base-content/60">Der Mindestschritt ist nach dem ersten Gebot gesperrt.</p>
+                            <p class="mt-2 text-xs text-base-content/75">Der Mindestschritt ist nach dem ersten Gebot gesperrt.</p>
                         @endif
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                 </div>
 
                 @if ($auktion->gebotsverlauf()->isEmpty())
-                    <p class="mt-5 text-sm text-base-content/65">Noch keine Gebote vorhanden.</p>
+                    <p class="mt-5 text-sm text-base-content/75">Noch keine Gebote vorhanden.</p>
                 @else
                     <ol class="mt-5 space-y-3">
                         @foreach ($auktion->gebotsverlauf() as $gebot)
@@ -160,7 +160,7 @@
                                 <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <p class="font-semibold text-base-content">{{ $gebot->bieter_name }}</p>
-                                        <p class="text-xs text-base-content/60">{{ $gebot->created_at?->locale('de')->isoFormat('DD.MM.YYYY HH:mm') }}</p>
+                                        <p class="text-xs text-base-content/75">{{ $gebot->created_at?->locale('de')->isoFormat('DD.MM.YYYY HH:mm') }}</p>
                                     </div>
                                     <p class="text-lg font-semibold text-base-content">{{ $gebot->formatierter_betrag }}</p>
                                 </div>

@@ -1,4 +1,4 @@
-<x-member-page class="max-w-6xl space-y-8">
+<x-member-page class="max-w-6xl space-y-6">
     <x-ui.page-header
         :title="$this->isEditing ? '3D-Modell bearbeiten' : '3D-Modell hochladen'"
         eyebrow="3D-Bibliothek"
@@ -10,7 +10,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.75fr)] xl:items-start">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.75fr)] xl:items-start">
         <x-ui.panel title="Modell-Formular" description="Alle Inhalte werden direkt über Livewire verwaltet. Datei und Vorschaubild lassen sich beim Bearbeiten gezielt austauschen.">
             <form wire:submit="save" class="space-y-6">
                 <div class="grid gap-5">
@@ -50,7 +50,7 @@
                         data-testid="maddraxikon-url-input"
                     />
 
-                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-4">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/78 p-4">
                         <label for="model_file" class="label label-text font-semibold">
                             {{ $this->isEditing ? 'Neue 3D-Datei (optional)' : '3D-Datei (STL, OBJ oder FBX)' }}
                         </label>
@@ -67,7 +67,7 @@
                         @enderror
                     </div>
 
-                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-4">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/78 p-4">
                         <label for="thumbnail" class="label label-text font-semibold">
                             {{ $this->isEditing ? 'Neues Vorschaubild (optional)' : 'Vorschaubild (optional)' }}
                         </label>
@@ -95,19 +95,19 @@
         <div class="space-y-6 xl:sticky xl:top-6">
             <x-ui.panel title="Was gute Modelle brauchen" description="Die wichtigsten Metadaten sollten auch ohne Download sofort verständlich sein.">
                 <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Nutze einen klaren Namen, der im Mitgliederbereich und in der Detailansicht sofort funktioniert.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die Beschreibung sollte Aufbau, Einsatz oder Motiv des Modells in ein bis zwei Sätzen erklären.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Ein Maddraxikon-Link stärkt Kontext und Auffindbarkeit, ist aber optional.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Nutze einen klaren Namen, der im Mitgliederbereich und in der Detailansicht sofort funktioniert.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Die Beschreibung sollte Aufbau, Einsatz oder Motiv des Modells in ein bis zwei Sätzen erklären.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Ein Maddraxikon-Link stärkt Kontext und Auffindbarkeit, ist aber optional.</li>
                 </ul>
             </x-ui.panel>
 
             <x-ui.panel title="Baxx und Freischaltung" description="Der Preis steuert Sichtbarkeit in der Bibliothek und den Freischaltfluss auf der Detailseite.">
                 <div class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                         <p class="font-medium text-base-content">Niedrige Werte</p>
                         <p class="mt-1">Geeignet für kleinere Extras oder leichtgewichtige Modelle.</p>
                     </div>
-                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                         <p class="font-medium text-base-content">Höhere Werte</p>
                         <p class="mt-1">Sinnvoll für besonders aufwendige oder exklusive Modelle mit Sammlerwert.</p>
                     </div>

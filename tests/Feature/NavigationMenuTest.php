@@ -71,8 +71,8 @@ class NavigationMenuTest extends TestCase
         $this->assertStringContainsString('Aktuelle Veranstaltung', $featuredText);
         $this->assertStringContainsString('Mitglied werden', $featuredText);
         $response->assertSeeText('Verein');
-        $response->assertSeeText('Veranstaltungen');
-        $response->assertSeeText('Mitmachen');
+        $response->assertSeeText('Termine');
+        $response->assertSeeText('Spenden');
         $response->assertSeeText('Login');
         $response->assertDontSeeText('Dashboard');
         $response->assertDontSeeText('Vorstand');

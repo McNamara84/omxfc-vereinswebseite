@@ -4,7 +4,7 @@
             @php
                 $slugVersion = \Illuminate\Support\Str::slug($release['version']);
             @endphp
-            <details class="group overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/88 shadow-md shadow-base-content/5 transition"
+            <details class="group overflow-hidden rounded-xl border border-base-content/10 bg-base-100/88 shadow-md shadow-base-content/5 transition"
                      x-data="{ open: {{ $index === 0 ? 'true' : 'false' }} }"
                      x-on:toggle="open = $el.open"
                      @if($index === 0) open @endif>
@@ -23,7 +23,7 @@
                             {{ \Carbon\Carbon::parse($release['pub_date'])->format('d.m.Y') }}
                         </span>
                     </div>
-                    <span class="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-base-200/70 text-base-content/58 transition-transform group-open:-rotate-180" aria-hidden="true">
+                    <span class="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-base-200/70 text-base-content/75 transition-transform group-open:-rotate-180" aria-hidden="true">
                         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 9 6 6 6-6" />
                         </svg>

@@ -40,7 +40,10 @@
 @php
     $errorFieldName = $errorField ?? $attributes->get('name');
     $hasError = $errors->has($errorFieldName);
-    $selectAttributes = $attributes->whereDoesntStartWith('class');
+    $feedbackId = ($attributes->get('id') ?? 'select-'.\Illuminate\Support\Str::slug($errorFieldName ?? 'field')).'-feedback';
+    $descriptionIds = trim(($attributes->get('aria-describedby') ?? '').' '.$feedbackId);
+    $selectAttributes = $attributes->whereDoesntStartWith('class')->except('aria-describedby');
+    $selectAttributes = $selectAttributes->merge(['aria-invalid' => $hasError ? 'true' : 'false', 'aria-describedby' => $descriptionIds]);
 
     if ($label && ! $attributes->has('aria-label') && ! $attributes->has('aria-labelledby')) {
         $selectAttributes = $selectAttributes->merge(['aria-label' => $label]);
@@ -89,9 +92,11 @@
         </div>
 
         {{-- ERROR --}}
+        <div id="{{ $feedbackId }}">
         @foreach($errors->get($errorFieldName) as $message)
             <div class="text-error">{{ $message }}</div>
         @endforeach
+        </div>
 
         {{-- HINT --}}
         @if($hint)

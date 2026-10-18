@@ -1,5 +1,5 @@
 <x-member-layout title="Newsletter-Archiv – Offizieller MADDRAX Fanclub e. V." description="Archivierte Vereinsnewsletter für Mitglieder.">
-    <x-member-page class="max-w-6xl space-y-8">
+    <x-member-page class="max-w-6xl space-y-6">
         <x-ui.page-header
             eyebrow="Verein"
             title="Newsletter-Archiv"
@@ -16,7 +16,7 @@
         @if ($ausgaben->isEmpty())
             <x-ui.panel>
                 <div class="py-12 text-center">
-                    <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/50" />
+                    <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/75" />
                     <h2 class="mt-4 text-lg font-semibold">Noch keine veröffentlichten Newsletter</h2>
                     <p class="mt-2 text-sm text-base-content/70">Sobald die erste Ausgabe freigegeben ist, erscheint sie hier automatisch im Archiv.</p>
                 </div>
@@ -55,7 +55,7 @@
                             </div>
 
                             <div class="mt-auto flex items-center justify-between gap-3 border-t border-base-content/10 pt-4 text-sm">
-                                <span class="text-base-content/65">Zielgruppen: {{ implode(', ', $ausgabe->recipient_roles ?? []) }}</span>
+                                <span class="text-base-content/75">Zielgruppen: {{ implode(', ', $ausgabe->recipient_roles ?? []) }}</span>
                                 <x-button label="Zur Ausgabe" link="{{ route('newsletter.archiv.show', $ausgabe) }}" wire:navigate class="btn-primary btn-sm" icon="o-arrow-right" />
                             </div>
                         </div>

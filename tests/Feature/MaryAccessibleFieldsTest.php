@@ -2,13 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\View\Components\Concerns\HasAccessibleLabel;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Livewire\Component;
+use PHPUnit\Framework\Attributes\TestWith;
+use Tests\Fixtures\RenderableField;
 use Tests\TestCase;
 
 class MaryAccessibleFieldsTest extends TestCase
@@ -73,5 +77,72 @@ class MaryAccessibleFieldsTest extends TestCase
         $select = $dom->getElementsByTagName('select')->item(0);
         $this->assertSame('condition-label', $select->getAttribute('aria-labelledby'));
         $this->assertFalse($select->hasAttribute('aria-label'));
+    }
+
+    #[TestWith([null, null, false])]
+    #[TestWith(['condition-choice', null, true])]
+    #[TestWith(['condition-choice', 'condition-help condition-note', false])]
+    #[TestWith(['condition-choice', 'condition-help condition-note', true])]
+    #[TestWith([null, 'condition-help condition-note', true])]
+    #[TestWith(['condition-choice', '', true])]
+    public function test_server_rendered_select_preserves_help_references_and_links_its_feedback(?string $fieldId, ?string $describedBy, bool $hasError): void
+    {
+        if ($hasError) {
+            View::share('errors', (new ViewErrorBag)->put('default', new MessageBag(['condition' => ['Bitte Zustand auswählen.']])));
+        }
+        $html = Blade::render(
+            '<p id="condition-help">Hinweis zum Zustand</p><p id="condition-note">Weitere Angaben</p>'
+            .'<x-form-select :id="$fieldId" name="condition" label="Zustand" :aria-describedby="$describedBy" />',
+            compact('fieldId', 'describedBy'),
+        );
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $select = $dom->getElementsByTagName('select')->item(0);
+        $feedbackId = ($fieldId ?? 'select-condition').'-feedback';
+        $expected = trim(($describedBy ?? '').' '.$feedbackId);
+
+        $this->assertSame($expected, $select->getAttribute('aria-describedby'));
+        $this->assertSame($hasError ? 'true' : 'false', $select->getAttribute('aria-invalid'));
+        foreach (explode(' ', $expected) as $id) {
+            $this->assertNotNull($dom->getElementById($id), $id);
+        }
+        $this->assertSame($hasError ? 'Bitte Zustand auswählen.' : '', trim($dom->getElementById($feedbackId)->textContent));
+    }
+
+    public function test_existing_help_is_only_extended_by_present_errors_and_hints(): void
+    {
+        $html = Blade::render('<x-mary-input id="street" label="Straße" aria-describedby="street-help" wire:model="street" />');
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $input = $dom->getElementsByTagName('input')->item(0);
+        $this->assertSame('street-help', $input->getAttribute('aria-describedby'));
+        $this->assertSame('false', $input->getAttribute('aria-invalid'));
+
+        View::share('errors', (new ViewErrorBag)->put('default', new MessageBag(['street' => ['Bitte Straße angeben.']])));
+        $html = Blade::render('<x-mary-input id="street" label="Straße" hint="Ohne Hausnummer" aria-describedby="street-help" wire:model="street" />');
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $input = $dom->getElementsByTagName('input')->item(0);
+        $this->assertSame('street-help street-error street-hint', $input->getAttribute('aria-describedby'));
+        $this->assertSame('true', $input->getAttribute('aria-invalid'));
+        $xpath = new DOMXPath($dom);
+        $this->assertStringContainsString('Bitte Straße angeben.', $xpath->query('//*[@id="street-error"]')->item(0)->textContent);
+        $this->assertSame('Ohne Hausnummer', trim($xpath->query('//*[@id="street-hint"]')->item(0)->textContent));
+
+        $html = Blade::render('<x-mary-input id="street" label="Straße" aria-describedby="street-help" wire:model="street" omit-error />');
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $input = $dom->getElementsByTagName('input')->item(0);
+        $this->assertSame('street-help', $input->getAttribute('aria-describedby'));
+        $this->assertSame('false', $input->getAttribute('aria-invalid'));
+    }
+
+    public function test_view_and_closure_templates_are_preserved_by_the_field_adapter(): void
+    {
+        foreach ([view('components.ui.breadcrumbs', ['items' => []]), static fn (): string => '<input>'] as $output) {
+            $component = new class($output) extends RenderableField
+            {
+                use HasAccessibleLabel;
+            };
+            $this->assertSame($output, $component->render());
+        }
     }
 }

@@ -17,7 +17,7 @@
                 <div class="card-body gap-4">
                     <div class="flex items-center justify-between gap-3">
                         <x-badge value="Geführte Tour" class="badge-primary badge-sm" />
-                        <p id="tour-runner-counter" class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/45"></p>
+                        <p id="tour-runner-counter" class="text-xs font-semibold uppercase tracking-[0.24em] text-base-content/75"></p>
                     </div>
 
                     <div class="space-y-2">
@@ -26,7 +26,7 @@
                     </div>
 
                     <div class="space-y-2">
-                        <div class="flex items-center justify-between text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">
+                        <div class="flex items-center justify-between text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">
                             <span>Fortschritt</span>
                             <span id="tour-runner-progress-label"></span>
                         </div>

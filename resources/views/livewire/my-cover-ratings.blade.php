@@ -1,4 +1,4 @@
-<x-member-page class="max-w-7xl space-y-8">
+<x-member-page class="max-w-7xl space-y-6">
     <x-ui.page-header
         eyebrow="Cover-Bewertungen"
         title="Meine Bewertungen"
@@ -30,13 +30,13 @@
                 <div class="py-10 text-center">
                     <x-icon name="o-pencil-square" class="mx-auto h-14 w-14 text-base-content/30" />
                     <h2 class="mt-4 font-display text-2xl font-semibold">Noch keine Bewertungen</h2>
-                    <p class="mt-2 text-base-content/65">Sobald du ein Cover bewertest, kannst du deine Stimme hier verwalten.</p>
+                    <p class="mt-2 text-base-content/75">Sobald du ein Cover bewertest, kannst du deine Stimme hier verwalten.</p>
                 </div>
             </x-ui.panel>
         @else
             <div class="grid gap-5 lg:grid-cols-2" data-testid="my-cover-ratings-grid">
                 @foreach($this->ratings as $rating)
-                    <article class="grid grid-cols-[6.5rem_1fr] gap-4 rounded-[1.5rem] border border-base-content/10 bg-base-100/90 p-4 shadow-sm" data-testid="my-cover-rating-card">
+                    <article class="grid grid-cols-[6.5rem_1fr] gap-4 rounded-xl border border-base-content/10 bg-base-100/90 p-4 shadow-sm" data-testid="my-cover-rating-card">
                         <img
                             src="{{ route('cover-ratings.image', [$rating->bookCover, 'small']) }}"
                             alt="Cover von {{ $rating->bookCover->book->type->label() }} Nummer {{ $rating->bookCover->book->roman_number }}: {{ $rating->bookCover->book->title }}"
@@ -45,7 +45,7 @@
                         />
                         <div class="flex min-w-0 flex-col justify-between gap-4">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-base-content/45">{{ $rating->bookCover->book->type->label() }} · Nr. {{ $rating->bookCover->book->roman_number }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-base-content/75">{{ $rating->bookCover->book->type->label() }} · Nr. {{ $rating->bookCover->book->roman_number }}</p>
                                 <h2 class="mt-1 truncate font-display text-lg font-semibold">{{ $rating->bookCover->book->title }}</h2>
                             </div>
 

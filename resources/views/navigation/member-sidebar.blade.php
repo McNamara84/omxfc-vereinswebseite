@@ -63,7 +63,7 @@
 
         @if ($currentNavigation->isNotEmpty())
             <x-mary-menu-separator />
-            <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/50">
+            <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/75">
                 Aktuell
             </li>
 
@@ -84,7 +84,7 @@
         @endif
 
         <x-mary-menu-separator />
-        <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/50">
+        <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/75">
             Bereiche
         </li>
 
@@ -92,7 +92,7 @@
             @if (! $managementStarted && in_array($section['title'], ['Vorstand', 'Admin'], true))
                 @php($managementStarted = true)
                 <x-mary-menu-separator />
-                <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/50">
+                <li class="menu-title mary-hideable px-4 pb-1 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-base-content/75">
                     Verwaltung
                 </li>
             @endif
@@ -112,7 +112,8 @@
                         :icon="$item['icon']"
                         :active="$item['active']"
                         :aria-current="$item['aria_current']"
-                        :aria-label="$item['title']"
+                        :aria-label="$item['title'] . (($item['public'] ?? false) ? ' · Öffentliche Website' : '')"
+                        :badge="($item['public'] ?? false) ? 'Öffentlich' : null" badge-classes="badge-ghost text-xs"
                         :title="$item['title']"
                         :data-tour-key="$item['tour_key']"
                     />
@@ -121,11 +122,15 @@
         @endforeach
     </x-mary-menu>
 
-    <div class="mary-hideable border-t border-base-content/10 px-5 py-4 text-xs text-base-content/55">
+    <div class="px-3 pb-3 lg:hidden">
+        <button type="button" class="btn btn-ghost min-h-11 w-full justify-start" x-on:click="$dispatch('mary-search-open')">Seite oder Funktion suchen</button>
+        <a href="{{ app(\App\Support\Navigation\NavigationContext::class)->publicHome(auth()->user()) }}" wire:navigate class="btn btn-ghost min-h-11 w-full justify-start">Öffentliche Website</a>
+    </div>
+    <div class="mary-hideable border-t border-base-content/10 px-5 py-4 text-xs text-base-content/75">
         <div class="flex flex-wrap gap-x-3 gap-y-1">
-            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover">Impressum</a>
-            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover">Datenschutz</a>
-            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover">Changelog</a>
+            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Impressum</a>
+            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Datenschutz</a>
+            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover inline-flex min-h-8 items-center">Changelog</a>
         </div>
         <p class="mt-2">OMXFC · Version {{ $appVersion }}</p>
     </div>

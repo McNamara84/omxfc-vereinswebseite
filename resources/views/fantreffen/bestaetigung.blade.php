@@ -17,7 +17,7 @@
                 <div class="mx-auto w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mb-4">
                     <x-icon name="o-check" class="w-8 h-8 text-success" />
                 </div>
-                <p class="text-base-content/60">Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!</p>
+                <p class="text-base-content/75">Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!</p>
             </div>
 
             {{-- Anmeldedaten --}}
@@ -25,22 +25,22 @@
                 <h2 class="text-xl font-semibold text-base-content mb-4">Deine Anmeldedaten</h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">Name:</dt>
+                        <dt class="text-base-content/75">Name:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->vorname }} {{ $anmeldung->nachname }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">E-Mail:</dt>
+                        <dt class="text-base-content/75">E-Mail:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->email }}</dd>
                     </div>
                     @if($anmeldung->mobile)
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">Mobilnummer:</dt>
+                        <dt class="text-base-content/75">Mobilnummer:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->mobile }}</dd>
                     </div>
                     @endif
                     @if($anmeldung->tshirt_bestellt)
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">T-Shirt:</dt>
+                        <dt class="text-base-content/75">T-Shirt:</dt>
                         <dd class="font-medium text-base-content">Größe {{ $anmeldung->tshirt_groesse }}</dd>
                     </div>
                     @endif
@@ -96,7 +96,7 @@
                     </ol>
                 </div>
 
-                <p class="text-xs text-base-content/50 mt-4 text-center">
+                <p class="text-xs text-base-content/75 mt-4 text-center">
                     📧 Bei Fragen zur Zahlung wende dich bitte an <a href="mailto:kassenwart@maddrax-fanclub.de" class="link link-hover">kassenwart@maddrax-fanclub.de</a>
                 </p>
             </div>
@@ -110,7 +110,7 @@
                         <p class="text-sm text-base-content/70">
                             Du hast eine Bestätigungs-E-Mail an <strong class="text-base-content">{{ $anmeldung->email }}</strong> erhalten.
                         </p>
-                        <p class="text-xs text-base-content/50 mt-1">
+                        <p class="text-xs text-base-content/75 mt-1">
                             Falls du keine E-Mail erhalten hast, überprüfe bitte deinen Spam-Ordner.
                         </p>
                     </div>

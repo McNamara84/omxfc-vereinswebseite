@@ -3,7 +3,7 @@
         <x-ui.panel class="text-center">
             <x-slot:header>
                 <div class="w-full text-center space-y-2">
-                    <p class="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-base-content/45">Fehlerseite</p>
+                    <p class="text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-base-content/75">Fehlerseite</p>
                     <h1 class="font-display text-5xl font-semibold tracking-tight text-base-content">404</h1>
                     <p class="text-sm text-base-content/72">Seite nicht gefunden</p>
                 </div>

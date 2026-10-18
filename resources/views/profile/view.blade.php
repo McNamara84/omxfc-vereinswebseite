@@ -30,7 +30,7 @@
             $releasedContactMethods = $user->releasedContactMethods();
         @endphp
 
-        <div class="space-y-8">
+        <div class="space-y-6">
             <x-ui.page-header
                 eyebrow="Mitgliederbereich"
                 title="{{ $user->name }}"
@@ -47,7 +47,7 @@
                 </x-slot:actions>
             </x-ui.page-header>
 
-            <div class="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.4fr)]">
+            <div class="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.4fr)]">
                 <div class="space-y-6">
                     <x-ui.panel class="overflow-hidden !p-0">
                         <div class="relative h-36 bg-linear-to-r from-primary via-primary/85 to-accent/60 sm:h-40">
@@ -152,15 +152,15 @@
                         <x-ui.panel title="Kontaktdetails" description="Sichtbare Kontakt- und Mitgliedsdaten für berechtigte Rollen.">
                             <div class="space-y-5">
                                 <div class="space-y-3">
-                                    <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Kontakt</h3>
+                                    <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Kontakt</h3>
                                     <div class="space-y-2 text-sm text-base-content">
                                         <div class="flex items-center gap-2">
-                                            <x-icon name="o-envelope" class="h-5 w-5 text-base-content/60" />
+                                            <x-icon name="o-envelope" class="h-5 w-5 text-base-content/75" />
                                             <span>{{ $user->email }}</span>
                                         </div>
                                         @if($user->telefon)
                                             <div class="flex items-center gap-2">
-                                                <x-icon name="o-phone" class="h-5 w-5 text-base-content/60" />
+                                                <x-icon name="o-phone" class="h-5 w-5 text-base-content/75" />
                                                 <span>{{ $user->telefon }}</span>
                                             </div>
                                         @endif
@@ -169,7 +169,7 @@
 
                                 <div class="grid gap-5 md:grid-cols-2">
                                     <div class="rounded-3xl bg-base-200/70 p-4">
-                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Adresse</h3>
+                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Adresse</h3>
                                         <address class="not-italic text-sm leading-relaxed text-base-content">
                                             @if($user->strasse && $user->hausnummer)
                                                 {{ $user->strasse }} {{ $user->hausnummer }}<br>
@@ -186,7 +186,7 @@
                                     </div>
 
                                     <div class="rounded-3xl bg-base-200/70 p-4">
-                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Mitgliedsbeitrag</h3>
+                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Mitgliedsbeitrag</h3>
                                         <p class="text-sm text-base-content">{{ $user->mitgliedsbeitrag ?? 'Nicht hinterlegt' }}</p>
                                     </div>
                                 </div>
@@ -201,18 +201,18 @@
                             <div class="rounded-3xl bg-base-200/70 p-5 shadow-sm">
                                 <h3 class="text-sm font-medium text-base-content/72">Baxx</h3>
                                 <p class="mt-3 text-4xl font-semibold tracking-tight text-primary">{{ $userPoints }}</p>
-                                <p class="mt-1 text-sm text-base-content/60">Gesammelte Vereinspunkte</p>
+                                <p class="mt-1 text-sm text-base-content/75">Gesammelte Vereinspunkte</p>
                             </div>
 
                             <div class="rounded-3xl bg-base-200/70 p-5 shadow-sm">
                                 <h3 class="text-sm font-medium text-base-content/72">Erledigte Challenges</h3>
                                 <p class="mt-3 text-4xl font-semibold tracking-tight text-base-content">{{ $completedTasks }}</p>
-                                <p class="mt-1 text-sm text-base-content/60">Abgeschlossene Aufgaben</p>
+                                <p class="mt-1 text-sm text-base-content/75">Abgeschlossene Aufgaben</p>
                             </div>
                         </div>
 
                         <div class="mt-6 space-y-3">
-                            <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Punkte nach Bereich</h3>
+                            <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Punkte nach Bereich</h3>
 
                             @if(! empty($categoryPoints))
                                 <dl class="grid gap-3 sm:grid-cols-2">
@@ -234,7 +234,7 @@
                             <div class="grid gap-4 sm:grid-cols-2">
                                 @foreach($maddraxLeidenschaft as $entry)
                                     <div class="rounded-3xl bg-base-200/70 p-4 shadow-sm">
-                                        <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">{{ $entry['label'] }}</h3>
+                                        <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">{{ $entry['label'] }}</h3>
                                         <p class="mt-3 text-base leading-relaxed text-base-content">{{ $entry['value'] }}</p>
                                     </div>
                                 @endforeach

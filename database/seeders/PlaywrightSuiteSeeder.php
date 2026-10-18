@@ -20,6 +20,7 @@ class PlaywrightSuiteSeeder extends Seeder
             KompendiumPlaywrightSeeder::class,
             FantreffenPlaywrightSeeder::class,
             CoverRatingPlaywrightSeeder::class,
+            UxPreviewSeeder::class,
         ]);
     }
 }

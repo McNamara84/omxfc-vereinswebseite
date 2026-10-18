@@ -318,7 +318,7 @@
                                                 <div class="font-medium text-sm">
                                                     {{ $bestellung['name'] }}
                                                     @if ($bestellung['variant'])
-                                                        <span class="text-xs text-base-content/60">({{ $bestellung['variant'] }})</span>
+                                                        <span class="text-xs text-base-content/75">({{ $bestellung['variant'] }})</span>
                                                     @endif
                                                 </div>
                                                 <x-button 
@@ -381,7 +381,7 @@
                         @scope('cell_actions', $anmeldung, $veranstaltung)
                             <div class="text-center">
                                 @if ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen)
-                                    <span class="text-xs text-base-content/60">Gesperrt</span>
+                                    <span class="text-xs text-base-content/75">Gesperrt</span>
                                 @else
                                 <x-ui.icon-action
                                     wire:click="deleteAnmeldung({{ $anmeldung->id }})"

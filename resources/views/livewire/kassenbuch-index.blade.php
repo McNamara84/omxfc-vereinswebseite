@@ -1,5 +1,5 @@
 <div>
-<x-member-page class="space-y-8">
+<x-member-page class="space-y-6">
     {{-- Flash Messages --}}
     @if(session('status'))
         <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
@@ -20,17 +20,17 @@
         data-testid="page-header"
     />
 
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-6">
         {{-- Card 1: Mitgliedsbeitrag Status --}}
         <x-ui.panel title="Dein Mitgliedsbeitrag" description="Dein persönlicher Status mit Beitragshöhe und Zahlungszeitraum auf einen Blick.">
-            <div class="mb-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+            <div class="mb-4 rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-4">
                 <p class="text-sm text-base-content/70">Dein aktueller Mitgliedsbeitrag:</p>
                 <p class="mt-1 text-xl font-semibold text-base-content">
                     {{ !is_null($this->memberData->mitgliedsbeitrag) ? number_format($this->memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
                 </p>
             </div>
 
-            <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+            <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-4">
                 <p class="text-sm text-base-content/70">Bezahlt bis:</p>
                 @if($this->memberData->bezahlt_bis)
                     @php
@@ -68,7 +68,7 @@
 
         {{-- Card 2: Aktueller Kassenstand --}}
         <x-ui.panel title="Aktueller Kassenstand" description="Der laufende Kontostand der Vereinskasse inklusive letztem Aktualisierungsdatum." data-testid="kassenstand-card">
-            <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+            <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-4">
                 <p class="text-sm text-base-content/70">Kassenstand zum {{ \Carbon\Carbon::parse($this->kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
                 <p class="mt-1 text-2xl font-bold {{ $this->kassenstand->betrag >= 0 ? 'text-success' : 'text-error' }}">
                 {{ number_format($this->kassenstand->betrag, 2, ',', '.') }} €

@@ -2,7 +2,7 @@
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/50">Vorstand</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Vorstand</p>
                 <h1 class="font-display text-4xl font-semibold tracking-tight text-base-content">Auktionen verwalten</h1>
                 <p class="max-w-3xl text-sm leading-relaxed text-base-content/70">
                     Neue Auktionen anlegen, Gebote nachvollziehen und den Versteigerungsablauf per Zum ersten, Zum zweiten und Verkauf steuern.

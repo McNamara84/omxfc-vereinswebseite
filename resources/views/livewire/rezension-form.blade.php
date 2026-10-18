@@ -1,4 +1,4 @@
-<x-member-page class="max-w-3xl">
+<x-member-page class="max-w-3xl space-y-4">
     <x-ui.page-header
         :title="$formTitle"
         :description="$isEdit
@@ -11,14 +11,15 @@
     @endunless
 
     <x-ui.panel title="Deine Rezension" description="Titel und Text werden direkt validiert. Der Rezensionstext benötigt mindestens 140 Zeichen.">
-        <form wire:submit="save">
+        <form wire:submit="save" data-ux-form data-guard-dirty>
+            <x-ui.error-summary :ids="['title' => 'review-title-input', 'content' => 'review-content-input']" />
             <div class="space-y-4">
                 <x-input
+                    id="review-title-input"
                     wire:model="title"
                     label="Rezensionstitel"
                     required
                 />
-                @error('title') <p class="text-error text-sm">{{ $message }}</p> @enderror
 
                 <div class="space-y-3" data-markdown-editor data-testid="review-markdown-editor">
                     <div class="space-y-2">
@@ -35,7 +36,7 @@
                             <button type="button" class="btn btn-sm btn-outline" data-markdown-action="link" aria-controls="review-content-input" data-testid="review-markdown-link">Link</button>
                         </div>
 
-                        <p id="review-markdown-help" class="text-xs text-base-content/60">
+                        <p id="review-markdown-help" class="text-xs text-base-content/75">
                             Unterstützt werden Fett, Kursiv, Bullet-Listen, nummerierte Listen und Hyperlinks. Keine Vorschau, keine weiteren Markdown-Werkzeuge.
                         </p>
                     </div>
@@ -53,7 +54,9 @@
                                         id="review-content-input"
                                         wire:model="content"
                                         rows="10"
-                                        aria-describedby="review-markdown-help review-content-hint"
+                                        aria-label="Rezensionstext"
+                                        aria-describedby="review-markdown-help review-content-hint review-content-error"
+                                        aria-invalid="{{ $errors->has('content') ? 'true' : 'false' }}"
                                         data-markdown-input
                                         data-testid="review-markdown-input"
                                         @class([
@@ -69,7 +72,7 @@
                         </fieldset>
                     </div>
                 </div>
-                @error('content') <p class="text-error text-sm">{{ $message }}</p> @enderror
+                <p id="review-content-error" class="text-error text-sm">@error('content'){{ $message }}@enderror</p>
             </div>
 
             <div class="flex justify-end gap-3 mt-6">
@@ -84,6 +87,8 @@
                     type="submit"
                     class="btn-primary"
                     icon="o-check"
+                    spinner="save"
+                    wire:target="save"
                     wire:loading.attr="disabled"
                 />
             </div>

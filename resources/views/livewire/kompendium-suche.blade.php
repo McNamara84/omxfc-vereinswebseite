@@ -8,7 +8,7 @@
         $usesNotOperator = (bool) ($searchInfo['usesNotOperator'] ?? false);
     @endphp
 
-    <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/80 px-4 py-4 shadow-sm sm:px-6 sm:py-5" data-testid="kompendium-search-shell">
+    <section class="rounded-xl border border-base-content/10 bg-base-100/80 px-4 py-4 shadow-sm sm:px-6 sm:py-5" data-testid="kompendium-search-shell">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="space-y-2">
                 <div class="flex items-center gap-2">
@@ -84,11 +84,11 @@
     </section>
 
     @if(count($this->verfuegbareSerien) >= 2)
-        <section class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 px-4 py-4 sm:px-6 sm:py-5">
+        <section class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4 sm:px-6 sm:py-5">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-base-content/55">Serien filtern</h3>
+                        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-base-content/75">Serien filtern</h3>
                         <button
                             type="button"
                             class="btn btn-circle btn-ghost btn-sm"
@@ -135,11 +135,11 @@
     @endif
 
     @if($hasSearched && (!empty($searchInfo) || $error))
-        <section class="rounded-[1.5rem] border border-info/20 bg-info/8 px-4 py-4 sm:px-6 sm:py-5" data-testid="kompendium-search-summary">
+        <section class="rounded-xl border border-info/20 bg-info/8 px-4 py-4 sm:px-6 sm:py-5" data-testid="kompendium-search-summary">
             <div class="flex items-start justify-between gap-3">
                 <div>
                     <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-base-content/55">Aktive Suchlogik</h3>
+                        <h3 class="text-sm font-semibold uppercase tracking-[0.2em] text-base-content/75">Aktive Suchlogik</h3>
                         <button
                             type="button"
                             class="btn btn-circle btn-ghost btn-sm"
@@ -185,13 +185,13 @@
     @endif
 
     @if($error)
-        <div class="rounded-[1.25rem] border-l-4 border-error bg-error/10 p-4">
+        <div class="rounded-xl border-l-4 border-error bg-error/10 p-4">
             <p class="text-error">{{ $error }}</p>
         </div>
     @endif
 
     @if($hasSearched && $candidatesTruncated && !$error)
-        <div class="rounded-[1.25rem] border-l-4 border-warning bg-warning/10 p-4" data-testid="kompendium-candidate-limit-hint">
+        <div class="rounded-xl border-l-4 border-warning bg-warning/10 p-4" data-testid="kompendium-candidate-limit-hint">
             <p class="text-sm leading-relaxed text-base-content/80 sm:text-base">
                 Für die Suchlogik wurden bisher {{ $scannedCandidates }} Kandidaten nachgeprüft. Weitere passende Treffer sind möglich. Verfeinere die Suche oder lade weitere Treffer nach, um tiefer in der Trefferliste zu prüfen.
             </p>
@@ -211,12 +211,12 @@
         @endif
 
         @foreach($results as $hit)
-            <article class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 p-4" wire:key="hit-{{ $hit['serie'] }}-{{ $hit['romanNr'] }}">
+            <article class="rounded-xl border border-base-content/10 bg-base-100/72 p-4" wire:key="hit-{{ $hit['serie'] }}-{{ $hit['romanNr'] }}">
                 <h3 class="mb-2 font-semibold text-primary">
                     {{ $hit['cycle'] }} – {{ $hit['romanNr'] }}: {{ $hit['title'] }}
                 </h3>
                 @if(!empty($hit['erstveroeffentlichtAmFormatted']))
-                    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/50">
+                    <p class="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">
                         Erstveroeffentlicht: {{ $hit['erstveroeffentlichtAmFormatted'] }}
                     </p>
                 @endif
@@ -230,7 +230,7 @@
     </section>
 
     @if($hasSearched && empty($results) && !$error)
-        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
+        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/75">
             Keine Treffer gefunden.
         </div>
     @endif

@@ -1,4 +1,4 @@
-<x-member-page class="space-y-8">
+<x-member-page class="space-y-6">
     @php
         $romantauschSuccessMessage = session()->pull('romantausch.success');
         $successMessage = session('success') ?? $romantauschSuccessMessage;
@@ -38,7 +38,7 @@
     <x-ui.panel aria-labelledby="swap-process-heading">
         <x-slot:header>
             <div>
-                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">So funktioniert der Tausch</p>
+                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">So funktioniert der Tausch</p>
                 <h2 id="swap-process-heading" class="mt-2 text-xl font-semibold text-primary">
                     {{ $romantauschInfo['title'] }}
                 </h2>

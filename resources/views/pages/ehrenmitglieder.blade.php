@@ -65,7 +65,7 @@
 @endphp
 
 <x-app-layout title="Ehrenmitglieder – Offizieller MADDRAX Fanclub e. V." description="Autoren der MADDRAX-Serie, die als Ehrenmitglieder des Fanclubs geehrt werden und sich besonders für die Fangemeinschaft engagieren.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Autoren mit besonderem Stellenwert"
             title="Ehrenmitglieder"
@@ -80,10 +80,10 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)] xl:items-start">
             <div class="grid gap-6 md:grid-cols-2 2xl:grid-cols-3">
                 @foreach($ehrenmitglieder as $mitglied)
-                    <article class="group relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/88 shadow-xl shadow-base-content/5 transition duration-200 hover:-translate-y-1 hover:shadow-2xl">
+                    <article class="group relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/88 shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-2xl">
                         <div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
                         <div class="h-80 overflow-hidden bg-base-200/70">
@@ -122,9 +122,9 @@
             <div class="space-y-6 xl:sticky xl:top-6">
                 <x-ui.panel title="Warum Ehrenmitglieder?" description="Die Ehrung macht sichtbar, wer die Fangemeinschaft über Jahre hinweg besonders geprägt hat.">
                     <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die Liste würdigt kreative Beiträge zur Serie ebenso wie Nähe zur Community und Präsenz bei Fantreffen.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Alle Karten folgen einer gemeinsamen Struktur und lassen sich dadurch künftig leichter erweitern und pflegen.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die externen Verweise führen direkt ins Maddraxikon für vertiefende Informationen zu Werk und Rollen in der Serie.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Die Liste würdigt kreative Beiträge zur Serie ebenso wie Nähe zur Community und Präsenz bei Fantreffen.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Alle Karten folgen einer gemeinsamen Struktur und lassen sich dadurch künftig leichter erweitern und pflegen.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Die externen Verweise führen direkt ins Maddraxikon für vertiefende Informationen zu Werk und Rollen in der Serie.</li>
                     </ul>
                 </x-ui.panel>
 

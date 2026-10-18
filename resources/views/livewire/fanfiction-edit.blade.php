@@ -79,7 +79,7 @@
                         @if($previewHtml)
                             {!! $previewHtml !!}
                         @else
-                            <p class="text-base-content/50 italic">Kein Inhalt zum Anzeigen.</p>
+                            <p class="text-base-content/75 italic">Kein Inhalt zum Anzeigen.</p>
                         @endif
                     </div>
                 @else
@@ -101,7 +101,7 @@
                         <li><code class="text-xs">[bild:2:links]</code> — Bild 2, links floatend</li>
                         <li><code class="text-xs">[bild:3:rechts:Beschreibung]</code> — Bild 3, rechts mit Unterschrift</li>
                     </ul>
-                    <p class="mt-1 text-base-content/50">Positionen: <code class="text-xs">links</code>, <code class="text-xs">rechts</code>, <code class="text-xs">zentriert</code> (Standard)</p>
+                    <p class="mt-1 text-base-content/75">Positionen: <code class="text-xs">links</code>, <code class="text-xs">rechts</code>, <code class="text-xs">zentriert</code> (Standard)</p>
                 </div>
             </div>
 

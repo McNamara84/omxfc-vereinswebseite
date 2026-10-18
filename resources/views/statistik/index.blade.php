@@ -1,6 +1,6 @@
 {{-- resources/views/statistik/index.blade.php --}}
 <x-member-layout>
-    <x-member-page class="space-y-8">
+    <x-member-page class="space-y-6">
 
         @php
             $statisticSections = collect($statisticSections ?? []);
@@ -24,12 +24,12 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-start">
             <div class="w-full lg:w-72 lg:flex-shrink-0">
                 @include('statistik.partials.quicknav', ['sections' => $statisticSections])
             </div>
 
-            <div class="flex-1 space-y-8" data-statistik-sections-wrapper>
+            <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
                 {{-- Card 1 – Balkendiagramm (≥ 2 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('author-chart'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))

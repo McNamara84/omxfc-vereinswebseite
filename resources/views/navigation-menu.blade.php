@@ -6,6 +6,7 @@
 @php
     $featuredNavigation = $navigation['featured'] ?? [];
     $sectionNavigation = $navigation['sections'] ?? [];
+    $directNavigation = $navigation['direct'] ?? [];
     $brandHref = $publicHome;
 @endphp
 
@@ -22,16 +23,16 @@
                         <x-application-mark class="block h-9 w-auto" />
                     </a>
 
-                    <div class="hidden 2xl:block leading-tight">
-                        <p class="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-base-content/50">OMXFC Community</p>
+                    <div class="hidden min-[1800px]:block leading-tight">
+                        <p class="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">OMXFC Community</p>
                         <p class="text-sm font-semibold text-base-content">Fanclub, Projekte und Veranstaltungen</p>
                     </div>
                 </div>
 
                 {{-- Desktop-Menü --}}
                 <div class="hidden xl:flex xl:flex-1 xl:items-center xl:justify-between xl:gap-4 xl:pl-6">
-                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/55 px-3 py-2 backdrop-blur" aria-label="Schnellzugriff" data-testid="nav-featured-links">
-                        <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Schnellzugriff</p>
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/55 px-3 py-2 backdrop-blur" aria-label="Schnellzugriff" data-testid="nav-featured-links">
+                        <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/75 2xl:block">Schnellzugriff</p>
                         <x-ui.action-cluster>
                             @foreach($featuredNavigation as $item)
                                 <a
@@ -57,9 +58,12 @@
                         </x-ui.action-cluster>
                     </div>
 
-                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/55 px-3 py-2 backdrop-blur" aria-label="Bereiche" data-testid="nav-sections">
-                        <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/55 px-3 py-2 backdrop-blur" aria-label="Bereiche" data-testid="nav-sections">
+                        <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/75 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
+                            @foreach($directNavigation as $item)
+                                <a href="{{ $item['href'] }}" wire:navigate @if($item['aria_current']) aria-current="{{ $item['aria_current'] }}" @endif class="btn btn-ghost btn-sm rounded-full">{{ $item['title'] }}</a>
+                            @endforeach
                             @foreach($sectionNavigation as $section)
                                 <x-mary-dropdown :right="$loop->last" class="shrink-0">
                                     <x-slot:trigger>
@@ -108,7 +112,7 @@
                 @if($canAccessMembers)
                     <a href="{{ route('dashboard') }}" wire:navigate class="btn btn-ghost min-h-11 min-w-11 px-2" aria-label="Zum Mitgliederbereich" data-testid="member-site-switch">
                         <x-mary-icon name="o-user-group" class="h-5 w-5" aria-hidden="true" />
-                        <span class="hidden 2xl:inline">Zum Mitgliederbereich</span>
+                        <span class="hidden xl:inline">Mitgliederbereich</span>
                     </a>
                 @endif
                 <x-ui.theme-trigger />
@@ -150,7 +154,7 @@
             x-collapse
             class="xl:hidden border-b border-base-content/10 bg-base-100/95 backdrop-blur">
             <x-mary-menu class="p-2" data-testid="mobile-navigation-menu">
-                <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-featured-heading">Schnellzugriff</li>
+                <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75" data-testid="mobile-nav-featured-heading">Schnellzugriff</li>
                 @foreach($featuredNavigation as $item)
                     <x-mary-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" :active="$item['active']" :aria-current="$item['aria_current']" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                 @endforeach
@@ -158,7 +162,10 @@
                 <li role="separator" aria-hidden="true">
                     <hr class="my-3 border-t-[length:var(--border)] border-base-content/10" />
                 </li>
-                <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-sections-heading">Bereiche</li>
+                <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75" data-testid="mobile-nav-sections-heading">Bereiche</li>
+                @foreach($directNavigation as $item)
+                    <x-mary-menu-item :title="$item['title']" :link="$item['href']" :icon="$item['icon']" :active="$item['active']" :aria-current="$item['aria_current']" />
+                @endforeach
                 @foreach($sectionNavigation as $section)
                     <li x-data="{ open: {{ $section['active'] ? 'true' : 'false' }} }">
                         <details :open="open" @click.stop>
@@ -190,6 +197,10 @@
                     <hr class="my-3 border-t-[length:var(--border)] border-base-content/10" />
                 </li>
 
+                <li><button type="button" x-on:click="$dispatch('mary-search-open')" class="min-h-11">Seite oder Funktion suchen</button></li>
+                @if($canAccessMembers)
+                    <x-mary-menu-item title="Zum Mitgliederbereich" :link="route('dashboard')" icon="o-user-group" />
+                @endif
                 @guest
                     <x-mary-menu-item title="Login" :link="route('login')" wire:navigate icon="o-arrow-right-on-rectangle" />
                 @endguest

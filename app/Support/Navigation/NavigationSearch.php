@@ -62,7 +62,7 @@ class NavigationSearch
     private function flatten(array $navigation, string $scope): array
     {
         $entries = [];
-        foreach ($navigation['featured'] as $item) {
+        foreach (array_merge($navigation['featured'], $navigation['direct'] ?? []) as $item) {
             $entries[] = $this->entry($item['key'], $item['title'], $scope === 'member' ? 'Mitgliederbereich · Aktuell' : 'Öffentliche Website', $item['href'], $scope, $item['search_aliases']);
         }
         foreach ($navigation['sections'] as $section) {

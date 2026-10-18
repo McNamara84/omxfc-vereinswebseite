@@ -14,15 +14,15 @@
         <span>{{ $anmeldung->teilgenommen ? 'Bestätigt' : 'Nicht bestätigt' }}</span>
     @endif
     @if ($anmeldung->teilnahme_bestaetigt_am)
-        <div class="text-xs text-base-content/60">{{ $anmeldung->teilnahme_bestaetigt_am->format('d.m.Y H:i') }}</div>
+        <div class="text-xs text-base-content/75">{{ $anmeldung->teilnahme_bestaetigt_am->format('d.m.Y H:i') }}</div>
     @endif
     @if ($vergabe)
         <div class="font-medium">{{ $vergabe->points }} Baxx vergeben</div>
     @elseif ($veranstaltung->baxx_status === \App\Enums\VeranstaltungsBaxxStatus::Abgeschlossen)
-        <div class="text-xs text-base-content/60">Keine Gutschrift</div>
+        <div class="text-xs text-base-content/75">Keine Gutschrift</div>
     @elseif (! $anmeldung->user_id)
-        <div class="text-xs text-base-content/60">Kein Mitgliedskonto</div>
+        <div class="text-xs text-base-content/75">Kein Mitgliedskonto</div>
     @elseif (! $berechtigt)
-        <div class="text-xs text-base-content/60">Aktuell nicht Baxx-berechtigt</div>
+        <div class="text-xs text-base-content/75">Aktuell nicht Baxx-berechtigt</div>
     @endif
 </div>

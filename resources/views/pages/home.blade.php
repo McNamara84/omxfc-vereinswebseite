@@ -12,8 +12,8 @@
 @endphp
 
 <x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
-    <x-public-page class="space-y-8">
-        <x-ui.page-header
+    <x-public-page class="space-y-6">
+        <x-ui.page-header density="hero"
             :eyebrow="data_get($hero, 'eyebrow')"
             :title="data_get($hero, 'title')"
             :description="$homeDescription"
@@ -33,50 +33,42 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.9fr)] xl:items-stretch">
-            <div class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-neutral text-neutral-content shadow-2xl shadow-base-content/10">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.9fr)] xl:items-stretch">
+            <div class="relative overflow-hidden rounded-2xl border border-base-content/10 bg-neutral text-neutral-content shadow-2xl shadow-base-content/10">
                 <div id="gallery" class="relative h-full min-h-[22rem] w-full"
-                    x-data="{
-                        current: 0,
-                        images: {{ count(data_get($gallery, 'images', [])) }},
-                        _interval: null,
-                        init() {
-                            this.$el.querySelectorAll('img')[0]?.classList.remove('opacity-0');
-                            if (this.images <= 1) return;
-                            this._interval = setInterval(() => {
-                                this.$el.querySelectorAll('img')[this.current]?.classList.add('opacity-0');
-                                this.current = (this.current + 1) % this.images;
-                                this.$el.querySelectorAll('img')[this.current]?.classList.remove('opacity-0');
-                            }, 4000);
-                        },
-                        destroy() {
-                            if (this._interval) clearInterval(this._interval);
-                        }
-                    }">
+                    x-data="{ current: 0, images: {{ count(data_get($gallery, 'images', [])) }}, move(step) { if (this.images) this.current = (this.current + step + this.images) % this.images } }"
+                    role="region" aria-roledescription="Bildergalerie" aria-label="Treffen des Vereins" data-testid="home-gallery">
                     @foreach(data_get($gallery, 'images', []) as $image)
-                        <picture>
+                        <picture x-show="current === {{ $loop->index }}" @if(! $loop->first) x-cloak @endif>
                             <source type="image/avif" srcset="{{ asset($image . '.avif') }}" />
                             <source type="image/webp" srcset="{{ asset($image . '.webp') }}" />
-                            <img loading="lazy" src="{{ asset($image . '.webp') }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
-                                class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-1000">
+                            <img loading="{{ $loop->first ? 'eager' : 'lazy' }}" @if($loop->first) fetchpriority="high" @endif width="1200" height="800" src="{{ asset($image . '.webp') }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
+                                class="absolute inset-0 h-full w-full object-cover">
                         </picture>
                     @endforeach
 
                     <div class="absolute inset-0 bg-linear-to-t from-neutral via-neutral/30 to-transparent"></div>
-                    <div class="absolute inset-x-0 bottom-0 space-y-4 p-6 sm:p-8">
+                    <div class="absolute inset-x-0 bottom-0 space-y-4 p-6 pb-20 sm:p-8 sm:pb-20">
                         <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-neutral-content/60">{{ data_get($gallery, 'eyebrow') }}</p>
                         <h2 class="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">{{ data_get($gallery, 'title') }}</h2>
                         <p class="max-w-2xl text-sm leading-relaxed text-neutral-content/80 sm:text-base">
                             {{ data_get($gallery, 'description') }}
                         </p>
                     </div>
+                    @if(count(data_get($gallery, 'images', [])) > 1)
+                        <div class="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-neutral px-6 py-3 text-neutral-content">
+                            <button type="button" class="btn btn-sm min-h-11 bg-neutral text-neutral-content border-neutral-content/40" x-on:click="move(-1)" aria-label="Vorheriges Bild">←</button>
+                            <span aria-live="polite" aria-atomic="true" x-text="'Bild ' + (current + 1) + ' von ' + images">Bild 1 von {{ count(data_get($gallery, 'images', [])) }}</span>
+                            <button type="button" class="btn btn-sm min-h-11 bg-neutral text-neutral-content border-neutral-content/40" x-on:click="move(1)" aria-label="Nächstes Bild">→</button>
+                        </div>
+                    @endif
                 </div>
             </div>
 
             <x-ui.panel title="Was dich hier erwartet" description="Die wichtigsten Einstiege für neue und langjährige Fans auf einen Blick.">
                 <div class="grid gap-3">
                     @foreach(data_get($hero, 'highlights', []) as $highlight)
-                        <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-4">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 p-4">
                             <h3 class="font-semibold text-base-content">{{ $highlight['title'] }}</h3>
                             <p class="mt-1 text-sm leading-relaxed text-base-content/72">{{ $highlight['description'] }}</p>
                         </div>
@@ -85,7 +77,7 @@
             </x-ui.panel>
         </section>
 
-        <section class="grid gap-8 lg:grid-cols-2">
+        <section class="grid gap-6 lg:grid-cols-2">
             @foreach($storySections as $section)
                 <x-ui.panel :title="$section['title']" :description="$section['description']">
                     <p class="text-base leading-relaxed text-base-content/78">{{ $section['content'] }}</p>
@@ -96,7 +88,7 @@
         <x-ui.panel :title="data_get($projectsSection, 'title')" :description="data_get($projectsSection, 'description')">
             <div class="grid gap-4 lg:grid-cols-2">
                 @foreach(data_get($projectsSection, 'items', []) as $project)
-                    <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5">
+                    <article class="rounded-xl border border-base-content/10 bg-base-100/72 p-5">
                         <h3 class="font-display text-xl font-semibold tracking-tight text-base-content">{{ $project['title'] }}</h3>
                         <p class="mt-2 text-sm leading-relaxed text-base-content/72">{{ $project['description'] }}</p>
                     </article>
@@ -104,11 +96,11 @@
             </div>
         </x-ui.panel>
 
-        <section class="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <section class="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
             <x-ui.panel :title="data_get($membershipSection, 'title')" :description="data_get($membershipSection, 'description')">
                 <ul class="grid gap-3">
                     @foreach(data_get($membershipSection, 'items', []) as $benefit)
-                        <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                        <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                             <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">✓</span>
                             <span>{{ $benefit }}</span>
                         </li>

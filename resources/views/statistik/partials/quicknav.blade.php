@@ -2,11 +2,11 @@
 @php($sections = collect($sections ?? []))
 
 @if ($sections->isNotEmpty())
-    <div class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/90 p-5 shadow-xl shadow-base-content/5 backdrop-blur lg:sticky lg:top-24">
+    <div class="relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/90 p-5 shadow-sm backdrop-blur lg:sticky lg:top-24">
         <div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
         <div class="mb-4 space-y-2">
-            <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">Schnellnavigation</p>
+            <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">Schnellnavigation</p>
             <h2 class="font-display text-xl font-semibold tracking-tight text-base-content">Statistikabschnitte</h2>
             <p class="text-sm leading-relaxed text-base-content/72">Springe direkt zu freigeschalteten Auswertungen oder prüfe, welche Bereiche noch Baxx kosten.</p>
         </div>
@@ -35,7 +35,7 @@
                             @elseif ($reward && $reward->is_active)
                                 <span class="text-xs text-base-content">{{ $reward->cost_baxx }} Baxx</span>
                             @elseif ($reward && ! $reward->is_active)
-                                <span class="text-xs text-base-content/50">Derzeit nicht verfügbar</span>
+                                <span class="text-xs text-base-content/75">Derzeit nicht verfügbar</span>
                             @endif
                         </a>
                     </li>

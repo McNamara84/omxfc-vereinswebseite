@@ -35,7 +35,7 @@
                 class="btn btn-ghost min-h-11 min-w-11 px-2" aria-label="Zur öffentlichen Website"
                 data-testid="public-site-switch" data-tour-key="public-site-switch">
                 <x-mary-icon name="o-globe-alt" class="h-5 w-5" aria-hidden="true" />
-                <span class="hidden xl:inline">Zur öffentlichen Website</span>
+                <span class="hidden lg:inline">Zur öffentlichen Website</span>
             </a>
             <x-ui.search-trigger />
             <x-ui.theme-trigger />

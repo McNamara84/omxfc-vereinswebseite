@@ -226,7 +226,7 @@
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
                                 <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ $artikelVarianten }}</textarea>
-                                <span class="label-text-alt mt-1 block text-xs text-base-content/60">Leer lassen, wenn der Artikel keine Varianten benötigt.</span>
+                                <span class="label-text-alt mt-1 block text-xs text-base-content/75">Leer lassen, wenn der Artikel keine Varianten benötigt.</span>
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">

@@ -25,7 +25,7 @@
 @endphp
 
 <x-app-layout title="Termine – Offizieller MADDRAX Fanclub e. V." description="Aktuelle Vereinsveranstaltungen und Treffen im praktischen Kalender.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Kalender & Veranstaltungen"
             title="Termine"
@@ -43,13 +43,13 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] xl:items-start">
-            <div class="space-y-8">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] xl:items-start">
+            <div class="space-y-6">
                 <x-ui.panel title="Was im Kalender landet" description="Die wichtigsten Terminarten für Vereinsleben und Community-Projekte.">
                     <div class="grid gap-4 md:grid-cols-3">
                         @foreach($kalenderHighlights as $highlight)
                             <article class="rounded-3xl border border-base-content/10 bg-base-100/72 p-5">
-                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">{{ $highlight['eyebrow'] }}</p>
+                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">{{ $highlight['eyebrow'] }}</p>
                                 <h2 class="mt-2 font-display text-xl font-semibold tracking-tight text-base-content">{{ $highlight['title'] }}</h2>
                                 <p class="mt-2 text-sm leading-relaxed text-base-content/72">{{ $highlight['description'] }}</p>
                             </article>
@@ -88,7 +88,7 @@
                 <x-ui.panel title="So nutzt du die Ansicht" description="Drei kurze Hinweise, damit du schnell findest, was du brauchst.">
                     <ul class="grid gap-3">
                         @foreach($kalenderTipps as $tipp)
-                            <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                            <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                                 <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">{{ $loop->iteration }}</span>
                                 <span>{{ $tipp }}</span>
                             </li>

@@ -53,7 +53,7 @@
                             class="input input-bordered w-full"
                             placeholder="https://maddraxikon.de/..."
                             data-testid="maddraxikon-url-input" />
-                        <p class="text-sm text-base-content/60 mt-1">Link zum entsprechenden Artikel im Maddraxikon</p>
+                        <p class="text-sm text-base-content/75 mt-1">Link zum entsprechenden Artikel im Maddraxikon</p>
                         @error('maddraxikon_url')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -65,7 +65,7 @@
                             class="file-input file-input-bordered w-full"
                             accept=".stl,.obj,.fbx"
                             data-testid="file-input" />
-                        <p class="text-sm text-base-content/60 mt-1">
+                        <p class="text-sm text-base-content/75 mt-1">
                             Aktuelle Datei: {{ strtoupper($model->file_format) }} ({{ $model->file_size_formatted }}).
                             Nur hochladen, wenn die Datei ersetzt werden soll.
                         </p>
@@ -80,7 +80,7 @@
                             class="file-input file-input-bordered w-full"
                             accept="image/jpeg,image/png,image/webp"
                             data-testid="thumbnail-input" />
-                        <p class="text-sm text-base-content/60 mt-1">
+                        <p class="text-sm text-base-content/75 mt-1">
                             @if ($model->thumbnail_path)
                                 Aktuelles Vorschaubild vorhanden. Nur hochladen, wenn es ersetzt werden soll.
                             @else

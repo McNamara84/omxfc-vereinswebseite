@@ -4,7 +4,7 @@
         $effectiveUploadBytes = $limits['effective_upload_bytes'] ?? null;
     @endphp
 
-    <x-member-page class="space-y-8">
+    <x-member-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Adminbereich"
             title="Datenbank"
@@ -71,7 +71,7 @@
                             required
                             class="file-input file-input-bordered w-full"
                         />
-                        <p class="mt-2 text-sm text-base-content/65">
+                        <p class="mt-2 text-sm text-base-content/75">
                             Effektive Upload-Grenze: {{ $formatBytes($effectiveUploadBytes) }}
                         </p>
                     </div>
@@ -88,7 +88,7 @@
                             class="input input-bordered w-full"
                             placeholder="{{ $confirmationText }}"
                         />
-                        <p class="mt-2 text-sm text-base-content/65">
+                        <p class="mt-2 text-sm text-base-content/75">
                             Erforderlicher Text: <span class="font-mono">{{ $confirmationText }}</span>
                         </p>
                     </div>

@@ -27,7 +27,7 @@
                     <x-icon :name="$task['icon']" class="h-5 w-5 shrink-0 text-primary" />
                     <span class="min-w-0 flex-1">
                         <span class="block truncate text-sm font-semibold">{{ $task['title'] }}</span>
-                        <span class="block truncate text-xs text-base-content/55">{{ $task['description'] }}</span>
+                        <span class="block truncate text-xs text-base-content/75">{{ $task['description'] }}</span>
                     </span>
                     @if(($task['count'] ?? 0) > 0)
                         <span class="badge badge-primary badge-sm rounded-full">{{ $task['count'] }}</span>

@@ -1,5 +1,5 @@
 <x-member-layout title="Fotogalerie – Offizieller MADDRAX Fanclub e. V." description="Bilder von Veranstaltungen und Treffen des Fanclubs.">
-    <x-member-page class="max-w-7xl space-y-8">
+    <x-member-page class="max-w-7xl space-y-6">
         @php
             $totalPhotos = collect($photos)->sum(fn ($items) => count($items));
         @endphp
@@ -17,7 +17,7 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
             <x-ui.panel title="Galerieansicht" description="Wähle einen Jahrgang und nutze die Pfeile oder die Vorschaubilder, um durch die verfügbaren Fotos zu navigieren.">
                 <div
                     x-data="{
@@ -75,16 +75,16 @@
                                 @click="changeYear('{{ $year }}')"
                             >
                                 <span>Fotos {{ $year }}</span>
-                                <span class="rounded-full bg-base-100/15 px-2 py-1 text-xs font-semibold" :class="activeYear === '{{ $year }}' ? 'text-primary-content' : 'text-base-content/65'">{{ count($photos[$year] ?? []) }}</span>
+                                <span class="rounded-full bg-base-100/15 px-2 py-1 text-xs font-semibold" :class="activeYear === '{{ $year }}' ? 'text-primary-content' : 'text-base-content/75'">{{ count($photos[$year] ?? []) }}</span>
                             </button>
                         @endforeach
                     </div>
 
                     @foreach($years as $year)
                         <section x-ref="gallery-{{ $year }}" x-show="activeYear === '{{ $year }}'" x-cloak class="space-y-5">
-                            <div class="flex flex-wrap items-end justify-between gap-3 rounded-[1.5rem] border border-base-content/10 bg-base-100/72 px-4 py-4">
+                            <div class="flex flex-wrap items-end justify-between gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4">
                                 <div>
-                                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">Jahrgang</p>
+                                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">Jahrgang</p>
                                     <h2 class="mt-2 font-display text-2xl font-semibold tracking-tight text-base-content">{{ $year }}</h2>
                                 </div>
                                 <div class="text-sm leading-relaxed text-base-content/62">
@@ -136,10 +136,10 @@
                 <x-ui.panel title="Jahre im Überblick" description="Jeder Jahrgang bündelt Fotos aus Treffen, Aktionen und Vereinsmomenten in einer gemeinsamen Galerie.">
                     <div class="space-y-3">
                         @foreach($years as $year)
-                            <div class="flex items-center justify-between rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm text-base-content/76 sm:text-base">
+                            <div class="flex items-center justify-between rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm text-base-content/76 sm:text-base">
                                 <div>
                                     <p class="font-medium text-base-content">Fotos {{ $year }}</p>
-                                    <p class="text-sm text-base-content/58">{{ count($photos[$year] ?? []) }} Bilder verfügbar</p>
+                                    <p class="text-sm text-base-content/75">{{ count($photos[$year] ?? []) }} Bilder verfügbar</p>
                                 </div>
                                 <span class="badge badge-outline rounded-full px-3 py-3">{{ $year }}</span>
                             </div>
@@ -149,9 +149,9 @@
 
                 <x-ui.panel title="Hinweise zur Galerie" description="Die Bilder werden aus den veröffentlichten Vereinsalben geladen. Falls ein Jahrgang noch im Aufbau ist, erscheinen automatisch Platzhalter.">
                     <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die Galerie springt beim Jahreswechsel automatisch auf das passende Hauptbild.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Mit Pfeilen und Vorschaubildern lässt sich jede Serie direkt auf derselben Seite durchblättern.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Fehlende Cloud-Bilder werden durch lokale Platzhalter abgefangen, damit die Seite stabil bleibt.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Die Galerie springt beim Jahreswechsel automatisch auf das passende Hauptbild.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Mit Pfeilen und Vorschaubildern lässt sich jede Serie direkt auf derselben Seite durchblättern.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Fehlende Cloud-Bilder werden durch lokale Platzhalter abgefangen, damit die Seite stabil bleibt.</li>
                     </ul>
                 </x-ui.panel>
             </div>

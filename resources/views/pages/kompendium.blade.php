@@ -1,5 +1,5 @@
 <x-member-layout title="Kompendium – Offizieller MADDRAX Fanclub e. V." description="Volltextsuche durch Maddrax-Romane für Mitglieder.">
-    <x-member-page class="max-w-6xl space-y-8">
+    <x-member-page class="max-w-6xl space-y-6">
         @php
             $indexedSeriesCount = $indexierteRomaneSummary->count();
         @endphp
@@ -42,7 +42,7 @@
                     </x-slot:actions>
 
                     @if($kompendiumReward && $kompendiumReward->is_active)
-                        <div class="mb-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
+                        <div class="mb-4 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
                             <p>Die Kompendium-Suche ist für dein Konto noch nicht freigeschaltet.</p>
                             <p class="mt-2">Im Bereich Belohnungen einlösen schaltest du den Zugang frei. Mitglieder der AG Maddraxikon erhalten ihn automatisch.</p>
                         </div>
@@ -59,7 +59,7 @@
             </section>
         @endif
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.74fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.74fr)] xl:items-start">
             <div class="space-y-6">
                 <x-ui.panel title="Indexierte Serien" description="Die Übersicht zeigt, welche Serien derzeit im Kompendium durchsuchbar sind.">
                     <x-slot:actions>
@@ -81,7 +81,7 @@
                     </x-slot:actions>
 
                     @if($indexierteRomaneSummary->isEmpty())
-                        <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
+                        <p class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
                             Aktuell sind keine Romane für die Suche indexiert.
                         </p>
                     @else
@@ -91,8 +91,8 @@
 
                         <div class="grid gap-3 sm:grid-cols-2">
                             @foreach($indexierteRomaneSummary as $gruppe)
-                                <article class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4">
-                                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">Indexiert</p>
+                                <article class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4">
+                                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">Indexiert</p>
                                     <p class="mt-2 text-base text-base-content sm:text-lg"><strong>{{ $gruppe['serie_name'] }}</strong></p>
                                     <p class="mt-2 text-sm leading-relaxed text-base-content/68 sm:text-base">{{ $gruppe['beschreibung'] }}</p>
                                 </article>
@@ -105,15 +105,15 @@
             <div class="space-y-6 xl:sticky xl:top-6">
                 <x-ui.panel title="Aktueller Stand" description="Der Schnellüberblick zu Zugang, Inhalt und Reward-Status.">
                     <div class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p class="font-medium text-base-content">Indexierte Serien</p>
                             <p class="mt-1">{{ $indexedSeriesCount }} Serien stehen aktuell für die Suche bereit.</p>
                         </div>
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p class="font-medium text-base-content">Suchzugang</p>
                             <p class="mt-1">{{ $showSearch ? 'Die Volltextsuche ist freigeschaltet.' : 'Die Volltextsuche ist aktuell noch gesperrt.' }}</p>
                         </div>
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p class="font-medium text-base-content">Reward-Status</p>
                             <p class="mt-1">{{ ($kompendiumReward && $kompendiumReward->is_active) ? 'Das Kompendium-Reward kann aktuell verwendet werden.' : 'Das Kompendium-Reward ist derzeit nicht aktiv.' }}</p>
                         </div>

@@ -7,7 +7,7 @@
 ])
 
 <div
-    {{ $attributes->class(['rounded-[1.5rem] border border-dashed border-base-content/12 bg-base-200/55 px-5 py-5']) }}
+    {{ $attributes->class(['rounded-xl border border-dashed border-base-content/12 bg-base-200/55 px-5 py-5']) }}
     role="{{ $role }}"
     aria-live="{{ $live }}"
 >

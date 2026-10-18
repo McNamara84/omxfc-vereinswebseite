@@ -1,4 +1,4 @@
-<x-member-page class="max-w-7xl space-y-8">
+<x-member-page class="max-w-7xl space-y-6">
     <x-ui.page-header
         eyebrow="Sammler-Tools"
         title="3D-Modelle"
@@ -37,7 +37,7 @@
 
     @if ($this->models->isEmpty())
         <x-ui.panel title="Noch keine 3D-Modelle vorhanden" description="Sobald erste Modelle hochgeladen wurden, erscheinen sie hier als eigenständige Karten mit Preis, Format und Vorschau.">
-            <div class="rounded-[1.5rem] border border-dashed border-base-content/15 bg-base-100/70 px-6 py-8 text-center text-sm leading-relaxed text-base-content/62 sm:text-base">
+            <div class="rounded-xl border border-dashed border-base-content/15 bg-base-100/70 px-6 py-8 text-center text-sm leading-relaxed text-base-content/62 sm:text-base">
                 Noch keine 3D-Modelle vorhanden.
             </div>
         </x-ui.panel>

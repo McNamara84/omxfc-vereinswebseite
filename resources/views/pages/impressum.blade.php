@@ -1,5 +1,5 @@
 <x-app-layout title="Impressum – Offizieller MADDRAX Fanclub e. V." description="Verantwortliche Ansprechpartner, Kontakt und Vereinsregistereintrag gemäß §5 TMG.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Rechtlich verantwortlich"
             title="Impressum"
@@ -14,7 +14,7 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.8fr)] xl:items-start">
             <div class="space-y-6">
                 <x-ui.panel title="Geltungsbereich" description="Dieses Impressum umfasst die Hauptdomain und alle zugehörigen Unterseiten des Vereinsauftritts.">
                     <p>Dieses Impressum gilt für alle Angebote unter der Domain <strong>maddrax-fanclub.de</strong> inklusive aller Subdomains (Unterseiten).</p>
@@ -22,13 +22,13 @@
 
                 <x-ui.panel title="Soziale Medien" description="Die Impressumspflicht gilt ebenso für unsere externen Profile und Community-Auftritte.">
                     <ul class="grid gap-3 sm:grid-cols-3">
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <a href="https://www.facebook.com/mxikon" target="_blank" rel="noopener noreferrer" class="link link-primary font-medium">Facebook</a>
                         </li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <a href="https://www.instagram.com/offizieller_maddrax_fanclub/" target="_blank" rel="noopener noreferrer" class="link link-primary font-medium">Instagram</a>
                         </li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <a href="https://www.youtube.com/@mxikon" target="_blank" rel="noopener noreferrer" class="link link-primary font-medium">YouTube</a>
                         </li>
                     </ul>
@@ -53,7 +53,7 @@
                                 Deutschland</p>
                         </div>
 
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p>E-Mail: <a href="mailto:vorstand@maddrax-fanclub.de" class="link link-primary">vorstand@maddrax-fanclub.de</a></p>
                             <p class="mt-2">Telefon: <a href="tel:+491794218330" class="link link-primary">+49 179 4218330</a></p>
                         </div>

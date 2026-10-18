@@ -20,7 +20,7 @@ $tours = [
             [
                 'key' => 'dashboard',
                 'title' => 'Dashboard',
-                'description' => 'Hier landest du nach dem Login und bekommst den schnellsten Überblick über den Verein.',
+                'description' => 'Hier landest du nach dem Login. Offene Aufgaben und der Schnellstart stehen zuerst; Fortschritt und Community-Zahlen kannst du darunter aufklappen.',
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="dashboard"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="dashboard"]',

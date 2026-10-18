@@ -1,3 +1,5 @@
+@php($pageNavigation = app(\App\Support\Navigation\PageNavigation::class)->resolve(auth()->user(), 'member'))
+@php($title = $title ?? ($pageNavigation['title'] . ' – Offizieller MADDRAX Fanclub e. V.'))
 <!DOCTYPE html>
 <html lang="de" data-theme="caramellatte">
 <head>
@@ -68,6 +70,7 @@
             x-init="$nextTick(() => syncMemberDrawer())"
             x-on:change="if ($event.target.id === 'member-drawer') syncMemberDrawer()"
             x-on:livewire:navigated.document="closeMemberDrawer()"
+            x-on:navigation-search-opening.window="closeMemberDrawer()"
             x-on:member-drawer-close.window="closeMemberDrawer()"
             x-on:resize.window="if (window.innerWidth >= 1024) closeMemberDrawer()"
             x-on:keydown.escape.window="if (memberDrawerOpen) { closeMemberDrawer(); $nextTick(() => $refs.memberDrawerToggle?.focus()) }"
@@ -86,6 +89,7 @@
                         data-testid="member-content"
                         wire:transition.navigate="member-content"
                     >
+                        <x-ui.breadcrumbs :items="$pageNavigation['breadcrumbs']" />
                         {{ $slot }}
                     </div>
                 </x-slot:content>

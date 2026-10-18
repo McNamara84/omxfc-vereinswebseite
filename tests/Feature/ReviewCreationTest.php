@@ -265,7 +265,7 @@ MD;
             ->assertSee('Rezensionstext', false)
             ->assertSee('Mindestens 140 Zeichen.', false)
             ->assertSee('id="review-content-hint"', false)
-            ->assertSee('aria-describedby="review-markdown-help review-content-hint"', false)
+            ->assertSee('aria-describedby="review-markdown-help review-content-hint review-content-error"', false)
             ->assertSee('data-testid="review-markdown-toolbar"', false)
             ->assertSee('data-markdown-action="bold"', false)
             ->assertSee('data-markdown-action="italic"', false)

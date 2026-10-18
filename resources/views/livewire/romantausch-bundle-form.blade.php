@@ -1,4 +1,4 @@
-<x-member-page class="max-w-6xl space-y-8">
+<x-member-page class="max-w-6xl space-y-6">
     <x-ui.page-header
         :title="$this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen'"
         eyebrow="Romantauschbörse"
@@ -10,7 +10,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Stapel-Angebot" description="Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib die Nummern als Bereiche wie 1-50 oder einzeln wie 52, 55 ein.">
             <form wire:submit="save" id="bundle-offer-form">
             @php
@@ -183,9 +183,9 @@
         <div class="space-y-6 xl:sticky xl:top-6">
             <x-ui.panel title="Hinweise zu Nummernbereichen" description="Der Parser unterstützt einzelne Nummern und kompakte Intervalle, damit große Stapel schnell angelegt werden können.">
                 <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Du kannst Einzelnummern und Bereiche kombinieren, etwa 1-20, 24, 27-30.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die Live-Vorschau zeigt sofort, wie viele Romane erkannt wurden und in welcher Reihenfolge sie interpretiert werden.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Andere Mitglieder sehen in der Übersicht sofort, wie viele Bände ihres Gesuchs in deinem Stapel enthalten sind.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Du kannst Einzelnummern und Bereiche kombinieren, etwa 1-20, 24, 27-30.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Die Live-Vorschau zeigt sofort, wie viele Romane erkannt wurden und in welcher Reihenfolge sie interpretiert werden.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Andere Mitglieder sehen in der Übersicht sofort, wie viele Bände ihres Gesuchs in deinem Stapel enthalten sind.</li>
                 </ul>
             </x-ui.panel>
         </div>
