@@ -20,7 +20,7 @@ class PageNavigation
             return ['title' => $root['label'], 'breadcrumbs' => []];
         }
 
-        $navigation = $this->builder->build($user, [], $scope);
+        $navigation = $this->builder->build($user, $this->context->polls(), $scope);
         $breadcrumbs = [$root];
         // Route names contain dots; use literal keys instead of config's dot lookup.
         $label = config('navigation.pages', [])[$route] ?? null;

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\ViewErrorBag;
 use Livewire\Component;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Fixtures\RenderableField;
 use Tests\TestCase;
 
@@ -76,6 +77,36 @@ class MaryAccessibleFieldsTest extends TestCase
         $select = $dom->getElementsByTagName('select')->item(0);
         $this->assertSame('condition-label', $select->getAttribute('aria-labelledby'));
         $this->assertFalse($select->hasAttribute('aria-label'));
+    }
+
+    #[TestWith([null, null, false])]
+    #[TestWith(['condition-choice', null, true])]
+    #[TestWith(['condition-choice', 'condition-help condition-note', false])]
+    #[TestWith(['condition-choice', 'condition-help condition-note', true])]
+    #[TestWith([null, 'condition-help condition-note', true])]
+    #[TestWith(['condition-choice', '', true])]
+    public function test_server_rendered_select_preserves_help_references_and_links_its_feedback(?string $fieldId, ?string $describedBy, bool $hasError): void
+    {
+        if ($hasError) {
+            View::share('errors', (new ViewErrorBag)->put('default', new MessageBag(['condition' => ['Bitte Zustand auswählen.']])));
+        }
+        $html = Blade::render(
+            '<p id="condition-help">Hinweis zum Zustand</p><p id="condition-note">Weitere Angaben</p>'
+            .'<x-form-select :id="$fieldId" name="condition" label="Zustand" :aria-describedby="$describedBy" />',
+            compact('fieldId', 'describedBy'),
+        );
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>'.$html);
+        $select = $dom->getElementsByTagName('select')->item(0);
+        $feedbackId = ($fieldId ?? 'select-condition').'-feedback';
+        $expected = trim(($describedBy ?? '').' '.$feedbackId);
+
+        $this->assertSame($expected, $select->getAttribute('aria-describedby'));
+        $this->assertSame($hasError ? 'true' : 'false', $select->getAttribute('aria-invalid'));
+        foreach (explode(' ', $expected) as $id) {
+            $this->assertNotNull($dom->getElementById($id), $id);
+        }
+        $this->assertSame($hasError ? 'Bitte Zustand auswählen.' : '', trim($dom->getElementById($feedbackId)->textContent));
     }
 
     public function test_existing_help_is_only_extended_by_present_errors_and_hints(): void
