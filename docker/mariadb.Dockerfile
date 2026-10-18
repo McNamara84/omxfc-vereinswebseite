@@ -1,4 +1,4 @@
-FROM mariadb:13.0.2@sha256:fe70467ededa74ba50d127b5822c2d554d56be27a90b3ef23da9624d993b1a74 AS mariadb
+FROM mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39 AS mariadb
 
 # Ubuntu includes a standalone Pebble service manager with an outdated Go
 # runtime. MariaDB uses docker-entrypoint.sh and gosu instead, so remove the

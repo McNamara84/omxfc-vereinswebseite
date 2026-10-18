@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.18.0",
+    "pub_date": "2026-10-18",
+    "notes": [
+      "[New] Die neue Maddrax-Bildersuche findet Cover anhand der im Maddraxikon hinterlegten Motive und Figuren. Mehrere Suchbegriffe, Wortteile, Serienfilter und eine vergrößerte Ansicht mit Schlagworten und Quellenlink erleichtern das Stöbern. Nach Aktivierung der Funktion erhalten Mitglieder der AG Maddraxikon automatisch Zugang; andere freigeschaltete Vereinsmitglieder können ihn einmalig für standardmäßig 100 Baxx erwerben.",
+      "[New] Die Menüsuche findet Seiten und Funktionen ab zwei Zeichen, auch unter bisherigen Bezeichnungen wie Baxx verdienen oder Meetings. Sie lässt sich über die Kopfleiste sowie mit Strg+K beziehungsweise Cmd+K öffnen und zeigt die für das eigene Konto zugänglichen Ziele.",
+      "[Improved] Das Mitgliedermenü bündelt Inhalte in Community, Lesen & Entdecken, Termine & Treffen, Projekte & Mitmachen und Verein. Challenges & Baxx ersetzt Baxx verdienen; die geführte Menütour erklärt die neue Struktur und Suche.",
+      "[Improved] Öffentliche Website und Mitgliederbereich lassen sich gezielt über Zum Mitgliederbereich und Zur öffentlichen Website wechseln. Auch angemeldete Mitglieder können die öffentliche Startseite aufrufen und erhalten auf öffentlichen Seiten einen festen Rückweg zum Dashboard.",
+      "[Improved] Brotkrumen und aussagekräftigere Seitentitel erleichtern die Orientierung. Gemeinsam genutzte öffentliche Inhalte sind im Mitgliedermenü als Öffentlich gekennzeichnet; Termine und Spenden sind im öffentlichen Menü direkt erreichbar.",
+      "[Improved] Der Dashboard-Schnellstart steht jetzt direkt unter den offenen Aufgaben und bietet berechtigten Verwaltungsrollen Zugänge zu Challenge-Prüfungen und Mitgliedsanträgen. Fortschritt und Community-Zahlen lassen sich auf dem Smartphone aufklappen; Sprunglinks öffnen den passenden Detailbereich automatisch.",
+      "[Improved] Kompaktere Seitenköpfe, besser lesbare Kontraste und angepasste Mobilansichten machen die Oberfläche übersichtlicher. Klarer beschriftete Formularfelder, sichtbare Tastaturfokusse und ein Sprunglink zum Hauptinhalt erleichtern die Bedienung mit Tastatur und Screenreader.",
+      "[Improved] Der Mitgliedsantrag gliedert Eingaben in verständliche Abschnitte und zeigt nach dem Absenden eine fokussierte Fehlerübersicht mit direkten Links zu den betroffenen Feldern.",
+      "[Improved] Beim Verlassen einer Rezension mit ungespeicherten Änderungen erscheint eine Warnung, damit Eingaben nicht versehentlich verloren gehen.",
+      "[Improved] Challenges unterscheiden jetzt klar zwischen Übernahme zurückgeben und Abschluss bestätigen und Baxx vergeben. Nach der Prüfung führt der Rückweg direkt zur Übersicht der zu prüfenden Challenges.",
+      "[Improved] Die Bildergalerie auf der Startseite lässt sich über Vor- und Zurück-Schaltflächen bedienen und zeigt die aktuelle Bildnummer. Bilder wechseln erst auf Nutzeraktion.",
+      "[Improved] Die Verwaltung wiederkehrender Online-Treffen erklärt Monatswochen und Startdatum mit zusätzlichen Hinweisen und Beispielen.",
+      "[Fixed] Freigeschaltete Mitglieder ohne gespeicherte E-Mail-Bestätigung erhalten wieder die passende Mitgliedernavigation, Menüsuche und Dashboard-Schnellzugriffe sowie die Weiterleitung von der Startseite zum Dashboard.",
+      "[Fixed] Das mobile Mitgliedermenü lässt sich auch in Safari zuverlässig durch Antippen des abgedunkelten Hintergrunds schließen.",
+      "[Fixed] Gleichzeitige Belohnungskäufe können das verfügbare Baxx-Guthaben nicht mehr mehrfach ausgeben. Eine inzwischen deaktivierte Belohnung lässt sich nicht mehr während des Kaufs freischalten."
+    ]
+  },
+  {
     "version": "1.17.0",
     "pub_date": "2026-10-11",
     "notes": [

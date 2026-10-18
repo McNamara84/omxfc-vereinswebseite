@@ -781,13 +781,15 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **17. Oktober 2026**. PHP 8.5.11 basiert auf Debian
+Stand der Aktualisierung: **18. Oktober 2026**. PHP 8.5.11 basiert auf Debian
 Trixie; Node 26.12.0 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
-MariaDB 13.0.2, nginx 1.30.6 (aktueller Stable-Zweig, Alpine 3.24 Slim) und Typesense
+MariaDB 13.0.2, nginx 1.31.7 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
-nginx 1.30.6 enthält die [Sicherheitskorrekturen vom 14. Oktober](https://nginx.org/en/CHANGES-1.30).
+nginx 1.31.7 enthält die [Sicherheitskorrekturen vom 14. Oktober](https://nginx.org/en/CHANGES).
+Der MariaDB-Digest wurde auf den Neubau vom 17. Oktober aktualisiert und ist in
+Dockerfile, Test-Stack und CI einheitlich gepinnt.
 Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
 Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
 Betriebssystemupdates ein; ein aktueller Image-Tag allein ersetzt diesen Schritt nicht.
@@ -811,17 +813,20 @@ verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselb
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.2 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.2;
-deshalb ist 13.4.2 statt der neueren inkompatiblen 13.4.3 installiert. maryUI 2.9.10 benötigt
+aktualisiert. Pest 5.3.3 unterstützt nun PHPUnit 13.4.3; beide Testwerkzeuge
+sind entsprechend aktualisiert. maryUI 2.9.10 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
 
-Die vollständige Auflösung vom 17. Oktober aktualisiert unter anderem Laravel
-auf 13.37.0, ParaTest auf 7.27.2, League URI auf 7.9.0 und Symfony-Komponenten
-auf 8.1.9. Vitest/Coverage 5.0.5, Playwright 1.64.1 mit passenden Browsern,
+Die erneute vollständige Auflösung vom 18. Oktober aktualisiert Intervention Image
+auf 4.4.0, Guzzle auf 8.3.0, Promises auf 3.1.0, PSR-7 auf 3.2.0, CommonMark
+auf 2.10.4, Whoops auf 2.18.7 und robots-txt auf 2.5.5. Die indirekten
+JavaScript-Testabhängigkeiten css-color 7.1.7 und dom-selector 10.0.4 sind ebenfalls
+im Lockfile aktualisiert. Laravel 13.37.0, ParaTest 7.27.2, League URI 7.9.0 und
+Symfony 8.1.9 sind bereits aktuell. Vitest/Coverage 5.0.5, Playwright 1.64.1 mit passenden Browsern,
 axe 4.14.0, daisyUI 5.7.50, jsdom 30.1.3 und Zod 4.6.7 sind gemeinsam geprüft.
 Alle 15 externen GitHub-Action-Pins wurden gegen die veröffentlichten Tags
-verifiziert. Die bereits aktuellen Pakete bleiben in ihren unterstützten Linien.
+am 18. Oktober verifiziert. Die bereits aktuellen Pakete bleiben in ihren unterstützten Linien.
 
 Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
 der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
