@@ -9,6 +9,7 @@ use App\Jobs\SyncMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonReviewRatings;
 use App\Models\MaddraxikonSyncState;
 use App\Services\CoverRatings\BookCoverSyncRunner;
+use App\Services\CoverRatings\CoverSyncDeadline;
 use App\Services\Maddraxikon\MaddraxikonContributionImporter;
 use App\Services\Maddraxikon\MaddraxikonRatingSynchronizer;
 use App\Services\Maddraxikon\MaddraxikonRewardService;
@@ -90,7 +91,15 @@ class MaddraxikonJobsTest extends TestCase
         config(['cover-ratings.sync_enabled' => true]);
         $runner = Mockery::mock(BookCoverSyncRunner::class);
         $runner->expects('run')
-            ->with(Mockery::type(Builder::class))
+            ->withArgs(function (Builder $query, bool $force, bool $dryRun, ?callable $report, CoverSyncDeadline $deadline) use ($job): bool {
+                $this->assertFalse($force);
+                $this->assertFalse($dryRun);
+                $this->assertNull($report);
+                $this->assertGreaterThan(269, $deadline->remainingSeconds());
+                $this->assertLessThanOrEqual($job->timeout - 60, $deadline->remainingSeconds());
+
+                return true;
+            })
             ->once()
             ->andReturn(['ready' => 0, 'unchanged' => 0, 'missing' => 0, 'changed' => 0, 'failed' => 0]);
 
@@ -114,7 +123,7 @@ class MaddraxikonJobsTest extends TestCase
     public function test_database_retry_window_exceeds_longest_job_timeout(): void
     {
         $this->assertGreaterThan(
-            300,
+            (new SyncCoverRatingCovers)->timeout,
             (int) config('queue.connections.database.retry_after')
         );
     }

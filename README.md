@@ -618,11 +618,16 @@ werden vom Queue-Job protokolliert. `--force` ist für reine Schlagwortänderung
 nicht nötig. `--book` verwendet eine lokale Buch-ID.
 
 Manuelle und geplante Abgleiche verwenden dieselbe Lauf-Sperre (maximal zwei
-Stunden). Der Queue-Job hat ein Zeitlimit von 330 Sekunden; `retry_after` bzw. die
-SQS-Sichtbarkeitsdauer muss darüber liegen (Datenbank-Queue: Standard 420 Sekunden).
+Stunden). Der Queue-Lauf verwendet ein Zeitbudget von 270 Sekunden;
+API-Anfragen, Wiederholungen und Bilddownloads berücksichtigen das verbleibende
+Zeitbudget. Damit bleiben vor dem Job-/Worker-Zeitlimit von 330 Sekunden 60 Sekunden
+für Aufräumarbeiten und die Freigabe der Sperre. `retry_after` bzw. die
+SQS-Sichtbarkeitsdauer muss über 330 Sekunden liegen (Datenbank-Queue: Standard 420 Sekunden).
 Den ersten umfangreichen Bildimport über die CLI ausführen, bei Bedarf nach Serie
 aufteilen. Nach einem hart abgebrochenen Prozess kann die Sperre bis zu ihrem
-Ablauf bestehen bleiben. Die CLI begrenzt lange Läufe vor Ablauf der Sperre.
+Ablauf bestehen bleiben. Die CLI begrenzt lange Läufe auf 6600 Sekunden.
+Ein erreichtes Laufzeitlimit wird als Fehler gemeldet; bereits synchronisierte
+Daten bleiben erhalten. Für dauerhaft zu lange Gesamtabgleiche die CLI nutzen.
 
 Zum Abschalten genügt `BILDERSUCHE_ENABLED=false`; der Keyword-Abgleich lässt sich
 separat deaktivieren. Bestehende Cover, Bewertungen und Käufe bleiben erhalten.

@@ -2,7 +2,9 @@
 
 namespace App\Services\Maddraxikon;
 
+use App\Exceptions\CoverSyncTimeoutException;
 use App\Exceptions\MaddraxikonApiException;
+use App\Services\CoverRatings\CoverSyncDeadline;
 use App\Support\CoverRatings\CoverKeywords;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
@@ -20,7 +22,7 @@ class MaddraxikonApiClient
     /** @param list<string> $fileTitles
      * @return array<string, array{keywords: ?array, error: ?string}>
      */
-    public function coverKeywords(array $fileTitles): array
+    public function coverKeywords(array $fileTitles, ?CoverSyncDeadline $deadline = null): array
     {
         $results = [];
         $titles = [];
@@ -41,7 +43,7 @@ class MaddraxikonApiClient
                     $payload = $this->request([
                         'action' => 'ask',
                         'query' => $conditions.'|?Schlagworte|limit=50|offset='.$offset,
-                    ]);
+                    ], $deadline);
                     $pages = data_get($payload, 'query.results');
                     if (! is_array($pages) || ! empty($payload['errors']) || ! empty($payload['warnings'])
                         || ! empty($payload['query']['errors']) || ! empty($payload['query']['warnings'])) {
@@ -437,7 +439,7 @@ class MaddraxikonApiClient
      *     license_url: ?string
      * }>
      */
-    public function coverImages(array $pageIds): array
+    public function coverImages(array $pageIds, ?CoverSyncDeadline $deadline = null): array
     {
         $pageIds = $this->positiveUniqueIds($pageIds);
 
@@ -455,7 +457,7 @@ class MaddraxikonApiClient
                 'pageids' => implode('|', $chunk),
                 'piprop' => 'name|original',
                 'pilicense' => 'any',
-            ]);
+            ], $deadline);
             $pages = data_get($payload, 'query.pages');
 
             if (! is_array($pages)) {
@@ -485,7 +487,7 @@ class MaddraxikonApiClient
             }
         }
 
-        $fileDetails = $this->imageDetails($fileTitles);
+        $fileDetails = $this->imageDetails($fileTitles, $deadline);
         $resolved = [];
 
         foreach ($pageIds as $pageId) {
@@ -521,7 +523,7 @@ class MaddraxikonApiClient
      * @param  list<string>  $fileTitles
      * @return array<string, array<string, mixed>>
      */
-    private function imageDetails(array $fileTitles): array
+    private function imageDetails(array $fileTitles, ?CoverSyncDeadline $deadline = null): array
     {
         $details = [];
         $targetWidth = max(720, (int) config('cover-ratings.images.large_width', 720));
@@ -533,7 +535,7 @@ class MaddraxikonApiClient
                 'titles' => implode('|', $chunk),
                 'iiprop' => 'url|size|sha1|mime|extmetadata',
                 'iiurlwidth' => $targetWidth,
-            ]);
+            ], $deadline);
             $pages = data_get($payload, 'query.pages');
 
             if (! is_array($pages)) {
@@ -650,21 +652,24 @@ class MaddraxikonApiClient
      * @param  array<string, int|string>  $parameters
      * @return array<string, mixed>
      */
-    private function request(array $parameters): array
+    private function request(array $parameters, ?CoverSyncDeadline $deadline = null): array
     {
         $attempts = max(1, (int) config('maddraxikon.http.attempts', 3));
         $delayMs = max(0, (int) config('maddraxikon.http.retry_delay_ms', 250));
         $lastException = null;
 
         for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            $deadline?->ensureRemaining();
             try {
                 $response = Http::acceptJson()
                     ->withUserAgent((string) config(
                         'maddraxikon.http.user_agent',
                         'OMXFC-Maddraxikon-Baxx/1.0'
                     ))
-                    ->connectTimeout((int) config('maddraxikon.http.connect_timeout', 5))
-                    ->timeout((int) config('maddraxikon.http.timeout', 15))
+                    ->connectTimeout($deadline?->timeout((int) config('maddraxikon.http.connect_timeout', 5))
+                        ?? (int) config('maddraxikon.http.connect_timeout', 5))
+                    ->timeout($deadline?->timeout((int) config('maddraxikon.http.timeout', 15))
+                        ?? (int) config('maddraxikon.http.timeout', 15))
                     ->withOptions(['allow_redirects' => false])
                     ->get($this->requestGuard->trustedApiUrl(), [
                         ...$parameters,
@@ -672,6 +677,8 @@ class MaddraxikonApiClient
                         'formatversion' => 2,
                         'maxlag' => (int) config('maddraxikon.http.maxlag', 5),
                     ]);
+
+                $deadline?->ensureRemaining();
 
                 if (! $response->successful()) {
                     $exception = new MaddraxikonApiException(
@@ -682,7 +689,7 @@ class MaddraxikonApiClient
 
                     if ($this->isTransientStatus($response->status()) && $attempt < $attempts) {
                         $lastException = $exception;
-                        $this->waitBeforeRetry($delayMs, $attempt, $response);
+                        $this->waitBeforeRetry($delayMs, $attempt, $response, $deadline);
 
                         continue;
                     }
@@ -707,7 +714,7 @@ class MaddraxikonApiClient
 
                     if ($this->isTransientApiCode($code) && $attempt < $attempts) {
                         $lastException = $exception;
-                        $this->waitBeforeRetry($delayMs, $attempt, $response);
+                        $this->waitBeforeRetry($delayMs, $attempt, $response, $deadline);
 
                         continue;
                     }
@@ -717,14 +724,15 @@ class MaddraxikonApiClient
 
                 return $payload;
             } catch (ConnectionException $exception) {
+                $deadline?->ensureRemaining();
                 $lastException = $exception;
 
                 if ($attempt < $attempts) {
-                    $this->waitBeforeRetry($delayMs, $attempt);
+                    $this->waitBeforeRetry($delayMs, $attempt, deadline: $deadline);
 
                     continue;
                 }
-            } catch (MaddraxikonApiException $exception) {
+            } catch (MaddraxikonApiException|CoverSyncTimeoutException $exception) {
                 throw $exception;
             } catch (Throwable $exception) {
                 throw new MaddraxikonApiException(
@@ -794,7 +802,8 @@ class MaddraxikonApiClient
     private function waitBeforeRetry(
         int $baseDelayMs,
         int $attempt,
-        ?Response $response = null
+        ?Response $response = null,
+        ?CoverSyncDeadline $deadline = null,
     ): void {
         $maximumDelayMs = max(
             0,
@@ -818,7 +827,11 @@ class MaddraxikonApiClient
         }
 
         $jitterMs = random_int(0, min(250, max(1, intdiv($delayMs, 5))));
-        usleep(min($maximumDelayMs, $delayMs + $jitterMs) * 1000);
+        $sleepMs = min($maximumDelayMs, $delayMs + $jitterMs);
+        // Do not start a backoff that cannot finish within this run's budget.
+        $deadline?->ensureRemaining($sleepMs / 1000);
+        usleep($sleepMs * 1000);
+        $deadline?->ensureRemaining();
     }
 
     private function retryAfterDelayMs(Response $response): int

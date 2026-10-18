@@ -4,6 +4,7 @@ namespace App\Services\CoverRatings;
 
 use App\Enums\BookCoverStatus;
 use App\Exceptions\CoverImageException;
+use App\Exceptions\CoverSyncTimeoutException;
 use App\Models\Book;
 use App\Models\BookCover;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ class BookCoverSynchronizer
      * @param  array<string, mixed>|null  $source
      * @return 'ready'|'unchanged'|'missing'|'changed'|'failed'
      */
-    public function sync(Book $book, ?array $source, bool $force = false, bool $dryRun = false): string
+    public function sync(Book $book, ?array $source, bool $force = false, bool $dryRun = false, ?CoverSyncDeadline $deadline = null): string
     {
         $cover = BookCover::query()->firstOrNew(['book_id' => $book->id]);
 
@@ -90,7 +91,8 @@ class BookCoverSynchronizer
                 throw new CoverImageException('Das Maddraxikon lieferte keine Cover-Bildadresse.');
             }
 
-            $download = $this->downloader->download($sourceUrl);
+            $download = $this->downloader->download($sourceUrl, $deadline);
+            $deadline?->ensureRemaining();
             $fingerprint = $sourceSha1 !== '' ? $sourceSha1 : sha1($download['body']);
             $processed = $this->processor->process($book, $download['body'], $fingerprint);
             $publishedPaths = [$processed['small_path'], $processed['large_path']];
@@ -107,6 +109,9 @@ class BookCoverSynchronizer
                 'last_synced_at' => now(),
                 'last_error' => null,
             ])->save();
+        } catch (CoverSyncTimeoutException $exception) {
+            // No files have been published yet; preserve the previous cover state.
+            throw $exception;
         } catch (Throwable $exception) {
             // A failed save may leave the in-memory model filled with paths that
             // were never committed. Reload the last durable state before recording

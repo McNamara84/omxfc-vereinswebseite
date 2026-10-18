@@ -18,8 +18,9 @@ class CoverImageDownloader
     /**
      * @return array{body: string, mime_type: string}
      */
-    public function download(string $url): array
+    public function download(string $url, ?CoverSyncDeadline $deadline = null): array
     {
+        $deadline?->ensureRemaining();
         $this->urlGuard->assertAllowed($url);
         $maximumBytes = max(
             1,
@@ -40,8 +41,10 @@ class CoverImageDownloader
                         'maddraxikon.http.user_agent',
                         'OMXFC-Vereinswebsite/1.0',
                     ))
-                    ->connectTimeout((int) config('cover-ratings.images.connect_timeout', 5))
-                    ->timeout((int) config('cover-ratings.images.timeout', 20))
+                    ->connectTimeout($deadline?->timeout((int) config('cover-ratings.images.connect_timeout', 5))
+                        ?? (int) config('cover-ratings.images.connect_timeout', 5))
+                    ->timeout($deadline?->timeout((int) config('cover-ratings.images.timeout', 20))
+                        ?? (int) config('cover-ratings.images.timeout', 20))
                     ->withOptions([
                         'allow_redirects' => false,
                         'sink' => $temporaryStream,
@@ -77,6 +80,7 @@ class CoverImageDownloader
                     ])
                     ->get($url);
             } catch (Throwable $exception) {
+                $deadline?->ensureRemaining();
                 if ($sizeLimitExceeded) {
                     throw new CoverImageException(
                         'Das Coverbild überschreitet die erlaubte Dateigröße.',
@@ -96,6 +100,8 @@ class CoverImageDownloader
                     previous: $exception,
                 );
             }
+
+            $deadline?->ensureRemaining();
 
             if (! $response->successful()) {
                 throw new CoverImageException('Die Cover-Bildquelle antwortete mit HTTP '.$response->status().'.');

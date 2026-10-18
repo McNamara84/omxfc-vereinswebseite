@@ -13,6 +13,7 @@ use App\Services\CoverRatings\BookCoverSynchronizer;
 use App\Services\CoverRatings\BookCoverSyncRunner;
 use App\Services\CoverRatings\CoverImageDownloader;
 use App\Services\CoverRatings\CoverImageProcessor;
+use App\Services\CoverRatings\CoverSyncDeadline;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -223,14 +224,14 @@ class BookCoverSynchronizationTest extends TestCase
         $third = $this->mappedBook(22);
         $api = Mockery::mock(MaddraxikonApiClient::class);
         $api->expects('coverImages')
-            ->with([$first->maddraxikon_page_id, $second->maddraxikon_page_id])
+            ->with([$first->maddraxikon_page_id, $second->maddraxikon_page_id], Mockery::type(CoverSyncDeadline::class))
             ->once()
             ->andReturn([
                 $first->maddraxikon_page_id => $this->source(20, str_repeat('a', 40)),
                 $second->maddraxikon_page_id => $this->source(21, str_repeat('b', 40)),
             ]);
         $api->expects('coverImages')
-            ->with([$third->maddraxikon_page_id])
+            ->with([$third->maddraxikon_page_id], Mockery::type(CoverSyncDeadline::class))
             ->once()
             ->andReturn([
                 $third->maddraxikon_page_id => $this->source(22, str_repeat('c', 40)),

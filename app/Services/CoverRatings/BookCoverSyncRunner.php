@@ -2,6 +2,7 @@
 
 namespace App\Services\CoverRatings;
 
+use App\Exceptions\CoverSyncTimeoutException;
 use App\Models\Book;
 use App\Models\BookCover;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
@@ -27,21 +28,24 @@ class BookCoverSyncRunner
         bool $force = false,
         bool $dryRun = false,
         ?callable $report = null,
+        ?CoverSyncDeadline $deadline = null,
     ): array {
+        $deadline ??= new CoverSyncDeadline;
         $lock = Cache::lock('cover-ratings:sync-run', 7200);
         if (! $lock->get()) {
             throw new RuntimeException('Ein Cover-Abgleich läuft bereits.');
         }
         try {
-            return $this->runLocked($query, $force, $dryRun, $report);
+            $deadline->ensureRemaining();
+
+            return $this->runLocked($query, $force, $dryRun, $report, $deadline);
         } finally {
             $lock->release();
         }
     }
 
-    private function runLocked(Builder $query, bool $force, bool $dryRun, ?callable $report): array
+    private function runLocked(Builder $query, bool $force, bool $dryRun, ?callable $report, CoverSyncDeadline $deadline): array
     {
-        $started = hrtime(true);
         $counts = array_fill_keys(['ready', 'unchanged', 'missing', 'changed', 'failed'], 0);
         $keywordsEnabled = (bool) config('bildersuche.sync_enabled');
         if ($keywordsEnabled) {
@@ -51,8 +55,8 @@ class BookCoverSyncRunner
 
         $query->orderBy('books.id')->chunkById(
             $batchSize,
-            function ($books) use (&$counts, $force, $dryRun, $report, $keywordsEnabled, $started): void {
-                $this->checkDeadline($started);
+            function ($books) use (&$counts, $force, $dryRun, $report, $keywordsEnabled, $deadline): void {
+                $deadline->ensureRemaining();
                 $pageIds = $books->pluck('maddraxikon_page_id')
                     ->filter(fn (mixed $id): bool => (int) $id > 0)
                     ->map(fn (mixed $id): int => (int) $id)
@@ -60,7 +64,9 @@ class BookCoverSyncRunner
                     ->all();
                 $sourceError = null;
                 try {
-                    $sources = $this->apiClient->coverImages($pageIds);
+                    $sources = $this->apiClient->coverImages($pageIds, $deadline);
+                } catch (CoverSyncTimeoutException $exception) {
+                    throw $exception;
                 } catch (Throwable $exception) {
                     $sources = [];
                     $sourceError = $exception;
@@ -69,13 +75,14 @@ class BookCoverSyncRunner
 
                 $imageResults = [];
                 foreach ($books as $book) {
-                    $this->checkDeadline($started);
+                    $deadline->ensureRemaining();
                     $pageId = (int) ($book->maddraxikon_page_id ?? 0);
                     $result = $sourceError ? 'failed' : $this->synchronizer->sync(
                         $book,
                         $sources[$pageId] ?? null,
                         $force,
                         $dryRun,
+                        $deadline,
                     );
                     $counts[$result]++;
                     $imageResults[$book->id] = $result;
@@ -83,6 +90,7 @@ class BookCoverSyncRunner
                     if ($report) {
                         $report($book, $result);
                     }
+                    $deadline->ensureRemaining();
                 }
                 if (! $keywordsEnabled) {
                     return;
@@ -93,7 +101,7 @@ class BookCoverSyncRunner
                 $books->load('cover');
                 $keywordCovers = [];
                 foreach ($books as $book) {
-                    $this->checkDeadline($started);
+                    $deadline->ensureRemaining();
                     $pageId = (int) ($book->maddraxikon_page_id ?? 0);
                     $cover = $book->cover;
                     // A dry-run can examine a not-yet-persisted proposed source.
@@ -108,9 +116,9 @@ class BookCoverSyncRunner
                 }
                 if ($keywordCovers !== []) {
                     $titles = array_map(fn (BookCover $cover): string => $cover->source_file_title, $keywordCovers);
-                    $keywords = $this->apiClient->coverKeywords($titles);
+                    $keywords = $this->apiClient->coverKeywords($titles, $deadline);
                     foreach ($keywordCovers as $cover) {
-                        $this->checkDeadline($started);
+                        $deadline->ensureRemaining();
                         $title = $cover->source_file_title;
                         $result = app(BookCoverKeywordSynchronizer::class)->sync($cover, $title,
                             $keywords[$title] ?? ['keywords' => null, 'error' => 'Keine Schlagwortantwort.'], $dryRun);
@@ -122,14 +130,8 @@ class BookCoverSyncRunner
             alias: 'id',
         );
 
-        return $counts;
-    }
+        $deadline->ensureRemaining();
 
-    private function checkDeadline(int $started): void
-    {
-        // Leave time for bounded HTTP requests before the shared lock expires.
-        if ((hrtime(true) - $started) / 1e9 > 6600) {
-            throw new RuntimeException('Zeitlimit des Cover-Abgleichs erreicht. Bitte erneut starten.');
-        }
+        return $counts;
     }
 }

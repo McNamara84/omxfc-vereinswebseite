@@ -13,6 +13,7 @@ use App\Services\CoverRatings\BookCoverSynchronizer;
 use App\Services\CoverRatings\BookCoverSyncRunner;
 use App\Services\CoverRatings\CoverImageDownloader;
 use App\Services\CoverRatings\CoverImageProcessor;
+use App\Services\CoverRatings\CoverSyncDeadline;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +21,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
 use PHPUnit\Framework\Attributes\TestWith;
-use ReflectionMethod;
 use RuntimeException;
 use Tests\Concerns\CreatesBildersucheCover;
 use Tests\TestCase;
@@ -116,8 +116,8 @@ class BookCoverKeywordSyncTest extends TestCase
         $cover = $this->searchCover(1, ['Aruula']);
         $cover->book->update(['maddraxikon_page_id' => 101]);
         $api = Mockery::mock(MaddraxikonApiClient::class);
-        $api->expects('coverImages')->with([101])->andReturn([101 => ['exists' => true, 'file_title' => 'Datei:Proposed.jpg']]);
-        $api->expects('coverKeywords')->with([$cover->source_file_title])->andReturn([
+        $api->expects('coverImages')->with([101], Mockery::type(CoverSyncDeadline::class))->andReturn([101 => ['exists' => true, 'file_title' => 'Datei:Proposed.jpg']]);
+        $api->expects('coverKeywords')->with([$cover->source_file_title], Mockery::type(CoverSyncDeadline::class))->andReturn([
             $cover->source_file_title => ['keywords' => ['Drax'], 'error' => null],
         ]);
         $images = Mockery::mock(BookCoverSynchronizer::class);
@@ -185,11 +185,11 @@ class BookCoverKeywordSyncTest extends TestCase
         $existingCover = $this->searchCover(2, ['Aruula']);
         $existingCover->book->update(['maddraxikon_page_id' => 102]);
         $api = Mockery::mock(MaddraxikonApiClient::class);
-        $api->expects('coverImages')->with([101, 102])->andReturn([
+        $api->expects('coverImages')->with([101, 102], Mockery::type(CoverSyncDeadline::class))->andReturn([
             101 => ['exists' => true, 'file_title' => 'Datei:New.jpg', 'url' => 'https://example.test/new.jpg'],
             102 => ['exists' => true, 'file_title' => 'Datei:Replacement.jpg', 'url' => 'https://example.test/replacement.jpg'],
         ]);
-        $api->expects('coverKeywords')->with(['Datei:New.jpg', 'Datei:Replacement.jpg'])->andReturn([
+        $api->expects('coverKeywords')->with(['Datei:New.jpg', 'Datei:Replacement.jpg'], Mockery::type(CoverSyncDeadline::class))->andReturn([
             'Datei:New.jpg' => ['keywords' => ['Neues Motiv'], 'error' => null],
             'Datei:Replacement.jpg' => ['keywords' => ['Anderes Motiv'], 'error' => null],
         ]);
@@ -238,7 +238,7 @@ class BookCoverKeywordSyncTest extends TestCase
         Book::factory()->mapped(101)->create();
         $api = Mockery::mock(MaddraxikonApiClient::class);
         $api->expects('coverImages')->andReturn([101 => ['exists' => true, 'file_title' => 'Datei:New.jpg']]);
-        $api->expects('coverKeywords')->with(['Datei:New.jpg'])->andReturn(['Datei:New.jpg' => ['keywords' => ['Drax'], 'error' => null]]);
+        $api->expects('coverKeywords')->with(['Datei:New.jpg'], Mockery::type(CoverSyncDeadline::class))->andReturn(['Datei:New.jpg' => ['keywords' => ['Drax'], 'error' => null]]);
         $images = Mockery::mock(BookCoverSynchronizer::class);
         $images->expects('sync')->andReturn('ready');
         $counts = (new BookCoverSyncRunner($api, $images))->run(Book::query(), dryRun: true);
@@ -255,7 +255,7 @@ class BookCoverKeywordSyncTest extends TestCase
         CoverRating::factory()->for($cover, 'bookCover')->create()->delete();
         $api = Mockery::mock(MaddraxikonApiClient::class);
         $api->expects('coverImages')->andReturn([101 => ['exists' => true, 'file_title' => 'Datei:New.jpg']]);
-        $api->expects('coverKeywords')->with([$cover->source_file_title])->andReturn([
+        $api->expects('coverKeywords')->with([$cover->source_file_title], Mockery::type(CoverSyncDeadline::class))->andReturn([
             $cover->source_file_title => ['keywords' => ['Aruula'], 'error' => null],
         ]);
         $images = Mockery::mock(BookCoverSynchronizer::class);
@@ -264,15 +264,6 @@ class BookCoverKeywordSyncTest extends TestCase
         $this->assertSame(1, $counts['changed']);
         $this->assertSame(1, $counts['keywords_unchanged']);
         $this->assertSame($cover->source_file_title, $cover->fresh()->source_file_title);
-    }
-
-    public function test_expired_deadline_aborts_before_the_two_hour_lock_can_expire(): void
-    {
-        // Supply an elapsed monotonic timestamp without making the test wait.
-        $deadline = new ReflectionMethod(BookCoverSyncRunner::class, 'checkDeadline');
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Zeitlimit des Cover-Abgleichs erreicht.');
-        $deadline->invoke(app(BookCoverSyncRunner::class), hrtime(true) - 7_199_000_000_000);
     }
 
     public function test_overlapping_manual_and_queue_runs_are_rejected(): void
