@@ -98,25 +98,40 @@ class NavigationSearchTest extends TestCase
         $this->getJson(route('mary.spotlight', ['search' => 'Chronik']))->assertOk()->assertJsonPath('0.name', 'Chronik');
     }
 
-    public function test_member_cannot_find_admin_or_rpg_targets(): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_member_cannot_find_admin_or_rpg_targets(bool $verified): void
     {
-        $this->actingMember();
+        config(['database-maintenance.enabled' => true]);
+        $this->actingMember(attributes: ['email_verified_at' => $verified ? now() : null]);
         foreach (['Datenbank', 'RPG', 'Kassenbuch', 'EARDRAX'] as $query) {
-            $this->getJson(route('mary.spotlight', ['search' => $query]))->assertOk()->assertExactJson([]);
+            $this->getJson(route('mary.spotlight', ['search' => $query, 'scope' => 'member', 'role' => 'admin']))->assertOk()->assertExactJson([]);
         }
     }
 
-    #[TestWith([Role::Anwaerter->value, true])]
-    #[TestWith([Role::Mitglied->value, false])]
-    public function test_applicants_and_unverified_users_only_search_public_targets(string $role, bool $verified): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_applicants_only_search_public_targets(bool $verified): void
     {
-        $user = $this->createUserWithRole(Role::from($role));
+        $user = $this->createUserWithRole(Role::Anwaerter);
         if (! $verified) {
             $user->forceFill(['email_verified_at' => null])->save();
         }
         $this->actingAs($user)->getJson(route('mary.spotlight', ['search' => 'Challenges', 'scope' => 'member']))
             ->assertOk()->assertExactJson([]);
         $this->get('/satzung')->assertOk()->assertDontSee('data-testid="member-site-switch"', false);
+    }
+
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([Role::Admin])]
+    public function test_members_without_email_confirmation_find_member_targets(Role $role): void
+    {
+        $this->actingMember($role, ['email_verified_at' => null]);
+
+        $this->getJson(route('mary.spotlight', ['search' => 'Challenges', 'scope' => 'member']))
+            ->assertOk()->assertJsonPath('0.link', route('todos.index'));
+        $this->getJson(route('mary.spotlight', ['search' => 'Profil']))
+            ->assertOk()->assertJsonPath('0.link', route('profile.show'));
     }
 
     public function test_missing_current_team_membership_or_gate_denial_prevents_member_search(): void
@@ -126,18 +141,22 @@ class NavigationSearchTest extends TestCase
         $this->assertFalse(app(NavigationContext::class)->canAccessMembers($user));
         $other = User::factory()->withPersonalTeam()->create();
         $this->assertFalse(app(NavigationContext::class)->canAccessMembers($other));
-        $member = $this->createUserWithRole(Role::Mitglied);
+        $member = $this->actingMember(attributes: ['email_verified_at' => null]);
+        $this->getJson(route('mary.spotlight', ['search' => 'Challenges']))->assertOk()->assertJsonCount(1);
         Gate::define('access-dashboard', fn () => false);
         $this->actingAs($member)->getJson(route('mary.spotlight', ['search' => 'Challenges']))->assertExactJson([]);
     }
 
-    #[TestWith([Role::Admin->value, true])]
-    #[TestWith([Role::Vorstand->value, false])]
-    #[TestWith([Role::Kassenwart->value, false])]
-    public function test_admin_search_uses_existing_role_rules(string $role, bool $database): void
+    #[TestWith([Role::Admin->value, true, true])]
+    #[TestWith([Role::Admin->value, true, false])]
+    #[TestWith([Role::Vorstand->value, false, true])]
+    #[TestWith([Role::Vorstand->value, false, false])]
+    #[TestWith([Role::Kassenwart->value, false, true])]
+    #[TestWith([Role::Kassenwart->value, false, false])]
+    public function test_admin_search_uses_existing_role_rules(string $role, bool $database, bool $verified): void
     {
         config(['database-maintenance.enabled' => true]);
-        $this->actingMember(Role::from($role));
+        $this->actingMember(Role::from($role), ['email_verified_at' => $verified ? now() : null]);
         $response = $this->getJson(route('mary.spotlight', ['search' => 'Datenbank']))->assertOk();
         $database ? $response->assertJsonPath('0.link', route('admin.datenbank.index')) : $response->assertExactJson([]);
         $this->getJson(route('mary.spotlight', ['search' => 'Auktionen']))->assertOk()->assertJsonCount(2);
@@ -214,9 +233,11 @@ class NavigationSearchTest extends TestCase
         $this->actingAs($member)->get('/satzung')->assertSeeText('Sicherheitsumfrage');
     }
 
-    public function test_public_and_member_shells_have_one_search_and_correct_context_switches(): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_public_and_member_shells_have_one_search_and_correct_context_switches(bool $verified): void
     {
-        $member = $this->actingMember();
+        $member = $this->actingMember(attributes: ['email_verified_at' => $verified ? now() : null]);
         $public = $this->get('/satzung')->assertOk();
         $crawler = new Crawler($public->getContent());
         $this->assertCount(1, $crawler->filter('#navigation-search-dialog'));

@@ -1,9 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from './test-support.js';
 
-const login = async (page) => {
+const login = async (page, email = 'playwright-member@example.com') => {
     await page.goto('/login');
-    await page.getByRole('textbox', { name: /E-Mail/i }).fill('playwright-member@example.com');
+    await page.getByRole('textbox', { name: /E-Mail/i }).fill(email);
     await page.locator('input[name="password"]').fill('password');
     await page.locator('input[name="password"]').press('Enter');
     await page.waitForURL(/\/dashboard$/);
@@ -27,6 +27,29 @@ const expectInputFocus = async (dialog) => {
         throw new Error(`${error.message}\nDialog focus state: ${JSON.stringify(state)}`, { cause: error });
     }
 };
+
+test('unconfirmed member searches authorized targets and switches between public and member areas', async ({ page }) => {
+    test.setTimeout(60_000);
+    await login(page, 'ux-mitglied-unconfirmed@example.com');
+    const dialog = await open(page, 'Kassenbuch');
+    await expect(dialog.getByRole('status')).toContainText('Keine passenden Seiten');
+    await dialog.getByRole('searchbox').fill('Challenges');
+    await dialog.getByRole('link', { name: /Challenges & Baxx/ }).click();
+    await expect(page).toHaveURL(/\/aufgaben$/);
+    await expect(page.getByTestId('member-sidebar-navigation').locator('[aria-current="page"]')).toHaveText('Challenges & Baxx');
+
+    await page.getByTestId('public-site-switch').click();
+    await expect(page).toHaveURL(/\/\?ansicht=oeffentlich$/);
+    await expect(page.getByTestId('member-sidebar-navigation')).toHaveCount(0);
+    await expect(page.getByTestId('member-site-switch')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Zurück zum Mitgliederbereich/ })).toBeVisible();
+    const publicDialog = await open(page, 'Kompendium');
+    await publicDialog.getByRole('link', { name: /Kompendium/ }).click();
+    await expect(page).toHaveURL(/\/kompendium$/);
+    await expect(page.getByTestId('member-sidebar-navigation').locator('[aria-current="page"]')).toHaveText('Kompendium');
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/dashboard$/);
+});
 
 test('guest search, encoded input, no results, keyboard selection and focus return', async ({ page }) => {
     test.setTimeout(60_000);

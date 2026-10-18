@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
@@ -79,15 +80,60 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSeeText('Admin');
     }
 
-    public function test_navigation_component_renders_member_sidebar_variant(): void
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_navigation_component_renders_member_sidebar_variant(bool $verified): void
     {
         $member = $this->createUserWithRole(Role::Mitglied);
+        $member->forceFill(['email_verified_at' => $verified ? now() : null])->save();
 
         Livewire::actingAs($member)
             ->test(NavigationMenu::class, ['variant' => 'member-sidebar'])
             ->assertSet('variant', 'member-sidebar')
             ->assertSee('data-testid="member-sidebar-navigation"', false)
-            ->assertDontSee('aria-label="Hauptnavigation"', false);
+            ->assertDontSee('aria-label="Hauptnavigation"', false)
+            ->assertSee('data-tour-key="dashboard"', false)
+            ->assertSee('data-tour-key="community-members"', false)
+            ->dispatch('refresh-navigation-menu')
+            ->assertSee('data-tour-key="dashboard"', false)
+            ->assertSee('data-tour-key="community-members"', false);
+    }
+
+    #[DataProvider('memberSidebarCases')]
+    public function test_member_pages_render_role_based_sidebar_with_or_without_email_confirmation(Role $role, bool $verified, string $routeName): void
+    {
+        $user = $this->createUserWithRole($role);
+        $user->forceFill(['email_verified_at' => $verified ? now() : null])->save();
+
+        $response = $this->actingAs($user)->get(route($routeName))->assertOk();
+        $sidebar = (new Crawler($response->getContent()))->filter('[data-testid="member-sidebar-navigation"]');
+
+        $this->assertCount(1, $sidebar);
+        foreach (['dashboard', 'section-community', 'section-content', 'section-events', 'section-projects', 'section-club', 'community-members', 'content-kompendium'] as $key) {
+            $this->assertCount(1, $sidebar->filter('[data-tour-key="'.$key.'"]'), 'Missing sidebar entry: '.$key);
+        }
+        $this->assertSame(route('dashboard'), $sidebar->filter('a[data-tour-key="dashboard"]')->attr('href'));
+        $this->assertSame(route('mitglieder.index'), $sidebar->filter('a[data-tour-key="community-members"]')->attr('href'));
+        $this->assertCount(1, $sidebar->filter('[aria-current="page"]'));
+        $this->assertSame(route($routeName), $sidebar->filter('[aria-current="page"]')->attr('href'));
+
+        $governance = in_array($role, [Role::Admin, Role::Vorstand, Role::Kassenwart], true);
+        $this->assertCount($governance ? 1 : 0, $sidebar->filter('[data-tour-key="section-board"]'));
+        $this->assertCount($governance ? 1 : 0, $sidebar->filter('[data-tour-key="board-ledger"]'));
+        $this->assertCount($role === Role::Admin ? 1 : 0, $sidebar->filter('[data-tour-key="section-admin"]'));
+        $this->assertCount($role === Role::Admin ? 1 : 0, $sidebar->filter('[data-tour-key="admin-messages"]'));
+        $this->assertSame($verified, $user->fresh()->hasVerifiedEmail());
+    }
+
+    public static function memberSidebarCases(): iterable
+    {
+        foreach ([Role::Mitglied, Role::Admin, Role::Vorstand, Role::Kassenwart, Role::Ehrenmitglied, Role::Mitwirkender] as $role) {
+            foreach ([false, true] as $verified) {
+                foreach (['dashboard', 'kompendium.index'] as $routeName) {
+                    yield $role->value.' / '.($verified ? 'confirmed' : 'unconfirmed').' / '.$routeName => [$role, $verified, $routeName];
+                }
+            }
+        }
     }
 
     public function test_navigation_component_renders_member_profile_variant(): void

@@ -63,6 +63,8 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 Der Mitgliederbereich gliedert sich in **Community**, **Lesen & Entdecken**, **Termine & Treffen**, **Projekte & Mitmachen** und **Verein**. Verwaltungs- und AG-Funktionen erscheinen entsprechend den bestehenden Berechtigungen. „Challenges & Baxx“ ersetzt die bisherige Navigationsbezeichnung „Baxx verdienen“.
 
+Menü, Menüsuche und Schnellzugriffe berücksichtigen die Mitgliedschaft, das aktuelle Team und die bestehenden Rollenrechte. Bereits freigeschaltete Mitglieder behalten ihre Navigation auch ohne gespeicherten E-Mail-Bestätigungszeitpunkt. Eine allgemeine Bestätigungspflicht gilt dabei wie beim Seitenzugriff nur für ein User-Modell, das Laravels `MustVerifyEmail`-Vertrag implementiert; gesonderte Freischaltregeln einzelner Funktionen bleiben bestehen.
+
 Auf öffentlichen Seiten bleibt die öffentliche Navigation auch nach der Anmeldung erhalten. **Zum Mitgliederbereich** und **Zur öffentlichen Website** wechseln zwischen den Bereichen. Der bewusste Aufruf der öffentlichen Startseite verwendet `/?ansicht=oeffentlich`; ein gewöhnlicher Aufruf von `/` führt berechtigte Mitglieder weiterhin zum Dashboard.
 
 Die **Suche** in der Kopfleiste öffnet sich auch mit **Strg+K** beziehungsweise **Cmd+K**. Sie findet freigegebene Menüziele ab zwei Zeichen, einschließlich bisheriger Begriffe wie „Baxx verdienen“ und „Meetings“. Sie durchsucht keine Dokumente oder personenbezogenen Datensätze. Escape schließt den Dialog und gibt den Tastaturfokus zurück. Ein Sprunglink **Zum Hauptinhalt** überspringt die Navigation.

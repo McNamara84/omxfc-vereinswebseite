@@ -6,6 +6,7 @@ use App\Enums\PollVisibility;
 use App\Enums\Role;
 use App\Models\User;
 use App\Services\Polls\ActivePollResolver;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,12 @@ class NavigationContext
 {
     public function canAccessMembers(?User $user): bool
     {
-        if (! $user || ! $user->hasVerifiedEmail() || ! $user->currentTeam) {
+        if (! $user || ! $user->currentTeam) {
+            return false;
+        }
+
+        // Match the verified middleware: having the method does not require verification.
+        if ($user instanceof MustVerifyEmail && ! $user->hasVerifiedEmail()) {
             return false;
         }
 
