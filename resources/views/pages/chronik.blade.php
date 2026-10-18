@@ -1,5 +1,5 @@
 <x-app-layout title="Chronik – Offizieller MADDRAX Fanclub e. V." description="Die wichtigsten Meilensteine des Offiziellen MADDRAX Fanclub e. V. seit seiner Gründung.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Vereinsgeschichte seit 2023"
             title="Chronik des Offiziellen MADDRAX Fanclub e. V."
@@ -14,7 +14,7 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.82fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.82fr)] xl:items-start">
             <x-ui.panel title="Meilensteine des Vereins" description="Die Chronik folgt den wichtigsten Ereignissen in zeitlicher Reihenfolge und zeigt, wie sich der OMXFC organisatorisch und als Community entwickelt hat.">
                 <div class="relative space-y-6 pl-10 before:absolute before:bottom-2 before:left-3 before:top-2 before:w-px before:bg-primary/25">
                     <x-chronik-entry
@@ -101,15 +101,15 @@
             <div class="space-y-6 xl:sticky xl:top-6">
                 <x-ui.panel title="Was die Chronik zeigt" description="Die Timeline ist mehr als ein Rückblick auf Termine. Sie macht den Aufbau des Vereins und der Community sichtbar.">
                     <ul class="grid gap-3">
-                        <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                        <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                             <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">1</span>
                             <span>Von der Gründung über Satzungsänderungen bis zu Vorstandswechseln bleibt die Vereinsentwicklung nachvollziehbar.</span>
                         </li>
-                        <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                        <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                             <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">2</span>
                             <span>EARDRAX, MaddraxCon und Regionalstammtisch zeigen, wie aus Lesen aktive Fanarbeit und echte Begegnungen werden.</span>
                         </li>
-                        <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                        <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                             <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">3</span>
                             <span>Die Bilder in der Lightbox liefern zusätzliche Momente aus der Vereinsgeschichte, ohne die Timeline visuell zu überladen.</span>
                         </li>
@@ -138,7 +138,7 @@
                     <picture>
                         <source type="image/avif" :srcset="avif" />
                         <source type="image/webp" :srcset="webp" />
-                        <img :src="webp" :alt="alt" class="max-h-[90vh] max-w-full rounded-[1.5rem] shadow-2xl" />
+                        <img :src="webp" :alt="alt" class="max-h-[90vh] max-w-full rounded-xl shadow-2xl" />
                     </picture>
                 </div>
             </div>

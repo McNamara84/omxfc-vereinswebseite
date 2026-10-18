@@ -16,20 +16,20 @@
             <x-icon :name="$metric['icon']" class="h-4.5 w-4.5" />
         </span>
         <span class="min-w-0">
-            <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/55">{{ $metric['title'] }}</span>
+            <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/75">{{ $metric['title'] }}</span>
             <span class="mt-1 block font-display text-xl font-bold leading-tight text-base-content">{{ $metric['value'] }}</span>
-            <span class="mt-1 block line-clamp-2 text-xs leading-snug text-base-content/65">{{ $metric['description'] }}</span>
+            <span class="mt-1 block line-clamp-2 text-xs leading-snug text-base-content/75">{{ $metric['description'] }}</span>
         </span>
     </a>
 @else
     <div @class($cardClasses) data-testid="dashboard-metric-{{ $metric['key'] }}">
-        <span class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/60">
+        <span class="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-base-200 text-base-content/75">
             <x-icon :name="$metric['icon']" class="h-4.5 w-4.5" />
         </span>
         <span class="min-w-0">
-            <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/55">{{ $metric['title'] }}</span>
+            <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/75">{{ $metric['title'] }}</span>
             <span class="mt-1 block font-display text-xl font-bold leading-tight text-base-content">{{ $metric['value'] }}</span>
-            <span class="mt-1 block line-clamp-2 text-xs leading-snug text-base-content/65">{{ $metric['description'] }}</span>
+            <span class="mt-1 block line-clamp-2 text-xs leading-snug text-base-content/75">{{ $metric['description'] }}</span>
         </span>
     </div>
 @endif

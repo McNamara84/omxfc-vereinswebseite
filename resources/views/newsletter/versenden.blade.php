@@ -63,14 +63,14 @@
                                     <span class="label-text">Text</span>
                                 </label>
                                 <textarea x-bind:id="'topic-content-' + index" class="textarea textarea-bordered w-full" rows="6" x-bind:name="'topics[' + index + '][content]'" x-model="topic.content" required></textarea>
-                                <p class="mt-2 text-xs text-base-content/60">Markdown wird unterstützt. Die Formatierung erscheint später im Archiv und in der Mail als HTML.</p>
+                                <p class="mt-2 text-xs text-base-content/75">Markdown wird unterstützt. Die Formatierung erscheint später im Archiv und in der Mail als HTML.</p>
                             </div>
                             <div>
                                 <label class="label" x-bind:for="'topic-images-' + index">
                                     <span class="label-text">Bilder</span>
                                 </label>
                                 <input x-bind:id="'topic-images-' + index" type="file" x-bind:name="'topics[' + index + '][images][]'" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="file-input file-input-bordered w-full">
-                                <p class="mt-2 text-xs text-base-content/60">Mehrere Bilder pro Thema sind möglich. Unterstützt werden JPG, PNG, GIF und WEBP.</p>
+                                <p class="mt-2 text-xs text-base-content/75">Mehrere Bilder pro Thema sind möglich. Unterstützt werden JPG, PNG, GIF und WEBP.</p>
                             </div>
                         </div>
                     </x-ui.panel>

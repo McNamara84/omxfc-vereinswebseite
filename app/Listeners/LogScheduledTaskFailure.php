@@ -13,7 +13,7 @@ class LogScheduledTaskFailure
         // correlated through Laravel Context without logging command arguments.
         Log::warning('Geplante Aufgabe fehlgeschlagen.', [
             'task_id' => $event->task->mutexName(),
-            'runtime_seconds' => $event->runtime,
+            'runtime_seconds' => $event->runtime ?? null,
             'exception_type' => $event->exception::class,
         ]);
     }

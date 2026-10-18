@@ -1,5 +1,5 @@
 <x-member-layout title="Meetings – Offizieller MADDRAX Fanclub e. V." description="Übersicht regelmäßiger AG-Termine und Stammtische.">
-    <x-member-page class="max-w-6xl space-y-8">
+    <x-member-page class="max-w-6xl space-y-6">
         @php
             $regularMeetingCount = $meetings->filter(fn ($meeting) => $meeting->next_occurrence !== null)->count();
         @endphp
@@ -21,7 +21,7 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
             <x-ui.panel title="Regelmäßige Termine" description="Alle Formate bleiben an einem Ort gebündelt. Für jeden Termin findest du Zeitpunkt, Rhythmus und den direkten Einstieg in den passenden Raum.">
                 <div class="space-y-4">
                     @foreach($meetings as $meeting)
@@ -29,7 +29,7 @@
                             $isSpecialSchedule = $meeting->next_occurrence === null;
                         @endphp
 
-                        <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 px-5 py-5 shadow-sm shadow-base-content/5">
+                        <article class="rounded-xl border border-base-content/10 bg-base-100/72 px-5 py-5 shadow-sm shadow-base-content/5">
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div class="space-y-3">
                                     <div class="flex flex-wrap items-center gap-2">
@@ -82,19 +82,19 @@
             <div class="space-y-6 xl:sticky xl:top-6">
                 <x-ui.panel title="Wie die Termine laufen" description="Die AGs treffen sich überwiegend in kurzen, planbaren Zoom-Slots. So bleiben Zusammenarbeit und Einstieg auch zwischen Präsenztreffen niedrigschwellig.">
                     <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Regelmäßige AG-Termine zeigen immer den nächsten konkret berechneten Termin an.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Formate mit reinem Hinweisrhythmus bleiben transparent als Hinweis gekennzeichnet.</li>
-                        <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Der Button führt serverseitig in den jeweils passenden Zoom-Raum der Gruppe.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Regelmäßige AG-Termine zeigen immer den nächsten konkret berechneten Termin an.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Formate mit reinem Hinweisrhythmus bleiben transparent als Hinweis gekennzeichnet.</li>
+                        <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Der Button führt serverseitig in den jeweils passenden Zoom-Raum der Gruppe.</li>
                     </ul>
                 </x-ui.panel>
 
                 <x-ui.panel title="Formate im Überblick" description="Die Meeting-Seite bündelt Arbeitsgruppen und Community-Termine, damit laufende Projekte schnell erreichbar bleiben.">
                     <div class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p class="font-medium text-base-content">Projektarbeit</p>
                             <p class="mt-1">Maddraxikon, EARDRAX und MAPDRAX haben feste Slots für ihre laufenden Aufgaben.</p>
                         </div>
-                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <p class="font-medium text-base-content">Stammtisch</p>
                             <p class="mt-1">CHATDRAX 2.0 ergänzt die AGs um einen offenen Community-Termin.</p>
                         </div>

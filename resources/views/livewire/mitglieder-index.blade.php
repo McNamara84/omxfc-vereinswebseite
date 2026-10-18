@@ -394,7 +394,7 @@
     </tr>
     @empty
     <tr>
-        <td colspan="{{ $this->canViewDetails ? 7 : 4 }}" class="text-center py-8 text-base-content/50">
+        <td colspan="{{ $this->canViewDetails ? 7 : 4 }}" class="text-center py-8 text-base-content/75">
             <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
             <p class="mt-2">Keine Mitglieder gefunden.</p>
         </td>
@@ -589,7 +589,7 @@
             </div>
         </x-ui.panel>
         @empty
-        <div class="text-center py-8 text-base-content/50">
+        <div class="text-center py-8 text-base-content/75">
             <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
             <p class="mt-2">Keine Mitglieder gefunden.</p>
         </div>

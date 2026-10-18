@@ -27,7 +27,7 @@ class NavigationSearchTest extends TestCase
     public function test_navigation_builder_rejects_unknown_scopes_and_denies_member_tree_to_guests(): void
     {
         $builder = app(NavigationBuilder::class);
-        $this->assertSame(['featured' => [], 'sections' => []], $builder->build(null, [], 'member'));
+        $this->assertSame(['featured' => [], 'sections' => [], 'direct' => []], $builder->build(null, [], 'member'));
         $this->expectException(\InvalidArgumentException::class);
         $builder->build(null, [], 'admin');
     }
@@ -136,6 +136,7 @@ class NavigationSearchTest extends TestCase
     #[TestWith([Role::Kassenwart->value, false])]
     public function test_admin_search_uses_existing_role_rules(string $role, bool $database): void
     {
+        config(['database-maintenance.enabled' => true]);
         $this->actingMember(Role::from($role));
         $response = $this->getJson(route('mary.spotlight', ['search' => 'Datenbank']))->assertOk();
         $database ? $response->assertJsonPath('0.link', route('admin.datenbank.index')) : $response->assertExactJson([]);
@@ -144,6 +145,7 @@ class NavigationSearchTest extends TestCase
 
     public function test_search_rechecks_role_after_a_change_and_has_private_cache_headers(): void
     {
+        config(['database-maintenance.enabled' => true]);
         $user = $this->actingMember(Role::Admin);
         $url = route('mary.spotlight', ['search' => 'Datenbank']);
         $this->getJson($url)->assertJsonCount(1)->assertHeader('Cache-Control', 'max-age=0, no-store, private');

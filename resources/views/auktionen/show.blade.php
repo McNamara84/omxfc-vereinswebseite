@@ -2,7 +2,7 @@
     <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/50">Auktion</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Auktion</p>
                 <h1 class="font-display text-4xl font-semibold tracking-tight text-base-content">{{ $auktion->titel }}</h1>
                 <p class="text-sm text-base-content/70">Status: {{ $auktion->status->label() }}</p>
             </div>
@@ -39,7 +39,7 @@
                             {!! $auktion->html_beschreibung !!}
                         </div>
                     @else
-                        <p class="text-sm text-base-content/65">Zu dieser Auktion wurde noch keine Beschreibung hinterlegt.</p>
+                        <p class="text-sm text-base-content/75">Zu dieser Auktion wurde noch keine Beschreibung hinterlegt.</p>
                     @endif
                 </div>
 
@@ -119,7 +119,7 @@
             </div>
 
             @if ($auktion->gebotsverlauf()->isEmpty())
-                <p class="mt-5 text-sm text-base-content/65">Noch keine Gebote vorhanden.</p>
+                <p class="mt-5 text-sm text-base-content/75">Noch keine Gebote vorhanden.</p>
             @else
                 <ol class="mt-5 space-y-3">
                     @foreach ($auktion->gebotsverlauf() as $gebot)
@@ -127,7 +127,7 @@
                             <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <p class="font-semibold text-base-content">{{ $gebot->bieter_name }}</p>
-                                    <p class="text-xs text-base-content/60">{{ $gebot->created_at?->locale('de')->isoFormat('DD.MM.YYYY HH:mm') }}</p>
+                                    <p class="text-xs text-base-content/75">{{ $gebot->created_at?->locale('de')->isoFormat('DD.MM.YYYY HH:mm') }}</p>
                                 </div>
                                 <p class="text-lg font-semibold text-base-content">{{ $gebot->formatierter_betrag }}</p>
                             </div>

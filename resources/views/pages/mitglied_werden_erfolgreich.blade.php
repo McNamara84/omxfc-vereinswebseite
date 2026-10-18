@@ -7,7 +7,7 @@
 @endphp
 
 <x-app-layout title="Antrag versendet – Offizieller MADDRAX Fanclub e. V." description="Bestätige deine E-Mail, damit wir deinen Mitgliedsantrag bearbeiten können.">
-    <x-public-page class="max-w-4xl space-y-8">
+    <x-public-page class="max-w-4xl space-y-6">
         <x-ui.page-header
             eyebrow="Schritt 1 geschafft"
             title="Antrag erfolgreich eingereicht!"
@@ -25,7 +25,7 @@
             <x-ui.panel title="Was jetzt passiert" description="So geht es nach dem Absenden deines Antrags weiter.">
                 <div class="space-y-3">
                     @foreach($naechsteSchritte as $schritt)
-                        <div class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                        <div class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                             <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">{{ $loop->iteration }}</span>
                             <p class="text-sm leading-relaxed text-base-content/78">{{ $schritt }}</p>
                         </div>

@@ -33,8 +33,8 @@
                 $activityDateLabel = $activity->dashboard_date_label;
             @endphp
             @if($activityDate !== $currentActivityDate)
-                <li class="sticky top-16 z-10 py-1" role="presentation" data-testid="activity-day-heading">
-                    <h3 class="inline-flex rounded-full bg-base-100/95 px-3 py-1 text-xs font-bold uppercase tracking-wider text-base-content/65 shadow-sm ring-1 ring-base-200">
+                <li class="sticky top-16 z-10 py-1" data-testid="activity-day-heading">
+                    <h3 class="inline-flex rounded-full bg-base-100/95 px-3 py-1 text-xs font-bold uppercase tracking-wider text-base-content/75 shadow-sm ring-1 ring-base-200">
                         {{ $activityDateLabel }}
                     </h3>
                 </li>
@@ -53,7 +53,7 @@
                 $activityLabel = $activity->dashboard_label;
             @endphp
             <li class="relative rounded-lg border border-base-200 bg-base-200/50 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}" data-testid="dashboard-activity">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/60">
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/75">
                     <time datetime="{{ $activity->created_at->toIso8601String() }}" title="{{ $activity->created_at->format('d.m.Y H:i') }}" class="font-medium tabular-nums">
                         <span class="sr-only">Zeitpunkt:</span>
                         {{ $activity->created_at->format('H:i') }} Uhr
@@ -272,7 +272,7 @@
             </button>
             <span class="block h-px w-full" data-dashboard-feed-sentinel aria-hidden="true"></span>
         @elseif($activities->isNotEmpty())
-            <p class="text-sm text-base-content/60" data-testid="activity-feed-end">Du hast das Ende des Aktivitätsverlaufs erreicht.</p>
+            <p class="text-sm text-base-content/75" data-testid="activity-feed-end">Du hast das Ende des Aktivitätsverlaufs erreicht.</p>
         @endif
     </div>
 </x-ui.panel>

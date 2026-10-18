@@ -55,4 +55,14 @@ describe('dashboard accessibility utilities', () => {
     expect(() => setupDashboardAccessibility(document)).not.toThrow();
     expect(container.hasAttribute('aria-label')).toBe(false);
   });
+
+  it('keeps native links inside ordered list items in the current ranking', () => {
+    const container = document.createElement('div');
+    container.setAttribute('role', 'region');
+    container.innerHTML = '<p data-dashboard-top-summary></p><ol><li><a href="/profil/1" data-dashboard-top-user-item>Alex</a></li></ol>';
+    enhanceTopUserList(container, sampleUsers);
+    expect(container.getAttribute('role')).toBe('region');
+    expect(container.querySelector('a').hasAttribute('role')).toBe(false);
+    expect(container.querySelector('ol > li > a').getAttribute('href')).toBe('/profil/1');
+  });
 });

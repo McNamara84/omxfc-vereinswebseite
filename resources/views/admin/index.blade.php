@@ -1,5 +1,5 @@
 <x-member-layout>
-    <x-member-page class="space-y-8">
+    <x-member-page class="space-y-6">
         <x-ui.page-header
             title="Seitenaufrufe"
             eyebrow="Admin-Statistiken"

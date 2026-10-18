@@ -37,7 +37,7 @@
 
         @if ($models->isEmpty())
             <x-ui.panel>
-                <p class="text-center text-base-content/60">Noch keine 3D-Modelle vorhanden.</p>
+                <p class="text-center text-base-content/75">Noch keine 3D-Modelle vorhanden.</p>
             </x-ui.panel>
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -59,7 +59,7 @@
 
                             <div class="mt-4 flex-1">
                                 <h3 class="text-lg font-semibold tracking-tight text-base-content">{{ $model->name }}</h3>
-                                <p class="mt-1 text-sm text-base-content/60 line-clamp-2">{{ $model->description }}</p>
+                                <p class="mt-1 text-sm text-base-content/75 line-clamp-2">{{ $model->description }}</p>
                                 <div class="mt-3 flex items-center justify-between">
                                     @if ($model->reward)
                                         <x-badge :value="$model->reward->cost_baxx . ' Baxx'"

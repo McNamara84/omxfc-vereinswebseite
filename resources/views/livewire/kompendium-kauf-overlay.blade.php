@@ -20,7 +20,7 @@
                 </div>
 
                 @if($walletWarning)
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content/75">
                         Neue Freischaltungen sind aktuell nicht möglich.
                     </p>
                 @elseif($availableBaxx !== null && $availableBaxx >= $costBaxx)
@@ -33,7 +33,7 @@
                         data-testid="kompendium-purchase-button"
                     />
                 @elseif($availableBaxx !== null)
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content/75">
                         Du benötigst noch {{ $costBaxx - $availableBaxx }} Baxx.
                     </p>
                 @endif

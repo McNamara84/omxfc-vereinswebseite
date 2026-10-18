@@ -1,11 +1,11 @@
-<x-member-layout>
+<x-member-layout title="Dashboard – Offizieller MADDRAX Fanclub e. V.">
     <x-member-page>
         <div class="space-y-6">
             <header class="flex flex-col gap-3 border-b border-base-content/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-primary/75">Community Hub</p>
                     <h1 class="mt-1 font-display text-3xl font-semibold tracking-tight text-base-content sm:text-4xl">{{ $dashboardGreeting }}</h1>
-                    <p class="mt-1 text-sm text-base-content/65">{{ $dashboardDescription }}</p>
+                    <p class="mt-1 text-sm text-base-content/75">{{ $dashboardDescription }}</p>
                 </div>
                 @if($dashboardPrimaryAction)
                     <a href="{{ $dashboardPrimaryAction['href'] }}" wire:navigate class="btn btn-primary btn-sm rounded-full self-start sm:self-auto">
@@ -36,18 +36,34 @@
             @include('rpg.checks.partials.dashboard')
             @include('rpg.combats.partials.dashboard')
 
-            @foreach($metricGroups as $metricGroup)
-                <x-dashboard.metric-group :group="$metricGroup" />
-            @endforeach
-
-            <div class="grid gap-4 lg:grid-cols-2 lg:items-start">
-                @include('dashboard.partials.quick-actions-panel')
-                @include('dashboard.partials.top-users-panel')
-            </div>
-
-            @include('dashboard.partials.applicants-panel')
-
+            @include('dashboard.partials.quick-actions-panel')
+            @php($importantMetrics = collect($metricGroups)->firstWhere('key', 'important'))
+            @if($importantMetrics)
+                <x-dashboard.metric-group :group="[...$importantMetrics, 'metrics' => array_slice($importantMetrics['metrics'], 2)]" />
+            @endif
             <livewire:dashboard-activity-feed defer />
+
+            @foreach($metricGroups as $metricGroup)
+                @if($metricGroup['key'] !== 'important')
+                    <x-dashboard.details :title="$metricGroup['title']" :id="'dashboard-details-' . $metricGroup['key']">
+                        <x-dashboard.metric-group :group="$metricGroup" :heading="false" />
+                        @if($metricGroup['key'] === 'community')
+                            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                @foreach(array_slice($importantMetrics['metrics'] ?? [], 0, 2) as $metric)
+                                    <x-dashboard.metric :metric="$metric" />
+                                @endforeach
+                            </div>
+                            <div class="mt-4">@include('dashboard.partials.top-users-panel')</div>
+                        @endif
+                    </x-dashboard.details>
+                @endif
+            @endforeach
+            @if($showGovernanceTools)
+                <x-dashboard.details title="Mitgliedsanträge" id="dashboard-applicants">
+                    @include('dashboard.partials.applicants-panel')
+                    @if($anwaerter->isEmpty())<p class="text-sm text-base-content/80">Keine neuen Mitgliedsanträge offen.</p>@endif
+                </x-dashboard.details>
+            @endif
         </div>
     </x-member-page>
 </x-member-layout>

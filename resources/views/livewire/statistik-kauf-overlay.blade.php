@@ -10,7 +10,7 @@
         </script>
     @else
         <div class="absolute inset-0 flex flex-col items-center justify-center bg-base-100/70 backdrop-blur-sm text-sm text-base-content text-center space-y-2 z-10">
-            <x-icon name="o-lock-closed" class="w-6 h-6 text-base-content/50" />
+            <x-icon name="o-lock-closed" class="w-6 h-6 text-base-content/75" />
             <p>Diese Statistik kostet <strong>{{ $costBaxx }} Baxx</strong>.</p>
             @if($walletWarning)
                 <p class="text-warning">{{ $walletWarning }}</p>
@@ -19,7 +19,7 @@
             @endif
 
             @if($walletWarning)
-                <p class="text-xs text-base-content/60">
+                <p class="text-xs text-base-content/75">
                     Neue Freischaltungen sind aktuell nicht möglich.
                 </p>
             @elseif($availableBaxx !== null && $availableBaxx >= $costBaxx)
@@ -32,7 +32,7 @@
                     data-testid="statistik-purchase-{{ $sectionId }}"
                 />
             @elseif($availableBaxx !== null)
-                <p class="text-xs text-base-content/60">
+                <p class="text-xs text-base-content/75">
                     Du benötigst noch {{ $costBaxx - $availableBaxx }} Baxx.
                 </p>
             @endif

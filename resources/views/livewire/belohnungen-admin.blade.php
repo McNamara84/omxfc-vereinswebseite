@@ -66,7 +66,7 @@
                         @elseif($reward->download)
                             <x-badge value="DL: {{ Str::limit($reward->download->title, 20) }}" class="badge-warning badge-sm" icon="o-arrow-down-tray" />
                         @else
-                            <span class="text-base-content/50 text-xs">—</span>
+                            <span class="text-base-content/75 text-xs">—</span>
                         @endif
                     @endscope
 
@@ -421,7 +421,7 @@
                     @scope('cell_status', $purchase)
                         @if($purchase->isRefunded())
                             <x-badge value="Erstattet" class="badge-warning" icon="o-arrow-uturn-left" />
-                            <span class="text-xs text-base-content/60 block mt-1">
+                            <span class="text-xs text-base-content/75 block mt-1">
                                 {{ $purchase->refunded_at->format('d.m.Y') }} von {{ $purchase->refundedByUser?->name ?? 'System' }}
                             </span>
                         @else
@@ -537,7 +537,7 @@
                         @if($download->reward)
                             <x-badge :value="$download->reward->title" class="badge-info badge-sm" icon="o-gift" />
                         @else
-                            <span class="text-base-content/50 text-sm">Keine</span>
+                            <span class="text-base-content/75 text-sm">Keine</span>
                         @endif
                     @endscope
 

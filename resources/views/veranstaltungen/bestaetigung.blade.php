@@ -21,22 +21,22 @@
 
             <dl class="space-y-3 border-t border-base-content/10 pt-6">
                 <div class="flex justify-between gap-4">
-                    <dt class="text-base-content/60">Name</dt>
+                    <dt class="text-base-content/75">Name</dt>
                     <dd class="font-medium text-base-content">{{ $anmeldung->full_name }}</dd>
                 </div>
                 <div class="flex justify-between gap-4">
-                    <dt class="text-base-content/60">E-Mail</dt>
+                    <dt class="text-base-content/75">E-Mail</dt>
                     <dd class="font-medium text-base-content">{{ $anmeldung->email }}</dd>
                 </div>
                 @if ($anmeldung->mobile)
                     <div class="flex justify-between gap-4">
-                        <dt class="text-base-content/60">Mobilnummer</dt>
+                        <dt class="text-base-content/75">Mobilnummer</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->mobile }}</dd>
                     </div>
                 @endif
                 @if ($orderedMerchandise->isNotEmpty())
                     <div class="flex justify-between gap-4">
-                        <dt class="text-base-content/60">Merchandise</dt>
+                        <dt class="text-base-content/75">Merchandise</dt>
                         <dd class="font-medium text-base-content text-right space-y-1">
                             @foreach ($orderedMerchandise as $bestellung)
                                 <div>

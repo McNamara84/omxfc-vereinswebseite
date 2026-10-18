@@ -3,14 +3,14 @@
 <div x-data="coverRatingSession">
     <x-member-page class="max-w-6xl space-y-5 sm:space-y-6">
         <section
-            class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-base-100/90 px-5 py-5 shadow-lg shadow-base-content/5 backdrop-blur sm:px-7 sm:py-6"
+            class="relative overflow-hidden rounded-2xl border border-base-content/10 bg-base-100/90 px-5 py-5 shadow-lg shadow-base-content/5 backdrop-blur sm:px-7 sm:py-6"
             data-testid="cover-rating-header"
         >
             <div class="absolute inset-x-0 top-0 h-1 bg-primary"></div>
 
             <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div class="max-w-3xl space-y-2">
-                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-base-content/45">Community</p>
+                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.26em] text-base-content/75">Community</p>
                     <h1 class="font-display text-3xl font-semibold tracking-tight text-base-content sm:text-4xl">Cover-Bewertungen</h1>
                     <p class="text-sm leading-relaxed text-base-content/70 sm:text-base">
                         Wähle eine Serie und bewerte die Cover anschließend ungestört im Vollbildmodus.
@@ -30,32 +30,32 @@
             data-testid="cover-rating-overview"
         >
             <section class="rounded-2xl border border-base-content/10 bg-base-100/90 p-4 shadow-md shadow-base-content/5 sm:p-5">
-                <h2 class="text-sm font-semibold text-base-content/65">Gesamtfortschritt</h2>
+                <h2 class="text-sm font-semibold text-base-content/75">Gesamtfortschritt</h2>
                 <p class="mt-2 font-display text-2xl font-semibold tabular-nums sm:text-3xl" data-testid="global-progress">
                     {{ $this->globalProgress['rated'] }} / {{ $this->globalProgress['total'] }}
                 </p>
-                <p class="mt-1 text-xs text-base-content/60 sm:text-sm">verfügbare Cover bewertet</p>
+                <p class="mt-1 text-xs text-base-content/75 sm:text-sm">verfügbare Cover bewertet</p>
             </section>
 
             <section class="rounded-2xl border border-base-content/10 bg-base-100/90 p-4 shadow-md shadow-base-content/5 sm:p-5">
-                <h2 class="text-sm font-semibold text-base-content/65">Aktueller Filter</h2>
+                <h2 class="text-sm font-semibold text-base-content/75">Aktueller Filter</h2>
                 <p class="mt-2 font-display text-2xl font-semibold tabular-nums sm:text-3xl" data-testid="filter-progress">
                     {{ $this->progress['remaining'] }}
                 </p>
-                <p class="mt-1 text-xs text-base-content/60 sm:text-sm">Cover noch offen</p>
+                <p class="mt-1 text-xs text-base-content/75 sm:text-sm">Cover noch offen</p>
             </section>
 
             <section class="col-span-2 rounded-2xl border border-base-content/10 bg-base-100/90 p-4 shadow-md shadow-base-content/5 sm:p-5 lg:col-span-1">
-                <h2 class="text-sm font-semibold text-base-content/65">Nächster Baxx</h2>
+                <h2 class="text-sm font-semibold text-base-content/75">Nächster Baxx</h2>
                 @if($this->rewardProgress['is_active'])
                     <p class="mt-2 font-display text-2xl font-semibold tabular-nums sm:text-3xl" data-testid="baxx-progress">
                         {{ $this->rewardProgress['completed_in_step'] }} / {{ $this->rewardProgress['every_count'] }}
                     </p>
-                    <p class="mt-1 text-xs text-base-content/60 sm:text-sm">
+                    <p class="mt-1 text-xs text-base-content/75 sm:text-sm">
                         noch {{ $this->rewardProgress['remaining'] }} bis zu {{ $this->rewardProgress['points'] }} Baxx
                     </p>
                 @else
-                    <p class="mt-3 text-sm text-base-content/60">Aktuell ist keine Baxx-Regel aktiv.</p>
+                    <p class="mt-3 text-sm text-base-content/75">Aktuell ist keine Baxx-Regel aktiv.</p>
                 @endif
             </section>
         </div>
@@ -70,7 +70,7 @@
                         placeholder=""
                         data-testid="series-filter"
                     />
-                    <p class="mt-2 text-xs text-base-content/60">
+                    <p class="mt-2 text-xs text-base-content/75">
                         Bei „Alle Serien“ wechseln sich die Reihen möglichst ausgewogen ab.
                     </p>
                     @error('series')
@@ -163,7 +163,7 @@
             @php($book = $this->cover->book)
             <header class="cover-rating-session__header flex items-center justify-between gap-3">
                 <div class="min-w-0">
-                    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/60">
+                    <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">
                         <span class="badge badge-primary badge-outline badge-sm shrink-0">{{ $book->type->label() }}</span>
                         <span class="truncate">Nummer {{ $book->roman_number }}</span>
                     </div>
@@ -176,7 +176,7 @@
                         {{ $book->title }}
                     </h2>
                     @if($book->author)
-                        <p class="hidden truncate text-xs text-base-content/60 sm:block sm:text-sm">{{ $book->author }}</p>
+                        <p class="hidden truncate text-xs text-base-content/75 sm:block sm:text-sm">{{ $book->author }}</p>
                     @endif
                 </div>
 
@@ -288,7 +288,7 @@
         @else
             <header class="cover-rating-session__header">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/60">Cover-Bewertungen</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Cover-Bewertungen</p>
                     <h2 id="cover-rating-session-title" class="mt-1 font-display text-xl font-semibold sm:text-2xl">Sitzung abgeschlossen</h2>
                 </div>
             </header>
@@ -297,11 +297,11 @@
                 @if($this->progress['total'] === 0)
                     <x-icon name="o-photo" class="mx-auto h-14 w-14 text-base-content/30" />
                     <h3 tabindex="-1" data-cover-empty-focus class="font-display text-2xl font-semibold">Noch keine Cover verfügbar</h3>
-                    <p class="text-base-content/65">Sobald der Cover-Abgleich abgeschlossen ist, kannst du hier loslegen.</p>
+                    <p class="text-base-content/75">Sobald der Cover-Abgleich abgeschlossen ist, kannst du hier loslegen.</p>
                 @elseif($this->progress['remaining'] === 0)
                     <x-icon name="o-trophy" class="mx-auto h-14 w-14 text-primary" />
                     <h3 tabindex="-1" data-cover-empty-focus class="font-display text-2xl font-semibold">Alle Cover bewertet</h3>
-                    <p class="text-base-content/65">Du hast in diesem Filter jedes verfügbare Cover bewertet.</p>
+                    <p class="text-base-content/75">Du hast in diesem Filter jedes verfügbare Cover bewertet.</p>
                     <div class="flex flex-wrap justify-center gap-2">
                         <x-button label="Ergebnisse ansehen" link="{{ route('cover-ratings.results') }}" wire:navigate class="btn-primary" />
                         <x-button label="Bewertungen verwalten" link="{{ route('cover-ratings.mine') }}" wire:navigate class="btn-outline" />
@@ -309,7 +309,7 @@
                 @else
                     <x-icon name="o-clock" class="mx-auto h-14 w-14 text-base-content/35" />
                     <h3 tabindex="-1" data-cover-empty-focus class="font-display text-2xl font-semibold">Für diese Sitzung zurückgestellt</h3>
-                    <p class="text-base-content/65">Alle noch offenen Cover dieses Filters wurden übersprungen. Beim nächsten Besuch erscheinen sie wieder.</p>
+                    <p class="text-base-content/75">Alle noch offenen Cover dieses Filters wurden übersprungen. Beim nächsten Besuch erscheinen sie wieder.</p>
                 @endif
             </div>
 

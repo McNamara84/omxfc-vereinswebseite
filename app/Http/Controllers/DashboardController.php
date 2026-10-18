@@ -13,6 +13,7 @@ use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\TourAssignmentService;
 use App\Services\UserRoleService;
+use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -87,7 +88,7 @@ class DashboardController extends Controller
             'dashboardGreeting' => $dashboardGreeting,
             'dashboardDescription' => $dashboardDescription,
             'dashboardPrimaryAction' => $dashboardPrimaryAction,
-            'quickActions' => $this->buildQuickActions(),
+            'quickActions' => app(NavigationBuilder::class)->quickActions($user),
             'showGovernanceTools' => $showGovernanceTools,
             'topUsersEntries' => $topUsersEntries,
             'topUsersSummary' => $topUsersSummary,
@@ -119,16 +120,6 @@ class DashboardController extends Controller
         ])->toArray();
 
         return ['entries' => $entries, 'summary' => $summary, 'payload' => $payload];
-    }
-
-    private function buildQuickActions(): array
-    {
-        return [
-            ['title' => 'Challenges & Baxx', 'href' => route('todos.index'), 'icon' => 'o-bolt'],
-            ['title' => 'Tauschbörse', 'href' => route('romantausch.index'), 'icon' => 'o-arrows-right-left'],
-            ['title' => 'Rezensionen', 'href' => route('reviews.index'), 'icon' => 'o-book-open'],
-            ['title' => 'Veranstaltung', 'href' => route('veranstaltungen.aktuell'), 'icon' => 'o-calendar-days'],
-        ];
     }
 
     private function resolveDashboardGreeting(User $user): string

@@ -51,7 +51,7 @@
                     @if ($model->reward)
                         <p class="text-lg font-semibold">Dieses Modell kostet {{ $model->reward->cost_baxx }} Baxx</p>
                         @if (! $walletWarning)
-                            <p class="text-base-content/60 mt-1">
+                            <p class="text-base-content/75 mt-1">
                                 Du hast aktuell {{ $availableBaxx }} verfügbare Baxx.
                             </p>
                         @endif
@@ -60,7 +60,7 @@
                                 Dieses Modell ist derzeit nicht verfügbar.
                             </p>
                         @elseif ($walletWarning)
-                            <p class="text-sm text-base-content/60 mt-2">
+                            <p class="text-sm text-base-content/75 mt-2">
                                 Neue Freischaltungen sind erst wieder möglich, wenn die ältere Baxx-Historie geprüft wurde.
                             </p>
                         @elseif ($availableBaxx >= $model->reward->cost_baxx)
@@ -87,15 +87,15 @@
         <x-ui.panel title="Details" description="Format, Preis, Dateigröße und Herkunft bleiben hier auch dann sichtbar, wenn das Modell noch gesperrt ist." data-testid="model-details">
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <span class="text-sm text-base-content/60">Format</span>
+                    <span class="text-sm text-base-content/75">Format</span>
                     <p class="font-semibold">{{ strtoupper($model->file_format) }}</p>
                 </div>
                 <div>
-                    <span class="text-sm text-base-content/60">Dateigröße</span>
+                    <span class="text-sm text-base-content/75">Dateigröße</span>
                     <p class="font-semibold">{{ $model->file_size_formatted }}</p>
                 </div>
                 <div>
-                    <span class="text-sm text-base-content/60">Preis</span>
+                    <span class="text-sm text-base-content/75">Preis</span>
                     <div class="mt-1">
                         @if ($model->reward)
                             <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
@@ -106,18 +106,18 @@
                     </div>
                 </div>
                 <div>
-                    <span class="text-sm text-base-content/60">Hochgeladen von</span>
+                    <span class="text-sm text-base-content/75">Hochgeladen von</span>
                     <p class="font-semibold">{{ $model->uploader->name }}</p>
                 </div>
             </div>
             <div class="mt-4">
-                <span class="text-sm text-base-content/60">Beschreibung</span>
+                <span class="text-sm text-base-content/75">Beschreibung</span>
                 <p class="mt-1">{{ $model->description }}</p>
             </div>
 
             @if ($model->maddraxikon_url)
                 <div class="mt-4">
-                    <span class="text-sm text-base-content/60">Maddraxikon</span>
+                    <span class="text-sm text-base-content/75">Maddraxikon</span>
                     <p class="mt-1">
                         <a href="{{ $model->maddraxikon_url }}" target="_blank" rel="noopener noreferrer"
                             class="link link-primary inline-flex items-center gap-1"

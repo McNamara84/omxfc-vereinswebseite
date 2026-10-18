@@ -1,5 +1,5 @@
 <x-member-layout title="{{ $newsletterAusgabe->subject }} – Newsletter-Archiv" description="Archivierte Newsletter-Ausgabe im Mitgliederbereich.">
-    <x-member-page class="max-w-4xl space-y-8">
+    <x-member-page class="max-w-4xl space-y-6">
         @php($topics = \App\Support\NewsletterTopics::normalize($newsletterAusgabe->topics ?? []))
 
         <x-ui.page-header

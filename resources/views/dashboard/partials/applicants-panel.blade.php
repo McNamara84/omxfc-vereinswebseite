@@ -1,5 +1,5 @@
 @if($anwaerter->isNotEmpty())
-    <div id="dashboard-applicants">
+    <div data-dashboard-applicants>
     <x-ui.panel title="Mitgliedsanträge" description="Neue Vereinsanträge können hier direkt geprüft, genehmigt oder abgelehnt werden." data-testid="dashboard-applicants-panel">
         <div x-data="{ rejectUrl: '' }">
             <div class="overflow-x-auto">

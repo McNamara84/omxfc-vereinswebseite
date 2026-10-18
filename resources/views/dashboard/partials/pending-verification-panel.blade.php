@@ -3,7 +3,7 @@
         <x-ui.panel>
             <div class="flex items-center justify-between gap-4">
                 <div class="space-y-1">
-                    <p class="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">Moderation</p>
+                    <p class="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">Moderation</p>
                     <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Auf Verifizierung wartende Challenges</h2>
                     <p class="text-sm text-base-content/72">{{ trans_choice('Es gibt :count Challenge, die auf Bestätigung wartet.|Es gibt :count Challenges, die auf Bestätigung warten.', $pendingVerification, ['count' => $pendingVerification]) }}</p>
                 </div>

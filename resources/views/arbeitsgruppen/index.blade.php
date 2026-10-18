@@ -54,7 +54,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-8 text-center text-base-content/50">
+                            <td colspan="5" class="py-8 text-center text-base-content/75">
                                 <x-icon name="o-user-group" class="mx-auto h-12 w-12 opacity-30" />
                                 <p class="mt-2">Keine Arbeitsgruppen vorhanden.</p>
                             </td>

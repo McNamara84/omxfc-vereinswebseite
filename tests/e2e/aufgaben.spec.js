@@ -164,7 +164,7 @@ test('member can focus on own challenges and release one', async ({ page }) => {
 
     const assignedRow = page.getByRole('row', { name: /Übernommene Playwright Challenge/ })
         .within(page.locator('[data-todo-section="assigned"]'));
-    const releaseButton = assignedRow.getByRole('button', { name: 'Freigeben', exact: true });
+    const releaseButton = assignedRow.getByRole('button', { name: 'Übernahme zurückgeben', exact: true });
 
     await clickAndWaitForLivewireUpdate(page, releaseButton);
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');

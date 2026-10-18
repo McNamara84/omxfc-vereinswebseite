@@ -13,7 +13,7 @@
         ], key('overlay-' . $sectionId))
     @else
         <div class="absolute inset-0 flex flex-col items-center justify-center bg-base-100/70 backdrop-blur-sm text-sm text-base-content text-center space-y-2 z-10">
-            <x-icon name="o-lock-closed" class="w-6 h-6 text-base-content/50" />
+            <x-icon name="o-lock-closed" class="w-6 h-6 text-base-content/75" />
             <p>Diese Statistik ist derzeit nicht verfügbar.</p>
         </div>
     @endif

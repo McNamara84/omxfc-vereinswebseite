@@ -149,7 +149,7 @@
                 <section id="char-editor-basics" class="space-y-5" data-testid="char-editor-basics-section">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 1</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 1</p>
                             <h2 class="mt-1 text-xl font-semibold text-primary">Charakterdaten</h2>
                         </div>
                         <span class="badge badge-outline" x-text="basicsFilled() ? 'Bereit für den nächsten Schritt' : 'Pflichtfelder offen'"></span>
@@ -229,14 +229,14 @@
                                             >Stufe {{ $creationLevelRule['level'] }}</option>
                                         @endforeach
                                     </select>
-                                    <p class="mt-1 text-xs text-base-content/65" x-text="base.AP + ' AP · ' + base.FP + ' FP · maximal FW ' + base.maxFW + ' · ' + base.freeAdvantages + ' freie Vorteilswerte'"></p>
+                                    <p class="mt-1 text-xs text-base-content/75" x-text="base.AP + ' AP · ' + base.FP + ' FP · maximal FW ' + base.maxFW + ' · ' + base.freeAdvantages + ' freie Vorteilswerte'"></p>
                                 </div>
 
                                 <div class="sm:col-span-2">
                                     <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
                                     <div class="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_6rem] sm:items-start">
                                         <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)">
-                                        <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-base-content/20 bg-base-200/50 text-xs text-base-content/60">
+                                        <div class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-md border border-base-content/20 bg-base-200/50 text-xs text-base-content/75">
                                             <span x-show="!portraitPreview">Vorschau</span>
                                             <img x-show="portraitPreview" x-cloak :src="portraitPreview" class="h-full w-full object-cover" alt="Porträt Vorschau" data-testid="char-editor-portrait-preview">
                                         </div>
@@ -256,7 +256,7 @@
                         <aside id="race-info-panel" class="rounded-md border border-base-300 bg-base-200/40 p-4 text-sm lg:sticky lg:top-24" data-testid="race-info-panel" aria-live="polite">
                             <div class="mb-3 flex items-start justify-between gap-3">
                                 <div>
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Auswahlwirkung</p>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Auswahlwirkung</p>
                                     <h3 class="mt-1 font-semibold text-base-content">Rasse und Kultur</h3>
                                 </div>
                                 <span class="badge badge-outline" x-show="selectionInfoAvailable()" x-cloak>aktiv</span>
@@ -283,7 +283,7 @@
                                         </template>
                                     </dl>
                                     <details class="mt-3">
-                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/60">Rassentext anzeigen</summary>
+                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/75">Rassentext anzeigen</summary>
                                         <p class="mt-2 leading-5 text-base-content/75" x-text="raceInfo().description"></p>
                                     </details>
                                 </div>
@@ -303,7 +303,7 @@
                                         </template>
                                     </dl>
                                     <details class="mt-3">
-                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/60">Kulturtext anzeigen</summary>
+                                        <summary class="cursor-pointer text-xs font-semibold uppercase tracking-[0.12em] text-base-content/75">Kulturtext anzeigen</summary>
                                         <p class="mt-2 leading-5 text-base-content/75" x-text="cultureInfo().description"></p>
                                     </details>
                                 </div>
@@ -315,11 +315,11 @@
                         <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" data-testid="char-editor-continue-button" />
                     </div>
                 </section>
-                <fieldset class="mt-8 space-y-8" x-bind:disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
+                <fieldset class="mt-8 space-y-6" x-bind:disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
                     <section id="char-editor-attributes" class="border-t border-base-300/70 pt-6" data-testid="char-editor-attributes-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 2</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 2</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Attribute</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="'AP: ' + apRemaining()"></span>
@@ -372,7 +372,7 @@
                                         aria-describedby="{{ $descriptionId }}"
                                         class="input input-bordered w-full"
                                     >
-                                    <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/60">
+                                    <div class="flex flex-wrap items-center gap-2 text-xs text-base-content/75">
                                         <span x-text="'Bereich ' + attributeRangeLabel(@js($attrId))"></span>
                                         <span x-show="attributeModifier(@js($attrId)) !== 0" x-cloak class="badge badge-primary badge-outline" x-text="'Rasse ' + (attributeModifier(@js($attrId)) > 0 ? '+' : '') + attributeModifier(@js($attrId))"></span>
                                         <span class="badge badge-ghost" x-text="'Erschaffung ' + (attributeCreationAdjustment(@js($attrId)) > 0 ? '+' : '') + attributeCreationAdjustment(@js($attrId))"></span>
@@ -418,7 +418,7 @@
                     <section id="char-editor-skills" class="border-t border-base-300/70 pt-6" data-testid="char-editor-skills-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 3</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 3</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Fertigkeiten</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="'FP: ' + fpRemaining()"></span>
@@ -667,7 +667,7 @@
                     <section id="char-editor-trainings" class="border-t border-base-300/70 pt-6" data-testid="char-editor-trainings-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 4</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 4</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Ausbildungen</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="selectedTrainings.length + ' gewählt · ' + trainingTotalCost() + ' FP gebunden'"></span>
@@ -697,7 +697,7 @@
                                             </span>
                                             <span class="mt-1 block text-sm leading-5 text-base-content/70" x-text="rule.description"></span>
                                             <span class="mt-2 block text-xs text-primary" x-text="sourceName(rule.source)"></span>
-                                            <span class="mt-2 block text-xs text-base-content/60" x-text="'Fertigkeiten: ' + rule.skills.join(', ')"></span>
+                                            <span class="mt-2 block text-xs text-base-content/75" x-text="'Fertigkeiten: ' + rule.skills.join(', ')"></span>
                                             <template x-if="trainingRequiredAdvantages(rule).length">
                                                 <span class="mt-2 block text-xs" :class="trainingPrerequisitesMet(rule) ? 'text-success' : 'text-error'" x-text="'Voraussetzung: ' + trainingRequiredAdvantages(rule).join(', ')"></span>
                                             </template>
@@ -721,7 +721,7 @@
                                     <div class="flex flex-wrap items-center justify-between gap-2">
                                         <div>
                                             <h3 class="font-semibold text-base-content" x-text="rule.name"></h3>
-                                            <p class="text-xs text-base-content/65">FP auf die erlaubten Fertigkeiten verteilen</p>
+                                            <p class="text-xs text-base-content/75">FP auf die erlaubten Fertigkeiten verteilen</p>
                                         </div>
                                         <span class="badge" :class="trainingAllocationRemaining(rule.name) === 0 && trainingPrerequisitesMet(rule) ? 'badge-success' : 'badge-warning badge-outline'" x-text="trainingAllocationRemaining(rule.name) === 0 ? 'vollständig' : Math.abs(trainingAllocationRemaining(rule.name)) + ' FP offen'"></span>
                                     </div>
@@ -770,15 +770,15 @@
                     <section id="char-editor-specials" class="border-t border-base-300/70 pt-6" data-testid="char-editor-specials-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 5</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 5</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Besonderheiten</h2>
                             </div>
                             <span class="badge" :class="missingAdvantageCompensations() === 0 ? 'badge-success badge-outline' : 'badge-warning badge-outline'" aria-live="polite" x-text="'Vorteilswerte ' + chosenAdvantagesCount() + ' / ' + advantageUnitLimit() + ' · Ausgleich ' + availableAdvantageCompensations() + ' / ' + extraAdvantageUnits()"></span>
                         </div>
                         <div class="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="advantage-budget-summary">
-                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="base.freeAdvantages + ' frei'"></strong><span class="block text-xs text-base-content/65" x-text="'auf Figurenstärke ' + creationLevel"></span></div>
-                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="extraAdvantageUnits() + ' zusätzlich'"></strong><span class="block text-xs text-base-content/65">maximal 2</span></div>
-                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="missingAdvantageCompensations() === 0 ? 'Ausgeglichen' : missingAdvantageCompensations() + ' offen'"></strong><span class="block text-xs text-base-content/65">freiwillige Nachteile oder Senkungen</span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="base.freeAdvantages + ' frei'"></strong><span class="block text-xs text-base-content/75" x-text="'auf Figurenstärke ' + creationLevel"></span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="extraAdvantageUnits() + ' zusätzlich'"></strong><span class="block text-xs text-base-content/75">maximal 2</span></div>
+                            <div class="rounded-md border border-base-300 bg-base-200/40 px-3 py-2 text-sm"><strong x-text="missingAdvantageCompensations() === 0 ? 'Ausgeglichen' : missingAdvantageCompensations() + ' offen'"></strong><span class="block text-xs text-base-content/75">freiwillige Nachteile oder Senkungen</span></div>
                         </div>
                         <div class="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-base-300 bg-base-200/40 p-3">
                             <x-button type="button" label="Vorteil auswürfeln" class="btn-secondary btn-sm" @click="rollSpecial('advantage')" data-testid="roll-advantage-button" />
@@ -1004,7 +1004,7 @@
                     <section id="char-editor-equipment" class="border-t border-base-300/70 pt-6" data-testid="char-editor-equipment-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 6</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 6</p>
                                 <h2 id="equipment-heading" class="mt-1 text-xl font-semibold text-primary">Ausrüstung</h2>
                             </div>
                             <span class="badge badge-outline" aria-live="polite" x-text="'Gegenstände: ' + equipmentCount() + ' / ' + equipmentLimit() + ' · High-Tech: ' + highTechEquipmentCount() + ' / ' + highTechEquipmentLimit()"></span>
@@ -1081,7 +1081,7 @@
                                     <template x-for="entry in selectedEquipmentEntries()" :key="'equipment-summary-' + entry.id">
                                         <li class="flex items-start justify-between gap-3">
                                             <span x-text="entry.quantity + 'x ' + entry.item.name"></span>
-                                            <span class="text-xs text-base-content/60" x-text="equipmentCategoryLabel(entry.item)"></span>
+                                            <span class="text-xs text-base-content/75" x-text="equipmentCategoryLabel(entry.item)"></span>
                                         </li>
                                     </template>
                                 </ul>
@@ -1112,7 +1112,7 @@
                                             <input type="radio" class="radio radio-primary radio-sm" name="active-armor-choice" :value="entry.id" :checked="activeArmorId === entry.id" @change="setActiveArmor(entry.id)">
                                             <span x-text="entry.item.name"></span>
                                         </span>
-                                        <span class="text-xs text-base-content/60" x-text="'SF ' + entry.item.combat.protection + ' · BM ' + entry.item.combat.movementModifier"></span>
+                                        <span class="text-xs text-base-content/75" x-text="'SF ' + entry.item.combat.protection + ' · BM ' + entry.item.combat.movementModifier"></span>
                                     </label>
                                 </template>
                             </fieldset>
@@ -1129,7 +1129,7 @@
                                             <input type="radio" class="radio radio-primary radio-sm" name="active-shield-choice" :value="entry.id" :checked="activeShieldId === entry.id" @change="setActiveShield(entry.id)">
                                             <span x-text="entry.item.name"></span>
                                         </span>
-                                        <span class="text-xs text-base-content/60" x-text="'Abwehr +' + entry.item.combat.defenseBonus"></span>
+                                        <span class="text-xs text-base-content/75" x-text="'Abwehr +' + entry.item.combat.defenseBonus"></span>
                                     </label>
                                 </template>
                             </fieldset>
@@ -1144,7 +1144,7 @@
                     <section id="char-editor-export" class="border-t border-base-300/70 pt-6" data-testid="char-editor-export-section">
                         <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Schritt 7</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">Schritt 7</p>
                                 <h2 class="mt-1 text-xl font-semibold text-primary">Export</h2>
                             </div>
                             <span class="badge" :class="formValid() ? 'badge-success' : 'badge-outline'" aria-live="polite" x-text="formValid() ? 'Bereit' : completionIssues().length + ' offen'"></span>

@@ -267,7 +267,7 @@
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
                     <h3 class="text-lg font-semibold text-base-content">Deine erfassten Beiträge</h3>
-                    <p class="mt-1 text-sm text-base-content/65">
+                    <p class="mt-1 text-sm text-base-content/75">
                         Angezeigt werden deine neuesten 20 importierten Wiki-Ereignisse.
                     </p>
                 </div>
@@ -283,7 +283,7 @@
             </div>
 
             @if ($contributions->isEmpty())
-                <p class="mt-4 rounded-2xl bg-base-200/60 p-4 text-sm text-base-content/65">
+                <p class="mt-4 rounded-2xl bg-base-200/60 p-4 text-sm text-base-content/75">
                     Seit der Verknüpfung wurden noch keine passenden Beiträge importiert.
                 </p>
             @else
@@ -333,14 +333,14 @@
                                         />
                                         @if ($event = $contribution->rewardEvents->first())
                                             @if ($event->measured_added_bytes !== null)
-                                                <span class="mt-1 block text-xs text-base-content/55">
+                                                <span class="mt-1 block text-xs text-base-content/75">
                                                     Netto +{{ number_format($event->measured_added_bytes, 0, ',', '.') }} Bytes
                                                     @if ($event->matched_minimum_added_bytes !== null)
                                                         · Stufe ab {{ number_format($event->matched_minimum_added_bytes, 0, ',', '.') }}
                                                     @endif
                                                 </span>
                                             @endif
-                                            <span class="block text-xs text-base-content/55">
+                                            <span class="block text-xs text-base-content/75">
                                                 {{ $event->awarded_points }} Baxx
                                                 @if ($event->status_reason)
                                                     · {{ $rewardReasonLabels[$event->status_reason] ?? 'Prüfgrund nicht näher angegeben' }}

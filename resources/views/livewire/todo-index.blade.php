@@ -1,5 +1,5 @@
 @use('App\Enums\TodoStatus')
-<x-member-page class="space-y-8">
+<x-member-page class="space-y-6">
     @php
         $todoFilterMessages = [
             'all' => 'Zeigt alle verfügbaren Challenges.',
@@ -21,7 +21,7 @@
         $userTotalPoints = $this->userPoints;
     @endphp
 
-    <div x-data="{ filter: @entangle('filter'), messages: @js($todoFilterMessages), filterPanelOpen: false }" class="space-y-8">
+    <div x-data="{ filter: @entangle('filter'), messages: @js($todoFilterMessages), filterPanelOpen: false }" class="space-y-6">
         <x-ui.page-header
             eyebrow="Mitgliederbereich"
             title="Challenges & Baxx"
@@ -99,7 +99,7 @@
                     </div>
                 </x-slot:header>
 
-                <div class="overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/80">
+                <div class="overflow-hidden rounded-xl border border-base-content/10 bg-base-100/80">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -116,7 +116,7 @@
                                     <tr wire:key="pending-{{ $todo->id }}">
                                         <td class="font-medium text-base-content">{{ $todo->title }}</td>
                                         <td><a href="{{ route('profile.view', $todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
-                                        <td>{{ $todo->completed_at->format('d.m.Y H:i') }}</td>
+                                        <td>{{ $todo->completed_at?->format('d.m.Y H:i') ?? 'Nicht hinterlegt' }}</td>
                                         <td><span class="badge badge-outline rounded-full">{{ $todo->points }} Baxx</span></td>
                                         <td class="text-center">
                                             <div class="flex flex-wrap justify-center gap-1">
@@ -124,7 +124,7 @@
                                                 @if($todo->created_by === Auth::id())
                                                     <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" wire:navigate class="btn-info btn-sm" />
                                                 @endif
-                                                <x-button label="Verifizieren" wire:click="verify({{ $todo->id }})" class="btn-success btn-sm" wire:loading.attr="disabled" wire:target="verify({{ $todo->id }})" />
+                                                <x-button label="Abschluss bestätigen und Baxx vergeben" wire:click="verify({{ $todo->id }})" class="btn-success btn-sm" spinner="verify({{ $todo->id }})" wire:loading.attr="disabled" wire:target="verify({{ $todo->id }})" />
                                             </div>
                                         </td>
                                     </tr>
@@ -148,7 +148,7 @@
                     </div>
                 </x-slot:header>
 
-                <div class="overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/80">
+                <div class="overflow-hidden rounded-xl border border-base-content/10 bg-base-100/80">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -198,11 +198,11 @@
                 </x-slot:header>
 
                 @if($this->assignedTodos->isEmpty())
-                    <div class="rounded-[1.5rem] border border-dashed border-base-content/15 bg-base-100/65 px-5 py-6 text-sm leading-relaxed text-base-content/68">
+                    <div class="rounded-xl border border-dashed border-base-content/15 bg-base-100/65 px-5 py-6 text-sm leading-relaxed text-base-content/68">
                         Du hast aktuell keine übernommenen Challenges.
                     </div>
                 @else
-                    <div class="overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/80">
+                    <div class="overflow-hidden rounded-xl border border-base-content/10 bg-base-100/80">
                         <div class="overflow-x-auto">
                             <table class="table">
                                 <thead>
@@ -235,7 +235,7 @@
                                                     @endif
                                                     @if($todo->status->value === 'assigned')
                                                         <x-button label="Als erledigt markieren" wire:click="complete({{ $todo->id }})" class="btn-success btn-sm" wire:loading.attr="disabled" wire:target="complete({{ $todo->id }})" />
-                                                        <x-button label="Freigeben" wire:click="release({{ $todo->id }})" class="btn-error btn-sm" wire:loading.attr="disabled" wire:target="release({{ $todo->id }})" />
+                                                        <x-button label="Übernahme zurückgeben" wire:click="release({{ $todo->id }})" class="btn-ghost btn-sm" wire:loading.attr="disabled" wire:target="release({{ $todo->id }})" />
                                                     @endif
                                                 </div>
                                             </td>
@@ -263,11 +263,11 @@
                 </x-slot:header>
 
                 @if($this->unassignedTodos->isEmpty())
-                    <div class="rounded-[1.5rem] border border-dashed border-base-content/15 bg-base-100/65 px-5 py-6 text-sm leading-relaxed text-base-content/68">
+                    <div class="rounded-xl border border-dashed border-base-content/15 bg-base-100/65 px-5 py-6 text-sm leading-relaxed text-base-content/68">
                         Es sind aktuell keine offenen Challenges verfügbar.
                     </div>
                 @else
-                    <div class="overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/80">
+                    <div class="overflow-hidden rounded-xl border border-base-content/10 bg-base-100/80">
                         <div class="overflow-x-auto">
                             <table class="table">
                                 <thead>
@@ -314,7 +314,7 @@
             </x-slot:header>
 
             <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4" data-todo-dashboard>
-                <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5 md:col-span-2 xl:col-span-1" aria-labelledby="weekly-goal-heading">
+                <article class="rounded-xl border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5 md:col-span-2 xl:col-span-1" aria-labelledby="weekly-goal-heading">
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h3 id="weekly-goal-heading" class="text-lg font-semibold text-primary">Wochenziel</h3>
@@ -322,7 +322,7 @@
                         </div>
                         <div class="flex flex-col items-end text-right gap-1">
                             <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">{{ number_format($weeklyTotal, 0, ',', '.') }}</span>
-                            <p class="text-xs text-base-content/55">von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx</p>
+                            <p class="text-xs text-base-content/75">von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx</p>
                         </div>
                     </div>
                     <div class="mt-4" data-progress-bar data-progress-value="{{ $weeklyTotal }}" data-progress-max="{{ max($weeklyTarget, 1) }}" data-progress-label="Fortschritt Richtung Wochenziel">
@@ -333,7 +333,7 @@
                     </div>
                 </article>
 
-                <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5" aria-labelledby="team-average-heading">
+                <article class="rounded-xl border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5" aria-labelledby="team-average-heading">
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h3 id="team-average-heading" class="text-lg font-semibold text-primary">Vereinsdurchschnitt</h3>
@@ -341,7 +341,7 @@
                         </div>
                         <div class="flex flex-col items-end text-right gap-1">
                             <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">{{ number_format($teamAverage, 1, ',', '.') }}</span>
-                            <p class="text-xs text-base-content/55">Ø Vereins-Baxx</p>
+                            <p class="text-xs text-base-content/75">Ø Vereins-Baxx</p>
                         </div>
                     </div>
                     <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}" data-progress-max="{{ max($teamAverage, 1) }}" data-progress-label="Vergleich zum Vereinsdurchschnitt">
@@ -358,7 +358,7 @@
                     </div>
                 </article>
 
-                <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5" aria-labelledby="personal-points-heading">
+                <article class="rounded-xl border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5" aria-labelledby="personal-points-heading">
                     <div class="flex flex-wrap items-start justify-between gap-4">
                         <div>
                             <h3 id="personal-points-heading" class="text-lg font-semibold text-primary">Dein Punktestand</h3>
@@ -366,7 +366,7 @@
                         </div>
                         <div class="flex flex-col items-end text-right gap-1">
                             <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">{{ number_format($userTotalPoints, 0, ',', '.') }}</span>
-                            <p class="text-xs text-base-content/55">gesammelte Baxx</p>
+                            <p class="text-xs text-base-content/75">gesammelte Baxx</p>
                         </div>
                     </div>
                     @if($teamAverage > 0)
@@ -380,7 +380,7 @@
                     @endif
                 </article>
 
-                <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5 md:col-span-2 xl:col-span-1" aria-labelledby="leaderboard-heading">
+                <article class="rounded-xl border border-base-content/10 bg-base-100/78 p-5 shadow-sm shadow-base-content/5 md:col-span-2 xl:col-span-1" aria-labelledby="leaderboard-heading">
                     <h3 id="leaderboard-heading" class="text-lg font-semibold text-primary">Rangliste</h3>
                     <p class="mt-1 text-sm text-base-content/68">So steht dein Verein aktuell da.</p>
                     <ol class="mt-4 space-y-3" role="list">

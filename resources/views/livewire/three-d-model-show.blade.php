@@ -1,4 +1,4 @@
-<x-member-page class="max-w-6xl space-y-8">
+<x-member-page class="max-w-6xl space-y-6">
     <x-ui.page-header
         :title="$this->model->name"
         eyebrow="3D-Bibliothek"
@@ -41,7 +41,7 @@
 
     @if ($this->isUnlocked)
         <x-ui.panel title="3D-Vorschau" description="Das Modell wird direkt aus der privaten Dateiablage gestreamt und kann ohne Download betrachtet werden.">
-            <div data-three-d-viewer data-file-url="{{ route('3d-modelle.preview', $this->model) }}" data-format="{{ $this->model->file_format }}" class="aspect-video w-full overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100/80" data-testid="three-d-viewer">
+            <div data-three-d-viewer data-file-url="{{ route('3d-modelle.preview', $this->model) }}" data-format="{{ $this->model->file_format }}" class="aspect-video w-full overflow-hidden rounded-xl border border-base-content/10 bg-base-100/80" data-testid="three-d-viewer">
             </div>
         </x-ui.panel>
     @else
@@ -51,7 +51,7 @@
                 @if ($this->model->reward)
                     <p class="text-lg font-semibold">Dieses Modell kostet {{ $this->model->reward->cost_baxx }} Baxx</p>
                     @if (! $this->walletWarning)
-                        <p class="text-base-content/60 mt-1">
+                        <p class="text-base-content/75 mt-1">
                             Du hast aktuell {{ $this->availableBaxx }} verfügbare Baxx.
                         </p>
                     @endif
@@ -60,7 +60,7 @@
                             Dieses Modell ist derzeit nicht verfügbar.
                         </p>
                     @elseif ($this->walletWarning)
-                        <p class="text-sm text-base-content/60 mt-2">
+                        <p class="text-sm text-base-content/75 mt-2">
                             Neue Freischaltungen sind erst wieder möglich, wenn die ältere Baxx-Historie geprüft wurde.
                         </p>
                     @elseif ($this->availableBaxx >= $this->model->reward->cost_baxx)
@@ -84,19 +84,19 @@
         </x-ui.panel>
     @endif
 
-    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)] xl:items-start">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.78fr)] xl:items-start">
         <x-ui.panel title="Details" description="Format, Dateigröße, Preis und inhaltliche Einordnung des Modells." data-testid="model-details">
             <div class="grid gap-4 sm:grid-cols-2">
-                <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
-                    <span class="text-sm text-base-content/60">Format</span>
+                <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-3">
+                    <span class="text-sm text-base-content/75">Format</span>
                     <p class="mt-1 font-semibold text-base-content">{{ strtoupper($this->model->file_format) }}</p>
                 </div>
-                <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
-                    <span class="text-sm text-base-content/60">Dateigröße</span>
+                <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-3">
+                    <span class="text-sm text-base-content/75">Dateigröße</span>
                     <p class="mt-1 font-semibold text-base-content">{{ $this->model->file_size_formatted }}</p>
                 </div>
-                <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
-                    <span class="text-sm text-base-content/60">Preis</span>
+                <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-3">
+                    <span class="text-sm text-base-content/75">Preis</span>
                     <div class="mt-2">
                         @if ($this->model->reward)
                             <x-badge :value="$this->model->reward->cost_baxx . ' Baxx'" class="{{ $this->isUnlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
@@ -105,20 +105,20 @@
                         @endif
                     </div>
                 </div>
-                <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
-                    <span class="text-sm text-base-content/60">Hochgeladen von</span>
+                <div class="rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-3">
+                    <span class="text-sm text-base-content/75">Hochgeladen von</span>
                     <p class="mt-1 font-semibold text-base-content">{{ $this->model->uploader->name }}</p>
                 </div>
             </div>
 
-            <div class="mt-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
-                <span class="text-sm text-base-content/60">Beschreibung</span>
+            <div class="mt-4 rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-4">
+                <span class="text-sm text-base-content/75">Beschreibung</span>
                 <p class="mt-2 text-sm leading-relaxed text-base-content/78 sm:text-base">{{ $this->model->description }}</p>
             </div>
 
             @if ($this->model->maddraxikon_url)
-                <div class="mt-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
-                    <span class="text-sm text-base-content/60">Maddraxikon</span>
+                <div class="mt-4 rounded-xl border border-base-content/10 bg-base-100/78 px-4 py-4">
+                    <span class="text-sm text-base-content/75">Maddraxikon</span>
                     <p class="mt-2">
                         <a href="{{ $this->model->maddraxikon_url }}" target="_blank" rel="noopener noreferrer" class="link link-primary inline-flex items-center gap-1" data-testid="maddraxikon-link">
                             <x-icon name="o-arrow-top-right-on-square" class="w-4 h-4" />
@@ -132,11 +132,11 @@
         <div class="space-y-6 xl:sticky xl:top-6">
             <x-ui.panel title="Zugriff" description="Ob Vorschau und Download direkt verfügbar sind, hängt von Freischaltung und Reward-Status ab.">
                 <div class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                         <p class="font-medium text-base-content">Verfügbarkeit</p>
                         <p class="mt-1">{{ $this->isUnlocked ? 'Dieses Modell ist für dich freigeschaltet.' : 'Dieses Modell ist noch nicht freigeschaltet.' }}</p>
                     </div>
-                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">
+                    <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">
                         <p class="font-medium text-base-content">Baxx-Guthaben</p>
                         @if ($this->walletWarning)
                             <p class="mt-1">{{ $this->walletWarning }}</p>

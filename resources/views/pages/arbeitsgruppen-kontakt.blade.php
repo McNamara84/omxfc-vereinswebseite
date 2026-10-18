@@ -1,5 +1,5 @@
 <x-app-layout :title="'Kontakt zu '.$ag->name.' – Offizieller MADDRAX Fanclub e. V.'" description="Öffentliche Kontaktmöglichkeit zu einer Arbeitsgruppe des OMXFC, ohne die Zieladresse im Seitenquelltext offenzulegen.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             eyebrow="Arbeitsgruppenkontakt"
             :title="'Kontakt zu '.$ag->name"
@@ -10,7 +10,7 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <section class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
             <x-ui.panel title="Nachricht senden" description="Die Nachricht wird direkt an die hinterlegte Kontaktadresse der Arbeitsgruppe weitergeleitet.">
                 @if (session('status'))
                     <div class="alert alert-success mb-6" data-testid="ag-contact-success">

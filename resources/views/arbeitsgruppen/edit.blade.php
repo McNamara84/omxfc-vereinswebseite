@@ -111,7 +111,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="text-center py-8 text-base-content/50">
+                            <td colspan="2" class="text-center py-8 text-base-content/75">
                                 <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
                                 <p class="mt-2">Keine Mitglieder in dieser AG.</p>
                             </td>

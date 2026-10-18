@@ -1,5 +1,5 @@
 <x-member-layout title="Newsletter-Archiv verwalten">
-    <x-member-page class="max-w-6xl space-y-8">
+    <x-member-page class="max-w-6xl space-y-6">
         @if (session('status'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
                 {{ session('status') }}
@@ -25,7 +25,7 @@
         @if ($newsletterAusgaben->isEmpty())
             <x-ui.panel>
                 <div class="py-12 text-center">
-                    <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/50" />
+                    <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/75" />
                     <h2 class="mt-4 text-lg font-semibold">Noch keine Archiv-Einträge</h2>
                     <p class="mt-2 text-sm text-base-content/70">Lege manuell einen Archiv-Entwurf an oder sende zuerst einen echten Newsletter, damit hier ein Eintrag erscheint.</p>
                 </div>

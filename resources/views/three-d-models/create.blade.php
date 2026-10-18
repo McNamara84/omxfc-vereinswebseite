@@ -51,7 +51,7 @@
                             class="input input-bordered w-full"
                             placeholder="https://maddraxikon.de/..."
                             data-testid="maddraxikon-url-input" />
-                        <p class="text-sm text-base-content/60 mt-1">Link zum entsprechenden Artikel im Maddraxikon</p>
+                        <p class="text-sm text-base-content/75 mt-1">Link zum entsprechenden Artikel im Maddraxikon</p>
                         @error('maddraxikon_url')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -63,7 +63,7 @@
                             class="file-input file-input-bordered w-full" required
                             accept=".stl,.obj,.fbx"
                             data-testid="file-input" />
-                        <p class="text-sm text-base-content/60 mt-1">Maximale Dateigröße: 100 MB</p>
+                        <p class="text-sm text-base-content/75 mt-1">Maximale Dateigröße: 100 MB</p>
                         @error('model_file')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -75,7 +75,7 @@
                             class="file-input file-input-bordered w-full"
                             accept="image/jpeg,image/png,image/webp"
                             data-testid="thumbnail-input" />
-                        <p class="text-sm text-base-content/60 mt-1">Maximale Dateigröße: 2 MB (JPG, PNG, WebP)</p>
+                        <p class="text-sm text-base-content/75 mt-1">Maximale Dateigröße: 2 MB (JPG, PNG, WebP)</p>
                         @error('thumbnail')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror

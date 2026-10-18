@@ -48,7 +48,7 @@
             aria-describedby="website-feedback-description"
             data-testid="website-feedback-modal"
         >
-            <div class="modal-box w-[calc(100%-1rem)] max-w-xl overflow-y-auto rounded-[1.5rem] max-sm:mb-0 max-sm:max-h-[calc(100dvh-0.5rem)] max-sm:rounded-b-none">
+            <div class="modal-box w-[calc(100%-1rem)] max-w-xl overflow-y-auto rounded-xl max-sm:mb-0 max-sm:max-h-[calc(100dvh-0.5rem)] max-sm:rounded-b-none">
                 <button
                     type="button"
                     wire:click="closeFeedback"
@@ -107,7 +107,7 @@
                             required
                         ></textarea>
                         <div id="website-feedback-message-help">
-                            <p class="text-right text-xs text-base-content/60" aria-live="polite">
+                            <p class="text-right text-xs text-base-content/75" aria-live="polite">
                                 <span x-text="count" data-testid="website-feedback-message-count">{{ mb_strlen($message) }}</span>/{{ $messageMaxLength }} Zeichen
                             </p>
                             @error('message')

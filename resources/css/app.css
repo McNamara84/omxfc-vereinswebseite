@@ -85,6 +85,33 @@
     display: none !important;
 }
 
+/* Shared page rhythm, readable navigation and safe in-page destinations. */
+html {
+    scroll-padding-top: 6rem;
+    scroll-padding-bottom: 6rem;
+}
+
+.omxfc-page-header + .omxfc-panel {
+    margin-top: 1rem;
+}
+
+[data-testid="member-sidebar-navigation"] .mary-hideable:not(.hidden) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.omxfc-dashboard-details summary::marker {
+    color: var(--color-primary);
+}
+
+.omxfc-app-shell :focus-visible {
+    scroll-margin-block: 6rem;
+}
+
+.omxfc-panel > :last-child {
+    margin-bottom: 0;
+}
+
 .maddraxikon-comet-rating {
     display: flex;
     flex-wrap: wrap;

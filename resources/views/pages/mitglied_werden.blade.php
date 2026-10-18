@@ -7,7 +7,7 @@
 @endphp
 
 <x-app-layout title="Mitglied werden – Offizieller MADDRAX Fanclub e. V." description="Online-Antrag zur Aufnahme in den Fanclub der MADDRAX-Romanserie.">
-    <x-public-page class="space-y-8">
+    <x-public-page class="space-y-6">
         <x-ui.page-header
             :eyebrow="data_get($hero, 'eyebrow')"
             :title="data_get($hero, 'title')"
@@ -30,13 +30,13 @@
             </x-slot:actions>
         </x-ui.page-header>
 
-        <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.92fr)] xl:items-start">
-            <div class="order-2 space-y-8 xl:order-1">
+        <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.92fr)] xl:items-start">
+            <div class="order-2 space-y-6 xl:order-1">
                 <x-ui.panel :title="data_get($highlightSection, 'title')" :description="data_get($highlightSection, 'description')">
                     <div class="grid gap-4 md:grid-cols-3">
                         @foreach(data_get($highlightSection, 'items', []) as $highlight)
-                            <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5">
-                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">{{ $highlight['eyebrow'] }}</p>
+                            <article class="rounded-xl border border-base-content/10 bg-base-100/72 p-5">
+                                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">{{ $highlight['eyebrow'] }}</p>
                                 <h2 class="mt-2 font-display text-xl font-semibold tracking-tight text-base-content">{{ $highlight['title'] }}</h2>
                                 <p class="mt-2 text-sm leading-relaxed text-base-content/72">{{ $highlight['description'] }}</p>
                             </article>
@@ -47,7 +47,7 @@
                 <x-ui.panel :title="data_get($processSection, 'title')" :description="data_get($processSection, 'description')">
                     <div class="space-y-4">
                         @foreach(data_get($processSection, 'steps', []) as $schritt)
-                            <article class="flex gap-4 rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-4">
+                            <article class="flex gap-4 rounded-xl border border-base-content/10 bg-base-100/72 p-4">
                                 <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/12 font-display text-lg font-semibold text-primary">
                                     {{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}
                                 </span>
@@ -63,7 +63,7 @@
                 <x-ui.panel :title="data_get($infoSection, 'title')" :description="data_get($infoSection, 'description')">
                     <ul class="grid gap-3">
                         @foreach(data_get($infoSection, 'items', []) as $info)
-                            <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                            <li class="flex items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
                                 <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success/12 text-success">✓</span>
                                 <span>{{ $info }}</span>
                             </li>

@@ -1,4 +1,4 @@
-<x-member-page class="max-w-7xl space-y-8">
+<x-member-page class="max-w-7xl space-y-6">
     <x-ui.page-header
         eyebrow="Cover-Bewertungen"
         title="Ergebnisse"
@@ -25,7 +25,7 @@
                 <div class="py-10 text-center">
                     <x-icon name="o-chart-bar" class="mx-auto h-14 w-14 text-base-content/30" />
                     <h2 class="mt-4 font-display text-2xl font-semibold">Noch keine sichtbaren Ergebnisse</h2>
-                    <p class="mt-2 text-base-content/65">Bewerte zuerst ein Cover, damit dessen anonymes Ergebnis für dich sichtbar wird.</p>
+                    <p class="mt-2 text-base-content/75">Bewerte zuerst ein Cover, damit dessen anonymes Ergebnis für dich sichtbar wird.</p>
                 </div>
             </x-ui.panel>
         @else
@@ -46,7 +46,7 @@
                         </div>
                         <div class="space-y-4 p-5">
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">{{ $cover->book->type->label() }} · Nr. {{ $cover->book->roman_number }}</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/75">{{ $cover->book->type->label() }} · Nr. {{ $cover->book->roman_number }}</p>
                                 <h2 class="mt-2 font-display text-xl font-semibold">{{ $cover->book->title }}</h2>
                             </div>
 
@@ -66,7 +66,7 @@
                                     </p>
                                 </div>
                             @else
-                                <div class="rounded-xl bg-base-200/70 px-4 py-3 text-sm text-base-content/65">
+                                <div class="rounded-xl bg-base-200/70 px-4 py-3 text-sm text-base-content/75">
                                     Noch nicht genügend Bewertungen (mindestens {{ $minimumVotes }}).
                                 </div>
                             @endif

@@ -23,7 +23,7 @@
                         <span>{{ $review['review_title'] }}</span>
                         vom
                         <time datetime="{{ $review['reviewed_at_iso'] }}"
-                              class="text-sm font-normal text-base-content/60"
+                              class="text-sm font-normal text-base-content/75"
                               aria-label="Rezension veröffentlicht am {{ $review['reviewed_at_label'] }}">
                             {{ $review['reviewed_at_label'] }}
                         </time>

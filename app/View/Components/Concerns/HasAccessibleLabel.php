@@ -2,8 +2,37 @@
 
 namespace App\View\Components\Concerns;
 
+use Illuminate\Contracts\View\View;
+
 trait HasAccessibleLabel
 {
+    public function render(): View|\Closure|string
+    {
+        $template = parent::render();
+        if (! is_string($template)) {
+            return $template;
+        }
+        // Keep explicit field IDs stable for error-summary links. Mary otherwise
+        // appends its generated component hash and model name to the supplied ID.
+        $template = str_replace('id="{{ $uuid }}"', 'id="{{ $id ?? $uuid }}"', $template);
+        $template = str_replace("'id' => \$uuid", "'id' => \$id ?? \$uuid", $template);
+        $template = preg_replace('/\$attributes(?=\s*->)/', '$attributes->except([\'aria-invalid\', \'aria-describedby\'])', $template);
+        $aria = <<<'BLADE'
+             aria-invalid="{{ $errorFieldName() && $errors->has($errorFieldName()) && !$omitError ? 'true' : 'false' }}"
+             aria-describedby="{{ trim(($attributes->get('aria-describedby') ?? '') . ' ' . ($id ?? $uuid) . '-error ' . ($id ?? $uuid) . '-hint') }}"
+            BLADE;
+        $template = preg_replace('/<(input|textarea|select)(\s)(?!type="hidden")/', '<$1'.$aria.'$2', $template);
+        foreach (['ERROR' => 'error', 'HINT' => 'hint'] as $marker => $suffix) {
+            $template = preg_replace(
+                '/(\{\{-- '.$marker.' --\}\})([\s\S]*?)(?=\{\{-- (?:ERROR|HINT) --\}\}|<\/fieldset>)/',
+                '$1<div id="{{ ($id ?? $uuid) . \'-'.$suffix.'\' }}">$2</div>',
+                $template,
+            );
+        }
+
+        return $template;
+    }
+
     /** @param array<string, mixed> $attributes */
     public function withAttributes(array $attributes): static
     {

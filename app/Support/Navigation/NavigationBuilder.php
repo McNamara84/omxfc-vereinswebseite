@@ -4,6 +4,7 @@ namespace App\Support\Navigation;
 
 use App\Enums\Role;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class NavigationBuilder
 {
@@ -14,7 +15,7 @@ class NavigationBuilder
             throw new \InvalidArgumentException('Unknown navigation scope.');
         }
         if ($scope === 'member' && ! app(NavigationContext::class)->canAccessMembers($user)) {
-            return ['featured' => [], 'sections' => []];
+            return ['featured' => [], 'sections' => [], 'direct' => []];
         }
         $entries = config($scope === 'member' ? 'navigation.auth' : 'navigation.guest', []);
         $visibilityState = $this->buildVisibilityState($user);
@@ -22,6 +23,7 @@ class NavigationBuilder
         $resolvedEntries = $this->resolveEntries($entries, $user, $context, $visibilityState);
 
         return [
+            'direct' => array_values(array_filter($resolvedEntries, fn (array $entry): bool => ($entry['layout'] ?? 'section') === 'direct')),
             'featured' => array_values(array_filter(
                 $resolvedEntries,
                 fn (array $entry): bool => ($entry['layout'] ?? 'section') === 'featured'
@@ -101,7 +103,43 @@ class NavigationBuilder
             'active' => $active,
             'aria_current' => $current ? 'page' : ($active ? 'location' : null),
             'accent' => (bool) ($entry['accent'] ?? false),
+            'public' => $this->isPublicRoute($entry['route'] ?? ''),
         ];
+    }
+
+    public function isPublicRoute(string $route): bool
+    {
+        return Str::is(config('navigation.public_routes', []), $route);
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function quickActions(User $user): array
+    {
+        if (! app(NavigationContext::class)->canAccessMembers($user)) {
+            return [];
+        }
+
+        $state = $this->buildVisibilityState($user);
+        $governance = $state['has_vorstand_role'];
+
+        return collect(config('navigation.quick_actions', []))
+            ->filter(function (array $entry) use ($user, $state, $governance): bool {
+                if (($entry['audience'] ?? '') === 'governance' && ! $governance) {
+                    return false;
+                }
+                if (($entry['audience'] ?? '') === 'member' && $governance) {
+                    return false;
+                }
+
+                return $this->passesVisibility($entry, $user, [], $state);
+            })
+            ->take(4)
+            ->map(fn (array $entry): array => [
+                'title' => $entry['title'],
+                'icon' => $entry['icon'],
+                'href' => route($entry['route'], $entry['parameters'] ?? []).(isset($entry['fragment']) ? '#'.$entry['fragment'] : ''),
+                'public' => $this->isPublicRoute($entry['route']),
+            ])->values()->all();
     }
 
     /**

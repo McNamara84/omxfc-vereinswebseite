@@ -69,7 +69,7 @@ export const enhanceTopUserList = (container, users = undefined) => {
     container
         .querySelectorAll('[data-dashboard-top-user-item]')
         .forEach((item) => {
-            if (!item.hasAttribute('role')) {
+            if (container.getAttribute('role') === 'list' && !item.hasAttribute('role')) {
                 item.setAttribute('role', 'listitem');
             }
         });

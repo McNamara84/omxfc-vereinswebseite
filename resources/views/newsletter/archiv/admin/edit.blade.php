@@ -1,5 +1,5 @@
 <x-member-layout title="Newsletter-Archiv bearbeiten">
-    <x-member-page class="max-w-5xl space-y-8">
+    <x-member-page class="max-w-5xl space-y-6">
         @php
             $initialTopics = \App\Support\NewsletterTopics::normalize(old('topics', $newsletterAusgabe->topics ?? []));
 
@@ -100,7 +100,7 @@
                                         <span class="label-text">Text</span>
                                     </label>
                                     <textarea x-bind:id="'topic-content-' + index" x-bind:name="'topics[' + index + '][content]'" x-model="topic.content" class="textarea textarea-bordered w-full" rows="6" required></textarea>
-                                    <p class="mt-2 text-xs text-base-content/60">Markdown wird unterstützt. Die Formatierung erscheint später im Archiv und in der Mail als HTML.</p>
+                                    <p class="mt-2 text-xs text-base-content/75">Markdown wird unterstützt. Die Formatierung erscheint später im Archiv und in der Mail als HTML.</p>
                                 </div>
 
                                 <div class="space-y-3" x-show="topic.images.length > 0">
@@ -124,7 +124,7 @@
                                         <span class="label-text">Neue Bilder</span>
                                     </label>
                                     <input x-bind:id="'topic-images-' + index" x-bind:name="'topics[' + index + '][images][]'" type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="file-input file-input-bordered w-full">
-                                    <p class="mt-2 text-xs text-base-content/60">Mehrere Bilder pro Thema sind möglich. Neue Uploads werden an die vorhandenen Bilder angehängt.</p>
+                                    <p class="mt-2 text-xs text-base-content/75">Mehrere Bilder pro Thema sind möglich. Neue Uploads werden an die vorhandenen Bilder angehängt.</p>
                                 </div>
                             </div>
                         </x-ui.panel>

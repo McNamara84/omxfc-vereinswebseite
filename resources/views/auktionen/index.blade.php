@@ -2,7 +2,7 @@
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/50">Community</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/75">Community</p>
                 <h1 class="font-display text-4xl font-semibold tracking-tight text-base-content">Auktionen</h1>
                 <p class="max-w-3xl text-sm leading-relaxed text-base-content/70">
                     Alle laufenden und abgeschlossenen Auktionen inklusive offenem Gebotsverlauf. Automatisches Bieten gibt es nicht.
@@ -34,7 +34,7 @@
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h2 class="text-2xl font-semibold text-base-content">Laufende Auktionen</h2>
-                    <p class="text-sm text-base-content/65">Gebote bleiben offen sichtbar, solange die Auktion noch nicht beendet ist.</p>
+                    <p class="text-sm text-base-content/75">Gebote bleiben offen sichtbar, solange die Auktion noch nicht beendet ist.</p>
                 </div>
             </div>
 
@@ -94,7 +94,7 @@
         <section class="space-y-4">
             <div>
                 <h2 class="text-2xl font-semibold text-base-content">Archiv</h2>
-                <p class="text-sm text-base-content/65">Abgeschlossene Auktionen bleiben mit Ergebnis und Gebotsverlauf nachvollziehbar.</p>
+                <p class="text-sm text-base-content/75">Abgeschlossene Auktionen bleiben mit Ergebnis und Gebotsverlauf nachvollziehbar.</p>
             </div>
 
             @if ($archivierteAuktionen->isEmpty())

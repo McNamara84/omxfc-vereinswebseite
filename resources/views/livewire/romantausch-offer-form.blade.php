@@ -1,4 +1,4 @@
-<x-member-page class="max-w-6xl space-y-8">
+<x-member-page class="max-w-6xl space-y-6">
     <x-ui.page-header
         :title="$this->isEditing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen'"
         eyebrow="Romantauschbörse"
@@ -10,7 +10,7 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+    <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Einzelangebot" description="Alle Pflichtfelder werden direkt via Livewire validiert. Bereits vorhandene Fotos kannst du beim Bearbeiten gezielt entfernen.">
             <form wire:submit="save" id="offer-form">
             @php
@@ -125,14 +125,14 @@
         <div class="space-y-6 xl:sticky xl:top-6">
             <x-ui.panel title="Was ein gutes Angebot ausmacht" description="Je klarer das Angebot, desto leichter wird es von passenden Gesuchen gefunden.">
                 <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Wähle die richtige Serie und den exakten Roman, damit Matching und automatische Titelauflösung sauber funktionieren.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Der Zustand sollte realistisch sein. Davon hängt ab, ob andere Mitglieder dein Angebot als passend betrachten.</li>
-                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Fotos sind optional, erhöhen aber die Aussagekraft besonders bei älteren oder gemischten Zuständen.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Wähle die richtige Serie und den exakten Roman, damit Matching und automatische Titelauflösung sauber funktionieren.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Der Zustand sollte realistisch sein. Davon hängt ab, ob andere Mitglieder dein Angebot als passend betrachten.</li>
+                    <li class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-3">Fotos sind optional, erhöhen aber die Aussagekraft besonders bei älteren oder gemischten Zuständen.</li>
                 </ul>
             </x-ui.panel>
 
             <x-ui.panel title="Baxx-Regel" description="Die Börse vergibt zusätzliche Motivation über kleine, nachvollziehbare Belohnungen.">
-                <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
+                <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
                     {{ __('romantausch.info.reward_rule.milestone_description') }}
                     <strong>{{ __('romantausch.info.reward_rule.milestone_amount') }}</strong>.
                     {{ __('romantausch.info.reward_rule.swap_description') }}

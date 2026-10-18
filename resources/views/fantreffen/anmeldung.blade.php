@@ -142,10 +142,10 @@
 </script>
 </x-slot>
 
-<div class="mx-auto w-full max-w-[88rem] space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-    <section class="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-[#8B0116] via-[#7a0214] to-[#4f0912] px-6 py-8 text-white shadow-2xl shadow-[#8B0116]/20 sm:px-8 sm:py-10">
+<div class="mx-auto w-full max-w-[88rem] space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <section class="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#8B0116] via-[#7a0214] to-[#4f0912] px-6 py-8 text-white shadow-2xl shadow-[#8B0116]/20 sm:px-8 sm:py-10">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_28rem)]"></div>
-        <div class="relative grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.85fr)] xl:items-end">
+        <div class="relative grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.85fr)] xl:items-end">
             <div class="space-y-6">
                 <div class="space-y-3">
                     <p class="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-white/60">Community Event 2026</p>
@@ -167,16 +167,16 @@
                 </div>
             </div>
 
-            <div class="grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/8 p-4 backdrop-blur">
-                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+            <div class="grid gap-3 rounded-xl border border-white/15 bg-white/8 p-4 backdrop-blur">
+                <div class="rounded-xl bg-black/15 px-4 py-4">
                     <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Highlight</p>
                     <p class="mt-1 text-lg font-semibold text-white">Signierstunde mit Autor:innen</p>
                 </div>
-                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+                <div class="rounded-xl bg-black/15 px-4 py-4">
                     <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Community-Moment</p>
                     <p class="mt-1 text-lg font-semibold text-white">Verleihung der Goldenen Taratze</p>
                 </div>
-                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+                <div class="rounded-xl bg-black/15 px-4 py-4">
                     <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Für Mitglieder</p>
                     <p class="mt-1 text-lg font-semibold text-white">Teilnahme kostenlos</p>
                 </div>
@@ -217,8 +217,8 @@
             <p>Und das Beste: Vom Veranstaltungsort der ColoniaCon sind es nur fünf Minuten zu Fuß bis zum Fantreffen – ideal, um das ganze Wochenende in Maddrax-Stimmung zu verbringen!</p>
         </x-ui.panel>
 
-        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.95fr)]">
-            <div class="lg:col-span-2 space-y-8">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.95fr)]">
+            <div class="lg:col-span-2 space-y-6">
                 {{-- Programm --}}
                 <x-ui.panel title="Programm" description="Die wichtigsten Programmpunkte des Abends auf einen Blick.">
                     <div class="space-y-4">
@@ -258,20 +258,20 @@
                 {{-- Kosten --}}
                 <x-ui.panel title="Kosten" description="Transparent, knapp und direkt mit den wichtigsten Optionen.">
                     <div class="grid gap-3">
-                        <div class="rounded-[1.5rem] bg-success/10 p-4">
+                        <div class="rounded-xl bg-success/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Vereinsmitglieder</div>
                             <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-success">kostenlos</strong></p>
                         </div>
-                        <div class="rounded-[1.5rem] bg-info/10 p-4">
+                        <div class="rounded-xl bg-info/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Gäste</div>
                             <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-info">5,00 €</strong> Spende erbeten</p>
                         </div>
-                        <div class="rounded-[1.5rem] bg-secondary/10 p-4">
+                        <div class="rounded-xl bg-secondary/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Event-T-Shirt (optional)</div>
                             <p class="text-sm text-base-content/70">
                                 <strong class="text-secondary">25,00 €</strong> Spende
                             </p>
-                            <p class="text-xs text-base-content/50 mt-1 italic">
+                            <p class="text-xs text-base-content/75 mt-1 italic">
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
                             <x-fantreffen-tshirt-deadline-notice
@@ -373,7 +373,7 @@
                                     />
                                     <div x-data="{ tshirtBestellt: {{ old('tshirt_bestellt') ? 'true' : 'false' }} }">
                                         <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" x-model="tshirtBestellt" data-testid="fantreffen-tshirt-checkbox" />
-                                        <p class="text-xs text-base-content/50 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
+                                        <p class="text-xs text-base-content/75 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
 
                                         <div id="tshirt-groesse-container" data-testid="fantreffen-tshirt-container" class="mt-3" x-show="tshirtBestellt" x-cloak
                                              x-transition:enter="transition ease-out duration-200"

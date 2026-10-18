@@ -1,3 +1,5 @@
+@php($pageNavigation = app(\App\Support\Navigation\PageNavigation::class)->resolve(auth()->user(), 'public'))
+@php($title = $title ?? ($pageNavigation['title'] . ' – Offizieller MADDRAX Fanclub e. V.'))
 <!DOCTYPE html>
 <html lang="de" data-theme="caramellatte">
 <head>
@@ -44,6 +46,9 @@
         @unless($isMinimalTestLayout)
             @livewire('navigation-menu')
         @endunless
+
+        <x-ui.public-context />
+        <x-ui.breadcrumbs :items="$pageNavigation['breadcrumbs']" />
 
         {{-- Main Content --}}
         <main id="main-content" tabindex="-1" class="relative w-full scroll-mt-24 pb-12 pt-3 sm:pt-5 lg:pb-16">

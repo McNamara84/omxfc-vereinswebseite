@@ -71,7 +71,7 @@
                     $timelineMax = max((int) ($this->searchesOverTime->max('total') ?? 0), 1);
                 @endphp
                 @if($this->searchesOverTime->isEmpty())
-                    <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
+                    <p class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/75">
                         Keine Suchdaten im gewählten Zeitraum.
                     </p>
                 @else
@@ -82,7 +82,7 @@
                             @endphp
                             <div class="flex min-w-10 flex-1 flex-col items-center justify-end gap-2" title="{{ $entry['day'] }}: {{ $entry['total'] }}">
                                 <div class="w-full rounded-t bg-primary/75" style="height: {{ $height }}%"></div>
-                                <span class="text-[0.68rem] text-base-content/55">{{ $entry['label'] }}</span>
+                                <span class="text-[0.68rem] text-base-content/75">{{ $entry['label'] }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -98,14 +98,14 @@
                         <div>
                             <div class="mb-1 flex justify-between gap-3 text-sm">
                                 <span class="font-medium">{{ $entry['label'] }}</span>
-                                <span class="tabular-nums text-base-content/60">{{ $entry['total'] }}</span>
+                                <span class="tabular-nums text-base-content/75">{{ $entry['total'] }}</span>
                             </div>
                             <div class="h-3 overflow-hidden rounded-full bg-base-200">
                                 <div class="h-full rounded-full bg-accent" style="width: {{ max(4, ($entry['total'] / $sourceMax) * 100) }}%"></div>
                             </div>
                         </div>
                     @empty
-                        <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
+                        <p class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/75">
                             Keine Quellen im gewählten Zeitraum.
                         </p>
                     @endforelse
@@ -123,7 +123,7 @@
                         <div>
                             <div class="mb-1 flex justify-between gap-3 text-sm">
                                 <span class="font-medium">{{ $entry['query'] }}</span>
-                                <span class="tabular-nums text-base-content/60">{{ $entry['total'] }}</span>
+                                <span class="tabular-nums text-base-content/75">{{ $entry['total'] }}</span>
                             </div>
                             <div class="h-3 overflow-hidden rounded-full bg-base-200">
                                 <div class="h-full rounded-full bg-primary" style="width: {{ max(4, ($entry['total'] / $topMax) * 100) }}%"></div>
@@ -133,7 +133,7 @@
                             @endif
                         </div>
                     @empty
-                        <p class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/60">
+                        <p class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-6 text-center text-base-content/75">
                             Keine Suchbegriffe im gewählten Zeitraum.
                         </p>
                     @endforelse
@@ -157,7 +157,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="2" class="py-6 text-center text-base-content/60">Keine Nulltreffer im gewählten Zeitraum.</td>
+                                    <td colspan="2" class="py-6 text-center text-base-content/75">Keine Nulltreffer im gewählten Zeitraum.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -184,7 +184,7 @@
                                 <td>
                                     <span class="font-medium">{{ $entry['user']?->name ?? 'Gelöschter Nutzer' }}</span>
                                     @if($entry['user']?->email)
-                                        <span class="block text-xs text-base-content/55">{{ $entry['user']->email }}</span>
+                                        <span class="block text-xs text-base-content/75">{{ $entry['user']->email }}</span>
                                     @endif
                                 </td>
                                 <td class="text-right tabular-nums">{{ $entry['total'] }}</td>
@@ -194,7 +194,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="py-6 text-center text-base-content/60">Keine Nutzerstatistik im gewählten Zeitraum.</td>
+                                <td colspan="5" class="py-6 text-center text-base-content/75">Keine Nutzerstatistik im gewählten Zeitraum.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -245,7 +245,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="py-6 text-center text-base-content/60">Keine Suchlogs im gewählten Zeitraum.</td>
+                                <td colspan="7" class="py-6 text-center text-base-content/75">Keine Suchlogs im gewählten Zeitraum.</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -42,7 +42,7 @@
                 </div>
             </x-ui.panel>
         @else
-            <div class="space-y-8" data-fanfiction-list>
+            <div class="space-y-6" data-fanfiction-list>
                 @foreach ($fanfictions as $fanfiction)
                     @php
                         $isUnlocked = !$fanfiction->reward || in_array($fanfiction->id, $unlockedFanfictionIds);
