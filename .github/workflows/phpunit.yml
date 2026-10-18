@@ -121,7 +121,7 @@ jobs:
     name: PHP 8.5 Maddraxikon (MariaDB 13.0)
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:fe70467ededa74ba50d127b5822c2d554d56be27a90b3ef23da9624d993b1a74
+        image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
         env:
           MARIADB_DATABASE: omxfc_maddraxikon_test
           MARIADB_USER: omxfc_test
@@ -179,7 +179,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:fe70467ededa74ba50d127b5822c2d554d56be27a90b3ef23da9624d993b1a74
+        image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
         env:
           MARIADB_DATABASE: omxfc_rpg_test
           MARIADB_USER: omxfc_test
@@ -238,7 +238,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:fe70467ededa74ba50d127b5822c2d554d56be27a90b3ef23da9624d993b1a74
+        image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
         env:
           MARIADB_DATABASE: omxfc_veranstaltungen_test
           MARIADB_USER: omxfc_test

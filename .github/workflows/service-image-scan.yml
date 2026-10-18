@@ -33,10 +33,10 @@ jobs:
             file: docker/playwright-php.Dockerfile
           - image: node:26.12.0-alpine3.24@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5
             target: node-base
-          - image: nginx:1.30.6-alpine3.24-slim@sha256:3028fc1419f99b95c1c69f844bbaf49dc1b881750c51b497fc721ac4f02a14e6
+          - image: nginx:1.31.7-alpine3.24-slim@sha256:ebd058041a732a2b2dc0b606e34572dd8e0034de6a4aa4d50d8c13a240ac6005
             target: nginx
             file: docker/nginx.Dockerfile
-          - image: mariadb:13.0.2@sha256:fe70467ededa74ba50d127b5822c2d554d56be27a90b3ef23da9624d993b1a74
+          - image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
             target: mariadb
             file: docker/mariadb.Dockerfile
 

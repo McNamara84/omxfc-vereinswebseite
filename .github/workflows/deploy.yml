@@ -63,7 +63,7 @@ jobs:
           no-cache: true
           sbom: true
           provenance: mode=max
-          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:nginx-1.30.6
+          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:nginx-1.31.7
           labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
 
       - name: Scan patched Nginx before deployment
