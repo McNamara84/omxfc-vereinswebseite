@@ -28,6 +28,7 @@ export default async function globalSetup() {
     process.env.COVER_RATINGS_SYNC_ENABLED = 'false';
     process.env.BILDERSUCHE_ENABLED = 'true';
     process.env.BILDERSUCHE_SYNC_ENABLED = 'false';
+    process.env.BILDERSUCHE_AG_TEAM_ID = '900001';
 
     if (fs.existsSync(databasePath)) {
         fs.rmSync(databasePath);

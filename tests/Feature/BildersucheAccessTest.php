@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Livewire\BelohnungenAdmin;
 use App\Livewire\BelohnungenIndex;
 use App\Livewire\Bildersuche;
 use App\Models\Reward;
@@ -13,10 +14,12 @@ use App\Services\BildersucheAccessService;
 use App\Services\RewardService;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\CreatesBildersucheCover;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -30,7 +33,7 @@ class BildersucheAccessTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['bildersuche.enabled' => true, 'cover-ratings.enabled' => false]);
+        config(['bildersuche.enabled' => true, 'bildersuche.ag_team_id' => null, 'cover-ratings.enabled' => false]);
         Storage::fake('private');
     }
 
@@ -38,6 +41,7 @@ class BildersucheAccessTest extends TestCase
     {
         $team = Team::factory()->create(['name' => 'AG Maddraxikon', 'personal_team' => false]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+        config(['bildersuche.ag_team_id' => $team->id]);
 
         return $team;
     }
@@ -103,6 +107,75 @@ class BildersucheAccessTest extends TestCase
         Reward::where('slug', 'bildersuche')->update(['is_active' => false]);
         Livewire::test(Bildersuche::class)->assertSee('Freischaltung ist derzeit nicht verfügbar')->call('purchase')->assertHasErrors('reward');
         $this->assertDatabaseCount('reward_purchases', 0);
+    }
+
+    #[DataProvider('untrustedTeams')]
+    public function test_same_name_and_personal_teams_do_not_grant_free_access(bool $personal, bool $configured, string $purchasePath): void
+    {
+        $user = $this->actingMemberWithPoints(100);
+        $trustedAg = Team::factory()->create(['name' => 'AG Maddraxikon', 'personal_team' => false]);
+        $otherTeam = Team::factory()->create(['user_id' => $user->id, 'name' => 'Unrelated team', 'personal_team' => $personal]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+        $otherTeam->update(['name' => 'AG Maddraxikon']);
+        config(['bildersuche.ag_team_id' => $configured ? $otherTeam->id : $trustedAg->id]);
+        $cover = $this->searchCover(1, ['Aruula']);
+        $access = app(BildersucheAccessService::class);
+
+        $this->assertFalse($access->hasAccess($user));
+        $this->get(route('bildersuche.cover', [$cover, 'small']))->assertForbidden();
+        Livewire::test(Bildersuche::class)->assertSee('100 Baxx')->call('performSearch')->assertForbidden();
+        Livewire::test(BelohnungenIndex::class)->assertDontSee('Zugang durch AG-Mitgliedschaft')->assertDontSee('Zur Bildersuche');
+
+        if ($purchasePath === 'rewards') {
+            Livewire::test(BelohnungenIndex::class)->call('purchase', Reward::where('slug', 'bildersuche')->value('id'))
+                ->assertSee('Zur Bildersuche')->assertDontSee('Zugang durch AG-Mitgliedschaft');
+        } else {
+            Livewire::test(Bildersuche::class)->call('purchase')->assertHasNoErrors()->assertSee('bildersuche-query', false);
+        }
+        $this->assertTrue($access->hasAccess($user));
+        $this->assertSame(0, app(RewardService::class)->getAvailableBaxx($user));
+        $this->assertDatabaseCount('reward_purchases', 1);
+    }
+
+    public static function untrustedTeams(): array
+    {
+        return [
+            'unrelated team / search' => [false, false, 'search'],
+            'unrelated team / rewards' => [false, false, 'rewards'],
+            'personal team / search' => [true, false, 'search'],
+            'personal team / rewards' => [true, false, 'rewards'],
+            'configured personal team / search' => [true, true, 'search'],
+            'configured personal team / rewards' => [true, true, 'rewards'],
+        ];
+    }
+
+    public function test_trusted_ag_identity_survives_rename_but_not_membership_removal(): void
+    {
+        $user = $this->actingMemberWithPoints(100);
+        $ag = $this->joinAg($user);
+        $ag->update(['name' => 'Umbenannte Arbeitsgruppe']);
+        config(['bildersuche.ag_team_id' => (string) $ag->id]);
+        $this->assertTrue(app(BildersucheAccessService::class)->hasAccess($user));
+        Livewire::test(BelohnungenIndex::class)->assertSee('Zugang durch AG-Mitgliedschaft');
+        Livewire::test(Bildersuche::class)->call('purchase')->assertHasErrors('reward');
+        $ag->users()->detach($user);
+        $this->assertFalse(app(BildersucheAccessService::class)->hasAccess($user));
+        Livewire::test(BelohnungenIndex::class)->assertDontSee('Zugang durch AG-Mitgliedschaft');
+        $this->assertDatabaseCount('reward_purchases', 0);
+    }
+
+    #[DataProvider('invalidAgIdentities')]
+    public function test_missing_or_invalid_ag_identity_never_falls_back_to_the_name(mixed $teamId): void
+    {
+        $user = $this->actingMember();
+        $this->joinAg($user);
+        config(['bildersuche.ag_team_id' => $teamId]);
+        $this->assertFalse(app(BildersucheAccessService::class)->hasAccess($user));
+    }
+
+    public static function invalidAgIdentities(): array
+    {
+        return [[null], [''], [0], [-1], ['not-an-id'], ['1abc'], ['1.5'], [999999]];
     }
 
     public function test_existing_kompendium_purchase_does_not_unlock_bildersuche(): void
@@ -198,6 +271,42 @@ class BildersucheAccessTest extends TestCase
             ->call('showCover', 999999)->assertNotFound();
     }
 
+    public function test_each_search_request_fetches_the_paginator_and_relationships_only_once(): void
+    {
+        $user = $this->actingMember();
+        $this->joinAg($user);
+        foreach (range(1, 25) as $number) {
+            $this->searchCover($number, ['Matthew Drax', 'Schwert']);
+        }
+
+        $this->assertSingleSearch(fn () => Livewire::withQueryParams(['q' => 'Drax Schwert', 'page' => 2])
+            ->test(Bildersuche::class)->assertSee('Testroman 25'));
+        $component = Livewire::withQueryParams([])->test(Bildersuche::class)->set('query', 'Drax Schwert');
+        $this->assertSingleSearch(fn () => $component->call('performSearch')->assertSee('Testroman 1'));
+        $this->assertSingleSearch(fn () => $component->set('series', 'maddrax')->assertSee('Testroman 1'));
+        $this->assertSingleSearch(fn () => $component->call('gotoPage', 2)->assertSee('Testroman 25'));
+    }
+
+    private function assertSingleSearch(callable $request): void
+    {
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        try {
+            $request();
+            $queries = collect(DB::getQueryLog())->pluck('query');
+            $searchQueries = $queries->filter(fn (string $sql) => str_contains($sql, 'normalized_keyword LIKE'));
+            $this->assertCount(2, $searchQueries, 'Exactly one pagination count and one result query per request.');
+            $this->assertCount(1, $searchQueries->filter(fn (string $sql) => str_contains($sql, 'count(*)')));
+            foreach (['books', 'book_cover_keywords'] as $relation) {
+                $this->assertCount(1, $queries->filter(fn (string $sql) => preg_match('/^select \* from [`"]'.$relation.'[`"] /i', $sql)),
+                    'Load '.$relation.' only once per search.');
+            }
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+    }
+
     public function test_preview_id_cannot_be_injected(): void
     {
         $user = $this->actingMember();
@@ -237,17 +346,56 @@ class BildersucheAccessTest extends TestCase
         $this->assertDatabaseCount('reward_purchases', 0);
     }
 
-    public function test_reward_migration_is_idempotent_and_rollback_keeps_purchase_history(): void
+    public function test_reward_migration_reapplication_restores_availability_and_keeps_customizations_and_purchases(): void
     {
         $user = $this->actingMemberWithPoints(100);
         $reward = Reward::where('slug', 'bildersuche')->firstOrFail();
         app(RewardService::class)->purchaseReward($user, $reward);
-        $reward->update(['cost_baxx' => 123]);
+        $reward->update(['cost_baxx' => 123, 'title' => 'Individuelle Bildersuche', 'description' => 'Eigene Beschreibung', 'sort_order' => 42]);
+        $customized = $reward->only(['id', 'slug', 'title', 'description', 'category', 'cost_baxx', 'sort_order', 'created_at']);
         $migration = require database_path('migrations/2026_10_18_120100_add_bildersuche_reward.php');
         $migration->up();
         $this->assertSame(123, $reward->fresh()->cost_baxx);
         $migration->down();
+        $migration->down();
         $this->assertFalse($reward->fresh()->is_active);
+        $this->assertTrue(app(BildersucheAccessService::class)->hasAccess($user));
+        $migration->up();
+        $migration->up();
+        $this->assertTrue($reward->fresh()->is_active);
+        $this->assertEquals($customized, $reward->fresh()->only(array_keys($customized)));
         $this->assertSame(1, RewardPurchase::count());
+        $this->assertDatabaseHas('reward_purchases', ['reward_id' => $reward->id, 'user_id' => $user->id, 'cost_baxx' => 100]);
+        $newBuyer = $this->actingMemberWithPoints(123);
+        app(RewardService::class)->purchaseReward($newBuyer, $reward->fresh());
+        $this->assertSame(0, app(RewardService::class)->getAvailableBaxx($newBuyer));
+    }
+
+    public function test_reward_migration_preserves_an_existing_admin_deactivation(): void
+    {
+        $reward = Reward::where('slug', 'bildersuche')->firstOrFail();
+        $reward->update(['is_active' => false, 'cost_baxx' => 123]);
+        $migration = require database_path('migrations/2026_10_18_120100_add_bildersuche_reward.php');
+        $migration->up();
+        $migration->down();
+        $migration->up();
+        $this->assertFalse($reward->fresh()->is_active);
+        $this->assertSame(123, $reward->fresh()->cost_baxx);
+        $this->assertDatabaseHas('rewards', ['id' => $reward->id, 'disabled_by_rollback' => false]);
+    }
+
+    public function test_admin_saving_inactive_status_after_rollback_prevents_reactivation(): void
+    {
+        $this->actingAdmin();
+        config(['app.testing_minimal_belohnungen_admin' => true]);
+        $reward = Reward::where('slug', 'bildersuche')->firstOrFail();
+        $migration = require database_path('migrations/2026_10_18_120100_add_bildersuche_reward.php');
+        $migration->down();
+        $this->assertDatabaseHas('rewards', ['id' => $reward->id, 'disabled_by_rollback' => true]);
+        Livewire::test(BelohnungenAdmin::class)->call('openEditReward', $reward->id)
+            ->set('rewardIsActive', false)->call('saveReward')->assertHasNoErrors();
+        $migration->up();
+        $this->assertFalse($reward->fresh()->is_active);
+        $this->assertDatabaseHas('rewards', ['id' => $reward->id, 'disabled_by_rollback' => false]);
     }
 }

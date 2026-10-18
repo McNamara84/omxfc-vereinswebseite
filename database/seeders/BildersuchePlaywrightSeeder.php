@@ -22,7 +22,10 @@ class BildersuchePlaywrightSeeder extends Seeder
         if (! $members) {
             throw new RuntimeException('Das Mitglieder-Team für die Testdaten fehlt.');
         }
-        $ag = Team::query()->firstOrCreate(['name' => 'AG Maddraxikon'], ['user_id' => $members->user_id, 'personal_team' => false]);
+        $ag = Team::unguarded(fn () => Team::query()->firstOrCreate(
+            ['id' => config('bildersuche.ag_team_id')],
+            ['name' => 'AG Maddraxikon', 'user_id' => $members->user_id, 'personal_team' => false],
+        ));
         foreach (['chromium', 'firefox', 'webkit'] as $browser) {
             foreach (['ag', 'purchase', 'locked'] as $flow) {
                 foreach ([0, 1, 2] as $retry) {

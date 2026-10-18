@@ -79,7 +79,7 @@ class BelohnungenIndex extends Component
         }
 
         $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx, $user) {
-            $agAccess = $reward->slug === 'bildersuche' && $user->isMemberOfTeam('AG Maddraxikon');
+            $agAccess = $reward->slug === 'bildersuche' && app(BildersucheAccessService::class)->isAgMember($user);
             $purchased = $agAccess || in_array($reward->slug, $unlockedRewardSlugs, true);
             $canAfford = $walletAvailableBaxx !== null && $walletAvailableBaxx >= $reward->cost_baxx;
             $missingBaxx = $walletAvailableBaxx !== null && ! $canAfford

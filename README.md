@@ -570,6 +570,12 @@ Maddraxikon. Die Zahl „durchsuchbare Cover“ beschreibt den derzeitigen Besta
 eine vollständig abgeschlossene Verschlagwortung wird nicht vorausgesetzt.
 
 Verifizierte Vereinsmitglieder der **AG Maddraxikon** erhalten automatisch Zugang.
+Die AG wird über `BILDERSUCHE_AG_TEAM_ID` anhand ihrer festen Datenbank-ID
+zugeordnet. Vor der Freigabe die tatsächliche AG (einschließlich Leitung und
+Mitgliedschaften) prüfen und deren ID konfigurieren; der Teamname allein ist
+kein Identitätsnachweis. Ohne gültige ID gibt es keinen kostenlosen AG-Zugang.
+Gleichnamige oder persönliche Teams erhalten dadurch keine Berechtigung;
+eine Umbenennung der zugeordneten AG ändert ihren Zugang nicht.
 Andere Mitglieder schalten die Bildersuche einmalig für **100 Baxx** frei, direkt
 auf der Seite oder im Belohnungsbereich. Die Kompendium-Freischaltung ist davon
 unabhängig. AG-Mitgliedern wird kein kostenpflichtiger Kauf angeboten. Der
@@ -582,6 +588,7 @@ Zur Einführung zunächst Migrationen ausführen und den Import aktivieren:
 COVER_RATINGS_SYNC_ENABLED=true
 BILDERSUCHE_SYNC_ENABLED=true
 BILDERSUCHE_ENABLED=false
+BILDERSUCHE_AG_TEAM_ID=
 ```
 
 ```bash
@@ -593,7 +600,8 @@ Anschließend `BILDERSUCHE_ENABLED=true` setzen, den Konfigurationscache erneuer
 und die Queue-Worker gemäß dem bestehenden Deployment-Verfahren neu laden.
 Im lokalen Docker-Stack heißen die entsprechenden Variablen
 `DOCKER_DEV_COVER_RATINGS_SYNC_ENABLED`, `DOCKER_DEV_BILDERSUCHE_SYNC_ENABLED`
-und `DOCKER_DEV_BILDERSUCHE_ENABLED` in `.env.docker.dev.local`.
+und `DOCKER_DEV_BILDERSUCHE_ENABLED` in `.env.docker.dev.local`;
+die AG-ID wird dort als `DOCKER_DEV_BILDERSUCHE_AG_TEAM_ID` gesetzt.
 
 Der bestehende Cover-Scheduler übernimmt danach auch die Schlagworte, standardmäßig
 täglich um 03:15 Uhr in der Scheduler-Zeitzone. Es gibt keinen zusätzlichen
@@ -619,6 +627,13 @@ Ablauf bestehen bleiben. Die CLI begrenzt lange Läufe vor Ablauf der Sperre.
 Zum Abschalten genügt `BILDERSUCHE_ENABLED=false`; der Keyword-Abgleich lässt sich
 separat deaktivieren. Bestehende Cover, Bewertungen und Käufe bleiben erhalten.
 Die Suche arbeitet lokal und benötigt beim Suchen keine Verbindung zum Wiki.
+
+Ein Rollback der Belohnungsmigration deaktiviert neue Freischaltungen und behält
+die Belohnung samt ID, Preis und Kaufhistorie. Die Spalte `disabled_by_rollback`
+bleibt ebenfalls bestehen: Beim erneuten Anwenden werden nur durch den Rollback
+deaktivierte Belohnungen wieder aktiviert. Bereits vorher administrativ
+deaktivierte Belohnungen bleiben inaktiv. Eine explizite Statusentscheidung in
+der Belohnungsverwaltung nach dem Rollback hebt die Vormerkung ebenfalls auf.
 
 Gezielte Prüfungen im isolierten Teststack:
 

@@ -20,8 +20,18 @@ class BildersucheAccessService
     public function hasAccess(User $user): bool
     {
         return (bool) config('bildersuche.enabled') && $this->isEligible($user)
-            && ($user->isMemberOfTeam('AG Maddraxikon')
+            && ($this->isAgMember($user)
                 || app(RewardService::class)->hasUnlockedReward($user, 'bildersuche'));
+    }
+
+    public function isAgMember(User $user): bool
+    {
+        // Only deployment configuration establishes the trusted AG identity.
+        // A matching display name must never grant access.
+        $teamId = filter_var(config('bildersuche.ag_team_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+
+        return $teamId !== false && $user->teams()
+            ->whereKey($teamId)->where('personal_team', false)->exists();
     }
 
     public function ensureMemberAccess(): User
@@ -46,7 +56,7 @@ class BildersucheAccessService
         if (! config('bildersuche.enabled') || ! $this->isEligible($user)) {
             throw ValidationException::withMessages(['reward' => 'Die Bildersuche ist für dein Konto derzeit nicht verfügbar.']);
         }
-        if ($user->isMemberOfTeam('AG Maddraxikon')) {
+        if ($this->isAgMember($user)) {
             throw ValidationException::withMessages(['reward' => 'Du hast bereits Zugang durch deine Mitgliedschaft in der AG Maddraxikon.']);
         }
     }

@@ -40,17 +40,22 @@ class BildersucheService
             : $query->whereColumn('keywords_source_file_title', 'source_file_title');
     }
 
-    public function search(string $query, string $series = 'all', int $page = 1): LengthAwarePaginator
+    public function validateInput(string $query, string $series = 'all', int $page = 1): void
     {
-        $terms = $this->terms($query);
-        $type = BookType::fromKey($series);
-        if ($series !== 'all' && ! $type) {
+        $this->terms($query);
+        if ($series !== 'all' && ! BookType::fromKey($series)) {
             throw ValidationException::withMessages(['series' => 'Bitte wähle eine gültige Serie.']);
         }
         if ($page < 1 || $page > 100_000) {
             throw ValidationException::withMessages(['page' => 'Ungültige Ergebnisseite.']);
         }
+    }
 
+    public function search(string $query, string $series = 'all', int $page = 1): LengthAwarePaginator
+    {
+        $this->validateInput($query, $series, $page);
+        $terms = $this->terms($query);
+        $type = BookType::fromKey($series);
         $covers = $this->searchable()->with(['book', 'keywords']);
         foreach ($terms as $term) {
             $pattern = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term).'%';

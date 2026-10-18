@@ -36,7 +36,7 @@ class Bildersuche extends Component
         $user = $access->ensureMemberAccess();
         if (trim($this->query) !== '' && $access->hasAccess($user)) {
             try {
-                app(BildersucheService::class)->search($this->query, $this->series, $this->getPage());
+                app(BildersucheService::class)->validateInput($this->query, $this->series, $this->getPage());
                 $this->hasSearched = true;
             } catch (ValidationException $exception) {
                 $this->setErrorBag($exception->errors());
@@ -51,7 +51,7 @@ class Bildersuche extends Component
         $this->previewId = null;
         $this->resetPage();
         $this->resetValidation();
-        app(BildersucheService::class)->search($this->query, $this->series);
+        app(BildersucheService::class)->validateInput($this->query, $this->series);
         $this->hasSearched = true;
     }
 
