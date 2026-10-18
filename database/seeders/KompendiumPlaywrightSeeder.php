@@ -24,6 +24,7 @@ class KompendiumPlaywrightSeeder extends Seeder
         // Keep the search fixture separate from users whose locked rewards
         // are exercised by other browser tests.
         $searchMember = User::factory()->create([
+            'name' => 'Playwright Kompendium-Suchmitglied',
             'email' => 'playwright-kompendium@example.com',
             'current_team_id' => $team->id,
         ]);

@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\Reward;
+use App\Services\BildersucheAccessService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -68,14 +70,15 @@ class BelohnungenIndex extends Component
         $unlockedRewardSlugs = $rewardService->getUnlockedRewardSlugs($user);
         $walletAvailableBaxx = $this->hasAvailableWallet ? $this->availableBaxx : null;
 
-        $query = Reward::active()->orderBy('sort_order')->orderBy('cost_baxx');
+        $query = $this->visibleRewardsQuery()->orderBy('sort_order')->orderBy('cost_baxx');
 
         if ($this->categoryFilter !== 'alle') {
             $query->byCategory($this->categoryFilter);
         }
 
-        $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx) {
-            $purchased = in_array($reward->slug, $unlockedRewardSlugs, true);
+        $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx, $user) {
+            $agAccess = $reward->slug === 'bildersuche' && app(BildersucheAccessService::class)->isAgMember($user);
+            $purchased = $agAccess || in_array($reward->slug, $unlockedRewardSlugs, true);
             $canAfford = $walletAvailableBaxx !== null && $walletAvailableBaxx >= $reward->cost_baxx;
             $missingBaxx = $walletAvailableBaxx !== null && ! $canAfford
                 ? $reward->cost_baxx - $walletAvailableBaxx
@@ -88,6 +91,8 @@ class BelohnungenIndex extends Component
                 'category' => $reward->category,
                 'cost_baxx' => $reward->cost_baxx,
                 'purchased' => $purchased,
+                'ag_access' => $agAccess,
+                'feature_url' => $reward->slug === 'bildersuche' && $purchased ? route('bildersuche.index') : null,
                 'can_afford' => $canAfford,
                 'wallet_unavailable' => $walletAvailableBaxx === null,
                 'missing_baxx' => $missingBaxx,
@@ -107,12 +112,22 @@ class BelohnungenIndex extends Component
     #[Computed]
     public function categories(): array
     {
-        return Reward::active()
+        return $this->visibleRewardsQuery()
             ->select('category')
             ->distinct()
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
+    }
+
+    private function visibleRewardsQuery(): Builder
+    {
+        $query = Reward::active();
+        if (! config('bildersuche.enabled') || ! app(BildersucheAccessService::class)->isEligible(Auth::user())) {
+            $query->where('slug', '!=', 'bildersuche');
+        }
+
+        return $query;
     }
 
     #[Computed]

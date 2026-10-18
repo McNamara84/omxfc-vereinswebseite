@@ -45,6 +45,10 @@ class BookCover extends Model
         'mime_type',
         'last_synced_at',
         'last_error',
+        'keywords_source_file_title',
+        'keywords_synced_at',
+        'keywords_sync_attempted_at',
+        'keywords_sync_error',
     ];
 
     protected function casts(): array
@@ -54,6 +58,8 @@ class BookCover extends Model
             'width' => 'integer',
             'height' => 'integer',
             'last_synced_at' => 'immutable_datetime',
+            'keywords_synced_at' => 'immutable_datetime',
+            'keywords_sync_attempted_at' => 'immutable_datetime',
         ];
     }
 
@@ -65,6 +71,11 @@ class BookCover extends Model
     public function ratings(): HasMany
     {
         return $this->hasMany(CoverRating::class);
+    }
+
+    public function keywords(): HasMany
+    {
+        return $this->hasMany(BookCoverKeyword::class)->orderBy('normalized_keyword');
     }
 
     public function isReady(): bool

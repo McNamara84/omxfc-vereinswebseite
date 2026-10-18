@@ -62,6 +62,7 @@ return [
                 ],
                 ['title' => 'Fanfiction', 'route' => 'fanfiction.index', 'active_patterns' => ['fanfiction.index', 'fanfiction.show', 'fanfiction.create', 'fanfiction.edit'], 'tour_key' => 'community-fanfiction', 'icon' => 'o-pencil-square'],
                 ['title' => 'Kompendium', 'route' => 'kompendium.index', 'active_patterns' => ['kompendium.*'], 'tour_key' => 'content-kompendium', 'icon' => 'o-book-open'],
+                ['title' => 'Bildersuche', 'route' => 'bildersuche.index', 'active_patterns' => ['bildersuche.*'], 'tour_key' => 'content-bildersuche', 'icon' => 'o-photo', 'config_enabled' => 'bildersuche.enabled', 'search_aliases' => ['Cover', 'Cover-Suche', 'Maddrax-Bildersuche']],
                 ['title' => 'Downloads', 'route' => 'downloads', 'active_patterns' => ['downloads', 'downloads.*'], 'tour_key' => 'content-downloads', 'icon' => 'o-arrow-down-tray'],
                 ['title' => '3D-Modelle', 'route' => '3d-modelle.index', 'active_patterns' => ['3d-modelle.*'], 'tour_key' => 'content-3d-models', 'icon' => 'o-cube'],
                 ['title' => 'Maddraxiversum', 'route' => 'maddraxiversum.index', 'tour_key' => 'content-maddraxiversum', 'icon' => 'o-globe-europe-africa'],

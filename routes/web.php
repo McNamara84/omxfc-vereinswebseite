@@ -9,6 +9,7 @@ use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\AuktionController;
 use App\Http\Controllers\AuktionVerwaltungController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
+use App\Http\Controllers\BildersucheImageController;
 use App\Http\Controllers\CoverImageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
@@ -50,6 +51,7 @@ use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Livewire\BelohnungenAdmin;
 use App\Livewire\BelohnungenIndex;
+use App\Livewire\Bildersuche;
 use App\Livewire\CoverRatingIndex;
 use App\Livewire\CoverRatingResults;
 use App\Livewire\FanfictionCreate;
@@ -512,6 +514,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('{threeDModel}/vorschau', [ThreeDModelController::class, 'preview'])->name('preview');
         Route::livewire('{threeDModel}', ThreeDModelShow::class)->name('show');
     });
+
+    Route::livewire('/bildersuche', Bildersuche::class)->name('bildersuche.index');
+    Route::get('/bildersuche/cover/{bookCover}/{variant}', BildersucheImageController::class)
+        ->whereIn('variant', ['small', 'large'])->name('bildersuche.cover');
 
     Route::prefix('kompendium')->name('kompendium.')->group(function () {
         Route::controller(KompendiumController::class)->group(function () {

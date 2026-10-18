@@ -95,8 +95,13 @@
                                     />
                                 </div>
 
-                                <div class="flex justify-end">
-                                    @if($reward['purchased'])
+                                <div class="flex flex-wrap justify-end gap-2">
+                                    @if($reward['feature_url'])
+                                        <x-button label="Zur Bildersuche" :link="$reward['feature_url']" wire:navigate class="btn-ghost btn-sm" />
+                                    @endif
+                                    @if($reward['ag_access'])
+                                        <x-badge value="Zugang durch AG-Mitgliedschaft" class="badge-success" icon="o-lock-open" />
+                                    @elseif($reward['purchased'])
                                         <x-badge value="Freigeschaltet" class="badge-success badge-lg" icon="o-lock-open" />
                                     @elseif($reward['wallet_unavailable'])
                                         <x-badge value="Guthaben wird geprüft" class="badge-warning badge-lg" icon="o-exclamation-triangle" />

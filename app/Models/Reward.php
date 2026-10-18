@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,6 +33,20 @@ class Reward extends Model
             'is_active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected function isActive(): Attribute
+    {
+        return Attribute::make(set: function ($value): array {
+            $attributes = ['is_active' => $value];
+            // An explicit administrator decision supersedes rollback state,
+            // including saving an already inactive reward as inactive.
+            if (array_key_exists('disabled_by_rollback', $this->attributes)) {
+                $attributes['disabled_by_rollback'] = false;
+            }
+
+            return $attributes;
+        });
     }
 
     protected static function booted(): void

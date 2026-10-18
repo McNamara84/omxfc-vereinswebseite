@@ -12,6 +12,7 @@ use App\Services\TourAssignmentService;
 use App\Services\TourRegistry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class TourControllerTest extends TestCase
@@ -102,6 +103,27 @@ class TourControllerTest extends TestCase
         $this->assertSame(TourAssignmentStatus::Completed, $staleAssignment->fresh()->status);
     }
 
+    #[TestWith([true])]
+    #[TestWith([false])]
+    public function test_bildersuche_step_is_available_only_when_enabled_after_upgrading_the_previous_tour(bool $enabled): void
+    {
+        config(['bildersuche.enabled' => $enabled, 'cover-ratings.enabled' => true]);
+        $member = $this->createMember();
+        $previous = $this->createPendingAssignment($member, 7);
+        $response = $this->actingAs($member)->getJson(route('touren.current'))->assertOk()
+            ->assertJsonPath('tour.version', 8)->assertJsonCount($enabled ? 38 : 37, 'tour.steps');
+        $this->assertSame(8, $previous->fresh()->metadata['superseded_by_version']);
+        $steps = collect($response->json('tour.steps'));
+        $this->assertSame($enabled, $steps->contains('key', 'content-bildersuche'));
+        $progress = $this->postJson(route('touren.progress', $response->json('tour.assignment_id')), ['step_key' => 'content-bildersuche']);
+        if ($enabled) {
+            $this->assertArrayNotHasKey('config_enabled', $steps->firstWhere('key', 'content-bildersuche'));
+            $progress->assertOk()->assertJsonPath('tour.current_step_key', 'content-bildersuche');
+        } else {
+            $progress->assertUnprocessable()->assertJsonValidationErrors(['step_key']);
+        }
+    }
+
     public function test_progress_starts_tour_and_updates_current_step(): void
     {
         $member = $this->createMember();
@@ -131,10 +153,10 @@ class TourControllerTest extends TestCase
         $response = $this->actingAs($member)
             ->getJson(route('touren.current'))
             ->assertOk()
-            ->assertJsonPath('tour.version', 7);
+            ->assertJsonPath('tour.version', 8);
         $steps = collect($response->json('tour.steps'));
         $this->assertSame(1, $steps->where('key', 'teams-characters')->count());
-        $this->assertSame(7, $previous->fresh()->metadata['superseded_by_version']);
+        $this->assertSame(8, $previous->fresh()->metadata['superseded_by_version']);
         $this->assertNotSame($previous->id, $response->json('tour.assignment_id'));
 
         $this->postJson(route('touren.progress', $response->json('tour.assignment_id')), ['step_key' => 'teams-characters'])
