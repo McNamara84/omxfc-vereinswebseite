@@ -781,7 +781,7 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **18. Oktober 2026**. PHP 8.5.11 basiert auf Debian
+Stand der Aktualisierung: **21. Oktober 2026**. PHP 8.5.12 basiert auf Debian
 Trixie; Node 26.12.0 verwendet Alpine 3.24 und npm 12.2.0. Composer 2.10.3 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.31.7 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
