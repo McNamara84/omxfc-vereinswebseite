@@ -4,7 +4,9 @@ namespace Tests\Integration;
 
 use App\Exceptions\MaddraxikonApiException;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MaddraxikonStreakApiTest extends TestCase
@@ -20,6 +22,63 @@ class MaddraxikonStreakApiTest extends TestCase
     {
         Http::fake(['*' => Http::response(['query' => ['badrevids' => [['revid' => 42, 'missing' => true]]]])]);
         $this->assertFalse(app(MaddraxikonApiClient::class)->streakRevisionDetails([42])[42]['exists']);
+    }
+
+    #[DataProvider('mixedRevisionBatches')]
+    public function test_mixed_batches_preserve_visible_and_explicitly_missing_revisions(string $method, bool $keyed): void
+    {
+        Http::fake(function (Request $request) use ($keyed) {
+            $ids = array_map('intval', explode('|', $request['revids']));
+            $missing = [];
+            $revisions = [];
+            foreach ($ids as $id) {
+                if (in_array($id, [2, 51], true)) {
+                    $missing[$id] = ['revid' => $id, 'missing' => true];
+                } else {
+                    $revisions[] = ['revid' => $id, 'userid' => 7, 'tags' => ['manual-tag']];
+                }
+            }
+
+            return Http::response(['query' => [
+                'badrevids' => $keyed ? $missing : array_values($missing),
+                'pages' => [['pageid' => 10, 'ns' => 0, 'revisions' => $revisions]],
+            ]]);
+        });
+
+        $details = app(MaddraxikonApiClient::class)->{$method}(range(1, 52));
+
+        $this->assertSame(range(1, 52), array_keys($details));
+        foreach ($details as $id => $revision) {
+            $this->assertSame($id, $revision['revision_id']);
+            $this->assertSame(! in_array($id, [2, 51], true), $revision['exists']);
+            if ($revision['exists']) {
+                $this->assertSame(10, $revision['page_id']);
+                $this->assertSame(7, $revision['user_id']);
+                $this->assertSame(['manual-tag'], $revision['tags']);
+            }
+        }
+        Http::assertSentCount(2);
+    }
+
+    public static function mixedRevisionBatches(): array
+    {
+        return [
+            'streaks with list' => ['streakRevisionDetails', false],
+            'streaks with keyed entries' => ['streakRevisionDetails', true],
+            'regular rewards with list' => ['revisionDetails', false],
+            'regular rewards with keyed entries' => ['revisionDetails', true],
+        ];
+    }
+
+    public function test_explicit_missing_entries_do_not_hide_an_omitted_revision_in_a_mixed_batch(): void
+    {
+        Http::fake(['*' => Http::response(['query' => [
+            'badrevids' => [['revid' => 42, 'missing' => true]],
+            'pages' => [['pageid' => 10, 'ns' => 0, 'revisions' => [['revid' => 43, 'userid' => 7, 'tags' => []]]]],
+        ]])]);
+        $this->expectException(MaddraxikonApiException::class);
+        $this->expectExceptionMessage('Eine angeforderte Revision fehlt ohne ausdrücklichen Missing-Nachweis');
+        app(MaddraxikonApiClient::class)->streakRevisionDetails([42, 43, 44]);
     }
 
     public function test_visible_revision_and_explicitly_deleted_page_are_normalized(): void

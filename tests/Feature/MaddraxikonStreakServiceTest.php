@@ -352,6 +352,94 @@ class MaddraxikonStreakServiceTest extends TestCase
         $this->assertSame(1, $this->points());
     }
 
+    #[DataProvider('reconciliationBatchSizes')]
+    public function test_reconciliation_uses_constant_contribution_queries_per_batch(int $batchSize): void
+    {
+        config(['maddraxikon.streaks.batch_size' => $batchSize]);
+        $start = CarbonImmutable::parse('2026-10-01T12:00:00+02:00');
+        $this->travelTo($start->addDays($batchSize + 2));
+        MaddraxikonSyncState::query()->sole()->update(['watermark_at' => now(), 'last_succeeded_at' => now()]);
+        for ($i = 0; $i <= $batchSize; $i++) {
+            $this->source($start->addDays($i)->toIso8601String())->forceFill(['streak_status' => 'valid'])->save();
+        }
+        $extra = $this->source($start->addHour()->toIso8601String());
+        $service = app(MaddraxikonStreakService::class);
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        try {
+            $bookings = $service->reconcile($this->member->id);
+            $sourceQueries = collect(DB::getQueryLog())->filter(fn (array $query) => str_contains($query['query'], 'maddraxikon_contributions'));
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+
+        // One completeness check and one source fetch, independent of the number of days.
+        $this->assertCount(2, $sourceQueries);
+        $this->assertSame($batchSize, $bookings);
+        $this->assertSame((int) ($batchSize * ($batchSize + 1) / 2), $this->points());
+        $first = MaddraxikonStreakDay::query()->orderBy('activity_date')->firstOrFail();
+        $this->assertSame(1, $first->valid_count);
+        $this->assertSame(1, $first->pending_count);
+        $this->assertContains($extra->revision_id, $first->bookings()->sole()->source_revision_ids);
+        $next = $start->addDays($batchSize)->toDateString();
+        $this->assertSame($next, MaddraxikonStreakState::query()->sole()->dirty_from);
+        $this->assertDatabaseHas('maddraxikon_streak_days', ['activity_date' => $next, 'settled_points' => 0, 'calculation_version' => 0]);
+        $this->assertSame(1, $service->reconcile($this->member->id));
+        $this->assertSame((int) (($batchSize + 1) * ($batchSize + 2) / 2), $this->points());
+        $this->assertNull(MaddraxikonStreakState::query()->sole()->dirty_from);
+    }
+
+    public static function reconciliationBatchSizes(): array
+    {
+        return [[1], [10], [500]];
+    }
+
+    public function test_grouped_sources_stay_scoped_to_the_member_wiki_and_day(): void
+    {
+        $first = $this->source()->forceFill(['streak_status' => 'valid']);
+        $first->save();
+        $last = $this->source('2026-10-12T12:00:00+02:00')->forceFill(['streak_status' => 'valid']);
+        $last->save();
+        $emptyDay = MaddraxikonStreakDay::query()->create([
+            'wiki_key' => $first->wiki_key, 'user_id' => $this->member->id,
+            'activity_date' => '2026-10-11', 'starts_at_epoch' => app(MaddraxikonStreakSettings::class)->start()->timestamp,
+        ]);
+        foreach ([['wiki_key' => 'another-wiki'], ['user_id' => User::factory()->create()->id]] as $attributes) {
+            MaddraxikonContribution::factory()->create([
+                'wiki_key' => $first->wiki_key, 'user_id' => $this->member->id,
+                'wiki_user_id' => $this->link->wiki_user_id, 'account_link_id' => null,
+                'occurred_at' => '2026-10-11T12:00:00+02:00', ...$attributes,
+            ])->forceFill([
+                'streak_activity_date' => '2026-10-11', 'streak_status' => 'valid',
+                'streak_verified_at_epoch' => $this->link->streak_verified_at_epoch,
+            ])->save();
+        }
+
+        $service = app(MaddraxikonStreakService::class);
+        $this->assertSame(2, $service->reconcile($this->member->id, pretend: true));
+        $this->assertSame(0, $this->points());
+        $this->assertSame(2, $service->reconcile($this->member->id));
+        $this->assertSame(2, $this->points());
+        $this->assertSame([1, 0, 1], MaddraxikonStreakDay::query()->orderBy('activity_date')->pluck('settled_points')->all());
+        $this->assertSame('inactive', $emptyDay->fresh()->status);
+        $this->assertSame(0, $emptyDay->fresh()->valid_count);
+        $this->assertSame([$first->revision_id], MaddraxikonStreakDay::query()->where('activity_date', '2026-10-10')->sole()->bookings()->sole()->source_revision_ids);
+        $this->assertSame([$last->revision_id], MaddraxikonStreakDay::query()->where('activity_date', '2026-10-12')->sole()->bookings()->sole()->source_revision_ids);
+    }
+
+    public function test_reconciliation_with_no_days_clears_the_dirty_cursor_without_awards(): void
+    {
+        app(MaddraxikonStreakSettings::class)->activate();
+        $state = MaddraxikonStreakState::query()->create([
+            'wiki_key' => config('maddraxikon.wiki_key'), 'user_id' => $this->member->id, 'dirty_from' => '2026-10-10',
+        ]);
+        $this->assertSame(0, app(MaddraxikonStreakService::class)->reconcile($this->member->id));
+        $this->assertNull($state->fresh()->dirty_from);
+        $this->assertSame(0, $this->points());
+        $this->assertDatabaseCount('maddraxikon_streak_bookings', 0);
+    }
+
     public function test_read_only_preview_makes_no_changes(): void
     {
         $source = $this->source();

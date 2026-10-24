@@ -158,6 +158,10 @@ final class MaddraxikonStreakService
             }
             $days = MaddraxikonStreakDay::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
                 ->where('activity_date', '>=', $state->dirty_from)->orderBy('activity_date')->limit((int) config('maddraxikon.streaks.batch_size'))->lockForUpdate()->get();
+            $sourcesByDate = $days->isEmpty() ? collect() : MaddraxikonContribution::query()
+                ->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
+                ->whereIn('streak_activity_date', $days->map(fn (MaddraxikonStreakDay $day) => $day->activity_date->toDateString()))
+                ->get()->groupBy('streak_activity_date');
             $previous = MaddraxikonStreakDay::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
                 ->where('activity_date', '<', $state->dirty_from)->orderByDesc('activity_date')->first();
             $link = MaddraxikonAccountLink::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)->first();
@@ -165,8 +169,7 @@ final class MaddraxikonStreakService
             $bookings = 0;
             foreach ($days as $day) {
                 $date = $day->activity_date->toDateString();
-                $sources = MaddraxikonContribution::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
-                    ->where('streak_activity_date', $date)->get();
+                $sources = $sourcesByDate->get($date, collect());
                 $validSources = $sources->where('streak_status', 'valid');
                 $valid = $validSources->count();
                 $canAward = $validSources->contains(fn (MaddraxikonContribution $source) => $this->eligible($source, $link, $members));
