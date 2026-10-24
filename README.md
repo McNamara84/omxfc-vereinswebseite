@@ -461,15 +461,24 @@ führen zu nachvollziehbaren Gegenbuchungen einschließlich betroffener Folgetag
 andere gültige Beiträge desselben Tages erhalten den Bonus. Die Bonusbilanz und
 der persönliche Rekord berücksichtigen diese Korrekturen.
 
-Die Einführung ist standardmäßig deaktiviert. Nach den Migrationen einen
-expliziten `MADDRAXIKON_STREAKS_STARTS_AT` im Format
-`2026-11-01T00:00:00+01:00` festlegen (Beispiel, kein vorgegebener Starttermin)
-und `MADDRAXIKON_STREAKS_ENABLED=true` setzen. Synchronisation und allgemeine
-Baxx-Auszahlung müssen ebenfalls aktiviert sein. Der erste Import muss den
-Start bereits abdecken; eine spätere Initial-Watermark sperrt Vergaben. Es gibt
-keine Nachzahlung für Aktivitäten vor dem Start. Der bei der ersten erfassten
-Aktivität gespeicherte Startzeitpunkt darf anschließend nicht verschoben werden.
-Im Dev-Stack besitzen diese Variablen das Präfix `DOCKER_DEV_`.
+Der Serienbonus ist standardmäßig aktiv. Das nächste Deployment speichert mit
+`php artisan migrate --force` automatisch den Einführungszeitpunkt; eine manuelle
+Aktivierung oder ein zusätzlicher `.env`-Eintrag ist nicht erforderlich. Ein leeres
+`MADDRAXIKON_STREAKS_STARTS_AT` verwendet diesen dauerhaft gespeicherten Zeitpunkt.
+Spätere Deployments, Neustarts und Konfigurations-Caches verschieben ihn nicht.
+Beiträge davor erhalten weder Bonus noch Serienverlängerung. Bei einer neuen
+Installation wird auch die Importgrenze auf den Deploymentzeitpunkt gesetzt,
+damit ein später gestarteter Import die Aktivität seit Einführung erfassen kann.
+
+Synchronisation und allgemeine Baxx-Auszahlung müssen wie bisher aktiviert sein.
+Ein ausdrücklich gesetztes `MADDRAXIKON_STREAKS_ENABLED=false` pausiert den Bonus
+weiterhin. Wird bereits die erstmalige Einführung so deaktiviert, ist bei einer
+späteren Aktivierung zusätzlich ein expliziter Startzeitpunkt anzugeben.
+Optional lässt sich vor Einführung `MADDRAXIKON_STREAKS_STARTS_AT` als ISO-Zeitpunkt
+mit Zeitzone setzen, etwa `2026-11-01T00:00:00+01:00`. Die Importhistorie muss diesen
+Zeitpunkt abdecken; vorhandene Importgrenzen bleiben erhalten. Ein gespeicherter
+Serienstart darf nicht nachträglich verschoben werden. Im Dev-Stack besitzen
+diese Variablen das Präfix `DOCKER_DEV_`.
 
 Der Scheduler prüft neue Quellen stündlich um Minute 5 und historische Quellen
 um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;

@@ -12,7 +12,11 @@ final class MaddraxikonStreakSettings
     {
         $value = config('maddraxikon.streaks.starts_at');
         if (! is_string($value) || $value === '') {
-            return null;
+            $epoch = MaddraxikonStreakRun::query()
+                ->where('wiki_key', config('maddraxikon.wiki_key'))
+                ->value('starts_at_epoch');
+
+            return $epoch === null ? null : CarbonImmutable::createFromTimestampUTC((int) $epoch);
         }
         if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/', $value)) {
             throw new LogicException('Der Serienstart benötigt einen ISO-Zeitpunkt mit Zeitzone.');

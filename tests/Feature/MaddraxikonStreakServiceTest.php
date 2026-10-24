@@ -219,7 +219,7 @@ class MaddraxikonStreakServiceTest extends TestCase
     }
 
     #[DataProvider('disabledConfigurations')]
-    public function test_disabled_or_unconfigured_feature_never_pays(string $key, mixed $value): void
+    public function test_disabled_feature_never_pays(string $key, mixed $value): void
     {
         $this->source();
         config([$key => $value]);
@@ -230,7 +230,7 @@ class MaddraxikonStreakServiceTest extends TestCase
     public static function disabledConfigurations(): array
     {
         return [
-            ['maddraxikon.streaks.enabled', false], ['maddraxikon.streaks.starts_at', null],
+            ['maddraxikon.streaks.enabled', false],
             ['maddraxikon.features.awards_enabled', false], ['maddraxikon.features.sync_enabled', false],
         ];
     }

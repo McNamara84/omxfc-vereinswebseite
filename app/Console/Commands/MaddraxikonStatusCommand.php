@@ -16,6 +16,7 @@ use App\Models\MaddraxikonStreakState;
 use App\Models\MaddraxikonSyncState;
 use App\Services\Maddraxikon\MaddraxikonMonitoring;
 use App\Services\Maddraxikon\MaddraxikonNamespaceHealthService;
+use App\Services\Maddraxikon\MaddraxikonStreakSettings;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -198,7 +199,7 @@ class MaddraxikonStatusCommand extends Command
         $streakSources = MaddraxikonContribution::query()->where('wiki_key', $wikiKey)->whereNotNull('streak_activity_date');
         $this->table(['Serienbonus', 'Wert'], [
             ['Freigabe', config('maddraxikon.streaks.enabled') ? 'aktiv' : 'deaktiviert'],
-            ['Start', config('maddraxikon.streaks.starts_at') ?: 'nicht konfiguriert'],
+            ['Start', app(MaddraxikonStreakSettings::class)->start()?->toIso8601String() ?? 'noch nicht initialisiert'],
             ['Offene Beitragsprüfungen', (string) (clone $streakSources)->where('streak_status', 'pending')->count()],
             ['Älteste offene Aktivität', (clone $streakSources)->where('streak_status', 'pending')->min('streak_activity_date') ?? 'keine'],
             ['Offene Neuberechnungen', (string) MaddraxikonStreakState::query()->where('wiki_key', $wikiKey)->whereNotNull('dirty_from')->count()],

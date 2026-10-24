@@ -40,7 +40,7 @@ return [
     ],
 
     'streaks' => [
-        'enabled' => filter_var(env('MADDRAXIKON_STREAKS_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+        'enabled' => filter_var(env('MADDRAXIKON_STREAKS_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
         'starts_at' => env('MADDRAXIKON_STREAKS_STARTS_AT'),
         'batch_size' => max(1, min(500, (int) env('MADDRAXIKON_STREAKS_BATCH_SIZE', 100))),
         'recheck_hours' => max(1, (int) env('MADDRAXIKON_STREAKS_RECHECK_HOURS', 24)),
