@@ -1,10 +1,10 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac AS composer-bin
+FROM composer:2.10.3@sha256:b6dcd72ca98fa19d0e5b8476de179859704891fad06dd9e0b96833d4c430a5fc AS composer-bin
 
 RUN apk upgrade --no-cache
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.12-fpm-trixie@sha256:8b4b4a764f7985137b13e4cb49dd59e967d9daa7946a731f9d06e31e748e39bb AS php-base
+FROM php:8.5.12-fpm-trixie@sha256:f49965c6e6a237eb3b27a6fc565e167839dc8abc65ee0652af0078f6ecdf4bbd AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -54,14 +54,14 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 
 # Build Stage für Node/Vite. Die Tailwind-Quellen aus Composer-Paketen stammen
 # aus demselben frischen Vendor-Baum, der später im Production-Image landet.
-FROM node:26.12.0-alpine3.24@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5 AS node-base
+FROM node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS node-base
 
 COPY docker/patch-npm-security.sh /opt/npm-patches/patch-npm-security.sh
 COPY docker/npm-security/ /opt/npm-patches/npm-security/
 RUN apk upgrade --no-cache \
-    && npm install --global npm@12.2.0 --ignore-scripts \
+    && npm install --global npm@12.2.1 --ignore-scripts \
     && sh /opt/npm-patches/patch-npm-security.sh \
-    && test "$(npm --version)" = "12.2.0"
+    && test "$(npm --version)" = "12.2.1"
 
 FROM node-base AS node-builder
 
@@ -151,7 +151,7 @@ EXPOSE 9000
 
 # Native Linux test tools avoid Windows bind-mount overhead for dependencies.
 # Both stages reuse the same PHP/dependency build as the isolated test runner.
-FROM node:26.12.0-trixie-slim@sha256:0d1e33586362bb9e608c4e751e7a9e7edb55c9ac11461ed5666af696cc461dd4 AS test-node-bin
+FROM node:26.12.1-trixie-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec AS test-node-bin
 
 FROM development AS test-node
 
@@ -159,7 +159,7 @@ COPY --from=test-node-bin /usr/local/bin/node /usr/local/bin/node
 COPY --from=test-node-bin /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
-    && npm install --global npm@12.2.0 --ignore-scripts \
+    && npm install --global npm@12.2.1 --ignore-scripts \
     && sh docker/patch-npm-security.sh \
     && npm ci
 

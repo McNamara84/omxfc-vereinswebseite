@@ -1,4 +1,4 @@
-FROM php:8.5.12-cli-trixie@sha256:ce5d49625b9c50020dc1ce3c9cf4cdfa31cba31b6651e72daa3e6f5a010d234a AS playwright-php
+FROM php:8.5.12-cli-trixie@sha256:635a4b998025ab269194639a5549c6fdcd9b4f88ec8cd761b092de8653d40663 AS playwright-php
 
 # php:8.5-cli ships with sqlite3 and pdo_sqlite already enabled.
 RUN apt-get update \

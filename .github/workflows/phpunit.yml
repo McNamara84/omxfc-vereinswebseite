@@ -442,8 +442,8 @@ jobs:
           cache: npm
       - name: Install Node dependencies
         run: |
-          npm install --global npm@12.2.0 --ignore-scripts
-          test "$(npm --version)" = "12.2.0"
+          npm install --global npm@12.2.1 --ignore-scripts
+          test "$(npm --version)" = "12.2.1"
           sh docker/patch-npm-security.sh
           npm ci
       - name: Run Vitest tests with coverage

@@ -25,7 +25,7 @@ jobs:
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -48,7 +48,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-typesense.outputs.digest }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           output-format: table
@@ -63,14 +63,14 @@ jobs:
           no-cache: true
           sbom: true
           provenance: mode=max
-          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:nginx-1.31.7
+          tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:nginx-1.31.8
           labels: org.opencontainers.image.source=https://github.com/McNamara84/omxfc-vereinswebseite
 
       - name: Scan patched Nginx before deployment
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-nginx.outputs.digest }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -93,7 +93,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -124,7 +124,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
