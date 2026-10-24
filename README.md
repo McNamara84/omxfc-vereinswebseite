@@ -488,6 +488,11 @@ der RecentChanges-Aufbewahrung, greift der bestehende Recovery-Ablauf.
 Ein gespeicherter Serienstart darf nicht nachträglich verschoben werden.
 Im Dev-Stack besitzen diese Variablen das Präfix `DOCKER_DEV_`.
 
+Eine Datenmigration ergänzt vor der Serienaktivierung fehlende Epoch-Zeitstempel
+bereits importierter Beiträge. Dabei bleibt die bisherige Interpretation von
+`occurred_at` in der Anwendungszeitzone erhalten. So können vorhandene Beiträge
+ab dem Serienstart auch bei einer historischen Einführung berücksichtigt werden.
+
 Der Scheduler prüft neue Quellen stündlich um Minute 5 und historische Quellen
 um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;
 `MADDRAXIKON_STREAKS_RECHECK_HOURS` bestimmt den frühesten Wiederprüfungsabstand.
@@ -498,6 +503,9 @@ ist kein automatischer Nachweis einer ungültigen alten Revision.
 Historische Revisionen werden auch nach einer Kontotrennung oder dem Ende der
 aktiven Mitgliedschaft geprüft und nötige Abzüge einschließlich der Folgetage
 verbucht. Positive Differenzen warten auf eine wieder bestehende Berechtigung.
+Zusätzlich muss für den jeweiligen Tag mindestens ein gültiger Beitrag zur
+aktuell verknüpften Wiki-Identität gehören. Der Wechsel auf ein anderes Wiki-Konto
+berechtigt daher nicht zu Nachzahlungen allein aus Beiträgen des alten Kontos.
 
 ```bash
 php artisan maddraxikon:streaks
@@ -519,8 +527,11 @@ erneut technisch geprüft. Reguläre Baxx-Regeln bleiben davon unberührt.
 
 Bei Wartung die Vergabe deaktivieren und den ursprünglichen Start beibehalten.
 Gespeicherte Nachweise und offene Differenzen werden nach Wiederaktivierung
-weiterverarbeitet. Bereits gebuchte Boni nicht über eine Rückmigration löschen;
-Korrekturen laufen über das separate Bonusjournal und den gemeinsamen Baxx-Writer.
+weiterverarbeitet. Rückmigrationen der Serienfunktion erhalten die Serientabellen,
+das Bonusjournal und die gespeicherten Nachweise samt Verknüpfungszeitpunkten.
+Eine erneute Migration verwendet diese Daten unverändert weiter. Korrekturen
+laufen über das separate Bonusjournal und den gemeinsamen Baxx-Writer; eine
+Löschung der Auditdaten erfordert eine gesondert geprüfte Datenmigration.
 
 Administratoren verwalten die versionierten Regeln unter
 `/belohnungen/admin/maddraxikon` über den Bereich „Maddraxikon-Baxx-Regeln“.

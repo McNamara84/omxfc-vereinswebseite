@@ -161,14 +161,15 @@ final class MaddraxikonStreakService
             $previous = MaddraxikonStreakDay::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
                 ->where('activity_date', '<', $state->dirty_from)->orderByDesc('activity_date')->first();
             $link = MaddraxikonAccountLink::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)->first();
-            $canAward = $link?->isActive() && $members->isActiveMember($userId);
             $blockedFrom = $state->pending_from;
             $bookings = 0;
             foreach ($days as $day) {
                 $date = $day->activity_date->toDateString();
                 $sources = MaddraxikonContribution::query()->where('wiki_key', $state->wiki_key)->where('user_id', $userId)
                     ->where('streak_activity_date', $date)->get();
-                $valid = $sources->where('streak_status', 'valid')->count();
+                $validSources = $sources->where('streak_status', 'valid');
+                $valid = $validSources->count();
+                $canAward = $validSources->contains(fn (MaddraxikonContribution $source) => $this->eligible($source, $link, $members));
                 $pending = $sources->where('streak_status', 'pending')->count();
                 $end = CarbonImmutable::parse($date, $this->settings->timezone())->addDay()->utc();
                 $dayStatus = $valid > 0 ? 'valid' : (($pending > 0 || $sync->watermark_at->lt($end)) ? 'pending' : 'inactive');

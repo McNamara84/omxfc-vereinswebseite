@@ -26,6 +26,7 @@ use App\Services\Maddraxikon\MaddraxikonStreakSummary;
 use App\Services\Maddraxikon\MaddraxikonStreakTracker;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Mockery;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -97,6 +98,75 @@ class MaddraxikonStreakServiceTest extends TestCase
     protected function evaluate(bool $recheck = false): int
     {
         return app(MaddraxikonStreakService::class)->run($recheck);
+    }
+
+    private function legacySource(string $localTime): MaddraxikonContribution
+    {
+        $source = MaddraxikonContribution::factory()->create([
+            'user_id' => $this->member->id, 'account_link_id' => $this->link->id,
+            'wiki_user_id' => $this->link->wiki_user_id, 'wiki_username' => $this->link->wiki_username,
+        ]);
+        DB::table('maddraxikon_contributions')->where('id', $source->id)
+            ->update(['occurred_at' => $localTime, 'occurred_at_epoch' => null]);
+
+        return $source->fresh();
+    }
+
+    private function backfillLegacyEpochs(): void
+    {
+        $migration = require database_path('migrations/2026_10_24_140000_backfill_maddraxikon_contribution_epochs.php');
+        $migration->up();
+    }
+
+    public function test_epoch_backfill_allows_legacy_discovery_without_bypassing_rollout_or_verification_delay(): void
+    {
+        config(['app.timezone' => 'Europe/Berlin']);
+        $before = $this->legacySource('2026-09-30 23:59:59');
+        $atLaunch = $this->legacySource('2026-10-01 00:00:00');
+        $atDelay = $this->legacySource('2026-10-19 12:00:00');
+        $tooEarly = $this->legacySource('2026-10-19 12:00:01');
+        $this->backfillLegacyEpochs();
+
+        $this->assertSame(2, $this->evaluate());
+        $this->assertNull($before->fresh()->streak_activity_date);
+        $this->assertSame('valid', $atLaunch->fresh()->streak_status);
+        $this->assertSame('valid', $atDelay->fresh()->streak_status);
+        $this->assertSame('pending', $tooEarly->fresh()->streak_status);
+        $this->assertSame(2, $this->points());
+        $this->travel(1)->seconds();
+        $this->assertSame(0, $this->evaluate());
+        $this->assertSame('valid', $tooEarly->fresh()->streak_status);
+        $this->assertSame(2, $this->points());
+
+        $this->revisionOverrides[$atLaunch->revision_id] = ['tags' => ['mw-reverted']];
+        $atLaunch->fresh()->forceFill(['streak_next_check_epoch' => 0])->save();
+        $this->assertSame(1, $this->evaluate(true));
+        $this->assertSame(1, $this->points());
+    }
+
+    public function test_backfilled_legacy_sources_block_incomplete_reconciliation_and_remain_visible_in_summary(): void
+    {
+        config(['app.timezone' => 'Europe/Berlin']);
+        $this->source('2026-10-17T12:00:00+02:00');
+        $this->evaluate();
+        $this->legacySource('2026-10-18 12:00:00');
+        $last = $this->legacySource('2026-10-19 12:00:00');
+        app(MaddraxikonStreakTracker::class)->record($last, $this->link);
+        $last->forceFill(['streak_status' => 'valid'])->save();
+        DB::table('maddraxikon_contributions')->where('id', $last->id)
+            ->update(['occurred_at' => '2026-10-19 12:00:00', 'occurred_at_epoch' => null]);
+        $this->backfillLegacyEpochs();
+
+        $this->assertSame(0, app(MaddraxikonStreakService::class)->reconcile($this->member->id));
+        $this->assertSame(1, $this->points());
+        $summary = app(MaddraxikonStreakSummary::class)->forUser($this->member);
+        $this->assertSame('pending', $summary['week'][5]['status']);
+        $this->assertTrue($summary['pending']);
+        $this->assertNull($summary['next']);
+
+        $this->assertSame(2, $this->evaluate());
+        $this->assertSame(6, $this->points());
+        $this->assertSame(3, app(MaddraxikonStreakSummary::class)->forUser($this->member)['current']);
     }
 
     protected function points(): int
@@ -360,6 +430,91 @@ class MaddraxikonStreakServiceTest extends TestCase
         }
 
         return $cases;
+    }
+
+    #[DataProvider('replacementIdentityEvidence')]
+    public function test_positive_corrections_require_current_identity_evidence_for_each_day(string $newStatus): void
+    {
+        Mail::fake();
+        config(['maddraxikon.evaluation_delay_hours' => 1]);
+        $this->travelTo(CarbonImmutable::parse('2026-10-11T10:00:00+02:00'));
+        $first = $this->source('2026-10-10T08:00:00+02:00');
+        $second = $this->source('2026-10-11T08:00:00+02:00');
+        $sync = MaddraxikonSyncState::query()->sole();
+        $sync->update(['watermark_at' => now(), 'last_succeeded_at' => now()]);
+        $this->assertSame(2, $this->evaluate());
+        $this->assertSame(3, $this->points());
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-11T11:00:00+02:00'));
+        Team::membersTeam()->users()->updateExistingPivot($this->member->id, ['role' => Role::Admin->value]);
+        $links = app(AccountLinkService::class);
+        $oldLink = $this->link;
+        $links->disconnect($this->member);
+        $links->releaseDisconnectedLink($this->member, $oldLink->fresh(), 'Verknüpfung für eine andere Wiki-Identität freigeben.');
+        $this->link = $links->activate($this->member, new MaddraxikonIdentity('replacement-'.$oldLink->id, $oldLink->wiki_user_id + 1, 'Neues Wiki-Konto'), 'test', now());
+        $this->assertNull($first->fresh()->account_link_id);
+        $this->assertNull($second->fresh()->account_link_id);
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-11T13:00:00+02:00'));
+        $current = $this->source($newStatus === 'pending' ? '2026-10-11T12:30:00+02:00' : '2026-10-11T12:00:00+02:00');
+        if ($newStatus === 'invalid') {
+            $this->revisionOverrides[$current->revision_id] = ['tags' => ['mw-reverted']];
+        }
+        $sync->update(['watermark_at' => now(), 'last_succeeded_at' => now()]);
+        $this->assertSame(0, $this->evaluate());
+        $this->assertSame($newStatus, $current->fresh()->streak_status);
+
+        $this->revisionOverrides[$first->revision_id] = ['tags' => ['mw-reverted']];
+        MaddraxikonContribution::query()->update(['streak_next_check_epoch' => 0]);
+        $this->assertSame(2, $this->evaluate(true));
+        $this->assertSame(1, $this->points());
+        $this->assertSame([-1, -1], MaddraxikonStreakBooking::query()->where('points_delta', '<', 0)->orderBy('id')->pluck('points_delta')->all());
+
+        unset($this->revisionOverrides[$first->revision_id]);
+        MaddraxikonContribution::query()->update(['streak_next_check_epoch' => 0]);
+        $this->assertSame($newStatus === 'valid' ? 1 : 0, $this->evaluate(true));
+        $this->assertSame('valid', $first->fresh()->streak_status);
+        $this->assertSame([0, $newStatus === 'valid' ? 2 : 1], MaddraxikonStreakDay::query()->orderBy('activity_date')->pluck('settled_points')->all());
+        $this->assertSame($newStatus === 'valid' ? 2 : 1, $this->points());
+        $this->assertSame(0, $this->evaluate(true));
+    }
+
+    public static function replacementIdentityEvidence(): array
+    {
+        return [['valid'], ['invalid'], ['pending']];
+    }
+
+    public function test_rollback_and_redeployment_preserve_the_complete_streak_journal_and_source_snapshots(): void
+    {
+        $first = $this->source();
+        $this->source('2026-10-11T12:00:00+02:00');
+        $this->evaluate();
+        $this->revisionOverrides[$first->revision_id] = ['tags' => ['mw-reverted']];
+        MaddraxikonContribution::query()->update(['streak_next_check_epoch' => 0]);
+        $this->evaluate(true);
+        $this->assertSame(1, $this->points());
+        $this->assertDatabaseCount('maddraxikon_streak_bookings', 4);
+        $this->link->update(['verified_at' => now()]);
+        $tables = ['maddraxikon_streak_bookings', 'maddraxikon_streak_days', 'maddraxikon_streak_states', 'maddraxikon_streak_runs', 'maddraxikon_contributions', 'maddraxikon_account_links', 'user_points'];
+        $before = [];
+        foreach ($tables as $table) {
+            $before[$table] = DB::table($table)->orderBy('id')->get()->map(fn ($row) => (array) $row)->all();
+        }
+        $migrations = ['2026_10_24_140000_backfill_maddraxikon_contribution_epochs', '2026_10_24_150000_create_maddraxikon_streaks', '2026_10_24_160000_activate_maddraxikon_streaks'];
+        DB::table('migrations')->whereIn('migration', $migrations)->update(['batch' => DB::table('migrations')->max('batch') + 1]);
+        $this->artisan('migrate:rollback', ['--force' => true])->assertSuccessful();
+        foreach ($tables as $table) {
+            $this->assertSame($before[$table], DB::table($table)->orderBy('id')->get()->map(fn ($row) => (array) $row)->all(), $table);
+        }
+        $this->assertSame(0, DB::table('migrations')->whereIn('migration', $migrations)->count());
+        $this->artisan('migrate', ['--force' => true])->assertSuccessful();
+        foreach ($tables as $table) {
+            $this->assertSame($before[$table], DB::table($table)->orderBy('id')->get()->map(fn ($row) => (array) $row)->all(), $table);
+        }
+        $this->assertSame(3, DB::table('migrations')->whereIn('migration', $migrations)->count());
+        $this->assertSame(0, $this->evaluate());
+        $this->assertSame(1, $this->points());
+        $this->assertDatabaseCount('maddraxikon_streak_bookings', 4);
     }
 
     #[DataProvider('unchangedChecks')]
