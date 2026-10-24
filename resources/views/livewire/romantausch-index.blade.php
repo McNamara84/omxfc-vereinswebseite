@@ -52,9 +52,7 @@
                     {{ $romantauschInfo['intro'] }}
                 </p>
                 <p class="mt-3 text-sm leading-relaxed text-base-content/72">
-                    @foreach($romantauschInfo['reward_rules'] as $rule)
-                        <span class="block"><strong>{{ $rule['label'] }}:</strong> {{ $rule['description'] }}</span>
-                    @endforeach
+                    <x-romantausch-reward-rules :rules="$romantauschInfo['reward_rules']" />
                 </p>
             </div>
         </x-slot:header>

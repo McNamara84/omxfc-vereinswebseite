@@ -1051,5 +1051,39 @@
     "pint": "passed",
     "application_code_modified": false,
     "coverage_baseline_modified": false
+  },
+  "offer_reward_display_review": {
+    "date": "2026-10-24",
+    "previous_commit": "5518f74b004d8b623c3981d150ba6ca9a9d404ad",
+    "assessment": "Confirmed: offer form rendered fixed translations instead of effective reward rules.",
+    "fix": "Shared provider data and Blade component for overview and offer form, resolved on each render.",
+    "display_scenarios": [
+      "changed base rules",
+      "disabled rules",
+      "zero points",
+      "active special offers",
+      "expired special offers",
+      "rule changes after opening the form"
+    ],
+    "additional_test_cases": 5,
+    "targeted_tests": {
+      "passed": 118,
+      "assertions": 513,
+      "coverage_driver": "Xdebug"
+    },
+    "pint": "passed",
+    "offer_form_coverage": {
+      "lines": {
+        "total": 31,
+        "covered": 31
+      },
+      "functions": {
+        "total": 10,
+        "covered": 10
+      }
+    },
+    "protected_baseline_check": "passed",
+    "baseline_modified": false,
+    "coverage_validation": "Offer form remeasured; 569 unchanged application source hashes verified against prior CI-based evidence. Incremental validation, not a fresh full-suite run."
   }
 }

@@ -7,6 +7,7 @@ use App\Livewire\RomantauschBundleForm;
 use App\Livewire\RomantauschIndex;
 use App\Livewire\RomantauschOfferForm;
 use App\Livewire\RomantauschRequestForm;
+use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use LogicException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\Concerns\CreatesTestData;
 use Tests\Concerns\CreatesUserWithRole;
@@ -424,17 +426,65 @@ class RomantauschLivewireTest extends TestCase
         $this->get('/romantauschboerse/angebot-erstellen')->assertOk();
     }
 
-    public function test_create_offer_page_displays_consistent_reward_rule_copy(): void
+    public static function rewardRuleStates(): array
+    {
+        $base = ['7 Baxx pro 4 Auslöser', '11 Baxx pro 2 Auslöser'];
+
+        return [
+            'changed base rules' => ['changed', $base],
+            'disabled rules' => ['disabled', ['Derzeit keine Baxx-Vergabe.']],
+            'zero points' => ['zero', ['Derzeit keine Baxx-Vergabe.']],
+            'active special offers' => ['special', ['13 Baxx pro 3 Auslöser (Sonderaktion)', '17 Baxx pro Auslöser (Sonderaktion)']],
+            'expired special offers' => ['expired', $base],
+        ];
+    }
+
+    #[DataProvider('rewardRuleStates')]
+    public function test_create_offer_page_displays_consistent_reward_rule_copy(string $state, array $expectedDescriptions): void
     {
         $this->seedBooksForRomantausch();
         $this->actingMember();
+        $actions = ['romantausch_offer', 'romantausch_swap_complete'];
+        BaxxEarningRule::where('action_key', $actions[0])->firstOrFail()->update(['points' => 7, 'every_count' => 4, 'is_active' => true]);
+        BaxxEarningRule::where('action_key', $actions[1])->firstOrFail()->update(['points' => 11, 'every_count' => 2, 'is_active' => true]);
+        if ($state === 'disabled') {
+            BaxxEarningRule::whereIn('action_key', $actions)->update(['is_active' => false]);
+        } elseif ($state === 'zero') {
+            BaxxEarningRule::whereIn('action_key', $actions)->update(['points' => 0]);
+        } elseif (in_array($state, ['special', 'expired'], true)) {
+            foreach ($actions as $index => $action) {
+                RomantauschBaxxSpecialOffer::create(['action_key' => $action, 'points' => $index === 0 ? 13 : 17,
+                    'every_count' => $index === 0 ? 3 : 1, 'is_active' => true,
+                    'ends_at' => $state === 'special' ? now()->addDay() : now()->subDay()]);
+            }
+        }
+        $info = app(RomantauschInfoProvider::class)->getInfo();
+        $ruleText = array_merge(...array_map(fn ($rule) => [$rule['label'].':', $rule['description']], $info['reward_rules']));
 
-        $response = $this->get('/romantauschboerse/angebot-erstellen');
+        foreach (['romantausch.create-offer', 'romantausch.index'] as $route) {
+            $response = $this->get(route($route))->assertOk()->assertSeeTextInOrder($ruleText)
+                ->assertDontSeeText(__('romantausch.info.reward_rule.milestone_description'))
+                ->assertDontSeeText(__('romantausch.info.reward_rule.swap_description'));
+            foreach ($expectedDescriptions as $description) {
+                $response->assertSeeText($description);
+            }
+            if ($state === 'expired') {
+                $response->assertDontSeeText('(Sonderaktion)');
+            }
+        }
+    }
 
-        $response
-            ->assertOk()
-            ->assertSeeText(__('romantausch.info.reward_rule.milestone_amount'))
-            ->assertSeeText(__('romantausch.info.reward_rule.swap_amount'));
+    public function test_offer_form_refresh_reads_reward_rule_changes(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+        $rule = BaxxEarningRule::where('action_key', 'romantausch_offer')->firstOrFail();
+        $rule->update(['points' => 3, 'every_count' => 1, 'is_active' => true]);
+        $form = Livewire::test(RomantauschOfferForm::class)->assertSeeText('3 Baxx pro Auslöser');
+
+        $rule->update(['points' => 7, 'every_count' => 4]);
+
+        $form->call('$refresh')->assertSeeText('7 Baxx pro 4 Auslöser')->assertDontSeeText('3 Baxx pro Auslöser');
     }
 
     public function test_store_offer_creates_entry(): void
@@ -659,7 +709,7 @@ class RomantauschLivewireTest extends TestCase
 
         Storage::fake('public');
 
-        $this->mock(RomantauschBaxxService::class, function ($mock) {
+        $this->partialMock(RomantauschBaxxService::class, function ($mock) {
             $mock->shouldReceive('awardForNewOffers')
                 ->once()
                 ->andThrow(new RuntimeException('Boom'));

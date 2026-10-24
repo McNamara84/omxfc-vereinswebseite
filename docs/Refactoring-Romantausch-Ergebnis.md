@@ -225,6 +225,31 @@ Workflow-, Review- und Retry-Tests bestehen 68 Tests mit 471 Assertions; Pint
 besteht für alle drei geänderten PHP-Testdateien. Anwendungscode, Coverage-Baseline
 und CI-Konfiguration bleiben unverändert.
 
+## Weitere Code-Review-Runde: Baxx-Anzeige im Angebotsformular
+
+Der Befund wurde bestätigt: Das Angebotsformular zeigte weiterhin feste
+Übersetzungswerte an, während die Übersicht bereits wirksame Datenbankregeln
+verwendete. Das Formular bezieht seine `reward_rules` jetzt ebenfalls bei jedem
+Rendern aus dem `RomantauschInfoProvider`. Beide Ansichten verwenden die gemeinsame
+Blade-Komponente `romantausch-reward-rules`; die festen Übersetzungswerte werden
+nicht mehr als Vergütungsregeln gerendert.
+
+Die bisherige Defaultwertprüfung wurde auf fünf Konfigurationen erweitert:
+geänderte Punkte und Schwellenwerte, deaktivierte Regeln, Null-Punkte-Regeln,
+aktive Sonderaktionen und abgelaufene Sonderaktionen. Jeder Fall prüft das
+Angebotsformular und die Übersicht. Ein zusätzlicher Livewire-Test prüft eine
+Regeländerung nach dem Öffnen des Formulars beim nächsten Neurendern. Ein
+vorhandener Rollback-Test verwendet einen partiellen Baxx-Mock, damit die echte
+Regelabfrage neben der gezielt fehlschlagenden Vergütungsmethode erhalten bleibt.
+
+Alle 118 Formular-, Workflow- und Provider-Tests bestehen mit Xdebug und
+513 Assertions; Pint besteht für beide geänderten PHP-Dateien. Das geänderte
+Angebotsformular erreicht 31 / 31 Zeilen und 10 / 10 Methoden. Der geschützte
+Coverage-Vergleich besteht mit der neuen Messung für diese Klasse und den
+bisherigen Nachweisen für 569 anhand ihrer Quellhashes geprüfte unveränderte
+Anwendungsdateien. Die Nachprüfung ist inkrementell; Baseline und CI-Prüfer
+bleiben unverändert.
+
 ## Messungen
 
 Ausgangscode: Commit `b6c85f2740d493d1596f16aaa13c191534672b06`.

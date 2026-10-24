@@ -7,6 +7,7 @@ use App\Http\Requests\StoreBookOfferRequest;
 use App\Livewire\Concerns\InteractsWithRomantauschForm;
 use App\Models\BookOffer;
 use App\Services\Romantausch\BookPhotoService;
+use App\Services\RomantauschInfoProvider;
 use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -112,7 +113,9 @@ class RomantauschOfferForm extends Component
 
     public function render()
     {
-        return view('livewire.romantausch-offer-form')
+        return view('livewire.romantausch-offer-form', [
+            'rewardRules' => app(RomantauschInfoProvider::class)->getInfo()['reward_rules'] ?? [],
+        ])
             ->layout('layouts.member', ['title' => $this->isEditing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen']);
     }
 }
