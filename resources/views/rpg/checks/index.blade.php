@@ -12,7 +12,8 @@
             <label class="fieldset">Sichtbarkeit<select class="select w-full" name="visibility"><option value="">Alle</option><option value="open" @selected(($filters['visibility'] ?? '') === 'open')>Offen</option><option value="hidden" @selected(($filters['visibility'] ?? '') === 'hidden')>Verdeckt</option></select></label>
             <button class="btn btn-outline" type="submit">Filtern</button>
         </form>
-        <div x-data="rpgChecks({{ \Illuminate\Support\Js::from(['initial' => $data, 'url' => route('rpg.checks.index', $filters)]) }})" class="space-y-4">
+        <x-lazy-feature name="rpg-checks">
+<div x-data="rpgChecks({{ \Illuminate\Support\Js::from(['initial' => $data, 'url' => route('rpg.checks.index', $filters)]) }})" class="space-y-4">
             @csrf
             <div role="alert" x-cloak x-show="error" x-text="error" class="alert alert-error"></div>
             <p class="sr-only" aria-live="polite" x-text="announcement"></p>
@@ -24,5 +25,6 @@
                 <a x-show="data.page < data.last_page" class="btn btn-sm" :href="new URLSearchParams({ ...{{ \Illuminate\Support\Js::from($filters) }}, page: data.page + 1 }).toString().replace(/^/, '?')">Weiter</a>
             </nav>
         </div>
+</x-lazy-feature>
     </x-member-page>
 </x-member-layout>

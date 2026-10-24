@@ -1,11 +1,11 @@
 #!/bin/sh
 set -eu
 
-# npm 12.2.0 bundles vulnerable dependencies even on current Node images.
+# npm 12.2.1 bundles vulnerable dependencies even on current Node images.
 # Replace only these packages, using reviewed exact versions and lock integrity.
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 npm_root=$(npm root --global)
-test "$(npm --version)" = '12.2.0'
+test "$(npm --version)" = '12.2.1'
 test -f "$npm_root/npm/package.json"
 patch_dir=$(mktemp -d)
 trap 'rm -rf "$patch_dir"' EXIT
@@ -20,4 +20,4 @@ for package_dir in "$patch_dir"/node_modules/*; do
 done
 npm audit --prefix "$patch_dir" --audit-level=moderate
 node -e 'const root=process.argv[1]; for (const [name,version] of Object.entries(require(process.argv[2]).dependencies)) { if(require(root+"/npm/node_modules/"+name+"/package.json").version!==version) process.exit(1); }' "$npm_root" "$script_dir/npm-security/package.json"
-test "$(npm --version)" = '12.2.0'
+test "$(npm --version)" = '12.2.1'

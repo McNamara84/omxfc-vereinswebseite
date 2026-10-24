@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { buildOperation, rpgProgression } from '../../resources/js/alpine/rpg-progression.js';
+import { buildOperation, rpgProgression, registerRpgProgression } from '../../resources/js/alpine/rpg-progression.js';
 
 const config = {
     mode: 'improve', submission_key: 'test-key', revision: 2,
@@ -20,6 +20,15 @@ const component = (overrides = {}) => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('RPG progression forms', () => {
+    it('registers after Alpine has already started and tolerates missing Alpine', () => {
+        const original = window.Alpine;
+        delete window.Alpine;
+        registerRpgProgression();
+        window.Alpine = { data: vi.fn() };
+        registerRpgProgression();
+        expect(window.Alpine.data).toHaveBeenCalledWith('rpgProgression', rpgProgression);
+        window.Alpine = original;
+    });
     it('sends intended operations without preview prices or UI fields', () => {
         const value = component();
         value.operations[0].reason = 'Training';

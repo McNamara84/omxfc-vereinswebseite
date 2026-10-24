@@ -46,6 +46,7 @@
                             class="w-full h-[600px] rounded-lg border border-base-content/10"
                             style="min-height: 600px;"
                             data-member-map
+                            @if ($isUnlocked) data-member-map-enabled @endif
                             role="region"
                             aria-label="Mitgliederkarte"
                             aria-describedby="member-map-note"

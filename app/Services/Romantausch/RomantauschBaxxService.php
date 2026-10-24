@@ -3,14 +3,15 @@
 namespace App\Services\Romantausch;
 
 use App\Models\BaxxEarningProgress;
-use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Team;
-use App\Models\UserPoint;
-use Carbon\CarbonInterface;
+use App\Services\Baxx\BaxxBookingWriter;
+use App\Services\Baxx\BaxxProgressStore;
+use App\Services\Baxx\BaxxRulePresenter;
+use App\Services\Baxx\BaxxRuleResolver;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -34,31 +35,13 @@ class RomantauschBaxxService
      */
     public function getEffectiveRule(string $actionKey): array
     {
-        $specialOffer = $this->getActiveSpecialOffer($actionKey);
+        $rule = app(BaxxRuleResolver::class)->resolve($actionKey);
 
-        if ($specialOffer) {
-            return $this->makeRuleData(
-                actionKey: $actionKey,
-                points: $specialOffer->points,
-                everyCount: $specialOffer->every_count,
-                isActive: true,
-                isSpecialOffer: true,
-                endsAt: $specialOffer->ends_at,
-                description: 'Aktive Sonderaktion überschreibt die Basisregel für diese Romantausch-Aktion.',
-            );
-        }
-
-        $baseRule = $this->getBaseRule($actionKey);
-
-        return $this->makeRuleData(
-            actionKey: $actionKey,
-            points: $baseRule->points,
-            everyCount: $baseRule->every_count,
-            isActive: $baseRule->is_active,
-            isSpecialOffer: false,
-            endsAt: null,
-            description: $baseRule->description,
-        );
+        return app(BaxxRulePresenter::class)->present($rule, 'Auslöser', 'Auslöser') + [
+            'action_key' => $actionKey,
+            'action_label' => RomantauschBaxxSpecialOffer::actionLabel($actionKey),
+            'description' => $rule->isSpecialOffer ? 'Aktive Sonderaktion überschreibt die Basisregel für diese Romantausch-Aktion.' : $rule->description,
+        ];
     }
 
     /**
@@ -77,17 +60,13 @@ class RomantauschBaxxService
      */
     public function getBaseRuleData(string $actionKey): array
     {
-        $baseRule = $this->getBaseRule($actionKey);
+        $rule = app(BaxxRuleResolver::class)->resolve($actionKey, false);
 
-        return $this->makeRuleData(
-            actionKey: $actionKey,
-            points: $baseRule->points,
-            everyCount: $baseRule->every_count,
-            isActive: $baseRule->is_active,
-            isSpecialOffer: false,
-            endsAt: null,
-            description: $baseRule->description,
-        );
+        return app(BaxxRulePresenter::class)->present($rule, 'Auslöser', 'Auslöser') + [
+            'action_key' => $actionKey,
+            'action_label' => RomantauschBaxxSpecialOffer::actionLabel($actionKey),
+            'description' => $rule->description,
+        ];
     }
 
     /**
@@ -135,11 +114,7 @@ class RomantauschBaxxService
 
     public function getActiveSpecialOffer(string $actionKey): ?RomantauschBaxxSpecialOffer
     {
-        return RomantauschBaxxSpecialOffer::query()
-            ->forActionKey($actionKey)
-            ->currentlyActive()
-            ->orderByDesc('ends_at')
-            ->first();
+        return app(BaxxRuleResolver::class)->activeOffer($actionKey);
     }
 
     public function awardForNewOffers(int $userId, int $newOfferCount): int
@@ -235,11 +210,7 @@ class RomantauschBaxxService
             $walletTeam = $this->resolveMembersWalletTeam($userId, $actionKey);
             $awardedPoints = $thresholdCrossings * $rule['points'];
 
-            UserPoint::query()->create([
-                'user_id' => $userId,
-                'team_id' => $walletTeam->id,
-                'points' => $awardedPoints,
-            ]);
+            app(BaxxBookingWriter::class)->record($userId, $walletTeam->id, $awardedPoints);
 
             $this->markProcessedCount($progress, $currentCount);
 
@@ -247,46 +218,14 @@ class RomantauschBaxxService
         });
     }
 
-    private function getBaseRule(string $actionKey): BaxxEarningRule
-    {
-        return BaxxEarningRule::query()->firstOrCreate(
-            ['action_key' => $actionKey],
-            RomantauschBaxxSpecialOffer::defaultRuleDefinition($actionKey),
-        );
-    }
-
     private function lockProgress(int $userId, string $actionKey, int $initialProcessedCount): BaxxEarningProgress
     {
-        $timestamp = now();
-
-        BaxxEarningProgress::query()->upsert(
-            [[
-                'user_id' => $userId,
-                'action_key' => $actionKey,
-                'processed_count' => $initialProcessedCount,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]],
-            ['user_id', 'action_key'],
-            ['updated_at']
-        );
-
-        return BaxxEarningProgress::query()
-            ->where('user_id', $userId)
-            ->where('action_key', $actionKey)
-            ->lockForUpdate()
-            ->firstOrFail();
+        return app(BaxxProgressStore::class)->lock($userId, $actionKey, $initialProcessedCount);
     }
 
     private function markProcessedCount(BaxxEarningProgress $progress, int $processedCount): void
     {
-        if ($processedCount <= $progress->processed_count) {
-            return;
-        }
-
-        $progress->update([
-            'processed_count' => $processedCount,
-        ]);
+        app(BaxxProgressStore::class)->advance($progress, $processedCount);
     }
 
     private function resolveMembersWalletTeam(int $userId, string $actionKey): Team
@@ -312,53 +251,5 @@ class RomantauschBaxxService
                 $actionKey,
             )
         );
-    }
-
-    /**
-     * @return array{
-     *     action_key: string,
-     *     action_label: string,
-     *     points:int,
-     *     every_count:int,
-     *     is_active:bool,
-     *     is_special_offer:bool,
-     *     rule_label:string,
-     *     ends_at:?CarbonInterface,
-     *     ends_at_formatted:?string,
-     *     description:?string
-     * }
-     */
-    private function makeRuleData(
-        string $actionKey,
-        int $points,
-        int $everyCount,
-        bool $isActive,
-        bool $isSpecialOffer,
-        ?CarbonInterface $endsAt,
-        ?string $description,
-    ): array {
-        $everyCount = max(1, $everyCount);
-
-        return [
-            'action_key' => $actionKey,
-            'action_label' => RomantauschBaxxSpecialOffer::actionLabel($actionKey),
-            'points' => $points,
-            'every_count' => $everyCount,
-            'is_active' => $isActive,
-            'is_special_offer' => $isSpecialOffer,
-            'rule_label' => $this->formatRuleLabel($points, $everyCount),
-            'ends_at' => $endsAt,
-            'ends_at_formatted' => $endsAt?->copy()->timezone(config('app.timezone'))->format('d.m.Y, H:i'),
-            'description' => $description,
-        ];
-    }
-
-    private function formatRuleLabel(int $points, int $everyCount): string
-    {
-        if ($everyCount === 1) {
-            return $points.' Baxx pro Auslöser';
-        }
-
-        return $points.' Baxx pro '.$everyCount.' Auslöser';
     }
 }

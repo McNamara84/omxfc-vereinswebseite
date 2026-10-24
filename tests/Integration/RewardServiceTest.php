@@ -138,6 +138,23 @@ class RewardServiceTest extends TestCase
         $this->service->refundPurchase($purchase, $admin);
     }
 
+    public function test_stale_purchase_cannot_overwrite_an_existing_refund(): void
+    {
+        $firstAdmin = $this->createUserWithRole(Role::Admin);
+        $secondAdmin = $this->createUserWithRole(Role::Admin);
+        $user = $this->actingMemberWithPoints(10);
+        $purchase = $this->service->purchaseReward($user, Reward::factory()->create(['cost_baxx' => 5]));
+        $stale = $purchase->fresh();
+        $this->service->refundPurchase($purchase, $firstAdmin);
+        try {
+            $this->service->refundPurchase($stale, $secondAdmin);
+            $this->fail('Repeated refund must be rejected.');
+        } catch (ValidationException) {
+            $this->assertSame($firstAdmin->id, $purchase->fresh()->refunded_by);
+            $this->assertSame(10, $this->service->getAvailableBaxx($user));
+        }
+    }
+
     public function test_get_available_baxx_subtracts_spent(): void
     {
         $user = $this->actingMemberWithPoints(20);

@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 const sqliteEnvironment = { APP_ENV: 'testing', DB_CONNECTION: 'sqlite', DB_DATABASE: ':memory:', CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync', SCOUT_DRIVER: 'null', MADDRAXIKON_IDENTITY_HMAC_PEPPERS: 'test-v1:0123456789abcdef0123456789abcdef' };
 const mariaConfigurations = ['phpunit.mariadb.xml', 'phpunit.rpg-mariadb.xml', 'phpunit.veranstaltungs-baxx-mariadb.xml'];
 
-export function commandsFor(scope, { runtime = 'docker', args = [], node = process.execPath } = {}) {
+export function commandsFor(scope, { runtime = 'docker', args = [], node = process.execPath, ci = Boolean(process.env.CI) } = {}) {
     if (!['fast', 'all', 'php', 'unit', 'mariadb'].includes(scope)) throw new Error('Scope must be fast, all, php, unit, or mariadb');
     if (!['docker', 'host'].includes(runtime)) throw new Error('TEST_RUNTIME must be docker or host');
     const compose = ['compose', '-f', 'docker-compose.tests.yml'];
@@ -30,9 +30,14 @@ export function commandsFor(scope, { runtime = 'docker', args = [], node = proce
     }
     if (scope === 'all') {
         commands.push(php(['vendor/bin/pest', 'tests/Arch.php', '--compact']));
-        commands.push(runtime === 'docker'
-            ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'browser', 'node', 'node_modules/playwright/cli.js', 'test'], env: { PLAYWRIGHT_WORKERS: '1', PLAYWRIGHT_REUSE_EXISTING_SERVER: '0' } }
-            : { command: node, args: ['node_modules/playwright/cli.js', 'test'] });
+        // Each invocation reruns global setup, so browsers cannot inherit another
+        // project's published stories, accepted tasks or accounting entries.
+        for (const project of ci ? ['chromium', 'firefox'] : ['chromium', 'firefox', 'webkit']) {
+            const browserArgs = ['node_modules/playwright/cli.js', 'test', `--project=${project}`];
+            commands.push(runtime === 'docker'
+                ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'browser', 'node', ...browserArgs], env: { PLAYWRIGHT_WORKERS: '1', PLAYWRIGHT_REUSE_EXISTING_SERVER: '0' } }
+                : { command: node, args: browserArgs, env: { PLAYWRIGHT_WORKERS: '1', PLAYWRIGHT_REUSE_EXISTING_SERVER: '0' } });
+        }
         commands.push(runtime === 'docker'
             ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'browser', 'php', 'vendor/bin/pest', 'tests/Browser/ModalBackdropPreviewTest.php', '--compact'], env: sqliteEnvironment }
             : php(['vendor/bin/pest', 'tests/Browser/ModalBackdropPreviewTest.php', '--compact']));

@@ -2,22 +2,23 @@
 
 namespace App\Livewire;
 
+use App\Actions\Todos\TodoWorkflow;
 use App\Enums\TodoStatus;
-use App\Models\Activity;
+use App\Livewire\Concerns\InteractsWithTodoWorkflow;
 use App\Models\Todo;
-use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use App\Services\TeamPointService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class TodoIndex extends Component
 {
+    use InteractsWithTodoWorkflow;
+
     #[Url]
     public string $filter = 'all';
 
@@ -117,183 +118,56 @@ class TodoIndex extends Component
 
     public function assign(int $todoId): void
     {
-        $todo = Todo::findOrFail($todoId);
-        $user = Auth::user();
+        $todo = $this->runTodoAction(fn () => app(TodoWorkflow::class)->assign(Auth::user(), $todoId));
+        unset($this->todos, $this->assignedTodos, $this->unassignedTodos, $this->completedTodos, $this->inProgressTodos, $this->dashboardMetrics, $this->userPoints);
 
-        if ($todo->team_id !== $this->memberTeam->id) {
-            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
-
-            return;
+        if ($todo) {
+            $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich übernommen.');
         }
-
-        if ($todo->assigned_to || $todo->status !== TodoStatus::Open) {
-            $this->dispatch('toast', type: 'error', title: 'Diese Challenge wurde bereits übernommen oder ist nicht mehr verfügbar.');
-
-            return;
-        }
-
-        $this->authorize('assign', $todo);
-
-        $todo->update([
-            'assigned_to' => $user->id,
-            'status' => 'assigned',
-        ]);
-
-        Activity::create([
-            'user_id' => $user->id,
-            'subject_type' => Todo::class,
-            'subject_id' => $todo->id,
-            'action' => 'accepted',
-        ]);
-
-        unset($this->todos, $this->assignedTodos, $this->unassignedTodos);
-        $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich übernommen.');
     }
 
     public function complete(int $todoId): void
     {
-        $todo = Todo::where('team_id', $this->memberTeam->id)->find($todoId);
-        $user = Auth::user();
+        $todo = $this->runTodoAction(fn () => app(TodoWorkflow::class)->complete(Auth::user(), $todoId));
+        unset($this->todos, $this->assignedTodos, $this->unassignedTodos, $this->completedTodos, $this->inProgressTodos, $this->dashboardMetrics, $this->userPoints);
 
-        if (! $todo) {
-            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
-
-            return;
+        if ($todo) {
+            $this->dispatch('toast', type: 'success', title: 'Challenge wurde als erledigt markiert und wartet nun auf Verifizierung.');
         }
-
-        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
-            $this->dispatch('toast', type: 'error', title: 'Sie können diese Challenge nicht als erledigt markieren.');
-
-            return;
-        }
-
-        $todo->update([
-            'status' => TodoStatus::Completed->value,
-            'completed_at' => now(),
-        ]);
-
-        unset($this->todos, $this->assignedTodos, $this->completedTodos);
-        $this->dispatch('toast', type: 'success', title: 'Challenge wurde als erledigt markiert und wartet nun auf Verifizierung.');
     }
 
     public function verify(int $todoId): void
     {
-        $todo = Todo::findOrFail($todoId);
-        $user = Auth::user();
+        $todo = $this->runTodoAction(fn () => app(TodoWorkflow::class)->verify(Auth::user(), $todoId));
+        unset($this->todos, $this->assignedTodos, $this->unassignedTodos, $this->completedTodos, $this->inProgressTodos, $this->dashboardMetrics, $this->userPoints);
 
-        if ($todo->team_id !== $this->memberTeam->id) {
-            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
-
-            return;
+        if ($todo) {
+            $this->dispatch('toast', type: 'success', title: "Challenge-Verifizierung erfolgreich! {$todo->points} Baxx wurden {$todo->assignee->name} gutgeschrieben.");
         }
-
-        if ($todo->status !== TodoStatus::Completed) {
-            $this->dispatch('toast', type: 'error', title: 'Diese Challenge kann nicht verifiziert werden.');
-
-            return;
-        }
-
-        $this->authorize('verify', Todo::class);
-
-        // Atomare Verifizierung: Status-Wechsel + Punkte-Gutschrift in einer
-        // Transaktion. Das bedingte UPDATE (WHERE status = completed) stellt
-        // sicher, dass nur genau ein paralleler Aufruf den Übergang vollzieht.
-        // updateOrCreate auf todo_id macht die Gutschrift zusätzlich idempotent
-        // und harmoniert mit dem Unique-Index auf user_points.todo_id.
-        $verified = DB::transaction(function () use ($todo, $user) {
-            $updated = Todo::where('id', $todo->id)
-                ->where('status', TodoStatus::Completed->value)
-                ->update([
-                    'status' => TodoStatus::Verified->value,
-                    'verified_by' => $user->id,
-                    'verified_at' => now(),
-                ]);
-
-            if ($updated === 0) {
-                return false;
-            }
-
-            UserPoint::updateOrCreate(
-                ['todo_id' => $todo->id],
-                [
-                    'user_id' => $todo->assigned_to,
-                    'team_id' => $todo->team_id,
-                    'points' => $todo->points,
-                ],
-            );
-
-            Activity::create([
-                'user_id' => $todo->assigned_to,
-                'subject_type' => Todo::class,
-                'subject_id' => $todo->id,
-                'action' => 'completed',
-            ]);
-
-            return true;
-        });
-
-        if (! $verified) {
-            $this->dispatch('toast', type: 'error', title: 'Diese Challenge wurde bereits verifiziert.');
-            unset($this->todos, $this->completedTodos);
-
-            return;
-        }
-
-        $todo->refresh()->load('assignee');
-        unset($this->todos, $this->completedTodos, $this->dashboardMetrics, $this->userPoints);
-        $this->dispatch('toast', type: 'success', title: "Challenge-Verifizierung erfolgreich! {$todo->points} Baxx wurden {$todo->assignee->name} gutgeschrieben.");
     }
 
     public function release(int $todoId): void
     {
-        $todo = Todo::where('team_id', $this->memberTeam->id)->find($todoId);
-        $user = Auth::user();
+        $todo = $this->runTodoAction(fn () => app(TodoWorkflow::class)->release(Auth::user(), $todoId));
+        unset($this->todos, $this->assignedTodos, $this->unassignedTodos, $this->completedTodos, $this->inProgressTodos, $this->dashboardMetrics, $this->userPoints);
 
-        if (! $todo) {
-            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
-
-            return;
+        if ($todo) {
+            $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich freigegeben.');
         }
-
-        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
-            $this->dispatch('toast', type: 'error', title: 'Sie können diese Challenge nicht freigeben.');
-
-            return;
-        }
-
-        $todo->update([
-            'assigned_to' => null,
-            'status' => TodoStatus::Open->value,
-        ]);
-
-        unset($this->todos, $this->assignedTodos, $this->unassignedTodos);
-        $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich freigegeben.');
     }
 
     public function deleteTodo(int $todoId): void
     {
-        $todo = Todo::findOrFail($todoId);
-
-        if ($todo->team_id !== $this->memberTeam->id) {
-            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
-
+        $todo = $this->runTodoAction(fn () => app(TodoWorkflow::class)->delete(Auth::user(), $todoId));
+        if (! $todo) {
             return;
         }
 
-        $this->authorize('delete', $todo);
-
-        if ($todo->status === TodoStatus::Verified) {
-            UserPoint::where('todo_id', $todo->id)->delete();
-            $todo->delete();
-            unset($this->todos, $this->dashboardMetrics, $this->userPoints);
-            $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.');
-
-            return;
-        }
-
-        $todo->delete();
-        unset($this->todos);
-        $this->dispatch('toast', type: 'success', title: 'Challenge wurde erfolgreich gelöscht.');
+        $message = $todo->status === TodoStatus::Verified
+            ? 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.'
+            : 'Challenge wurde erfolgreich gelöscht.';
+        unset($this->todos, $this->assignedTodos, $this->unassignedTodos, $this->completedTodos, $this->inProgressTodos, $this->dashboardMetrics, $this->userPoints);
+        $this->dispatch('toast', type: 'success', title: $message);
     }
 
     public function placeholder()

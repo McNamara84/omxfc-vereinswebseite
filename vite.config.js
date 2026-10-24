@@ -21,8 +21,6 @@ export default defineConfig(({ command }) => ({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/maddraxiversum.js',
-                'resources/js/statistik.js',
                 'resources/js/romantausch-bundle-preview.js',
             ],
             refresh: true,

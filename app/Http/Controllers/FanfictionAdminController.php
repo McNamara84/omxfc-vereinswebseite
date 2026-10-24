@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Fanfiction\PublishFanfiction;
 use App\Enums\FanfictionStatus;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\FanfictionRequest;
-use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Fanfiction;
 use App\Models\User;
 use App\Services\FanfictionService;
@@ -15,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -79,23 +79,23 @@ class FanfictionAdminController extends Controller
 
         $photoPaths = $this->uploadPhotos($request);
 
-        $fanfiction = Fanfiction::create([
-            'team_id' => $this->memberTeam()->id,
-            'user_id' => $validated['author_type'] === 'member' ? $validated['user_id'] : null,
-            'created_by' => Auth::id(),
-            'title' => $validated['title'],
-            'author_name' => $validated['author_name'],
-            'content' => $validated['content'],
-            'photos' => $photoPaths ?: null,
-            'status' => FanfictionStatus::from($validated['status']),
-            'published_at' => $validated['status'] === 'published' ? now() : null,
-        ]);
+        DB::transaction(function () use ($validated, $photoPaths): void {
+            $fanfiction = Fanfiction::create([
+                'team_id' => $this->memberTeam()->id,
+                'user_id' => $validated['author_type'] === 'member' ? $validated['user_id'] : null,
+                'created_by' => Auth::id(),
+                'title' => $validated['title'],
+                'author_name' => $validated['author_name'],
+                'content' => $validated['content'],
+                'photos' => $photoPaths ?: null,
+                'status' => FanfictionStatus::Draft,
+                'published_at' => null,
+            ]);
 
-        if ($validated['status'] === 'published') {
-            $this->fanfictionService->createRewardForFanfiction($fanfiction);
-            $this->handlePublishActions($fanfiction);
-            $this->invalidateFanfictionCountCache();
-        }
+            if ($validated['status'] === 'published') {
+                app(PublishFanfiction::class)->execute($fanfiction);
+            }
+        }, 3);
 
         return redirect()
             ->route('admin.fanfiction.index')
@@ -205,28 +205,10 @@ class FanfictionAdminController extends Controller
      */
     public function publish(Fanfiction $fanfiction): RedirectResponse
     {
-        if ($fanfiction->status === FanfictionStatus::Published) {
-            return redirect()
-                ->route('admin.fanfiction.index')
-                ->with('info', 'Diese Fanfiction ist bereits veröffentlicht.');
-        }
+        $published = app(PublishFanfiction::class)->execute($fanfiction);
 
-        $fanfiction->update([
-            'status' => FanfictionStatus::Published,
-            'published_at' => now(),
-        ]);
-
-        // Reward erstellen beim Veröffentlichen
-        if (! $fanfiction->reward) {
-            $this->fanfictionService->createRewardForFanfiction($fanfiction);
-        }
-
-        $this->handlePublishActions($fanfiction);
-        $this->invalidateFanfictionCountCache();
-
-        return redirect()
-            ->route('admin.fanfiction.index')
-            ->with('success', 'Fanfiction erfolgreich veröffentlicht.');
+        return redirect()->route('admin.fanfiction.index')
+            ->with($published ? 'success' : 'info', $published ? 'Fanfiction erfolgreich veröffentlicht.' : 'Diese Fanfiction ist bereits veröffentlicht.');
     }
 
     /**
@@ -264,28 +246,6 @@ class FanfictionAdminController extends Controller
         }
 
         return $photoPaths;
-    }
-
-    /**
-     * Handle actions when a fanfiction is published.
-     */
-    private function handlePublishActions(Fanfiction $fanfiction): void
-    {
-        // Create activity entry
-        Activity::create([
-            'user_id' => $fanfiction->user_id ?? $fanfiction->created_by,
-            'subject_type' => Fanfiction::class,
-            'subject_id' => $fanfiction->id,
-            'action' => 'published',
-        ]);
-
-        // Award Baxx points if author is a member
-        if ($fanfiction->user_id && $fanfiction->author) {
-            $points = BaxxEarningRule::getPointsFor('fanfiction_publish');
-            if ($points > 0) {
-                $fanfiction->author->incrementTeamPoints($points);
-            }
-        }
     }
 
     /**

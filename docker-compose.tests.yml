@@ -5,7 +5,7 @@ services:
     image: ${TEST_NODE_IMAGE:-omxfc-test-node:local}
     entrypoint: ['sh', '/source/docker/tests/start-php.sh']
     working_dir: /var/www/html
-    command: ['node', 'node_modules/vite/bin/vite.js', 'build']
+    command: ['sh', '-c', 'node node_modules/vite/bin/vite.js build && node tools/testing/feature-bundles.mjs']
     environment:
       TEST_USE_SHARED_ASSETS: '1'
     volumes:

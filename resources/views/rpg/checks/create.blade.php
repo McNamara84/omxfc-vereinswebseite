@@ -2,7 +2,8 @@
     <x-member-page class="max-w-5xl">
         <x-ui.page-header title="Probe anfordern" eyebrow="AG Rollenspiel" description="Wähle Charaktere und Vorgaben. Prüfe die Berechnung vor dem Versand." />
         <a class="btn btn-ghost my-3" href="{{ route('rpg.checks.index') }}">Alle Proben</a>
-        <form x-data="rpgCheckForm({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
+        <x-lazy-feature name="rpg-checks">
+<form x-data="rpgCheckForm({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
             @csrf
             <div x-cloak x-show="error" role="alert" class="alert alert-error whitespace-pre-wrap" x-text="error"></div>
             <fieldset :disabled="busy" class="space-y-5">
@@ -60,5 +61,6 @@
             </section>
             <p x-show="busy" role="status">Anfrage wird verarbeitet …</p>
         </form>
+</x-lazy-feature>
     </x-member-page>
 </x-member-layout>

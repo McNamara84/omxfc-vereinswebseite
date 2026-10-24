@@ -185,7 +185,7 @@
     </x-ui.panel>
 
     {{-- Auswertung Card --}}
-    <x-ui.panel title="Auswertung" description="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht." data-testid="evaluation-card">
+    <x-ui.panel title="Auswertung" description="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht." data-testid="evaluation-card" data-poll-charts>
         {{-- Hidden data for Chart.js --}}
         <div class="hidden" aria-hidden="true">
             <span data-omxfc-poll-color="members" class="text-indigo-600">.</span>

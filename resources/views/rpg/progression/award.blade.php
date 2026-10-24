@@ -2,7 +2,8 @@
     <x-member-page class="max-w-5xl">
         <x-ui.page-header title="Erfahrungspunkte vergeben" eyebrow="AG Rollenspiel" description="Bewerte das abgeschlossene Abenteuer nach Seite 54 des Regelwerks. Prüfe die Vorschau vor der verbindlichen Vergabe." />
         <a href="{{ route('rpg.adventures.index') }}" class="btn btn-ghost my-3">Zur Vergabeübersicht</a>
-        <form x-data="rpgProgression({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
+        <x-lazy-feature name="rpg-progression">
+<form x-data="rpgProgression({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
             @csrf
             <div x-cloak :style="error ? {} : { display: 'none' }" x-ref="error" tabindex="-1" role="alert" class="alert alert-error whitespace-pre-wrap" x-text="error"></div>
             <fieldset :disabled="busy" class="min-w-0 space-y-5">
@@ -46,5 +47,6 @@
             </section>
             <p x-show="busy" role="status">Anfrage wird verarbeitet …</p>
         </form>
+</x-lazy-feature>
     </x-member-page>
 </x-member-layout>

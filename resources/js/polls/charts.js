@@ -29,6 +29,7 @@ Chart.register(
     Tooltip,
 );
 
+export function mountPollCharts(root) {
 const chartStore = {
     options: null,
     timeline: null,
@@ -46,12 +47,12 @@ const destroyIfExists = (chart) => {
 };
 
 const getCanvas = (id) => {
-    const el = document.getElementById(id);
+    const el = root.querySelector(`#${id}`);
     return el instanceof HTMLCanvasElement ? el : null;
 };
 
 const getThemeColor = (key) => {
-    const el = document.querySelector(`[data-omxfc-poll-color="${key}"]`);
+    const el = root.querySelector(`[data-omxfc-poll-color="${key}"]`);
     if (!el) {
         return null;
     }
@@ -234,7 +235,7 @@ const updateCharts = (data) => {
 };
 
 const readInitialChartData = () => {
-    const el = document.querySelector('[data-omxfc-poll-chart-data]');
+    const el = root.querySelector('[data-omxfc-poll-chart-data]');
     if (!el) {
         return null;
     }
@@ -262,29 +263,18 @@ const init = () => {
     }
 };
 
-let initScheduled = false;
-let initRunning = false;
-const scheduleInit = () => {
-    if (initScheduled || initRunning) {
-        return;
-    }
-
-    initScheduled = true;
-    queueMicrotask(() => {
-        initScheduled = false;
-        initRunning = true;
-        try {
-            init();
-        } finally {
-            initRunning = false;
-        }
-    });
-};
-
-document.addEventListener('DOMContentLoaded', scheduleInit);
-document.addEventListener('livewire:navigated', scheduleInit);
-
-window.addEventListener('poll-results-updated', (event) => {
+const update = event => {
     const payload = event?.detail?.data ?? event?.detail;
     updateCharts(payload);
-});
+};
+window.addEventListener('poll-results-updated', update);
+// Morphs can replace canvases or the data attribute after the update event.
+const observer = new MutationObserver(init);
+observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-omxfc-poll-chart-data'] });
+init();
+return () => {
+    observer.disconnect();
+    window.removeEventListener('poll-results-updated', update);
+    destroyAllCharts();
+};
+}

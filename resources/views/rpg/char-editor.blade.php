@@ -87,7 +87,8 @@
                     </ul>
                 </div>
             @endif
-            <form action="{{ route('rpg.characters.store') }}" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
+            <x-lazy-feature name="char-editor">
+<form action="{{ route('rpg.characters.store') }}" method="POST" enctype="multipart/form-data" x-data="charEditor()" @submit="handleFormSubmit($event)" data-testid="char-editor-form">
                 @csrf
 
                 <input type="hidden" name="purchase_slot_if_needed" :value="purchaseSlotIfNeeded ? '1' : '0'">
@@ -1175,6 +1176,7 @@
                     </section>
                 </fieldset>
             </form>
+</x-lazy-feature>
         </x-ui.panel>
     </x-member-page>
 </x-member-layout>

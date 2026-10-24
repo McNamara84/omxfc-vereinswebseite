@@ -2,12 +2,9 @@
   "name": "omxfc-npm-security-patches",
   "private": true,
   "version": "1.0.0",
-  "description": "Reviewed same-major security replacements for npm 12.2.0 bundled dependencies; remove after upstream fixes.",
+  "description": "Reviewed same-major security replacements for npm 12.2.1 bundled dependencies; remove after upstream fixes.",
   "dependencies": {
-    "brace-expansion": "5.0.12",
-    "http-cache-semantics": "4.3.0",
     "ip-address": "10.7.4",
-    "postcss-selector-parser": "7.1.6",
     "undici": "6.29.1"
   }
 }

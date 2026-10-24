@@ -15,6 +15,7 @@
     processIsolation="false">
     <testsuites>
         <testsuite name="Maddraxikon MariaDB">
+            <file>tests/Feature/BaxxMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/BildersucheMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/BildersucheSearchTest.php</file>
             <file>tests/Feature/BildersucheAccessTest.php</file>

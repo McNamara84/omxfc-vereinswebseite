@@ -2,14 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Actions\Fanfiction\PublishFanfiction;
 use App\Enums\FanfictionStatus;
-use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\Team;
 use App\Models\User;
-use App\Services\FanfictionService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
@@ -135,23 +134,23 @@ class FanfictionCreate extends Component
         $membersTeam = Team::membersTeam();
         $photoPaths = $this->uploadPhotos();
 
-        $fanfiction = Fanfiction::create([
-            'team_id' => $membersTeam->id,
-            'user_id' => $this->authorType === 'member' ? $this->userId : null,
-            'created_by' => Auth::id(),
-            'title' => $this->title,
-            'author_name' => $this->authorName,
-            'content' => $this->content,
-            'photos' => $photoPaths ?: null,
-            'status' => FanfictionStatus::from($this->status),
-            'published_at' => $this->status === 'published' ? now() : null,
-        ]);
+        DB::transaction(function () use ($membersTeam, $photoPaths): void {
+            $fanfiction = Fanfiction::create([
+                'team_id' => $membersTeam->id,
+                'user_id' => $this->authorType === 'member' ? $this->userId : null,
+                'created_by' => Auth::id(),
+                'title' => $this->title,
+                'author_name' => $this->authorName,
+                'content' => $this->content,
+                'photos' => $photoPaths ?: null,
+                'status' => FanfictionStatus::Draft,
+                'published_at' => null,
+            ]);
 
-        if ($this->status === 'published') {
-            app(FanfictionService::class)->createRewardForFanfiction($fanfiction);
-            $this->handlePublishActions($fanfiction);
-            $this->invalidateFanfictionCountCache($membersTeam);
-        }
+            if ($this->status === 'published') {
+                app(PublishFanfiction::class)->execute($fanfiction);
+            }
+        }, 3);
 
         session()->flash('success', 'Fanfiction erfolgreich erstellt.');
         $this->redirect(route('admin.fanfiction.index'), navigate: true);
@@ -184,25 +183,6 @@ class FanfictionCreate extends Component
         }
 
         return $photoPaths;
-    }
-
-    private function handlePublishActions(Fanfiction $fanfiction): void
-    {
-        Activity::create([
-            'user_id' => $fanfiction->user_id ?? $fanfiction->created_by,
-            'subject_type' => Fanfiction::class,
-            'subject_id' => $fanfiction->id,
-            'action' => 'published',
-        ]);
-
-        if ($fanfiction->user_id && $fanfiction->author) {
-            $fanfiction->author->incrementTeamPoints(5);
-        }
-    }
-
-    private function invalidateFanfictionCountCache(Team $team): void
-    {
-        Cache::forget("fanfiction_count_{$team->id}");
     }
 
     public function placeholder()

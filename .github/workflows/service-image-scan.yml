@@ -24,16 +24,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - image: composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac
+          - image: composer:2.10.3@sha256:b6dcd72ca98fa19d0e5b8476de179859704891fad06dd9e0b96833d4c430a5fc
             target: composer-bin
-          - image: php:8.5.12-fpm-trixie@sha256:8b4b4a764f7985137b13e4cb49dd59e967d9daa7946a731f9d06e31e748e39bb
+          - image: php:8.5.12-fpm-trixie@sha256:f49965c6e6a237eb3b27a6fc565e167839dc8abc65ee0652af0078f6ecdf4bbd
             target: php-base
-          - image: php:8.5.12-cli-trixie@sha256:ce5d49625b9c50020dc1ce3c9cf4cdfa31cba31b6651e72daa3e6f5a010d234a
+          - image: php:8.5.12-cli-trixie@sha256:635a4b998025ab269194639a5549c6fdcd9b4f88ec8cd761b092de8653d40663
             target: playwright-php
             file: docker/playwright-php.Dockerfile
-          - image: node:26.12.0-alpine3.24@sha256:6f08a523443ddedf52941874c203475b0ad503e859ad70cb26ab8be9a517dbd5
+          - image: node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797
             target: node-base
-          - image: nginx:1.31.7-alpine3.24-slim@sha256:ebd058041a732a2b2dc0b606e34572dd8e0034de6a4aa4d50d8c13a240ac6005
+          - image: nginx:1.31.8-alpine3.24-slim@sha256:b899b0ef5345e14c01720a5ff83e716bacda65c7077a7363602ff7e7970bf88a
             target: nginx
             file: docker/nginx.Dockerfile
           - image: mariadb:13.0.2@sha256:0e4bb0f339feba125d1154fbacd36c16ec8518f52e44e1f82ecec7d6771caf39
@@ -63,7 +63,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ matrix.image }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: false
           output-format: json
           output-file: upstream-grype-report.json
@@ -72,7 +72,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           # Keep unfixed findings visible; the next step enforces the deployment policy.
           # Scanner/database errors still fail this action with fail-build disabled.
           fail-build: false
@@ -83,7 +83,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -149,7 +149,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: omxfc-typesense:security-scan
-          grype-version: v0.120.1
+          grype-version: v0.121.0
           fail-build: true
           severity-cutoff: high
           output-format: table

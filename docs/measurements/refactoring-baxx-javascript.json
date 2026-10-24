@@ -1,0 +1,2575 @@
+{
+  "date": "2026-10-24",
+  "baselineCommit": "4fdc1861b7f316ca60a16478edaff0d2229525dd",
+  "environment": {
+    "php": "8.5.12",
+    "mariadb": "13.0.2",
+    "node": "26.12.0",
+    "vite": "8.3.4",
+    "playwright": "1.64.1",
+    "browser": "Chromium",
+    "repetitions": 5,
+    "backendCpuSet": "8-11",
+    "browserCpuSet": "12-15"
+  },
+  "notes": [
+    "Production assets, same Docker images and fixtures before/after.",
+    "gzipBytes is normalized gzip size of requested JS/CSS files; PHP development server serves uncompressed resources.",
+    "transferBytes includes other resources and HTTP overhead; not restricted to JS/CSS.",
+    "Warm navigation starts on /mitglieder (members scenario starts on /). Import cache persists; context routing disables the HTTP cache.",
+    "Feature readiness uses map panes, initialized chart canvases and the Alpine editor factory; it does not claim completion of a gameplay mission.",
+    "FCP/LCP are samples taken at readiness, not finalized field Core Web Vitals.",
+    "Backend metrics cover the named test method including fixtures and assertions, excluding setUp/migrations/seeders; lockSqlMs is SQL execution plus transport, not isolated contention wait."
+  ],
+  "bundles": {
+    "before": [
+      {
+        "file": "assets/app-1DTFk8zz.css",
+        "bytes": 10572,
+        "gzipBytes": 2648
+      },
+      {
+        "file": "assets/app-DIOwuLai.js",
+        "bytes": 252186,
+        "gzipBytes": 77218
+      },
+      {
+        "file": "assets/chart-BHabW3DQ.js",
+        "bytes": 202262,
+        "gzipBytes": 68698
+      },
+      {
+        "file": "assets/leaflet-src-PgIqD2qe.js",
+        "bytes": 151103,
+        "gzipBytes": 44019
+      },
+      {
+        "file": "assets/app-DhIjnN3b.css",
+        "bytes": 453058,
+        "gzipBytes": 57898
+      }
+    ],
+    "after": [
+      {
+        "file": "assets/app-BTAep5Ag.js",
+        "bytes": 151326,
+        "gzipBytes": 49695
+      },
+      {
+        "file": "assets/app-DhIjnN3b.css",
+        "bytes": 453058,
+        "gzipBytes": 57898
+      }
+    ]
+  },
+  "browser": {
+    "before": [
+      {
+        "scenario": "homepage",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 814,
+            "scriptMs": 96.475,
+            "fcpMs": 696,
+            "lcpMs": 696,
+            "transferBytes": 4379647,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 623,
+            "scriptMs": 86.681,
+            "fcpMs": 232,
+            "lcpMs": 612,
+            "transferBytes": 4379647,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 705,
+            "scriptMs": 84.387,
+            "fcpMs": 588,
+            "lcpMs": 588,
+            "transferBytes": 4379647,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 672,
+            "scriptMs": 110.659,
+            "fcpMs": 244,
+            "lcpMs": 656,
+            "transferBytes": 4379647,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 640,
+            "scriptMs": 91.039,
+            "fcpMs": 208,
+            "lcpMs": 624,
+            "transferBytes": 4379647,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "login",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 383,
+            "scriptMs": 90.812,
+            "fcpMs": 208,
+            "lcpMs": 272,
+            "transferBytes": 1408837,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 318,
+            "scriptMs": 74.894,
+            "fcpMs": 172,
+            "lcpMs": 212,
+            "transferBytes": 1408837,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 387,
+            "scriptMs": 100.936,
+            "fcpMs": 252,
+            "lcpMs": 252,
+            "transferBytes": 1408837,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 403,
+            "scriptMs": 95.174,
+            "fcpMs": 208,
+            "lcpMs": 264,
+            "transferBytes": 1408837,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 350,
+            "scriptMs": 96.739,
+            "fcpMs": 192,
+            "lcpMs": 220,
+            "transferBytes": 1408837,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "members",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 3597,
+            "scriptMs": 590.131,
+            "fcpMs": 844,
+            "lcpMs": 1192,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 3487,
+            "scriptMs": 581.911,
+            "fcpMs": 712,
+            "lcpMs": 940,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 3367,
+            "scriptMs": 560.965,
+            "fcpMs": 740,
+            "lcpMs": 1056,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 4193,
+            "scriptMs": 930.925,
+            "fcpMs": 760,
+            "lcpMs": 1168,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 3600,
+            "scriptMs": 626.529,
+            "fcpMs": 732,
+            "lcpMs": 1112,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "members",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 3326,
+            "scriptMs": 542.434,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552465,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3037,
+            "scriptMs": 504.847,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552465,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3627,
+            "scriptMs": 471.41,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552465,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3410,
+            "scriptMs": 555.892,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552465,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3596,
+            "scriptMs": 501.997,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552465,
+            "gzipBytes": 0,
+            "assets": []
+          }
+        ]
+      },
+      {
+        "scenario": "member-map",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 2414,
+            "scriptMs": 162.053,
+            "fcpMs": 1956,
+            "lcpMs": 2048,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 747,
+            "scriptMs": 154.661,
+            "fcpMs": 312,
+            "lcpMs": 420,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 806,
+            "scriptMs": 206.136,
+            "fcpMs": 312,
+            "lcpMs": 408,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 762,
+            "scriptMs": 149.103,
+            "fcpMs": 360,
+            "lcpMs": 428,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 779,
+            "scriptMs": 156.181,
+            "fcpMs": 352,
+            "lcpMs": 448,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "member-map",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1040,
+            "scriptMs": 64.963,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 179776,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 941,
+            "scriptMs": 53.43,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 179804,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1126,
+            "scriptMs": 84.196,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 179603,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1097,
+            "scriptMs": 118.196,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 179728,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1079,
+            "scriptMs": 63.674,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 179842,
+            "gzipBytes": 0,
+            "assets": []
+          }
+        ]
+      },
+      {
+        "scenario": "maddraxiversum",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 932,
+            "scriptMs": 171.146,
+            "fcpMs": 372,
+            "lcpMs": 508,
+            "transferBytes": 1449941,
+            "gzipBytes": 261616,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/maddraxiversum-CCsANILA.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 698,
+            "scriptMs": 114.084,
+            "fcpMs": 308,
+            "lcpMs": 396,
+            "transferBytes": 1449941,
+            "gzipBytes": 261616,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/maddraxiversum-CCsANILA.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 673,
+            "scriptMs": 129.497,
+            "fcpMs": 288,
+            "lcpMs": 376,
+            "transferBytes": 1449941,
+            "gzipBytes": 261616,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/maddraxiversum-CCsANILA.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-DIOwuLai.js"
+            ]
+          },
+          {
+            "readyMs": 641,
+            "scriptMs": 113.052,
+            "fcpMs": 324,
+            "lcpMs": 324,
+            "transferBytes": 1449941,
+            "gzipBytes": 261616,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/maddraxiversum-CCsANILA.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 781,
+            "scriptMs": 146.439,
+            "fcpMs": 296,
+            "lcpMs": 404,
+            "transferBytes": 1449941,
+            "gzipBytes": 261616,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/maddraxiversum-CCsANILA.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "maddraxiversum",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 912,
+            "scriptMs": 46.529,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200762,
+            "gzipBytes": 11135,
+            "assets": [
+              "/build/assets/maddraxiversum-CCsANILA.js"
+            ]
+          },
+          {
+            "readyMs": 1198,
+            "scriptMs": 103.501,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200762,
+            "gzipBytes": 11135,
+            "assets": [
+              "/build/assets/maddraxiversum-CCsANILA.js"
+            ]
+          },
+          {
+            "readyMs": 925,
+            "scriptMs": 48.265,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200762,
+            "gzipBytes": 11135,
+            "assets": [
+              "/build/assets/maddraxiversum-CCsANILA.js"
+            ]
+          },
+          {
+            "readyMs": 1197,
+            "scriptMs": 64.005,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200762,
+            "gzipBytes": 11135,
+            "assets": [
+              "/build/assets/maddraxiversum-CCsANILA.js"
+            ]
+          },
+          {
+            "readyMs": 939,
+            "scriptMs": 61.168,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200762,
+            "gzipBytes": 11135,
+            "assets": [
+              "/build/assets/maddraxiversum-CCsANILA.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "statistics",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 1637,
+            "scriptMs": 794.752,
+            "fcpMs": 540,
+            "lcpMs": 540,
+            "transferBytes": 1413545,
+            "gzipBytes": 252231,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js"
+            ]
+          },
+          {
+            "readyMs": 2125,
+            "scriptMs": 1017.557,
+            "fcpMs": 680,
+            "lcpMs": 792,
+            "transferBytes": 1414171,
+            "gzipBytes": 252231,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js"
+            ]
+          },
+          {
+            "readyMs": 1808,
+            "scriptMs": 942.408,
+            "fcpMs": 480,
+            "lcpMs": 552,
+            "transferBytes": 1414171,
+            "gzipBytes": 252231,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js"
+            ]
+          },
+          {
+            "readyMs": 1653,
+            "scriptMs": 901.961,
+            "fcpMs": 332,
+            "lcpMs": 452,
+            "transferBytes": 1414171,
+            "gzipBytes": 252231,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js"
+            ]
+          },
+          {
+            "readyMs": 1671,
+            "scriptMs": 867.798,
+            "fcpMs": 396,
+            "lcpMs": 524,
+            "transferBytes": 1414171,
+            "gzipBytes": 252231,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "statistics",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1518,
+            "scriptMs": 561.228,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 283656,
+            "gzipBytes": 1750,
+            "assets": [
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1593,
+            "scriptMs": 660.504,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 283656,
+            "gzipBytes": 1750,
+            "assets": [
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1557,
+            "scriptMs": 557.983,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 283656,
+            "gzipBytes": 1750,
+            "assets": [
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1428,
+            "scriptMs": 500.65,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 283656,
+            "gzipBytes": 1750,
+            "assets": [
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1579,
+            "scriptMs": 538.594,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 283656,
+            "gzipBytes": 1750,
+            "assets": [
+              "/build/assets/statistik-BODG4lvd.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "admin-charts",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 862,
+            "scriptMs": 168.663,
+            "fcpMs": 340,
+            "lcpMs": 504,
+            "transferBytes": 1415733,
+            "gzipBytes": 252871,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 823,
+            "scriptMs": 169.501,
+            "fcpMs": 432,
+            "lcpMs": 432,
+            "transferBytes": 1415733,
+            "gzipBytes": 252871,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 765,
+            "scriptMs": 139.91,
+            "fcpMs": 328,
+            "lcpMs": 508,
+            "transferBytes": 1415733,
+            "gzipBytes": 252871,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 869,
+            "scriptMs": 178.271,
+            "fcpMs": 348,
+            "lcpMs": 592,
+            "transferBytes": 1415733,
+            "gzipBytes": 252871,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 866,
+            "scriptMs": 193.737,
+            "fcpMs": 352,
+            "lcpMs": 540,
+            "transferBytes": 1415733,
+            "gzipBytes": 252871,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js",
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "admin-charts",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1073,
+            "scriptMs": 88.348,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200498,
+            "gzipBytes": 2390,
+            "assets": [
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1236,
+            "scriptMs": 83.174,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200498,
+            "gzipBytes": 2390,
+            "assets": [
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1068,
+            "scriptMs": 74.942,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200498,
+            "gzipBytes": 2390,
+            "assets": [
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1145,
+            "scriptMs": 80.982,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200498,
+            "gzipBytes": 2390,
+            "assets": [
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          },
+          {
+            "readyMs": 1132,
+            "scriptMs": 81.028,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 200498,
+            "gzipBytes": 2390,
+            "assets": [
+              "/build/assets/charts-B58Xunuj.js",
+              "/build/assets/auto-BLdSCRNW.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "character-editor",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 1362,
+            "scriptMs": 401.932,
+            "fcpMs": 380,
+            "lcpMs": 452,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1280,
+            "scriptMs": 419.893,
+            "fcpMs": 368,
+            "lcpMs": 452,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1276,
+            "scriptMs": 369.318,
+            "fcpMs": 372,
+            "lcpMs": 444,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1295,
+            "scriptMs": 409.746,
+            "fcpMs": 316,
+            "lcpMs": 412,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1356,
+            "scriptMs": 470.921,
+            "fcpMs": 360,
+            "lcpMs": 448,
+            "transferBytes": 1409463,
+            "gzipBytes": 250481,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-1DTFk8zz.css",
+              "/build/assets/leaflet-src-PgIqD2qe.js",
+              "/build/assets/app-DIOwuLai.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "character-editor",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1617,
+            "scriptMs": 323.403,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 699413,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1485,
+            "scriptMs": 320.146,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 699413,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1544,
+            "scriptMs": 315.674,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 699413,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1415,
+            "scriptMs": 298.845,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 699413,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 1530,
+            "scriptMs": 364.501,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 699413,
+            "gzipBytes": 0,
+            "assets": []
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "scenario": "homepage",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 581,
+            "scriptMs": 60.099,
+            "fcpMs": 192,
+            "lcpMs": 536,
+            "transferBytes": 3913950,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 649,
+            "scriptMs": 69.142,
+            "fcpMs": 228,
+            "lcpMs": 636,
+            "transferBytes": 3913950,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 721,
+            "scriptMs": 71.379,
+            "fcpMs": 632,
+            "lcpMs": 632,
+            "transferBytes": 3913950,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 574,
+            "scriptMs": 72.577,
+            "fcpMs": 180,
+            "lcpMs": 560,
+            "transferBytes": 3913950,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 774,
+            "scriptMs": 88.198,
+            "fcpMs": 496,
+            "lcpMs": 740,
+            "transferBytes": 3913950,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "login",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 322,
+            "scriptMs": 64.992,
+            "fcpMs": 216,
+            "lcpMs": 232,
+            "transferBytes": 943140,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 282,
+            "scriptMs": 68.887,
+            "fcpMs": 152,
+            "lcpMs": 196,
+            "transferBytes": 943140,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 272,
+            "scriptMs": 57.415,
+            "fcpMs": 196,
+            "lcpMs": 196,
+            "transferBytes": 943140,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 273,
+            "scriptMs": 62.933,
+            "fcpMs": 184,
+            "lcpMs": 184,
+            "transferBytes": 943140,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 293,
+            "scriptMs": 59.78,
+            "fcpMs": 160,
+            "lcpMs": 208,
+            "transferBytes": 943140,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "members",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 3544,
+            "scriptMs": 598.714,
+            "fcpMs": 856,
+            "lcpMs": 1148,
+            "transferBytes": 943766,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 3569,
+            "scriptMs": 627.63,
+            "fcpMs": 820,
+            "lcpMs": 1192,
+            "transferBytes": 943766,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 3446,
+            "scriptMs": 579.447,
+            "fcpMs": 700,
+            "lcpMs": 1040,
+            "transferBytes": 943766,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 3575,
+            "scriptMs": 686.461,
+            "fcpMs": 668,
+            "lcpMs": 1048,
+            "transferBytes": 943766,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          },
+          {
+            "readyMs": 3337,
+            "scriptMs": 568.17,
+            "fcpMs": 652,
+            "lcpMs": 1032,
+            "transferBytes": 943766,
+            "gzipBytes": 107593,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "members",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 3298,
+            "scriptMs": 572.207,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552343,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3212,
+            "scriptMs": 457.662,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552343,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3415,
+            "scriptMs": 581.861,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552343,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 3259,
+            "scriptMs": 469.248,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552343,
+            "gzipBytes": 0,
+            "assets": []
+          },
+          {
+            "readyMs": 2970,
+            "scriptMs": 467.481,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 2552343,
+            "gzipBytes": 0,
+            "assets": []
+          }
+        ]
+      },
+      {
+        "scenario": "member-map",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 761,
+            "scriptMs": 102.961,
+            "fcpMs": 368,
+            "lcpMs": 368,
+            "transferBytes": 1111480,
+            "gzipBytes": 155881,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 679,
+            "scriptMs": 112.361,
+            "fcpMs": 252,
+            "lcpMs": 492,
+            "transferBytes": 1111480,
+            "gzipBytes": 155881,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 634,
+            "scriptMs": 106.987,
+            "fcpMs": 300,
+            "lcpMs": 300,
+            "transferBytes": 1111480,
+            "gzipBytes": 155881,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 655,
+            "scriptMs": 86.291,
+            "fcpMs": 288,
+            "lcpMs": 364,
+            "transferBytes": 1111480,
+            "gzipBytes": 155881,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 624,
+            "scriptMs": 107.18,
+            "fcpMs": 252,
+            "lcpMs": 332,
+            "transferBytes": 1111480,
+            "gzipBytes": 155881,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "member-map",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 865,
+            "scriptMs": 46.863,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 346985,
+            "gzipBytes": 48288,
+            "assets": [
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 944,
+            "scriptMs": 55.108,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 347072,
+            "gzipBytes": 48288,
+            "assets": [
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 988,
+            "scriptMs": 58.753,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 347008,
+            "gzipBytes": 48288,
+            "assets": [
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 1054,
+            "scriptMs": 57.082,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 347091,
+            "gzipBytes": 48288,
+            "assets": [
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 873,
+            "scriptMs": 44.868,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 347096,
+            "gzipBytes": 48288,
+            "assets": [
+              "/build/assets/karte-DTpqu9yW.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "maddraxiversum",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 610,
+            "scriptMs": 96.929,
+            "fcpMs": 300,
+            "lcpMs": 300,
+            "transferBytes": 1147740,
+            "gzipBytes": 165355,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 646,
+            "scriptMs": 92.012,
+            "fcpMs": 308,
+            "lcpMs": 308,
+            "transferBytes": 1147740,
+            "gzipBytes": 165355,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/maddraxiversum-GIXaehag.css",
+              "/build/assets/leaflet-1DTFk8zz.css"
+            ]
+          },
+          {
+            "readyMs": 851,
+            "scriptMs": 149.937,
+            "fcpMs": 368,
+            "lcpMs": 368,
+            "transferBytes": 1147740,
+            "gzipBytes": 165355,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 561,
+            "scriptMs": 81.24,
+            "fcpMs": 276,
+            "lcpMs": 276,
+            "transferBytes": 1147740,
+            "gzipBytes": 165355,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 685,
+            "scriptMs": 109.308,
+            "fcpMs": 252,
+            "lcpMs": 320,
+            "transferBytes": 1147740,
+            "gzipBytes": 165355,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "maddraxiversum",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 943,
+            "scriptMs": 49.035,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 362740,
+            "gzipBytes": 57762,
+            "assets": [
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 972,
+            "scriptMs": 53.879,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 362740,
+            "gzipBytes": 57762,
+            "assets": [
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 1159,
+            "scriptMs": 70.118,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 362740,
+            "gzipBytes": 57762,
+            "assets": [
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 956,
+            "scriptMs": 59.814,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 362740,
+            "gzipBytes": 57762,
+            "assets": [
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          },
+          {
+            "readyMs": 760,
+            "scriptMs": 46.366,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 362740,
+            "gzipBytes": 57762,
+            "assets": [
+              "/build/assets/maddraxiversum-D_IdL3vb.js",
+              "/build/assets/leaflet-wuzrFbpt.js",
+              "/build/assets/leaflet-1DTFk8zz.css",
+              "/build/assets/maddraxiversum-GIXaehag.css"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "statistics",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 1342,
+            "scriptMs": 227.738,
+            "fcpMs": 396,
+            "lcpMs": 504,
+            "transferBytes": 1148387,
+            "gzipBytes": 177088,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1281,
+            "scriptMs": 241.797,
+            "fcpMs": 488,
+            "lcpMs": 488,
+            "transferBytes": 1148387,
+            "gzipBytes": 177088,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1356,
+            "scriptMs": 264.596,
+            "fcpMs": 460,
+            "lcpMs": 460,
+            "transferBytes": 1148387,
+            "gzipBytes": 177088,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1322,
+            "scriptMs": 237.887,
+            "fcpMs": 460,
+            "lcpMs": 460,
+            "transferBytes": 1148387,
+            "gzipBytes": 177088,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1249,
+            "scriptMs": 260.248,
+            "fcpMs": 416,
+            "lcpMs": 416,
+            "transferBytes": 1148387,
+            "gzipBytes": 177088,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "statistics",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1571,
+            "scriptMs": 207.411,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 478682,
+            "gzipBytes": 69495,
+            "assets": [
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1968,
+            "scriptMs": 309.859,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 478682,
+            "gzipBytes": 69495,
+            "assets": [
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1667,
+            "scriptMs": 202.35,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 478682,
+            "gzipBytes": 69495,
+            "assets": [
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1498,
+            "scriptMs": 202.451,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 478682,
+            "gzipBytes": 69495,
+            "assets": [
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1747,
+            "scriptMs": 239.198,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 478682,
+            "gzipBytes": 69495,
+            "assets": [
+              "/build/assets/statistik-BEgx0G-r.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "admin-charts",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 1288,
+            "scriptMs": 157.134,
+            "fcpMs": 292,
+            "lcpMs": 480,
+            "transferBytes": 1152553,
+            "gzipBytes": 178675,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 881,
+            "scriptMs": 152.437,
+            "fcpMs": 472,
+            "lcpMs": 472,
+            "transferBytes": 1152553,
+            "gzipBytes": 178675,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 912,
+            "scriptMs": 177.85,
+            "fcpMs": 456,
+            "lcpMs": 456,
+            "transferBytes": 1152553,
+            "gzipBytes": 178675,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 910,
+            "scriptMs": 160.5,
+            "fcpMs": 320,
+            "lcpMs": 520,
+            "transferBytes": 1152553,
+            "gzipBytes": 178675,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 770,
+            "scriptMs": 141.447,
+            "fcpMs": 380,
+            "lcpMs": 380,
+            "transferBytes": 1152553,
+            "gzipBytes": 178675,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "admin-charts",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1124,
+            "scriptMs": 91.072,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 402829,
+            "gzipBytes": 71082,
+            "assets": [
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1114,
+            "scriptMs": 84.709,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 402829,
+            "gzipBytes": 71082,
+            "assets": [
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1114,
+            "scriptMs": 86.819,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 402829,
+            "gzipBytes": 71082,
+            "assets": [
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 1066,
+            "scriptMs": 77.547,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 402829,
+            "gzipBytes": 71082,
+            "assets": [
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          },
+          {
+            "readyMs": 992,
+            "scriptMs": 81.211,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 402829,
+            "gzipBytes": 71082,
+            "assets": [
+              "/build/assets/charts-zRI2W5vh.js",
+              "/build/assets/auto-BLdSCRNW.js",
+              "/build/assets/chart-BHabW3DQ.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "character-editor",
+        "mode": "cold",
+        "runs": [
+          {
+            "readyMs": 1127,
+            "scriptMs": 126.01,
+            "fcpMs": 376,
+            "lcpMs": 428,
+            "transferBytes": 1031630,
+            "gzipBytes": 131352,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1179,
+            "scriptMs": 140.235,
+            "fcpMs": 328,
+            "lcpMs": 420,
+            "transferBytes": 1031630,
+            "gzipBytes": 131352,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1409,
+            "scriptMs": 135.037,
+            "fcpMs": 312,
+            "lcpMs": 360,
+            "transferBytes": 1031630,
+            "gzipBytes": 131352,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1196,
+            "scriptMs": 117.141,
+            "fcpMs": 416,
+            "lcpMs": 492,
+            "transferBytes": 1031630,
+            "gzipBytes": 131352,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1216,
+            "scriptMs": 125.478,
+            "fcpMs": 408,
+            "lcpMs": 428,
+            "transferBytes": 1031630,
+            "gzipBytes": 131352,
+            "assets": [
+              "/build/assets/app-DhIjnN3b.css",
+              "/build/assets/app-BTAep5Ag.js",
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "character-editor",
+        "mode": "warm",
+        "runs": [
+          {
+            "readyMs": 1438,
+            "scriptMs": 83.517,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 787132,
+            "gzipBytes": 23759,
+            "assets": [
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1258,
+            "scriptMs": 66.177,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 787132,
+            "gzipBytes": 23759,
+            "assets": [
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1428,
+            "scriptMs": 64.726,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 787132,
+            "gzipBytes": 23759,
+            "assets": [
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1933,
+            "scriptMs": 99.147,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 787132,
+            "gzipBytes": 23759,
+            "assets": [
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          },
+          {
+            "readyMs": 1594,
+            "scriptMs": 82.225,
+            "fcpMs": null,
+            "lcpMs": null,
+            "transferBytes": 787132,
+            "gzipBytes": 23759,
+            "assets": [
+              "/build/assets/char-editor-CLC9DeYX.js"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "backend": {
+    "before": [
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 44.090705,
+        "queries": 30,
+        "sqlMs": 23.73,
+        "locks": 3,
+        "lockSqlMs": 2.07
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 70.597163,
+        "queries": 44,
+        "sqlMs": 32.1,
+        "locks": 9,
+        "lockSqlMs": 6.21
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 183.288121,
+        "queries": 59,
+        "sqlMs": 52.87,
+        "locks": 2,
+        "lockSqlMs": 1.33
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 75.702888,
+        "queries": 39,
+        "sqlMs": 31.18,
+        "locks": 3,
+        "lockSqlMs": 2.23
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 87.989912,
+        "queries": 50,
+        "sqlMs": 31.93,
+        "locks": 2,
+        "lockSqlMs": 1.33
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 177.717242,
+        "queries": 137,
+        "sqlMs": 96.7,
+        "locks": 47,
+        "lockSqlMs": 32.16
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 128.15225,
+        "queries": 59,
+        "sqlMs": 48.11,
+        "locks": 2,
+        "lockSqlMs": 1.21
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 170.8168,
+        "queries": 137,
+        "sqlMs": 94.74,
+        "locks": 47,
+        "lockSqlMs": 29.43
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 45.879993,
+        "queries": 30,
+        "sqlMs": 23.6,
+        "locks": 3,
+        "lockSqlMs": 2.22
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 110.482975,
+        "queries": 50,
+        "sqlMs": 38.43,
+        "locks": 2,
+        "lockSqlMs": 1.1
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 66.948155,
+        "queries": 44,
+        "sqlMs": 34.61,
+        "locks": 9,
+        "lockSqlMs": 8.06
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 78.35775,
+        "queries": 39,
+        "sqlMs": 32.12,
+        "locks": 3,
+        "lockSqlMs": 1.81
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 187.667073,
+        "queries": 137,
+        "sqlMs": 101.31,
+        "locks": 47,
+        "lockSqlMs": 32.18
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 117.475461,
+        "queries": 50,
+        "sqlMs": 37.18,
+        "locks": 2,
+        "lockSqlMs": 1.32
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 45.335795,
+        "queries": 30,
+        "sqlMs": 23.56,
+        "locks": 3,
+        "lockSqlMs": 2.28
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 85.913323,
+        "queries": 39,
+        "sqlMs": 33.98,
+        "locks": 3,
+        "lockSqlMs": 2.88
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 97.518317,
+        "queries": 59,
+        "sqlMs": 43.43,
+        "locks": 2,
+        "lockSqlMs": 1.05
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 60.769336,
+        "queries": 44,
+        "sqlMs": 31.94,
+        "locks": 9,
+        "lockSqlMs": 6.7
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 75.495656,
+        "queries": 44,
+        "sqlMs": 32.95,
+        "locks": 9,
+        "lockSqlMs": 6.74
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 46.105402,
+        "queries": 30,
+        "sqlMs": 24.04,
+        "locks": 3,
+        "lockSqlMs": 2.43
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 111.063158,
+        "queries": 50,
+        "sqlMs": 35.58,
+        "locks": 2,
+        "lockSqlMs": 1.45
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 103.500315,
+        "queries": 59,
+        "sqlMs": 46.97,
+        "locks": 2,
+        "lockSqlMs": 1.16
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 83.879416,
+        "queries": 39,
+        "sqlMs": 31.59,
+        "locks": 3,
+        "lockSqlMs": 2.39
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 172.063339,
+        "queries": 137,
+        "sqlMs": 95.03,
+        "locks": 47,
+        "lockSqlMs": 29.94
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 48.200487,
+        "queries": 30,
+        "sqlMs": 24.9,
+        "locks": 3,
+        "lockSqlMs": 2.21
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 87.894562,
+        "queries": 44,
+        "sqlMs": 42.71,
+        "locks": 9,
+        "lockSqlMs": 8.98
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 121.851743,
+        "queries": 59,
+        "sqlMs": 45.81,
+        "locks": 2,
+        "lockSqlMs": 1.31
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 80.701819,
+        "queries": 50,
+        "sqlMs": 34.11,
+        "locks": 2,
+        "lockSqlMs": 1.42
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 185.933511,
+        "queries": 137,
+        "sqlMs": 98.43,
+        "locks": 47,
+        "lockSqlMs": 32.84
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 75.373201,
+        "queries": 39,
+        "sqlMs": 31.41,
+        "locks": 3,
+        "lockSqlMs": 2.3
+      }
+    ],
+    "after": [
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 103.048455,
+        "queries": 40,
+        "sqlMs": 33.23,
+        "locks": 5,
+        "lockSqlMs": 4.13
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 168.990513,
+        "queries": 137,
+        "sqlMs": 92.86,
+        "locks": 47,
+        "lockSqlMs": 30.29
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 129.907146,
+        "queries": 58,
+        "sqlMs": 39.3,
+        "locks": 3,
+        "lockSqlMs": 2.06
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 94.291755,
+        "queries": 52,
+        "sqlMs": 32,
+        "locks": 3,
+        "lockSqlMs": 1.79
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 38.967453,
+        "queries": 30,
+        "sqlMs": 20.05,
+        "locks": 3,
+        "lockSqlMs": 1.78
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 64.59868,
+        "queries": 44,
+        "sqlMs": 33.47,
+        "locks": 9,
+        "lockSqlMs": 6.42
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 116.531072,
+        "queries": 58,
+        "sqlMs": 41.69,
+        "locks": 3,
+        "lockSqlMs": 2
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 68.023055,
+        "queries": 44,
+        "sqlMs": 32.97,
+        "locks": 9,
+        "lockSqlMs": 7.35
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 41.936015,
+        "queries": 30,
+        "sqlMs": 23.47,
+        "locks": 3,
+        "lockSqlMs": 2.13
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 93.976873,
+        "queries": 52,
+        "sqlMs": 37.54,
+        "locks": 3,
+        "lockSqlMs": 2.14
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 183.701295,
+        "queries": 137,
+        "sqlMs": 97.04,
+        "locks": 47,
+        "lockSqlMs": 31.03
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 59.213617,
+        "queries": 40,
+        "sqlMs": 25.18,
+        "locks": 5,
+        "lockSqlMs": 3.02
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 50.215252,
+        "queries": 30,
+        "sqlMs": 24.95,
+        "locks": 3,
+        "lockSqlMs": 2.17
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 134.22533,
+        "queries": 58,
+        "sqlMs": 46.28,
+        "locks": 3,
+        "lockSqlMs": 2.02
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 77.199132,
+        "queries": 40,
+        "sqlMs": 31.53,
+        "locks": 5,
+        "lockSqlMs": 3.89
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 197.318637,
+        "queries": 137,
+        "sqlMs": 103.01,
+        "locks": 47,
+        "lockSqlMs": 34.89
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 98.215058,
+        "queries": 52,
+        "sqlMs": 36.67,
+        "locks": 3,
+        "lockSqlMs": 2.38
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 65.036242,
+        "queries": 44,
+        "sqlMs": 32.73,
+        "locks": 9,
+        "lockSqlMs": 5.84
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 141.348197,
+        "queries": 52,
+        "sqlMs": 43.78,
+        "locks": 3,
+        "lockSqlMs": 2.7
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 180.456209,
+        "queries": 137,
+        "sqlMs": 99.64,
+        "locks": 47,
+        "lockSqlMs": 34.05
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 89.176963,
+        "queries": 40,
+        "sqlMs": 37.08,
+        "locks": 5,
+        "lockSqlMs": 4.56
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 85.143058,
+        "queries": 44,
+        "sqlMs": 44.56,
+        "locks": 9,
+        "lockSqlMs": 8.66
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 136.908087,
+        "queries": 58,
+        "sqlMs": 61.32,
+        "locks": 3,
+        "lockSqlMs": 2.62
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 45.241915,
+        "queries": 30,
+        "sqlMs": 23.49,
+        "locks": 3,
+        "lockSqlMs": 1.8
+      },
+      {
+        "scenario": "test_check_mission_status_marks_completed_and_awards_points_from_effective_rule",
+        "elapsedMs": 100.239118,
+        "queries": 40,
+        "sqlMs": 34.77,
+        "locks": 5,
+        "lockSqlMs": 3.75
+      },
+      {
+        "scenario": "test_repeated_archiving_and_reopening_never_pay_twice",
+        "elapsedMs": 65.70543,
+        "queries": 44,
+        "sqlMs": 30.95,
+        "locks": 9,
+        "lockSqlMs": 6.71
+      },
+      {
+        "scenario": "test_bundle_offer_counts_each_new_offer_for_thresholds",
+        "elapsedMs": 34.363119,
+        "queries": 30,
+        "sqlMs": 18.42,
+        "locks": 3,
+        "lockSqlMs": 1.76
+      },
+      {
+        "scenario": "test_remote_validation_is_bundled_into_configured_chunks",
+        "elapsedMs": 193.661174,
+        "queries": 137,
+        "sqlMs": 103.24,
+        "locks": 47,
+        "lockSqlMs": 37.38
+      },
+      {
+        "scenario": "test_admin_can_verify_completed_todo_and_award_points",
+        "elapsedMs": 119.113534,
+        "queries": 58,
+        "sqlMs": 48.51,
+        "locks": 3,
+        "lockSqlMs": 2.65
+      },
+      {
+        "scenario": "test_point_awarded_on_every_tenth_review",
+        "elapsedMs": 86.922166,
+        "queries": 52,
+        "sqlMs": 36.47,
+        "locks": 3,
+        "lockSqlMs": 2.19
+      }
+    ]
+  }
+}

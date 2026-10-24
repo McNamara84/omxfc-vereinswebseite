@@ -34,6 +34,7 @@ async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
     },
   });
   vi.doMock('../../resources/js/bootstrap.js', () => ({}));
+  vi.doMock('../../resources/js/features/index.js', () => ({}));
   vi.doMock('../../resources/js/alpine/char-editor.js', () => ({}));
   vi.doMock('../../resources/js/alpine/hoerbuch-role-repeater.js', () => ({}));
   vi.doMock('leaflet', () => ({ default: {} }));
@@ -74,6 +75,45 @@ async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
 }
 
 describe('app module', () => {
+  test('restores explicit light theme and ignores unrelated storage changes', async () => {
+    const { handler } = await loadApp(true);
+    window.localStorage.setItem('mary-theme', JSON.stringify('caramellatte'));
+    window.localStorage.setItem('omxfc-theme-explicit', '1');
+    window.__omxfcApplyStoredTheme();
+    handler({ matches: true });
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
+    window.dispatchEvent(new StorageEvent('storage', { key: 'unrelated' }));
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
+  });
+
+  test('falls back to system preference on malformed storage and events without matches', async () => {
+    const { handler } = await loadApp(true);
+    window.localStorage.setItem('mary-theme', '{broken');
+    window.__omxfcApplyStoredTheme();
+    handler({});
+    expect(document.documentElement.dataset.theme).toBe('coffee');
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+    window.__omxfcApplyStoredTheme();
+    handler({ matches: false });
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
+  });
+
+  test('bridges object and array Livewire toast payloads to maryUI', async () => {
+    await loadApp(false);
+    const callbacks = [];
+    window.Livewire = { hook: vi.fn(), on: vi.fn((name, callback) => callbacks.push(callback)) };
+    window.toast = vi.fn();
+    document.dispatchEvent(new Event('livewire:init'));
+    const toast = callbacks.at(-1);
+    toast({ type: 'success', title: 'Gespeichert', description: 'Fertig', timeout: 42, position: 'toast-top' });
+    expect(window.toast).toHaveBeenLastCalledWith({ toast: expect.objectContaining({ title: 'Gespeichert', css: 'alert-success', timeout: 42 }) });
+    toast([{}]);
+    expect(window.toast).toHaveBeenLastCalledWith({ toast: expect.objectContaining({ title: '', css: 'alert-info', timeout: 3000 }) });
+    toast({ type: 'unknown' });
+    delete window.toast;
+    expect(() => toast({})).not.toThrow();
+    delete window.Livewire;
+  });
   test('applies dark class based on preference', async () => {
     const { handler } = await loadApp(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
@@ -182,9 +222,9 @@ describe('app module', () => {
     expect(window.localStorage.getItem('mary-class')).toBeNull();
   });
 
-  test('exposes Leaflet globally', async () => {
+  test('does not load Leaflet on ordinary pages', async () => {
     await loadApp(true);
-    expect(window.L).toEqual({});
+    expect(window.L).toBeUndefined();
   });
 
   test('registers all Alpine plugins required by the layout', async () => {

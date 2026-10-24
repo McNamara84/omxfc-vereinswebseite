@@ -17,6 +17,7 @@ use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\Baxx\BaxxBookingWriter;
 use App\Services\LockedMembersTeamMemberships;
 use App\Services\Maddraxikon\Exceptions\RecoveryRequiredException;
 use App\Services\MembersTeamMembershipLock;
@@ -256,11 +257,7 @@ class MaddraxikonRewardService
                     );
                 }
 
-                $reversal = UserPoint::query()->create([
-                    'user_id' => $lockedEvent->user_id,
-                    'team_id' => $membersTeam->id,
-                    'points' => -$lockedEvent->awarded_points,
-                ]);
+                $reversal = app(BaxxBookingWriter::class)->record($lockedEvent->user_id, $membersTeam->id, -$lockedEvent->awarded_points);
 
                 $lockedEvent->update([
                     'status' => MaddraxikonRewardEventStatus::Reversed,
@@ -923,11 +920,7 @@ class MaddraxikonRewardService
                         );
                     }
 
-                    $userPoint = UserPoint::query()->create([
-                        'user_id' => $source->user_id,
-                        'team_id' => $membersTeam->id,
-                        'points' => $awardedPoints,
-                    ]);
+                    $userPoint = app(BaxxBookingWriter::class)->record($source->user_id, $membersTeam->id, $awardedPoints);
                 }
 
                 $event = MaddraxikonRewardEvent::query()->create([

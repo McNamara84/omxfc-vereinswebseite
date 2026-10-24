@@ -9,6 +9,23 @@ function mockChartModule() {
 }
 
 describe('statistik module', () => {
+  test('mount cleanup destroys its own chart and ignores stale window data', async () => {
+    const destroy = vi.fn();
+    mockChart.mockImplementation(function () { this.destroy = destroy; });
+    document.body.innerHTML = '<canvas data-statistik-chart="cycle" data-labels=\'["Neu"]\' data-values=\'[null]\'></canvas>';
+    window.authorChartLabels = ['Alt'];
+    const { mountStatistikChart } = await import('../../resources/js/statistik');
+    const cleanup = mountStatistikChart(document.querySelector('canvas'));
+    expect(mockChart.mock.calls[0][1].data.labels).toEqual(['Neu']);
+    expect(mockChart.mock.calls[0][1].data.datasets[1].data).toEqual([0]);
+    cleanup();
+    expect(destroy).toHaveBeenCalledTimes(1);
+    drawCycleChart('missing', [], []);
+    mockChart.getChart.mockReturnValue({ destroy });
+    drawCycleChart(document.querySelector('canvas'), [], []);
+    drawAuthorChart(document.querySelector('canvas'), [], []);
+    expect(destroy).toHaveBeenCalledTimes(3);
+  });
   let drawAuthorChart;
   let drawCycleChart;
   let mockChart;
@@ -80,96 +97,108 @@ describe('statistik module', () => {
     expect(mockChart).not.toHaveBeenCalled();
   });
 
-  test('DOMContentLoaded draws hardcover chart', async () => {
+  test('mount draws hardcover chart', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="hardcoverChart"></canvas>';
-    window.hardcoverChartLabels = ['1'];
-    window.hardcoverChartValues = [4];
+    const canvas = document.getElementById('hardcoverChart');
+    canvas.dataset.statistikChart = 'cycle';
+    canvas.dataset.labels = JSON.stringify(['1']);
+    canvas.dataset.values = JSON.stringify([4]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
   });
 
-  test('DOMContentLoaded draws Mission Mars chart when data available', async () => {
+  test('mount draws Mission Mars chart when data available', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="missionMarsChart"></canvas>';
-    window.missionMarsChartLabels = ['1'];
-    window.missionMarsChartValues = [4.2];
+    const canvas = document.getElementById('missionMarsChart');
+    canvas.dataset.statistikChart = 'cycle';
+    canvas.dataset.labels = JSON.stringify(['1']);
+    canvas.dataset.values = JSON.stringify([4.2]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
   });
 
-  test('DOMContentLoaded draws Mission Mars author chart', async () => {
+  test('mount draws Mission Mars author chart', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="missionMarsAuthorChart"></canvas>';
-    window.missionMarsAuthorChartLabels = ['Autor'];
-    window.missionMarsAuthorChartValues = [3];
+    const canvas = document.getElementById('missionMarsAuthorChart');
+    canvas.dataset.statistikChart = 'author';
+    canvas.dataset.labels = JSON.stringify(['Autor']);
+    canvas.dataset.values = JSON.stringify([3]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('bar');
   });
 
-  test('DOMContentLoaded draws Das Volk der Tiefe chart when data available', async () => {
+  test('mount draws Das Volk der Tiefe chart when data available', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="volkDerTiefeChart"></canvas>';
-    window.volkDerTiefeChartLabels = ['1'];
-    window.volkDerTiefeChartValues = [4.4];
+    const canvas = document.getElementById('volkDerTiefeChart');
+    canvas.dataset.statistikChart = 'cycle';
+    canvas.dataset.labels = JSON.stringify(['1']);
+    canvas.dataset.values = JSON.stringify([4.4]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
   });
 
-  test('DOMContentLoaded draws Das Volk der Tiefe author chart', async () => {
+  test('mount draws Das Volk der Tiefe author chart', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="volkDerTiefeAuthorChart"></canvas>';
-    window.volkDerTiefeAuthorChartLabels = ['Autor'];
-    window.volkDerTiefeAuthorChartValues = [2];
+    const canvas = document.getElementById('volkDerTiefeAuthorChart');
+    canvas.dataset.statistikChart = 'author';
+    canvas.dataset.labels = JSON.stringify(['Autor']);
+    canvas.dataset.values = JSON.stringify([2]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('bar');
   });
 
-  test('DOMContentLoaded draws hardcover author chart', async () => {
+  test('mount draws hardcover author chart', async () => {
     vi.resetModules();
     mockChart = mockChartModule();
 
     document.body.innerHTML = '<canvas id="hardcoverAuthorChart"></canvas>';
-    window.hardcoverAuthorChartLabels = ['A'];
-    window.hardcoverAuthorChartValues = [2];
+    const canvas = document.getElementById('hardcoverAuthorChart');
+    canvas.dataset.statistikChart = 'author';
+    canvas.dataset.labels = JSON.stringify(['A']);
+    canvas.dataset.values = JSON.stringify([2]);
 
-    await import('../../resources/js/statistik.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const { mountStatistikChart } = await import('../../resources/js/statistik.js');
+    mountStatistikChart(canvas);
 
     expect(mockChart).toHaveBeenCalled();
     const config = mockChart.mock.calls[0][1];
