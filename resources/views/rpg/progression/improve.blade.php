@@ -9,7 +9,8 @@
             <div class="alert">Ein Antrag liegt bereits zur Prüfung vor. <a class="link" href="{{ route('rpg.advancements.show', $pending) }}">Antrag ansehen oder zurückziehen</a></div>
         @else
             <p class="my-4">Attribute kosten 30 EP je Punkt, Fertigkeiten 6/12/18 EP je Zielstufe; psychische Fertigkeiten das Doppelte. Vorteile und das Ablegen von Nachteilen kosten 20 EP, Gestaltwandler 60 EP. Die Änderungen gelten erst nach Genehmigung der AG-Leitung.</p>
-            <form x-data="rpgProgression({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
+            <x-lazy-feature name="rpg-progression">
+<form x-data="rpgProgression({{ \Illuminate\Support\Js::from($config) }})" @submit.prevent="preview()" @input="invalidate()" @change="invalidate()" class="space-y-5">
                 @csrf
                 <div x-cloak :style="error ? {} : { display: 'none' }" x-ref="error" tabindex="-1" role="alert" class="alert alert-error whitespace-pre-wrap" x-text="error"></div>
                 <fieldset :disabled="busy" class="min-w-0 space-y-4">
@@ -43,6 +44,7 @@
                 </section>
                 <p x-show="busy" role="status">Anfrage wird verarbeitet …</p>
             </form>
+</x-lazy-feature>
         @endif
     </x-member-page>
 </x-member-layout>

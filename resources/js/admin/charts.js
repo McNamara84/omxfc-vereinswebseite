@@ -152,8 +152,16 @@ function renderDoughnutChart(canvasId, entries) {
 
 /** Alle Chart-Instanzen, um sie bei erneuter Initialisierung zu zerstören */
 const chartInstances = [];
+let listenerCleanups = [];
+const listen = (element, callback) => {
+    if (!element) return;
+    element.addEventListener('change', callback);
+    listenerCleanups.push(() => element.removeEventListener('change', callback));
+};
 
 function destroyAllCharts() {
+    listenerCleanups.forEach(cleanup => cleanup());
+    listenerCleanups = [];
     while (chartInstances.length > 0) {
         const chart = chartInstances.pop();
         try { chart.destroy(); } catch { /* already destroyed */ }
@@ -262,7 +270,7 @@ function initAdminCharts() {
                 };
 
                 updateUserChart(userOptions[0][0]);
-                userSelect.addEventListener('change', (event) => updateUserChart(event.target.value));
+                listen(userSelect, (event) => updateUserChart(event.target.value));
                 userVisitsEmptyMessage?.classList.add('hidden');
             }
         }
@@ -319,7 +327,7 @@ function initAdminCharts() {
         };
 
         updateActiveChart('all');
-        weekdaySelect?.addEventListener('change', (event) => updateActiveChart(event.target.value));
+        listen(weekdaySelect, (event) => updateActiveChart(event.target.value));
     }
 
     // Aktive Mitglieder nach Wochentag
@@ -376,18 +384,15 @@ function initAdminCharts() {
     configEl.dataset.initialized = 'true';
 
     } catch (error) {
-        console.error('[Admin-Charts] Initialisierung fehlgeschlagen:', error);
         destroyAllCharts();
+        throw error;
     }
 }
 
 // Export für dynamischen Import aus app.js (Code-Splitting)
 export { initAdminCharts };
 
-// Cleanup bei Navigation weg von der Seite
-document.addEventListener('livewire:navigating', () => {
-    destroyAllCharts();
-    // Guard zurücksetzen, damit bei erneuter Navigation re-initialisiert wird
-    const configEl = document.getElementById('admin-charts-config');
-    if (configEl) delete configEl.dataset.initialized;
-});
+export function mountAdminCharts(root) {
+    initAdminCharts();
+    return () => { destroyAllCharts(); delete root.dataset.initialized; };
+}

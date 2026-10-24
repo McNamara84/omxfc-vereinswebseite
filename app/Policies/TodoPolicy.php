@@ -10,7 +10,7 @@ class TodoPolicy
 {
     private function role(User $user): ?Role
     {
-        return $user->role();
+        return $user->mitgliederTeamRole();
     }
 
     public function create(User $user): bool

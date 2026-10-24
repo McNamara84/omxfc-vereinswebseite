@@ -39,10 +39,11 @@ vi.mock('chart.js', () => {
 
 describe('polls/charts.js - updateCharts Guards', () => {
     let originalGetContext;
+    let mount, cleanup;
 
     // Modul nur einmal importieren, um Event-Listener-Akkumulation zu vermeiden
     beforeAll(async () => {
-        await import('@/polls/charts.js');
+        ({ mountPollCharts: mount } = await import('@/polls/charts.js'));
     });
 
     beforeEach(() => {
@@ -55,9 +56,11 @@ describe('polls/charts.js - updateCharts Guards', () => {
 
         // Mock getContext für Canvas-Elemente
         HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+        cleanup = mount(document.body);
     });
 
     afterEach(() => {
+        cleanup();
         HTMLCanvasElement.prototype.getContext = originalGetContext;
         vi.restoreAllMocks();
     });
@@ -90,6 +93,36 @@ describe('polls/charts.js - updateCharts Guards', () => {
         guestsMarker.style.color = 'rgb(75, 85, 99)';
         document.body.appendChild(guestsMarker);
     };
+
+    it('reads current DOM data on mount and after a Livewire morph, and ignores invalid configuration', async () => {
+        setupChartDOM();
+        const data = document.createElement('div');
+        data.setAttribute('data-omxfc-poll-chart-data', '');
+        document.body.appendChild(data);
+        const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve(); };
+        await flush();
+        data.setAttribute('data-omxfc-poll-chart-data', '{bad');
+        await flush();
+        expect(globalThis.__chartMockCalls).toHaveLength(0);
+        const payload = { options: { labels: ['A'], members: [2], guests: [1] }, totals: { members: 2, guests: 1 }, timeline: [] };
+        data.setAttribute('data-omxfc-poll-chart-data', JSON.stringify(payload));
+        await flush();
+        expect(globalThis.__chartMockCalls).toHaveLength(3);
+        data.setAttribute('data-omxfc-poll-chart-data', JSON.stringify({ ...payload, options: { ...payload.options, labels: ['B'] } }));
+        await flush();
+        expect(globalThis.__chartMockCalls.at(-3)[1].data.labels).toEqual(['B']);
+        expect(globalThis.__destroyCallCount).toBeGreaterThanOrEqual(3);
+    });
+
+    it.each(['rgba(12, 34, 56, 0.4)', 'oklch(0.5 0.1 20)', ''])('supports theme color %s and missing color markers', color => {
+        setupChartDOM();
+        vi.spyOn(window, 'getComputedStyle').mockReturnValue({ color });
+        window.dispatchEvent(new CustomEvent('poll-results-updated', { detail: { options: { labels: ['A'] } } }));
+        expect(globalThis.__chartMockCalls).toHaveLength(2);
+        document.querySelectorAll('[data-omxfc-poll-color]').forEach(el => el.remove());
+        window.dispatchEvent(new CustomEvent('poll-results-updated', { detail: { options: { labels: ['A'] } } }));
+        expect(globalThis.__chartMockCalls).toHaveLength(4);
+    });
 
     it('sollte bei null-Daten nicht crashen', () => {
         setupChartDOM();

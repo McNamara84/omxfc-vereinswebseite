@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\Mission;
 use App\Models\User;
 use App\Services\MaddraxiversumBaxxService;
+use App\Services\MissionCompletionService;
 use App\Services\TeamPointService;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -100,53 +101,7 @@ class MaddraxiversumController extends Controller
 
     public function checkMissionStatus(Request $request)
     {
-        try {
-            /** @var User $user */
-            $user = Auth::user();
-
-            $mission = Mission::where('user_id', $user->id)
-                ->where('completed', false)
-                ->first();
-
-            if (! $mission) {
-                return response()->json(['status' => 'none']);
-            }
-
-            $now = Carbon::now();
-
-            // Berechne die Gesamtdauer der Mission
-            $totalDuration = $mission->travel_duration + $mission->mission_duration + $mission->travel_duration;
-            $expectedEndTime = $mission->started_at->copy()->addSeconds($totalDuration);
-
-            if ($now->greaterThanOrEqualTo($expectedEndTime)) {
-                $mission->completed = true;
-                $mission->save();
-
-                $completedMissionCount = Mission::query()
-                    ->where('user_id', $user->id)
-                    ->where('completed', true)
-                    ->count();
-
-                $this->maddraxiversumBaxxService->awardPointsForMission(
-                    $user,
-                    $mission,
-                    $completedMissionCount,
-                );
-
-                return response()->json(['status' => 'completed']);
-            } elseif ($now->greaterThanOrEqualTo($mission->arrival_at)) {
-                return response()->json(['status' => 'in_mission']);
-            } else {
-                return response()->json(['status' => 'traveling']);
-            }
-        } catch (\Exception $e) {
-            \Log::error('Fehler beim Status-Check:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json(['error' => 'Ein interner Fehler ist aufgetreten'], 500);
-        }
+        return response()->json(['status' => app(MissionCompletionService::class)->status(Auth::user())]);
     }
 
     public function getMissionStatus(Request $request)

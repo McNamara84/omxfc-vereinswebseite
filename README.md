@@ -59,6 +59,22 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Testing:** PHPUnit 13, Vitest 5, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
+Die Baxx-Quellen teilen Regelauswahl, Darstellung, Fortschritt und Buchungen über
+`app/Services/Baxx`. Challenge-Einstiege verwenden `TodoWorkflow`; Rezensionen,
+Missionsabschlüsse und Fanfiction-Veröffentlichungen besitzen gemeinsame atomare
+Aktionen. Quellspezifische Zählweisen, Wallets und Auditdaten bleiben in ihren
+jeweiligen Services. Verträge, Sperrreihenfolgen, Fehlerkorrekturen und Messwerte
+stehen im [Refactoring-Ergebnisbericht](docs/Refactoring-Baxx-JavaScript-Ergebnis.md).
+
+Karten, Charts, RPG und 3D laden über `resources/js/features/index.js` erst bei
+passendem DOM-Bedarf. Neue Features registrieren dort `selector`, `load` und
+`mount`; `mount` gibt eine Cleanup-Funktion zurück und berücksichtigt bei
+asynchroner Arbeit das Abbruchsignal. Alpine-Formulare verwenden
+`<x-lazy-feature>` als geschützten Ladebereich. `npm run build` prüft den initialen
+Importgraph einschließlich Sourcemaps auf versehentlich mitgeladene schwere
+Module. Vergleichbare Browsermessungen lassen sich mit
+`npm run test:e2e:benchmark -- tests/e2e/feature-performance.benchmark.js` ausführen.
+
 ## Navigation und Menüsuche
 
 Der Mitgliederbereich gliedert sich in **Community**, **Lesen & Entdecken**, **Termine & Treffen**, **Projekte & Mitmachen** und **Verein**. Verwaltungs- und AG-Funktionen erscheinen entsprechend den bestehenden Berechtigungen. „Challenges & Baxx“ ersetzt die bisherige Navigationsbezeichnung „Baxx verdienen“.

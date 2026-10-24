@@ -7,7 +7,7 @@
     },
     "packageManager": "npm@12.2.0",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && node tools/testing/feature-bundles.mjs",
         "dev": "vite",
         "docker:dev:build": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml build",
         "docker:dev:key:generate": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml run --rm -T --no-deps app php artisan key:generate --show",

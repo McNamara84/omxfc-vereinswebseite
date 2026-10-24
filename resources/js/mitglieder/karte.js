@@ -1,3 +1,6 @@
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import './map-utils';
 /**
  * Mitgliederkarte: Leaflet-Karte mit Mitgliedern, Stammtischen und Legende.
  *
@@ -13,7 +16,7 @@
  * - data-members-center-lon → Mitglieder-Schwerpunkt Longitude
  */
 
-let mapInstance = null;
+
 
 const USERS_ICON = `
     <svg viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true" focusable="false">
@@ -46,15 +49,8 @@ function escapeAttr(url) {
     return escapeHtml(url);
 }
 
-function initMitgliederKarte() {
-    const mapEl = document.querySelector('#map[data-member-map]');
+export function mountMemberMap(mapEl) {
     if (!mapEl) return;
-
-    // Cleanup vorheriger Karten-Instanz (bei SPA-Navigation)
-    if (mapInstance) {
-        mapInstance.remove();
-        mapInstance = null;
-    }
 
     const configEl = document.getElementById('member-map-config');
     if (!configEl) return;
@@ -73,8 +69,7 @@ function initMitgliederKarte() {
     const membersCenterLat = parseFloat(configEl.dataset.membersCenterLat) || centerLat;
     const membersCenterLon = parseFloat(configEl.dataset.membersCenterLon) || centerLon;
 
-    const map = L.map('map').setView([centerLat, centerLon], 6);
-    mapInstance = map;
+    const map = L.map(mapEl).setView([centerLat, centerLon], 6);
 
     // OpenStreetMap Layer hinzufügen
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -219,7 +214,5 @@ function initMitgliederKarte() {
         return div;
     };
     legend.addTo(map);
+    return () => map.remove();
 }
-
-document.addEventListener('DOMContentLoaded', initMitgliederKarte);
-document.addEventListener('livewire:navigated', initMitgliederKarte);

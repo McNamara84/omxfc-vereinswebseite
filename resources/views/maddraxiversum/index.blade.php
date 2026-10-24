@@ -5,19 +5,9 @@
                 <div class="p-4 flex-grow flex flex-col">
                     @if ($showMap)
 
-                        @php($skipAssetsInMinimalTests = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
 
-                        <div id="map" class="w-full flex-grow border border-base-content/10 rounded"></div>
+                        <div id="map" data-maddraxiversum-map data-tile-url="{{ $tileUrl }}" class="w-full flex-grow border border-base-content/10 rounded"></div>
 
-                        @unless($skipAssetsInMinimalTests)
-                            <script>
-                                const csrfToken = '{{ csrf_token() }}';
-                                const tileUrl = '{{ $tileUrl }}';
-                            </script>
-                            @assets
-                                @vite(['resources/js/maddraxiversum.js'])
-                            @endassets
-                        @endunless
                     @else
                         <div class="bg-warning/10 border-l-4 border-warning text-warning-content p-4">
                             <p class="font-bold">Zugriff eingeschränkt</p>
@@ -44,12 +34,12 @@
     </div>
 
     {{-- Mission Modal --}}
-    <x-modal id="mission-modal">
+    <x-modal id="mission-modal" without-trap-focus aria-labelledby="mission-title">
         <h3 id="mission-title" class="text-xl font-bold mb-4"></h3>
         <div id="mission-duration" class="mb-2 text-base-content"></div>
         <div id="mission-description" class="mb-6 text-base-content"></div>
         <x-slot:actions>
-            <x-button id="start-mission" label="Starte Mission" class="btn-primary w-full" />
+            <button type="button" id="start-mission" class="btn btn-primary w-full">Starte Mission</button>
         </x-slot:actions>
     </x-modal>
 </x-member-layout>

@@ -43,18 +43,12 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="authorChart" height="140" role="img" aria-labelledby="authorChartTitle"></canvas>
+                        <canvas id="authorChart" data-statistik-chart="author" data-labels='@json($authorCounts->keys())' data-values='@json($authorCounts->values())' height="140" role="img" aria-labelledby="authorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
-                @if($sectionUnlocked)
-                <script>
-                    window.authorChartLabels = @json($authorCounts->keys());
-                    window.authorChartValues = @json($authorCounts->values());
-                </script>
-                @endif
 
                 {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('teamplayer'))
@@ -295,19 +289,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="eureeChart" height="140" role="img" aria-labelledby="eureeChartTitle"></canvas>
+                        <canvas id="eureeChart" data-statistik-chart="cycle" data-labels='@json($eureeLabels)' data-values='@json($eureeValues)' height="140" role="img" aria-labelledby="eureeChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.eureeChartLabels = @json($eureeLabels);
-                    window.eureeChartValues = @json($eureeValues);
-                </script>
-                @endif
 
             {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-meeraka'))
@@ -322,19 +310,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="meerakaChart" height="140" role="img" aria-labelledby="meerakaChartTitle"></canvas>
+                        <canvas id="meerakaChart" data-statistik-chart="cycle" data-labels='@json($meerakaLabels)' data-values='@json($meerakaValues)' height="140" role="img" aria-labelledby="meerakaChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.meerakaChartLabels = @json($meerakaLabels);
-                    window.meerakaChartValues = @json($meerakaValues);
-                </script>
-                @endif
 
             {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-expedition'))
@@ -349,19 +331,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="expeditionChart" height="140" role="img" aria-labelledby="expeditionChartTitle"></canvas>
+                        <canvas id="expeditionChart" data-statistik-chart="cycle" data-labels='@json($expeditionLabels)' data-values='@json($expeditionValues)' height="140" role="img" aria-labelledby="expeditionChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.expeditionChartLabels = @json($expeditionLabels);
-                    window.expeditionChartValues = @json($expeditionValues);
-                </script>
-                @endif
 
             {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-kratersee'))
@@ -376,19 +352,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="kraterseeChart" height="140" role="img" aria-labelledby="kraterseeChartTitle"></canvas>
+                        <canvas id="kraterseeChart" data-statistik-chart="cycle" data-labels='@json($kraterseeLabels)' data-values='@json($kraterseeValues)' height="140" role="img" aria-labelledby="kraterseeChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.kraterseeChartLabels = @json($kraterseeLabels);
-                    window.kraterseeChartValues = @json($kraterseeValues);
-                </script>
-                @endif
 
             {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-daamuren'))
@@ -403,19 +373,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="daaMurenChart" height="140" role="img" aria-labelledby="daaMurenChartTitle"></canvas>
+                        <canvas id="daaMurenChart" data-statistik-chart="cycle" data-labels='@json($daaMurenLabels)' data-values='@json($daaMurenValues)' height="140" role="img" aria-labelledby="daaMurenChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.daaMurenChartLabels = @json($daaMurenLabels);
-                    window.daaMurenChartValues = @json($daaMurenValues);
-                </script>
-                @endif
 
             {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-wandler'))
@@ -430,19 +394,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="wandlerChart" height="140" role="img" aria-labelledby="wandlerChartTitle"></canvas>
+                        <canvas id="wandlerChart" data-statistik-chart="cycle" data-labels='@json($wandlerLabels)' data-values='@json($wandlerValues)' height="140" role="img" aria-labelledby="wandlerChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.wandlerChartLabels = @json($wandlerLabels);
-                    window.wandlerChartValues = @json($wandlerValues);
-                </script>
-                @endif
 
             {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-mars'))
@@ -457,19 +415,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="marsChart" height="140" role="img" aria-labelledby="marsChartTitle"></canvas>
+                        <canvas id="marsChart" data-statistik-chart="cycle" data-labels='@json($marsLabels)' data-values='@json($marsValues)' height="140" role="img" aria-labelledby="marsChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.marsChartLabels = @json($marsLabels);
-                    window.marsChartValues = @json($marsValues);
-                </script>
-                @endif
 
             {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ausala'))
@@ -484,19 +436,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="ausalaChart" height="140" role="img" aria-labelledby="ausalaChartTitle"></canvas>
+                        <canvas id="ausalaChart" data-statistik-chart="cycle" data-labels='@json($ausalaLabels)' data-values='@json($ausalaValues)' height="140" role="img" aria-labelledby="ausalaChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.ausalaChartLabels = @json($ausalaLabels);
-                    window.ausalaChartValues = @json($ausalaValues);
-                </script>
-                @endif
 
             {{-- Card 16 – Bewertungen des Afra-Zyklus (≥ 21 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-afra'))
@@ -511,19 +457,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="afraChart" height="140" role="img" aria-labelledby="afraChartTitle"></canvas>
+                        <canvas id="afraChart" data-statistik-chart="cycle" data-labels='@json($afraLabels)' data-values='@json($afraValues)' height="140" role="img" aria-labelledby="afraChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.afraChartLabels = @json($afraLabels);
-                    window.afraChartValues = @json($afraValues);
-                </script>
-                @endif
 
             {{-- Card 17 – Bewertungen des Antarktis-Zyklus (≥ 22 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-antarktis'))
@@ -538,19 +478,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="antarktisChart" height="140" role="img" aria-labelledby="antarktisChartTitle"></canvas>
+                        <canvas id="antarktisChart" data-statistik-chart="cycle" data-labels='@json($antarktisLabels)' data-values='@json($antarktisValues)' height="140" role="img" aria-labelledby="antarktisChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.antarktisChartLabels = @json($antarktisLabels);
-                    window.antarktisChartValues = @json($antarktisValues);
-                </script>
-                @endif
 
             {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-schatten'))
@@ -565,19 +499,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="schattenChart" height="140" role="img" aria-labelledby="schattenChartTitle"></canvas>
+                        <canvas id="schattenChart" data-statistik-chart="cycle" data-labels='@json($schattenLabels)' data-values='@json($schattenValues)' height="140" role="img" aria-labelledby="schattenChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.schattenChartLabels = @json($schattenLabels);
-                    window.schattenChartValues = @json($schattenValues);
-                </script>
-                @endif
 
             {{-- Card 19 – Bewertungen des Ursprung-Zyklus (≥ 24 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ursprung'))
@@ -592,19 +520,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="ursprungChart" height="140" role="img" aria-labelledby="ursprungChartTitle"></canvas>
+                        <canvas id="ursprungChart" data-statistik-chart="cycle" data-labels='@json($ursprungLabels)' data-values='@json($ursprungValues)' height="140" role="img" aria-labelledby="ursprungChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.ursprungChartLabels = @json($ursprungLabels);
-                    window.ursprungChartValues = @json($ursprungValues);
-                </script>
-                @endif
 
             {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-streiter'))
@@ -619,19 +541,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="streiterChart" height="140" role="img" aria-labelledby="streiterChartTitle"></canvas>
+                        <canvas id="streiterChart" data-statistik-chart="cycle" data-labels='@json($streiterLabels)' data-values='@json($streiterValues)' height="140" role="img" aria-labelledby="streiterChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.streiterChartLabels = @json($streiterLabels);
-                    window.streiterChartValues = @json($streiterValues);
-                </script>
-                @endif
 
             {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-archivar'))
@@ -646,19 +562,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="archivarChart" height="140" role="img" aria-labelledby="archivarChartTitle"></canvas>
+                        <canvas id="archivarChart" data-statistik-chart="cycle" data-labels='@json($archivarLabels)' data-values='@json($archivarValues)' height="140" role="img" aria-labelledby="archivarChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.archivarChartLabels = @json($archivarLabels);
-                    window.archivarChartValues = @json($archivarValues);
-                </script>
-                @endif
 
             {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-zeitsprung'))
@@ -673,19 +583,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="zeitsprungChart" height="140" role="img" aria-labelledby="zeitsprungChartTitle"></canvas>
+                        <canvas id="zeitsprungChart" data-statistik-chart="cycle" data-labels='@json($zeitsprungLabels)' data-values='@json($zeitsprungValues)' height="140" role="img" aria-labelledby="zeitsprungChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.zeitsprungChartLabels = @json($zeitsprungLabels);
-                    window.zeitsprungChartValues = @json($zeitsprungValues);
-                </script>
-                @endif
 
             {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-fremdwelt'))
@@ -700,19 +604,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="fremdweltChart" height="140" role="img" aria-labelledby="fremdweltChartTitle"></canvas>
+                        <canvas id="fremdweltChart" data-statistik-chart="cycle" data-labels='@json($fremdweltLabels)' data-values='@json($fremdweltValues)' height="140" role="img" aria-labelledby="fremdweltChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.fremdweltChartLabels = @json($fremdweltLabels);
-                    window.fremdweltChartValues = @json($fremdweltValues);
-                </script>
-                @endif
 
             {{-- Card 24 – Bewertungen des Parallelwelt-Zyklus (≥ 29 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-parallelwelt'))
@@ -727,19 +625,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="parallelweltChart" height="140" role="img" aria-labelledby="parallelweltChartTitle"></canvas>
+                        <canvas id="parallelweltChart" data-statistik-chart="cycle" data-labels='@json($parallelweltLabels)' data-values='@json($parallelweltValues)' height="140" role="img" aria-labelledby="parallelweltChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.parallelweltChartLabels = @json($parallelweltLabels);
-                    window.parallelweltChartValues = @json($parallelweltValues);
-                </script>
-                @endif
 
             {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltenriss'))
@@ -754,19 +646,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="weltenrissChart" height="140" role="img" aria-labelledby="weltenrissChartTitle"></canvas>
+                        <canvas id="weltenrissChart" data-statistik-chart="cycle" data-labels='@json($weltenrissLabels)' data-values='@json($weltenrissValues)' height="140" role="img" aria-labelledby="weltenrissChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.weltenrissChartLabels = @json($weltenrissLabels);
-                    window.weltenrissChartValues = @json($weltenrissValues);
-                </script>
-                @endif
 
             {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-amraka'))
@@ -781,19 +667,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="amrakaChart" height="140" role="img" aria-labelledby="amrakaChartTitle"></canvas>
+                        <canvas id="amrakaChart" data-statistik-chart="cycle" data-labels='@json($amrakaLabels)' data-values='@json($amrakaValues)' height="140" role="img" aria-labelledby="amrakaChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.amrakaChartLabels = @json($amrakaLabels);
-                    window.amrakaChartValues = @json($amrakaValues);
-                </script>
-                @endif
 
             {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltrat'))
@@ -808,19 +688,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="weltratChart" height="140" role="img" aria-labelledby="weltratChartTitle"></canvas>
+                        <canvas id="weltratChart" data-statistik-chart="cycle" data-labels='@json($weltratLabels)' data-values='@json($weltratValues)' height="140" role="img" aria-labelledby="weltratChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.weltratChartLabels = @json($weltratLabels);
-                    window.weltratChartValues = @json($weltratValues);
-                </script>
-                @endif
 
             {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-bewertungen'))
@@ -835,19 +709,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="hardcoverChart" height="140" role="img" aria-labelledby="hardcoverChartTitle"></canvas>
+                        <canvas id="hardcoverChart" data-statistik-chart="cycle" data-labels='@json($hardcoverLabels)' data-values='@json($hardcoverValues)' height="140" role="img" aria-labelledby="hardcoverChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.hardcoverChartLabels = @json($hardcoverLabels);
-                    window.hardcoverChartValues = @json($hardcoverValues);
-                </script>
-                @endif
 
             {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-autoren'))
@@ -862,19 +730,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="hardcoverAuthorChart" height="140" role="img" aria-labelledby="hardcoverAuthorChartTitle"></canvas>
+                        <canvas id="hardcoverAuthorChart" data-statistik-chart="author" data-labels='@json($hardcoverAuthorCounts->keys())' data-values='@json($hardcoverAuthorCounts->values())' height="140" role="img" aria-labelledby="hardcoverAuthorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.hardcoverAuthorChartLabels = @json($hardcoverAuthorCounts->keys());
-                    window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
-                </script>
-                @endif
             {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx, nur Romane mit ≥ 8 Bewertungen, Themen in ≥ 5 Romanen) --}}
                 @php($section = $statisticSectionLookup->get('top-themen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
@@ -925,19 +787,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="missionMarsChart" height="140" role="img" aria-labelledby="missionMarsChartTitle"></canvas>
+                        <canvas id="missionMarsChart" data-statistik-chart="cycle" data-labels='@json($missionMarsLabels)' data-values='@json($missionMarsValues)' height="140" role="img" aria-labelledby="missionMarsChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.missionMarsChartLabels = @json($missionMarsLabels);
-                    window.missionMarsChartValues = @json($missionMarsValues);
-                </script>
-                @endif
 
             {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 44 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mission-mars-autoren'))
@@ -952,19 +808,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="missionMarsAuthorChart" height="140" role="img" aria-labelledby="missionMarsAuthorChartTitle"></canvas>
+                        <canvas id="missionMarsAuthorChart" data-statistik-chart="author" data-labels='@json($missionMarsAuthorCounts->keys())' data-values='@json($missionMarsAuthorCounts->values())' height="140" role="img" aria-labelledby="missionMarsAuthorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.missionMarsAuthorChartLabels = @json($missionMarsAuthorCounts->keys());
-                    window.missionMarsAuthorChartValues = @json($missionMarsAuthorCounts->values());
-                </script>
-                @endif
 
             {{-- Card 32 – Bewertungen der Das Volk der Tiefe-Heftromane (≥ 45 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-bewertungen'))
@@ -979,19 +829,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="volkDerTiefeChart" height="140" role="img" aria-labelledby="volkDerTiefeChartTitle"></canvas>
+                        <canvas id="volkDerTiefeChart" data-statistik-chart="cycle" data-labels='@json($volkDerTiefeLabels)' data-values='@json($volkDerTiefeValues)' height="140" role="img" aria-labelledby="volkDerTiefeChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.volkDerTiefeChartLabels = @json($volkDerTiefeLabels);
-                    window.volkDerTiefeChartValues = @json($volkDerTiefeValues);
-                </script>
-                @endif
 
             {{-- Card 32b – Das Volk der Tiefe-Heftromane je Autor:in (≥ 46 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-autoren'))
@@ -1006,19 +850,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="volkDerTiefeAuthorChart" height="140" role="img" aria-labelledby="volkDerTiefeAuthorChartTitle"></canvas>
+                        <canvas id="volkDerTiefeAuthorChart" data-statistik-chart="author" data-labels='@json($volkDerTiefeAuthorCounts->keys())' data-values='@json($volkDerTiefeAuthorCounts->values())' height="140" role="img" aria-labelledby="volkDerTiefeAuthorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.volkDerTiefeAuthorChartLabels = @json($volkDerTiefeAuthorCounts->keys());
-                    window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
-                </script>
-                @endif
 
             {{-- Card 33 – Bewertungen der 2012-Heftromane (≥ 47 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-bewertungen'))
@@ -1033,19 +871,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="zweitausendzwoelfChart" height="140" role="img" aria-labelledby="zweitausendzwoelfChartTitle"></canvas>
+                        <canvas id="zweitausendzwoelfChart" data-statistik-chart="cycle" data-labels='@json($zweitausendzwoelfLabels)' data-values='@json($zweitausendzwoelfValues)' height="140" role="img" aria-labelledby="zweitausendzwoelfChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.zweitausendzwoelfChartLabels = @json($zweitausendzwoelfLabels);
-                    window.zweitausendzwoelfChartValues = @json($zweitausendzwoelfValues);
-                </script>
-                @endif
 
             {{-- Card 33b – 2012-Heftromane je Autor:in (≥ 48 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-autoren'))
@@ -1060,19 +892,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="zweitausendzwoelfAuthorChart" height="140" role="img" aria-labelledby="zweitausendzwoelfAuthorChartTitle"></canvas>
+                        <canvas id="zweitausendzwoelfAuthorChart" data-statistik-chart="author" data-labels='@json($zweitausendzwoelfAuthorCounts->keys())' data-values='@json($zweitausendzwoelfAuthorCounts->values())' height="140" role="img" aria-labelledby="zweitausendzwoelfAuthorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.zweitausendzwoelfAuthorChartLabels = @json($zweitausendzwoelfAuthorCounts->keys());
-                    window.zweitausendzwoelfAuthorChartValues = @json($zweitausendzwoelfAuthorCounts->values());
-                </script>
-                @endif
 
             {{-- Card 34 – Bewertungen der Die Abenteurer-Heftromane (≥ 33 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-bewertungen'))
@@ -1087,19 +913,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="abenteurerChart" height="140" role="img" aria-labelledby="abenteurerChartTitle"></canvas>
+                        <canvas id="abenteurerChart" data-statistik-chart="cycle" data-labels='@json($abenteurerLabels)' data-values='@json($abenteurerValues)' height="140" role="img" aria-labelledby="abenteurerChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.abenteurerChartLabels = @json($abenteurerLabels);
-                    window.abenteurerChartValues = @json($abenteurerValues);
-                </script>
-                @endif
 
             {{-- Card 34b – Die Abenteurer-Heftromane je Autor:in (≥ 34 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-autoren'))
@@ -1114,19 +934,13 @@
                     </h2>
                     @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
-                        <canvas id="abenteurerAuthorChart" height="140" role="img" aria-labelledby="abenteurerAuthorChartTitle"></canvas>
+                        <canvas id="abenteurerAuthorChart" data-statistik-chart="author" data-labels='@json($abenteurerAuthorCounts->keys())' data-values='@json($abenteurerAuthorCounts->values())' height="140" role="img" aria-labelledby="abenteurerAuthorChartTitle"></canvas>
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-ui.panel>
 
 
-                @if($sectionUnlocked)
-                <script>
-                    window.abenteurerAuthorChartLabels = @json($abenteurerAuthorCounts->keys());
-                    window.abenteurerAuthorChartValues = @json($abenteurerAuthorCounts->values());
-                </script>
-                @endif
 
             {{-- Card 35 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
@@ -1167,8 +981,5 @@
             </div>
         </div>
 
-        @assets
-            @vite(['resources/js/statistik.js'])
-        @endassets
     </x-member-page>
 </x-member-layout>

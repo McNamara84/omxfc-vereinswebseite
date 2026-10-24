@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Todos\TodoWorkflow;
 use App\Enums\TodoStatus;
 use App\Http\Requests\TodoRequest;
-use App\Models\Activity;
 use App\Models\Todo;
 use App\Models\TodoCategory;
-use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use App\Services\TeamPointService;
 use App\Services\UserRoleService;
@@ -103,23 +102,9 @@ class TodoController extends Controller
     #[Authorize('create', Todo::class)]
     public function store(TodoRequest $request)
     {
-        $user = Auth::user();
-        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
+        app(TodoWorkflow::class)->create(Auth::user(), $request->validated());
 
-        $data = $request->validated();
-
-        Todo::create([
-            'team_id' => $memberTeam->id,
-            'created_by' => $user->id,
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'points' => $data['points'],
-            'category_id' => $data['category_id'],
-            'status' => 'open',
-        ]);
-
-        return redirect()->route('todos.index')
-            ->with('status', 'Challenge wurde erfolgreich erstellt.');
+        return redirect()->route('todos.index')->with('status', 'Challenge wurde erfolgreich erstellt.');
     }
 
     /**
@@ -190,27 +175,9 @@ class TodoController extends Controller
      */
     public function update(TodoRequest $request, Todo $todo)
     {
-        $user = Auth::user();
-        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
+        app(TodoWorkflow::class)->update(Auth::user(), $todo->id, $request->validated());
 
-        if ($todo->team_id !== $memberTeam->id) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Challenge nicht gefunden.');
-        }
-
-        $this->authorize('update', $todo);
-
-        $data = $request->validated();
-
-        $todo->update([
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'points' => $data['points'],
-            'category_id' => $data['category_id'],
-        ]);
-
-        return redirect()->route('todos.show', $todo)
-            ->with('status', 'Challenge wurde erfolgreich aktualisiert.');
+        return redirect()->route('todos.show', $todo)->with('status', 'Challenge wurde erfolgreich aktualisiert.');
     }
 
     /**
@@ -218,35 +185,9 @@ class TodoController extends Controller
      */
     public function assign(Todo $todo)
     {
-        $user = Auth::user();
-        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
+        app(TodoWorkflow::class)->assign(Auth::user(), $todo->id);
 
-        if ($todo->team_id !== $memberTeam->id) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Challenge nicht gefunden.');
-        }
-
-        if ($todo->assigned_to || $todo->status !== TodoStatus::Open) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Diese Challenge wurde bereits übernommen oder ist nicht mehr verfügbar.');
-        }
-
-        $this->authorize('assign', $todo);
-
-        $todo->update([
-            'assigned_to' => $user->id,
-            'status' => 'assigned',
-        ]);
-
-        Activity::create([
-            'user_id' => $user->id,
-            'subject_type' => Todo::class,
-            'subject_id' => $todo->id,
-            'action' => 'accepted',
-        ]);
-
-        return redirect()->route('todos.show', $todo)
-            ->with('status', 'Challenge wurde erfolgreich übernommen.');
+        return redirect()->route('todos.show', $todo)->with('status', 'Challenge wurde erfolgreich übernommen.');
     }
 
     /**
@@ -254,20 +195,9 @@ class TodoController extends Controller
      */
     public function complete(Todo $todo)
     {
-        $user = Auth::user();
+        app(TodoWorkflow::class)->complete(Auth::user(), $todo->id);
 
-        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie können diese Challenge nicht als erledigt markieren.');
-        }
-
-        $todo->update([
-            'status' => TodoStatus::Completed->value,
-            'completed_at' => now(),
-        ]);
-
-        return redirect()->route('todos.show', $todo)
-            ->with('status', 'Challenge wurde als erledigt markiert und wartet nun auf Verifizierung.');
+        return redirect()->route('todos.show', $todo)->with('status', 'Challenge wurde als erledigt markiert und wartet nun auf Verifizierung.');
     }
 
     /**
@@ -276,42 +206,9 @@ class TodoController extends Controller
     #[Authorize('verify', Todo::class)]
     public function verify(Todo $todo)
     {
-        $user = Auth::user();
-        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
+        app(TodoWorkflow::class)->verify(Auth::user(), $todo->id);
 
-        if ($todo->team_id !== $memberTeam->id) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Challenge nicht gefunden.');
-        }
-
-        if ($todo->status !== TodoStatus::Completed) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
-        }
-
-        // Punkte gutschreiben
-        UserPoint::create([
-            'user_id' => $todo->assigned_to,
-            'team_id' => $todo->team_id,
-            'todo_id' => $todo->id,
-            'points' => $todo->points,
-        ]);
-
-        $todo->update([
-            'status' => TodoStatus::Verified->value,
-            'verified_by' => $user->id,
-            'verified_at' => now(),
-        ]);
-
-        Activity::create([
-            'user_id' => $todo->assigned_to,
-            'subject_type' => Todo::class,
-            'subject_id' => $todo->id,
-            'action' => 'completed',
-        ]);
-
-        return redirect()->route('todos.show', $todo)
-            ->with('status', 'Challenge wurde verifiziert und die Punkte wurden gutgeschrieben.');
+        return redirect()->route('todos.show', $todo)->with('status', 'Challenge wurde verifiziert und die Punkte wurden gutgeschrieben.');
     }
 
     /**
@@ -319,20 +216,9 @@ class TodoController extends Controller
      */
     public function release(Todo $todo)
     {
-        $user = Auth::user();
+        app(TodoWorkflow::class)->release(Auth::user(), $todo->id);
 
-        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Du kannst diese Challenge nicht freigeben, da sie Ihnen nicht zugewiesen ist oder nicht im Bearbeitungsstatus ist.');
-        }
-
-        $todo->update([
-            'assigned_to' => null,
-            'status' => TodoStatus::Open->value,
-        ]);
-
-        return redirect()->route('todos.index')
-            ->with('status', 'Challenge wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
+        return redirect()->route('todos.index')->with('status', 'Challenge wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
     }
 
     /**
@@ -340,29 +226,11 @@ class TodoController extends Controller
      */
     public function destroy(Todo $todo)
     {
-        $user = Auth::user();
-        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        if ($todo->team_id !== $memberTeam->id) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Challenge nicht gefunden.');
-        }
-
-        $this->authorize('delete', $todo);
-
-        // Punkte entfernen, falls die Challenge bereits verifiziert war
-        $wasVerified = $todo->status === TodoStatus::Verified;
-        if ($wasVerified) {
-            $todo->userPoint()->delete();
-        }
-
-        $todo->delete();
-
-        $message = $wasVerified
+        $deleted = app(TodoWorkflow::class)->delete(Auth::user(), $todo->id);
+        $message = $deleted->status === TodoStatus::Verified
             ? 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.'
             : 'Challenge wurde erfolgreich gelöscht.';
 
-        return redirect()->route('todos.index')
-            ->with('status', $message);
+        return redirect()->route('todos.index')->with('status', $message);
     }
 }

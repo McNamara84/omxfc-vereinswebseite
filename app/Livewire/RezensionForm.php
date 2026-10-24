@@ -2,14 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Actions\Reviews\RecordReview;
 use App\Enums\Role;
 use App\Mail\NewReviewNotification;
-use App\Models\Activity;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use App\Services\MembersTeamProvider;
-use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -113,18 +112,7 @@ class RezensionForm extends Component
                 abort(403);
             }
 
-            $review = Review::create([
-                'team_id' => $teamId,
-                'user_id' => $user->id,
-                'book_id' => $book->id,
-                'title' => $validated['title'],
-                'content' => $validated['content'],
-            ]);
-
-            $reviewCount = Review::where('team_id', $teamId)
-                ->where('user_id', $user->id)
-                ->count();
-            app(ReviewBaxxService::class)->awardPointsForReview($user, $reviewCount, $teamId);
+            $review = app(RecordReview::class)->execute($user, $teamId, $book->id, $validated);
 
             $authorNames = array_map('trim', explode(',', $book->author));
             $authors = User::whereIn('name', $authorNames)->get();
@@ -134,12 +122,6 @@ class RezensionForm extends Component
                         ->queue(new NewReviewNotification($review, $author));
                 }
             }
-
-            Activity::create([
-                'user_id' => $user->id,
-                'subject_type' => Review::class,
-                'subject_id' => $review->id,
-            ]);
 
             session()->flash('toast', ['type' => 'success', 'title' => 'Rezension erfolgreich erstellt.']);
             $this->redirect(route('reviews.show', $book), navigate: true);

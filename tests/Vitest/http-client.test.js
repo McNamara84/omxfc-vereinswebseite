@@ -12,6 +12,14 @@ function jsonResponse(data, { ok = true, status = 200, statusText = 'OK' } = {})
 }
 
 describe('http client', () => {
+    it('preserves explicit headers and omits null and undefined values', async () => {
+        global.fetch = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+        await http.get('/test', { headers: { Accept: 'application/json', Empty: null, Missing: undefined } });
+        const headers = global.fetch.mock.calls[0][1].headers;
+        expect(headers.get('Accept')).toBe('application/json');
+        expect(headers.has('Empty')).toBe(false);
+        expect(headers.has('Missing')).toBe(false);
+    });
     beforeEach(() => {
         document.head.innerHTML = '';
         global.fetch = vi.fn();

@@ -121,6 +121,6 @@ export function rpgProgression(config) {
     };
 }
 
-document.addEventListener('alpine:init', () => {
-    window.Alpine.data('rpgProgression', rpgProgression);
-});
+export function registerRpgProgression() {
+    window.Alpine?.data('rpgProgression', rpgProgression);
+}

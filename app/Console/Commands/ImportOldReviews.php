@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Reviews\RecordReview;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\UserPoint;
-use App\Services\ReviewBaxxService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -20,7 +20,7 @@ class ImportOldReviews extends Command
      */
     protected $signature = 'reviews:import-old
                             {--path=private/maddrax_forum_posts.csv : Path to CSV file relative to storage/app}
-                            {--fresh : Truncate reviews before import}';
+                            {--fresh : Reset members-team reviews only when no ambiguous Baxx bookings exist}';
 
     /**
      * The console command description.
@@ -43,11 +43,16 @@ class ImportOldReviews extends Command
             return 1;
         }
 
-        // Truncate table if requested
+        // Historical bookings have no reliable import provenance: fail closed.
         if ($this->option('fresh')) {
-            Review::truncate();
-            UserPoint::where('team_id', Team::where('name', 'Mitglieder')->value('id'))->delete();
-            $this->info('Reviews and related points truncated.');
+            $teamId = Team::membersTeam()?->id;
+            if (! $teamId || UserPoint::query()->where('team_id', $teamId)->exists()) {
+                $this->error('Reset abgebrochen: Vorhandene Baxx sind nicht eindeutig dem Import zugeordnet. Es wurden keine Daten gelöscht.');
+
+                return self::FAILURE;
+            }
+            Review::query()->where('team_id', $teamId)->delete();
+            $this->info('Rezensionen des Mitglieder-Teams wurden zurückgesetzt.');
         }
 
         $team = Team::where('name', 'Mitglieder')->first();
@@ -128,27 +133,10 @@ class ImportOldReviews extends Command
                 continue;
             }
 
-            // Create review
-            $review = Review::create([
-                'team_id' => $teamId,
-                'user_id' => $user->id,
-                'book_id' => $book->id,
+            app(RecordReview::class)->execute($user, $teamId, $book->id, [
                 'title' => 'Rezi aus dem alten Maddrax-Forum',
                 'content' => $content,
-                'created_at' => $dt,
-                'updated_at' => $dt,
-            ]);
-
-            // Award Baxx using the same rule resolution as the live review flow
-            $reviewCount = Review::where('team_id', $teamId)
-                ->where('user_id', $user->id)
-                ->count();
-            app(ReviewBaxxService::class)->awardPointsForReview(
-                $user,
-                $reviewCount,
-                $teamId,
-                Carbon::parse($dt, config('app.timezone'))
-            );
+            ], Carbon::parse($dt, config('app.timezone')));
 
             $bar->advance();
         }

@@ -492,6 +492,7 @@ function hydrateExistingCharEditors() {
     }
 
     document.querySelectorAll('[x-data="charEditor"], [x-data^="charEditor("]').forEach((element) => {
+        if (element.closest('[data-feature]')) return;
         const scope = element._x_dataStack ? window.Alpine.$data(element) : null;
         const hasRegisteredState = scope
             && typeof scope.basicsFilled === 'function'
@@ -630,7 +631,7 @@ function oldHasAdvancedPayload(input) {
     });
 }
 
-function registerCharEditor({ hydrateExisting = false } = {}) {
+export function registerCharEditor({ hydrateExisting = false } = {}) {
     if (!window.Alpine || typeof window.Alpine.data !== 'function') {
         return;
     }

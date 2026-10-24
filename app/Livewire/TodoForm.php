@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Todos\TodoWorkflow;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Services\MembersTeamProvider;
@@ -46,33 +47,14 @@ class TodoForm extends Component
 
     public function save(): void
     {
-        $validated = $this->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'points' => ['required', 'integer', 'min:1', 'max:1000'],
-            'category_id' => ['required', 'exists:todo_categories,id'],
-        ]);
-
-        $memberTeam = app(MembersTeamProvider::class)->getMembersTeamOrAbort();
-
+        $validated = $this->validate(TodoWorkflow::rules());
+        $workflow = app(TodoWorkflow::class);
         if ($this->todoId) {
-            $todo = Todo::findOrFail($this->todoId);
-            $this->authorize('update', $todo);
-
-            $todo->update($validated);
-
+            $todo = $workflow->update(Auth::user(), $this->todoId, $validated);
             session()->flash('toast', ['type' => 'success', 'title' => 'Challenge wurde erfolgreich aktualisiert.']);
             $this->redirect(route('todos.show', $todo), navigate: true);
         } else {
-            $this->authorize('create', Todo::class);
-
-            $todo = Todo::create([
-                ...$validated,
-                'team_id' => $memberTeam->id,
-                'created_by' => Auth::id(),
-                'status' => 'open',
-            ]);
-
+            $workflow->create(Auth::user(), $validated);
             session()->flash('toast', ['type' => 'success', 'title' => 'Challenge wurde erfolgreich erstellt.']);
             $this->redirect(route('todos.index'), navigate: true);
         }

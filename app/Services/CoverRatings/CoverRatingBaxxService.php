@@ -7,7 +7,9 @@ use App\Models\BaxxEarningRule;
 use App\Models\CoverRating;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\UserPoint;
+use App\Services\Baxx\BaxxBookingWriter;
+use App\Services\Baxx\BaxxProgressStore;
+use App\Services\Baxx\BaxxRuleResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use LogicException;
@@ -56,11 +58,7 @@ class CoverRatingBaxxService
             }
 
             $points = $crossings * $rule->points;
-            UserPoint::query()->create([
-                'user_id' => $user->id,
-                'team_id' => $membersTeam->id,
-                'points' => $points,
-            ]);
+            app(BaxxBookingWriter::class)->record($user->id, $membersTeam->id, $points);
             $this->markProcessedCount($progress, $currentCount);
 
             return $points;
@@ -94,44 +92,16 @@ class CoverRatingBaxxService
 
     public function getRule(): BaxxEarningRule
     {
-        return BaxxEarningRule::query()->firstOrCreate(
-            ['action_key' => self::ACTION_KEY],
-            [
-                'label' => 'Cover-Bewertungs-Meilenstein',
-                'description' => '1 Baxx für je 100 erstmals bewertete unterschiedliche Cover.',
-                'points' => 1,
-                'every_count' => 100,
-                'is_active' => true,
-            ],
-        );
+        return app(BaxxRuleResolver::class)->base(self::ACTION_KEY);
     }
 
     private function lockProgress(int $userId, int $initialProcessedCount): BaxxEarningProgress
     {
-        $timestamp = now();
-        BaxxEarningProgress::query()->upsert(
-            [[
-                'user_id' => $userId,
-                'action_key' => self::ACTION_KEY,
-                'processed_count' => $initialProcessedCount,
-                'created_at' => $timestamp,
-                'updated_at' => $timestamp,
-            ]],
-            ['user_id', 'action_key'],
-            ['updated_at'],
-        );
-
-        return BaxxEarningProgress::query()
-            ->where('user_id', $userId)
-            ->where('action_key', self::ACTION_KEY)
-            ->lockForUpdate()
-            ->firstOrFail();
+        return app(BaxxProgressStore::class)->lock($userId, self::ACTION_KEY, $initialProcessedCount);
     }
 
     private function markProcessedCount(BaxxEarningProgress $progress, int $processedCount): void
     {
-        if ($processedCount > $progress->processed_count) {
-            $progress->update(['processed_count' => $processedCount]);
-        }
+        app(BaxxProgressStore::class)->advance($progress, $processedCount);
     }
 }

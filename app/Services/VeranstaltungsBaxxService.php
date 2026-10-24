@@ -6,8 +6,8 @@ use App\Enums\Role;
 use App\Enums\VeranstaltungsBaxxStatus;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\UserPoint;
 use App\Models\Veranstaltung;
+use App\Services\Baxx\BaxxBookingWriter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -147,12 +147,7 @@ class VeranstaltungsBaxxService
                         continue;
                     }
 
-                    UserPoint::query()->create([
-                        'user_id' => $userId,
-                        'team_id' => $memberships->team->id,
-                        'veranstaltung_id' => $event->id,
-                        'points' => $event->teilnahme_baxx,
-                    ]);
+                    app(BaxxBookingWriter::class)->record($userId, $memberships->team->id, $event->teilnahme_baxx, ['veranstaltung_id' => $event->id]);
                 }
             }, attempts: 1);
         }

@@ -10,9 +10,6 @@ import anchor from '@alpinejs/anchor';
 import collapse from '@alpinejs/collapse';
 import focus from '@alpinejs/focus';
 import persist from '@alpinejs/persist';
-import './alpine/char-editor';
-import './alpine/rpg-progression';
-import './alpine/rpg-checks';
 import './cover-ratings/session';
 import './navigation-search';
 import './ux';
@@ -134,62 +131,23 @@ if (document.readyState === 'loading') {
 document.addEventListener('livewire:navigated', syncThemeToggleState);
 window.addEventListener('theme-changed', syncThemeToggleState);
 
-// Leaflet importieren
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Leaflet global verfügbar machen
-window.L = L;
-
 import './alpine/hoerbuch-role-repeater';
 import { registerMarkdownEditorLifecycle } from './reviews/markdown-editor';
 import './todos';
 import './dashboard';
 import './mitglieder/accessibility';
-import './mitglieder/map-utils';
 import './romantausch-dropzone';
 
-import './polls/charts';
 import './tours/runner';
 
 // Wire-navigate-kompatible Module (Dual-Event-Listener)
-import './mitglieder/karte';
 import './romantausch/serien-filter';
 
-// Admin-Charts (inkl. Chart.js) nur laden, wenn das Admin-Dashboard aktiv ist (Code-Splitting)
-async function loadAdminChartsIfNeeded() {
-    if (document.getElementById('admin-charts-config')) {
-        try {
-            const { initAdminCharts } = await import('./admin/charts');
-            initAdminCharts();
-        } catch (error) {
-            console.error('[Admin-Charts] Laden/Initialisierung fehlgeschlagen:', error);
-        }
-    }
-}
-document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);
-document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
-
-// 3D-Viewer (inkl. Three.js) nur laden, wenn ein Viewer-Container auf der Seite ist (Code-Splitting)
-async function loadThreeDViewerIfNeeded() {
-    if (document.querySelector('[data-three-d-viewer]')) {
-        try {
-            const { initThreeDViewers } = await import('./three-d-viewer');
-            initThreeDViewers();
-        } catch (error) {
-            console.error('[3D-Viewer] Laden/Initialisierung fehlgeschlagen:', error);
-        }
-    }
-}
-document.addEventListener('DOMContentLoaded', loadThreeDViewerIfNeeded);
-document.addEventListener('livewire:navigated', loadThreeDViewerIfNeeded);
+import './features';
+import './statistik-navigation';
 
 registerMarkdownEditorLifecycle();
 
-import { initCombats, destroyCombats } from './rpg-combats';
-document.addEventListener('DOMContentLoaded', initCombats);
-document.addEventListener('livewire:navigated', initCombats);
-document.addEventListener('livewire:navigating', destroyCombats);
 
 // Toast-Bridge: Livewire dispatch('toast') → maryUI window.toast()
 // Livewire-Komponenten nutzen $this->dispatch('toast', type: '...', title: '...'),

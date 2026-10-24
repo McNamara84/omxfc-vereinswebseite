@@ -4,6 +4,30 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
+function disposeObject(root) {
+    // Geometrien, Materialien und Texturen traversieren und disposen
+    root.traverse((object) => {
+        if (object.isMesh) {
+            if (object.geometry) {
+                object.geometry.dispose();
+            }
+            if (object.material) {
+                const materials = Array.isArray(object.material)
+                    ? object.material
+                    : [object.material];
+                materials.forEach((material) => {
+                    Object.values(material).forEach((value) => {
+                        if (value && typeof value.dispose === 'function') {
+                            value.dispose();
+                        }
+                    });
+                    material.dispose();
+                });
+            }
+        }
+    });
+}
+
 /**
  * Initialisiert den 3D-Viewer in einem Container-Element.
  *
@@ -13,6 +37,21 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
  * @returns {Function} Cleanup-Funktion
  */
 export function initThreeDViewer(container, fileUrl, format) {
+    // Loader basierend auf Format wählen
+    const loaderMap = {
+        stl: () => new STLLoader(),
+        obj: () => new OBJLoader(),
+        fbx: () => new FBXLoader(),
+    };
+
+    const createLoader = loaderMap[format];
+    if (!createLoader) {
+        console.error(`Unbekanntes 3D-Format: ${format}`);
+        return () => {};
+    }
+
+    let disposed = false;
+
     // Scene Setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xe0e0e0);
@@ -47,19 +86,6 @@ export function initThreeDViewer(container, fileUrl, format) {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-
-    // Loader basierend auf Format wählen
-    const loaderMap = {
-        stl: () => new STLLoader(),
-        obj: () => new OBJLoader(),
-        fbx: () => new FBXLoader(),
-    };
-
-    const createLoader = loaderMap[format];
-    if (!createLoader) {
-        console.error(`Unbekanntes 3D-Format: ${format}`);
-        return () => {};
-    }
 
     const loader = createLoader();
 
@@ -96,6 +122,10 @@ export function initThreeDViewer(container, fileUrl, format) {
                 });
             }
 
+            if (disposed) {
+                disposeObject(object);
+                return;
+            }
             scene.add(object);
 
             // Kamera auf Modell ausrichten (Auto-Fit)
@@ -119,7 +149,7 @@ export function initThreeDViewer(container, fileUrl, format) {
         },
         // Progress Callback
         (xhr) => {
-            if (xhr.lengthComputable) {
+            if (!disposed && xhr.lengthComputable) {
                 const percent = Math.round((xhr.loaded / xhr.total) * 100);
                 loadingEl.innerHTML = `<div class="text-center">
                     <span class="loading loading-spinner loading-lg"></span>
@@ -129,6 +159,7 @@ export function initThreeDViewer(container, fileUrl, format) {
         },
         // Error Callback
         (error) => {
+            if (disposed) return;
             loadingEl.innerHTML = `<div class="alert alert-error">
                 <span>Fehler beim Laden des 3D-Modells.</span>
             </div>`;
@@ -159,30 +190,14 @@ export function initThreeDViewer(container, fileUrl, format) {
 
     // Cleanup-Funktion zurückgeben
     return () => {
+        if (disposed) return;
+        disposed = true;
         resizeObserver.disconnect();
         cancelAnimationFrame(animationFrameId);
 
-        // Geometrien, Materialien und Texturen traversieren und disposen
-        scene.traverse((object) => {
-            if (object.isMesh) {
-                if (object.geometry) {
-                    object.geometry.dispose();
-                }
-                if (object.material) {
-                    const materials = Array.isArray(object.material)
-                        ? object.material
-                        : [object.material];
-                    materials.forEach((material) => {
-                        Object.values(material).forEach((value) => {
-                            if (value && typeof value.dispose === 'function') {
-                                value.dispose();
-                            }
-                        });
-                        material.dispose();
-                    });
-                }
-            }
-        });
+        disposeObject(scene);
+        defaultMaterial.dispose();
+        loadingEl.remove();
 
         renderer.domElement.remove();
         renderer.dispose();
@@ -221,4 +236,4 @@ function cleanupAllViewers() {
 }
 
 // Cleanup bei SPA-Navigation registrieren (Init wird von app.js gesteuert)
-document.addEventListener('livewire:navigating', cleanupAllViewers);
+export { cleanupAllViewers };

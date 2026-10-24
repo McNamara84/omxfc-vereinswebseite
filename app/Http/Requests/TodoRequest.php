@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Actions\Todos\TodoWorkflow;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TodoRequest extends FormRequest
@@ -13,11 +14,6 @@ class TodoRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'points' => 'required|integer|min:1|max:1000',
-            'category_id' => 'required|exists:todo_categories,id',
-        ];
+        return TodoWorkflow::rules();
     }
 }

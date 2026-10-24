@@ -150,16 +150,16 @@ class RewardService
      */
     public function refundPurchase(RewardPurchase $purchase, User $admin): void
     {
-        if ($purchase->isRefunded()) {
-            throw ValidationException::withMessages([
-                'purchase' => 'Dieser Kauf wurde bereits erstattet.',
-            ]);
-        }
-
-        $purchase->update([
-            'refunded_at' => now(),
-            'refunded_by' => $admin->id,
-        ]);
+        DB::transaction(function () use ($purchase, $admin): void {
+            // Use the same user-before-purchase lock order as wallet spending.
+            User::query()->whereKey($purchase->user_id)->lockForUpdate()->firstOrFail();
+            $current = RewardPurchase::query()->lockForUpdate()->findOrFail($purchase->id);
+            if ($current->isRefunded()) {
+                throw ValidationException::withMessages(['purchase' => 'Dieser Kauf wurde bereits erstattet.']);
+            }
+            $current->update(['refunded_at' => now(), 'refunded_by' => $admin->id]);
+        }, 3);
+        $purchase->refresh();
     }
 
     public function getEarnedBaxx(User $user): int

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,6 +29,13 @@ class UserPoint extends Model
 
     protected static function booted(): void
     {
+        $invalidate = function (UserPoint $booking): void {
+            $teamId = $booking->team_id;
+            DB::afterCommit(fn () => Cache::forget("top_users_{$teamId}"));
+        };
+        static::saved($invalidate);
+        static::deleted($invalidate);
+
         static::created(function (UserPoint $userPoint): void {
             $userPointId = $userPoint->id;
 

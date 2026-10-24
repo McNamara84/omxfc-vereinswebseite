@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Role;
 use App\Jobs\GeocodeUser;
+use App\Services\Baxx\BaxxBookingWriter;
 use App\Services\RewardService;
 use App\Services\RpgCheckLifecycle;
 use App\Services\RpgCombat\CombatLifecycle;
@@ -279,11 +280,7 @@ class User extends Authenticatable
     public function incrementTeamPoints(int $points = 1): void
     {
         if ($this->currentTeam) {
-            UserPoint::create([
-                'user_id' => $this->id,
-                'team_id' => $this->currentTeam->id,
-                'points' => $points,
-            ]);
+            app(BaxxBookingWriter::class)->record($this->id, $this->currentTeam->id, $points);
         }
     }
 

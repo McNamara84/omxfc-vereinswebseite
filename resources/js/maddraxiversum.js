@@ -1,118 +1,9 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import http from './http/client';
-
-// Definierte Koordinaten
-const coordinates = {
-    Waashton: [38.9072, -77.0369],
-    Salem: [42.5195, -70.8967]
-};
-
-const map = L.map('map', { minZoom: 0 }).setView([20, 0], 2);
-
-L.tileLayer(tileUrl, {
-    attribution: '&copy; Maddraxikon | OMXFC e. V.',
-    minZoom: 0,
-    maxZoom: 5,
-    noWrap: false,
-}).addTo(map);
-
-const cityIcon = L.icon({
-    iconUrl: '/images/mapdrax/StadtMarker.png',
-    iconSize: [24, 31],
-    iconAnchor: [12, 31],
-    popupAnchor: [0, -31]
-});
-
-const cityMarkers = L.markerClusterGroup({
-    maxClusterRadius: 50,
-    disableClusteringAtZoom: 4
-});
-
-// Definiere Missionen lokal (später ggf. dynamisch vom Backend holen)
-const missions = {
-    "Waashton": [
-        {
-            name: "Hexenjäger von Salem",
-            description: "Im Jahr 2554 ist Waashton von den Nosfera befreit und du bist die neue Eingreiftruppe des Weltrates...",
-            travel_duration: 51,
-            mission_duration: 12,
-            destination: "Salem",
-            reward: 5,
-        }
-    ]
-};
-
-// Lade Städte und erstelle Marker mit Popup und Missionslink
-http.get('/maddraxikon-staedte').then(response => {
-    const results = response.data.query.results;
-    for (const cityName in results) {
-        const city = results[cityName];
-        const coordinates = city.printouts.Koordinaten;
-        if (coordinates && coordinates.length > 0) {
-            const lat = coordinates[0].lat;
-            const lon = coordinates[0].lon;
-
-            const marker = L.marker([lat, lon], {
-                icon: cityIcon,
-                title: cityName
-            });
-
-            // Popup-Inhalt erstellen
-            let popupContent = `
-                <div class="text-center">
-                    <h3 class="font-bold">${cityName}</h3>
-                    <a href="${city.fullurl}" target="_blank" class="text-blue-500 hover:underline">
-                        im Maddraxikon
-                    </a>
-                </div>
-            `;
-
-            // Missionen anzeigen, falls vorhanden
-            if (missions[cityName]) {
-                popupContent += '<div class="mt-2 font-semibold">Missionen:</div><ul>';
-                missions[cityName].forEach((mission, index) => {
-                    popupContent += `
-                        <li>
-                            <button class="mission-link text-blue-600 hover:underline" data-city="${cityName}" data-index="${index}">
-                                ${mission.name}
-                            </button>
-                        </li>`;
-                });
-                popupContent += '</ul>';
-            }
-
-            marker.bindPopup(popupContent);
-            cityMarkers.addLayer(marker);
-        }
-    }
-    map.addLayer(cityMarkers);
-}).catch(console.error);
-
-// Popup-Event für Missionsbutton
-map.on('popupopen', function (e) {
-    document.querySelectorAll('.mission-link').forEach(link => {
-        link.addEventListener('click', function () {
-            const city = this.dataset.city;
-            const index = parseInt(this.dataset.index);
-            openMissionModal(missions[city][index]);
-        });
-    });
-});
-
-const modal = document.getElementById('mission-modal');
-const missionTitle = document.getElementById('mission-title');
-const missionDescription = document.getElementById('mission-description');
-const missionDuration = document.getElementById('mission-duration');
-const startMissionButton = document.getElementById('start-mission');
-
-export function openMissionModal(mission) {
-    missionTitle.textContent = mission.name;
-    missionDescription.textContent = mission.description;
-    missionDuration.textContent = `Dauer: ${mission.mission_duration} min`;
-    startMissionButton.dataset.mission = JSON.stringify(mission);
-    modal.showModal();
-}
 
 export function calculateBearing(from, to) {
     const startLat = from[0] * Math.PI / 180;
@@ -130,200 +21,347 @@ export function calculateBearing(from, to) {
     return bearing;
 }
 
-export function animateGlider(from, to, durationSeconds) {
-    return new Promise((resolve) => {
-        // Berechne den initialen Kurs
-        const bearing = calculateBearing(from, to);
-        console.log('Berechneter Kurs:', bearing);
-
-        // Erstelle das Icon
-        const gliderIcon = L.divIcon({
-            className: 'glider-icon',
-            html: `<img src="/images/mapdrax/GleiterPlayer.png" alt="Gleiter von oben" style="width: 32px; height: 32px; transform: rotate(${bearing}deg);">`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16]
-        });
-
-        const marker = L.marker(from, {
-            icon: gliderIcon,
-            zIndexOffset: 1000
-        }).addTo(map);
-
-        // Füge CSS für den Marker hinzu
-        const style = document.createElement('style');
-        style.textContent = `
-            .glider-icon {
-                display: block;
-            }
-            .glider-icon img {
-                width: 32px;
-                height: 32px;
-                transition: transform 0.1s linear;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Animation
-        const fps = 30;
-        const steps = durationSeconds * fps;
-        let step = 0;
-
-        const latStep = (to[0] - from[0]) / steps;
-        const lngStep = (to[1] - from[1]) / steps;
-
-        // Erstelle eine LatLngBounds für beide Punkte
-        const bounds = L.latLngBounds([from, to]);
-        map.fitBounds(bounds, { padding: [50, 50] });
-
-        const interval = setInterval(() => {
-            step++;
-            
-            if (step > steps) {
-                clearInterval(interval);
-                map.removeLayer(marker);
-                resolve();
-                return;
-            }
-
-            const newLat = from[0] + latStep * step;
-            const newLng = from[1] + lngStep * step;
-
-            // Aktualisiere nur die Position
-            marker.setLatLng([newLat, newLng]);
-
-            // Zentriere die Karte sanft
-            map.panTo([newLat, newLng], {
-                animate: true,
-                duration: 1/fps
-            });
-        }, 1000/fps);
-    });
-}
-
-// Button "Mission starten" Event
-startMissionButton.addEventListener('click', async () => {
-    const mission = JSON.parse(startMissionButton.dataset.mission);
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-    try {
-        // Starte die Mission auf dem Backend
-        const response = await http.post('/mission/starten', {
-            name: mission.name,
-            origin: "Waashton",
-            destination: mission.destination,
-            travel_duration: mission.travel_duration,
-            mission_duration: mission.mission_duration,
-        }, {
-            headers: { 'X-CSRF-TOKEN': csrfToken }
-        });
-        console.log('Mission gestartet:', response.data);
-        modal.close();
-
-        // 1. Flug zur Missionsdestination
-        await animateGlider(coordinates.Waashton, coordinates[mission.destination], mission.travel_duration);
-
-        // 2. Verweilen am Ziel
-        await new Promise(resolve => setTimeout(resolve, mission.mission_duration * 1000));
-
-        // 3. Rückflug zur Basis (Waashton)
-        await animateGlider(coordinates[mission.destination], coordinates.Waashton, mission.travel_duration);
-
-        // 4. Mission als abgeschlossen markieren
-        console.log('Sende Status-Check-Request...');
-        const statusResponse = await http.post('/mission/status-pruefen', {}, {
-            headers: { 'X-CSRF-TOKEN': csrfToken }
-        });
-        console.log('Status-Check-Response:', statusResponse.data);
-
-        if (statusResponse.data.status === 'completed') {
-            alert("Mission erfolgreich abgeschlossen und Gleiter zurück an der Basis.");
-        } else {
-            console.error('Unerwarteter Status:', statusResponse.data);
-            alert("Mission konnte nicht als abgeschlossen markiert werden. Bitte versuche es später erneut.");
-        }
-    } catch (error) {
-        console.error('Fehler bei der Mission:', error);
-        if (error.response && error.response.data && error.response.data.error) {
-            alert(error.response.data.error);
-        } else {
-            alert("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
-        }
+export function mountMaddraxiversum(root, { signal: parentSignal } = {}) {
+    const modal = document.getElementById('mission-modal');
+    const missionTitle = document.getElementById('mission-title');
+    const missionDescription = document.getElementById('mission-description');
+    const missionDuration = document.getElementById('mission-duration');
+    const startMissionButton = document.getElementById('start-mission');
+    if (![modal, missionTitle, missionDescription, missionDuration, startMissionButton].every(Boolean)) {
+        throw new Error('Der Missionsdialog ist unvollständig.');
     }
-});
+    parentSignal?.throwIfAborted();
+    const controller = new AbortController();
+    const { signal } = controller;
+    const abort = () => controller.abort();
+    parentSignal?.addEventListener('abort', abort, { once: true });
+    const guard = async promise => { const value = await promise; signal.throwIfAborted(); return value; };
+    const sleep = seconds => new Promise((resolve, reject) => {
+        const cancel = () => { clearTimeout(timer); reject(new DOMException('Abgebrochen', 'AbortError')); };
+        const timer = setTimeout(() => { signal.removeEventListener('abort', cancel); resolve(); }, seconds * 1000);
+        signal.addEventListener('abort', cancel, { once: true });
+    });
+    // Definierte Koordinaten
+    const coordinates = {
+        Waashton: [38.9072, -77.0369],
+        Salem: [42.5195, -70.8967]
+    };
 
-// Funktion zum Laden des Mission-Status
-async function loadMissionStatus() {
-    try {
-        const response = await http.get('/mission/status');
-        console.log('Mission-Status geladen:', response.data);
+    const map = L.map(root, { minZoom: 0 }).setView([20, 0], 2);
 
-        if (response.data.status !== 'none') {
-            const mission = response.data.mission;
-            const currentLocation = response.data.current_location;
-            const currentPosition = response.data.status;
+    L.tileLayer(root.dataset.tileUrl, {
+        attribution: '&copy; Maddraxikon | OMXFC e. V.',
+        minZoom: 0,
+        maxZoom: 5,
+        noWrap: false,
+    }).addTo(map);
 
-            // Berechne die verbleibende Zeit
-            const now = new Date();
-            const startedAt = new Date(mission.started_at);
-            const elapsedSeconds = Math.floor((now - startedAt) / 1000);
-            const totalDuration = mission.travel_duration + mission.mission_duration + mission.travel_duration;
-            const remainingSeconds = totalDuration - elapsedSeconds;
+    const cityIcon = L.icon({
+        iconUrl: '/images/mapdrax/StadtMarker.png',
+        iconSize: [24, 31],
+        iconAnchor: [12, 31],
+        popupAnchor: [0, -31]
+    });
 
-            if (remainingSeconds > 0) {
-                // Positioniere den Gleiter
-                if (currentPosition === 'traveling') {
-                    if (elapsedSeconds < mission.travel_duration) {
-                        // Auf dem Hinflug
-                        await animateGlider(
-                            coordinates[mission.origin],
-                            coordinates[mission.destination],
-                            remainingSeconds
-                        );
-                    } else {
-                        // Auf dem Rückflug
-                        await animateGlider(
-                            coordinates[mission.destination],
-                            coordinates[mission.origin],
-                            remainingSeconds
-                        );
-                    }
-                } else if (currentPosition === 'in_mission') {
-                    // Am Zielort
-                    const gliderIcon = L.icon({
-                        iconUrl: '/images/mapdrax/GleiterPlayer.png',
-                        iconSize: [32, 32],
-                        iconAnchor: [16, 16],
-                    });
+    const cityMarkers = L.markerClusterGroup({
+        maxClusterRadius: 50,
+        disableClusteringAtZoom: 4
+    });
 
-                    const marker = L.marker(coordinates[mission.destination], { icon: gliderIcon }).addTo(map);
-                    
-                    // Warte die verbleibende Zeit
-                    await new Promise(resolve => setTimeout(resolve, remainingSeconds * 1000));
-                    
-                    // Rückflug
-                    await animateGlider(
-                        coordinates[mission.destination],
-                        coordinates[mission.origin],
-                        mission.travel_duration
-                    );
-                }
+    // Definiere Missionen lokal (später ggf. dynamisch vom Backend holen)
+    const missions = {
+        "Waashton": [
+            {
+                name: "Hexenjäger von Salem",
+                description: "Im Jahr 2554 ist Waashton von den Nosfera befreit und du bist die neue Eingreiftruppe des Weltrates...",
+                travel_duration: 51,
+                mission_duration: 12,
+                destination: "Salem",
+                reward: 5,
+            }
+        ]
+    };
 
-                // Mission als abgeschlossen markieren
-                const statusResponse = await http.post('/mission/status-pruefen', {}, {
-                    headers: { 'X-CSRF-TOKEN': csrfToken }
+    // Lade Städte und erstelle Marker mit Popup und Missionslink
+    http.get('/maddraxikon-staedte', { signal }).then(response => {
+        if (signal.aborted) return;
+        const results = response.data.query.results;
+        for (const cityName in results) {
+            const city = results[cityName];
+            const coordinates = city.printouts.Koordinaten;
+            if (coordinates && coordinates.length > 0) {
+                const lat = coordinates[0].lat;
+                const lon = coordinates[0].lon;
+
+                const marker = L.marker([lat, lon], {
+                    icon: cityIcon,
+                    title: cityName
                 });
 
-                if (statusResponse.data.status === 'completed') {
-                    alert("Mission erfolgreich abgeschlossen und Gleiter zurück an der Basis.");
+                // Popup-Inhalt erstellen
+                let popupContent = `
+                    <div class="text-center">
+                        <h3 class="font-bold">${cityName}</h3>
+                        <a href="${city.fullurl}" target="_blank" class="text-blue-500 hover:underline">
+                            im Maddraxikon
+                        </a>
+                    </div>
+                `;
+
+                // Missionen anzeigen, falls vorhanden
+                if (missions[cityName]) {
+                    popupContent += '<div class="mt-2 font-semibold">Missionen:</div><ul>';
+                    missions[cityName].forEach((mission, index) => {
+                        popupContent += `
+                            <li>
+                                <button class="mission-link text-blue-600 hover:underline" data-city="${cityName}" data-index="${index}">
+                                    ${mission.name}
+                                </button>
+                            </li>`;
+                    });
+                    popupContent += '</ul>';
                 }
+
+                marker.bindPopup(popupContent);
+                cityMarkers.addLayer(marker);
             }
         }
-    } catch (error) {
-        console.error('Fehler beim Laden des Mission-Status:', error);
+        map.addLayer(cityMarkers);
+    }).catch(error => { if (!signal.aborted) console.error(error); });
+
+    // Delegate popup clicks once; opening a popup again must not add another listener.
+    root.addEventListener('click', event => {
+        const link = event.target.closest('.mission-link');
+        if (link) openMissionModal(missions[link.dataset.city][Number(link.dataset.index)]);
+    }, { signal });
+
+    function openMissionModal(mission) {
+        missionTitle.textContent = mission.name;
+        missionDescription.textContent = mission.description;
+        missionDuration.textContent = `Dauer: ${mission.mission_duration} min`;
+        startMissionButton.dataset.mission = JSON.stringify(mission);
+        modal.showModal();
     }
+
+    function animateGlider(from, to, durationSeconds) {
+        return new Promise((resolve, reject) => {
+            // Berechne den initialen Kurs
+            const bearing = calculateBearing(from, to);
+            console.log('Berechneter Kurs:', bearing);
+
+            // Erstelle das Icon
+            const gliderIcon = L.divIcon({
+                className: 'glider-icon',
+                html: `<img src="/images/mapdrax/GleiterPlayer.png" alt="Gleiter von oben" style="width: 32px; height: 32px; transform: rotate(${bearing}deg);">`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+
+            const marker = L.marker(from, {
+                icon: gliderIcon,
+                zIndexOffset: 1000
+            }).addTo(map);
+
+            // Füge CSS für den Marker hinzu
+            const style = document.createElement('style');
+            style.textContent = `
+                .glider-icon {
+                    display: block;
+                }
+                .glider-icon img {
+                    width: 32px;
+                    height: 32px;
+                    transition: transform 0.1s linear;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Animation
+            const fps = 30;
+            const steps = durationSeconds * fps;
+            let step = 0;
+
+            const latStep = (to[0] - from[0]) / steps;
+            const lngStep = (to[1] - from[1]) / steps;
+
+            // Erstelle eine LatLngBounds für beide Punkte
+            const bounds = L.latLngBounds([from, to]);
+            map.fitBounds(bounds, { padding: [50, 50] });
+
+            const cancel = () => {
+                clearInterval(interval);
+                style.remove();
+                map.removeLayer(marker);
+                reject(new DOMException('Abgebrochen', 'AbortError'));
+            };
+            const interval = setInterval(() => {
+                step++;
+
+                if (step > steps) {
+                    clearInterval(interval);
+                    signal.removeEventListener('abort', cancel);
+                    style.remove();
+                    map.removeLayer(marker);
+                    resolve();
+                    return;
+                }
+
+                const newLat = from[0] + latStep * step;
+                const newLng = from[1] + lngStep * step;
+
+                // Aktualisiere nur die Position
+                marker.setLatLng([newLat, newLng]);
+
+                // Zentriere die Karte sanft
+                map.panTo([newLat, newLng], {
+                    animate: true,
+                    duration: 1/fps
+                });
+            }, 1000/fps);
+            signal.addEventListener('abort', cancel, { once: true });
+        });
+    }
+
+    // Button "Mission starten" Event
+    let busy = false;
+    startMissionButton.addEventListener('click', async () => {
+        if (busy) return;
+        busy = true;
+        startMissionButton.disabled = true;
+        const mission = JSON.parse(startMissionButton.dataset.mission);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        try {
+            // Starte die Mission auf dem Backend
+            const response = await guard(http.post('/mission/starten', {
+                name: mission.name,
+                origin: "Waashton",
+                destination: mission.destination,
+                travel_duration: mission.travel_duration,
+                mission_duration: mission.mission_duration,
+            }, {
+                signal
+            }));
+            console.log('Mission gestartet:', response.data);
+            modal.close();
+
+            // 1. Flug zur Missionsdestination
+            await animateGlider(coordinates.Waashton, coordinates[mission.destination], mission.travel_duration);
+
+            // 2. Verweilen am Ziel
+            await sleep(mission.mission_duration);
+
+            // 3. Rückflug zur Basis (Waashton)
+            await animateGlider(coordinates[mission.destination], coordinates.Waashton, mission.travel_duration);
+
+            // 4. Mission als abgeschlossen markieren
+            console.log('Sende Status-Check-Request...');
+            const statusResponse = await guard(http.post('/mission/status-pruefen', {}, {
+                signal
+            }));
+            console.log('Status-Check-Response:', statusResponse.data);
+
+            if (statusResponse.data.status === 'completed') {
+                alert("Mission erfolgreich abgeschlossen und Gleiter zurück an der Basis.");
+            } else {
+                console.error('Unerwarteter Status:', statusResponse.data);
+                alert("Mission konnte nicht als abgeschlossen markiert werden. Bitte versuche es später erneut.");
+            }
+        } catch (error) {
+            if (signal.aborted) return;
+            console.error('Fehler bei der Mission:', error);
+            if (error.response && error.response.data && error.response.data.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
+            }
+        } finally {
+            busy = false;
+            startMissionButton.disabled = false;
+        }
+    }, { signal });
+
+    // Funktion zum Laden des Mission-Status
+    async function loadMissionStatus() {
+        try {
+            const response = await guard(http.get('/mission/status', { signal }));
+            console.log('Mission-Status geladen:', response.data);
+
+            if (response.data.status !== 'none') {
+                const mission = response.data.mission;
+                const currentLocation = response.data.current_location;
+                const currentPosition = response.data.status;
+
+                // Berechne die verbleibende Zeit
+                const now = new Date();
+                const startedAt = new Date(mission.started_at);
+                const elapsedSeconds = Math.floor((now - startedAt) / 1000);
+                const totalDuration = mission.travel_duration + mission.mission_duration + mission.travel_duration;
+                const remainingSeconds = totalDuration - elapsedSeconds;
+
+                if (remainingSeconds > 0) {
+                    // Positioniere den Gleiter
+                    if (currentPosition === 'traveling') {
+                        if (elapsedSeconds < mission.travel_duration) {
+                            // Auf dem Hinflug
+                            await animateGlider(
+                                coordinates[mission.origin],
+                                coordinates[mission.destination],
+                                remainingSeconds
+                            );
+                        } else {
+                            // Auf dem Rückflug
+                            await animateGlider(
+                                coordinates[mission.destination],
+                                coordinates[mission.origin],
+                                remainingSeconds
+                            );
+                        }
+                    } else if (currentPosition === 'in_mission') {
+                        // Am Zielort
+                        const gliderIcon = L.icon({
+                            iconUrl: '/images/mapdrax/GleiterPlayer.png',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16],
+                        });
+
+                        const marker = L.marker(coordinates[mission.destination], { icon: gliderIcon }).addTo(map);
+
+                        // Warte die verbleibende Zeit
+                        await sleep(remainingSeconds);
+
+                        // Rückflug
+                        await animateGlider(
+                            coordinates[mission.destination],
+                            coordinates[mission.origin],
+                            mission.travel_duration
+                        );
+                    }
+
+                    // Mission als abgeschlossen markieren
+                    const statusResponse = await guard(http.post('/mission/status-pruefen', {}, {
+                        signal
+                    }));
+
+                    if (statusResponse.data.status === 'completed') {
+                        alert("Mission erfolgreich abgeschlossen und Gleiter zurück an der Basis.");
+                    }
+                }
+            }
+        } catch (error) {
+            if (signal.aborted) return;
+            console.error('Fehler beim Laden des Mission-Status:', error);
+        }
+    }
+
+    loadMissionStatus();
+    let disposed = false;
+    return () => {
+        if (disposed) return;
+        disposed = true;
+        controller.abort();
+        parentSignal?.removeEventListener('abort', abort);
+        modal.close();
+        map.remove();
+    };
 }
-
-// Lade den Mission-Status beim Start
-document.addEventListener('DOMContentLoaded', loadMissionStatus);
-document.addEventListener('livewire:navigated', loadMissionStatus);
-

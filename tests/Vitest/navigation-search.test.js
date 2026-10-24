@@ -1,4 +1,5 @@
 import { navigationSpotlight } from '../../resources/js/navigation-search';
+import { setImmediate as flushDomTasks } from 'node:timers/promises';
 
 describe('navigation search dialog', () => {
     let search;
@@ -13,9 +14,13 @@ describe('navigation search dialog', () => {
         search.$nextTick = (callback) => callback();
         vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{ name: 'Chronik', link: '/chronik' }] }));
     });
-    afterEach(() => {
+    afterEach(async () => {
         search.destroy();
+        await vi.runOnlyPendingTimersAsync();
         vi.useRealTimers();
+        // jsdom schedules selectionchange when focus moves. Finish that task
+        // before the next fixture replaces the focused document subtree.
+        await flushDomTasks();
         vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });

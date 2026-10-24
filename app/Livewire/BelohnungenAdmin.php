@@ -10,6 +10,7 @@ use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\RomantauschBaxxSpecialOffer;
+use App\Services\Baxx\BaxxSpecialOfferManager;
 use App\Services\MaddraxiversumBaxxService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
@@ -585,52 +586,15 @@ class BelohnungenAdmin extends Component
             'reviewSpecialOfferEndsAt' => 'required|date',
         ]);
 
-        $endsAt = Carbon::parse($this->reviewSpecialOfferEndsAt, config('app.timezone'));
-
-        if ($this->reviewSpecialOfferIsActive && $endsAt->lte(now())) {
-            throw ValidationException::withMessages([
-                'reviewSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
-            ]);
-        }
-
-        $data = [
+        app(BaxxSpecialOfferManager::class)->save(auth()->user(), 'rezension', [
             'points' => $this->reviewSpecialOfferPoints,
             'every_count' => $this->reviewSpecialOfferEveryCount,
-            'ends_at' => $endsAt,
+            'ends_at' => $this->reviewSpecialOfferEndsAt,
             'is_active' => $this->reviewSpecialOfferIsActive,
-        ];
+        ], $this->editingReviewSpecialOfferId, 'reviewSpecialOffer');
 
-        DB::transaction(function () use ($data) {
-            BaxxEarningRule::query()
-                ->where('action_key', 'rezension')
-                ->lockForUpdate()
-                ->first();
-
-            $hasConflictingOffer = ReviewBaxxSpecialOffer::query()
-                ->currentlyActive()
-                ->when($this->editingReviewSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingReviewSpecialOfferId))
-                ->exists();
-
-            if ($this->reviewSpecialOfferIsActive && $hasConflictingOffer) {
-                throw ValidationException::withMessages([
-                    'reviewSpecialOfferIsActive' => 'Es kann immer nur eine aktive Review-Sonderaktion gleichzeitig geben.',
-                ]);
-            }
-
-            if ($this->editingReviewSpecialOfferId) {
-                ReviewBaxxSpecialOffer::findOrFail($this->editingReviewSpecialOfferId)->update($data);
-
-                return;
-            }
-
-            ReviewBaxxSpecialOffer::create($data);
-        });
-
-        $title = $this->editingReviewSpecialOfferId
-            ? 'Review-Sonderaktion aktualisiert'
-            : 'Review-Sonderaktion erstellt';
+        $title = $this->editingReviewSpecialOfferId ? 'Review-Sonderaktion aktualisiert' : 'Review-Sonderaktion erstellt';
         $this->dispatch('toast', type: 'success', title: $title);
-
         $this->showReviewSpecialOfferModal = false;
         $this->resetReviewSpecialOfferForm();
         unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
@@ -638,32 +602,7 @@ class BelohnungenAdmin extends Component
 
     public function toggleReviewSpecialOfferActive(int $offerId): void
     {
-        $status = DB::transaction(function () use ($offerId) {
-            BaxxEarningRule::query()
-                ->where('action_key', 'rezension')
-                ->lockForUpdate()
-                ->first();
-
-            $offer = ReviewBaxxSpecialOffer::findOrFail($offerId);
-            $nextActiveState = ! $offer->is_active;
-
-            if ($nextActiveState && $offer->ends_at->lte(now())) {
-                throw ValidationException::withMessages([
-                    'reviewSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
-                ]);
-            }
-
-            if ($nextActiveState && ReviewBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
-                throw ValidationException::withMessages([
-                    'reviewSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Review-Sonderaktion.',
-                ]);
-            }
-
-            $offer->update(['is_active' => $nextActiveState]);
-
-            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
-        });
-
+        $status = app(BaxxSpecialOfferManager::class)->toggle(auth()->user(), 'rezension', $offerId, 'reviewSpecialOffer');
         $this->dispatch('toast', type: 'success', title: "Review-Sonderaktion {$status}");
         unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
     }
@@ -730,54 +669,15 @@ class BelohnungenAdmin extends Component
             'maddraxiversumSpecialOfferEndsAt' => 'required|date',
         ]);
 
-        $endsAt = Carbon::parse($this->maddraxiversumSpecialOfferEndsAt, config('app.timezone'));
-
-        if ($this->maddraxiversumSpecialOfferIsActive && $endsAt->lte(now())) {
-            throw ValidationException::withMessages([
-                'maddraxiversumSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
-            ]);
-        }
-
-        $data = [
+        app(BaxxSpecialOfferManager::class)->save(auth()->user(), 'maddraxiversum_mission', [
             'points' => $this->maddraxiversumSpecialOfferPoints,
             'every_count' => $this->maddraxiversumSpecialOfferEveryCount,
-            'ends_at' => $endsAt,
+            'ends_at' => $this->maddraxiversumSpecialOfferEndsAt,
             'is_active' => $this->maddraxiversumSpecialOfferIsActive,
-        ];
+        ], $this->editingMaddraxiversumSpecialOfferId, 'maddraxiversumSpecialOffer');
 
-        DB::transaction(function () use ($data) {
-            app(MaddraxiversumBaxxService::class)->getBaseRule();
-
-            BaxxEarningRule::query()
-                ->where('action_key', 'maddraxiversum_mission')
-                ->lockForUpdate()
-                ->first();
-
-            $hasConflictingOffer = MaddraxiversumBaxxSpecialOffer::query()
-                ->currentlyActive()
-                ->when($this->editingMaddraxiversumSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingMaddraxiversumSpecialOfferId))
-                ->exists();
-
-            if ($this->maddraxiversumSpecialOfferIsActive && $hasConflictingOffer) {
-                throw ValidationException::withMessages([
-                    'maddraxiversumSpecialOfferIsActive' => 'Es kann immer nur eine aktive Maddraxiversum-Sonderaktion gleichzeitig geben.',
-                ]);
-            }
-
-            if ($this->editingMaddraxiversumSpecialOfferId) {
-                MaddraxiversumBaxxSpecialOffer::findOrFail($this->editingMaddraxiversumSpecialOfferId)->update($data);
-
-                return;
-            }
-
-            MaddraxiversumBaxxSpecialOffer::create($data);
-        });
-
-        $title = $this->editingMaddraxiversumSpecialOfferId
-            ? 'Maddraxiversum-Sonderaktion aktualisiert'
-            : 'Maddraxiversum-Sonderaktion erstellt';
+        $title = $this->editingMaddraxiversumSpecialOfferId ? 'Maddraxiversum-Sonderaktion aktualisiert' : 'Maddraxiversum-Sonderaktion erstellt';
         $this->dispatch('toast', type: 'success', title: $title);
-
         $this->showMaddraxiversumSpecialOfferModal = false;
         $this->resetMaddraxiversumSpecialOfferForm();
         unset($this->maddraxiversumSpecialOffers, $this->maddraxiversumRewardConfiguration);
@@ -785,34 +685,7 @@ class BelohnungenAdmin extends Component
 
     public function toggleMaddraxiversumSpecialOfferActive(int $offerId): void
     {
-        $status = DB::transaction(function () use ($offerId) {
-            app(MaddraxiversumBaxxService::class)->getBaseRule();
-
-            BaxxEarningRule::query()
-                ->where('action_key', 'maddraxiversum_mission')
-                ->lockForUpdate()
-                ->first();
-
-            $offer = MaddraxiversumBaxxSpecialOffer::findOrFail($offerId);
-            $nextActiveState = ! $offer->is_active;
-
-            if ($nextActiveState && $offer->ends_at->lte(now())) {
-                throw ValidationException::withMessages([
-                    'maddraxiversumSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
-                ]);
-            }
-
-            if ($nextActiveState && MaddraxiversumBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
-                throw ValidationException::withMessages([
-                    'maddraxiversumSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Maddraxiversum-Sonderaktion.',
-                ]);
-            }
-
-            $offer->update(['is_active' => $nextActiveState]);
-
-            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
-        });
-
+        $status = app(BaxxSpecialOfferManager::class)->toggle(auth()->user(), 'maddraxiversum_mission', $offerId, 'maddraxiversumSpecialOffer');
         $this->dispatch('toast', type: 'success', title: "Maddraxiversum-Sonderaktion {$status}");
         unset($this->maddraxiversumSpecialOffers, $this->maddraxiversumRewardConfiguration);
     }
@@ -853,55 +726,15 @@ class BelohnungenAdmin extends Component
             'romantauschSpecialOfferEndsAt' => 'required|date',
         ]);
 
-        $endsAt = Carbon::parse($this->romantauschSpecialOfferEndsAt, config('app.timezone'));
-
-        if ($this->romantauschSpecialOfferIsActive && $endsAt->lte(now())) {
-            throw ValidationException::withMessages([
-                'romantauschSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
-            ]);
-        }
-
-        $actionKey = $this->romantauschSpecialOfferActionKey;
-        $data = [
-            'action_key' => $actionKey,
+        app(BaxxSpecialOfferManager::class)->save(auth()->user(), $this->romantauschSpecialOfferActionKey, [
             'points' => $this->romantauschSpecialOfferPoints,
             'every_count' => $this->romantauschSpecialOfferEveryCount,
-            'ends_at' => $endsAt,
+            'ends_at' => $this->romantauschSpecialOfferEndsAt,
             'is_active' => $this->romantauschSpecialOfferIsActive,
-        ];
+        ], $this->editingRomantauschSpecialOfferId, 'romantauschSpecialOffer');
 
-        DB::transaction(function () use ($actionKey, $data) {
-            BaxxEarningRule::query()
-                ->where('action_key', $actionKey)
-                ->lockForUpdate()
-                ->first();
-
-            $hasConflictingOffer = RomantauschBaxxSpecialOffer::query()
-                ->forActionKey($actionKey)
-                ->currentlyActive()
-                ->when($this->editingRomantauschSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingRomantauschSpecialOfferId))
-                ->exists();
-
-            if ($this->romantauschSpecialOfferIsActive && $hasConflictingOffer) {
-                throw ValidationException::withMessages([
-                    'romantauschSpecialOfferIsActive' => 'Es kann pro Romantausch-Aktion immer nur eine aktive Sonderaktion gleichzeitig geben.',
-                ]);
-            }
-
-            if ($this->editingRomantauschSpecialOfferId) {
-                RomantauschBaxxSpecialOffer::findOrFail($this->editingRomantauschSpecialOfferId)->update($data);
-
-                return;
-            }
-
-            RomantauschBaxxSpecialOffer::create($data);
-        });
-
-        $title = $this->editingRomantauschSpecialOfferId
-            ? 'Romantausch-Sonderaktion aktualisiert'
-            : 'Romantausch-Sonderaktion erstellt';
+        $title = $this->editingRomantauschSpecialOfferId ? 'Romantausch-Sonderaktion aktualisiert' : 'Romantausch-Sonderaktion erstellt';
         $this->dispatch('toast', type: 'success', title: $title);
-
         $this->showRomantauschSpecialOfferModal = false;
         $this->resetRomantauschSpecialOfferForm();
         unset($this->romantauschSpecialOffers, $this->romantauschRewardConfiguration);
@@ -909,37 +742,8 @@ class BelohnungenAdmin extends Component
 
     public function toggleRomantauschSpecialOfferActive(int $offerId): void
     {
-        $status = DB::transaction(function () use ($offerId) {
-            $offer = RomantauschBaxxSpecialOffer::findOrFail($offerId);
-
-            BaxxEarningRule::query()
-                ->where('action_key', $offer->action_key)
-                ->lockForUpdate()
-                ->first();
-
-            $nextActiveState = ! $offer->is_active;
-
-            if ($nextActiveState && $offer->ends_at->lte(now())) {
-                throw ValidationException::withMessages([
-                    'romantauschSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
-                ]);
-            }
-
-            if ($nextActiveState && RomantauschBaxxSpecialOffer::query()
-                ->forActionKey($offer->action_key)
-                ->currentlyActive()
-                ->whereKeyNot($offer->id)
-                ->exists()) {
-                throw ValidationException::withMessages([
-                    'romantauschSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Sonderaktion für diese Romantausch-Aktion.',
-                ]);
-            }
-
-            $offer->update(['is_active' => $nextActiveState]);
-
-            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
-        });
-
+        $actionKey = RomantauschBaxxSpecialOffer::findOrFail($offerId)->action_key;
+        $status = app(BaxxSpecialOfferManager::class)->toggle(auth()->user(), $actionKey, $offerId, 'romantauschSpecialOffer');
         $this->dispatch('toast', type: 'success', title: "Romantausch-Sonderaktion {$status}");
         unset($this->romantauschSpecialOffers, $this->romantauschRewardConfiguration);
     }

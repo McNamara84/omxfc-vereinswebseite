@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Reviews\RecordReview;
 use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\ReviewRequest;
 use App\Mail\NewReviewNotification;
-use App\Models\Activity;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
@@ -49,19 +49,7 @@ class RezensionController extends Controller
 
         $data = $request->validated();
 
-        $review = Review::create([
-            'team_id' => $teamId,
-            'user_id' => $user->id,
-            'book_id' => $book->id,
-            'title' => $data['title'],
-            'content' => $data['content'],
-        ]);
-
-        // Award Baxx using the currently effective review rule.
-        $reviewCount = Review::where('team_id', $teamId)
-            ->where('user_id', $user->id)
-            ->count();
-        $this->reviewBaxxService->awardPointsForReview($user, $reviewCount, $teamId);
+        $review = app(RecordReview::class)->execute($user, $teamId, $book->id, $data);
 
         // Autoren des Romans über neue Rezension informieren
         $authorNames = array_map('trim', explode(',', $book->author));
@@ -72,12 +60,6 @@ class RezensionController extends Controller
                     ->queue(new NewReviewNotification($review, $author));
             }
         }
-
-        Activity::create([
-            'user_id' => $user->id,
-            'subject_type' => Review::class,
-            'subject_id' => $review->id,
-        ]);
 
         return redirect()
             ->route('reviews.show', $book)

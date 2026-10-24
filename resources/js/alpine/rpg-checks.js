@@ -148,6 +148,7 @@ function hydrateExistingRpgChecks(Alpine) {
 
     for (const { name, isReady } of providers) {
         document.querySelectorAll(`[x-data="${name}"], [x-data^="${name}("]`).forEach((element) => {
+            if (element.closest('[data-feature]')) return;
             const scope = element._x_dataStack ? Alpine.$data(element) : null;
             // Preserve existing form input and the single active polling lifecycle.
             if (scope && isReady(scope)) return;
@@ -157,7 +158,7 @@ function hydrateExistingRpgChecks(Alpine) {
     }
 }
 
-function registerRpgChecks({ hydrateExisting = false } = {}) {
+export function registerRpgChecks({ hydrateExisting = false } = {}) {
     const Alpine = window.Alpine;
     if (!Alpine || typeof Alpine.data !== 'function') return;
     Alpine.data('rpgCheckForm', rpgCheckForm);

@@ -60,6 +60,23 @@ test('explicit PHP filters are forwarded as arguments and unknown scopes fail', 
     assert.throws(() => commandsFor('unit', { runtime: 'unknown' }), /TEST_RUNTIME/);
 });
 
+test('each browser project gets a separate setup invocation and a fresh server', () => {
+    for (const runtime of ['host', 'docker']) {
+        const browsers = commandsFor('all', { runtime, ci: false }).filter(command => command.args.includes('node_modules/playwright/cli.js'));
+        assert.deepEqual(browsers.map(command => command.args.at(-1)), ['--project=chromium', '--project=firefox', '--project=webkit']);
+        for (const command of browsers) {
+            assert.equal(command.env.PLAYWRIGHT_WORKERS, '1');
+            assert.equal(command.env.PLAYWRIGHT_REUSE_EXISTING_SERVER, '0');
+            if (runtime === 'docker') assert.ok(command.args.includes('--rm'));
+        }
+    }
+});
+
+test('the CI browser selection matches the Playwright configuration', () => {
+    const browsers = commandsFor('all', { ci: true }).filter(command => command.args.includes('node_modules/playwright/cli.js'));
+    assert.deepEqual(browsers.map(command => command.args.at(-1)), ['--project=chromium', '--project=firefox']);
+});
+
 test('a failed command stops the sequence and propagates its exit code', async () => {
     let starts = 0;
     const spawnFn = () => { starts++; const child = new EventEmitter(); queueMicrotask(() => child.emit('exit', 7)); return child; };
