@@ -25,6 +25,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
+/**
+ * Laravel's test transaction manager runs afterCommit callbacks when a workflow
+ * commits back to RefreshDatabase's outer test transaction (level 1).
+ * RomantauschPhotoCommitTest separately verifies real root commits and rollbacks.
+ */
 class RomantauschReviewRegressionTest extends TestCase
 {
     use CreatesUserWithRole;

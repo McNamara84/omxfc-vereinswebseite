@@ -1023,5 +1023,33 @@
         }
       }
     }
+  },
+  "transaction_review_follow_up": {
+    "date": "2026-10-24",
+    "previous_commit": "afda154c",
+    "assessment": "Claimed failures are not reproducible: Laravel testing transaction manager executes afterCommit at level 1; production manager waits for level 0.",
+    "existing_cleanup_cases": {
+      "sqlite": {
+        "passed": 4,
+        "assertions": 58
+      },
+      "mariadb": {
+        "passed": 4,
+        "assertions": 58
+      }
+    },
+    "new_real_root_transaction_cases": {
+      "passed": 6,
+      "assertions": 112,
+      "database": "isolated SQLite in-memory",
+      "manager": "Illuminate\\Database\\DatabaseTransactionsManager"
+    },
+    "combined_workflow_review_retry_and_commit_cases": {
+      "passed": 68,
+      "assertions": 471
+    },
+    "pint": "passed",
+    "application_code_modified": false,
+    "coverage_baseline_modified": false
   }
 }

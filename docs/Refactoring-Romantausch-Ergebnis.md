@@ -197,6 +197,34 @@ weiterhin jeweils 100 % Zeilen- und Methodenabdeckung. Der Foto-Service erreicht
 75 / 89 Zeilen, das Stapelformular 42 / 47 Zeilen. Baseline und CI-Prüfer wurden
 nicht verändert; diese Nachprüfung ist weiterhin inkrementell.
 
+## Zweite Code-Review-Runde: Commit-Grenzen im Test
+
+Die beiden Hinweise zur angeblich bis zum Testende ausbleibenden Foto-Löschung
+treffen auf den installierten Laravel-Testbetrieb nicht zu. `RefreshDatabase`
+installiert `Illuminate\Foundation\Testing\DatabaseTransactionsManager`.
+Dessen `afterCommitCallbacksShouldBeExecuted()` führt die Callbacks bereits beim
+Rücksprung auf Transaktionsebene 1 aus; `callbackApplicableTransactions()` nimmt
+die äußere Testtransaktion aus. Der reguläre
+`Illuminate\Database\DatabaseTransactionsManager` verwendet dagegen Ebene 0.
+Die vier beanstandeten Fälle bestehen unverändert unter SQLite und MariaDB,
+jeweils mit 58 Assertions. Ein manuelles Commit der RefreshDatabase-Transaktion
+ist dafür nicht erforderlich und würde die Isolation dieser Tests verändern.
+
+Zur zusätzlichen Prüfung echter Commit-Grenzen verwendet
+`tests/Integration/RomantauschPhotoCommitTest.php` eine eigene SQLite-Datenbank
+ohne `RefreshDatabase`. Die Tests prüfen den regulären Transaktionsmanager und
+den PDO-Transaktionszustand ausdrücklich. Je ein Commit- und Rollback-Fall sichert
+Stapel-Fotoersetzung, verzögerte Referenzabfragen und das Löschen des letzten
+Verweises auf ein gemeinsam verwendetes Foto ab. Vor dem äußersten Commit
+bleiben die alten Dateien erhalten. Bei Rollback bleiben Datenbankreferenzen
+und alte Fotos erhalten, neue Uploads werden entfernt; ein späterer Commit darf
+keine verworfenen Cleanup-Callbacks nachholen.
+
+Alle sechs neuen Fälle bestehen mit 112 Assertions. Zusammen mit den bestehenden
+Workflow-, Review- und Retry-Tests bestehen 68 Tests mit 471 Assertions; Pint
+besteht für alle drei geänderten PHP-Testdateien. Anwendungscode, Coverage-Baseline
+und CI-Konfiguration bleiben unverändert.
+
 ## Messungen
 
 Ausgangscode: Commit `b6c85f2740d493d1596f16aaa13c191534672b06`.

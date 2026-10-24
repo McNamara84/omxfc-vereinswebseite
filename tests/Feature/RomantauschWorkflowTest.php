@@ -322,6 +322,8 @@ class RomantauschWorkflowTest extends TestCase
 
     public function test_shared_photo_survives_until_its_last_source_is_deleted(): void
     {
+        // RefreshDatabase's test manager executes callbacks at the workflow's commit;
+        // RomantauschPhotoCommitTest also checks the production manager at level 0.
         $actor = $this->actingMember();
         [$offer, $request] = $this->pair($actor);
         $sibling = BookOffer::create($offer->getAttributes());
