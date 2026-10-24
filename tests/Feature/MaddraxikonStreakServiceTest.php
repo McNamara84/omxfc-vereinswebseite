@@ -295,8 +295,9 @@ class MaddraxikonStreakServiceTest extends TestCase
     {
         $this->source();
         config(['maddraxikon.streaks.starts_at' => '2026-10-02T00:00:00+02:00']);
-        $this->expectException(\LogicException::class);
-        app(MaddraxikonStreakSettings::class)->pinStart();
+        $this->assertSame(CarbonImmutable::parse('2026-10-01T00:00:00+02:00')->timestamp, app(MaddraxikonStreakSettings::class)->pinStart()->starts_at_epoch);
+        $this->assertSame(1, $this->evaluate());
+        $this->assertSame(1, $this->points());
     }
 
     public function test_disconnected_and_ineligible_members_receive_no_new_bonus(): void
@@ -847,9 +848,9 @@ class MaddraxikonStreakServiceTest extends TestCase
         $this->assertSame($day->id, UserPoint::query()->orderBy('id')->first()->maddraxikonStreakBooking->streak_day_id);
     }
 
-    public function test_manual_recalculation_cannot_bypass_pause_coverage_or_frozen_start(): void
+    public function test_manual_recalculation_respects_pause_and_coverage_and_uses_frozen_start(): void
     {
-        $this->source()->forceFill(['streak_status' => 'valid'])->save();
+        $this->source('2026-10-01T00:00:00+02:00')->forceFill(['streak_status' => 'valid'])->save();
         $service = app(MaddraxikonStreakService::class);
         config(['maddraxikon.features.awards_enabled' => false]);
         $this->assertSame(0, $service->reconcile($this->member->id));
@@ -860,8 +861,8 @@ class MaddraxikonStreakServiceTest extends TestCase
         $sync->update(['recovery_required_at' => null]);
         config(['maddraxikon.streaks.starts_at' => '2026-10-02T00:00:00+02:00']);
         $this->assertSame(0, $this->points());
-        $this->expectException(\LogicException::class);
-        $service->reconcile($this->member->id, from: '2026-10-01');
+        $this->assertSame(1, $service->reconcile($this->member->id, from: '2026-10-01'));
+        $this->assertSame(1, $this->points());
     }
 
     #[DataProvider('malformedChecks')]

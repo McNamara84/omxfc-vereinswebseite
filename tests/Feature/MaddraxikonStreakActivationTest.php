@@ -13,13 +13,16 @@ use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\Maddraxikon\MaddraxikonApiClient;
 use App\Services\Maddraxikon\MaddraxikonContributionImporter;
+use App\Services\Maddraxikon\MaddraxikonMonitoring;
 use App\Services\Maddraxikon\MaddraxikonStreakService;
 use App\Services\Maddraxikon\MaddraxikonStreakSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Livewire\Livewire;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MaddraxikonStreakActivationTest extends TestCase
@@ -155,5 +158,77 @@ class MaddraxikonStreakActivationTest extends TestCase
         $this->travelTo($launch->addDay());
         $this->assertSame(1, app(MaddraxikonStreakService::class)->run());
         $this->assertSame(1, (int) UserPoint::query()->where('user_id', $member->id)->sum('points'));
+    }
+
+    #[DataProvider('changedConfigurationImports')]
+    public function test_changed_configuration_preserves_rollout_imports_and_display(string $configuredStart, bool $recovery): void
+    {
+        config(['maddraxikon.features.sync_enabled' => true, 'maddraxikon.features.awards_enabled' => true]);
+        $this->migration()->up();
+        $launch = CarbonImmutable::now();
+        $member = User::factory()->create();
+        Team::membersTeam()->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $link = MaddraxikonAccountLink::factory()->create([
+            'user_id' => $member->id,
+            // Re-consent must not hide contributions from the original participation period.
+            'verified_at' => $launch->addMinutes(10),
+            'streak_verified_at_epoch' => $launch->subDays(2)->timestamp,
+        ]);
+        config(['maddraxikon.streaks.starts_at' => $configuredStart]);
+        $this->travelTo($launch->addMinutes(15));
+        $sync = MaddraxikonSyncState::query()->sole();
+        if ($recovery) {
+            $sync->update(['recovery_required_at' => now(), 'recovery_from_at' => $launch, 'recovery_until_at' => now()]);
+        }
+        $changes = [];
+        foreach ([-1, 0, 60] as $index => $offset) {
+            $changes[] = [
+                'type' => 'edit', 'ns' => 0, 'title' => 'Fester Serienstart', 'pageid' => 42,
+                'revid' => 100 + $index, 'old_revid' => 99, 'parentid' => 99, 'rcid' => 100 + $index,
+                'user' => $link->wiki_username, 'userid' => $link->wiki_user_id,
+                'oldlen' => 100, 'newlen' => 99, 'size' => 99, 'sizediff' => -1, 'tags' => [],
+                'timestamp' => $launch->addSeconds($offset)->utc()->format('Y-m-d\TH:i:s\Z'),
+            ];
+        }
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldReceive($recovery ? 'userContributions' : 'recentChanges')->once()->andReturn($changes);
+        $api->shouldReceive('streakRevisionDetails')->once()->with([101, 102])->andReturn([
+            101 => ['exists' => true, 'page_id' => 42, 'user_id' => $link->wiki_user_id, 'tags' => []],
+            102 => ['exists' => true, 'page_id' => 42, 'user_id' => $link->wiki_user_id, 'tags' => []],
+        ]);
+        $api->shouldReceive('streakPageDetails')->once()->with([42])->andReturn([42 => ['exists' => true]]);
+        $this->app->instance(MaddraxikonApiClient::class, $api);
+
+        $importer = app(MaddraxikonContributionImporter::class);
+        $this->assertSame(2, $recovery ? $importer->recover($launch, CarbonImmutable::now()) : $importer->sync());
+        $this->assertSame([101, 102], MaddraxikonContribution::query()->orderBy('revision_id')->pluck('revision_id')->all());
+        $this->assertSame(['2026-10-24'], MaddraxikonContribution::query()->distinct()->pluck('streak_activity_date')->all());
+        $this->assertSame($launch->timestamp, app(MaddraxikonStreakSettings::class)->start()->timestamp);
+
+        $this->actingAs($member);
+        Livewire::test(MaddraxikonStreakPanel::class)
+            ->assertSee('Maddraxikon-Serie')->assertSee('Aktivität erkannt – Bonus wird geprüft.')
+            ->assertViewHas('streak', fn ($streak) => $streak['today_pending'] && ! $streak['delayed']);
+        app(MaddraxikonMonitoring::class)->recordSchedulerHeartbeat();
+        $this->assertSame(0, Artisan::call('maddraxikon:status', ['--skip-api' => true]));
+        $this->assertMatchesRegularExpression('/\| Start\s+\| '.preg_quote($launch->utc()->toIso8601String(), '/').'\s+\|/', Artisan::output());
+
+        $this->travelTo($launch->addDay()->addMinute());
+        $sync->refresh()->update(['watermark_at' => now(), 'last_succeeded_at' => now()]);
+        // Recovery retains its independent requirement for a verified historical bot status.
+        $this->assertSame($recovery ? 0 : 1, app(MaddraxikonStreakService::class)->run());
+        $this->assertSame($recovery ? 0 : 1, (int) UserPoint::query()->where('user_id', $member->id)->sum('points'));
+        $this->migration()->up();
+        $this->assertSame($launch->timestamp, MaddraxikonStreakRun::query()->sole()->starts_at_epoch);
+    }
+
+    public static function changedConfigurationImports(): array
+    {
+        return [
+            'later start during normal import' => ['2026-11-01T00:00:00+01:00', false],
+            'earlier start during normal import' => ['2026-10-23T12:00:00Z', false],
+            'later start during recovery' => ['2026-11-01T00:00:00+01:00', true],
+            'earlier start during recovery' => ['2026-10-23T12:00:00Z', true],
+        ];
     }
 }

@@ -45,6 +45,7 @@
             <file>tests/Feature/MaddraxikonStreakActivationTest.php</file>
             <file>tests/Feature/MaddraxikonStreakUiTest.php</file>
             <file>tests/Feature/MaddraxikonStreakMariaDbConcurrencyTest.php</file>
+            <file>tests/Unit/MaddraxikonStreakSettingsTest.php</file>
             <file>tests/Feature/MaddraxikonSnapshotRepositoryTest.php</file>
             <file>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</file>
             <file>tests/Integration/MaddraxikonApiClientTest.php</file>

@@ -10,13 +10,17 @@ final class MaddraxikonStreakSettings
 {
     public function start(): ?CarbonImmutable
     {
+        // Once activated, every consumer must use the same immutable rollout boundary.
+        $epoch = MaddraxikonStreakRun::query()
+            ->where('wiki_key', config('maddraxikon.wiki_key'))
+            ->value('starts_at_epoch');
+        if ($epoch !== null) {
+            return CarbonImmutable::createFromTimestampUTC((int) $epoch);
+        }
+
         $value = config('maddraxikon.streaks.starts_at');
         if (! is_string($value) || $value === '') {
-            $epoch = MaddraxikonStreakRun::query()
-                ->where('wiki_key', config('maddraxikon.wiki_key'))
-                ->value('starts_at_epoch');
-
-            return $epoch === null ? null : CarbonImmutable::createFromTimestampUTC((int) $epoch);
+            return null;
         }
         if (! preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/', $value)) {
             throw new LogicException('Der Serienstart benötigt einen ISO-Zeitpunkt mit Zeitzone.');

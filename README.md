@@ -463,8 +463,9 @@ der persönliche Rekord berücksichtigen diese Korrekturen.
 
 Der Serienbonus ist standardmäßig aktiv. Das nächste Deployment speichert mit
 `php artisan migrate --force` automatisch den Einführungszeitpunkt; eine manuelle
-Aktivierung oder ein zusätzlicher `.env`-Eintrag ist nicht erforderlich. Ein leeres
-`MADDRAXIKON_STREAKS_STARTS_AT` verwendet diesen dauerhaft gespeicherten Zeitpunkt.
+Aktivierung oder ein zusätzlicher `.env`-Eintrag ist nicht erforderlich. Nach der
+Aktivierung ist der gespeicherte Zeitpunkt verbindlich, auch wenn
+`MADDRAXIKON_STREAKS_STARTS_AT` danach geändert oder entfernt wird.
 Spätere Deployments, Neustarts und Konfigurations-Caches verschieben ihn nicht.
 Beiträge davor erhalten weder Bonus noch Serienverlängerung. Bei einer neuen
 Installation wird auch die Importgrenze auf den Deploymentzeitpunkt gesetzt,
