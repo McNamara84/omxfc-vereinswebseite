@@ -21,6 +21,14 @@ try {
     Carbon::setTestNow(CarbonImmutable::now());
     config(['maddraxikon.streaks.enabled' => true, 'maddraxikon.streaks.starts_at' => '2026-10-01T00:00:00+02:00', 'maddraxikon.features.sync_enabled' => true, 'maddraxikon.features.awards_enabled' => true, 'logging.default' => 'null']);
     $invalidRevision = (int) ($argv[1] ?? 0);
+    if (($argv[2] ?? '') === 'activate') {
+        config(['maddraxikon.streaks.starts_at' => null]);
+        fwrite(STDOUT, "ready\n");
+        fflush(STDOUT);
+        if (trim((string) fgets(STDIN)) !== 'go') {
+            throw new RuntimeException('Activation barrier failed');
+        }
+    }
     $app->instance(MaddraxikonApiClient::class, new class($invalidRevision) extends MaddraxikonApiClient
     {
         public function __construct(private readonly int $invalidRevision) {}

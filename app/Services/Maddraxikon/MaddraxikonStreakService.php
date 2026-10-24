@@ -34,10 +34,10 @@ final class MaddraxikonStreakService
 
     public function run(bool $recheck = false): int
     {
-        if (! $this->settings->enabled() || ! config('maddraxikon.features.awards_enabled') || ! config('maddraxikon.features.sync_enabled')) {
+        $run = $this->settings->activate();
+        if (! $run || ! config('maddraxikon.features.awards_enabled') || ! config('maddraxikon.features.sync_enabled')) {
             return 0;
         }
-        $run = $this->settings->pinStart();
         $sync = $this->sync();
         if (! $this->covered($sync)) {
             return 0;

@@ -110,6 +110,8 @@ class MaddraxikonStreakActivationTest extends TestCase
     {
         config(['maddraxikon.streaks.enabled' => false]);
         $this->migration()->up();
+        $this->assertNull(app(MaddraxikonStreakSettings::class)->activate());
+        $this->assertSame(0, app(MaddraxikonStreakService::class)->run());
         $this->assertFalse(app(MaddraxikonStreakSettings::class)->enabled());
         $this->assertNull(app(MaddraxikonStreakSettings::class)->start());
         $this->assertDatabaseCount('maddraxikon_streak_runs', 0);
@@ -120,6 +122,8 @@ class MaddraxikonStreakActivationTest extends TestCase
     {
         config(['maddraxikon.streaks.starts_at' => '2026-11-01T00:00:00+01:00']);
         $this->migration()->up();
+        $this->assertSame(now()->timestamp, MaddraxikonSyncState::query()->sole()->initial_watermark_at_epoch);
+        $this->assertSame(now()->timestamp, MaddraxikonSyncState::query()->sole()->watermark_at_epoch);
         config(['maddraxikon.streaks.starts_at' => '']);
         $this->assertSame('2026-10-31T23:00:00+00:00', app(MaddraxikonStreakSettings::class)->start()->toIso8601String());
         config(['maddraxikon.streaks.enabled' => false]);
@@ -230,5 +234,181 @@ class MaddraxikonStreakActivationTest extends TestCase
             'later start during recovery' => ['2026-11-01T00:00:00+01:00', true],
             'earlier start during recovery' => ['2026-10-23T12:00:00Z', true],
         ];
+    }
+
+    #[DataProvider('runtimeActivations')]
+    public function test_disabled_deployment_can_activate_later_without_rerunning_migrations(string $entry, bool $explicit): void
+    {
+        config(['maddraxikon.streaks.enabled' => false]);
+        $this->migration()->up();
+        $this->assertDatabaseCount('maddraxikon_streak_runs', 0);
+        $this->assertDatabaseCount('maddraxikon_sync_states', 0);
+        $this->travel(2)->days();
+        $activation = CarbonImmutable::now('UTC')->startOfSecond();
+        $start = $explicit ? $activation->subMinutes(15) : $activation;
+        config([
+            'maddraxikon.streaks.enabled' => true,
+            'maddraxikon.streaks.starts_at' => $explicit ? $start->toIso8601String() : null,
+            'maddraxikon.features.sync_enabled' => true, 'maddraxikon.features.awards_enabled' => true,
+        ]);
+        $member = User::factory()->create();
+        Team::membersTeam()->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $link = MaddraxikonAccountLink::factory()->create(['user_id' => $member->id, 'verified_at' => $start->subDay()]);
+        $changes = [];
+        foreach ([-1, 0] as $index => $offset) {
+            $changes[] = [
+                'type' => 'edit', 'ns' => 0, 'title' => 'Späte Aktivierung', 'pageid' => 42,
+                'revid' => 100 + $index, 'old_revid' => 99, 'rcid' => 100 + $index,
+                'user' => $link->wiki_username, 'userid' => $link->wiki_user_id,
+                'oldlen' => 100, 'newlen' => 99, 'tags' => [],
+                'timestamp' => $start->addSeconds($offset)->format('Y-m-d\TH:i:s\Z'),
+            ];
+        }
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldReceive('recentChanges')->once()
+            ->withArgs(fn ($from, $until) => $from->lte($start) && $until->gt($start))->andReturn($changes);
+        $api->shouldReceive('streakRevisionDetails')->once()->with([101])
+            ->andReturn([101 => ['exists' => true, 'page_id' => 42, 'user_id' => $link->wiki_user_id, 'tags' => []]]);
+        $api->shouldReceive('streakPageDetails')->once()->with([42])->andReturn([42 => ['exists' => true]]);
+        $this->app->instance(MaddraxikonApiClient::class, $api);
+        $service = app(MaddraxikonStreakService::class);
+        $importer = app(MaddraxikonContributionImporter::class);
+
+        $alreadyImported = $entry === 'import' && $explicit;
+        $this->assertSame($alreadyImported ? 2 : 0, $entry === 'import' ? $importer->sync() : $service->run($entry === 'recheck'));
+        $this->assertDatabaseCount('maddraxikon_streak_runs', 1);
+        $this->assertSame($start->timestamp, MaddraxikonStreakRun::query()->sole()->starts_at_epoch);
+        $sync = MaddraxikonSyncState::query()->sole();
+        $this->assertSame($start->timestamp, $sync->initial_watermark_at_epoch);
+        $this->assertTrue($service->covered($sync));
+        if (! $alreadyImported) {
+            $this->assertNull($sync->last_succeeded_at);
+            $this->assertSame($start->timestamp, $sync->watermark_at_epoch);
+            $this->travelTo($activation->addMinutes(15));
+            $this->assertSame(2, $importer->sync());
+        }
+        $this->assertNull(MaddraxikonContribution::query()->where('revision_id', 100)->sole()->streak_activity_date);
+        $this->assertSame(0, $service->run());
+        $this->travelTo($start->addHours(24));
+        $this->assertSame(1, $service->run());
+        $this->assertSame(0, $service->run());
+        $this->assertSame(1, (int) UserPoint::query()->where('user_id', $member->id)->sum('points'));
+        $this->assertSame($start->timestamp, app(MaddraxikonStreakSettings::class)->start()->timestamp);
+        $this->assertSame($start->timestamp, $sync->fresh()->initial_watermark_at_epoch);
+    }
+
+    public static function runtimeActivations(): array
+    {
+        return [
+            'import with automatic start' => ['import', false],
+            'import with explicit start' => ['import', true],
+            'evaluation with automatic start' => ['evaluate', false],
+            'evaluation with explicit start' => ['evaluate', true],
+            'recheck with automatic start' => ['recheck', false],
+            'recheck with explicit start' => ['recheck', true],
+        ];
+    }
+
+    #[DataProvider('existingImportBoundaries')]
+    public function test_runtime_activation_preserves_existing_import_and_recovery_boundaries(bool $covered, bool $recovery): void
+    {
+        $start = CarbonImmutable::now('UTC')->subHour();
+        config(['maddraxikon.streaks.starts_at' => $start->toIso8601String()]);
+        $sync = MaddraxikonSyncState::factory()->create([
+            'initial_watermark_at' => $covered ? $start->subDay() : $start->addMinutes(30),
+            'watermark_at' => now()->subMinutes(10),
+            'recovery_required_at' => $recovery ? now() : null,
+            'recovery_from_at' => $recovery ? now()->subMinutes(10) : null,
+            'recovery_until_at' => $recovery ? now() : null,
+        ]);
+        $before = $sync->fresh()->getAttributes();
+        $settings = app(MaddraxikonStreakSettings::class);
+        $run = $settings->activate();
+        $this->assertSame($start->timestamp, $run->starts_at_epoch);
+        $this->assertSame($before, $sync->fresh()->getAttributes());
+        $this->assertSame($covered && ! $recovery, app(MaddraxikonStreakService::class)->covered($sync->fresh()));
+
+        config(['maddraxikon.streaks.starts_at' => '2030-01-01T00:00:00Z']);
+        $this->travel(1)->days();
+        $this->assertSame($run->id, $settings->activate()->id);
+        $this->assertSame($start->timestamp, $settings->start()->timestamp);
+        $this->assertSame($before, $sync->fresh()->getAttributes());
+    }
+
+    public static function existingImportBoundaries(): array
+    {
+        return [[true, false], [true, true], [false, false], [false, true]];
+    }
+
+    public function test_runtime_activation_recovers_missing_sync_state_without_moving_a_pinned_start(): void
+    {
+        $start = CarbonImmutable::now('UTC')->subHours(2);
+        $run = MaddraxikonStreakRun::query()->create(['wiki_key' => config('maddraxikon.wiki_key'), 'starts_at_epoch' => $start->timestamp]);
+        config(['maddraxikon.streaks.starts_at' => '2030-01-01T00:00:00Z']);
+        $this->assertSame($run->id, app(MaddraxikonStreakSettings::class)->activate()->id);
+        $sync = MaddraxikonSyncState::query()->sole();
+        $this->assertSame($start->timestamp, $sync->initial_watermark_at_epoch);
+        $this->assertSame($start->timestamp, $sync->watermark_at_epoch);
+        $this->assertNull($sync->last_succeeded_at);
+    }
+
+    public function test_explicit_start_outside_recent_changes_retention_requires_recovery_instead_of_skipping_history(): void
+    {
+        $start = CarbonImmutable::now('UTC')->subDays(40);
+        config(['maddraxikon.features.sync_enabled' => true, 'maddraxikon.streaks.starts_at' => $start->toIso8601String()]);
+        $api = Mockery::mock(MaddraxikonApiClient::class);
+        $api->shouldNotReceive('recentChanges');
+        $this->app->instance(MaddraxikonApiClient::class, $api);
+        $this->assertSame(0, app(MaddraxikonContributionImporter::class)->sync());
+        $sync = MaddraxikonSyncState::query()->sole();
+        $this->assertSame($start->timestamp, $sync->initial_watermark_at_epoch);
+        $this->assertSame($start->timestamp, $sync->watermark_at_epoch);
+        $this->assertNotNull($sync->recovery_required_at);
+        $this->assertFalse(app(MaddraxikonStreakService::class)->covered($sync));
+    }
+
+    public function test_preview_and_status_do_not_initialize_a_later_activation(): void
+    {
+        $this->artisan('maddraxikon:streaks', ['--pretend' => true])->assertSuccessful();
+        $this->artisan('maddraxikon:status', ['--skip-api' => true])->assertSuccessful();
+        $this->assertDatabaseCount('maddraxikon_streak_runs', 0);
+        $this->assertDatabaseCount('maddraxikon_sync_states', 0);
+    }
+
+    #[DataProvider('unfinishedImportStates')]
+    public function test_activation_preserves_an_existing_initial_boundary_or_open_recovery_without_a_watermark(bool $recovery): void
+    {
+        $initial = CarbonImmutable::now('UTC')->subDay();
+        $sync = MaddraxikonSyncState::factory()->create([
+            'initial_watermark_at' => $initial, 'watermark_at' => null, 'last_succeeded_at' => null,
+            'recovery_required_at' => $recovery ? now() : null,
+            'recovery_from_at' => $recovery ? $initial : null,
+            'recovery_until_at' => $recovery ? now() : null,
+        ]);
+        $before = $sync->fresh()->getAttributes();
+        app(MaddraxikonStreakSettings::class)->activate();
+        $this->assertSame($initial->timestamp, $sync->fresh()->initial_watermark_at_epoch);
+        $this->assertSame($recovery ? null : $initial->timestamp, $sync->fresh()->watermark_at_epoch);
+        $this->assertNull($sync->fresh()->last_succeeded_at);
+        if ($recovery) {
+            $this->assertSame($before, $sync->fresh()->getAttributes());
+        }
+    }
+
+    public static function unfinishedImportStates(): array
+    {
+        return [[false], [true]];
+    }
+
+    public function test_invalid_activation_configuration_rolls_back_all_bootstrap_writes(): void
+    {
+        config(['maddraxikon.streaks.starts_at' => 'tomorrow']);
+        $this->expectException(\LogicException::class);
+        try {
+            app(MaddraxikonStreakSettings::class)->activate();
+        } finally {
+            $this->assertDatabaseCount('maddraxikon_streak_runs', 0);
+            $this->assertDatabaseCount('maddraxikon_sync_states', 0);
+        }
     }
 }

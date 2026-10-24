@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonStreakBooking;
+use App\Models\MaddraxikonStreakRun;
 use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\User;
@@ -86,19 +87,42 @@ class MaddraxikonStreakMariaDbConcurrencyTest extends TestCase
         $this->assertFalse($link->fresh()->isActive());
     }
 
-    private function workers(int $invalidRevision, ?callable $afterReady = null): void
+    public function test_competing_first_activations_persist_one_rollout_and_matching_import_boundary(): void
+    {
+        if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            $this->markTestSkipped('Needs MariaDB with separate worker processes.');
+        }
+        $this->assertSame('omxfc_maddraxikon_test', DB::getDatabaseName());
+        $this->assertDatabaseCount('maddraxikon_streak_runs', 0);
+        $this->assertDatabaseCount('maddraxikon_sync_states', 0);
+        DB::connection()->commit();
+        $this->committed = true;
+        $this->workers(0, activate: true);
+
+        $start = CarbonImmutable::parse('2026-10-20T12:00:00+02:00')->timestamp;
+        $this->assertSame($start, MaddraxikonStreakRun::query()->sole()->starts_at_epoch);
+        $sync = MaddraxikonSyncState::query()->sole();
+        $this->assertSame($start, $sync->initial_watermark_at_epoch);
+        $this->assertSame($start, $sync->watermark_at_epoch);
+        $this->assertNull($sync->last_succeeded_at);
+        $this->assertDatabaseCount('maddraxikon_streak_bookings', 0);
+    }
+
+    private function workers(int $invalidRevision, ?callable $afterReady = null, bool $activate = false): void
     {
         $workers = [];
         try {
             for ($i = 0; $i < 2; $i++) {
                 $pipes = [];
-                $process = proc_open([PHP_BINARY, base_path('tests/Support/MariaDbMaddraxikonStreakWorker.php'), (string) $invalidRevision], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, base_path());
+                $process = proc_open([PHP_BINARY, base_path('tests/Support/MariaDbMaddraxikonStreakWorker.php'), (string) $invalidRevision, $activate ? 'activate' : 'evaluate'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, base_path());
                 $this->assertIsResource($process);
                 stream_set_timeout($pipes[1], 30);
+                stream_set_blocking($pipes[2], false);
                 $workers[] = [$process, $pipes];
             }
             foreach ($workers as [, $pipes]) {
-                $this->assertSame("ready\n", fgets($pipes[1]));
+                $ready = fgets($pipes[1]);
+                $this->assertSame("ready\n", $ready, stream_get_contents($pipes[2]));
             }
             if ($afterReady) {
                 $afterReady();
@@ -109,7 +133,7 @@ class MaddraxikonStreakMariaDbConcurrencyTest extends TestCase
             }
             foreach ($workers as [, $pipes]) {
                 $result = fgets($pipes[1]);
-                $this->assertIsString($result);
+                $this->assertIsString($result, stream_get_contents($pipes[2]));
                 $this->assertArrayHasKey('bookings', json_decode($result, true, flags: JSON_THROW_ON_ERROR));
             }
         } finally {

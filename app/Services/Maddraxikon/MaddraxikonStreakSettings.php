@@ -3,7 +3,9 @@
 namespace App\Services\Maddraxikon;
 
 use App\Models\MaddraxikonStreakRun;
+use App\Models\MaddraxikonSyncState;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use LogicException;
 
 final class MaddraxikonStreakSettings
@@ -37,6 +39,39 @@ final class MaddraxikonStreakSettings
     public function enabled(): bool
     {
         return (bool) config('maddraxikon.streaks.enabled') && $this->start() !== null;
+    }
+
+    /** Repeatable bootstrap for deployment and the first write after a later activation. */
+    public function activate(): ?MaddraxikonStreakRun
+    {
+        if (! config('maddraxikon.streaks.enabled')) {
+            return null;
+        }
+
+        return DB::transaction(function (): MaddraxikonStreakRun {
+            // Match the import/evaluation lock order and serialize concurrent first activations.
+            // Locking reads also see a preceding worker's commit under REPEATABLE READ.
+            $wiki = (string) config('maddraxikon.wiki_key');
+            $sync = MaddraxikonSyncState::query()->where('wiki_key', $wiki)->lockForUpdate()->first();
+            if (! $sync) {
+                $sync = MaddraxikonSyncState::query()->create(['wiki_key' => $wiki]);
+            }
+            $now = CarbonImmutable::now('UTC')->startOfSecond();
+            $run = MaddraxikonStreakRun::query()->where('wiki_key', $wiki)->lockForUpdate()->first();
+            if (! $run) {
+                $start = $this->start() ?? $now;
+                $run = MaddraxikonStreakRun::query()->create(['wiki_key' => $wiki, 'starts_at_epoch' => $start->timestamp]);
+            }
+
+            if ($sync->watermark_at === null && $sync->recovery_required_at === null) {
+                // Queue the missing interval for import; do not claim it has already succeeded.
+                // A future streak start must not postpone the regular contribution import.
+                $initial = $sync->initial_watermark_at ?? CarbonImmutable::createFromTimestampUTC(min($run->starts_at_epoch, $now->timestamp));
+                $sync->update(['watermark_at' => $initial, 'initial_watermark_at' => $initial]);
+            }
+
+            return $run;
+        }, 3);
     }
 
     public function pinStart(): MaddraxikonStreakRun

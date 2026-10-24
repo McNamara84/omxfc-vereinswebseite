@@ -473,13 +473,20 @@ damit ein später gestarteter Import die Aktivität seit Einführung erfassen ka
 
 Synchronisation und allgemeine Baxx-Auszahlung müssen wie bisher aktiviert sein.
 Ein ausdrücklich gesetztes `MADDRAXIKON_STREAKS_ENABLED=false` pausiert den Bonus
-weiterhin. Wird bereits die erstmalige Einführung so deaktiviert, ist bei einer
-späteren Aktivierung zusätzlich ein expliziter Startzeitpunkt anzugeben.
+weiterhin. War die Funktion beim Deployment deaktiviert, initialisiert der erste
+reguläre Import oder Serienlauf nach dem Einschalten den Start und eine noch
+fehlende Importgrenze automatisch. Ohne explizites Datum gilt der Zeitpunkt
+dieses Laufs; die Migration muss nicht erneut ausgeführt werden. Auch
+`php artisan maddraxikon:streaks` kann diese Initialisierung auslösen. Vorschau,
+Statusabfrage und Seitenaufrufe verändern den Aktivierungszustand nicht.
 Optional lässt sich vor Einführung `MADDRAXIKON_STREAKS_STARTS_AT` als ISO-Zeitpunkt
 mit Zeitzone setzen, etwa `2026-11-01T00:00:00+01:00`. Die Importhistorie muss diesen
-Zeitpunkt abdecken; vorhandene Importgrenzen bleiben erhalten. Ein gespeicherter
-Serienstart darf nicht nachträglich verschoben werden. Im Dev-Stack besitzen
-diese Variablen das Präfix `DOCKER_DEV_`.
+Zeitpunkt abdecken; vorhandene Importgrenzen bleiben erhalten. Fehlt der
+Importzustand noch vollständig, beginnt der Import beim expliziten Start,
+bei einem zukünftigen Start bereits ab der Aktivierung. Liegt der Start außerhalb
+der RecentChanges-Aufbewahrung, greift der bestehende Recovery-Ablauf.
+Ein gespeicherter Serienstart darf nicht nachträglich verschoben werden.
+Im Dev-Stack besitzen diese Variablen das Präfix `DOCKER_DEV_`.
 
 Der Scheduler prüft neue Quellen stündlich um Minute 5 und historische Quellen
 um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;

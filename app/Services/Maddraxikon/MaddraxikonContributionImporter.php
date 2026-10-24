@@ -28,6 +28,7 @@ class MaddraxikonContributionImporter
         }
 
         $membersTeam = $this->membersTeamOrFail();
+        app(MaddraxikonStreakSettings::class)->activate();
         $wikiKey = (string) config('maddraxikon.wiki_key', 'maddraxikon-de');
         $syncUntil = CarbonImmutable::now()->startOfSecond();
         [$state, $initialized, $runSequence] = DB::transaction(
