@@ -124,7 +124,7 @@
                                     <li class="flex flex-col rounded-lg overflow-hidden border border-base-content/10 bg-base-200">
                                         <img src="{{ Storage::disk('public')->url($photo['path']) }}" alt="Foto {{ $loop->iteration }} des Stapels" class="h-32 w-full object-cover">
                                         <label for="remove-photo-{{ $index }}" class="flex items-center gap-2 px-3 py-2 text-sm text-base-content">
-                                            <input type="checkbox" id="remove-photo-{{ $index }}" wire:model="remove_photos" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="checkbox checkbox-primary checkbox-sm">
+                                            <input type="checkbox" id="remove-photo-{{ $index }}" wire:model.live="remove_photos" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="checkbox checkbox-primary checkbox-sm">
                                             <span>Foto entfernen</span>
                                         </label>
                                     </li>

@@ -64,7 +64,7 @@ final class BundleWorkflow
                     Gate::forUser($actor)->authorize('update', $offer);
                     InputRules::editable((bool) $offer->completed || in_array($offer->id, $assignedOffers), 'book_numbers', 'Stapel');
                 }
-                $oldPhotos = $offers->flatMap(fn ($offer) => $offer->photos)->unique()->values()->all();
+                $oldPhotos = $this->photos->pathsForOffers($offers);
                 $paths = $this->photos->combine($oldPhotos, $data['remove_photos'] ?? [], $uploaded);
                 $bundleId = $id ?? (string) Str::uuid();
                 $current = $offers->pluck('book_number')->all();
@@ -125,7 +125,7 @@ final class BundleWorkflow
     {
         return $this->lock->run([$actor->id], function () use ($actor, $id): int {
             $offers = $this->offers($actor, $id, true);
-            $paths = $offers->flatMap(fn ($offer) => $offer->photos)->unique()->values()->all();
+            $paths = $this->photos->pathsForOffers($offers);
             foreach ($offers as $offer) {
                 Gate::forUser($actor)->authorize('delete', $offer);
                 $this->deletion->delete($offer);

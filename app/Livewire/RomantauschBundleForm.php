@@ -96,11 +96,12 @@ class RomantauschBundleForm extends Component
             return [];
         }
 
-        $firstOffer = BookOffer::where('bundle_id', $this->bundleId)
+        $offers = BookOffer::where('bundle_id', $this->bundleId)
             ->where('user_id', Auth::id())
-            ->first();
+            ->orderBy('id')
+            ->get(['photos']);
 
-        return $firstOffer?->photos ?? [];
+        return app(BookPhotoService::class)->pathsForOffers($offers);
     }
 
     #[Computed]

@@ -160,6 +160,43 @@ gegen die geschützte Baseline aus dem Basis-Commit
 Quellpositionen. Der Korrektur-Commit ändert ausschließlich Tests und diesen
 Nachweis. Ein neuer GitHub-CI-Lauf erfolgt nach dem Push.
 
+## Erste Code-Review-Runde
+
+Alle vier Befunde wurden bestätigt und mit Regressionstests behoben:
+
+- Stapelformular und Workflow verwenden dieselbe deduplizierte Fotomenge aller
+  eigenen Angebote im Stapel. Anzeige, Entfernen und Restkontingent stimmen
+  damit überein; das Kontingent aktualisiert sich beim Markieren zum Entfernen.
+  Eine durch Einzelbearbeitungen entstandene Überschreitung lässt sich im
+  Formular vollständig bereinigen, ohne Fotos stillschweigend zu verwerfen.
+- Verschwindet eine Quelle zwischen Swap-Abfrage und Laden der Beziehungen,
+  bricht die Bestätigung mit HTTP 404 ab, bevor Eigentümer-IDs gelesen werden.
+  Die anschließenden sperrenden Abfragen bleiben erhalten.
+- Foto-Cleanup prüft jeden unterschiedlichen entfernten Pfad mit
+  `whereJsonContains(...)->exists()` in der Datenbank. Die Anfrage lädt keine
+  Fotolisten der gesamten Börse. Auch abgeschlossene Angebote anderer Mitglieder
+  schützen gemeinsam referenzierte Fotos weiterhin vor dem Löschen.
+- Beide Abbruchaktionen erscheinen im Dashboard als „Tauschzuordnung aufgehoben“
+  mit der zutreffenden Ursache. Tests führen das Löschen von Einzelangebot,
+  Gesuch und Stapel über HTTP und Livewire bis zur tatsächlichen Feed-Darstellung aus.
+
+Die Regressionstests reproduzieren die vier ursprünglichen Fehler. Nach der Korrektur
+bestehen 275 Fachtests mit Xdebug und 1.052 Assertions. Die dort unter SQLite
+übersprungenen acht Konkurrenztests wurden zusammen mit allen 14 neuen Fällen
+unter MariaDB ausgeführt: 22 Tests, 172 Assertions, keine übersprungenen Tests.
+Die JSON-Prüfung wird mit leerer und mit 200 zusätzlichen abgeschlossenen
+Angeboten ausgeführt und prüft auch Dateinamen mit Anführungszeichen und
+ähnliche, aber unterschiedliche Pfade. Die neuen Fälle sind in der
+MariaDB-CI-Konfiguration enthalten. Pint und alle sechs Architekturregeln bestehen.
+
+Der geschützte CI-Coverage-Vergleich besteht weiterhin. Für die vier geänderten
+Anwendungsklassen wurden die Messwerte durch den neuen Xdebug-Lauf ersetzt;
+566 unveränderte Dateien behalten die bisherigen Nachweise. Ihre Quellhashes
+wurden vor dem Vergleich geprüft. `BundleWorkflow` und `SwapWorkflow` erreichen
+weiterhin jeweils 100 % Zeilen- und Methodenabdeckung. Der Foto-Service erreicht
+75 / 89 Zeilen, das Stapelformular 42 / 47 Zeilen. Baseline und CI-Prüfer wurden
+nicht verändert; diese Nachprüfung ist weiterhin inkrementell.
+
 ## Messungen
 
 Ausgangscode: Commit `b6c85f2740d493d1596f16aaa13c191534672b06`.

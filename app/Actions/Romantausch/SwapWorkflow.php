@@ -20,6 +20,7 @@ final class SwapWorkflow
     public function confirm(User $actor, int $id): SwapResult
     {
         $source = BookSwap::with(['offer', 'request'])->findOrFail($id);
+        abort_if($source->offer === null || $source->request === null, 404);
         abort_unless(in_array($actor->id, [$source->offer->user_id, $source->request->user_id]), 403);
 
         return $this->lock->run([$source->offer->user_id, $source->request->user_id], function () use ($actor, $source): SwapResult {

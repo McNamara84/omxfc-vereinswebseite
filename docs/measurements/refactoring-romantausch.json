@@ -944,5 +944,84 @@
         }
       }
     }
+  },
+  "review_follow_up": {
+    "date": "2026-10-24",
+    "previous_commit": "078350225e125e50b787f32a880afdc71121b0e3",
+    "fixes": [
+      "Shared bundle photo union for form and workflow",
+      "404 for sources missing before confirmation eager loads",
+      "Database-side JSON membership existence checks for photo cleanup",
+      "Explicit cancellation messages in the dashboard feed"
+    ],
+    "tests": {
+      "new_regressions": {
+        "passed": 14,
+        "assertions": 125
+      },
+      "sqlite_with_xdebug": {
+        "passed": 275,
+        "skipped_mariadb_cases": 8,
+        "assertions": 1052
+      },
+      "mariadb": {
+        "passed": 22,
+        "skipped": 0,
+        "assertions": 172
+      },
+      "architecture": {
+        "passed": 6
+      },
+      "pint": "passed"
+    },
+    "photo_cleanup_history_sizes": [
+      0,
+      200
+    ],
+    "coverage_validation": "Changed application files remeasured with Xdebug; 566 unchanged source hashes verified against existing CI-based evidence. Incremental validation, not a fresh full-suite run.",
+    "protected_baseline_check": "passed",
+    "baseline_modified": false,
+    "coverage": {
+      "app/Actions/Romantausch/BundleWorkflow.php": {
+        "lines": {
+          "total": 71,
+          "covered": 71
+        },
+        "functions": {
+          "total": 6,
+          "covered": 6
+        }
+      },
+      "app/Actions/Romantausch/SwapWorkflow.php": {
+        "lines": {
+          "total": 44,
+          "covered": 44
+        },
+        "functions": {
+          "total": 4,
+          "covered": 4
+        }
+      },
+      "app/Livewire/RomantauschBundleForm.php": {
+        "lines": {
+          "total": 47,
+          "covered": 42
+        },
+        "functions": {
+          "total": 11,
+          "covered": 9
+        }
+      },
+      "app/Services/Romantausch/BookPhotoService.php": {
+        "lines": {
+          "total": 89,
+          "covered": 75
+        },
+        "functions": {
+          "total": 12,
+          "covered": 8
+        }
+      }
+    }
   }
 }

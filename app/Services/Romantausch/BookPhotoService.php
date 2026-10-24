@@ -2,6 +2,7 @@
 
 namespace App\Services\Romantausch;
 
+use App\Models\BookOffer;
 use App\Support\Romantausch\WorkflowFailure;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,15 @@ class BookPhotoService
         return $paths;
     }
 
+    /**
+     * @param  iterable<BookOffer>  $offers
+     * @return list<string>
+     */
+    public function pathsForOffers(iterable $offers): array
+    {
+        return collect($offers)->flatMap(fn (BookOffer $offer) => $offer->photos)->unique()->values()->all();
+    }
+
     /** Call after the retryable transaction returns, so retries keep their uploads. */
     public function cleanupOnOuterRollback(array $uploaded): void
     {
@@ -54,9 +64,11 @@ class BookPhotoService
         if ($removed !== []) {
             DB::afterCommit(function () use ($removed): void {
                 try {
-                    $referenced = DB::table('book_offers')->whereNotNull('photos')->pluck('photos')
-                        ->flatMap(static fn ($json) => json_decode($json, true) ?? [])->all();
-                    $this->deletePhotos(array_values(array_diff(array_unique($removed), $referenced)));
+                    foreach (array_unique($removed) as $path) {
+                        if (! DB::table('book_offers')->whereJsonContains('photos', $path)->exists()) {
+                            $this->deletePhoto($path);
+                        }
+                    }
                 } catch (\Throwable $error) {
                     Log::warning('Romantausch-Fotocleanup fehlgeschlagen.', ['error' => $error->getMessage()]);
                 }
