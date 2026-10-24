@@ -120,6 +120,46 @@ Bestätigung gegen manuellen Abschluss, Matching gegen Bearbeiten/Löschen sowie
 Stapeländerung gegen Matching/Löschen. Die Root-Retry-Prüfung verwendet eine eigene
 wegwerfbare SQLite-Datenbank ohne umschließende Testtransaktion.
 
+## CI-Nachprüfung der Coverage
+
+Im ersten CI-Lauf nach dem Refactoring bestanden die Tests, aber der Schritt
+`Reject coverage regressions` scheiterte: In sechs bestehenden Dateien sank die
+relative Zeilenabdeckung, in zwei davon zusätzlich die Methodenabdeckung. Die
+oben ausgewiesene vollständige Abdeckung der neuen Bausteine ersetzt diesen
+Vergleich nicht. Die geschützte Baseline und der CI-Prüfer bleiben unverändert.
+
+Zwölf zusätzliche Testfälle prüfen das Öffnen bereits zugeordneter oder
+abgeschlossener Angebote und Gesuche, die drei Livewire-Ladeplatzhalter,
+persönliche Sammlungen ohne Anmeldung, die Kompatibilität der veröffentlichten
+Serien mit Formularen und HTTP, ungültige Bereichsgrenzen und Zustandswerte sowie
+den Fall ohne verfügbare Übersetzungen.
+
+Die drei betroffenen Testdateien bestehen mit 75 Tests und 286 Assertions.
+Die Original-Coverage-Artefakte beider erfolgreichen Test-Shards aus
+[CI-Lauf 40093309277](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/40093309277)
+wurden erneut mit dem bestehenden PHP-Berichtswerkzeug ausgewertet. Damit lässt
+sich der ursprüngliche Fehler lokal exakt reproduzieren. Für die sechs Dateien
+wurden die zusätzlich gemessenen Treffer ergänzt; Quellhashes und
+Coverage-Positionen müssen beim Zusammenführen übereinstimmen. Alle übrigen
+Dateien behalten ihre unveränderten CI-Messwerte. Das ist eine inkrementelle
+Nachprüfung mit den vollständigen CI-Berichten und dem zusätzlichen Testlauf,
+kein neuer lokaler Gesamtlauf.
+
+| Datei | Zeilen / Methoden nach ergänzenden Tests |
+| --- | --- |
+| `StoreBookOfferRequest` | 4 / 4 Zeilen, 4 / 4 Methoden |
+| `RomantauschIndex` | 105 / 105 Zeilen, 21 / 21 Methoden |
+| `RomantauschOfferForm` | 29 / 29 Zeilen, 10 / 10 Methoden |
+| `RomantauschRequestForm` | 23 / 23 Zeilen, 6 / 6 Methoden |
+| `BundleService` | 76 / 76 Zeilen, 8 / 8 Methoden |
+| `RomantauschInfoProvider` | 16 / 16 Zeilen, 1 / 1 Methode |
+
+`tools/testing/check-coverage.mjs` besteht damit einschließlich des PR-Vergleichs
+gegen die geschützte Baseline aus dem Basis-Commit
+`b6c85f2740d493d1596f16aaa13c191534672b06`: global, pro Datei und an unveränderten
+Quellpositionen. Der Korrektur-Commit ändert ausschließlich Tests und diesen
+Nachweis. Ein neuer GitHub-CI-Lauf erfolgt nach dem Push.
+
 ## Messungen
 
 Ausgangscode: Commit `b6c85f2740d493d1596f16aaa13c191534672b06`.

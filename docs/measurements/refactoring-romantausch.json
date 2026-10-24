@@ -777,5 +777,172 @@
         }
       ]
     }
+  },
+  "ci_follow_up": {
+    "workflow_run": 40093309277,
+    "source_commit": "c73eaa64d01755081fe70ed39028c93c539a6bb0",
+    "protected_baseline_commit": "b6c85f2740d493d1596f16aaa13c191534672b06",
+    "validation": "Original CI shard coverage combined with additional measured hits for six unchanged application files; not a fresh full-suite run.",
+    "additional_tests": {
+      "passed": 75,
+      "assertions": 286,
+      "new_cases": 12
+    },
+    "protected_baseline_check": "passed",
+    "baseline_modified": false,
+    "global_before": {
+      "lines": {
+        "total": 29489,
+        "covered": 25949
+      },
+      "functions": {
+        "total": 3014,
+        "covered": 2156
+      }
+    },
+    "global_after": {
+      "lines": {
+        "total": 29489,
+        "covered": 25965
+      },
+      "functions": {
+        "total": 3014,
+        "covered": 2167
+      }
+    },
+    "files": {
+      "app/Http/Requests/StoreBookOfferRequest.php": {
+        "before": {
+          "lines": {
+            "total": 4,
+            "covered": 3
+          },
+          "functions": {
+            "total": 4,
+            "covered": 3
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 4,
+            "covered": 4
+          },
+          "functions": {
+            "total": 4,
+            "covered": 4
+          }
+        }
+      },
+      "app/Livewire/RomantauschIndex.php": {
+        "before": {
+          "lines": {
+            "total": 105,
+            "covered": 102
+          },
+          "functions": {
+            "total": 21,
+            "covered": 18
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 105,
+            "covered": 105
+          },
+          "functions": {
+            "total": 21,
+            "covered": 21
+          }
+        }
+      },
+      "app/Livewire/RomantauschOfferForm.php": {
+        "before": {
+          "lines": {
+            "total": 29,
+            "covered": 25
+          },
+          "functions": {
+            "total": 10,
+            "covered": 8
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 29,
+            "covered": 29
+          },
+          "functions": {
+            "total": 10,
+            "covered": 10
+          }
+        }
+      },
+      "app/Livewire/RomantauschRequestForm.php": {
+        "before": {
+          "lines": {
+            "total": 23,
+            "covered": 19
+          },
+          "functions": {
+            "total": 6,
+            "covered": 4
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 23,
+            "covered": 23
+          },
+          "functions": {
+            "total": 6,
+            "covered": 6
+          }
+        }
+      },
+      "app/Services/Romantausch/BundleService.php": {
+        "before": {
+          "lines": {
+            "total": 76,
+            "covered": 73
+          },
+          "functions": {
+            "total": 8,
+            "covered": 6
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 76,
+            "covered": 76
+          },
+          "functions": {
+            "total": 8,
+            "covered": 8
+          }
+        }
+      },
+      "app/Services/RomantauschInfoProvider.php": {
+        "before": {
+          "lines": {
+            "total": 16,
+            "covered": 15
+          },
+          "functions": {
+            "total": 1,
+            "covered": 0
+          }
+        },
+        "after": {
+          "lines": {
+            "total": 16,
+            "covered": 16
+          },
+          "functions": {
+            "total": 1,
+            "covered": 1
+          }
+        }
+      }
+    }
   }
 }

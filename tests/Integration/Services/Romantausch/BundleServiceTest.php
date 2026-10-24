@@ -74,6 +74,13 @@ class BundleServiceTest extends TestCase
         $this->assertArraysAreEqual([1, 3], $result);
     }
 
+    public function test_parse_ignores_ranges_with_non_numeric_endpoints(): void
+    {
+        $result = $this->service->parseBookNumbers('abc-3, 1-xyz, 4-5, 7');
+
+        $this->assertSame([4, 5, 7], $result);
+    }
+
     public function test_parse_returns_empty_for_invalid_input(): void
     {
         $this->assertArraysAreEqual([], $this->service->parseBookNumbers(''));
@@ -150,6 +157,17 @@ class BundleServiceTest extends TestCase
         $error = $this->service->validateConditionRange('INVALID', 'Z2');
         $this->assertNotNull($error);
         $this->assertStringContainsString('INVALID', $error);
+    }
+
+    public function test_unknown_upper_condition_reports_the_invalid_value_and_allowed_values(): void
+    {
+        $error = $this->service->validateConditionRange('Z0', 'INVALID');
+
+        $this->assertNotNull($error);
+        $this->assertStringContainsString("'INVALID'", $error);
+        foreach (BundleService::CONDITION_ORDER as $condition) {
+            $this->assertStringContainsString($condition, $error);
+        }
     }
 
     // ========== validateMissingBookNumbers Tests ==========

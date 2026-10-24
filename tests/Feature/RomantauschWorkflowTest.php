@@ -7,6 +7,7 @@ use App\Actions\Romantausch\OfferWorkflow;
 use App\Actions\Romantausch\SwapWorkflow;
 use App\Enums\BookType;
 use App\Enums\Role;
+use App\Http\Requests\StoreBookOfferRequest;
 use App\Livewire\RomantauschBundleForm;
 use App\Livewire\RomantauschIndex;
 use App\Livewire\RomantauschOfferForm;
@@ -65,6 +66,74 @@ class RomantauschWorkflowTest extends TestCase
     public static function staleForms(): array
     {
         return [['offer', false], ['offer', true], ['request', false], ['request', true]];
+    }
+
+    #[DataProvider('staleForms')]
+    public function test_opening_a_blocked_form_redirects_with_an_error(string $kind, bool $matched): void
+    {
+        $actor = $this->actingMember();
+        [$offer, $request] = $this->pair($kind === 'offer' ? $actor : null);
+        if ($kind === 'request') {
+            $request->update(['user_id' => $actor->id]);
+        }
+        $source = $kind === 'offer' ? $offer : $request;
+        if ($matched) {
+            BookSwap::create(['offer_id' => $offer->id, 'request_id' => $request->id]);
+        } else {
+            $source->update(['completed' => true]);
+        }
+
+        Livewire::test($kind === 'offer' ? RomantauschOfferForm::class : RomantauschRequestForm::class, [
+            $kind === 'offer' ? 'offer' : 'bookRequest' => $source,
+        ])->assertRedirect(route('romantausch.index'));
+
+        $this->assertStringContainsString('nicht bearbeitet werden', session('error'));
+        $this->assertSame('Z0', $source->fresh()->condition);
+        $this->assertDatabaseCount('user_points', 0);
+    }
+
+    public static function lazyComponents(): array
+    {
+        return [[RomantauschOfferForm::class], [RomantauschRequestForm::class], [RomantauschIndex::class]];
+    }
+
+    #[DataProvider('lazyComponents')]
+    public function test_lazy_components_show_a_skeleton_until_loaded(string $component): void
+    {
+        $this->actingMember();
+
+        Livewire::test($component, ['lazy' => true])
+            ->assertSeeHtml('aria-hidden="true"')
+            ->assertSeeHtml('skeleton')
+            ->assertDontSeeHtml('wire:submit="save"');
+    }
+
+    public function test_guest_has_no_personal_offers_or_requests(): void
+    {
+        $this->pair();
+        $this->get(route('romantausch.index'))->assertRedirect(route('login'));
+
+        $component = app(RomantauschIndex::class);
+
+        $this->assertTrue($component->ownOffers->isEmpty());
+        $this->assertTrue($component->ownRequests->isEmpty());
+    }
+
+    public function test_advertised_series_are_selectable_and_accepted_by_the_http_adapter(): void
+    {
+        $actor = $this->actingMember();
+        $types = StoreBookOfferRequest::getAllowedTypes();
+        $this->assertNotEmpty($types);
+        Livewire::test(RomantauschOfferForm::class)->assertSet('types', $types);
+        Livewire::test(RomantauschRequestForm::class)->assertSet('types', $types);
+
+        foreach ($types as $type) {
+            $book = Book::firstOrCreate(['type' => $type, 'roman_number' => 1], ['title' => 'Roman 1', 'author' => 'Autor']);
+            $this->post(route('romantausch.store-offer'), $this->data(['series' => $type->value]))
+                ->assertSessionHasNoErrors()
+                ->assertRedirect(route('romantausch.index'));
+            $this->assertDatabaseHas('book_offers', ['user_id' => $actor->id, 'series' => $type->value, 'book_number' => $book->roman_number]);
+        }
     }
 
     #[DataProvider('staleForms')]

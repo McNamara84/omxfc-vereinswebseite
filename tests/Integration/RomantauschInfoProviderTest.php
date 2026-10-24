@@ -2,6 +2,7 @@
 
 namespace Tests\Integration;
 
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\RomantauschInfoProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
@@ -51,5 +52,15 @@ class RomantauschInfoProviderTest extends TestCase
 
         $this->assertIsArray($info);
         $this->assertSame(Lang::get('romantausch.info.title', [], 'de'), $info['title']);
+    }
+
+    public function test_returns_empty_info_when_both_locales_are_missing(): void
+    {
+        config(['romantausch.locale' => 'fr', 'romantausch.fallback_locale' => 'en']);
+        Lang::shouldReceive('get')->once()->with('romantausch.info', [], 'fr')->andReturn('romantausch.info');
+        Lang::shouldReceive('get')->once()->with('romantausch.info', [], 'en')->andReturn('romantausch.info');
+        $this->mock(RomantauschBaxxService::class, fn ($mock) => $mock->shouldNotReceive('getEffectiveRule'));
+
+        $this->assertSame([], app(RomantauschInfoProvider::class)->getInfo());
     }
 }
