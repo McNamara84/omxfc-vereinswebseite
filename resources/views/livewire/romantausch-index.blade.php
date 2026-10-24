@@ -4,6 +4,10 @@
         $successMessage = session('success') ?? $romantauschSuccessMessage;
     @endphp
 
+    @if(session('warning'))
+        <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" role="alert">{{ session('warning') }}</x-alert>
+    @endif
+
     @if($successMessage)
         <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible
                  role="alert" data-testid="flash-success">
@@ -35,6 +39,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-ui.error-summary />
+
     <x-ui.panel aria-labelledby="swap-process-heading">
         <x-slot:header>
             <div>
@@ -46,11 +52,7 @@
                     {{ $romantauschInfo['intro'] }}
                 </p>
                 <p class="mt-3 text-sm leading-relaxed text-base-content/72">
-                    {{ $romantauschInfo['reward_rule']['milestone_description'] }}
-                    <strong>{{ $romantauschInfo['reward_rule']['milestone_amount'] }}</strong>.
-                    {{ $romantauschInfo['reward_rule']['swap_description'] }}
-                    <strong>{{ $romantauschInfo['reward_rule']['swap_amount'] }}</strong>
-                    {{ $romantauschInfo['reward_rule']['swap_suffix'] }}
+                    <x-romantausch-reward-rules :rules="$romantauschInfo['reward_rules']" />
                 </p>
             </div>
         </x-slot:header>
@@ -117,7 +119,7 @@
     </x-ui.panel>
     @if($activeSwaps->isNotEmpty())
         <x-ui.panel title="Deine Matches" description="Hier siehst du laufende Tauschaktionen mit direktem Kontakt und Abschlussbestätigung.">
-            <p class="mb-4 text-base-content">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen". Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
+            <p class="mb-4 text-base-content">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und bestätigt anschließend den Tausch. Die aktuelle Baxx-Regel steht oben unter „So funktioniert der Tausch“.</p>
             <ul class="space-y-4">
                 @foreach($activeSwaps as $swap)
                     <li class="bg-base-200 p-3 rounded">

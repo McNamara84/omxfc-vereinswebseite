@@ -10,6 +10,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-ui.error-summary />
+
     <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Einzelangebot" description="Alle Pflichtfelder werden direkt via Livewire validiert. Bereits vorhandene Fotos kannst du beim Bearbeiten gezielt entfernen.">
             <form wire:submit="save" id="offer-form">
@@ -131,13 +133,9 @@
                 </ul>
             </x-ui.panel>
 
-            <x-ui.panel title="Baxx-Regel" description="Die Börse vergibt zusätzliche Motivation über kleine, nachvollziehbare Belohnungen.">
+            <x-ui.panel title="Baxx-Regel" description="Die aktuellen Regeln für Angebote, Gesuche und abgeschlossene Tauschaktionen.">
                 <div class="rounded-xl border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    {{ __('romantausch.info.reward_rule.milestone_description') }}
-                    <strong>{{ __('romantausch.info.reward_rule.milestone_amount') }}</strong>.
-                    {{ __('romantausch.info.reward_rule.swap_description') }}
-                    <strong>{{ __('romantausch.info.reward_rule.swap_amount') }}</strong>
-                    {{ __('romantausch.info.reward_rule.swap_suffix') }}
+                    <x-romantausch-reward-rules :rules="$rewardRules" />
                 </div>
             </x-ui.panel>
         </div>

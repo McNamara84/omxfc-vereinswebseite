@@ -2,13 +2,13 @@
 
 namespace App\Livewire;
 
+use App\Actions\Romantausch\BundleWorkflow;
 use App\Http\Requests\StoreBookOfferRequest;
-use App\Models\Book;
+use App\Livewire\Concerns\InteractsWithRomantauschForm;
 use App\Models\BookOffer;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
 use App\Support\ConditionOptions;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -18,6 +18,7 @@ use Livewire\WithFileUploads;
 
 class RomantauschBundleForm extends Component
 {
+    use InteractsWithRomantauschForm;
     use WithFileUploads;
 
     #[Locked]
@@ -77,20 +78,6 @@ class RomantauschBundleForm extends Component
     }
 
     #[Computed]
-    public function books()
-    {
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-
-        return Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-    }
-
-    #[Computed]
-    public function types(): array
-    {
-        return StoreBookOfferRequest::ALLOWED_TYPES;
-    }
-
-    #[Computed]
     public function conditionOptions(): array
     {
         return ConditionOptions::standard();
@@ -103,23 +90,18 @@ class RomantauschBundleForm extends Component
     }
 
     #[Computed]
-    public function seriesOptions(): array
-    {
-        return collect($this->types)->map(fn ($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
-    }
-
-    #[Computed]
     public function existingPhotos(): array
     {
         if (! $this->bundleId) {
             return [];
         }
 
-        $firstOffer = BookOffer::where('bundle_id', $this->bundleId)
+        $offers = BookOffer::where('bundle_id', $this->bundleId)
             ->where('user_id', Auth::id())
-            ->first();
+            ->orderBy('id')
+            ->get(['photos']);
 
-        return $firstOffer?->photos ?? [];
+        return app(BookPhotoService::class)->pathsForOffers($offers);
     }
 
     #[Computed]
@@ -138,168 +120,21 @@ class RomantauschBundleForm extends Component
 
     public function save(): void
     {
-        $bundleService = app(BundleService::class);
-        $photoService = app(BookPhotoService::class);
-
-        $allowedTypes = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $maxFileSize = BookPhotoService::MAX_FILE_SIZE_KB;
-        $allowedExtensions = implode(',', BookPhotoService::ALLOWED_EXTENSIONS);
-
-        $this->validate([
-            'series' => ['required', 'in:'.implode(',', $allowedTypes)],
-            'book_numbers' => 'required|string',
-            'condition' => 'required|string',
-            'condition_max' => 'nullable|string',
-            // Neue Uploads serverseitig auf maxNewPhotos begrenzen, damit Gesamtzahl
-            // (bereits behaltene + neue) nie BookPhotoService::MAX_PHOTOS überschreitet.
-            'photos' => 'array|max:'.$this->maxNewPhotos,
-            'photos.*' => "nullable|file|mimes:{$allowedExtensions}|max:{$maxFileSize}",
-        ]);
-
-        $bookNumbers = $bundleService->parseBookNumbers($this->book_numbers);
-
-        if (empty($bookNumbers)) {
-            $this->addError('book_numbers', 'Keine gültigen Roman-Nummern gefunden. Bitte gib Nummern im Format "1-50, 52, 55" ein.');
-
-            return;
-        }
-
-        if (count($bookNumbers) < BundleService::MIN_BUNDLE_SIZE) {
-            $this->addError('book_numbers', 'Ein Stapel-Angebot muss mindestens '.BundleService::MIN_BUNDLE_SIZE.' Romane enthalten.');
-
-            return;
-        }
-
-        if (count($bookNumbers) > BundleService::MAX_BUNDLE_SIZE) {
-            $this->addError('book_numbers', 'Ein Stapel-Angebot darf maximal '.BundleService::MAX_BUNDLE_SIZE.' Romane enthalten.');
-
-            return;
-        }
-
-        $conditionError = $bundleService->validateConditionRange($this->condition, $this->condition_max);
-        if ($conditionError) {
-            $this->addError('condition_max', $conditionError);
-
-            return;
-        }
-
-        $series = $this->isEditing
-            ? BookOffer::where('bundle_id', $this->bundleId)->first()->series
-            : $this->series;
-
-        $existingBooks = $bundleService->getExistingBooks($series, $bookNumbers);
-        $missingList = $bundleService->validateMissingBookNumbers($bookNumbers, $existingBooks->keys()->toArray());
-        if ($missingList) {
-            $this->addError('book_numbers', "Folgende Roman-Nummern existieren nicht in der Serie \"{$series}\": {$missingList}");
-
-            return;
-        }
-
-        if ($this->isEditing) {
-            $existingOffers = BookOffer::where('bundle_id', $this->bundleId)
-                ->where('user_id', Auth::id())
-                ->get();
-
-            // Handle photo updates
-            $currentPhotos = $existingOffers->first()->photos ?? [];
-            $photosToKeep = collect($currentPhotos)
-                ->reject(fn ($path) => in_array($path, $this->remove_photos))
-                ->values()
-                ->toArray();
-
-            $photosToDelete = collect($this->remove_photos)
-                ->filter(fn ($path) => in_array($path, $currentPhotos))
-                ->values()
-                ->toArray();
-
-            $newPhotoPaths = [];
-            if (! empty($this->photos)) {
-                try {
-                    $newPhotoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
-                    );
-                } catch (\RuntimeException $e) {
-                    $this->addError('photos', 'Foto-Upload fehlgeschlagen.');
-
-                    return;
-                }
-            }
-
-            try {
-                $bundleService->updateBundle(
-                    $this->bundleId,
-                    $bookNumbers,
-                    $this->condition,
-                    $this->condition_max,
-                    array_merge($photosToKeep, $newPhotoPaths),
-                    $photosToDelete,
-                    Auth::id()
-                );
-            } catch (\RuntimeException $e) {
-                $photoService->deletePhotos($newPhotoPaths);
-                $this->addError('book_numbers', $e->getMessage());
-
-                return;
-            }
-
-            $successMessage = 'Stapel-Angebot aktualisiert.';
-        } else {
-            $photoPaths = [];
-            if (! empty($this->photos)) {
-                try {
-                    $photoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
-                    );
-                } catch (\RuntimeException $e) {
-                    $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
-
-                    return;
-                }
-            }
-
-            try {
-                $result = $bundleService->createBundle(
-                    $this->series,
-                    $bookNumbers,
-                    $this->condition,
-                    $this->condition_max,
-                    $photoPaths,
-                    Auth::id()
-                );
-            } catch (\RuntimeException $e) {
-                $this->addError('book_numbers', $e->getMessage());
-
-                return;
-            }
-
-            $successMessage = 'Stapel-Angebot mit '.count($result['offers']).' Romanen erstellt.';
-        }
-
-        session()->put('romantausch.success', $successMessage);
-        $this->redirect(route('romantausch.index'));
+        $workflow = app(BundleWorkflow::class);
+        $data = $this->only(['series', 'book_numbers', 'condition', 'condition_max', 'photos', 'remove_photos']);
+        $this->submitRomantausch(
+            fn () => $this->isEditing ? $workflow->update(Auth::user(), $this->bundleId, $data) : $workflow->create(Auth::user(), $data),
+            $this->isEditing ? 'Stapel-Angebot aktualisiert.' : null,
+        );
     }
 
     public function delete(): void
     {
-        if (! $this->bundleId) {
-            return;
+        if ($this->bundleId) {
+            app(BundleWorkflow::class)->delete(Auth::user(), $this->bundleId);
+            session()->put('romantausch.success', 'Stapel-Angebot gelöscht.');
+            $this->redirect(route('romantausch.index'));
         }
-
-        $offers = BookOffer::where('bundle_id', $this->bundleId)
-            ->where('user_id', Auth::id())
-            ->get();
-
-        if ($offers->isEmpty()) {
-            abort(404);
-        }
-
-        $this->authorize('delete', $offers->first());
-
-        $bundleService = app(BundleService::class);
-        $bundleService->deleteBundle($this->bundleId, Auth::id());
-
-        session()->put('romantausch.success', 'Stapel-Angebot gelöscht.');
-        $this->redirect(route('romantausch.index'));
     }
 
     public function placeholder()

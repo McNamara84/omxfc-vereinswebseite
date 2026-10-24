@@ -2,11 +2,14 @@
 
 namespace App\Services\Romantausch;
 
-use Illuminate\Http\Request;
+use App\Models\BookOffer;
+use App\Support\Romantausch\WorkflowFailure;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Service für die Verwaltung von Buch-Fotos in der Romantauschbörse.
@@ -18,6 +21,61 @@ use Illuminate\Support\Str;
  */
 class BookPhotoService
 {
+    public function uploadForMutation(array $files, int $actorId): array
+    {
+        try {
+            return $this->uploadPhotos($files, $actorId);
+        } catch (\Throwable $error) {
+            throw new WorkflowFailure('Foto-Upload fehlgeschlagen. Bitte versuche es erneut.', 'photos', $error);
+        }
+    }
+
+    public function combine(array $existing, array $removed, array $uploaded): array
+    {
+        $paths = array_values(array_diff($existing, $removed));
+        $paths = array_values(array_unique([...$paths, ...$uploaded]));
+        if (count($paths) > self::MAX_PHOTOS) {
+            throw ValidationException::withMessages(['photos' => 'Du kannst maximal '.self::MAX_PHOTOS.' Fotos für ein Angebot speichern.']);
+        }
+
+        return $paths;
+    }
+
+    /**
+     * @param  iterable<BookOffer>  $offers
+     * @return list<string>
+     */
+    public function pathsForOffers(iterable $offers): array
+    {
+        return collect($offers)->flatMap(fn (BookOffer $offer) => $offer->photos)->unique()->values()->all();
+    }
+
+    /** Call after the retryable transaction returns, so retries keep their uploads. */
+    public function cleanupOnOuterRollback(array $uploaded): void
+    {
+        if ($uploaded !== []) {
+            DB::afterRollBack(fn () => $this->deletePhotos($uploaded));
+        }
+    }
+
+    /** Register inside the source transaction; never remove files still referenced by a sibling. */
+    public function removeUnreferencedAfterCommit(array $removed): void
+    {
+        if ($removed !== []) {
+            DB::afterCommit(function () use ($removed): void {
+                try {
+                    foreach (array_unique($removed) as $path) {
+                        if (! DB::table('book_offers')->whereJsonContains('photos', $path)->exists()) {
+                            $this->deletePhoto($path);
+                        }
+                    }
+                } catch (\Throwable $error) {
+                    Log::warning('Romantausch-Fotocleanup fehlgeschlagen.', ['error' => $error->getMessage()]);
+                }
+            });
+        }
+    }
+
     /**
      * Erlaubte Dateiendungen für Foto-Uploads.
      */
@@ -48,26 +106,6 @@ class BookPhotoService
         'image/gif' => 'gif',
         'image/webp' => 'webp',
     ];
-
-    /**
-     * Lädt Fotos aus einem Request hoch.
-     *
-     * @param  Request  $request  Der HTTP-Request mit 'photos' Feld
-     * @param  int|null  $userId  User-ID für Logging (optional, verwendet Auth::id() als Fallback)
-     * @return array<string> Array mit Storage-Pfaden der hochgeladenen Fotos
-     *
-     * @throws \RuntimeException Wenn der Upload fehlschlägt
-     */
-    public function uploadPhotosFromRequest(Request $request, ?int $userId = null): array
-    {
-        if (! $request->hasFile('photos')) {
-            return [];
-        }
-
-        $userId = $userId ?? auth()->id();
-
-        return $this->uploadPhotos($request->file('photos'), $userId);
-    }
 
     /**
      * Lädt ein Array von Fotos hoch.
@@ -143,7 +181,12 @@ class BookPhotoService
 
         $filename = $this->generateFilename($photo, $index, $extension);
 
-        return $photo->storeAs(self::STORAGE_PATH, $filename, 'public');
+        $path = $photo->storeAs(self::STORAGE_PATH, $filename, 'public');
+        if (! is_string($path) || $path === '') {
+            throw new \RuntimeException('Foto konnte nicht gespeichert werden.');
+        }
+
+        return $path;
     }
 
     /**
@@ -219,68 +262,6 @@ class BookPhotoService
                 'error' => $e->getMessage(),
             ]);
         }
-    }
-
-    /**
-     * Aktualisiert eine Foto-Collection: Behält existierende, entfernt markierte, fügt neue hinzu.
-     *
-     * @param  array<string>  $existingPhotos  Aktuell gespeicherte Foto-Pfade
-     * @param  array<string>  $photosToRemove  Pfade der zu löschenden Fotos
-     * @param  Request  $request  Request mit neuen Fotos
-     * @param  int|null  $userId  User-ID für Logging
-     * @return array{photos: array<string>, deleted: array<string>, uploaded: array<string>} Neue Foto-Liste, gelöschte und neu hochgeladene Pfade
-     *
-     * @throws \RuntimeException Wenn der Upload neuer Fotos fehlschlägt
-     */
-    public function updatePhotos(
-        array $existingPhotos,
-        array $photosToRemove,
-        Request $request,
-        ?int $userId = null
-    ): array {
-        $existingCollection = collect($existingPhotos);
-        $removeCollection = collect($photosToRemove);
-
-        // Fotos die behalten werden
-        $photosToKeep = $existingCollection
-            ->reject(fn ($path) => $removeCollection->contains($path))
-            ->values()
-            ->toArray();
-
-        // Tatsächlich zu löschende Fotos (nur die, die auch existieren)
-        $photosToDelete = $removeCollection
-            ->filter(fn ($path) => $existingCollection->contains($path))
-            ->values()
-            ->toArray();
-
-        // Neue Fotos hochladen
-        $newPhotoPaths = $this->uploadPhotosFromRequest($request, $userId);
-
-        return [
-            'photos' => array_merge($photosToKeep, $newPhotoPaths),
-            'deleted' => $photosToDelete,
-            'uploaded' => $newPhotoPaths,
-        ];
-    }
-
-    /**
-     * Validiert ob die Gesamtanzahl der Fotos das Maximum nicht überschreitet.
-     *
-     * @param  array<string>  $existingPhotos  Vorhandene Fotos
-     * @param  array<string>  $photosToRemove  Zu entfernende Fotos
-     * @param  int  $newPhotoCount  Anzahl neuer Fotos
-     * @return bool True wenn gültig
-     */
-    public function validatePhotoCount(
-        array $existingPhotos,
-        array $photosToRemove,
-        int $newPhotoCount
-    ): bool {
-        $remainingCount = collect($existingPhotos)
-            ->reject(fn ($path) => in_array($path, $photosToRemove, true))
-            ->count();
-
-        return ($remainingCount + $newPhotoCount) <= self::MAX_PHOTOS;
     }
 
     /**

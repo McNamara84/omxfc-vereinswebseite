@@ -111,6 +111,15 @@
                                 <p class="text-sm text-base-content" aria-label="Auszug aus der Fanfiction">„{{ $fanfictionPreview }}"</p>
                             @endif
                         </div>
+                    @elseif(in_array($activity->subject_type, [\App\Models\BookOffer::class, \App\Models\BookRequest::class], true) && in_array($activity->action, ['match_cancelled_by_offer_owner', 'match_cancelled_by_request_owner'], true))
+                        <div class="space-y-1">
+                            <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Tauschzuordnung aufgehoben: {{ $subject->book_title }}</a>
+                            @if($activity->action === 'match_cancelled_by_offer_owner')
+                                <p class="text-sm text-base-content">Das zugeordnete Angebot wurde entfernt. Das Gesuch ist wieder für einen Tausch verfügbar.</p>
+                            @else
+                                <p class="text-sm text-base-content">Das zugeordnete Gesuch wurde entfernt. Das Angebot ist wieder für einen Tausch verfügbar.</p>
+                            @endif
+                        </div>
                     @elseif($activity->subject_type === \App\Models\BookOffer::class && $activity->action === 'bundle_created')
                         <div class="space-y-1">
                             <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Neues Romantausch-Paket: {{ $subject->book_title }}</a>

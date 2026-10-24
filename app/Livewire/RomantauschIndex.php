@@ -2,7 +2,10 @@
 
 namespace App\Livewire;
 
-use App\Enums\Role;
+use App\Actions\Romantausch\BundleWorkflow;
+use App\Actions\Romantausch\OfferWorkflow;
+use App\Actions\Romantausch\RequestWorkflow;
+use App\Actions\Romantausch\SwapWorkflow;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -165,71 +168,37 @@ class RomantauschIndex extends Component
 
     public function deleteOffer(int $offerId): void
     {
-        $offer = BookOffer::findOrFail($offerId);
-        $this->authorize('delete', $offer);
-        $offer->delete();
-
+        app(OfferWorkflow::class)->delete(Auth::user(), $offerId);
         $this->clearComputedCache();
         $this->dispatch('toast', type: 'success', title: 'Angebot gelöscht.');
     }
 
     public function deleteRequest(int $requestId): void
     {
-        $request = BookRequest::findOrFail($requestId);
-        $this->authorize('delete', $request);
-        $request->delete();
-
+        app(RequestWorkflow::class)->delete(Auth::user(), $requestId);
         $this->clearComputedCache();
         $this->dispatch('toast', type: 'success', title: 'Gesuch gelöscht.');
     }
 
     public function deleteBundle(string $bundleId): void
     {
-        $offers = BookOffer::where('bundle_id', $bundleId)
-            ->where('user_id', Auth::id())
-            ->get();
-
-        if ($offers->isEmpty()) {
-            abort(404);
-        }
-
-        $this->authorize('delete', $offers->first());
-
-        $this->bundleService()->deleteBundle($bundleId, Auth::id());
-
+        app(BundleWorkflow::class)->delete(Auth::user(), $bundleId);
         $this->clearComputedCache();
         $this->dispatch('toast', type: 'success', title: 'Stapel-Angebot gelöscht.');
     }
 
     public function confirmSwap(int $swapId): void
     {
-        $swap = BookSwap::findOrFail($swapId);
-        $result = $this->matchingService()->confirmSwap($swap, Auth::user());
-
+        $result = app(SwapWorkflow::class)->confirm(Auth::user(), $swapId);
         $this->clearComputedCache();
-
-        if ($result['completed']) {
-            $this->dispatch('toast', type: 'success', title: 'Tausch abgeschlossen! Beide erhalten 2 Baxx.');
-        } else {
-            $this->dispatch('toast', type: 'info', title: 'Bestätigung gespeichert.');
-        }
+        $this->dispatch('toast', type: $result->completed ? 'success' : 'info', title: $result->message());
     }
 
     public function completeSwap(int $offerId, int $requestId): void
     {
-        $user = Auth::user();
-        abort_unless(
-            $user && $user->hasAnyRole(Role::Admin, Role::Vorstand),
-            403
-        );
-
-        $offer = BookOffer::findOrFail($offerId);
-        $request = BookRequest::findOrFail($requestId);
-
-        $this->matchingService()->completeSwap($offer, $request);
-
+        $result = app(SwapWorkflow::class)->complete(Auth::user(), $offerId, $requestId);
         $this->clearComputedCache();
-        $this->dispatch('toast', type: 'success', title: 'Tausch abgeschlossen.');
+        $this->dispatch('toast', type: 'success', title: $result->message());
     }
 
     private function clearComputedCache(): void

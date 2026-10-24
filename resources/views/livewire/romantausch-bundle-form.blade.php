@@ -10,6 +10,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-ui.error-summary />
+
     <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Stapel-Angebot" description="Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib die Nummern als Bereiche wie 1-50 oder einzeln wie 52, 55 ein.">
             <form wire:submit="save" id="bundle-offer-form">
@@ -122,7 +124,7 @@
                                     <li class="flex flex-col rounded-lg overflow-hidden border border-base-content/10 bg-base-200">
                                         <img src="{{ Storage::disk('public')->url($photo['path']) }}" alt="Foto {{ $loop->iteration }} des Stapels" class="h-32 w-full object-cover">
                                         <label for="remove-photo-{{ $index }}" class="flex items-center gap-2 px-3 py-2 text-sm text-base-content">
-                                            <input type="checkbox" id="remove-photo-{{ $index }}" wire:model="remove_photos" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="checkbox checkbox-primary checkbox-sm">
+                                            <input type="checkbox" id="remove-photo-{{ $index }}" wire:model.live="remove_photos" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="checkbox checkbox-primary checkbox-sm">
                                             <span>Foto entfernen</span>
                                         </label>
                                     </li>

@@ -2,26 +2,23 @@
 
 namespace App\Livewire;
 
+use App\Actions\Romantausch\OfferWorkflow;
 use App\Http\Requests\StoreBookOfferRequest;
-use App\Models\Activity;
-use App\Models\Book;
+use App\Livewire\Concerns\InteractsWithRomantauschForm;
 use App\Models\BookOffer;
 use App\Services\Romantausch\BookPhotoService;
-use App\Services\Romantausch\RomantauschBaxxService;
-use App\Services\Romantausch\SwapMatchingService;
+use App\Services\RomantauschInfoProvider;
 use App\Support\ConditionOptions;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
-use LogicException;
 
 class RomantauschOfferForm extends Component
 {
+    use InteractsWithRomantauschForm;
     use WithFileUploads;
 
     #[Locked]
@@ -74,42 +71,9 @@ class RomantauschOfferForm extends Component
     }
 
     #[Computed]
-    public function books()
-    {
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-
-        return Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-    }
-
-    #[Computed]
-    public function types(): array
-    {
-        return StoreBookOfferRequest::ALLOWED_TYPES;
-    }
-
-    #[Computed]
     public function conditionOptions(): array
     {
         return ConditionOptions::full();
-    }
-
-    #[Computed]
-    public function seriesOptions(): array
-    {
-        return collect($this->types)->map(fn ($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
-    }
-
-    #[Computed]
-    public function bookOptions(): array
-    {
-        return $this->books->map(fn ($b) => ['id' => $b->roman_number, 'name' => $b->roman_number.' - '.$b->title])->toArray();
-    }
-
-    #[Computed]
-    public function booksBySeries()
-    {
-        return $this->books->groupBy(fn ($b) => $b->type->value)
-            ->map(fn ($group) => $group->pluck('roman_number')->map(fn ($n) => (string) $n)->values());
     }
 
     #[Computed]
@@ -134,127 +98,12 @@ class RomantauschOfferForm extends Component
 
     public function save(): void
     {
-        $photoService = app(BookPhotoService::class);
-        $matchingService = app(SwapMatchingService::class);
-
-        $allowedTypes = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $maxFileSize = BookPhotoService::MAX_FILE_SIZE_KB;
-        $allowedExtensions = implode(',', BookPhotoService::ALLOWED_EXTENSIONS);
-
-        $rules = [
-            'series' => ['required', 'in:'.implode(',', $allowedTypes)],
-            'book_number' => 'required|integer|min:1',
-            'condition' => 'required|string',
-            // Neue Uploads serverseitig auf maxNewPhotos begrenzen, damit Gesamtzahl
-            // (bereits behaltene + neue) nie BookPhotoService::MAX_PHOTOS überschreitet.
-            'photos' => 'array|max:'.$this->maxNewPhotos,
-            'photos.*' => "nullable|file|mimes:{$allowedExtensions}|max:{$maxFileSize}",
-        ];
-
-        $this->validate($rules);
-
-        $book = Book::where('roman_number', $this->book_number)
-            ->where('type', $this->series)
-            ->first();
-
-        if (! $book) {
-            $this->addError('book_number', 'Ausgewählter Roman nicht gefunden.');
-
-            return;
-        }
-
-        if ($this->isEditing) {
-            $offer = BookOffer::findOrFail($this->offerId);
-            $this->authorize('update', $offer);
-
-            // Handle photo updates
-            $photosToKeep = collect($offer->photos ?? [])
-                ->reject(fn ($path) => in_array($path, $this->remove_photos))
-                ->values()
-                ->toArray();
-
-            $photosToDelete = collect($this->remove_photos)
-                ->filter(fn ($path) => in_array($path, $offer->photos ?? []))
-                ->values()
-                ->toArray();
-
-            $newPhotoPaths = [];
-            if (! empty($this->photos)) {
-                try {
-                    $newPhotoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
-                    );
-                } catch (\RuntimeException $e) {
-                    $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
-
-                    return;
-                }
-            }
-
-            $offer->update([
-                'series' => $this->series,
-                'book_number' => $this->book_number,
-                'book_title' => $book->title,
-                'condition' => $this->condition,
-                'photos' => array_merge($photosToKeep, $newPhotoPaths),
-            ]);
-
-            $photoService->deletePhotos($photosToDelete);
-
-            $offer->refresh();
-            $matchingService->matchSwap($offer, 'offer');
-        } else {
-            $photoPaths = [];
-            if (! empty($this->photos)) {
-                try {
-                    $photoPaths = $photoService->uploadPhotos(
-                        array_filter($this->photos, fn ($p) => $p instanceof UploadedFile),
-                    );
-                } catch (\RuntimeException $e) {
-                    $this->addError('photos', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
-
-                    return;
-                }
-            }
-
-            try {
-                $offer = DB::transaction(function () use ($book, $photoPaths) {
-                    $offer = BookOffer::create([
-                        'user_id' => Auth::id(),
-                        'series' => $this->series,
-                        'book_number' => $this->book_number,
-                        'book_title' => $book->title,
-                        'condition' => $this->condition,
-                        'photos' => $photoPaths,
-                    ]);
-
-                    app(RomantauschBaxxService::class)->awardForNewOffers(Auth::id(), 1);
-
-                    Activity::create([
-                        'user_id' => Auth::id(),
-                        'subject_type' => BookOffer::class,
-                        'subject_id' => $offer->id,
-                    ]);
-
-                    return $offer;
-                });
-            } catch (\Throwable $exception) {
-                $photoService->deletePhotos($photoPaths);
-
-                if (! $exception instanceof LogicException) {
-                    report($exception);
-                }
-
-                $this->addError('book_number', 'Angebot konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
-
-                return;
-            }
-
-            $matchingService->matchSwap($offer, 'offer');
-        }
-
-        session()->put('romantausch.success', $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.');
-        $this->redirect(route('romantausch.index'));
+        $workflow = app(OfferWorkflow::class);
+        $data = $this->only(['series', 'book_number', 'condition', 'photos', 'remove_photos']);
+        $this->submitRomantausch(
+            fn () => $this->isEditing ? $workflow->update(Auth::user(), $this->offerId, $data) : $workflow->create(Auth::user(), $data),
+            $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.',
+        );
     }
 
     public function placeholder()
@@ -264,7 +113,9 @@ class RomantauschOfferForm extends Component
 
     public function render()
     {
-        return view('livewire.romantausch-offer-form')
+        return view('livewire.romantausch-offer-form', [
+            'rewardRules' => app(RomantauschInfoProvider::class)->getInfo()['reward_rules'] ?? [],
+        ])
             ->layout('layouts.member', ['title' => $this->isEditing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen']);
     }
 }

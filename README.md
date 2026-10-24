@@ -66,6 +66,14 @@ Aktionen. Quellspezifische Zählweisen, Wallets und Auditdaten bleiben in ihren
 jeweiligen Services. Verträge, Sperrreihenfolgen, Fehlerkorrekturen und Messwerte
 stehen im [Refactoring-Ergebnisbericht](docs/Refactoring-Baxx-JavaScript-Ergebnis.md).
 
+Die Romantauschbörse verwendet für Einzelangebote, Gesuche, Stapel und
+Tauschabschlüsse gemeinsame Workflows unter `app/Actions/Romantausch`.
+Livewire und die bisherigen HTTP-Routen teilen Validierung, Zustandsprüfungen,
+Transaktionen und Foto-Cleanup. Manuelle Abschlüsse sind Admin/Vorstand im
+Mitglieder-Team vorbehalten; wiederholte Abschlüsse vergeben keine zusätzlichen
+Baxx. Architektur, Regressionstests und Messwerte stehen im
+[Romantausch-Ergebnisbericht](docs/Refactoring-Romantausch-Ergebnis.md).
+
 Karten, Charts, RPG und 3D laden über `resources/js/features/index.js` erst bei
 passendem DOM-Bedarf. Neue Features registrieren dort `selector`, `load` und
 `mount`; `mount` gibt eine Cleanup-Funktion zurück und berücksichtigt bei
