@@ -28,6 +28,11 @@ class MaddraxikonStreaksCommand extends Command
 
             return self::FAILURE;
         }
+        if ($this->option('recheck') && ! $this->option('pretend') && ($this->option('user') || $this->option('from'))) {
+            $this->error('--recheck kann nicht mit --user oder --from kombiniert werden. Für eine erneute Revisionsprüfung --recheck ohne diese Filter ausführen.');
+
+            return self::FAILURE;
+        }
         if ($this->option('pretend') || $this->option('user') || $this->option('from')) {
             $states = MaddraxikonStreakState::query()->where('wiki_key', config('maddraxikon.wiki_key'))
                 ->when($this->option('user'), fn ($query, $id) => $query->where('user_id', $id))->orderBy('id')->cursor();

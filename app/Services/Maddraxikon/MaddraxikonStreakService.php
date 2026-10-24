@@ -55,7 +55,7 @@ final class MaddraxikonStreakService
                     }
                 });
             }
-            $query = $this->sources()->whereNotNull('streak_activity_date')
+            $query = $this->sources(historical: $recheck)->whereNotNull('streak_activity_date')
                 ->where('occurred_at_epoch', '<=', now()->timestamp - max(1, (int) config('maddraxikon.evaluation_delay_hours', 24)) * 3600)
                 ->where('streak_next_check_epoch', '<=', now()->timestamp)
                 ->where('streak_status', '!=', 'excluded');
@@ -69,10 +69,12 @@ final class MaddraxikonStreakService
                         throw new LogicException('Die Serienprüfung ist unvollständig; bestehende Ansprüche bleiben erhalten.');
                     }
                     $reason = $this->validator->reason($source, $revisions[$source->revision_id], $pages[$source->page_id]);
-                    $this->locked($source->user_id, function (LockedMembersTeamMemberships $members) use ($source, $reason): void {
+                    $this->locked($source->user_id, function (LockedMembersTeamMemberships $members) use ($source, $reason, $recheck): void {
                         $fresh = MaddraxikonContribution::query()->lockForUpdate()->findOrFail($source->id);
                         $link = $fresh->accountLink;
-                        if ($fresh->streak_check_version !== $source->streak_check_version || ! $this->eligible($fresh, $link, $members)) {
+                        // Previously checked sources retain their original participation and identity snapshot.
+                        // Current eligibility is required for new checks; reconcile gates all positive payouts.
+                        if ($fresh->streak_check_version !== $source->streak_check_version || (! $recheck && ! $this->eligible($fresh, $link, $members))) {
                             return;
                         }
                         $status = $reason === null ? 'valid' : 'invalid';
@@ -80,6 +82,7 @@ final class MaddraxikonStreakService
                             $status = 'pending';
                             $reason = 'recovery_bot_status_unverifiable';
                         }
+                        $statusChanged = $fresh->streak_status !== $status;
                         $fresh->forceFill([
                             'streak_status' => $status,
                             'streak_reason' => $reason,
@@ -87,7 +90,9 @@ final class MaddraxikonStreakService
                             'streak_checked_at_epoch' => now()->timestamp,
                             'streak_next_check_epoch' => now()->timestamp + (int) config('maddraxikon.streaks.recheck_hours') * 3600,
                         ])->save();
-                        $this->tracker->dirty($fresh->wiki_key, $fresh->user_id, $fresh->streak_activity_date);
+                        if ($statusChanged) {
+                            $this->tracker->dirty($fresh->wiki_key, $fresh->user_id, $fresh->streak_activity_date);
+                        }
                     });
                 }
             }
@@ -106,10 +111,13 @@ final class MaddraxikonStreakService
         }
     }
 
-    private function sources(): Builder
+    private function sources(bool $historical = false): Builder
     {
-        return MaddraxikonContribution::query()->where('wiki_key', config('maddraxikon.wiki_key'))
-            ->where('occurred_at_epoch', '>=', $this->settings->start()->timestamp)
+        $query = MaddraxikonContribution::query()->where('wiki_key', config('maddraxikon.wiki_key'))
+            ->where('occurred_at_epoch', '>=', $this->settings->start()->timestamp);
+
+        // Historical validity must remain checkable after disconnects or membership changes.
+        return $historical ? $query : $query
             ->whereHas('accountLink', fn (Builder $query) => $query->active())
             ->whereHas('user', fn (Builder $query) => $query->whereHas('teams', fn (Builder $teams) => $teams->where('name', 'Mitglieder')->where('team_user.role', '!=', Role::Anwaerter->value)));
     }

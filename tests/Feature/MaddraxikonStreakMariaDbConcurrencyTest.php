@@ -13,6 +13,8 @@ use App\Services\Maddraxikon\AccountLinkService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MaddraxikonStreakMariaDbConcurrencyTest extends TestCase
@@ -21,13 +23,15 @@ class MaddraxikonStreakMariaDbConcurrencyTest extends TestCase
 
     private bool $committed = false;
 
-    public function test_competing_evaluators_and_rechecks_book_each_difference_once(): void
+    #[DataProvider('membershipChangesDuringRecheck')]
+    public function test_competing_evaluators_and_rechecks_book_each_difference_once(string $change): void
     {
         if (! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             $this->markTestSkipped('Needs MariaDB with separate worker processes.');
         }
         $this->assertSame('omxfc_maddraxikon_test', DB::getDatabaseName());
         $this->assertStringContainsString('MariaDB', DB::selectOne('SELECT VERSION() AS version')->version);
+        Mail::fake();
         $this->travelTo(CarbonImmutable::parse('2026-10-20T12:00:00+02:00'));
         config(['maddraxikon.streaks.enabled' => true, 'maddraxikon.streaks.starts_at' => '2026-10-01T00:00:00+02:00']);
         $member = User::factory()->create();
@@ -45,9 +49,21 @@ class MaddraxikonStreakMariaDbConcurrencyTest extends TestCase
         $this->assertSame(15, (int) MaddraxikonStreakBooking::query()->sum('points_delta'));
         $this->assertDatabaseCount('maddraxikon_streak_bookings', 5);
         MaddraxikonContribution::query()->update(['streak_next_check_epoch' => 0]);
-        $this->workers($sources[2]->revision_id);
+        $this->workers($sources[2]->revision_id, fn () => match ($change) {
+            'none' => null,
+            'disconnected' => app(AccountLinkService::class)->disconnect($member),
+            'demoted' => Team::membersTeam()->users()->updateExistingPivot($member->id, ['role' => Role::Anwaerter->value]),
+            'removed' => Team::membersTeam()->users()->detach($member),
+        });
         $this->assertSame(6, (int) MaddraxikonStreakBooking::query()->sum('points_delta'));
         $this->assertDatabaseCount('maddraxikon_streak_bookings', 8);
+        $this->assertSame('invalid', $sources[2]->fresh()->streak_status);
+        $this->assertSame(2, $sources[2]->fresh()->streak_check_version);
+    }
+
+    public static function membershipChangesDuringRecheck(): array
+    {
+        return [['none'], ['disconnected'], ['demoted'], ['removed']];
     }
 
     public function test_disconnecting_while_workers_wait_for_api_prevents_new_payouts(): void

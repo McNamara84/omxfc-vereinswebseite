@@ -37,6 +37,7 @@ final class MaddraxikonStreakSummary
             ->groupBy('streak_activity_date', 'streak_status')->get()->groupBy('streak_activity_date');
         $delayed = ! $sync?->last_succeeded_at || $sync->last_succeeded_at->lt(now()->subMinutes((int) config('maddraxikon.monitoring.import_stale_minutes', 60)))
             || ! $sync->watermark_at || $sync->watermark_at->lt(now()->subMinutes((int) config('maddraxikon.monitoring.import_stale_minutes', 60)))
+            || $sync->watermark_at->lt($today)
             || $sync->recovery_required_at !== null || ! $sync->initial_watermark_at || $sync->initial_watermark_at->gt($this->settings->start())
             || $run?->last_error !== null;
         $timeline = [];
@@ -44,8 +45,8 @@ final class MaddraxikonStreakSummary
             $date = $today->subDays($offset);
             $key = $date->toDateString();
             $day = $days->get($key);
-            $pending = ($sources->get($key) ?? collect())->where('streak_status', 'pending')->sum('total');
-            $status = $day?->streak_length > 0 ? 'confirmed' : ($pending > 0 || $day?->status === 'valid' ? 'pending' : 'empty');
+            $evidence = ($sources->get($key) ?? collect())->whereIn('streak_status', ['pending', 'valid'])->sum('total');
+            $status = $day?->streak_length > 0 ? 'confirmed' : ($evidence > 0 || $day?->status === 'valid' ? 'pending' : 'empty');
             if ($status === 'empty' && ($delayed || $offset === 0)) {
                 $status = 'unknown';
             }
@@ -56,7 +57,7 @@ final class MaddraxikonStreakSummary
         $knownGap = $latest && collect($timeline)->contains(fn ($day) => $day['date'] > $latest->activity_date->toDateString() && $day['date'] < $today->toDateString() && $day['status'] === 'empty');
         $current = $latest && ! $knownGap && ($latest->activity_date->toDateString() >= $today->subDay()->toDateString() || $delayed || $hasPending || $recalculating) ? $latest->streak_length : 0;
         $todayStatus = $timeline[30]['status'];
-        $todayPending = ($sources->get($today->toDateString()) ?? collect())->where('streak_status', 'pending')->sum('total') > 0;
+        $todayPending = $todayStatus === 'pending';
         $next = $delayed || $recalculating || ($hasPending && ! $todayPending) ? null : $current + 1;
 
         return [

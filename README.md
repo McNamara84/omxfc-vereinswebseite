@@ -487,6 +487,9 @@ um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;
 mögliche Wiederherstellungen. Korrekturen erfolgen nach Erkennung durch die
 Wiki-API, nicht in Echtzeit. Eine manuelle Textänderung ohne Rücksetzungsmerkmal
 ist kein automatischer Nachweis einer ungültigen alten Revision.
+Historische Revisionen werden auch nach einer Kontotrennung oder dem Ende der
+aktiven Mitgliedschaft geprüft und nötige Abzüge einschließlich der Folgetage
+verbucht. Positive Differenzen warten auf eine wieder bestehende Berechtigung.
 
 ```bash
 php artisan maddraxikon:streaks
@@ -496,6 +499,9 @@ php artisan maddraxikon:status --skip-api
 ```
 
 Die Vorschau liest ausschließlich lokale Daten und verändert keine Buchungen.
+`--user` und `--from` begrenzen die Neuberechnung anhand gespeicherter Ergebnisse.
+Außerhalb der Vorschau können diese Optionen nicht mit `--recheck` kombiniert
+werden; der Befehl meldet dann einen Fehler, statt die Revisionsprüfung zu überspringen.
 Große Folgen werden in begrenzten Abschnitten verarbeitet; der Scheduler setzt
 offene Arbeit fort. `maddraxikon:status` meldet offene Prüfungen, Rückstand und
 Fehler. Bei Recovery-Beiträgen ohne belegbaren damaligen Bot-Status bleibt die

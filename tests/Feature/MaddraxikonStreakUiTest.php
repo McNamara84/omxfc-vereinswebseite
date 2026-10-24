@@ -12,10 +12,12 @@ use App\Models\MaddraxikonStreakDay;
 use App\Models\MaddraxikonSyncState;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Maddraxikon\MaddraxikonStreakTracker;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class MaddraxikonStreakUiTest extends TestCase
@@ -67,6 +69,56 @@ class MaddraxikonStreakUiTest extends TestCase
     {
         MaddraxikonAccountLink::factory()->create(['user_id' => $this->member->id]);
         Livewire::test(MaddraxikonStreakPanel::class)->assertSee('Synchronisation verzögert')->assertDontSee('Deine nächste Serie');
+    }
+
+    public function test_fresh_import_before_midnight_displays_delayed_instead_of_a_new_series(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-20T00:05:00+02:00'));
+        MaddraxikonAccountLink::factory()->create(['user_id' => $this->member->id]);
+        MaddraxikonSyncState::factory()->create([
+            'initial_watermark_at' => '2026-09-01T00:00:00Z',
+            'last_succeeded_at' => now(), 'watermark_at' => '2026-10-19T23:55:00+02:00',
+        ]);
+        MaddraxikonStreakDay::query()->create([
+            'wiki_key' => config('maddraxikon.wiki_key'), 'user_id' => $this->member->id,
+            'activity_date' => '2026-10-18', 'status' => 'valid', 'streak_length' => 2,
+            'target_points' => 2, 'settled_points' => 2, 'starts_at_epoch' => 1,
+        ]);
+
+        Livewire::test(MaddraxikonStreakPanel::class)
+            ->assertViewHas('streak', fn ($streak) => $streak['current'] === 2 && $streak['next'] === null)
+            ->assertSee('Synchronisation verzögert')->assertSee('zuletzt bestätigte Stand')
+            ->assertDontSee('Deine nächste Serie')->assertDontSee('+1 Bonus-Baxx');
+    }
+
+    #[DataProvider('unsettledActivityDays')]
+    public function test_valid_evidence_awaiting_reconciliation_displays_pending_activity(string $date, string $confirmed, string $message): void
+    {
+        $link = MaddraxikonAccountLink::factory()->create(['user_id' => $this->member->id, 'verified_at' => '2026-09-30T00:00:00Z']);
+        MaddraxikonSyncState::factory()->create(['initial_watermark_at' => '2026-09-01T00:00:00Z', 'last_succeeded_at' => now(), 'watermark_at' => now()]);
+        MaddraxikonStreakDay::query()->create([
+            'wiki_key' => config('maddraxikon.wiki_key'), 'user_id' => $this->member->id,
+            'activity_date' => $confirmed, 'status' => 'valid', 'streak_length' => 2,
+            'target_points' => 2, 'settled_points' => 2, 'starts_at_epoch' => 1,
+        ]);
+        $source = MaddraxikonContribution::factory()->create([
+            'user_id' => $this->member->id, 'account_link_id' => $link->id,
+            'wiki_user_id' => $link->wiki_user_id, 'occurred_at' => $date.'T08:00:00+02:00',
+        ]);
+        app(MaddraxikonStreakTracker::class)->record($source, $link);
+        $source->forceFill(['streak_status' => 'valid'])->save();
+
+        Livewire::test(MaddraxikonStreakPanel::class)
+            ->assertViewHas('streak', fn ($streak) => $streak['current'] === 2 && $streak['pending'])
+            ->assertSee($message)->assertDontSee('Deine nächste Serie')->assertDontSee('+1 Bonus-Baxx');
+    }
+
+    public static function unsettledActivityDays(): array
+    {
+        return [
+            'yesterday' => ['2026-10-19', '2026-10-18', 'Aktivitäten vorheriger Tage werden noch geprüft.'],
+            'today' => ['2026-10-20', '2026-10-19', 'Aktivität erkannt – Bonus wird geprüft.'],
+        ];
     }
 
     public function test_guest_cannot_read_component(): void
