@@ -90,7 +90,8 @@
                     @livewire('profile.update-profile-information-form')
                 </x-ui.panel>
             @endif
-            <x-ui.panel title="Maddraxikon & Baxx" description="Verbinde dein verifiziertes Wiki-Konto und verfolge deine qualifizierten Beiträge." data-tour-profile-key="profile-maddraxikon-baxx">
+            <x-ui.panel id="maddraxikon-account" title="Maddraxikon & Baxx" description="Verbinde dein verifiziertes Wiki-Konto und verfolge deine qualifizierten Beiträge." data-tour-profile-key="profile-maddraxikon-baxx">
+                <div id="maddraxikon-serie" class="mb-5 scroll-mt-24"><livewire:maddraxikon-streak-panel :detailed="true" /></div>
                 @livewire('profile.maddraxikon-account-panel')
             </x-ui.panel>
 

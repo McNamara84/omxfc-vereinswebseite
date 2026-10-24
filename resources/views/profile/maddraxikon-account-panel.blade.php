@@ -55,7 +55,7 @@
                     @else
                         Neue Artikel werden aktuell nicht mit Baxx belohnt.
                     @endif
-                    Pro Aktivitätstag werden höchstens {{ $rewardPolicy['daily_point_cap'] }} Baxx gutgeschrieben.
+                    Pro Aktivitätstag werden höchstens {{ $rewardPolicy['daily_point_cap'] }} reguläre Beitrags-Baxx gutgeschrieben. Ein freigeschalteter Serienbonus kommt zusätzlich hinzu.
                 </p>
                 @if ($rewardPolicy['next'])
                     <div class="space-y-1 text-sm leading-relaxed text-base-content/70">
@@ -346,6 +346,9 @@
                                                     · {{ $rewardReasonLabels[$event->status_reason] ?? 'Prüfgrund nicht näher angegeben' }}
                                                 @endif
                                             </span>
+                                        @endif
+                                        @if(config('maddraxikon.streaks.enabled') && $contribution->streak_activity_date)
+                                            <span class="mt-1 block text-xs text-base-content/75">{{ match($contribution->streak_status) { 'valid' => 'Zählt für deine Serie', 'invalid', 'excluded' => 'Zählt nicht für deine Serie', default => 'Serienberechtigung wird geprüft' } }}</span>
                                         @endif
                                     </td>
                                 </tr>

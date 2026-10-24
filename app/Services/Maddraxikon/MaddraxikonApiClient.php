@@ -234,6 +234,17 @@ class MaddraxikonApiClient
      */
     public function revisionDetails(array $revisionIds): array
     {
+        return $this->fetchRevisionDetails($revisionIds, false);
+    }
+
+    /** Unlike legacy evaluation, a missing response entry cannot revoke a bonus. */
+    public function streakRevisionDetails(array $revisionIds): array
+    {
+        return $this->fetchRevisionDetails($revisionIds, true);
+    }
+
+    private function fetchRevisionDetails(array $revisionIds, bool $strict): array
+    {
         $revisionIds = $this->positiveUniqueIds($revisionIds);
 
         if ($revisionIds === []) {
@@ -250,7 +261,15 @@ class MaddraxikonApiClient
                 'rvprop' => 'ids|timestamp|user|userid|size|sha1|flags|tags',
             ]);
 
-            $pages = data_get($payload, 'query.pages');
+            $missing = data_get($payload, 'query.badrevids', []);
+            if ($strict && is_array($missing)) {
+                foreach ($missing as $entry) {
+                    if (is_array($entry) && isset($entry['revid']) && $this->mediaWikiFlag($entry, 'missing')) {
+                        $details[(int) $entry['revid']] = ['exists' => false, 'revision_id' => (int) $entry['revid']];
+                    }
+                }
+            }
+            $pages = data_get($payload, 'query.pages', $strict && $missing !== [] ? [] : null);
 
             if (! is_array($pages)) {
                 throw new MaddraxikonApiException(
@@ -272,6 +291,9 @@ class MaddraxikonApiClient
                     }
 
                     $revisionId = (int) $revision['revid'];
+                    if ($strict && ! is_array($revision['tags'] ?? null)) {
+                        throw new MaddraxikonApiException('Die Serienprüfung benötigt vollständige Revisions-Tags.');
+                    }
                     $details[$revisionId] = [
                         'exists' => true,
                         'revision_id' => $revisionId,
@@ -293,6 +315,9 @@ class MaddraxikonApiClient
         }
 
         foreach ($revisionIds as $revisionId) {
+            if ($strict && ! isset($details[$revisionId])) {
+                throw new MaddraxikonApiException('Eine angeforderte Revision fehlt ohne ausdrücklichen Missing-Nachweis in der API-Antwort.');
+            }
             $details[$revisionId] ??= [
                 'exists' => false,
                 'revision_id' => $revisionId,
@@ -326,6 +351,16 @@ class MaddraxikonApiClient
      * }>
      */
     public function pageDetails(array $pageIds): array
+    {
+        return $this->fetchPageDetails($pageIds, false);
+    }
+
+    public function streakPageDetails(array $pageIds): array
+    {
+        return $this->fetchPageDetails($pageIds, true);
+    }
+
+    private function fetchPageDetails(array $pageIds, bool $strict): array
     {
         $pageIds = $this->positiveUniqueIds($pageIds);
 
@@ -369,6 +404,9 @@ class MaddraxikonApiClient
         }
 
         foreach ($pageIds as $pageId) {
+            if ($strict && ! isset($details[$pageId])) {
+                throw new MaddraxikonApiException('Eine angeforderte Seite fehlt in der API-Antwort.');
+            }
             $details[$pageId] ??= [
                 'exists' => false,
                 'page_id' => $pageId,

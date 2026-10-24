@@ -207,7 +207,7 @@ class MaddraxikonContributionImporter
                     if (
                         ! $link
                         || $link->verified_at === null
-                        || $normalized['occurred_at']->lt($link->verified_at)
+                        || $normalized['occurred_at']->timestamp < $this->importStartEpoch($link)
                     ) {
                         continue;
                     }
@@ -232,6 +232,8 @@ class MaddraxikonContributionImporter
                         ),
                     ]);
                     $contribution->save();
+
+                    app(MaddraxikonStreakTracker::class)->record($contribution, $link);
 
                     $importedCount++;
 
@@ -501,7 +503,7 @@ class MaddraxikonContributionImporter
                 if (
                     ! $link
                     || $link->verified_at === null
-                    || $normalized['occurred_at']->lt($link->verified_at)
+                    || $normalized['occurred_at']->timestamp < $this->importStartEpoch($link)
                 ) {
                     continue;
                 }
@@ -530,6 +532,7 @@ class MaddraxikonContributionImporter
                     'checked_at' => $now,
                 ]);
                 $contribution->save();
+                app(MaddraxikonStreakTracker::class)->record($contribution, $link);
                 $importedCount++;
 
                 if ($link->wiki_username !== $normalized['wiki_username']) {
@@ -549,6 +552,15 @@ class MaddraxikonContributionImporter
 
             return $importedCount;
         }, 3);
+    }
+
+    private function importStartEpoch(MaddraxikonAccountLink $link): int
+    {
+        $start = app(MaddraxikonStreakSettings::class)->start();
+
+        return $start && $link->streak_verified_at_epoch !== null
+            ? min($link->verified_at->timestamp, max($start->timestamp, $link->streak_verified_at_epoch))
+            : $link->verified_at->timestamp;
     }
 
     /**

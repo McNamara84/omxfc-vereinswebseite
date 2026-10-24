@@ -93,6 +93,11 @@ class UserPoint extends Model
         return $this->hasOne(MaddraxikonRewardEvent::class, 'user_point_id');
     }
 
+    public function maddraxikonStreakBooking(): HasOne
+    {
+        return $this->hasOne(MaddraxikonStreakBooking::class);
+    }
+
     public function maddraxikonReversalRewardEvent(): HasOne
     {
         return $this->hasOne(MaddraxikonRewardEvent::class, 'reversal_user_point_id');

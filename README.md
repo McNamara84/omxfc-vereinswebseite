@@ -446,6 +446,59 @@ Regelbezug, Testnachweise und Betriebsgrenzen stehen im
 
 ## Maddraxikon-Baxx-Regeln verwalten
 
+Verknüpfte aktive Mitglieder können zusätzlich einen **Maddraxikon-Serienbonus**
+erhalten: Am ersten Aktivitätstag 1 Baxx, am zweiten aufeinanderfolgenden Tag 2,
+danach 3 und so weiter, ohne Bonusobergrenze. Ein vollständig ausgelassener
+Kalendertag beendet die Serie. Maßgeblich ist `Europe/Berlin`. Auch kleine gültige
+Korrekturen oder neue Artikel unterhalb der regulären Mindestgröße zählen;
+mehrere Beiträge am selben Tag ergeben einen Tagesbonus. Der Bonus liegt
+außerhalb des regulären Tageslimits und wird frühestens nach 24 Stunden geprüft.
+
+Dashboard, Profil und „Challenges & Baxx“ zeigen bestätigte Tage, noch geprüfte
+Aktivitäten, Rekord und den Einstieg zur Kontoverknüpfung. Import- oder
+Prüfverzögerungen werden als offen angezeigt. Ungültig gewordene Tagesnachweise
+führen zu nachvollziehbaren Gegenbuchungen einschließlich betroffener Folgetage;
+andere gültige Beiträge desselben Tages erhalten den Bonus. Die Bonusbilanz und
+der persönliche Rekord berücksichtigen diese Korrekturen.
+
+Die Einführung ist standardmäßig deaktiviert. Nach den Migrationen einen
+expliziten `MADDRAXIKON_STREAKS_STARTS_AT` im Format
+`2026-11-01T00:00:00+01:00` festlegen (Beispiel, kein vorgegebener Starttermin)
+und `MADDRAXIKON_STREAKS_ENABLED=true` setzen. Synchronisation und allgemeine
+Baxx-Auszahlung müssen ebenfalls aktiviert sein. Der erste Import muss den
+Start bereits abdecken; eine spätere Initial-Watermark sperrt Vergaben. Es gibt
+keine Nachzahlung für Aktivitäten vor dem Start. Der bei der ersten erfassten
+Aktivität gespeicherte Startzeitpunkt darf anschließend nicht verschoben werden.
+Im Dev-Stack besitzen diese Variablen das Präfix `DOCKER_DEV_`.
+
+Der Scheduler prüft neue Quellen stündlich um Minute 5 und historische Quellen
+um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;
+`MADDRAXIKON_STREAKS_RECHECK_HOURS` bestimmt den frühesten Wiederprüfungsabstand.
+Ältere fällige Quellen kommen zuerst an die Reihe, auch ungültige Quellen für
+mögliche Wiederherstellungen. Korrekturen erfolgen nach Erkennung durch die
+Wiki-API, nicht in Echtzeit. Eine manuelle Textänderung ohne Rücksetzungsmerkmal
+ist kein automatischer Nachweis einer ungültigen alten Revision.
+
+```bash
+php artisan maddraxikon:streaks
+php artisan maddraxikon:streaks --recheck
+php artisan maddraxikon:streaks --user=42 --from=2026-11-01 --pretend
+php artisan maddraxikon:status --skip-api
+```
+
+Die Vorschau liest ausschließlich lokale Daten und verändert keine Buchungen.
+Große Folgen werden in begrenzten Abschnitten verarbeitet; der Scheduler setzt
+offene Arbeit fort. `maddraxikon:status` meldet offene Prüfungen, Rückstand und
+Fehler. Bei Recovery-Beiträgen ohne belegbaren damaligen Bot-Status bleibt die
+Serie in Prüfung. Ein Administrator kann unter „Maddraxikon-Baxx“ nach manueller
+Prüfung einen begründeten Nicht-Bot-Nachweis hinterlegen; die Revision wird danach
+erneut technisch geprüft. Reguläre Baxx-Regeln bleiben davon unberührt.
+
+Bei Wartung die Vergabe deaktivieren und den ursprünglichen Start beibehalten.
+Gespeicherte Nachweise und offene Differenzen werden nach Wiederaktivierung
+weiterverarbeitet. Bereits gebuchte Boni nicht über eine Rückmigration löschen;
+Korrekturen laufen über das separate Bonusjournal und den gemeinsamen Baxx-Writer.
+
 Administratoren verwalten die versionierten Regeln unter
 `/belohnungen/admin/maddraxikon` über den Bereich „Maddraxikon-Baxx-Regeln“.
 Für normale Bearbeitungen wird der Netto-Zuwachs in Bytes innerhalb einer

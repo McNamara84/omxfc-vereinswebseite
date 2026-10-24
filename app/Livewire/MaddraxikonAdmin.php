@@ -7,12 +7,16 @@ use App\Enums\MaddraxikonContributionStatus;
 use App\Enums\MaddraxikonRewardEventStatus;
 use App\Enums\Role;
 use App\Jobs\EvaluateMaddraxikonContributions;
+use App\Jobs\EvaluateMaddraxikonStreaks;
 use App\Jobs\SyncMaddraxikonContributions;
 use App\Models\MaddraxikonAccountLink;
 use App\Models\MaddraxikonAccountLinkCorrection;
 use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonRewardEvent;
 use App\Models\MaddraxikonRewardPolicy;
+use App\Models\MaddraxikonStreakBooking;
+use App\Models\MaddraxikonStreakRun;
+use App\Models\MaddraxikonStreakState;
 use App\Models\MaddraxikonSyncState;
 use App\Models\User;
 use App\Services\Maddraxikon\AccountLinkService;
@@ -20,6 +24,7 @@ use App\Services\Maddraxikon\MaddraxikonNamespaceHealthService;
 use App\Services\Maddraxikon\MaddraxikonRewardPolicyPublisher;
 use App\Services\Maddraxikon\MaddraxikonRewardPolicyResolver;
 use App\Services\Maddraxikon\MaddraxikonRewardService;
+use App\Services\Maddraxikon\MaddraxikonStreakService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +38,25 @@ use Throwable;
 final class MaddraxikonAdmin extends Component
 {
     public bool $showReversalModal = false;
+
+    public string $streakReviewReason = '';
+
+    public function dispatchStreakReview(): void
+    {
+        $this->adminUser();
+        EvaluateMaddraxikonStreaks::dispatch(recheck: true);
+        $this->dispatch('toast', type: 'success', title: 'Serienprüfung eingereiht');
+    }
+
+    public function verifyStreakRecovery(int $contributionId): void
+    {
+        $admin = $this->adminUser();
+        $this->validate(['streakReviewReason' => ['required', 'string', 'min:10', 'max:2000']]);
+        app(MaddraxikonStreakService::class)->verifyRecoveredSource($contributionId, $admin, $this->streakReviewReason);
+        $this->reset('streakReviewReason');
+        EvaluateMaddraxikonStreaks::dispatch(recheck: true);
+        $this->dispatch('toast', type: 'success', title: 'Nachweis gespeichert; Revision wird erneut geprüft');
+    }
 
     public ?int $reversingRewardEventId = null;
 
@@ -552,6 +576,10 @@ final class MaddraxikonAdmin extends Component
             ->first()['points'] ?? 0;
 
         return view('livewire.maddraxikon-admin', [
+            'streakBookings' => MaddraxikonStreakBooking::query()->whereHas('day', fn ($query) => $query->where('wiki_key', $wikiKey))->with(['day', 'user:id,name'])->latest('id')->limit(20)->get(),
+            'streakRun' => MaddraxikonStreakRun::query()->where('wiki_key', $wikiKey)->first(),
+            'streakRecoverySources' => MaddraxikonContribution::query()->where('wiki_key', $wikiKey)->where('streak_reason', 'recovery_bot_status_unverifiable')->where('streak_bot_verified', false)->with('user:id,name')->limit(10)->get(),
+            'streakOpenCount' => MaddraxikonStreakState::query()->where('wiki_key', $wikiKey)->whereNotNull('dirty_from')->count(),
             'wikiKey' => $wikiKey,
             'wikiBaseUrl' => (string) config('maddraxikon.base_url'),
             'timezone' => (string) config(
