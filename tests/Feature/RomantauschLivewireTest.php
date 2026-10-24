@@ -65,8 +65,8 @@ class RomantauschLivewireTest extends TestCase
 
         Livewire::test(RomantauschIndex::class)
             ->assertSeeText($info['title'])
-            ->assertSeeText($info['reward_rule']['milestone_amount'])
-            ->assertSeeText($info['reward_rule']['swap_amount'])
+            ->assertSeeText($info['reward_rules'][0]['description'])
+            ->assertSeeText($info['reward_rules'][2]['description'])
             ->assertSeeText($info['steps']['offer']['title'])
             ->assertSeeText($info['steps']['request']['title'])
             ->assertSeeText($info['steps']['match']['title'])
@@ -1317,7 +1317,7 @@ class RomantauschLivewireTest extends TestCase
 
         Storage::fake('public');
 
-        $this->mock(BookPhotoService::class, function ($mock) {
+        $this->partialMock(BookPhotoService::class, function ($mock) {
             $mock->shouldReceive('uploadPhotos')
                 ->once()
                 ->andThrow(new RuntimeException('Foto-Upload fehlgeschlagen.'));

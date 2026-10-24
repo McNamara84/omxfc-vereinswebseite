@@ -1,0 +1,781 @@
+{
+  "date": "2026-10-24",
+  "baseline_commit": "b6c85f2740d493d1596f16aaa13c191534672b06",
+  "environment": {
+    "php": "8.5.12",
+    "database": "SQLite in-memory",
+    "runtime": "isolated Docker test stack",
+    "warmup_runs": 1,
+    "measured_runs": 5,
+    "bundle_size": 200,
+    "matching_candidates": 20,
+    "coverage_instrumentation_during_benchmark": false
+  },
+  "tests": {
+    "full_php": {
+      "passed": 3963,
+      "skipped": 51,
+      "assertions": 17630
+    },
+    "final_domain_with_coverage": {
+      "passed": 249,
+      "skipped_mariadb": 8,
+      "assertions": 848
+    },
+    "mariadb_concurrency": {
+      "passed": 8,
+      "assertions": 47
+    },
+    "chromium": {
+      "passed": 24
+    },
+    "architecture": {
+      "passed": 6,
+      "assertions": 14
+    },
+    "final_display_and_workflow_regressions": {
+      "passed": 41,
+      "assertions": 175
+    }
+  },
+  "coverage": [
+    {
+      "file": "app/Actions/Romantausch/BundleWorkflow.php",
+      "executable_lines": 71,
+      "covered_lines": 71
+    },
+    {
+      "file": "app/Actions/Romantausch/OfferWorkflow.php",
+      "executable_lines": 39,
+      "covered_lines": 39
+    },
+    {
+      "file": "app/Actions/Romantausch/RequestWorkflow.php",
+      "executable_lines": 30,
+      "covered_lines": 30
+    },
+    {
+      "file": "app/Actions/Romantausch/SwapWorkflow.php",
+      "executable_lines": 43,
+      "covered_lines": 43
+    },
+    {
+      "file": "app/Livewire/Concerns/InteractsWithRomantauschForm.php",
+      "executable_lines": 15,
+      "covered_lines": 15
+    },
+    {
+      "file": "app/Services/Romantausch/BookPhotoService.php",
+      "executable_lines": 88,
+      "covered_lines": 74
+    },
+    {
+      "file": "app/Services/Romantausch/CommittedMatching.php",
+      "executable_lines": 21,
+      "covered_lines": 21
+    },
+    {
+      "file": "app/Services/Romantausch/MutationLock.php",
+      "executable_lines": 4,
+      "covered_lines": 4
+    },
+    {
+      "file": "app/Services/Romantausch/SourceDeletion.php",
+      "executable_lines": 10,
+      "covered_lines": 10
+    },
+    {
+      "file": "app/Services/Romantausch/SwapMatchingService.php",
+      "executable_lines": 46,
+      "covered_lines": 45
+    },
+    {
+      "file": "app/Support/Romantausch/InputRules.php",
+      "executable_lines": 30,
+      "covered_lines": 30
+    },
+    {
+      "file": "app/Support/Romantausch/MutationResult.php",
+      "executable_lines": 2,
+      "covered_lines": 2
+    },
+    {
+      "file": "app/Support/Romantausch/SwapResult.php",
+      "executable_lines": 10,
+      "covered_lines": 10
+    },
+    {
+      "file": "app/Support/Romantausch/WorkflowFailure.php",
+      "executable_lines": 1,
+      "covered_lines": 1
+    }
+  ],
+  "benchmark_medians": {
+    "offer": {
+      "before": {
+        "median_ms": 6.05,
+        "median_queries": 14,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 7.26,
+        "median_queries": 17,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "offer_update": {
+      "before": {
+        "median_ms": 5.33,
+        "median_queries": 11,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 6.29,
+        "median_queries": 14,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "request": {
+      "before": {
+        "median_ms": 6.34,
+        "median_queries": 14,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 7.07,
+        "median_queries": 17,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "request_update": {
+      "before": {
+        "median_ms": 4.59,
+        "median_queries": 9,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 6.07,
+        "median_queries": 14,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "bundle": {
+      "before": {
+        "median_ms": 142.97,
+        "median_queries": 418,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 74.5,
+        "median_queries": 220,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "bundle_update": {
+      "before": {
+        "median_ms": 70.89,
+        "median_queries": 208,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 71.22,
+        "median_queries": 209,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "confirm": {
+      "before": {
+        "median_ms": 12.6,
+        "median_queries": 39,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 12.9,
+        "median_queries": 41,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "complete": {
+      "before": {
+        "median_ms": 14.68,
+        "median_queries": 38,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 13.21,
+        "median_queries": 43,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "matching_0": {
+      "before": {
+        "median_ms": 0.48,
+        "median_queries": 1,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 0.74,
+        "median_queries": 3,
+        "median_peak_bytes": 80740352
+      }
+    },
+    "matching_20": {
+      "before": {
+        "median_ms": 15.89,
+        "median_queries": 41,
+        "median_peak_bytes": 82837504
+      },
+      "after": {
+        "median_ms": 2.88,
+        "median_queries": 7,
+        "median_peak_bytes": 80740352
+      }
+    }
+  },
+  "benchmark_samples": {
+    "before": {
+      "offer": [
+        {
+          "ms": 6.05,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 4.88,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 5.7,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 8.3,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 9.18,
+          "queries": 14,
+          "peak_bytes": 82837504
+        }
+      ],
+      "offer_update": [
+        {
+          "ms": 5.31,
+          "queries": 11,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 4.78,
+          "queries": 11,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 5.33,
+          "queries": 11,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 6.18,
+          "queries": 11,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 8.81,
+          "queries": 11,
+          "peak_bytes": 82837504
+        }
+      ],
+      "request": [
+        {
+          "ms": 5.09,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 4.64,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 6.34,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 7.7,
+          "queries": 14,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 8.37,
+          "queries": 14,
+          "peak_bytes": 82837504
+        }
+      ],
+      "request_update": [
+        {
+          "ms": 4.46,
+          "queries": 9,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 3.13,
+          "queries": 9,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 4.59,
+          "queries": 9,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 5.41,
+          "queries": 9,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 9.87,
+          "queries": 9,
+          "peak_bytes": 82837504
+        }
+      ],
+      "bundle": [
+        {
+          "ms": 136.28,
+          "queries": 419,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 112.21,
+          "queries": 418,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 142.97,
+          "queries": 418,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 147.85,
+          "queries": 419,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 185.95,
+          "queries": 418,
+          "peak_bytes": 82837504
+        }
+      ],
+      "bundle_update": [
+        {
+          "ms": 61.21,
+          "queries": 208,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 57.22,
+          "queries": 208,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 70.89,
+          "queries": 208,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 101.24,
+          "queries": 208,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 87.02,
+          "queries": 208,
+          "peak_bytes": 82837504
+        }
+      ],
+      "confirm": [
+        {
+          "ms": 11.03,
+          "queries": 39,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 12.6,
+          "queries": 39,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 11.96,
+          "queries": 41,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 27.2,
+          "queries": 39,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 22.88,
+          "queries": 39,
+          "peak_bytes": 82837504
+        }
+      ],
+      "complete": [
+        {
+          "ms": 10.98,
+          "queries": 38,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 14.68,
+          "queries": 38,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 12.01,
+          "queries": 40,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 21.06,
+          "queries": 38,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 29.76,
+          "queries": 38,
+          "peak_bytes": 82837504
+        }
+      ],
+      "matching_0": [
+        {
+          "ms": 0.39,
+          "queries": 1,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 0.43,
+          "queries": 1,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 0.48,
+          "queries": 1,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 0.65,
+          "queries": 1,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 0.59,
+          "queries": 1,
+          "peak_bytes": 82837504
+        }
+      ],
+      "matching_20": [
+        {
+          "ms": 12.58,
+          "queries": 41,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 15.79,
+          "queries": 41,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 15.89,
+          "queries": 41,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 28.9,
+          "queries": 41,
+          "peak_bytes": 82837504
+        },
+        {
+          "ms": 26.84,
+          "queries": 41,
+          "peak_bytes": 82837504
+        }
+      ]
+    },
+    "after": {
+      "offer": [
+        {
+          "ms": 6.7,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.26,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 8.88,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.7,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 6.68,
+          "queries": 17,
+          "peak_bytes": 80740352
+        }
+      ],
+      "offer_update": [
+        {
+          "ms": 6.29,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 6.44,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.54,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 5.02,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 5.76,
+          "queries": 14,
+          "peak_bytes": 80740352
+        }
+      ],
+      "request": [
+        {
+          "ms": 6.01,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 8.47,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.07,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 6,
+          "queries": 17,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.56,
+          "queries": 17,
+          "peak_bytes": 80740352
+        }
+      ],
+      "request_update": [
+        {
+          "ms": 4.74,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 6.86,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 7.3,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 4.72,
+          "queries": 14,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 6.07,
+          "queries": 14,
+          "peak_bytes": 80740352
+        }
+      ],
+      "bundle": [
+        {
+          "ms": 70.73,
+          "queries": 221,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 74.5,
+          "queries": 220,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 75.73,
+          "queries": 220,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 67.52,
+          "queries": 222,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 76.38,
+          "queries": 220,
+          "peak_bytes": 80740352
+        }
+      ],
+      "bundle_update": [
+        {
+          "ms": 71.22,
+          "queries": 209,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 76.91,
+          "queries": 209,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 66.23,
+          "queries": 209,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 79.47,
+          "queries": 210,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 68.19,
+          "queries": 209,
+          "peak_bytes": 80740352
+        }
+      ],
+      "confirm": [
+        {
+          "ms": 12.9,
+          "queries": 41,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 14.84,
+          "queries": 41,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 11.98,
+          "queries": 41,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 22.96,
+          "queries": 43,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 12.01,
+          "queries": 41,
+          "peak_bytes": 80740352
+        }
+      ],
+      "complete": [
+        {
+          "ms": 11.4,
+          "queries": 43,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 14.13,
+          "queries": 43,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 13.21,
+          "queries": 43,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 15.25,
+          "queries": 43,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 12.34,
+          "queries": 43,
+          "peak_bytes": 80740352
+        }
+      ],
+      "matching_0": [
+        {
+          "ms": 0.74,
+          "queries": 3,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 0.84,
+          "queries": 3,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 0.78,
+          "queries": 3,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 0.68,
+          "queries": 3,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 0.69,
+          "queries": 3,
+          "peak_bytes": 80740352
+        }
+      ],
+      "matching_20": [
+        {
+          "ms": 2.97,
+          "queries": 7,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 3.15,
+          "queries": 7,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 2.81,
+          "queries": 7,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 2.88,
+          "queries": 7,
+          "peak_bytes": 80740352
+        },
+        {
+          "ms": 2.88,
+          "queries": 7,
+          "peak_bytes": 80740352
+        }
+      ]
+    }
+  }
+}

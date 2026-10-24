@@ -10,6 +10,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-ui.error-summary />
+
     <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Gesuch" description="Serie, Roman und Mindestzustand bilden die Grundlage für das automatische Matching mit offenen Angeboten.">
             <form wire:submit="save" id="request-form">

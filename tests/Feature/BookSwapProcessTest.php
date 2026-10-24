@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Romantausch\SwapWorkflow;
 use App\Enums\BookType;
 use App\Enums\Role;
 use App\Livewire\RomantauschIndex;
@@ -35,6 +36,14 @@ class BookSwapProcessTest extends TestCase
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
+    }
+
+    private function createManager(): User
+    {
+        $manager = $this->createMember();
+        Team::membersTeam()->users()->updateExistingPivot($manager->id, ['role' => Role::Vorstand->value]);
+
+        return $manager;
     }
 
     public function test_offer_does_not_create_match_without_reciprocal_entries(): void
@@ -417,13 +426,13 @@ class BookSwapProcessTest extends TestCase
                 ->andThrow(new LogicException('Boom'));
         });
 
-        $service = app(SwapMatchingService::class);
+        $service = app(SwapWorkflow::class);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Boom');
 
         try {
-            $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $requestUser);
+            $service->confirm($requestUser, $swap->id);
         } finally {
             $this->assertDatabaseHas('book_swaps', [
                 'id' => $swap->id,
@@ -471,13 +480,13 @@ class BookSwapProcessTest extends TestCase
                 ->andThrow(new LogicException('Boom'));
         });
 
-        $service = app(SwapMatchingService::class);
+        $service = app(SwapWorkflow::class);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Boom');
 
         try {
-            $service->completeSwap($offer, $request);
+            $service->complete($this->createManager(), $offer->id, $request->id);
         } finally {
             $this->assertDatabaseCount('book_swaps', 0);
             $this->assertDatabaseHas('book_offers', [
@@ -514,7 +523,7 @@ class BookSwapProcessTest extends TestCase
             'completed' => false,
         ]);
 
-        $swap = app(SwapMatchingService::class)->completeSwap($offer, $request);
+        $swap = app(SwapWorkflow::class)->complete($this->createManager(), $offer->id, $request->id)->swap;
 
         $this->assertDatabaseHas('activities', [
             'user_id' => null,

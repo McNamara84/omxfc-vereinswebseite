@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Romantausch\SwapWorkflow;
 use App\Enums\BookType;
 use App\Enums\Role;
 use App\Enums\TodoStatus;
@@ -30,7 +31,6 @@ use App\Models\TodoCategory;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\RewardService;
-use App\Services\Romantausch\SwapMatchingService;
 use App\Support\PreviewText;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -546,9 +546,9 @@ class ActivityFeedTest extends TestCase
             'request_id' => $request->id,
         ]);
 
-        $service = app(SwapMatchingService::class);
-        $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $offerUser);
-        $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $requestUser);
+        $service = app(SwapWorkflow::class);
+        $service->confirm($offerUser, $swap->id);
+        $service->confirm($requestUser, $swap->id);
 
         $this->assertDatabaseHas('activities', [
             'user_id' => null,

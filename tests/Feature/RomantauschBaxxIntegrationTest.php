@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Romantausch\BundleWorkflow;
+use App\Actions\Romantausch\SwapWorkflow;
 use App\Enums\BookType;
 use App\Enums\Role;
 use App\Livewire\RomantauschOfferForm;
@@ -13,8 +15,6 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Team;
 use App\Models\User;
-use App\Services\Romantausch\BundleService;
-use App\Services\Romantausch\SwapMatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -100,14 +100,10 @@ class RomantauschBaxxIntegrationTest extends TestCase
             'is_active' => true,
         ]);
 
-        app(BundleService::class)->createBundle(
-            BookType::MaddraxDieDunkleZukunftDerErde->value,
-            [3, 4],
-            'Z0',
-            null,
-            [],
-            $user->id,
-        );
+        app(BundleWorkflow::class)->create($user, [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_numbers' => '3, 4', 'condition' => 'Z0',
+        ]);
 
         $this->assertDatabaseHas('user_points', [
             'user_id' => $user->id,
@@ -150,12 +146,12 @@ class RomantauschBaxxIntegrationTest extends TestCase
             'request_id' => $request->id,
         ]);
 
-        $service = app(SwapMatchingService::class);
-        $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $offerUser);
-        $result = $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $requestUser);
+        $service = app(SwapWorkflow::class);
+        $service->confirm($offerUser, $swap->id);
+        $result = $service->confirm($requestUser, $swap->id);
 
-        $this->assertTrue($result['completed']);
-        $this->assertTrue($result['points_awarded']);
+        $this->assertTrue($result->completed);
+        $this->assertTrue(array_sum($result->awards) > 0);
         $this->assertDatabaseHas('user_points', [
             'user_id' => $offerUser->id,
             'team_id' => $membersTeam->id,

@@ -10,6 +10,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    <x-ui.error-summary />
+
     <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
         <x-ui.panel title="Einzelangebot" description="Alle Pflichtfelder werden direkt via Livewire validiert. Bereits vorhandene Fotos kannst du beim Bearbeiten gezielt entfernen.">
             <form wire:submit="save" id="offer-form">

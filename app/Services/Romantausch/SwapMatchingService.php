@@ -3,313 +3,92 @@
 namespace App\Services\Romantausch;
 
 use App\Mail\BookSwapMatched;
-use App\Models\Activity;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-/**
- * Service für das Matching von Tauschpartnern in der Romantauschbörse.
- *
- * Verantwortlich für:
- * - Finden von passenden Angeboten/Gesuchen
- * - Erkennen von reziproken Tausch-Möglichkeiten
- * - Erstellen von BookSwap-Einträgen
- * - Benachrichtigung der beteiligten Nutzer
- */
 class SwapMatchingService
 {
-    public function __construct(
-        private readonly RomantauschBaxxService $baxxService,
-    ) {}
+    public function __construct(private readonly MutationLock $lock) {}
 
-    /**
-     * Versucht einen Match für ein neues Angebot oder Gesuch zu finden.
-     *
-     * Prüft auf reziproke Tausch-Möglichkeiten: Beide Parteien haben jeweils
-     * etwas, das die andere Partei sucht.
-     *
-     * @param  Model  $model  BookOffer oder BookRequest
-     * @param  string  $type  'offer' oder 'request'
-     */
     public function matchSwap(Model $model, string $type): void
     {
-        if ($type === 'offer') {
-            $this->matchOffer($model);
-        } else {
-            $this->matchRequest($model);
+        $model = $model->newQuery()->find($model->id);
+        if (! $model || $model->completed || $model->swap()->exists()) {
+            return;
         }
-    }
-
-    /**
-     * Sucht passende Gesuche für ein Angebot.
-     */
-    private function matchOffer(BookOffer $offer): void
-    {
-        $potentialRequests = BookRequest::where('book_number', $offer->book_number)
-            ->where('series', $offer->series)
-            ->where('completed', false)
-            ->where('user_id', '!=', $offer->user_id)
-            ->doesntHave('swap')
-            ->get();
-
-        foreach ($potentialRequests as $request) {
-            if ($this->attemptReciprocalSwap($offer, $request)) {
+        $candidates = ($type === 'offer' ? BookRequest::query() : BookOffer::query())
+            ->where('series', $model->series)->where('book_number', $model->book_number)
+            ->where('completed', false)->where('user_id', '!=', $model->user_id)->doesntHave('swap')->orderBy('id')->get();
+        $withoutReciprocal = [];
+        foreach ($candidates as $candidate) {
+            if (isset($withoutReciprocal[$candidate->user_id])) {
+                continue;
+            }
+            $matched = $this->attempt($type === 'offer' ? $model : $candidate, $type === 'offer' ? $candidate : $model);
+            if ($matched === true) {
                 break;
+            }
+            // The same owner's other requests cannot supply a missing reciprocal
+            // inventory. New writes schedule their own matching after commit.
+            if ($matched === null) {
+                $withoutReciprocal[$candidate->user_id] = true;
             }
         }
     }
 
-    /**
-     * Sucht passende Angebote für ein Gesuch.
-     */
-    private function matchRequest(BookRequest $request): void
+    private function attempt(BookOffer $sourceOffer, BookRequest $sourceRequest): ?bool
     {
-        $potentialOffers = BookOffer::where('book_number', $request->book_number)
-            ->where('series', $request->series)
-            ->where('completed', false)
-            ->where('user_id', '!=', $request->user_id)
-            ->doesntHave('swap')
-            ->get();
+        $owners = [$sourceOffer->user_id, $sourceRequest->user_id];
 
-        foreach ($potentialOffers as $offer) {
-            if ($this->attemptReciprocalSwap($offer, $request)) {
-                break;
+        return $this->lock->run($owners, function () use ($sourceOffer, $sourceRequest): ?bool {
+            // Current locking reads avoid a stale REPEATABLE READ snapshot after waiting.
+            $offers = BookOffer::where('id', $sourceOffer->id)->orWhere('user_id', $sourceRequest->user_id)->orderBy('id')->lockForUpdate()->get();
+            $requests = BookRequest::where('id', $sourceRequest->id)->orWhere('user_id', $sourceOffer->user_id)->orderBy('id')->lockForUpdate()->get();
+            $swaps = BookSwap::whereIn('offer_id', $offers->modelKeys())->orWhereIn('request_id', $requests->modelKeys())
+                ->orderBy('id')->lockForUpdate()->get();
+            $freeOffers = $offers->reject(fn ($offer) => $offer->completed || $swaps->contains('offer_id', $offer->id));
+            $freeRequests = $requests->reject(fn ($request) => $request->completed || $swaps->contains('request_id', $request->id));
+            $offer = $freeOffers->find($sourceOffer->id);
+            $request = $freeRequests->find($sourceRequest->id);
+            if (! $offer || ! $request || $offer->user_id === $request->user_id || $offer->series !== $request->series || $offer->book_number !== $request->book_number) {
+                return false;
             }
-        }
-    }
+            $wanted = $freeRequests->where('user_id', $offer->user_id)->keyBy(fn ($entry) => $this->buildBookKey($entry->series, $entry->book_number));
+            $available = $freeOffers->where('user_id', $request->user_id)->keyBy(fn ($entry) => $this->buildBookKey($entry->series, $entry->book_number));
+            $key = $wanted->intersectByKeys($available)->keys()->first();
+            if ($key === null) {
+                return null;
+            }
+            $first = BookSwap::create(['offer_id' => $offer->id, 'request_id' => $request->id]);
+            $second = BookSwap::create(['offer_id' => $available[$key]->id, 'request_id' => $wanted[$key]->id]);
+            DB::afterCommit(function () use ($first, $second, $request, $offer): void {
+                $this->notify($first, $request->user_id);
+                $this->notify($second, $offer->user_id);
+            });
 
-    /**
-     * Versucht einen reziproken Tausch zu erstellen.
-     *
-     * Ein reziproker Tausch liegt vor, wenn:
-     * - User A bietet Roman X an, den User B sucht
-     * - User B bietet Roman Y an, den User A sucht
-     *
-     * @return bool True wenn ein reziproker Tausch erstellt wurde
-     */
-    private function attemptReciprocalSwap(BookOffer $offer, BookRequest $request): bool
-    {
-        if ($offer->user_id === $request->user_id) {
-            return false;
-        }
-
-        // Gesuche des Angebot-Besitzers
-        $offerOwnerRequests = BookRequest::where('user_id', $offer->user_id)
-            ->where('completed', false)
-            ->doesntHave('swap')
-            ->get()
-            ->keyBy(fn ($item) => $this->buildBookKey($item->series, (int) $item->book_number));
-
-        if ($offerOwnerRequests->isEmpty()) {
-            return false;
-        }
-
-        // Angebote des Gesuch-Besitzers
-        $requestOwnerOffers = BookOffer::where('user_id', $request->user_id)
-            ->where('completed', false)
-            ->doesntHave('swap')
-            ->get()
-            ->keyBy(fn ($item) => $this->buildBookKey($item->series, (int) $item->book_number));
-
-        if ($requestOwnerOffers->isEmpty()) {
-            return false;
-        }
-
-        // Finde Überschneidungen: Bücher die A sucht UND B anbietet
-        $matchingEntries = $offerOwnerRequests->intersectByKeys($requestOwnerOffers);
-
-        if ($matchingEntries->isEmpty()) {
-            return false;
-        }
-
-        $matchingKey = $matchingEntries->keys()->first();
-
-        $reciprocalRequest = $offerOwnerRequests->get($matchingKey);
-        $reciprocalOffer = $requestOwnerOffers->get($matchingKey);
-
-        if (! $reciprocalRequest || ! $reciprocalOffer) {
-            return false;
-        }
-
-        // Beide Swaps in einer Transaktion erstellen
-        [$firstSwap, $secondSwap] = DB::transaction(function () use ($offer, $request, $reciprocalOffer, $reciprocalRequest) {
-            $primarySwap = BookSwap::create([
-                'offer_id' => $offer->id,
-                'request_id' => $request->id,
-            ]);
-
-            $reciprocalSwap = BookSwap::create([
-                'offer_id' => $reciprocalOffer->id,
-                'request_id' => $reciprocalRequest->id,
-            ]);
-
-            return [$primarySwap, $reciprocalSwap];
+            return true;
         });
-
-        // Benachrichtigungen versenden
-        $this->notifySwapParticipants($firstSwap, $request->user);
-        $this->notifySwapParticipants($secondSwap, $reciprocalRequest->user);
-
-        return true;
     }
 
-    /**
-     * Benachrichtigt einen Teilnehmer über einen neuen Swap.
-     */
-    private function notifySwapParticipants(BookSwap $swap, User $recipient): void
+    private function notify(BookSwap $swap, int $recipientId): void
     {
         try {
-            Mail::to($recipient->email)->queue(new BookSwapMatched($swap));
-        } catch (\Throwable $e) {
-            Log::error('Swap-Benachrichtigung fehlgeschlagen', [
-                'swap_id' => $swap->id,
-                'recipient_id' => $recipient->id,
-                'error' => $e->getMessage(),
-            ]);
+            if ($recipient = User::find($recipientId)) {
+                Mail::to($recipient->email)->queue(new BookSwapMatched($swap));
+            }
+        } catch (\Throwable $error) {
+            Log::error('Swap-Benachrichtigung fehlgeschlagen', ['swap_id' => $swap->id, 'recipient_id' => $recipientId, 'error' => $error->getMessage()]);
         }
     }
 
-    /**
-     * Erstellt einen eindeutigen Key für ein Buch.
-     */
     public function buildBookKey(string $series, int $bookNumber): string
     {
         return sprintf('%s::%d', $series, $bookNumber);
-    }
-
-    /**
-     * Löscht einen Swap und erstellt ein Activity-Log für den betroffenen Nutzer.
-     *
-     * @param  BookSwap  $swap  Der zu löschende Swap
-     */
-    public function deleteSwapWithActivity(BookSwap $swap): void
-    {
-        $affectedUser = $swap->request?->user;
-
-        if ($affectedUser && User::where('id', $affectedUser->id)->exists()) {
-            try {
-                Activity::create([
-                    'user_id' => $affectedUser->id,
-                    'subject_type' => BookRequest::class,
-                    'subject_id' => $swap->request_id,
-                    'action' => 'match_cancelled_by_offer_owner',
-                ]);
-            } catch (QueryException $e) {
-                $this->handleActivityCreationError($e, $swap, $affectedUser);
-            }
-        }
-
-        $swap->delete();
-    }
-
-    /**
-     * Behandelt Fehler bei der Activity-Erstellung.
-     */
-    private function handleActivityCreationError(
-        QueryException $e,
-        BookSwap $swap,
-        User $affectedUser
-    ): void {
-        // Prüfe ob es sich um eine FK-Constraint-Verletzung handelt
-        $isForeignKeyError = in_array($e->getCode(), ['23000', '23503', 1452, 19], false)
-            || str_contains(strtolower($e->getMessage()), 'foreign key');
-
-        if ($isForeignKeyError) {
-            Log::warning('Activity-Log für gelöschten Swap fehlgeschlagen (FK)', [
-                'swap_id' => $swap->id,
-                'affected_user_id' => $affectedUser->id,
-                'error' => $e->getMessage(),
-            ]);
-        } else {
-            throw $e;
-        }
-    }
-
-    /**
-     * Bestätigt einen Tausch durch einen Nutzer.
-     *
-     * @return array{completed: bool, points_awarded: bool}
-     */
-    public function confirmSwap(BookSwap $swap, User $user): array
-    {
-        return DB::transaction(function () use ($swap, $user): array {
-            $lockedSwap = BookSwap::query()
-                ->with(['offer.user', 'request.user'])
-                ->lockForUpdate()
-                ->findOrFail($swap->id);
-
-            $result = [
-                'completed' => false,
-                'points_awarded' => false,
-            ];
-
-            if ($user->is($lockedSwap->offer->user)) {
-                $lockedSwap->offer_confirmed = true;
-            }
-
-            if ($user->is($lockedSwap->request->user)) {
-                $lockedSwap->request_confirmed = true;
-            }
-
-            $lockedSwap->save();
-
-            if ($lockedSwap->offer_confirmed && $lockedSwap->request_confirmed && ! $lockedSwap->completed_at) {
-                $lockedSwap->completed_at = now();
-                $lockedSwap->save();
-
-                $lockedSwap->offer->update(['completed' => true]);
-                $lockedSwap->request->update(['completed' => true]);
-
-                $awardedPoints = $this->baxxService->awardForCompletedSwap($lockedSwap->loadMissing(['offer', 'request']));
-                $this->createCompletedSwapActivity($lockedSwap);
-
-                $result['completed'] = true;
-                $result['points_awarded'] = array_sum($awardedPoints) > 0;
-            }
-
-            return $result;
-        });
-    }
-
-    /**
-     * Schließt einen Tausch direkt ab (z.B. durch Admin).
-     */
-    public function completeSwap(BookOffer $offer, BookRequest $request): BookSwap
-    {
-        return DB::transaction(function () use ($offer, $request): BookSwap {
-            $lockedOffer = BookOffer::query()->lockForUpdate()->findOrFail($offer->id);
-            $lockedRequest = BookRequest::query()->lockForUpdate()->findOrFail($request->id);
-
-            $swap = BookSwap::create([
-                'offer_id' => $lockedOffer->id,
-                'request_id' => $lockedRequest->id,
-                'completed_at' => now(),
-            ]);
-
-            $lockedOffer->update(['completed' => true]);
-            $lockedRequest->update(['completed' => true]);
-
-            $this->baxxService->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
-            $this->createCompletedSwapActivity($swap);
-
-            return $swap;
-        });
-    }
-
-    private function createCompletedSwapActivity(BookSwap $swap): void
-    {
-        Activity::create([
-            'user_id' => null,
-            'subject_type' => BookSwap::class,
-            'subject_id' => $swap->id,
-            'action' => 'swap_completed',
-        ]);
     }
 }
