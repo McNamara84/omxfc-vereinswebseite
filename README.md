@@ -74,6 +74,15 @@ Mitglieder-Team vorbehalten; wiederholte Abschlüsse vergeben keine zusätzliche
 Baxx. Architektur, Regressionstests und Messwerte stehen im
 [Romantausch-Ergebnisbericht](docs/Refactoring-Romantausch-Ergebnis.md).
 
+Rollen und Mitgliedschaften werden über `app/Services/Memberships` aufgelöst.
+Lesende Requests verwenden bereits gelesene Mitgliedschaftsdaten erneut;
+Schreibrequests, Livewire-Updates und Transaktionen lesen frisch. Die bisherigen
+Methoden in `User`, `Team` und `UserRoleService` bleiben erhalten. Pivot- und
+Modellereignisse verwerfen betroffene Lesedaten und geladene Teamrelationen.
+Direkte SQL-Änderungen außerhalb dieser Ereignisse müssen den Kontext ausdrücklich
+invalidieren. Verträge, Ausnahmen, Tests und Messwerte stehen im
+[Ergebnisbericht zur Rollenauflösung](docs/Refactoring-Rollen-Mitgliedschaften-Ergebnis.md).
+
 Karten, Charts, RPG und 3D laden über `resources/js/features/index.js` erst bei
 passendem DOM-Bedarf. Neue Features registrieren dort `selector`, `load` und
 `mount`; `mount` gibt eine Cleanup-Funktion zurück und berücksichtigt bei

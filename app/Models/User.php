@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Enums\Role;
 use App\Jobs\GeocodeUser;
 use App\Services\Baxx\BaxxBookingWriter;
+use App\Services\Memberships\MembershipContext;
 use App\Services\RewardService;
 use App\Services\RpgCheckLifecycle;
 use App\Services\RpgCombat\CombatLifecycle;
 use Carbon\Carbon;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -24,6 +26,9 @@ use Laravel\Sanctum\HasApiTokens;
 /**
  * @property-read Team|null $currentTeam
  * @property int $id
+ * @property int|null $current_team_id
+ * @property-read Collection<int, Team> $teams
+ * @property-read Collection<int, Team> $ownedTeams
  * @property string $name
  * @property Carbon|null $bezahlt_bis
  * @property string|null $einstiegsroman
@@ -153,7 +158,16 @@ class User extends Authenticatable
 
     protected static function booted()
     {
+        static::retrieved(fn (User $user) => app(MembershipContext::class)->track($user));
+        static::created(function (User $user): void {
+            app(MembershipContext::class)->track($user);
+            app(MembershipContext::class)->invalidateUser((int) $user->id);
+        });
+        static::deleted(fn (User $user) => app(MembershipContext::class)->invalidateUser((int) $user->id));
         static::saved(function (User $user) {
+            if ($user->wasChanged('current_team_id')) {
+                app(MembershipContext::class)->invalidateUser((int) $user->id, $user);
+            }
             if (! $user->hasGeocodeColumns()) {
                 return;
             }
@@ -165,6 +179,7 @@ class User extends Authenticatable
         });
 
         static::deleting(function (User $user): void {
+            app(MembershipContext::class)->invalidateUser((int) $user->id);
             app(RpgCheckLifecycle::class)->user($user->id);
             app(CombatLifecycle::class)->user($user->id);
             $schema = Schema::connection($user->getConnectionName());
@@ -286,20 +301,10 @@ class User extends Authenticatable
 
     /**
      * Get the role of the user on the current team.
-     *
-     * @return string|null
      */
     public function role(): ?Role
     {
-        if (! $this->currentTeam) {
-            return null;
-        }
-
-        $membership = Membership::query()->where('team_id', $this->currentTeam->id)
-            ->where('user_id', $this->id)
-            ->first();
-
-        return Role::tryFrom($membership->role ?? null);
+        return app(MembershipContext::class)->roleInCurrentTeam($this);
     }
 
     /**
@@ -333,17 +338,7 @@ class User extends Authenticatable
      */
     public function mitgliederTeamRole(): ?Role
     {
-        $mitgliederTeam = Team::membersTeam();
-
-        if (! $mitgliederTeam) {
-            return null;
-        }
-
-        $membership = Membership::query()->where('team_id', $mitgliederTeam->id)
-            ->where('user_id', $this->id)
-            ->first();
-
-        return Role::tryFrom($membership->role ?? null);
+        return app(MembershipContext::class)->roleInMembersTeam($this);
     }
 
     /**
@@ -369,7 +364,7 @@ class User extends Authenticatable
      */
     public function isMemberOfTeam(string $teamName): bool
     {
-        return $this->teams()->where('name', $teamName)->exists();
+        return app(MembershipContext::class)->hasNamedTeam($this, $teamName);
     }
 
     /**
@@ -377,7 +372,7 @@ class User extends Authenticatable
      */
     public function isOwnerOfTeam(string $teamName): bool
     {
-        return $this->ownedTeams()->where('name', $teamName)->exists();
+        return app(MembershipContext::class)->hasNamedTeam($this, $teamName, owned: true);
     }
 
     /**

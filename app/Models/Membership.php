@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Memberships\MembershipContext;
 use Carbon\Carbon;
 use Laravel\Jetstream\Membership as JetstreamMembership;
 
@@ -20,4 +21,11 @@ class Membership extends JetstreamMembership
      * @var bool
      */
     public $incrementing = true;
+
+    protected static function booted(): void
+    {
+        $invalidate = fn (self $membership) => app(MembershipContext::class)->invalidateUser((int) $membership->user_id);
+        static::saved($invalidate);
+        static::deleted($invalidate);
+    }
 }

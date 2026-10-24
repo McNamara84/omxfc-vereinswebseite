@@ -4,6 +4,7 @@ namespace App\Support\Navigation;
 
 use App\Enums\Role;
 use App\Models\User;
+use App\Services\Memberships\MembershipContext;
 use Illuminate\Support\Str;
 
 class NavigationBuilder
@@ -273,14 +274,10 @@ class NavigationBuilder
             ];
         }
 
-        $user->loadMissing(['teams', 'ownedTeams']);
-
-        $currentRole = Role::tryFrom(
-            $user->teams->firstWhere('id', $user->current_team_id)?->membership?->role ?? null,
-        );
-        $mitgliederTeamRole = Role::tryFrom(
-            $user->teams->firstWhere('name', 'Mitglieder')?->membership?->role ?? null,
-        );
+        $roles = app(MembershipContext::class)->navigationRoles($user);
+        $user->loadMissing('ownedTeams');
+        $currentRole = $roles['current'];
+        $mitgliederTeamRole = $roles['members'];
         $teamNames = array_values(array_filter($user->teams->pluck('name')->all(), 'is_string'));
 
         return [
