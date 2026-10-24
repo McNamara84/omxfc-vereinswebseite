@@ -12,7 +12,7 @@
                 </div>
                 @if(! $streak['linked'])
                     <p class="text-base leading-relaxed">Jeden aktiven Tag mehr Baxx: <strong>1, 2, 3 … zusätzlich.</strong> Verbinde dein Konto und starte mit einer kleinen gültigen Korrektur oder einem neuen Artikel.</p>
-                    <div class="flex gap-3 text-2xl font-semibold text-primary" aria-label="Tag 1: ein Bonus-Baxx, Tag 2: zwei Bonus-Baxx, Tag 3: drei Bonus-Baxx">
+                    <div class="flex gap-3 text-2xl font-semibold text-primary" role="img" aria-label="Tag 1: ein Bonus-Baxx, Tag 2: zwei Bonus-Baxx, Tag 3: drei Bonus-Baxx">
                         <span aria-hidden="true">+1</span><span aria-hidden="true">+2</span><span aria-hidden="true">+3</span><span aria-hidden="true">…</span>
                     </div>
                     @if($streak['linking_enabled'])

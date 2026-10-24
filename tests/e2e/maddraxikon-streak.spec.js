@@ -21,8 +21,11 @@ test('Unverknüpftes Mitglied findet den Einstieg auf allen drei Seiten', async 
         await page.goto(path);
         const card = page.getByTestId('maddraxikon-streak');
         await expect(card).toContainText('1, 2, 3 … zusätzlich.');
+        await expect(card.getByRole('img', { name: 'Tag 1: ein Bonus-Baxx, Tag 2: zwei Bonus-Baxx, Tag 3: drei Bonus-Baxx' })).toBeVisible();
         await expect(card.getByRole('link', { name: 'Maddraxikon verbinden', exact: true })).toHaveAttribute('href', /#maddraxikon-account$/);
         expect(await card.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+        const scan = await new AxeBuilder({ page }).include('[data-testid="maddraxikon-streak"]').analyze();
+        expect(scan.violations).toEqual([]);
     }
 });
 
@@ -40,11 +43,12 @@ test('Bestätigte Serie ist mobil und am Desktop bedienbar und verständlich', a
         await card.screenshot({ path: testInfo.outputPath(`serie-${width}.png`) });
     }
     await page.getByRole('link', { name: 'Serienverlauf ansehen' }).click();
+    // Wait for the profile's hash navigation to finish moving keyboard focus.
+    await expect(page.locator('#maddraxikon-serie')).toBeFocused();
     const detail = page.getByTestId('maddraxikon-streak');
     await expect(detail).toContainText('Persönlicher Rekord');
     await expect(detail).toContainText('10 Baxx');
-    await detail.getByText('Die letzten 31 Tage', { exact: true }).focus();
-    await page.keyboard.press('Enter');
+    await detail.locator('summary').press('Enter');
     await expect(detail.locator('details')).toHaveAttribute('open', '');
 });
 
