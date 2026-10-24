@@ -43,6 +43,7 @@
                 </div>
             </x-slot:actions>
         </x-ui.page-header>
+        <livewire:maddraxikon-streak-panel />
 
         <x-ui.panel
             eyebrow="Arbeitsmodus"

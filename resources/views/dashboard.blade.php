@@ -37,6 +37,7 @@
             @include('rpg.combats.partials.dashboard')
 
             @include('dashboard.partials.quick-actions-panel')
+            <livewire:maddraxikon-streak-panel />
             @php($importantMetrics = collect($metricGroups)->firstWhere('key', 'important'))
             @if($importantMetrics)
                 <x-dashboard.metric-group :group="[...$importantMetrics, 'metrics' => array_slice($importantMetrics['metrics'], 2)]" />

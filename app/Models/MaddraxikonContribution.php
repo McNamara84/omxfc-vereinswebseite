@@ -58,6 +58,11 @@ class MaddraxikonContribution extends Model
         return [
             'rc_id' => 'integer',
             'revision_id' => 'integer',
+            'streak_verified_at_epoch' => 'integer',
+            'streak_checked_at_epoch' => 'integer',
+            'streak_next_check_epoch' => 'integer',
+            'streak_check_version' => 'integer',
+            'streak_bot_verified' => 'boolean',
             'parent_revision_id' => 'integer',
             'page_id' => 'integer',
             'namespace_id' => 'integer',

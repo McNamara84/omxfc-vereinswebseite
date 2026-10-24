@@ -125,6 +125,9 @@ final class AccountLinkService
                         'verification_method' => 'oauth2',
                         'first_verified_at' => $existingForUser?->first_verified_at ?? $verifiedAt,
                         'verified_at' => $verifiedAt,
+                        'streak_verified_at_epoch' => $shouldRecordLinkActivity
+                            ? $verifiedAt->timestamp
+                            : ($existingForUser->streak_verified_at_epoch ?? $existingForUser->verified_at?->timestamp),
                         'disconnected_at' => null,
                         'consent_version' => $consentVersion,
                         'consented_at' => $consentedAt,

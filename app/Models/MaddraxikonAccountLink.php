@@ -29,6 +29,7 @@ class MaddraxikonAccountLink extends Model
         'first_verified_at_epoch',
         'verified_at',
         'verified_at_epoch',
+        'streak_verified_at_epoch',
         'disconnected_at',
         'disconnected_at_epoch',
         'consent_version',
@@ -43,6 +44,7 @@ class MaddraxikonAccountLink extends Model
             'status' => MaddraxikonAccountLinkStatus::class,
             'first_verified_at_epoch' => 'integer',
             'verified_at_epoch' => 'integer',
+            'streak_verified_at_epoch' => 'integer',
             'disconnected_at_epoch' => 'integer',
             'consented_at_epoch' => 'integer',
         ];

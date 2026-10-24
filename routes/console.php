@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\EvaluateMaddraxikonContributions;
+use App\Jobs\EvaluateMaddraxikonStreaks;
 use App\Jobs\SyncCoverRatingCovers;
 use App\Jobs\SyncMaddraxikonContributions;
 use App\Jobs\SyncMaddraxikonReviewRatings;
@@ -41,6 +42,10 @@ Schedule::job(new EvaluateMaddraxikonContributions)
     ->hourly()
     ->name('maddraxikon:evaluate-job')
     ->withoutOverlapping(60);
+Schedule::job(new EvaluateMaddraxikonStreaks)
+    ->hourlyAt(5)->name('maddraxikon:streaks-evaluate')->withoutOverlapping(60);
+Schedule::job(new EvaluateMaddraxikonStreaks(recheck: true))
+    ->hourlyAt(35)->name('maddraxikon:streaks-recheck')->withoutOverlapping(60);
 Schedule::job(new SyncMaddraxikonReviewRatings)
     ->cron("*/{$ratingSyncMinutes} * * * *")
     ->name('maddraxikon:review-ratings-sync-job')

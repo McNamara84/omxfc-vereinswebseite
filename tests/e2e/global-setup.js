@@ -29,6 +29,11 @@ export default async function globalSetup() {
     process.env.BILDERSUCHE_ENABLED = 'true';
     process.env.BILDERSUCHE_SYNC_ENABLED = 'false';
     process.env.BILDERSUCHE_AG_TEAM_ID = '900001';
+    process.env.MADDRAXIKON_STREAKS_ENABLED = 'true';
+    process.env.MADDRAXIKON_STREAKS_STARTS_AT = '2026-01-01T00:00:00Z';
+    process.env.MADDRAXIKON_LINKING_ENABLED = 'true';
+    process.env.MADDRAXIKON_SYNC_ENABLED = 'true';
+    process.env.MADDRAXIKON_AWARDS_ENABLED = 'true';
 
     if (fs.existsSync(databasePath)) {
         fs.rmSync(databasePath);

@@ -74,7 +74,8 @@ class MaddraxikonProfileHardeningTest extends TestCase
             ->assertSee('Änderungen werden nach 12 Stunden geprüft.')
             ->assertSee('7 qualifizierte Bearbeitungssitzungen ergeben 3 Baxx.')
             ->assertSee('Ein neuer Artikel mit mindestens 700 Byte ergibt 9 Baxx.')
-            ->assertSee('höchstens 14 Baxx gutgeschrieben.')
+            ->assertSee('höchstens 14 reguläre Beitrags-Baxx gutgeschrieben.')
+            ->assertSee('Serienbonus kommt zusätzlich hinzu.')
             ->assertDontSee('mindestens 500 Byte ergibt 5 Baxx');
     }
 

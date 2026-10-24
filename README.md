@@ -446,6 +446,93 @@ Regelbezug, Testnachweise und Betriebsgrenzen stehen im
 
 ## Maddraxikon-Baxx-Regeln verwalten
 
+Verknüpfte aktive Mitglieder können zusätzlich einen **Maddraxikon-Serienbonus**
+erhalten: Am ersten Aktivitätstag 1 Baxx, am zweiten aufeinanderfolgenden Tag 2,
+danach 3 und so weiter, ohne Bonusobergrenze. Ein vollständig ausgelassener
+Kalendertag beendet die Serie. Maßgeblich ist `Europe/Berlin`. Auch kleine gültige
+Korrekturen oder neue Artikel unterhalb der regulären Mindestgröße zählen;
+mehrere Beiträge am selben Tag ergeben einen Tagesbonus. Der Bonus liegt
+außerhalb des regulären Tageslimits und wird frühestens nach 24 Stunden geprüft.
+
+Dashboard, Profil und „Challenges & Baxx“ zeigen bestätigte Tage, noch geprüfte
+Aktivitäten, Rekord und den Einstieg zur Kontoverknüpfung. Import- oder
+Prüfverzögerungen werden als offen angezeigt. Ungültig gewordene Tagesnachweise
+führen zu nachvollziehbaren Gegenbuchungen einschließlich betroffener Folgetage;
+andere gültige Beiträge desselben Tages erhalten den Bonus. Die Bonusbilanz und
+der persönliche Rekord berücksichtigen diese Korrekturen.
+
+Der Serienbonus ist standardmäßig aktiv. Das nächste Deployment speichert mit
+`php artisan migrate --force` automatisch den Einführungszeitpunkt; eine manuelle
+Aktivierung oder ein zusätzlicher `.env`-Eintrag ist nicht erforderlich. Nach der
+Aktivierung ist der gespeicherte Zeitpunkt verbindlich, auch wenn
+`MADDRAXIKON_STREAKS_STARTS_AT` danach geändert oder entfernt wird.
+Spätere Deployments, Neustarts und Konfigurations-Caches verschieben ihn nicht.
+Beiträge davor erhalten weder Bonus noch Serienverlängerung. Bei einer neuen
+Installation wird auch die Importgrenze auf den Deploymentzeitpunkt gesetzt,
+damit ein später gestarteter Import die Aktivität seit Einführung erfassen kann.
+
+Synchronisation und allgemeine Baxx-Auszahlung müssen wie bisher aktiviert sein.
+Ein ausdrücklich gesetztes `MADDRAXIKON_STREAKS_ENABLED=false` pausiert den Bonus
+weiterhin. War die Funktion beim Deployment deaktiviert, initialisiert der erste
+reguläre Import oder Serienlauf nach dem Einschalten den Start und eine noch
+fehlende Importgrenze automatisch. Ohne explizites Datum gilt der Zeitpunkt
+dieses Laufs; die Migration muss nicht erneut ausgeführt werden. Auch
+`php artisan maddraxikon:streaks` kann diese Initialisierung auslösen. Vorschau,
+Statusabfrage und Seitenaufrufe verändern den Aktivierungszustand nicht.
+Optional lässt sich vor Einführung `MADDRAXIKON_STREAKS_STARTS_AT` als ISO-Zeitpunkt
+mit Zeitzone setzen, etwa `2026-11-01T00:00:00+01:00`. Die Importhistorie muss diesen
+Zeitpunkt abdecken; vorhandene Importgrenzen bleiben erhalten. Fehlt der
+Importzustand noch vollständig, beginnt der Import beim expliziten Start,
+bei einem zukünftigen Start bereits ab der Aktivierung. Liegt der Start außerhalb
+der RecentChanges-Aufbewahrung, greift der bestehende Recovery-Ablauf.
+Ein gespeicherter Serienstart darf nicht nachträglich verschoben werden.
+Im Dev-Stack besitzen diese Variablen das Präfix `DOCKER_DEV_`.
+
+Eine Datenmigration ergänzt vor der Serienaktivierung fehlende Epoch-Zeitstempel
+bereits importierter Beiträge. Dabei bleibt die bisherige Interpretation von
+`occurred_at` in der Anwendungszeitzone erhalten. So können vorhandene Beiträge
+ab dem Serienstart auch bei einer historischen Einführung berücksichtigt werden.
+
+Der Scheduler prüft neue Quellen stündlich um Minute 5 und historische Quellen
+um Minute 35. `MADDRAXIKON_STREAKS_BATCH_SIZE` begrenzt die Arbeit pro Lauf;
+`MADDRAXIKON_STREAKS_RECHECK_HOURS` bestimmt den frühesten Wiederprüfungsabstand.
+Ältere fällige Quellen kommen zuerst an die Reihe, auch ungültige Quellen für
+mögliche Wiederherstellungen. Korrekturen erfolgen nach Erkennung durch die
+Wiki-API, nicht in Echtzeit. Eine manuelle Textänderung ohne Rücksetzungsmerkmal
+ist kein automatischer Nachweis einer ungültigen alten Revision.
+Historische Revisionen werden auch nach einer Kontotrennung oder dem Ende der
+aktiven Mitgliedschaft geprüft und nötige Abzüge einschließlich der Folgetage
+verbucht. Positive Differenzen warten auf eine wieder bestehende Berechtigung.
+Zusätzlich muss für den jeweiligen Tag mindestens ein gültiger Beitrag zur
+aktuell verknüpften Wiki-Identität gehören. Der Wechsel auf ein anderes Wiki-Konto
+berechtigt daher nicht zu Nachzahlungen allein aus Beiträgen des alten Kontos.
+
+```bash
+php artisan maddraxikon:streaks
+php artisan maddraxikon:streaks --recheck
+php artisan maddraxikon:streaks --user=42 --from=2026-11-01 --pretend
+php artisan maddraxikon:status --skip-api
+```
+
+Die Vorschau liest ausschließlich lokale Daten und verändert keine Buchungen.
+`--user` und `--from` begrenzen die Neuberechnung anhand gespeicherter Ergebnisse.
+Außerhalb der Vorschau können diese Optionen nicht mit `--recheck` kombiniert
+werden; der Befehl meldet dann einen Fehler, statt die Revisionsprüfung zu überspringen.
+Große Folgen werden in begrenzten Abschnitten verarbeitet; der Scheduler setzt
+offene Arbeit fort. `maddraxikon:status` meldet offene Prüfungen, Rückstand und
+Fehler. Bei Recovery-Beiträgen ohne belegbaren damaligen Bot-Status bleibt die
+Serie in Prüfung. Ein Administrator kann unter „Maddraxikon-Baxx“ nach manueller
+Prüfung einen begründeten Nicht-Bot-Nachweis hinterlegen; die Revision wird danach
+erneut technisch geprüft. Reguläre Baxx-Regeln bleiben davon unberührt.
+
+Bei Wartung die Vergabe deaktivieren und den ursprünglichen Start beibehalten.
+Gespeicherte Nachweise und offene Differenzen werden nach Wiederaktivierung
+weiterverarbeitet. Rückmigrationen der Serienfunktion erhalten die Serientabellen,
+das Bonusjournal und die gespeicherten Nachweise samt Verknüpfungszeitpunkten.
+Eine erneute Migration verwendet diese Daten unverändert weiter. Korrekturen
+laufen über das separate Bonusjournal und den gemeinsamen Baxx-Writer; eine
+Löschung der Auditdaten erfordert eine gesondert geprüfte Datenmigration.
+
 Administratoren verwalten die versionierten Regeln unter
 `/belohnungen/admin/maddraxikon` über den Bereich „Maddraxikon-Baxx-Regeln“.
 Für normale Bearbeitungen wird der Netto-Zuwachs in Bytes innerhalb einer

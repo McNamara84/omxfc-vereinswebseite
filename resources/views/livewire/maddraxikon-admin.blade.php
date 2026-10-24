@@ -25,6 +25,29 @@
             </x-slot:actions>
         </x-ui.page-header>
 
+        <x-ui.panel title="Maddraxikon-Serienbonus" description="Ein zusätzlicher Bonus pro Aktivitätstag: 1, 2, 3 … Baxx. Das reguläre Tageslimit gilt nur für Beitrags-Baxx.">
+            <p class="text-sm">{{ $streakOpenCount }} Mitglieder mit offener Tagesberechnung. {{ config('maddraxikon.streaks.enabled') ? 'Serienbonus freigeschaltet.' : 'Serienbonus deaktiviert.' }}</p>
+            @if($streakRun?->last_error)<p class="mt-2 text-sm text-error">Letzte Prüfung: {{ $streakRun->last_error }}</p>@endif
+            <x-button class="btn-outline mt-3" label="Revisionen erneut prüfen" wire:click="dispatchStreakReview" spinner="dispatchStreakReview" />
+            @if($streakRecoverySources->isNotEmpty())
+                <div class="my-4 space-y-3 rounded-xl border border-warning/50 p-4">
+                    <p class="text-sm">Bei diesen historischen Beiträgen fehlt der damalige Bot-Status. Bestätige ausschließlich nach manueller Prüfung, dass der Beitrag keine Bot-Bearbeitung war. Die übrigen Gültigkeitsprüfungen folgen automatisch.</p>
+                    <x-textarea label="Nachweis / Begründung" wire:model="streakReviewReason" />
+                    @foreach($streakRecoverySources as $source)
+                        <div class="flex flex-wrap items-center justify-between gap-2" wire:key="streak-recovery-{{ $source->id }}">
+                            <p class="text-sm">{{ $source->user->name }} · {{ $source->page_title }} · Revision {{ $source->revision_id }}</p>
+                            <x-button class="btn-outline btn-sm" label="Kein Bot: Nachweis bestätigen" wire:click="verifyStreakRecovery({{ $source->id }})" wire:confirm="Du bestätigst nach manueller Prüfung, dass diese Revision keine Bot-Bearbeitung war?" />
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+            <ul class="mt-4 divide-y divide-base-content/10">
+                @forelse($streakBookings as $booking)
+                    <li class="flex flex-wrap justify-between gap-2 py-2 text-sm"><span>{{ $booking->user->name }} · {{ $booking->day->activity_date->format('d.m.Y.') }} · {{ $booking->reason === 'daily_bonus' ? 'Serienbonus' : 'Neuberechnung' }} ({{ $booking->previous_points }} → {{ $booking->target_points }})</span><strong>{{ $booking->points_delta > 0 ? '+' : '' }}{{ $booking->points_delta }} Baxx</strong></li>
+                @empty<li class="text-sm text-base-content/75">Noch keine Bonusbuchungen.</li>@endforelse
+            </ul>
+        </x-ui.panel>
+
         <x-ui.panel
             title="Maddraxikon-Baxx-Regeln"
             description="Versionierte Regeln nach Netto-Zuwachs pro 30-Minuten-Sitzung. Maßgeblich ist der Zeitpunkt der letzten Bearbeitung."
