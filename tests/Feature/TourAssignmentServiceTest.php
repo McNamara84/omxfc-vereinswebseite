@@ -50,7 +50,7 @@ class TourAssignmentServiceTest extends TestCase
         $this->assertSame($currentVersion, $staleAssignment->metadata['superseded_by_version'] ?? null);
     }
 
-    public function test_current_promptable_assignment_uses_creation_order_as_tiebreaker(): void
+    public function test_profile_campaign_invitation_takes_priority_over_older_navigation_tour(): void
     {
         $team = Team::membersTeam();
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -80,7 +80,7 @@ class TourAssignmentServiceTest extends TestCase
         $assignment = app(TourAssignmentService::class)->currentPromptableAssignmentForUser($member);
 
         $this->assertNotNull($assignment);
-        $this->assertSame('hauptmenue', $assignment->tour_key);
+        $this->assertSame('profilpflege', $assignment->tour_key);
     }
 
     public function test_reassign_resets_existing_assignment_state(): void

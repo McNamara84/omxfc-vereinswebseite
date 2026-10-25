@@ -7,6 +7,7 @@ import {
     selectorForStep,
     visibleElementForSelector,
 } from './helpers';
+import { clearTourError, renderInvitation, renderProfileReward, renderTourError, requireSavedProfile } from './profile';
 
 const TOAST_CLASSES = {
     success: 'alert-success',
@@ -28,6 +29,10 @@ const state = {
     skippedStepKeys: new Set(),
     boundRoot: null,
     handleRootClick: null,
+    invitation: false,
+    actionBusy: false,
+    syncing: false,
+    generation: 0,
 };
 
 const elementIds = {
@@ -43,6 +48,7 @@ const elementIds = {
     skip: 'tour-runner-skip',
     next: 'tour-runner-next',
     complete: 'tour-runner-complete',
+    start: 'tour-runner-start',
 };
 
 function isTourDebugEnabled() {
@@ -176,11 +182,22 @@ function logTourError(event, error, extra = {}) {
 function runTourTask(label, task) {
     void Promise.resolve()
         .then(task)
-        .catch((error) => logTourError(label, error));
+        .catch((error) => {
+            logTourError(label, error);
+            renderTourError(error);
+        });
 }
 
 function getElement(id) {
     return document.getElementById(id);
+}
+
+function updateBusyButtons() {
+    const busy = state.actionBusy || state.syncing;
+    state.root?.setAttribute('aria-busy', String(busy));
+    for (const id of [elementIds.start, elementIds.next, elementIds.complete, elementIds.skip, elementIds.back]) {
+        getElement(id)?.toggleAttribute('disabled', busy || (id === elementIds.back && state.stepIndex === 0));
+    }
 }
 
 function urlFor(template, assignmentId) {
@@ -303,6 +320,8 @@ function hideRunner(resetPayload = false) {
     state.target = null;
 
     if (resetPayload) {
+        state.generation += 1;
+        state.invitation = false;
         state.payload = null;
         state.steps = [];
         state.stepIndex = 0;
@@ -360,6 +379,16 @@ function refreshHighlight() {
 }
 
 function updatePanel(step) {
+    const panel = getElement(elementIds.panel);
+    if (panel) {
+        panel.dataset.invitation = 'false';
+        panel.dataset.profileTour = String(state.payload?.key === 'profilpflege');
+    }
+    getElement(elementIds.start)?.classList.add('hidden');
+    for (const suffix of ['back', 'progress', 'counter']) {
+        getElement(`tour-runner-${suffix}`)?.classList.remove('hidden');
+    }
+    renderProfileReward(state.payload);
     const title = getElement(elementIds.title);
     const description = getElement(elementIds.description);
     const counter = getElement(elementIds.counter);
@@ -401,6 +430,8 @@ function updatePanel(step) {
 
     if (completeButton instanceof HTMLElement) {
         completeButton.classList.toggle('hidden', !isLastStep);
+        completeButton.textContent = state.payload?.profile && !state.payload.reward_received
+            ? 'Tour abschließen und 5 Baxx erhalten' : 'Tour abschließen';
     }
 }
 
@@ -433,6 +464,9 @@ async function syncProgress(stepKey) {
     });
 
     let response;
+    const generation = state.generation;
+    state.syncing = true;
+    updateBusyButtons();
 
     try {
         response = await window.omxfcHttp.post(progressUrl, {
@@ -445,10 +479,15 @@ async function syncProgress(stepKey) {
         });
 
         throw error;
+    } finally {
+        state.syncing = false;
+        updateBusyButtons();
     }
 
+    if (generation !== state.generation || (state.payload?.current_step_key && state.payload.current_step_key !== stepKey)) return;
     state.payload = response.data.tour;
     state.lastSyncedStepKey = stepKey;
+    renderProfileReward(state.payload);
 
     logTourDebug('progress:success', {
         stepKey,
@@ -467,6 +506,16 @@ async function showCurrentStep() {
     }
 
     const device = detectTourDevice();
+    if (state.invitation) {
+        renderInvitation(state.payload);
+        return;
+    }
+    const unavailable = state.payload.steps.find(step => step.required_target && !visibleElementForSelector(selectorForStep(step, device)));
+    if (unavailable) {
+        renderInvitation(state.payload);
+        state.invitation = true;
+        throw new Error('Ein benötigtes Profilfeld ist derzeit nicht verfügbar. Bitte lade die Profilseite neu oder setze die Tour später fort.');
+    }
     state.steps = activeSteps(device);
 
     logTourDebug('show-step:resolved-steps', {
@@ -502,7 +551,9 @@ async function showCurrentStep() {
         stepKey: step.key,
     });
 
+    const generation = state.generation;
     const target = await resolveStepTarget(step, device);
+    if (generation !== state.generation) return;
 
     if (!(target instanceof HTMLElement) || !isElementVisible(target)) {
         logTourDebug('show-step:hidden-target', {
@@ -544,10 +595,18 @@ async function showCurrentStep() {
     await syncProgress(step.key);
 }
 
-async function activateTour(payload) {
+async function activateTour(payload, explicit = false) {
+    const generation = state.generation;
     state.payload = payload;
     state.lastSyncedStepKey = payload.current_step_key ?? null;
     state.skippedStepKeys.clear();
+    const onProfile = Boolean(document.querySelector('[data-profile-series-form]'));
+    if (payload.start_mode === 'invitation' && !explicit && (!payload.active_in_session || !onProfile)) {
+        state.invitation = true;
+        renderInvitation(payload);
+        return;
+    }
+    state.invitation = false;
 
     logTourDebug('tour:activate', {
         assignmentId: payload.assignment_id,
@@ -566,7 +625,7 @@ async function activateTour(payload) {
         return;
     }
 
-    if (payload.status === 'pending') {
+    if (payload.status === 'pending' || explicit) {
         const startUrl = urlFor(templates.start, payload.assignment_id);
 
         logTourDebug('tour:start-request', {
@@ -585,7 +644,12 @@ async function activateTour(payload) {
             throw error;
         }
 
+        if (generation !== state.generation) return;
         state.payload = response.data.tour;
+        if (state.payload?.status === 'completed') {
+            hideRunner(true);
+            return;
+        }
         state.lastSyncedStepKey = state.payload.current_step_key ?? null;
 
         logTourDebug('tour:start-success', {
@@ -593,10 +657,20 @@ async function activateTour(payload) {
         });
     }
 
+    if (explicit && payload.entry_url && !onProfile) {
+        if (typeof window.Livewire?.navigate === 'function') {
+            window.Livewire.navigate(payload.entry_url);
+        } else {
+            window.location.assign(payload.entry_url);
+        }
+        return;
+    }
+
     await showCurrentStep();
 }
 
 async function fetchCurrentTour() {
+    const generation = ++state.generation;
     const templates = currentUrlTemplates();
 
     if (!templates?.current || typeof window.omxfcHttp === 'undefined') {
@@ -623,7 +697,8 @@ async function fetchCurrentTour() {
         throw error;
     }
 
-    if (!response.data?.tour) {
+    if (generation !== state.generation) return;
+    if (!response.data?.tour || response.data.tour.status === 'completed') {
         logTourDebug('tour:fetch-empty');
         hideRunner(true);
         return;
@@ -633,6 +708,7 @@ async function fetchCurrentTour() {
 }
 
 async function skipTour() {
+    const generation = state.generation;
     if (!state.payload) {
         logTourDebug('skip:ignored', {
             reason: 'missing-payload',
@@ -667,12 +743,14 @@ async function skipTour() {
         throw error;
     }
 
+    if (generation !== state.generation) return;
     hideRunner(true);
     logTourDebug('skip:success');
     toast('info', 'Tour pausiert', 'Wir zeigen dir die Tour nach dem nächsten Login erneut an.');
 }
 
 async function completeTour() {
+    const generation = state.generation;
     if (!state.payload) {
         logTourDebug('complete:ignored', {
             reason: 'missing-payload',
@@ -692,13 +770,15 @@ async function completeTour() {
     }
 
     const completeUrl = urlFor(templates.complete, state.payload.assignment_id);
+    if (state.payload.profile) requireSavedProfile();
 
     logTourDebug('complete:request', {
         url: completeUrl,
     });
 
+    let response;
     try {
-        await window.omxfcHttp.post(completeUrl);
+        response = await window.omxfcHttp.post(completeUrl);
     } catch (error) {
         logTourError('complete:error', error, {
             url: completeUrl,
@@ -707,9 +787,23 @@ async function completeTour() {
         throw error;
     }
 
+    if (generation !== state.generation) return;
+    if (response.data?.completed !== true) {
+        throw new Error('Der Tourabschluss wurde nicht bestätigt. Bitte versuche es erneut.');
+    }
     hideRunner(true);
     logTourDebug('complete:success');
-    toast('success', 'Tour abgeschlossen', 'Du kannst die Tour später im Profil erneut starten.');
+    const reward = response.data?.reward;
+    toast('success', 'Tour abgeschlossen', reward?.status === 'awarded'
+        ? '5 Baxx wurden dir gutgeschrieben.'
+        : reward?.status === 'already_awarded'
+            ? 'Die einmaligen 5 Baxx hast du bereits erhalten.'
+            : 'Du kannst die Tour später im Profil erneut starten.');
+    if (reward) {
+        document.querySelectorAll('[data-profile-tour-reward]').forEach(element => {
+            element.textContent = 'Die einmaligen 5 Baxx hast du bereits erhalten.';
+        });
+    }
 }
 
 async function handleRunnerAction(actionId) {
@@ -725,6 +819,11 @@ async function handleRunnerAction(actionId) {
     logTourDebug('action:start', {
         actionId,
     });
+    clearTourError();
+    if (actionId === elementIds.start) {
+        await activateTour(state.payload, true);
+        return;
+    }
 
     if (actionId === elementIds.back) {
         state.stepIndex = Math.max(state.stepIndex - 1, 0);
@@ -793,6 +892,8 @@ function bindButtons() {
             }
 
             const actionButton = event.target.closest([
+                '[data-tour-missing-field]',
+                `#${elementIds.start}`,
                 `#${elementIds.back}`,
                 `#${elementIds.skip}`,
                 `#${elementIds.next}`,
@@ -802,6 +903,8 @@ function bindButtons() {
             if (!(actionButton instanceof HTMLElement)) {
                 return;
             }
+
+            if (state.actionBusy || state.syncing) return;
 
             if (actionButton.hasAttribute('disabled')) {
                 logTourDebug('action:ignored', {
@@ -817,7 +920,24 @@ function bindButtons() {
                 targetTag: event.target.tagName,
             });
 
-            runTourTask(`action:${actionButton.id}`, () => handleRunnerAction(actionButton.id));
+            state.actionBusy = true;
+            updateBusyButtons();
+            runTourTask(`action:${actionButton.id}`, async () => {
+                try {
+                    if (actionButton.dataset.tourMissingField) {
+                        state.payload.current_step_key = `profile-field-${actionButton.dataset.tourMissingField}`;
+                        state.lastSyncedStepKey = null;
+                        clearTourError();
+                        await showCurrentStep();
+                        document.getElementById(actionButton.dataset.tourMissingField)?.focus({ preventScroll: true });
+                    } else {
+                        await handleRunnerAction(actionButton.id);
+                    }
+                } finally {
+                    state.actionBusy = false;
+                    updateBusyButtons();
+                }
+            });
         };
     }
 
@@ -871,7 +991,28 @@ window.addEventListener('resize', () => {
 });
 
 window.addEventListener('scroll', refreshHighlight, true);
-document.addEventListener('livewire:navigated', () => runTourTask('livewire:navigated', () => initTourRunner()));
+document.addEventListener('livewire:navigated', () => {
+    hideRunner(true);
+    runTourTask('livewire:navigated', () => initTourRunner());
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && state.payload && !state.actionBusy) {
+        runTourTask('escape', skipTour);
+    }
+});
+for (const eventName of ['input', 'change']) {
+    document.addEventListener(eventName, event => {
+        const form = event.target.closest?.('[data-profile-series-form]');
+        if (form) form.dataset.unsaved = 'true';
+    });
+}
+window.addEventListener('profile-series-saved', () => {
+    const form = document.querySelector('[data-profile-series-form]');
+    if (form) form.dataset.unsaved = 'false';
+    if (state.payload?.key === 'profilpflege') {
+        runTourTask('profile-series-saved', fetchCurrentTour);
+    }
+});
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => runTourTask('dom:content-loaded', () => initTourRunner()), { once: true });

@@ -287,6 +287,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('touren')->name('touren.')->controller(TourController::class)->group(function () {
         Route::get('aktuell', 'current')->name('current');
         Route::post('{tourAssignment}/starten', 'start')->name('start');
+        Route::post('{tourAssignment}/fortsetzen', 'resume')->name('resume');
         Route::post('{tourAssignment}/schritt', 'progress')->name('progress');
         Route::post('{tourAssignment}/abbrechen', 'dismiss')->name('dismiss');
         Route::post('{tourAssignment}/abschliessen', 'complete')->name('complete');

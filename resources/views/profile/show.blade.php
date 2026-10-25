@@ -70,9 +70,21 @@
                                 </dl>
 
                                 <div class="mt-5 flex flex-wrap gap-2">
+                                    @if ($tour['definition']->key === 'profilpflege')
+                                        <p class="w-full text-sm font-semibold" data-profile-tour-reward>
+                                            {{ $tour['reward_received'] ? 'Die einmaligen 5 Baxx hast du bereits erhalten.' : 'Einmalig 5 Baxx: Alle 11 Serienangaben speichern und die Tour abschließen.' }}
+                                        </p>
+                                        @if ($tour['is_open'])
+                                            <form method="POST" action="{{ route('touren.resume', $assignment) }}">
+                                                @csrf
+                                                <x-button type="submit" label="Tour fortsetzen" icon="o-play" class="btn-primary btn-sm" />
+                                            </form>
+                                        @endif
+                                    @endif
                                     <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
                                         @csrf
                                         <x-button
+                                            type="submit"
                                             :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
                                             icon="o-play"
                                             class="btn-primary btn-sm"
@@ -97,8 +109,13 @@
 
 
             {{-- Serienspezifische Daten ergänzen --}}
-            <x-ui.panel title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
+            <x-ui.panel id="serienspezifische-daten" title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
                 @livewire('profile.update-seriendaten-form')
+                @if (($tourOverview ?? collect())->isNotEmpty())
+                <div class="mt-4 rounded-xl bg-base-200 p-4" data-tour-profile-key="profile-complete" tabindex="-1">
+                    <p>Für den Abschluss der Profilpflege-Tour müssen alle 11 Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
+                </div>
+                @endif
             </x-ui.panel>
 
             @if (Auth::user()->hasRole(\App\Enums\Role::Ehrenmitglied))

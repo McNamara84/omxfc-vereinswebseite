@@ -95,8 +95,8 @@
                 </x-slot:content>
             </x-mary-main>
 
-            @include('layouts.partials.tour-runner')
         </div>
+        @include('layouts.partials.tour-runner')
     @endif
 
     @auth

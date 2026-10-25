@@ -42,6 +42,30 @@ class UserPointModelTest extends TestCase
         ]);
     }
 
+    public function test_milestone_callback_tolerates_a_booking_or_user_deleted_before_locking(): void
+    {
+        $member = $this->createMember();
+        $point = UserPoint::withoutEvents(fn () => UserPoint::create([
+            'user_id' => $member->id,
+            'team_id' => $member->current_team_id,
+            'points' => 5,
+        ]));
+        // Simulate account removal between loading the booking and taking the lock.
+        UserPoint::retrieved(function (UserPoint $loaded) use ($point, $member): void {
+            if ($loaded->id === $point->id) {
+                User::whereKey($member->id)->delete();
+            }
+        });
+
+        $service = app(BaxxMilestoneActivityService::class);
+        $service->recordForUserPoint($point->id);
+        $service->recordForUserPoint($point->id);
+
+        $this->assertDatabaseMissing('user_points', ['id' => $point->id]);
+        $this->assertDatabaseMissing('baxx_earning_progress', ['user_id' => $member->id]);
+        $this->assertDatabaseMissing('activities', ['user_id' => $member->id, 'action' => 'baxx_milestone_reached_1']);
+    }
+
     public function test_user_point_can_be_created(): void
     {
         $user = $this->createMember();

@@ -16,6 +16,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
   - [Hauptfunktionen](#hauptfunktionen)
   - [Technologie-Stack](#technologie-stack)
+  - [Profilpflege-Tour und einmalige Baxx](#profilpflege-tour-und-einmalige-baxx)
   - [Navigation und Menüsuche](#navigation-und-menüsuche)
   - [Voraussetzungen](#voraussetzungen)
   - [Lokale Entwicklung](#lokale-entwicklung)
@@ -91,6 +92,43 @@ asynchroner Arbeit das Abbruchsignal. Alpine-Formulare verwenden
 Importgraph einschließlich Sourcemaps auf versehentlich mitgeladene schwere
 Module. Vergleichbare Browsermessungen lassen sich mit
 `npm run test:e2e:benchmark -- tests/e2e/feature-performance.benchmark.js` ausführen.
+
+## Profilpflege-Tour und einmalige Baxx
+
+Die Tour **Profil pflegen** lädt Mitglieder zum Ausfüllen aller elf Serienangaben
+ein, einschließlich **Lieblingsmutation** als Textfeld. Die Einladung kündigt
+einmalig **5 Baxx** an und bietet **Tour starten** und **Später**. Vorhandene Angaben
+zählen mit; persönliche Daten und Sicherheitsoptionen müssen nicht geändert werden.
+Teilprofile bleiben speicherbar. Bei fehlenden Serienangaben bleibt die Tour offen
+und zeigt die betreffenden Felder. Unter **Profil & Einstellungen → Touren &
+Hilfestart** lässt sie sich fortsetzen oder erneut starten.
+
+Beim Deployment weist eine Datenmigration die neue Version 3 allen aktiven
+Mitgliedern des Mitglieder-Teams außer Anwärtern zu. Alte Tour-Abschlüsse schließen
+die Belohnung nicht aus. Die bestehende Zuweisung bei späterer Mitgliederfreischaltung
+bleibt erhalten. Wiederholte Deployments setzen den Fortschritt nicht zurück.
+
+Die Gutschrift erfolgt ausschließlich beim erfolgreichen Tour-Abschluss nach
+Prüfung der gespeicherten Angaben. `tour_reward_grants` hält den einmaligen
+Vergabenachweis unabhängig von Tour-Version, Neustarts und administrativer
+Neuzuweisung fest. Abschluss, Nachweis und Buchung im Mitglieder-Team werden in
+einer gemeinsamen Transaktion gespeichert. Ein Rückbau darf vorhandene
+Vergabenachweise nicht entfernen; die Schema-Migration blockiert ihr `down()`,
+solange Vergaben existieren. Bei Rollbacks müssen Nachweise und Baxx-Buchungen
+gemeinsam erhalten bleiben.
+
+Gezielte Prüfungen: `ProfileTourCompletionTest`, `ProfileTourRolloutMigrationTest`,
+`SeriesProfileTest`, die Tour- und Profil-Regressionstests, die Vitest-Datei
+`tests/Vitest/profile-tour.test.js` sowie `tests/e2e/profile-tour.spec.js`.
+`ProfileTourMariaDbConcurrencyTest` ist in `phpunit.mariadb.xml` eingebunden und
+prüft parallele Abschlüsse sowie Konflikte mit Neustart, Profiländerung und
+Mitgliedschaftsentzug auf einer isolierten MariaDB-Testdatenbank.
+
+Nach dem Deployment die ausgeführten Migrationen und die Version-3-Zuweisungen
+mit der Anzahl berechtigter Mitglieder abgleichen. Die Migration selbst darf
+keine Gutschriften erzeugen. Einladung, vollständigen Abschluss und Wiederholung
+auf Staging mit Testkonten auf Desktop und Mobilgeräten prüfen; danach müssen
+genau ein Vergabenachweis und eine Buchung über 5 Baxx pro Testkonto vorliegen.
 
 ## Navigation und Menüsuche
 

@@ -481,17 +481,20 @@ $tours = [
         ],
     ],
     'profilpflege' => [
-        'version' => 2,
+        'version' => 3,
         'title' => 'Profil pflegen',
-        'description' => 'Zeigt dir die wichtigsten Bereiche deiner Profil- und Sicherheitseinstellungen.',
+        'description' => 'Fülle deine Serienangaben aus und lerne deine Profil- und Sicherheitseinstellungen kennen.',
         'self_service_enabled' => true,
         'auto_assign_on_member_approval' => true,
+        'start_mode' => 'invitation',
+        'entry_route' => 'profile.show',
         'audience' => ['mitglied'],
         'steps' => [
             [
                 'key' => 'profile-header',
                 'title' => 'Profil & Einstellungen',
-                'description' => 'Hier bündelst du alles, was dein Mitgliederkonto, deine Sichtbarkeit und deine Sicherheit betrifft.',
+                'description' => 'Pflege deine Serienangaben und lerne dein Profil kennen. Andere Mitglieder können die Serienangaben sehen.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-header"]',
                     'mobile' => '[data-tour-profile-key="profile-header"]',
@@ -500,7 +503,8 @@ $tours = [
             [
                 'key' => 'profile-tour-overview',
                 'title' => 'Touren & Hilfestart',
-                'description' => 'In diesem Bereich startest du Touren später erneut, wenn du Funktionen noch einmal geführt ansehen möchtest.',
+                'description' => 'Hier kannst du eine offene Tour fortsetzen oder später von vorn starten.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-tour-overview"]',
                     'mobile' => '[data-tour-profile-key="profile-tour-overview"]',
@@ -508,8 +512,9 @@ $tours = [
             ],
             [
                 'key' => 'profile-public-view',
-                'title' => 'Öffentliches Profil ansehen',
-                'description' => 'Mit diesem Button prüfst du schnell, wie andere Mitglieder dein Profil im Vereinsbereich sehen.',
+                'title' => 'Dein Profil ansehen',
+                'description' => 'Hier siehst du, wie dein Profil für andere Mitglieder aussieht.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-public-view"]',
                     'mobile' => '[data-tour-profile-key="profile-public-view"]',
@@ -518,34 +523,158 @@ $tours = [
             [
                 'key' => 'profile-personal-data',
                 'title' => 'Persönliche Daten',
-                'description' => 'Hier hältst du Name, Foto, Adresse, Beitrag und Kontaktmöglichkeiten aktuell.',
+                'description' => 'Halte deine Kontaktdaten aktuell. Änderungen in diesem Bereich sind für den Tour-Abschluss nicht erforderlich.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-personal-data"]',
                     'mobile' => '[data-tour-profile-key="profile-personal-data"]',
                 ],
             ],
             [
-                'key' => 'profile-maddraxikon-baxx',
-                'title' => 'Maddraxikon & Baxx',
-                'description' => 'Hier verknüpfst du freiwillig dein verifiziertes Maddraxikon-Konto, trennst die Verbindung wieder und verfolgst deine Wiki-Beiträge.',
-                'selectors' => [
-                    'desktop' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
-                    'mobile' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
-                ],
-            ],
-            [
                 'key' => 'profile-series-data',
                 'title' => 'Serienspezifische Daten',
-                'description' => 'In diesem Abschnitt pflegst du Lieblingsromane, Figuren und weitere Maddrax-Vorlieben für dein Profil.',
+                'description' => 'Fülle alle elf Serienfelder aus und speichere deine Angaben. Vorhandene Angaben zählen mit.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-series-data"]',
                     'mobile' => '[data-tour-profile-key="profile-series-data"]',
                 ],
             ],
             [
+                'key' => 'profile-field-einstiegsroman',
+                'title' => 'Einstiegsroman',
+                'description' => 'Wähle den Roman, mit dem du in die MADDRAX-Serie eingestiegen bist.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-einstiegsroman"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-einstiegsroman"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lesestand',
+                'title' => 'Aktueller Lesestand',
+                'description' => 'Wähle den zuletzt gelesenen Roman. Deinen Lesestand kannst du später jederzeit aktualisieren.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lesestand"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lesestand"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsautor',
+                'title' => 'Lieblingsautor:in',
+                'description' => 'Welche Autorin oder welchen Autor liest du besonders gern? Wähle deinen Favoriten.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsautor"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsautor"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsroman',
+                'title' => 'Lieblingsroman',
+                'description' => 'Wähle deinen Favoriten unter den Romanen.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsroman"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsroman"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingshardcover',
+                'title' => 'Lieblingshardcover',
+                'description' => 'Wähle deinen bevorzugten Hardcover-Band.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingshardcover"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingshardcover"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingscover',
+                'title' => 'Lieblingscover',
+                'description' => 'Welches Titelbild gefällt dir am besten? Du kannst ein Heftroman- oder Hardcover-Cover auswählen.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingscover"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingscover"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingszyklus',
+                'title' => 'Lieblingszyklus',
+                'description' => 'Wähle deinen bevorzugten Handlungszyklus.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingszyklus"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingszyklus"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsfigur',
+                'title' => 'Lieblingsfigur',
+                'description' => 'Wähle die Figur, die du besonders magst.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsfigur"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsfigur"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsmutation',
+                'title' => 'Lieblingsmutation',
+                'description' => 'Trage den konkreten Namen deiner Lieblingsmutation ein.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsmutation"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsmutation"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsschauplatz',
+                'title' => 'Lieblingsschauplatz',
+                'description' => 'Wähle deinen bevorzugten Ort in der Serienwelt.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsschauplatz"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsschauplatz"]',
+                ],
+            ],
+            [
+                'key' => 'profile-field-lieblingsthema',
+                'title' => 'Lieblingsthema',
+                'description' => 'Wähle das Serienthema, das dich besonders interessiert.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-field-lieblingsthema"]',
+                    'mobile' => '[data-tour-profile-key="profile-field-lieblingsthema"]',
+                ],
+            ],
+            [
+                'key' => 'profile-series-save',
+                'title' => 'Angaben speichern',
+                'description' => 'Klicke auf Speichern und warte auf die Bestätigung. Weiterblättern allein speichert deine Eingaben nicht.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-series-save"]',
+                    'mobile' => '[data-tour-profile-key="profile-series-save"]',
+                ],
+            ],
+            [
+                'key' => 'profile-maddraxikon-baxx',
+                'title' => 'Maddraxikon & Baxx',
+                'description' => 'Hier kannst du freiwillig dein Wiki-Konto verknüpfen. Für den Tour-Abschluss ist keine Verknüpfung nötig.',
+                'required_target' => false,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
+                    'mobile' => '[data-tour-profile-key="profile-maddraxikon-baxx"]',
+                ],
+            ],
+            [
                 'key' => 'profile-password',
                 'title' => 'Passwort ändern',
-                'description' => 'Nutze diesen Bereich, wenn du dein Passwort erneuern oder nach einem Vorfall absichern möchtest.',
+                'description' => 'Hier kannst du dein Passwort erneuern. Für den Tour-Abschluss musst du es nicht ändern.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-password"]',
                     'mobile' => '[data-tour-profile-key="profile-password"]',
@@ -554,7 +683,8 @@ $tours = [
             [
                 'key' => 'profile-two-factor',
                 'title' => 'Zwei-Faktor-Authentisierung',
-                'description' => 'Hier aktivierst du einen zusätzlichen Sicherheitsfaktor, damit dein Zugang besser geschützt ist.',
+                'description' => 'Ein zusätzlicher Sicherheitsfaktor schützt dein Konto. Die Einrichtung ist keine Voraussetzung für diese Tour.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-two-factor"]',
                     'mobile' => '[data-tour-profile-key="profile-two-factor"]',
@@ -563,10 +693,21 @@ $tours = [
             [
                 'key' => 'profile-browser-sessions',
                 'title' => 'Browser-Sitzungen',
-                'description' => 'Über die Sitzungsübersicht erkennst du aktive Geräte und meldest fremde oder alte Logins ab.',
+                'description' => 'Hier erkennst und beendest du alte Sitzungen. Für die Tour ist keine Änderung nötig.',
+                'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-browser-sessions"]',
                     'mobile' => '[data-tour-profile-key="profile-browser-sessions"]',
+                ],
+            ],
+            [
+                'key' => 'profile-complete',
+                'title' => 'Profilpflege abschließen',
+                'description' => 'Prüfe, ob alle elf Angaben gespeichert sind. Fehlende Angaben kannst du ergänzen; mit Später bleibt dein Fortschritt erhalten.',
+                'required_target' => true,
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-complete"]',
+                    'mobile' => '[data-tour-profile-key="profile-complete"]',
                 ],
             ],
         ],

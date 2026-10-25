@@ -22,10 +22,12 @@
 
                     <div class="space-y-2">
                         <h2 id="tour-runner-title" class="font-display text-xl font-semibold text-base-content"></h2>
-                        <p id="tour-runner-description" class="text-sm leading-6 text-base-content/72"></p>
+                        <p id="tour-runner-description" class="text-sm leading-6 text-base-content"></p>
                     </div>
+                    <p id="tour-runner-reward" class="hidden rounded-xl border border-primary/40 bg-base-200 p-3 text-sm font-semibold"></p>
+                    <div id="tour-runner-error" class="hidden text-sm text-error" role="alert" tabindex="-1"></div>
 
-                    <div class="space-y-2">
+                    <div id="tour-runner-progress" class="space-y-2">
                         <div class="flex items-center justify-between text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/75">
                             <span>Fortschritt</span>
                             <span id="tour-runner-progress-label"></span>
@@ -35,13 +37,14 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="tour-runner-actions flex flex-wrap items-center justify-between gap-3">
                         <div class="flex flex-wrap gap-2">
                             <button id="tour-runner-skip" type="button" class="btn btn-ghost btn-sm">Später</button>
                             <button id="tour-runner-back" type="button" class="btn btn-ghost btn-sm">Zurück</button>
                         </div>
 
                         <div class="flex flex-wrap gap-2">
+                            <button id="tour-runner-start" type="button" class="btn btn-primary btn-sm hidden">Tour starten</button>
                             <button id="tour-runner-next" type="button" class="btn btn-primary btn-sm">
                                 <span>Weiter</span>
                                 <x-icon name="o-arrow-right" class="h-4 w-4" />

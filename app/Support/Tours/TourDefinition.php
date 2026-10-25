@@ -17,6 +17,8 @@ final readonly class TourDefinition
         public bool $autoAssignOnMemberApproval,
         public array $audience,
         public array $steps,
+        public string $startMode = 'automatic',
+        public ?string $entryRoute = null,
     ) {}
 
     /**
@@ -55,6 +57,8 @@ final readonly class TourDefinition
             autoAssignOnMemberApproval: (bool) ($config['auto_assign_on_member_approval'] ?? false),
             audience: array_values(array_filter($config['audience'] ?? [], static fn (mixed $value): bool => is_string($value) && $value !== '')),
             steps: $steps,
+            startMode: (string) ($config['start_mode'] ?? 'automatic'),
+            entryRoute: $config['entry_route'] ?? null,
         );
     }
 }

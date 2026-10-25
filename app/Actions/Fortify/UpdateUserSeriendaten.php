@@ -3,38 +3,42 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Services\Profile\SeriesProfileCompletion;
+use App\Services\Profile\SeriesProfileOptions;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UpdateUserSeriendaten
 {
+    public function __construct(private readonly SeriesProfileOptions $options) {}
+
     public function update(User $user, array $input): void
     {
-        Validator::make($input, [
-            'einstiegsroman' => ['nullable', 'string', 'max:255'],
-            'lesestand' => ['nullable', 'string', 'max:255'],
-            'lieblingsroman' => ['nullable', 'string', 'max:255'],
-            'lieblingsfigur' => ['nullable', 'string', 'max:255'],
-            'lieblingsmutation' => ['nullable', 'string', 'max:255'],
-            'lieblingsschauplatz' => ['nullable', 'string', 'max:255'],
-            'lieblingsautor' => ['nullable', 'string', 'max:255'],
-            'lieblingszyklus' => ['nullable', 'string', 'max:255'],
-            'lieblingsthema' => ['nullable', 'string', 'max:255'],
-            'lieblingshardcover' => ['nullable', 'string', 'max:255'],
-            'lieblingscover' => ['nullable', 'string', 'max:255'],
-        ])->validateWithBag('updateSeriendaten');
+        $options = $this->options->all();
+        DB::transaction(function () use ($user, $input, $options) {
+            $lockedUser = User::query()->lockForUpdate()->findOrFail($user->id);
+            $values = [];
+            $rules = [];
+            foreach (SeriesProfileCompletion::FIELDS as $field => $label) {
+                if (! array_key_exists($field, $input)) {
+                    continue;
+                }
+                $values[$field] = SeriesProfileCompletion::normalize($input[$field]);
+                $rules[$field] = ['nullable', 'string', 'max:255'];
+                if (array_key_exists($field, $options)) {
+                    $allowed = $options[$field];
+                    $existing = SeriesProfileCompletion::normalize($lockedUser->getAttribute($field));
+                    if ($existing !== null) {
+                        $allowed[] = $existing;
+                    }
+                    $rules[$field][] = Rule::in($allowed);
+                }
+            }
 
-        $user->forceFill([
-            'einstiegsroman' => $input['einstiegsroman'] ?? null,
-            'lesestand' => $input['lesestand'] ?? null,
-            'lieblingsroman' => $input['lieblingsroman'] ?? null,
-            'lieblingsfigur' => $input['lieblingsfigur'] ?? null,
-            'lieblingsmutation' => $input['lieblingsmutation'] ?? null,
-            'lieblingsschauplatz' => $input['lieblingsschauplatz'] ?? null,
-            'lieblingsautor' => $input['lieblingsautor'] ?? null,
-            'lieblingszyklus' => $input['lieblingszyklus'] ?? null,
-            'lieblingsthema' => $input['lieblingsthema'] ?? null,
-            'lieblingshardcover' => $input['lieblingshardcover'] ?? null,
-            'lieblingscover' => $input['lieblingscover'] ?? null,
-        ])->save();
+            Validator::make($values, $rules, [], SeriesProfileCompletion::FIELDS)->validateWithBag('updateSeriendaten');
+            $lockedUser->forceFill($values)->save();
+        });
+        $user->refresh();
     }
 }

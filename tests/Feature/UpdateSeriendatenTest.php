@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Profile\UpdateSeriendatenForm;
 use App\Models\User;
+use App\Services\Profile\SeriesProfileOptions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -45,6 +46,10 @@ class UpdateSeriendatenTest extends TestCase
 
     public function test_seriendaten_can_be_updated(): void
     {
+        $fields = ['einstiegsroman', 'lesestand', 'lieblingsroman', 'lieblingsfigur', 'lieblingsmutation', 'lieblingsschauplatz', 'lieblingsautor', 'lieblingszyklus', 'lieblingsthema', 'lieblingshardcover', 'lieblingscover'];
+        $options = array_combine($fields, array_map(fn ($value) => [$value], range('A', 'K')));
+        unset($options['lieblingsmutation']);
+        $this->mock(SeriesProfileOptions::class)->shouldReceive('all')->andReturn($options);
         $this->actingAs($user = User::factory()->create());
 
         Livewire::test(UpdateSeriendatenForm::class)

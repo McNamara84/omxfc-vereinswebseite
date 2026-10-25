@@ -5,9 +5,8 @@
 namespace App\Livewire\Profile;
 
 use App\Actions\Fortify\UpdateUserSeriendaten;
-use App\Enums\BookType;
-use App\Models\Book;
-use App\Services\MaddraxDataService;
+use App\Services\Profile\SeriesProfileCompletion;
+use App\Services\Profile\SeriesProfileOptions;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Mary\Traits\Toast;
@@ -36,52 +35,29 @@ class UpdateSeriendatenForm extends Component
 
     public function mount()
     {
-        $this->state = Auth::user()->only([
-            'einstiegsroman',
-            'lesestand',
-            'lieblingsroman',
-            'lieblingsfigur',
-            'lieblingsmutation',
-            'lieblingsschauplatz',
-            'lieblingsautor',
-            'lieblingszyklus',
-            'lieblingsthema',
-            'lieblingshardcover',
-            'lieblingscover',
-        ]);
-        $this->autoren = MaddraxDataService::getAutoren();
-        $this->zyklen = MaddraxDataService::getZyklen();
-        $this->romane = MaddraxDataService::getRomane();
-        $this->figuren = MaddraxDataService::getFiguren();
-        $this->schauplaetze = MaddraxDataService::getSchauplaetze();
-        $this->schlagworte = MaddraxDataService::getSchlagworte();
-        $this->hardcover = Book::where('type', BookType::MaddraxHardcover)
-            ->orderBy('roman_number')
-            ->get()
-            ->map(fn ($book) => ($book->roman_number ? $book->roman_number.' - ' : '').$book->title)
-            ->toArray();
+        $user = Auth::user();
+        $this->state = $user->only(array_keys(SeriesProfileCompletion::FIELDS));
+        $options = app(SeriesProfileOptions::class)->all();
+        foreach ($this->optionProperties() as $field => $property) {
+            $this->{$property} = $options[$field];
+        }
+    }
 
-        $romanCovers = collect($this->romane)
-            ->map(function ($roman) {
-                [$nummer, $titel] = explode(' - ', $roman, 2);
-
-                return 'MX '.$nummer.' '.$titel;
-            })
-            ->toArray();
-
-        $hardcoverCovers = Book::where('type', BookType::MaddraxHardcover)
-            ->whereNotNull('roman_number')
-            ->orderBy('roman_number')
-            ->get()
-            ->map(fn ($book) => 'HC '.$book->roman_number.' '.$book->title)
-            ->toArray();
-
-        $this->covers = array_merge($romanCovers, $hardcoverCovers);
+    private function optionProperties(): array
+    {
+        return [
+            'einstiegsroman' => 'romane', 'lieblingsautor' => 'autoren',
+            'lieblingszyklus' => 'zyklen', 'lieblingsfigur' => 'figuren',
+            'lieblingsschauplatz' => 'schauplaetze', 'lieblingsthema' => 'schlagworte',
+            'lieblingshardcover' => 'hardcover', 'lieblingscover' => 'covers',
+        ];
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)
     {
         $updater->update(Auth::user(), $this->state);
+        $this->state = Auth::user()->only(array_keys(SeriesProfileCompletion::FIELDS));
+        $this->dispatch('profile-series-saved');
         $this->toast(
             type: 'success',
             title: __('Gespeichert.'),
@@ -93,6 +69,30 @@ class UpdateSeriendatenForm extends Component
 
     public function render()
     {
-        return view('profile.update-seriendaten-form');
+        $options = [];
+        foreach ($this->optionProperties() as $field => $property) {
+            $options[$field] = $this->{$property};
+        }
+        $options['lesestand'] = $options['lieblingsroman'] = $this->romane;
+        $user = Auth::user()->fresh();
+        $unavailable = [];
+        foreach ($options as $field => &$values) {
+            if ($values === []) {
+                $unavailable[] = SeriesProfileCompletion::FIELDS[$field];
+            }
+            // Keep historical choices visible even if the current catalog lacks them.
+            $existing = $user->getAttribute($field);
+            if (filled($existing) && ! in_array($existing, $values, true)) {
+                $values[] = $existing;
+            }
+        }
+        unset($values);
+
+        return view('profile.update-seriendaten-form', [
+            'fields' => SeriesProfileCompletion::FIELDS,
+            'fieldOptions' => $options,
+            'unavailable' => $unavailable,
+            'completion' => app(SeriesProfileCompletion::class)->forUser($user),
+        ]);
     }
 }
