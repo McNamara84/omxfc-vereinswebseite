@@ -56,6 +56,24 @@ class TourControllerTest extends TestCase
             ->assertJsonCount(count(app(TourRegistry::class)->definition('hauptmenue')->steps), 'tour.steps');
     }
 
+    public function test_former_members_do_not_receive_profile_invitations_and_cannot_mutate_them(): void
+    {
+        $member = $this->createMember();
+        $profile = app(TourAssignmentService::class)->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+        $menu = $this->createPendingAssignment($member);
+        $this->actingAs($member)->getJson(route('touren.current'))->assertOk()
+            ->assertJsonPath('tour.assignment_id', $profile->id);
+
+        Team::membersTeam()->users()->detach($member);
+
+        $this->getJson(route('touren.current'))->assertOk()->assertJsonPath('tour.assignment_id', $menu->id);
+        foreach (['start', 'dismiss', 'resume', 'progress', 'complete'] as $action) {
+            $this->postJson(route('touren.'.$action, $profile), ['step_key' => 'profile-complete'])->assertForbidden();
+        }
+        $this->assertSame(TourAssignmentStatus::Pending, $profile->fresh()->status);
+        $this->assertNull($profile->fresh()->dismissed_at);
+    }
+
     public function test_current_conditionally_includes_cover_ratings_navigation_step(): void
     {
         config(['cover-ratings.enabled' => true]);

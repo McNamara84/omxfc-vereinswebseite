@@ -153,3 +153,30 @@ test('an already complete profile with old tour completion earns the new bonus',
     await expect(page.locator('#tour-runner-panel')).toBeHidden();
     expect(fixture('inspect', String(member.userId))).toMatchObject({ points: 5, grants: 1 });
 });
+
+test('completion recovers after the final progress request fails', async ({ page }) => {
+    test.setTimeout(90_000);
+    const member = fixture('complete');
+    await login(page, member.email);
+    await clickTourAction(page, 'start', 'starten');
+    await expect(page).toHaveURL(/\/user\/profile$/);
+    await advanceTo(page, 'Browser-Sitzungen');
+
+    let failed = false;
+    await page.route('**/touren/*/schritt', async route => {
+        if (!failed && route.request().postDataJSON()?.step_key === 'profile-complete') {
+            failed = true;
+            await route.fulfill({ status: 503, json: { message: 'Fortschritt vorübergehend nicht verfügbar.' } });
+        } else {
+            await route.continue();
+        }
+    });
+    await clickTourAction(page, 'next', 'schritt', 503);
+    await expect(page.locator('#tour-runner-title')).toHaveText('Profilpflege abschließen');
+    await expect(page.locator('#tour-runner-error')).toContainText('Fortschritt vorübergehend nicht verfügbar.');
+    expect(fixture('inspect', String(member.userId))).toMatchObject({ points: 0, grants: 0, completed: 'in_progress' });
+
+    await clickTourAction(page, 'complete', 'abschliessen');
+    await expect(page.locator('#tour-runner-panel')).toBeHidden();
+    expect(fixture('inspect', String(member.userId))).toMatchObject({ points: 5, grants: 1, completed: 'completed' });
+});

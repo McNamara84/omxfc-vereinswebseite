@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
 use App\Models\TourAssignment;
@@ -100,8 +101,10 @@ class TourAssignmentService
 
     public function currentPromptableAssignmentForUser(User $user, array $suppressedAssignmentIds = []): ?TourAssignment
     {
+        $memberRole = $user->mitgliederTeamRole();
         $assignments = TourAssignment::query()
             ->where('user_id', $user->id)
+            ->when($memberRole === null || $memberRole === Role::Anwaerter, fn ($query) => $query->where('tour_key', '!=', 'profilpflege'))
             ->whereIn('status', [
                 TourAssignmentStatus::Pending->value,
                 TourAssignmentStatus::InProgress->value,

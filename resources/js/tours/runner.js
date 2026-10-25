@@ -180,11 +180,19 @@ function logTourError(event, error, extra = {}) {
 }
 
 function runTourTask(label, task) {
+    let generation;
     void Promise.resolve()
-        .then(task)
+        .then(() => {
+            try {
+                return task();
+            } finally {
+                // Starting a fetch synchronously advances the generation itself.
+                generation = state.generation;
+            }
+        })
         .catch((error) => {
             logTourError(label, error);
-            renderTourError(error);
+            if (generation === state.generation) renderTourError(error);
         });
 }
 
@@ -771,6 +779,12 @@ async function completeTour() {
 
     const completeUrl = urlFor(templates.complete, state.payload.assignment_id);
     if (state.payload.profile) requireSavedProfile();
+
+    const step = state.steps[state.stepIndex];
+    if (step) {
+        await syncProgress(step.key);
+        if (generation !== state.generation) return;
+    }
 
     logTourDebug('complete:request', {
         url: completeUrl,

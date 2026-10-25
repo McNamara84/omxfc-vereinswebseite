@@ -10,6 +10,7 @@ use App\Models\TourAssignment;
 use App\Models\User;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class TourAssignmentServiceTest extends TestCase
@@ -124,5 +125,38 @@ class TourAssignmentServiceTest extends TestCase
         $this->assertNull($assignment->next_prompt_at);
         $this->assertNull($assignment->current_step_key);
         $this->assertSame([], $assignment->metadata);
+    }
+
+    #[TestWith([null, true])]
+    #[TestWith([null, false])]
+    #[TestWith([Role::Anwaerter, true])]
+    #[TestWith([Role::Anwaerter, false])]
+    public function test_ineligible_profile_tours_are_excluded_before_selection_and_upgrade(?Role $role, bool $outdated): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $service = app(TourAssignmentService::class);
+        $profile = $service->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+        $status = $outdated ? TourAssignmentStatus::Pending : TourAssignmentStatus::InProgress;
+        $profile->update(['tour_version' => $outdated ? 2 : config('tours.profilpflege.version'), 'status' => $status]);
+        $menu = $service->assignIfMissing($member, 'hauptmenue', TourAssignmentSource::System);
+
+        $team->users()->detach($member);
+        if ($role !== null) {
+            $team->users()->attach($member, ['role' => $role->value]);
+        }
+        // A privileged role in another active team does not confer membership.
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => Role::Admin->value]);
+        $member->update(['current_team_id' => $otherTeam->id]);
+
+        $this->assertSame($menu->id, $service->currentPromptableAssignmentForUser($member)?->id);
+        $this->assertNull($service->currentPromptableAssignmentForUser($member, [$menu->id]));
+        $this->assertSame($status, $profile->fresh()->status);
+        $this->assertSame(1, TourAssignment::where('user_id', $member->id)->where('tour_key', 'profilpflege')->count());
+
+        $team->users()->syncWithoutDetaching([$member->id => ['role' => Role::Mitglied->value]]);
+        $this->assertSame('profilpflege', $service->currentPromptableAssignmentForUser($member)?->tour_key);
     }
 }

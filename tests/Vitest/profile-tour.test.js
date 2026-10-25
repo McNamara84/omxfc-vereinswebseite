@@ -34,6 +34,13 @@ function payload() {
     };
 }
 
+function deferred() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+    return { promise, resolve, reject };
+}
+
 describe('profile tour presentation', () => {
     beforeEach(render);
     it('announces all reward conditions and handles already rewarded repeats', () => {
@@ -241,6 +248,111 @@ describe('profile tour workflow', () => {
         expect(window.toast).not.toHaveBeenCalled();
         expect(document.getElementById('tour-runner-start').classList.contains('hidden')).toBe(false);
         expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(false);
+        await click('tour-runner-start');
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
+    });
+
+    it.each(['start', 'complete', 'dismiss', 'progress'])('ignores a stale %s failure without replacing errors or stealing focus', async action => {
+        if (action === 'complete') await startAndFinish();
+        if (action === 'progress') await click('tour-runner-start');
+        const request = deferred();
+        const original = window.omxfcHttp.post.getMockImplementation();
+        window.omxfcHttp.post.mockImplementation((url, data) => url === `/12/${action}` ? request.promise : original(url, data));
+        const button = { dismiss: 'skip', progress: 'next' }[action] ?? action;
+        await click(`tour-runner-${button}`);
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith(`/12/${action}`, ...(action === 'progress' ? [{ step_key: 'profile-complete' }] : []));
+
+        tour = { ...payload(), assignment_id: 99 };
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        renderTourError(new Error('Aktueller Hinweis'));
+        document.getElementById('lieblingsmutation').focus();
+        request.reject(new Error('Veralteter Fehler'));
+        await flush();
+
+        expect(document.getElementById('tour-runner-error').textContent).toBe('Aktueller Hinweis');
+        expect(document.activeElement.id).toBe('lieblingsmutation');
+        expect(window.toast).not.toHaveBeenCalled();
+        await click('tour-runner-start');
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
+    });
+
+    it('ignores a superseded fetch failure after navigation', async () => {
+        const request = deferred();
+        window.omxfcHttp.get.mockImplementationOnce(() => request.promise);
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        tour = { ...payload(), assignment_id: 99 };
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        clearTourError();
+        document.getElementById('lieblingsmutation').focus();
+        request.reject(new Error('Veraltete Einladung'));
+        await flush();
+        expect(document.getElementById('tour-runner-error').classList.contains('hidden')).toBe(true);
+        expect(document.activeElement.id).toBe('lieblingsmutation');
+        await click('tour-runner-start');
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
+    });
+
+    it.each(['navigation', 'profile-save'])('shows a current fetch failure during %s despite the fetch incrementing its generation', async source => {
+        window.omxfcHttp.get.mockRejectedValueOnce(new Error('Einladung nicht erreichbar'));
+        if (source === 'navigation') document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        else window.dispatchEvent(new CustomEvent('profile-series-saved'));
+        await flush();
+        expect(document.getElementById('tour-runner-error').textContent).toBe('Einladung nicht erreichbar');
+        expect(document.activeElement.id).toBe('tour-runner-error');
+    });
+
+    it('retries failed final progress before completion and waits for the successful sync', async () => {
+        await click('tour-runner-start');
+        const retry = deferred();
+        const original = window.omxfcHttp.post.getMockImplementation();
+        let failures = 2;
+        window.omxfcHttp.post.mockImplementation(async (url, data) => {
+            if (url.endsWith('/progress') && data.step_key === 'profile-complete') {
+                if (failures-- > 0) throw new Error('Fortschritt offline');
+                await retry.promise;
+            }
+            return original(url, data);
+        });
+        await click('tour-runner-next');
+        expect(document.getElementById('tour-runner-title').textContent).toBe('Abschluss');
+        expect(tour.current_step_key).toBe('profile-field-lieblingsmutation');
+        window.omxfcHttp.post.mockClear();
+
+        await click('tour-runner-complete');
+        expect(window.omxfcHttp.post.mock.calls.map(([url]) => url)).toEqual(['/12/progress']);
+        expect(document.getElementById('tour-runner-error').textContent).toContain('Fortschritt offline');
+        expect(window.toast).not.toHaveBeenCalled();
+
+        await click('tour-runner-complete');
+        expect(document.getElementById('tour-runner-complete').disabled).toBe(true);
+        await click('tour-runner-complete');
+        expect(window.omxfcHttp.post.mock.calls.map(([url]) => url)).toEqual(['/12/progress', '/12/progress']);
+        retry.resolve();
+        await flush();
+        expect(tour.current_step_key).toBe('profile-complete');
+        expect(window.omxfcHttp.post.mock.calls.map(([url]) => url)).toEqual(['/12/progress', '/12/progress', '/12/complete']);
+        expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(true);
+        expect(window.toast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not complete a superseded assignment after its progress retry succeeds', async () => {
+        await click('tour-runner-start');
+        const retry = deferred();
+        const original = window.omxfcHttp.post.getMockImplementation();
+        window.omxfcHttp.post.mockRejectedValueOnce(new Error('Fortschritt offline'));
+        await click('tour-runner-next');
+        window.omxfcHttp.post.mockImplementation((url, data) => url === '/12/progress' ? retry.promise : original(url, data));
+        await click('tour-runner-complete');
+        tour = { ...payload(), assignment_id: 99 };
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        retry.resolve({ data: { tour: { ...payload(), current_step_key: 'profile-complete' } } });
+        await flush();
+        expect(window.omxfcHttp.post.mock.calls.some(([url]) => url.endsWith('/complete'))).toBe(false);
+        expect(window.toast).not.toHaveBeenCalled();
         await click('tour-runner-start');
         expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
     });
