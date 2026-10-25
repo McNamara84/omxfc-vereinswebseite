@@ -265,6 +265,91 @@ class TourControllerTest extends TestCase
         ]);
     }
 
+    #[TestWith([null])]
+    #[TestWith([1])]
+    public function test_resume_rejects_other_tours_without_mutating_assignments_or_session(?int $version): void
+    {
+        $member = $this->createMember();
+        $menu = $this->createPendingAssignment($member, $version);
+        $profile = app(TourAssignmentService::class)->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+        $before = $menu->fresh()->getAttributes();
+
+        $this->actingAs($member)->withSession([
+            TourAssignmentService::SESSION_ACTIVE_KEY => $profile->id,
+            TourAssignmentService::SESSION_SUPPRESSION_KEY => [$menu->id],
+        ])->post(route('touren.resume', $menu))->assertNotFound()
+            ->assertSessionHas(TourAssignmentService::SESSION_ACTIVE_KEY, $profile->id)
+            ->assertSessionHas(TourAssignmentService::SESSION_SUPPRESSION_KEY, [$menu->id]);
+
+        $this->assertSame($before, $menu->fresh()->getAttributes());
+        $this->assertSame(1, TourAssignment::where('user_id', $member->id)->where('tour_key', 'hauptmenue')->count());
+    }
+
+    public function test_resume_rejects_another_members_profile_tour(): void
+    {
+        $owner = $this->createMember();
+        $profile = app(TourAssignmentService::class)->assignIfMissing($owner, 'profilpflege', TourAssignmentSource::System);
+
+        $this->actingAs($this->createMember())->post(route('touren.resume', $profile))->assertForbidden();
+        $this->assertNull($profile->fresh()->started_at);
+    }
+
+    #[TestWith([null, false])]
+    #[TestWith([null, true])]
+    #[TestWith([Role::Anwaerter, false])]
+    #[TestWith([Role::Anwaerter, true])]
+    public function test_ineligible_users_cannot_create_or_reset_profile_tours(?Role $role, bool $existing): void
+    {
+        $member = $this->createMember();
+        $profile = $existing
+            ? app(TourAssignmentService::class)->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System)
+            : null;
+        $profile?->forceFill(['status' => TourAssignmentStatus::Completed, 'completed_at' => now()])->save();
+        $before = $profile?->fresh()->getAttributes();
+        if ($role === null) {
+            Team::membersTeam()->users()->detach($member);
+        } else {
+            Team::membersTeam()->users()->updateExistingPivot($member->id, ['role' => $role->value]);
+        }
+        // A privileged role in another selected team must not grant eligibility.
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => Role::Admin->value]);
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+        $suppressed = $profile ? [$profile->id] : [];
+
+        $this->actingAs($member->refresh())->withSession([
+            TourAssignmentService::SESSION_ACTIVE_KEY => 999,
+            TourAssignmentService::SESSION_SUPPRESSION_KEY => $suppressed,
+        ])->post(route('touren.restart', 'profilpflege'))->assertForbidden()
+            ->assertSessionHas(TourAssignmentService::SESSION_ACTIVE_KEY, 999)
+            ->assertSessionHas(TourAssignmentService::SESSION_SUPPRESSION_KEY, $suppressed);
+
+        $this->assertSame($existing ? 1 : 0, TourAssignment::where('user_id', $member->id)->where('tour_key', 'profilpflege')->count());
+        $this->assertSame($before, $profile?->fresh()->getAttributes());
+        $this->from(route('profile.show'))->post(route('touren.restart', 'hauptmenue'))->assertRedirect(route('profile.show'));
+    }
+
+    #[TestWith([Role::Mitwirkender])]
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([Role::Ehrenmitglied])]
+    #[TestWith([Role::Kassenwart])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Admin])]
+    public function test_eligible_member_roles_can_restart_the_profile_tour(Role $role): void
+    {
+        $member = $this->createMember();
+        Team::membersTeam()->users()->updateExistingPivot($member->id, ['role' => $role->value]);
+
+        $this->actingAs($member->refresh())->from(route('profile.show'))
+            ->post(route('touren.restart', 'profilpflege'))->assertRedirect(route('profile.show'));
+
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $member->id, 'tour_key' => 'profilpflege',
+            'status' => TourAssignmentStatus::Pending->value,
+            'assigned_via' => TourAssignmentSource::SelfService->value,
+        ]);
+    }
+
     public function test_restart_rejects_unknown_tour_key(): void
     {
         $member = $this->createMember();

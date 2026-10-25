@@ -115,10 +115,11 @@
             {{-- Serienspezifische Daten ergänzen --}}
             <x-ui.panel id="serienspezifische-daten" title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
                 @livewire('profile.update-seriendaten-form')
-                @if (($tourOverview ?? collect())->isNotEmpty())
-                <div class="mt-4 rounded-xl bg-base-200 p-4" data-tour-profile-key="profile-complete" tabindex="-1">
-                    <p>Für den Abschluss der Profilpflege-Tour müssen alle Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
-                </div>
+                @php($profileMemberRole = Auth::user()->mitgliederTeamRole())
+                @if (($tourOverview ?? collect())->isNotEmpty() && $profileMemberRole !== null && $profileMemberRole !== \App\Enums\Role::Anwaerter)
+                    <div class="mt-4 rounded-xl bg-base-200 p-4" data-tour-profile-key="profile-complete" tabindex="-1">
+                        <p>Für den Abschluss der Profilpflege-Tour müssen alle Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
+                    </div>
                 @endif
             </x-ui.panel>
 

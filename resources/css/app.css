@@ -521,12 +521,14 @@ body.cover-rating-session-open .website-feedback-root {
 }
 
 /* Leave the centered form field below the guide usable on narrow screens. */
-.tour-runner-panel[data-profile-tour="true"] {
-    top: 0.5rem;
-    bottom: auto;
-    max-height: 35dvh;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+@media (max-width: 767px) {
+    .tour-runner-panel[data-profile-tour="true"] {
+        top: 0.5rem;
+        bottom: auto;
+        max-height: 35dvh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
 }
 
 .tour-runner-panel[data-invitation="true"] {

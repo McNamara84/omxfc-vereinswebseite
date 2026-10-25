@@ -104,6 +104,7 @@ class TourController extends Controller
 
     public function resume(Request $request, TourAssignment $tourAssignment): RedirectResponse
     {
+        abort_unless($tourAssignment->tour_key === 'profilpflege', 404);
         $this->ensureOwnAssignment($request, $tourAssignment);
         $assignment = $this->tourAssignmentService->start($tourAssignment);
         $this->activateInSession($request, $assignment);
@@ -126,6 +127,7 @@ class TourController extends Controller
             ['tour_key' => ['required', 'string', Rule::in($this->selfServiceTourKeys())]],
         )->validate();
 
+        $this->ensureTourEligibility($request, $validated['tour_key']);
         $assignment = $this->tourAssignmentService->reassign(
             user: $request->user(),
             tourKey: $validated['tour_key'],
@@ -146,7 +148,12 @@ class TourController extends Controller
     private function ensureOwnAssignment(Request $request, TourAssignment $tourAssignment): void
     {
         abort_unless($request->user()->id === $tourAssignment->user_id, 403);
-        if ($tourAssignment->tour_key === 'profilpflege') {
+        $this->ensureTourEligibility($request, $tourAssignment->tour_key);
+    }
+
+    private function ensureTourEligibility(Request $request, string $tourKey): void
+    {
+        if ($tourKey === 'profilpflege') {
             $role = $request->user()->mitgliederTeamRole();
             abort_unless($role !== null && $role !== Role::Anwaerter, 403);
         }

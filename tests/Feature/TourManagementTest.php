@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
+use App\Models\Team;
 use App\Models\TourAssignment;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,6 +53,33 @@ class TourManagementTest extends TestCase
             ->get(route('profile.show'))
             ->assertOk()
             ->assertDontSeeText('Touren & Hilfestart');
+    }
+
+    #[TestWith([null])]
+    #[TestWith([Role::Anwaerter])]
+    #[TestWith([Role::Mitwirkender])]
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([Role::Ehrenmitglied])]
+    #[TestWith([Role::Kassenwart])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Admin])]
+    public function test_completion_note_requires_an_eligible_members_team_role(?Role $role): void
+    {
+        $member = $this->createUserWithRole($role ?? Role::Mitglied);
+        if ($role === null) {
+            Team::membersTeam()->users()->detach($member);
+        }
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => Role::Admin->value]);
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        $response = $this->actingAs($member->refresh())->get(route('profile.show'))->assertOk()
+            ->assertSeeText('Touren & Hilfestart')->assertSee('data-profile-series-form', escape: false);
+        if ($role !== null && $role !== Role::Anwaerter) {
+            $response->assertSee('data-tour-profile-key="profile-complete"', escape: false);
+        } else {
+            $response->assertDontSee('data-tour-profile-key="profile-complete"', escape: false);
+        }
     }
 
     #[TestWith([false])]
