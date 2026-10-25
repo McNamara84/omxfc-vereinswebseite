@@ -14,7 +14,7 @@ class SeriesProfileOptions
         $romane = MaddraxDataService::getRomane();
         $hardcovers = Book::where('type', BookType::MaddraxHardcover)->orderBy('roman_number')->get();
 
-        return [
+        $options = [
             'einstiegsroman' => $romane,
             'lesestand' => $romane,
             'lieblingsautor' => MaddraxDataService::getAutoren(),
@@ -29,5 +29,11 @@ class SeriesProfileOptions
             'lieblingsschauplatz' => MaddraxDataService::getSchauplaetze(),
             'lieblingsthema' => MaddraxDataService::getSchlagworte(),
         ];
+
+        // Catalog rows may lack metadata. Such gaps are not selectable favorites.
+        return array_map(fn (array $values): array => array_values(array_unique(array_filter(
+            array_map(SeriesProfileCompletion::normalize(...), $values),
+            static fn (mixed $value): bool => is_string($value) && $value !== '',
+        ))), $options);
     }
 }

@@ -12,7 +12,7 @@
         <div id="tour-runner-backdrop" class="tour-runner-backdrop hidden"></div>
         <div id="tour-runner-highlight" class="tour-runner-highlight hidden"></div>
 
-        <section id="tour-runner-panel" class="tour-runner-panel hidden" aria-label="Geführte Tour">
+        <section id="tour-runner-panel" class="tour-runner-panel hidden" aria-label="Geführte Tour" tabindex="0">
             <div class="card border border-base-content/10 bg-base-100/96 shadow-2xl backdrop-blur">
                 <div class="card-body gap-4">
                     <div class="flex items-center justify-between gap-3">

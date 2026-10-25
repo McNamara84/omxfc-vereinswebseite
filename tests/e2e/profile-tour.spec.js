@@ -3,11 +3,22 @@ import { spawnSync } from 'node:child_process';
 import { test, expect, clickAndWaitForLivewireUpdate } from './test-support.js';
 import { createPhpProcess } from './utils/php.js';
 
+test.afterEach(async ({ page }, testInfo) => {
+    if (testInfo.status !== testInfo.expectedStatus) {
+        const logs = await page.evaluate(() => window.__OMXFC_TOUR_DEBUG_LOGS__ ?? []).catch(() => []);
+        await testInfo.attach('tour-debug', { body: JSON.stringify(logs, null, 2), contentType: 'application/json' });
+    }
+});
+
 function fixture(...args) {
     const command = createPhpProcess(['tests/e2e/create-profile-tour-fixture.php', ...args], { env: process.env });
     const result = spawnSync(command.command, command.args, { env: process.env, shell: command.shell, encoding: 'utf8', windowsHide: true });
     if (result.error || result.status !== 0) throw new Error(result.stderr || result.error?.message || result.stdout);
-    return JSON.parse(result.stdout.trim());
+    try {
+        return JSON.parse(result.stdout.trim());
+    } catch (error) {
+        throw new Error(`Profile tour fixture returned invalid JSON:\n${result.stdout.trim()}`, { cause: error });
+    }
 }
 
 async function login(page, email) {
@@ -52,6 +63,7 @@ for (const mobile of [false, true]) {
         await expect(page.locator('[data-profile-series-completion]')).toContainText('11 von 11');
         await expect(page.locator('#tour-runner-reward')).toContainText('11 von 11');
         await advanceTo(page, 'Profilpflege abschließen');
+        await expect(page.locator('#tour-runner-complete')).toBeEnabled();
         const result = await new AxeBuilder({ page }).include('#tour-runner-panel').include('[data-profile-series-form]').withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
         expect(result.violations).toEqual([]);
         await page.locator('#tour-runner-complete').click();
@@ -59,7 +71,10 @@ for (const mobile of [false, true]) {
         expect(fixture('inspect', String(member.userId))).toMatchObject({ points: 5, grants: 1, completed: 'completed' });
         await page.reload();
         const card = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Profil pflegen', exact: true }) });
-        await card.getByRole('button', { name: 'Tour erneut starten' }).click();
+        await Promise.all([
+            page.waitForEvent('load'),
+            card.getByRole('button', { name: 'Tour erneut starten' }).click(),
+        ]);
         await expect(page.locator('#tour-runner-start')).toBeVisible();
         await expect(page.locator('#tour-runner-reward')).toContainText('bereits erhalten');
         await page.locator('#tour-runner-start').click();
@@ -78,7 +93,10 @@ test('incomplete tour remains open and Later can be resumed', async ({ page }) =
     await expect(page.locator('#tour-runner-panel')).toBeHidden();
     await page.goto('/user/profile');
     const card = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Profil pflegen', exact: true }) });
-    await card.getByRole('button', { name: 'Tour fortsetzen' }).click();
+    await Promise.all([
+        page.waitForEvent('load'),
+        card.getByRole('button', { name: 'Tour fortsetzen' }).click(),
+    ]);
     await advanceTo(page, 'Profilpflege abschließen');
     await page.locator('#tour-runner-complete').click();
     await expect(page.locator('#tour-runner-error')).toContainText('Lieblingsmutation');

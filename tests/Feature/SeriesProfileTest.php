@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Actions\Fortify\UpdateUserSeriendaten;
 use App\Livewire\Profile\UpdateSeriendatenForm;
 use App\Models\User;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use App\Services\Profile\SeriesProfileCompletion;
 use App\Services\Profile\SeriesProfileOptions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -20,6 +23,47 @@ class SeriesProfileTest extends TestCase
     {
         $options = array_fill_keys(array_diff(array_keys(SeriesProfileCompletion::FIELDS), ['lieblingsmutation']), []);
         $this->mock(SeriesProfileOptions::class)->shouldReceive('all')->andReturn(array_replace($options, $values));
+    }
+
+    public function test_catalog_options_exclude_missing_values_and_normalize_concrete_choices(): void
+    {
+        $this->catalog([
+            ['nummer' => 1, 'titel' => 'Roman ohne Metadaten'],
+            [
+                'nummer' => 2, 'titel' => 'Roman mit Metadaten', 'zyklus' => ' Zyklus ',
+                'text' => [null, '', "\u{00a0}", ' Autor ', 'Autor'],
+                'personen' => [null, 'Figur'], 'orte' => ['Ort', ''],
+                'schlagworte' => [null, '', 'Thema', '0', 42],
+            ],
+        ]);
+
+        $options = app(SeriesProfileOptions::class)->all();
+        $this->assertSame(['Autor'], $options['lieblingsautor']);
+        $this->assertSame(['Zyklus'], $options['lieblingszyklus']);
+        $this->assertSame(['Figur'], $options['lieblingsfigur']);
+        $this->assertSame(['Ort'], $options['lieblingsschauplatz']);
+        $this->assertSame(['0', 'Thema'], $options['lieblingsthema']);
+
+        $user = User::factory()->create();
+        app(UpdateUserSeriendaten::class)->update($user, ['lieblingsautor' => 'Autor', 'lieblingsthema' => 'Thema']);
+        $this->assertSame('Autor', $user->lieblingsautor);
+        $this->assertSame('Thema', $user->lieblingsthema);
+    }
+
+    public function test_catalog_with_only_missing_metadata_produces_empty_option_lists(): void
+    {
+        $this->catalog([['nummer' => 1, 'titel' => 'Roman ohne Metadaten']]);
+        $options = app(SeriesProfileOptions::class)->all();
+        foreach (['lieblingsautor', 'lieblingszyklus', 'lieblingsfigur', 'lieblingsschauplatz', 'lieblingsthema'] as $field) {
+            $this->assertSame([], $options[$field], $field);
+        }
+    }
+
+    private function catalog(array $rows): void
+    {
+        DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate(
+            (string) Str::uuid(), ['maddrax' => json_encode($rows, JSON_THROW_ON_ERROR)],
+        ));
     }
 
     public function test_optional_partial_save_preserves_other_fields_and_never_awards_baxx(): void
