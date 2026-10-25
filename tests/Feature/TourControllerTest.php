@@ -226,7 +226,8 @@ class TourControllerTest extends TestCase
         $this->actingAs($member)
             ->postJson(route('touren.complete', $assignment))
             ->assertOk()
-            ->assertJsonPath('completed', true);
+            ->assertJsonPath('completed', true)
+            ->assertJsonPath('reward', null);
 
         $this->assertDatabaseHas('tour_assignments', [
             'id' => $assignment->id,

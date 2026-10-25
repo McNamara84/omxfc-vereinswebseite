@@ -42,7 +42,7 @@ class UserPointModelTest extends TestCase
         ]);
     }
 
-    public function test_milestone_callback_tolerates_a_booking_or_user_deleted_before_locking(): void
+    public function test_milestone_callback_tolerates_a_user_deleted_before_locking(): void
     {
         $member = $this->createMember();
         $point = UserPoint::withoutEvents(fn () => UserPoint::create([
@@ -50,20 +50,38 @@ class UserPointModelTest extends TestCase
             'team_id' => $member->current_team_id,
             'points' => 5,
         ]));
-        // Simulate account removal between loading the booking and taking the lock.
-        UserPoint::retrieved(function (UserPoint $loaded) use ($point, $member): void {
-            if ($loaded->id === $point->id) {
-                User::whereKey($member->id)->delete();
-            }
-        });
+        // Keep existing model observers, but isolate this test's destructive listener.
+        $dispatcher = UserPoint::getEventDispatcher();
+        UserPoint::setEventDispatcher(clone $dispatcher);
+        try {
+            // Simulate account removal between loading the booking and taking the lock.
+            UserPoint::retrieved(function (UserPoint $loaded) use ($point, $member): void {
+                if ($loaded->id === $point->id) {
+                    User::whereKey($member->id)->delete();
+                }
+            });
 
-        $service = app(BaxxMilestoneActivityService::class);
-        $service->recordForUserPoint($point->id);
-        $service->recordForUserPoint($point->id);
+            $service = app(BaxxMilestoneActivityService::class);
+            $service->recordForUserPoint($point->id);
+            $service->recordForUserPoint($point->id);
+        } finally {
+            UserPoint::setEventDispatcher($dispatcher);
+        }
 
         $this->assertDatabaseMissing('user_points', ['id' => $point->id]);
         $this->assertDatabaseMissing('baxx_earning_progress', ['user_id' => $member->id]);
         $this->assertDatabaseMissing('activities', ['user_id' => $member->id, 'action' => 'baxx_milestone_reached_1']);
+
+        // A later test can reuse both IDs after its transaction is rolled back.
+        $replacement = User::factory()->create(['id' => $member->id, 'current_team_id' => $member->current_team_id]);
+        UserPoint::withoutEvents(fn () => UserPoint::forceCreate([
+            'id' => $point->id,
+            'user_id' => $replacement->id,
+            'team_id' => $member->current_team_id,
+            'points' => 5,
+        ]));
+        UserPoint::findOrFail($point->id);
+        $this->assertDatabaseHas('users', ['id' => $replacement->id]);
     }
 
     public function test_user_point_can_be_created(): void

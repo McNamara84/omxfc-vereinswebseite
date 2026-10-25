@@ -86,7 +86,8 @@ class TourController extends Controller
     {
         $this->ensureOwnAssignment($request, $tourAssignment);
 
-        $assignment = $this->tourAssignmentService->complete($tourAssignment);
+        $result = $this->tourAssignmentService->complete($tourAssignment);
+        $assignment = $result->assignment;
         $suppressedAssignmentIds = array_values(array_filter(
             $this->suppressedAssignmentIds($request),
             static fn (int $assignmentId): bool => $assignmentId !== $assignment->id,
@@ -97,7 +98,7 @@ class TourController extends Controller
 
         return response()->json([
             'completed' => true,
-            'reward' => $assignment->getAttribute('reward_result'),
+            'reward' => $result->reward,
         ]);
     }
 

@@ -1010,9 +1010,11 @@ document.addEventListener('livewire:navigated', () => {
     runTourTask('livewire:navigated', () => initTourRunner());
 });
 document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && state.payload && !state.actionBusy) {
-        runTourTask('escape', skipTour);
-    }
+    if (event.key !== 'Escape' || event.defaultPrevented || !state.payload || state.actionBusy || state.syncing) return;
+    if (!isElementVisible(document.getElementById('tour-runner-panel'))) return;
+
+    event.preventDefault();
+    document.getElementById('tour-runner-skip')?.click();
 });
 for (const eventName of ['input', 'change']) {
     document.addEventListener(eventName, event => {

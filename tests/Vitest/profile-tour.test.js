@@ -191,6 +191,89 @@ describe('profile tour workflow', () => {
         expect(window.omxfcHttp.post.mock.calls.some(([url]) => url.endsWith('/complete'))).toBe(false);
     });
 
+    it.each(['no steps', 'hidden ancestor'])('ignores Escape when the panel is hidden by %s', async reason => {
+        const style = document.createElement('style');
+        style.textContent = '.hidden { display: none; }';
+        document.body.append(style);
+        if (reason === 'no steps') {
+            tour.steps = [];
+            await click('tour-runner-start');
+            expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(true);
+        } else {
+            document.getElementById('tour-runner-root').style.display = 'none';
+        }
+        window.omxfcHttp.post.mockClear();
+        document.getElementById('lieblingsmutation').focus();
+        const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+        document.dispatchEvent(event);
+        await flush();
+
+        expect(window.omxfcHttp.post).not.toHaveBeenCalled();
+        expect(window.toast).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBe(false);
+        expect(document.activeElement.id).toBe('lieblingsmutation');
+    });
+
+    it('leaves an already handled Escape event to its original handler', async () => {
+        const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+        event.preventDefault();
+        document.dispatchEvent(event);
+        await flush();
+
+        expect(window.omxfcHttp.post).not.toHaveBeenCalled();
+        expect(window.toast).not.toHaveBeenCalled();
+        expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(false);
+    });
+
+    it('ignores Escape while a resumed tour is syncing progress', async () => {
+        const request = deferred();
+        tour = { ...tour, status: 'in_progress', active_in_session: true };
+        window.omxfcHttp.post.mockImplementationOnce(() => request.promise);
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith('/12/progress', { step_key: 'profile-field-lieblingsmutation' });
+        const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+        document.dispatchEvent(event);
+        await flush();
+        const callsWhileBusy = [...window.omxfcHttp.post.mock.calls];
+        request.resolve({ data: { tour: structuredClone(tour) } });
+        await flush();
+
+        expect(callsWhileBusy).toHaveLength(1);
+        expect(event.defaultPrevented).toBe(false);
+        expect(window.toast).not.toHaveBeenCalled();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        await flush();
+        expect(window.omxfcHttp.post).toHaveBeenLastCalledWith('/12/dismiss');
+    });
+
+    it('locks Escape dismissal while pending and permits a retry after failure', async () => {
+        const request = deferred();
+        window.omxfcHttp.post.mockImplementationOnce(() => request.promise);
+        const first = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+        const repeated = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+        document.dispatchEvent(first);
+        document.dispatchEvent(repeated);
+        await flush();
+        const callsWhileBusy = [...window.omxfcHttp.post.mock.calls];
+        const busy = document.getElementById('tour-runner-skip').disabled;
+        request.reject(new Error('Pause fehlgeschlagen'));
+        await flush();
+
+        expect(callsWhileBusy).toEqual([['/12/dismiss']]);
+        expect(busy).toBe(true);
+        expect(first.defaultPrevented).toBe(true);
+        expect(repeated.defaultPrevented).toBe(false);
+        expect(document.getElementById('tour-runner-error').textContent).toContain('Pause fehlgeschlagen');
+        expect(document.getElementById('tour-runner-skip').disabled).toBe(false);
+        expect(window.toast).not.toHaveBeenCalled();
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+        await flush();
+        expect(window.omxfcHttp.post).toHaveBeenCalledTimes(2);
+        expect(window.toast).toHaveBeenCalledTimes(1);
+        expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(true);
+    });
+
     it('disables navigation while progress is saving and accepts the next click afterwards', async () => {
         let release;
         const pending = new Promise(resolve => { release = resolve; });

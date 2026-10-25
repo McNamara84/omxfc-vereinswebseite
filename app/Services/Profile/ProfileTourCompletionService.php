@@ -9,6 +9,7 @@ use App\Services\Baxx\BaxxBookingWriter;
 use App\Services\LockedMembersTeamMemberships;
 use App\Services\MembersTeamMembershipLock;
 use App\Services\TourRegistry;
+use App\Support\Tours\TourCompletionResult;
 use Illuminate\Validation\ValidationException;
 
 final class ProfileTourCompletionService
@@ -24,9 +25,9 @@ final class ProfileTourCompletionService
         private readonly TourRegistry $registry,
     ) {}
 
-    public function complete(TourAssignment $assignment): TourAssignment
+    public function complete(TourAssignment $assignment): TourCompletionResult
     {
-        return $this->membershipLock->run([$assignment->user_id], function (LockedMembersTeamMemberships $memberships) use ($assignment): TourAssignment {
+        return $this->membershipLock->run([$assignment->user_id], function (LockedMembersTeamMemberships $memberships) use ($assignment): TourCompletionResult {
             abort_unless($memberships->isActiveMember($assignment->user_id), 403);
             $assignment = TourAssignment::query()->lockForUpdate()->findOrFail($assignment->id);
             abort_unless($assignment->tour_key === 'profilpflege', 409);
@@ -75,14 +76,11 @@ final class ProfileTourCompletionService
         });
     }
 
-    private function withResult(TourAssignment $assignment, int $points): TourAssignment
+    private function withResult(TourAssignment $assignment, int $points): TourCompletionResult
     {
-        // Transient response data; the durable proof lives in tour_reward_grants.
-        $assignment->setAttribute('reward_result', [
+        return new TourCompletionResult($assignment, [
             'status' => $points > 0 ? 'awarded' : 'already_awarded',
             'points_awarded' => $points,
         ]);
-
-        return $assignment;
     }
 }

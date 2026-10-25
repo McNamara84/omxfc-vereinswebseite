@@ -76,6 +76,34 @@ class ProfileTourCompletionTest extends TestCase
         }
     }
 
+    public function test_completion_results_keep_assignments_persistable_without_response_attributes(): void
+    {
+        $user = $this->member();
+        $assignment = $this->assignment($user);
+        $service = app(TourAssignmentService::class);
+
+        foreach (['first', 'retry', 'restart'] as $attempt) {
+            if ($attempt === 'restart') {
+                $service->reassign($user, 'profilpflege', TourAssignmentSource::SelfService);
+                $assignment = $this->assignment($user);
+            }
+
+            $result = $service->complete($assignment);
+            $this->assertSame([
+                'status' => $attempt === 'first' ? 'awarded' : 'already_awarded',
+                'points_awarded' => $attempt === 'first' ? 5 : 0,
+            ], $result->reward);
+            $this->assertTrue($result->assignment->is($assignment));
+            $this->assertSame(TourAssignmentStatus::Completed, $result->assignment->status);
+            $this->assertArrayNotHasKey('reward_result', $result->assignment->getAttributes());
+            $result->assignment->forceFill(['metadata' => ['completion_attempt' => $attempt]])->save();
+            $this->assertSame(['completion_attempt' => $attempt], $assignment->fresh()->metadata);
+        }
+
+        $this->assertSame(1, UserPoint::where('user_id', $user->id)->count());
+        $this->assertSame(1, TourRewardGrant::where('user_id', $user->id)->count());
+    }
+
     #[DataProvider('missingFields')]
     public function test_every_missing_saved_field_prevents_completion(string $field, ?string $value): void
     {

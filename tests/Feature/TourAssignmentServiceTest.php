@@ -17,6 +17,23 @@ class TourAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_unrewarded_completion_and_retry_return_persistable_assignments(): void
+    {
+        $member = User::factory()->create();
+        $service = app(TourAssignmentService::class);
+        $assignment = $service->assignIfMissing($member, 'hauptmenue', TourAssignmentSource::System);
+
+        foreach (['first', 'retry'] as $attempt) {
+            $result = $service->complete($assignment);
+            $this->assertNull($result->reward);
+            $this->assertTrue($result->assignment->is($assignment));
+            $this->assertSame(TourAssignmentStatus::Completed, $result->assignment->status);
+            $this->assertArrayNotHasKey('reward_result', $result->assignment->getAttributes());
+            $result->assignment->forceFill(['metadata' => ['completion_attempt' => $attempt]])->save();
+            $this->assertSame(['completion_attempt' => $attempt], $assignment->fresh()->metadata);
+        }
+    }
+
     public function test_current_promptable_assignment_upgrades_outdated_assignment_to_current_version(): void
     {
         $team = Team::membersTeam();

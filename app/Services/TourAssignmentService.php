@@ -10,6 +10,7 @@ use App\Models\TourRewardGrant;
 use App\Models\User;
 use App\Services\Profile\ProfileTourCompletionService;
 use App\Services\Profile\SeriesProfileCompletion;
+use App\Support\Tours\TourCompletionResult;
 use App\Support\Tours\TourDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -190,7 +191,7 @@ class TourAssignmentService
         });
     }
 
-    public function complete(TourAssignment $assignment): TourAssignment
+    public function complete(TourAssignment $assignment): TourCompletionResult
     {
         if ($assignment->tour_key === 'profilpflege') {
             return app(ProfileTourCompletionService::class)->complete($assignment);
@@ -199,7 +200,7 @@ class TourAssignmentService
         $assignment = $this->activeAssignment($assignment);
 
         if ($assignment->status === TourAssignmentStatus::Completed) {
-            return $assignment;
+            return new TourCompletionResult($assignment);
         }
 
         $assignment->forceFill([
@@ -209,7 +210,7 @@ class TourAssignmentService
             'next_prompt_at' => null,
         ])->save();
 
-        return $assignment->fresh();
+        return new TourCompletionResult($assignment->fresh());
     }
 
     /**

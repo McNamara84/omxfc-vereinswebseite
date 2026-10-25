@@ -69,7 +69,7 @@ async function submitTourForm(page, button) {
     expect(payload.tour.key).toBe('profilpflege');
     // Hydrating the full catalog and Livewire's second initialization can finish
     // after the first tour response, especially in Firefox.
-    await expect(page.locator('#tour-runner-panel')).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('#tour-runner-panel')).toBeVisible({ timeout: 30_000 });
 }
 
 async function dismissMenuTour(page) {
@@ -136,7 +136,9 @@ test('incomplete tour remains open and Later can be resumed', async ({ page }) =
     await submitTourForm(page, card.getByRole('button', { name: 'Tour fortsetzen' }));
     await advanceTo(page, 'Profilpflege abschließen');
     await clickTourAction(page, 'complete', 'abschliessen', 422);
-    await expect(page.locator('#tour-runner-error')).toContainText('Lieblingsmutation');
+    // Firefox can finish receiving the response before the page processes its
+    // validation errors; wait for the rendered feedback as well as the HTTP status.
+    await expect(page.locator('#tour-runner-error')).toContainText('Lieblingsmutation', { timeout: 30_000 });
     await page.locator('[data-tour-missing-field="lieblingsmutation"]').click();
     await expect(page.locator('#lieblingsmutation')).toBeFocused();
     expect(fixture('inspect', String(member.userId))).toMatchObject({ points: 0, grants: 0, completed: 'in_progress' });
