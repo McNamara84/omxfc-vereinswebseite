@@ -234,6 +234,10 @@ class TourAssignmentService
                     'is_completed' => $assignment?->status === TourAssignmentStatus::Completed,
                     'is_open' => $assignment?->status?->isOpen() ?? false,
                     'reward_received' => $definition->key === 'profilpflege' && $this->profileRewardReceived($user->id),
+                    ...($definition->key === 'profilpflege' ? [
+                        'reward_points' => ProfileTourCompletionService::POINTS,
+                        'profile_field_count' => count(SeriesProfileCompletion::FIELDS),
+                    ] : []),
                 ];
             })
             ->values();

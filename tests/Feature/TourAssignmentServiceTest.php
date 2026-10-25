@@ -8,6 +8,8 @@ use App\Enums\TourAssignmentStatus;
 use App\Models\Team;
 use App\Models\TourAssignment;
 use App\Models\User;
+use App\Services\Profile\ProfileTourCompletionService;
+use App\Services\Profile\SeriesProfileCompletion;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -16,6 +18,16 @@ use Tests\TestCase;
 class TourAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_profile_overview_exposes_the_central_reward_and_required_field_count(): void
+    {
+        $user = User::factory()->create();
+        $overview = app(TourAssignmentService::class)->selfServiceOverviewForUser($user)
+            ->firstWhere('definition.key', 'profilpflege');
+
+        $this->assertSame(ProfileTourCompletionService::POINTS, $overview['reward_points']);
+        $this->assertSame(count(SeriesProfileCompletion::FIELDS), $overview['profile_field_count']);
+    }
 
     public function test_unrewarded_completion_and_retry_return_persistable_assignments(): void
     {

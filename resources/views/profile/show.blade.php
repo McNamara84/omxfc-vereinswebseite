@@ -72,7 +72,11 @@
                                 <div class="mt-5 flex flex-wrap gap-2">
                                     @if ($tour['definition']->key === 'profilpflege')
                                         <p class="w-full text-sm font-semibold" data-profile-tour-reward>
-                                            {{ $tour['reward_received'] ? 'Die einmaligen 5 Baxx hast du bereits erhalten.' : 'Einmalig 5 Baxx: Alle 11 Serienangaben speichern und die Tour abschließen.' }}
+                                            @if ($tour['reward_received'])
+                                                Die einmaligen {{ $tour['reward_points'] }} Baxx hast du bereits erhalten.
+                                            @else
+                                                Einmalig {{ $tour['reward_points'] }} Baxx: Alle {{ $tour['profile_field_count'] }} Serienangaben speichern und die Tour abschließen.
+                                            @endif
                                         </p>
                                         @if ($tour['is_open'])
                                             <form method="POST" action="{{ route('touren.resume', $assignment) }}">
@@ -113,7 +117,7 @@
                 @livewire('profile.update-seriendaten-form')
                 @if (($tourOverview ?? collect())->isNotEmpty())
                 <div class="mt-4 rounded-xl bg-base-200 p-4" data-tour-profile-key="profile-complete" tabindex="-1">
-                    <p>Für den Abschluss der Profilpflege-Tour müssen alle 11 Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
+                    <p>Für den Abschluss der Profilpflege-Tour müssen alle Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
                 </div>
                 @endif
             </x-ui.panel>

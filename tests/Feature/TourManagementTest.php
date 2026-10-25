@@ -6,8 +6,10 @@ use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
 use App\Models\TourAssignment;
+use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -50,6 +52,25 @@ class TourManagementTest extends TestCase
             ->get(route('profile.show'))
             ->assertOk()
             ->assertDontSeeText('Touren & Hilfestart');
+    }
+
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function test_profile_reward_copy_uses_overview_amount_and_field_count(bool $rewardReceived): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+        $overview = app(TourAssignmentService::class)->selfServiceOverviewForUser($member)
+            ->firstWhere('definition.key', 'profilpflege');
+        $overview['reward_points'] = 9;
+        $overview['profile_field_count'] = 13;
+        $overview['reward_received'] = $rewardReceived;
+        $this->mock(TourAssignmentService::class)->shouldReceive('selfServiceOverviewForUser')
+            ->once()->withArgs(fn ($user) => $user->is($member))->andReturn(collect([$overview]));
+
+        $this->actingAs($member)->get(route('profile.show'))->assertOk()
+            ->assertSeeText($rewardReceived
+                ? 'Die einmaligen 9 Baxx hast du bereits erhalten.'
+                : 'Einmalig 9 Baxx: Alle 13 Serienangaben speichern und die Tour abschließen.');
     }
 
     public function test_vorstand_can_view_tour_admin_page(): void

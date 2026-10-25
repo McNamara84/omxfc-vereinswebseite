@@ -4,9 +4,10 @@ export function renderProfileReward(payload) {
     element.classList.toggle('hidden', !payload?.profile);
     if (!payload?.profile) return;
     const { filled, total } = payload.profile;
+    const points = payload.reward_points;
     element.textContent = payload.reward_received
-        ? `Die einmaligen 5 Baxx hast du bereits erhalten. ${filled} von ${total} Angaben gespeichert.`
-        : `Einmalig 5 Baxx verdienen: Alle ${total} Serienangaben speichern und diese Tour erfolgreich abschließen. ${filled} von ${total} Angaben gespeichert. Bereits ausgefüllte Angaben zählen mit.`;
+        ? `Die einmaligen ${points} Baxx hast du bereits erhalten. ${filled} von ${total} Angaben gespeichert.`
+        : `Einmalig ${points} Baxx verdienen: Alle ${total} Serienangaben speichern und diese Tour erfolgreich abschließen. ${filled} von ${total} Angaben gespeichert. Bereits ausgefüllte Angaben zählen mit.`;
 }
 
 export function renderTourError(error) {

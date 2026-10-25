@@ -229,7 +229,8 @@ class ProfileTourCompletionTest extends TestCase
         $assignment = $this->assignment($user, false);
         $this->actingAs($user)->getJson(route('touren.current'))->assertOk()
             ->assertJsonPath('tour.start_mode', 'invitation')->assertJsonPath('tour.active_in_session', false)
-            ->assertJsonPath('tour.profile.filled', 11)->assertJsonPath('tour.reward_received', false);
+            ->assertJsonPath('tour.profile.filled', 11)->assertJsonPath('tour.reward_received', false)
+            ->assertJsonPath('tour.reward_points', ProfileTourCompletionService::POINTS);
         $this->assertNull($assignment->fresh()->started_at);
         $this->postJson(route('touren.dismiss', $assignment))->assertOk();
         $this->getJson(route('touren.current'))->assertJsonPath('tour', null);

@@ -439,7 +439,7 @@ function updatePanel(step) {
     if (completeButton instanceof HTMLElement) {
         completeButton.classList.toggle('hidden', !isLastStep);
         completeButton.textContent = state.payload?.profile && !state.payload.reward_received
-            ? 'Tour abschließen und 5 Baxx erhalten' : 'Tour abschließen';
+            ? `Tour abschließen und ${state.payload.reward_points} Baxx erhalten` : 'Tour abschließen';
     }
 }
 
@@ -805,17 +805,19 @@ async function completeTour() {
     if (response.data?.completed !== true) {
         throw new Error('Der Tourabschluss wurde nicht bestätigt. Bitte versuche es erneut.');
     }
+    const reward = response.data?.reward;
+    const points = reward?.status === 'awarded' ? reward.points_awarded : state.payload.reward_points;
+    const receivedMessage = `Die einmaligen ${points} Baxx hast du bereits erhalten.`;
     hideRunner(true);
     logTourDebug('complete:success');
-    const reward = response.data?.reward;
     toast('success', 'Tour abgeschlossen', reward?.status === 'awarded'
-        ? '5 Baxx wurden dir gutgeschrieben.'
+        ? `${points} Baxx wurden dir gutgeschrieben.`
         : reward?.status === 'already_awarded'
-            ? 'Die einmaligen 5 Baxx hast du bereits erhalten.'
+            ? receivedMessage
             : 'Du kannst die Tour später im Profil erneut starten.');
     if (reward) {
         document.querySelectorAll('[data-profile-tour-reward]').forEach(element => {
-            element.textContent = 'Die einmaligen 5 Baxx hast du bereits erhalten.';
+            element.textContent = receivedMessage;
         });
     }
 }

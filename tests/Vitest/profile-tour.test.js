@@ -26,7 +26,8 @@ function render() {
 function payload() {
     return {
         assignment_id: 12, key: 'profilpflege', status: 'pending', start_mode: 'invitation', entry_url: '/user/profile',
-        active_in_session: false, reward_received: false, profile: { filled: 10, total: 11, missing: { lieblingsmutation: 'Lieblingsmutation' } },
+        active_in_session: false, reward_received: false, reward_points: 5,
+        profile: { filled: 10, total: 11, missing: { lieblingsmutation: 'Lieblingsmutation' } },
         steps: [
             { key: 'profile-field-lieblingsmutation', title: 'Lieblingsmutation', required_target: true, selectors: { desktop: '#lieblingsmutation', mobile: '#lieblingsmutation' } },
             { key: 'profile-complete', title: 'Abschluss', required_target: true, selectors: { desktop: '#profile-complete', mobile: '#profile-complete' } },
@@ -69,6 +70,15 @@ describe('profile tour presentation', () => {
         expect(document.getElementById('tour-runner-error').textContent).toBe('Neue Tour starten');
         renderTourError(null);
         expect(document.getElementById('tour-runner-error').textContent).toContain('fehlgeschlagen');
+    });
+
+    it.each([0, 9])('uses the payload amount of %i Baxx and field counts in both reward states', points => {
+        const tour = { ...payload(), reward_points: points, profile: { filled: 4, total: 13, missing: {} } };
+        const reward = document.getElementById('tour-runner-reward');
+        renderInvitation(tour);
+        expect(reward.textContent).toBe(`Einmalig ${points} Baxx verdienen: Alle 13 Serienangaben speichern und diese Tour erfolgreich abschließen. 4 von 13 Angaben gespeichert. Bereits ausgefüllte Angaben zählen mit.`);
+        renderInvitation({ ...tour, reward_received: true });
+        expect(reward.textContent).toBe(`Die einmaligen ${points} Baxx hast du bereits erhalten. 4 von 13 Angaben gespeichert.`);
     });
 
     it('requires saving dirty form inputs and tolerates absent markup', () => {
@@ -136,6 +146,25 @@ describe('profile tour workflow', () => {
         await click('tour-runner-complete');
         expect(window.toast).toHaveBeenCalledWith(expect.objectContaining({ toast: expect.objectContaining({ description: '5 Baxx wurden dir gutgeschrieben.' }) }));
         expect(document.getElementById('tour-runner-panel').classList.contains('hidden')).toBe(true);
+    });
+
+    it.each(['awarded', 'already_awarded'])('uses authoritative amounts after completion with reward status %s', async status => {
+        tour.reward_points = 9;
+        tour.reward_received = status === 'already_awarded';
+        completeResult.reward = { status, points_awarded: status === 'awarded' ? 7 : 0 };
+        const card = document.createElement('p');
+        card.dataset.profileTourReward = '';
+        document.body.append(card);
+        await startAndFinish();
+        expect(document.getElementById('tour-runner-complete').textContent).toBe(status === 'awarded'
+            ? 'Tour abschließen und 9 Baxx erhalten' : 'Tour abschließen');
+        await click('tour-runner-complete');
+
+        const received = `Die einmaligen ${status === 'awarded' ? 7 : 9} Baxx hast du bereits erhalten.`;
+        expect(window.toast).toHaveBeenCalledWith(expect.objectContaining({
+            toast: expect.objectContaining({ description: status === 'awarded' ? '7 Baxx wurden dir gutgeschrieben.' : received }),
+        }));
+        expect(card.textContent).toBe(received);
     });
 
     it('keeps an incomplete tour open, links to missing field and allows retry', async () => {
