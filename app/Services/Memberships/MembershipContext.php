@@ -48,8 +48,7 @@ final class MembershipContext
     public function freshForUserInTeam(User $user, Team $team): MembershipSnapshot
     {
         $this->track($user, $team);
-        $this->snapshots = [];
-        $this->stringMatches = [];
+        $this->reset();
 
         return $this->load($user, $team);
     }

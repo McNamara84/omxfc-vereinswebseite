@@ -7,6 +7,8 @@ use App\Models\Team;
 use App\Models\User;
 use App\Services\Memberships\MembershipContext;
 use App\Services\UserRoleService;
+use App\Support\Navigation\NavigationBuilder;
+use App\Support\Navigation\NavigationContext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -118,6 +120,26 @@ class MembershipContextTest extends TestCase
         $this->assertSame(Role::Mitglied, app(MembershipContext::class)->navigationRoles($user)['members']);
     }
 
+    public function test_navigation_build_reuses_team_data_in_a_cacheable_read_scope(): void
+    {
+        $user = $this->createUserWithRole(Role::Mitglied);
+        foreach (['AG Fanhörbücher', 'AG Maddraxikon'] as $name) {
+            $team = Team::factory()->create(['name' => $name, 'user_id' => $user->id, 'personal_team' => false]);
+            $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+        }
+        $this->assertTrue(app(NavigationContext::class)->canAccessMembers($user));
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $navigation = app(NavigationBuilder::class)->build($user);
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $section = collect($navigation['sections'])->firstWhere('title', 'Projekte & Mitmachen');
+        $this->assertNotNull($section);
+        $this->assertContains('AG verwalten', array_column($section['items'], 'title'));
+        $this->assertLessThanOrEqual(3, count($queries));
+    }
+
     public function test_connections_with_identical_ids_are_separate(): void
     {
         $user = $this->createUserWithRole(Role::Admin);
@@ -179,6 +201,30 @@ class MembershipContextTest extends TestCase
         $this->assertSame(Role::Admin, $user->role());
         $this->assertSame(Role::Mitglied, $context->freshForUserInTeam($user, $team)->role);
         $this->assertSame(Role::Mitglied, $user->role());
+    }
+
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([null])]
+    public function test_fresh_read_prevents_navigation_from_restoring_revoked_roles(?Role $newRole): void
+    {
+        $user = $this->createUserWithRole(Role::Admin);
+        $copy = $user->fresh();
+        $team = Team::membersTeam();
+        $context = app(MembershipContext::class);
+        $this->assertSame(Role::Admin, $context->navigationRoles($user)['current']);
+        $this->assertSame(Role::Admin, $context->navigationRoles($copy)['members']);
+
+        // Bypass model events to reproduce a change discovered by an explicit fresh read.
+        $membership = DB::table('team_user')->where('team_id', $team->id)->where('user_id', $user->id);
+        $newRole ? $membership->update(['role' => $newRole->value]) : $membership->delete();
+        $this->assertSame($newRole, $context->freshForUserInTeam($copy, $team)->role);
+
+        $this->assertSame($newRole, $context->navigationRoles($user)['current']);
+        $this->assertSame($newRole, $context->navigationRoles($copy)['members']);
+        $this->assertSame($newRole, $user->role());
+        $this->assertSame($newRole, $copy->mitgliederTeamRole());
+        $this->assertFalse($user->hasRole(Role::Admin));
+        $this->assertFalse($team->hasUserWithRole($copy, Role::Admin->value));
     }
 
     public function test_fresh_scope_keeps_raw_sql_and_named_membership_checks_current(): void

@@ -130,8 +130,9 @@ Die reproduzierbaren Rohdaten und Quellhashes stehen in
 
 Diese Coverage-Zahlen gelten für die genannten Anwendungsklassen im erfolgreichen
 Xdebug-Fachlauf. Sie sind keine Aussage über die Gesamtprojekt-Coverage oder die
-vollständige Zweigabdeckung. Die Quellhashes der gemessenen Klassen stimmen mit
-den Dateien des Arbeitsstands überein. Die bestehenden Coverage-Baselines und
+vollständige Zweigabdeckung. Die Quellhashes der gemessenen Klassen dokumentieren
+den ursprünglichen Refactoringstand (`afdf95bc`). Nachfolgende Review-Korrekturen
+werden unten gesondert ausgewiesen. Die bestehenden Coverage-Baselines und
 CI-Prüfungen wurden nicht abgesenkt oder verändert.
 
 ### Datenbankzugriffe
@@ -183,6 +184,46 @@ Der ergänzte Chromium-Fall wechselt von einem Admin im Mitglieder-Team zu einer
 AG mit Mitwirkendenrolle. Er prüft sowohl die Navigation als auch den verweigerten
 Direktzugriff auf die Verwaltungsstatistik und den weiterhin erlaubten Zugriff
 auf die ausdrücklich an das Mitglieder-Team gebundene Veranstaltungsverwaltung.
+
+## Erste Code-Review-Runde
+
+Der Befund zur expliziten frischen Rollenabfrage wurde bestätigt und behoben.
+Zuvor leerte `freshForUserInTeam()` nur die Snapshot- und String-Caches. Bereits
+geladene `teams`-Relationen konnten anschließend die alte Rolle wieder in den
+Snapshot-Cache der Navigation eintragen. Das war auch nach dem Entzug einer
+Adminrolle oder dem Löschen der Mitgliedschaft möglich.
+
+Der frische Lesezugriff registriert weiterhin zuerst die übergebenen Modelle und
+ruft danach `reset()` auf. Dadurch werden auch der Mitglieder-Team-Verweis und
+die Relationen aller beobachteten Modellinstanzen verworfen, bevor die
+Mitgliedschaft neu aus der Datenbank gelesen wird.
+
+Der Regressionstest lädt zunächst die Navigation zweier Instanzen desselben
+Benutzers, ändert die Pivot-Zeile per SQL ohne Modellereignisse und liest die
+Mitgliedschaft ausdrücklich frisch. Anschließende Navigations-, Rollen- und
+Bool-Prüfungen dürfen keine Adminrechte wiederherstellen. Die Varianten prüfen
+eine Herabstufung zum Mitglied und das vollständige Entfernen der Zuordnung.
+Der Test schlug auf dem ursprünglichen Code an der erneuten Navigation fehl.
+
+Die vollständige Relationsinvalidierung erfordert innerhalb einer Transaktion
+zusätzliche aktuelle Teamabfragen für die Autorisierung. Der bisherige
+Navigationstest verwendet `RefreshDatabase` und begrenzt diesen Pfad deshalb
+jetzt auf sechs Abfragen. Ein zusätzlicher Integrationstest ohne äußere
+Testtransaktion erhält das bisherige Limit von höchstens drei Abfragen im
+cachefähigen Lesekontext. Die gezielten Kontext-, Lifecycle-, Navigations- und
+Rollenprüfungen bestehen mit 159 Tests und 1.298 Assertions.
+
+Der erfolgreiche Xdebug-Lauf besteht mit 53 Tests und 392 Assertions.
+`MembershipContext` erreicht nach der Korrektur 103/103 ausführbare Zeilen und
+17/17 vollständig abgedeckte Methoden. Snapshot, Middleware und Rollenadapter
+bleiben ebenfalls bei 100 % Zeilenabdeckung. Die drei geänderten PHP-Dateien
+bestehen die Prüfung mit Laravel Pint.
+
+Die abschließende PHP-Gesamtsuite besteht mit 4.217 Tests und 20.358 Assertions;
+59 umgebungsabhängige Fälle werden übersprungen.
+
+Die obenstehenden Benchmarkwerte dokumentieren weiterhin den ursprünglichen
+Refactoringstand; sie wurden für diese Review-Korrektur nicht neu gemessen.
 
 ## Reproduktion
 
