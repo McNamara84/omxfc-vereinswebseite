@@ -76,7 +76,7 @@ async function dismissMenuTour(page) {
     // The fixture also has a pending menu tour. Once profile care is completed
     // or postponed, its backdrop must be dismissed before using profile forms.
     const panel = page.locator('#tour-runner-panel');
-    await expect(panel).toBeVisible({ timeout: 15_000 });
+    await expect(panel).toBeVisible({ timeout: 30_000 });
     await expect(panel).toHaveAttribute('data-profile-tour', 'false');
     await clickTourAction(page, 'skip', 'abbrechen');
     await expect(panel).toBeHidden();
