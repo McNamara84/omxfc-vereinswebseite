@@ -14,7 +14,6 @@ use App\Support\Tours\TourCompletionResult;
 use App\Support\Tours\TourDefinition;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class TourAssignmentService
@@ -278,7 +277,7 @@ class TourAssignmentService
 
     private function profileRewardReceived(int $userId): bool
     {
-        return Schema::hasTable('tour_reward_grants') && TourRewardGrant::query()
+        return TourRewardGrant::query()
             ->where('user_id', $userId)->where('reward_key', ProfileTourCompletionService::REWARD_KEY)->exists();
     }
 

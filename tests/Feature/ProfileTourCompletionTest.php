@@ -14,9 +14,12 @@ use App\Services\Profile\ProfileTourCompletionService;
 use App\Services\Profile\SeriesProfileCompletion;
 use App\Services\TourAssignmentService;
 use App\Services\TourRegistry;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use RuntimeException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -73,6 +76,52 @@ class ProfileTourCompletionTest extends TestCase
             foreach ([null, '', " \t\n\u{00a0}"] as $index => $value) {
                 yield $field.'-'.$index => [$field, $value];
             }
+        }
+    }
+
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function test_reward_status_reads_grants_without_schema_lookups(bool $rewardReceived): void
+    {
+        $user = $this->member();
+        $assignment = $this->assignment($user);
+        $service = app(TourAssignmentService::class);
+        if ($rewardReceived) {
+            $service->complete($assignment);
+        }
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+        try {
+            $overview = $service->selfServiceOverviewForUser($user)->firstWhere('definition.key', 'profilpflege');
+            $payload = $service->payloadForAssignment($assignment);
+            $this->assertSame($rewardReceived, $overview['reward_received']);
+            $this->assertSame($rewardReceived, $payload['reward_received']);
+            $schemaQueries = collect(DB::getQueryLog())->pluck('query')->filter(
+                fn (string $sql) => preg_match('/sqlite_(?:master|schema)|information_schema|pg_catalog|pragma/i', $sql),
+            );
+            $this->assertEmpty($schemaQueries, 'Building reward status must not query schema metadata.');
+        } finally {
+            DB::disableQueryLog();
+            DB::flushQueryLog();
+        }
+    }
+
+    #[TestWith(['overview'])]
+    #[TestWith(['payload'])]
+    public function test_missing_reward_grants_migration_is_not_reported_as_unrewarded(string $surface): void
+    {
+        $user = $this->member();
+        $assignment = $this->assignment($user, false);
+        Schema::drop('tour_reward_grants');
+
+        $this->expectException(QueryException::class);
+        $this->expectExceptionMessage('tour_reward_grants');
+        $service = app(TourAssignmentService::class);
+        if ($surface === 'overview') {
+            $service->selfServiceOverviewForUser($user);
+        } else {
+            $service->payloadForAssignment($assignment);
         }
     }
 

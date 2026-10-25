@@ -13,11 +13,25 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class SeriesProfileTest extends TestCase
 {
     use RefreshDatabase;
+
+    #[TestWith([8])]
+    #[TestWith([13])]
+    public function test_series_form_copy_uses_the_computed_completion_total(int $total): void
+    {
+        $this->view('profile.update-seriendaten-form', [
+            'fields' => [],
+            'fieldOptions' => [],
+            'unavailable' => [],
+            'completion' => ['filled' => 4, 'total' => $total, 'missing' => []],
+        ])->assertSeeText("4 von {$total} Angaben gespeichert.")
+            ->assertSeeText("Für den Abschluss der Profilpflege-Tour müssen alle {$total} Felder ausgefüllt und gespeichert sein.");
+    }
 
     private function stubOptions(array $values = []): void
     {

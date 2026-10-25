@@ -1,7 +1,7 @@
 <div data-profile-series-form>
     <p class="mb-4 text-sm" aria-live="polite" data-profile-series-completion>
         {{ $completion['filled'] }} von {{ $completion['total'] }} Angaben gespeichert.
-        Die Angaben sind freiwillig. Für den Abschluss der Profilpflege-Tour müssen alle 11 Felder ausgefüllt und gespeichert sein.
+        Die Angaben sind freiwillig. Für den Abschluss der Profilpflege-Tour müssen alle {{ $completion['total'] }} Felder ausgefüllt und gespeichert sein.
     </p>
     @if ($unavailable !== [])
         <p class="mb-4 text-sm text-warning" role="status">Einige Auswahllisten sind derzeit nicht verfügbar: {{ implode(', ', $unavailable) }}. Vorhandene Angaben bleiben erhalten. Bitte versuche es später erneut.</p>
