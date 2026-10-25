@@ -11,6 +11,7 @@ use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
+use App\Services\Memberships\MembershipContext;
 use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
 use App\Support\Navigation\NavigationContext;
@@ -29,7 +30,13 @@ use App\View\Components\NavigationMenuSub;
 use App\View\Components\NavigationSpotlight;
 use App\View\Components\NavigationThemeToggle;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandFinished;
 use Illuminate\Console\Events\CommandStarting;
+use Illuminate\Database\Events\TransactionBeginning;
+use Illuminate\Database\Events\TransactionCommitted;
+use Illuminate\Database\Events\TransactionRolledBack;
+use Illuminate\Queue\Events\JobExceptionOccurred;
+use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
@@ -60,6 +67,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->scoped(MembershipContext::class);
         if (! Route::hasMacro('livewire')) {
             Route::macro('livewire', function (string $uri, string $component) {
                 return Route::get($uri, $component);
@@ -72,6 +80,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Livewire::listen('request', function () {
+            app(MembershipContext::class)->reset();
+
+            return fn () => app(MembershipContext::class)->reset();
+        });
+        Event::listen([
+            CommandStarting::class,
+            CommandFinished::class,
+            JobProcessing::class,
+            JobProcessed::class,
+            JobExceptionOccurred::class,
+            TransactionBeginning::class,
+            TransactionCommitted::class,
+            TransactionRolledBack::class,
+        ], fn () => app(MembershipContext::class)->reset());
         Event::listen(CommandStarting::class, function (CommandStarting $event): void {
             $executionId = (string) Str::uuid();
             $executionType = str_starts_with((string) $event->command, 'schedule:')

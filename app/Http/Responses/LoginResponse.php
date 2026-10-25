@@ -12,7 +12,7 @@ class LoginResponse implements LoginResponseContract
     {
         $user = Auth::user();
 
-        if ($user->currentTeam && $user->currentTeam->users()->where('user_id', $user->id)->wherePivot('role', Role::Anwaerter->value)->exists()) {
+        if ($user->currentTeam && $user->currentTeam->hasUserWithRole($user, Role::Anwaerter->value)) {
             Auth::logout();
 
             return redirect()->route('login')->withErrors([

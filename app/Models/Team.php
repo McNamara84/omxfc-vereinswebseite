@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Role;
+use App\Services\Memberships\MembershipContext;
 use App\Services\RpgCheckLifecycle;
 use App\Services\RpgCombat\CombatLifecycle;
 use Carbon\Carbon;
@@ -26,6 +27,7 @@ use Laravel\Jetstream\Team as JetstreamTeam;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Todo> $todos
  * @property-read Collection<int, UserPoint> $userPoints
+ * @property-read Membership|null $membership
  */
 class Team extends JetstreamTeam
 {
@@ -81,10 +83,7 @@ class Team extends JetstreamTeam
      */
     public function hasUserWithRole(User $user, string $role): bool
     {
-        return $this->users()
-            ->where('user_id', $user->id)
-            ->wherePivot('role', $role)
-            ->exists();
+        return app(MembershipContext::class)->hasRawRole($user, $this, $role);
     }
 
     /**
@@ -173,6 +172,7 @@ class Team extends JetstreamTeam
     public static function clearMembersTeamCache(): void
     {
         self::$resolvedMembersTeam = null;
+        app(MembershipContext::class)->reset();
 
         Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
         Cache::forget(self::MEMBERS_TEAM_ID_CACHE_KEY);
@@ -180,9 +180,15 @@ class Team extends JetstreamTeam
 
     protected static function booted(): void
     {
+        static::retrieved(fn (self $team) => app(MembershipContext::class)->track($team));
+        static::created(function (self $team): void {
+            app(MembershipContext::class)->track($team);
+            app(MembershipContext::class)->invalidateTeam((int) $team->id);
+        });
         static::deleting(fn (self $team) => app(RpgCheckLifecycle::class)->team($team->id));
         static::deleting(fn (self $team) => app(CombatLifecycle::class)->team($team->id));
         static::updated(function (self $team) {
+            app(MembershipContext::class)->invalidateTeam((int) $team->id, $team);
             if ($team->wasChanged('user_id') || $team->wasChanged('name')) {
                 app(CombatLifecycle::class)->leadership($team->id);
             }
@@ -195,6 +201,7 @@ class Team extends JetstreamTeam
         });
 
         static::deleted(function (self $team) {
+            app(MembershipContext::class)->invalidateTeam((int) $team->id);
             if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
                 self::clearMembersTeamCache();
             }

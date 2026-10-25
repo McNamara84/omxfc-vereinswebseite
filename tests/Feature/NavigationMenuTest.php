@@ -268,7 +268,7 @@ class NavigationMenuTest extends TestCase
         $this->assertStringNotContainsString(route('admin.auktionen.index'), $navigationHtml);
     }
 
-    public function test_navigation_builder_loads_team_visibility_state_only_once_per_build(): void
+    public function test_navigation_builder_has_bounded_queries_with_fresh_transactional_role_reads(): void
     {
         $user = $this->createUserWithRole(Role::Mitglied);
         $audioTeam = Team::factory()->create([
@@ -300,7 +300,9 @@ class NavigationMenuTest extends TestCase
 
         $this->assertNotNull($teamsSection);
         $this->assertSame(['Challenges & Baxx', 'Belohnungen einlösen', 'Fanhörbücher (EARDRAX)', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
-        $this->assertLessThanOrEqual(3, count($queries));
+        // RefreshDatabase keeps this build in a transaction: the fresh role read
+        // also clears relations, so authorization must reload its team data.
+        $this->assertLessThanOrEqual(6, count($queries));
     }
 
     public function test_member_sidebar_entries_have_explicit_icons(): void

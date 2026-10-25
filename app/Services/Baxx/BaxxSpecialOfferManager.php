@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\BaxxEarningRule;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\User;
+use App\Services\Memberships\MembershipContext;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ final class BaxxSpecialOfferManager
 
     public function save(User $actor, string $actionKey, array $data, ?int $id, string $fieldPrefix): Model
     {
-        abort_unless($actor->hasRole(Role::Admin), 403);
+        abort_unless(app(MembershipContext::class)->runFresh(fn () => $actor->hasRole(Role::Admin)), 403);
 
         return DB::transaction(function () use ($actionKey, $data, $id, $fieldPrefix): Model {
             $this->lockRules($actionKey);
@@ -46,7 +47,7 @@ final class BaxxSpecialOfferManager
 
     public function toggle(User $actor, string $actionKey, int $id, string $fieldPrefix): string
     {
-        abort_unless($actor->hasRole(Role::Admin), 403);
+        abort_unless(app(MembershipContext::class)->runFresh(fn () => $actor->hasRole(Role::Admin)), 403);
 
         return DB::transaction(function () use ($actionKey, $id, $fieldPrefix): string {
             $this->lockRules($actionKey);

@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureVorstand;
 use App\Http\Middleware\EnsureVorstandOrKassenwart;
 use App\Http\Middleware\LogPageVisit;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Http\Middleware\ResetMembershipContext;
 use App\Http\Middleware\SecureMaddraxikonOAuthCallbackResponse;
 use App\Http\Middleware\TrackWebsiteFeedbackSession;
 use App\Http\Middleware\UpdateLastActivity;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->prepend(ResetMembershipContext::class);
         $middleware->prepend(AssignLogCorrelationId::class);
 
         // Trusted Proxies konfigurierbar via ENV (Default: '*' für Docker-Setup)

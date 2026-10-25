@@ -53,6 +53,45 @@ class MembersTeamMembershipMariaDbConcurrencyTest extends TestCase
 
     private bool $committedTestDatabase = false;
 
+    public function test_cached_role_cannot_override_demotion_committed_by_an_independent_process(): void
+    {
+        $this->requireSafeMariaDbTestDatabase();
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+        DB::commit();
+        $this->committedTestDatabase = true;
+        $this->assertSame(Role::Mitglied, $user->role());
+        $holder = $this->startWorker('hold-demotion', $user->id, 0);
+        try {
+            $locked = $this->readWorkerResult($holder, 10);
+            $this->assertSame('demotion_locked', $locked['event'] ?? null);
+            $this->sendWorkerCommand($holder, 'COMMIT');
+            $this->assertSame(0, $this->finishWorker($holder));
+        } finally {
+            $this->terminateWorker($holder);
+        }
+        app(MembersTeamMembershipLock::class)->run([$user->id], function ($members) use ($user): void {
+            $this->assertSame(Role::Anwaerter, $members->role($user->id));
+            $this->assertFalse($members->isActiveMember($user->id));
+            $this->assertSame(Role::Anwaerter, $user->role());
+        });
+    }
+
+    public function test_raw_role_adapter_preserves_mariadb_collation(): void
+    {
+        $this->requireSafeMariaDbTestDatabase();
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        foreach (['admin', 'Admin ', 'Gast', Role::Admin->value] as $rawRole) {
+            $team->users()->syncWithoutDetaching([$user->id => ['role' => $rawRole]]);
+            foreach (['Admin', 'admin', 'Admin ', 'Gast', Role::Mitglied->value] as $expected) {
+                $original = $team->users()->where('user_id', $user->id)->wherePivot('role', $expected)->exists();
+                $this->assertSame($original, $team->hasUserWithRole($user, $expected), "{$rawRole} / {$expected}");
+            }
+        }
+    }
+
     public function test_pending_demotion_serializes_against_maddraxikon_reward_decision(): void
     {
         $this->requireSafeMariaDbTestDatabase();

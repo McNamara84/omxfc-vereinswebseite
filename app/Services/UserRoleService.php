@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Enums\Role;
-use App\Models\Membership;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Memberships\MembershipContext;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserRoleService
@@ -17,15 +17,13 @@ class UserRoleService
      */
     public function getRole(User $user, Team $team): Role
     {
-        $membership = Membership::where('team_id', $team->id)
-            ->where('user_id', $user->id)
-            ->first();
+        $membership = app(MembershipContext::class)->forUserInTeam($user, $team);
 
-        if (! $membership) {
+        if (! $membership->exists) {
             throw new ModelNotFoundException('Team membership not found.');
         }
 
-        $role = Role::tryFrom($membership->role);
+        $role = $membership->role;
 
         if (! $role) {
             throw new ModelNotFoundException('Role not found for user in team.');

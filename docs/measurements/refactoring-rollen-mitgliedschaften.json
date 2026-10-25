@@ -1,0 +1,3138 @@
+{
+  "measuredAt": "2026-10-25",
+  "baselineCommit": "ef37fd219de99fe69b01e10c80225577a2e88cb4",
+  "environment": {
+    "image": "omxfc-test-php:local",
+    "php": "8.5.12",
+    "database": "SQLite :memory:",
+    "cache": "array",
+    "warmupRounds": 1,
+    "measurementRounds": 10,
+    "parallelTestLoadDuringMeasurements": false
+  },
+  "harness": "tests/Performance/MembershipContextBenchmark.php",
+  "notes": [
+    "Before data was captured from the original application before implementing the shared context.",
+    "Navigation measures an HTTP page followed by an explicit navigation build and search; Livewire measures mount and sort.",
+    "Membership queries include any SQL referencing team_user, including joins and mutations.",
+    "Elapsed times are local server-side measurements and do not establish a general production speedup.",
+    "Unsafe requests, including Livewire POSTs, intentionally retain fresh authorization reads."
+  ],
+  "sourceHashes": {
+    "app/Services/Memberships/MembershipContext.php": "50cbd0fdd52ff4af6cbc15bf1ff9a4cf4547d26ab01adbfd3fa88e8894abfaac",
+    "app/Services/Memberships/MembershipSnapshot.php": "926b83e3dc86dbe92f12d39c80c32390262ee28b30f77d23672b694d82f5c171",
+    "app/Http/Middleware/ResetMembershipContext.php": "4c63e8f91917268abbae1f71fba074309d8032e97f6a4b0cbb6b7f13125b674b",
+    "app/Services/UserRoleService.php": "a0e864f15ddb42b192dbe0eec1d1b88f0df1beb069be4a4469fe76f485aa7525"
+  },
+  "coverage": [
+    {
+      "path": "app/Http/Middleware/ResetMembershipContext.php",
+      "statements": 4,
+      "coveredStatements": 4,
+      "methods": 1,
+      "coveredMethods": 1
+    },
+    {
+      "path": "app/Services/UserRoleService.php",
+      "statements": 7,
+      "coveredStatements": 7,
+      "methods": 1,
+      "coveredMethods": 1
+    },
+    {
+      "path": "app/Services/Memberships/MembershipContext.php",
+      "statements": 104,
+      "coveredStatements": 104,
+      "methods": 17,
+      "coveredMethods": 17
+    },
+    {
+      "path": "app/Services/Memberships/MembershipSnapshot.php",
+      "statements": 1,
+      "coveredStatements": 1,
+      "methods": 1,
+      "coveredMethods": 1
+    }
+  ],
+  "verification": {
+    "php": {
+      "total": 4273,
+      "passed": 4214,
+      "skipped": 59,
+      "failures": 0,
+      "assertions": 20329
+    },
+    "focused": {
+      "passed": 121,
+      "assertions": 1095
+    },
+    "coverageRun": {
+      "passed": 50,
+      "assertions": 363
+    },
+    "mariadb": {
+      "passed": 3,
+      "assertions": 50,
+      "failOnSkipped": true
+    },
+    "chromium": {
+      "passed": 7
+    },
+    "architecture": {
+      "passed": 6
+    },
+    "phpstan": "passed for new context, snapshot, middleware and role adapter",
+    "pint": {
+      "files": 19,
+      "result": "passed"
+    }
+  },
+  "comparisons": [
+    {
+      "role": "Mitglied",
+      "scenario": "dashboard",
+      "before": {
+        "ms": {
+          "median": 65.666,
+          "min": 57.225,
+          "max": 78.109
+        },
+        "queries": {
+          "median": 37,
+          "min": 37,
+          "max": 39
+        },
+        "membership_queries": {
+          "median": 15,
+          "min": 15,
+          "max": 15
+        },
+        "sql_ms": {
+          "median": 2.31,
+          "min": 1.94,
+          "max": 2.7
+        },
+        "peak_bytes": {
+          "median": 74973184,
+          "min": 73924608,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 60.198,
+          "min": 54.047,
+          "max": 71.202
+        },
+        "queries": {
+          "median": 27,
+          "min": 27,
+          "max": 29
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 1.625,
+          "min": 1.35,
+          "max": 2.07
+        },
+        "peak_bytes": {
+          "median": 73924608,
+          "min": 71827456,
+          "max": 73924608
+        }
+      }
+    },
+    {
+      "role": "Mitglied",
+      "scenario": "public",
+      "before": {
+        "ms": {
+          "median": 38.506,
+          "min": 30.485,
+          "max": 58.275
+        },
+        "queries": {
+          "median": 14,
+          "min": 14,
+          "max": 16
+        },
+        "membership_queries": {
+          "median": 9,
+          "min": 9,
+          "max": 9
+        },
+        "sql_ms": {
+          "median": 1.005,
+          "min": 0.67,
+          "max": 1.69
+        },
+        "peak_bytes": {
+          "median": 74973184,
+          "min": 73924608,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 31.561,
+          "min": 28.205,
+          "max": 44.068
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 10
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 0.7,
+          "min": 0.61,
+          "max": 0.8
+        },
+        "peak_bytes": {
+          "median": 73924608,
+          "min": 71827456,
+          "max": 73924608
+        }
+      }
+    },
+    {
+      "role": "Mitglied",
+      "scenario": "navigation",
+      "before": {
+        "ms": {
+          "median": 41.644,
+          "min": 33.712,
+          "max": 53.065
+        },
+        "queries": {
+          "median": 20,
+          "min": 20,
+          "max": 20
+        },
+        "membership_queries": {
+          "median": 14,
+          "min": 14,
+          "max": 14
+        },
+        "sql_ms": {
+          "median": 1.32,
+          "min": 0.98,
+          "max": 2.3
+        },
+        "peak_bytes": {
+          "median": 74973184,
+          "min": 73924608,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 37.022,
+          "min": 31.912,
+          "max": 50.081
+        },
+        "queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 1.17,
+          "min": 1.07,
+          "max": 1.35
+        },
+        "peak_bytes": {
+          "median": 73924608,
+          "min": 71827456,
+          "max": 73924608
+        }
+      }
+    },
+    {
+      "role": "Mitglied",
+      "scenario": "livewire",
+      "before": {
+        "ms": {
+          "median": 28.873,
+          "min": 22.292,
+          "max": 35.565
+        },
+        "queries": {
+          "median": 8,
+          "min": 8,
+          "max": 8
+        },
+        "membership_queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "sql_ms": {
+          "median": 1.02,
+          "min": 0.77,
+          "max": 1.26
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 27.509,
+          "min": 23.11,
+          "max": 36.931
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 10
+        },
+        "membership_queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "sql_ms": {
+          "median": 1.045,
+          "min": 0.85,
+          "max": 1.15
+        },
+        "peak_bytes": {
+          "median": 73924608,
+          "min": 73924608,
+          "max": 73924608
+        }
+      }
+    },
+    {
+      "role": "Mitglied",
+      "scenario": "mutation",
+      "before": {
+        "ms": {
+          "median": 1.089,
+          "min": 0.815,
+          "max": 1.463
+        },
+        "queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "membership_queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "sql_ms": {
+          "median": 0.2,
+          "min": 0.14,
+          "max": 0.24
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 1.264,
+          "min": 0.837,
+          "max": 1.531
+        },
+        "queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "membership_queries": {
+          "median": 4,
+          "min": 4,
+          "max": 4
+        },
+        "sql_ms": {
+          "median": 0.21,
+          "min": 0.14,
+          "max": 0.27
+        },
+        "peak_bytes": {
+          "median": 73924608,
+          "min": 71827456,
+          "max": 73924608
+        }
+      }
+    },
+    {
+      "role": "Vorstand",
+      "scenario": "dashboard",
+      "before": {
+        "ms": {
+          "median": 73.278,
+          "min": 62.567,
+          "max": 89.149
+        },
+        "queries": {
+          "median": 38,
+          "min": 38,
+          "max": 39
+        },
+        "membership_queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "sql_ms": {
+          "median": 2.44,
+          "min": 1.81,
+          "max": 3.18
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 66.572,
+          "min": 60.379,
+          "max": 113.904
+        },
+        "queries": {
+          "median": 27,
+          "min": 27,
+          "max": 27
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 1.56,
+          "min": 1.33,
+          "max": 2.44
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Vorstand",
+      "scenario": "public",
+      "before": {
+        "ms": {
+          "median": 36.436,
+          "min": 29.908,
+          "max": 39.705
+        },
+        "queries": {
+          "median": 14,
+          "min": 14,
+          "max": 14
+        },
+        "membership_queries": {
+          "median": 9,
+          "min": 9,
+          "max": 9
+        },
+        "sql_ms": {
+          "median": 0.905,
+          "min": 0.73,
+          "max": 1.17
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 33.828,
+          "min": 26.63,
+          "max": 39.948
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 11
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 0.755,
+          "min": 0.62,
+          "max": 0.95
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Vorstand",
+      "scenario": "navigation",
+      "before": {
+        "ms": {
+          "median": 41.839,
+          "min": 34.235,
+          "max": 43.189
+        },
+        "queries": {
+          "median": 22,
+          "min": 22,
+          "max": 24
+        },
+        "membership_queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "sql_ms": {
+          "median": 1.3,
+          "min": 1.1,
+          "max": 1.51
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 38.66,
+          "min": 35.267,
+          "max": 46.446
+        },
+        "queries": {
+          "median": 16,
+          "min": 16,
+          "max": 17
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 1.18,
+          "min": 1.04,
+          "max": 1.4
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Vorstand",
+      "scenario": "livewire",
+      "before": {
+        "ms": {
+          "median": 46.507,
+          "min": 41.823,
+          "max": 57.922
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 10
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 1.075,
+          "min": 0.95,
+          "max": 1.37
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 45.931,
+          "min": 41.009,
+          "max": 53.9
+        },
+        "queries": {
+          "median": 11,
+          "min": 11,
+          "max": 11
+        },
+        "membership_queries": {
+          "median": 5,
+          "min": 5,
+          "max": 5
+        },
+        "sql_ms": {
+          "median": 1.04,
+          "min": 0.91,
+          "max": 1.96
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Vorstand",
+      "scenario": "mutation",
+      "before": {
+        "ms": {
+          "median": 1.575,
+          "min": 1.346,
+          "max": 2.219
+        },
+        "queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 0.275,
+          "min": 0.23,
+          "max": 0.36
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 1.699,
+          "min": 1.407,
+          "max": 2.098
+        },
+        "queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 0.28,
+          "min": 0.24,
+          "max": 0.33
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 73924608,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Admin",
+      "scenario": "dashboard",
+      "before": {
+        "ms": {
+          "median": 76.648,
+          "min": 68.073,
+          "max": 83.368
+        },
+        "queries": {
+          "median": 38,
+          "min": 38,
+          "max": 38
+        },
+        "membership_queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "sql_ms": {
+          "median": 2.25,
+          "min": 1.97,
+          "max": 2.84
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 76.436,
+          "min": 55.207,
+          "max": 149.024
+        },
+        "queries": {
+          "median": 27,
+          "min": 27,
+          "max": 29
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 1.78,
+          "min": 1.32,
+          "max": 2.67
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Admin",
+      "scenario": "public",
+      "before": {
+        "ms": {
+          "median": 32.705,
+          "min": 28.75,
+          "max": 37.663
+        },
+        "queries": {
+          "median": 14,
+          "min": 14,
+          "max": 15
+        },
+        "membership_queries": {
+          "median": 9,
+          "min": 9,
+          "max": 9
+        },
+        "sql_ms": {
+          "median": 0.83,
+          "min": 0.69,
+          "max": 1.08
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 37.803,
+          "min": 26.979,
+          "max": 52.792
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 11
+        },
+        "membership_queries": {
+          "median": 3,
+          "min": 3,
+          "max": 3
+        },
+        "sql_ms": {
+          "median": 0.935,
+          "min": 0.59,
+          "max": 1.88
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Admin",
+      "scenario": "navigation",
+      "before": {
+        "ms": {
+          "median": 39.165,
+          "min": 34.442,
+          "max": 46.333
+        },
+        "queries": {
+          "median": 22,
+          "min": 22,
+          "max": 23
+        },
+        "membership_queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "sql_ms": {
+          "median": 1.145,
+          "min": 1,
+          "max": 1.47
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 41.883,
+          "min": 32.771,
+          "max": 62.789
+        },
+        "queries": {
+          "median": 16,
+          "min": 16,
+          "max": 16
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 1.265,
+          "min": 1.01,
+          "max": 2.17
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Admin",
+      "scenario": "livewire",
+      "before": {
+        "ms": {
+          "median": 50.27,
+          "min": 44.189,
+          "max": 56.263
+        },
+        "queries": {
+          "median": 10,
+          "min": 10,
+          "max": 10
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 0.995,
+          "min": 0.82,
+          "max": 1.12
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 50.668,
+          "min": 39.082,
+          "max": 76.615
+        },
+        "queries": {
+          "median": 11,
+          "min": 11,
+          "max": 11
+        },
+        "membership_queries": {
+          "median": 5,
+          "min": 5,
+          "max": 5
+        },
+        "sql_ms": {
+          "median": 1.115,
+          "min": 0.94,
+          "max": 1.94
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    },
+    {
+      "role": "Admin",
+      "scenario": "mutation",
+      "before": {
+        "ms": {
+          "median": 1.613,
+          "min": 1.275,
+          "max": 2.017
+        },
+        "queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 0.275,
+          "min": 0.22,
+          "max": 0.33
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      },
+      "after": {
+        "ms": {
+          "median": 1.85,
+          "min": 1.419,
+          "max": 2.461
+        },
+        "queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "membership_queries": {
+          "median": 6,
+          "min": 6,
+          "max": 6
+        },
+        "sql_ms": {
+          "median": 0.31,
+          "min": 0.25,
+          "max": 0.37
+        },
+        "peak_bytes": {
+          "median": 76021760,
+          "min": 76021760,
+          "max": 76021760
+        }
+      }
+    }
+  ],
+  "before": {
+    "Mitglied": {
+      "dashboard": [
+        {
+          "ms": 68.852,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.3,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 57.225,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.01,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 64.618,
+          "queries": 39,
+          "membership_queries": 15,
+          "sql_ms": 2.35,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 78.109,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.57,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 64.873,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.32,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 60.166,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.2,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 66.459,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 72.267,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.7,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 69.366,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 2.62,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 58.667,
+          "queries": 37,
+          "membership_queries": 15,
+          "sql_ms": 1.94,
+          "peak_bytes": 76021760
+        }
+      ],
+      "public": [
+        {
+          "ms": 34.527,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.83,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 30.485,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.67,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 40.424,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.03,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 43.186,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.69,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 41.539,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.23,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 32.642,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.73,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 58.275,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.49,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 40.253,
+          "queries": 16,
+          "membership_queries": 9,
+          "sql_ms": 1.23,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.787,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.8,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.759,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.98,
+          "peak_bytes": 76021760
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 43.258,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.04,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 33.712,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 0.98,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 42.426,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.46,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 43.735,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.46,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 39.511,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.26,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 40.862,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.39,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 53.065,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 2.3,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 47.433,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.36,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.473,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.743,
+          "queries": 20,
+          "membership_queries": 14,
+          "sql_ms": 1.23,
+          "peak_bytes": 76021760
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 23.995,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 0.82,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 22.292,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 0.77,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 32.236,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.03,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 29.583,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 0.96,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 28.163,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.01,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.565,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.13,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 27.558,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.16,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 29.686,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 25.622,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 0.89,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 31.049,
+          "queries": 8,
+          "membership_queries": 4,
+          "sql_ms": 1.07,
+          "peak_bytes": 76021760
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 1.268,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.23,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 0.815,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.15,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.046,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.18,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.029,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.2,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.463,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.22,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.261,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.22,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 0.866,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.14,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.297,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 0.873,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.16,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.132,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.2,
+          "peak_bytes": 76021760
+        }
+      ]
+    },
+    "Vorstand": {
+      "dashboard": [
+        {
+          "ms": 77.501,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.46,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 62.567,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 1.88,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 67.283,
+          "queries": 39,
+          "membership_queries": 16,
+          "sql_ms": 2.42,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 70.564,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.08,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 70.719,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.21,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 86.464,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.6,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 75.838,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.48,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 89.149,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 3.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 81.443,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.53,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 70,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 1.81,
+          "peak_bytes": 76021760
+        }
+      ],
+      "public": [
+        {
+          "ms": 37.061,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.89,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 29.908,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.75,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 32.232,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.73,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.711,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.74,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.705,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.17,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.162,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.92,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.575,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.92,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.035,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.11,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 34.895,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.03,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 33.267,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.81,
+          "peak_bytes": 76021760
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 41.547,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.31,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 34.235,
+          "queries": 23,
+          "membership_queries": 16,
+          "sql_ms": 1.1,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.763,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.22,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.071,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.131,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.42,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.967,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.3,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 43.189,
+          "queries": 24,
+          "membership_queries": 16,
+          "sql_ms": 1.51,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.206,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.35,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.261,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.3,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.095,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.17,
+          "peak_bytes": 76021760
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 44.556,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.01,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.558,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.95,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.823,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.97,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 47.608,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.01,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 57.922,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.37,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 47.082,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.14,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 53.769,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 49.133,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.932,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.17,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 44.579,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.99,
+          "peak_bytes": 76021760
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 1.573,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.193,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.36,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.608,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.27,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.578,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.25,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.064,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.34,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.476,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.219,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.35,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.464,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.449,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.31,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.346,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.23,
+          "peak_bytes": 76021760
+        }
+      ]
+    },
+    "Admin": {
+      "dashboard": [
+        {
+          "ms": 77.743,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.31,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 68.073,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.19,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 80.589,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.41,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 77.638,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.84,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 78.098,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 71.486,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 1.97,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 75.657,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.22,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 69.572,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.04,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 71.265,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.12,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 83.368,
+          "queries": 38,
+          "membership_queries": 16,
+          "sql_ms": 2.32,
+          "peak_bytes": 76021760
+        }
+      ],
+      "public": [
+        {
+          "ms": 31.573,
+          "queries": 15,
+          "membership_queries": 9,
+          "sql_ms": 0.76,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 33.692,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.84,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 37.663,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.83,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 32.667,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.78,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 33.511,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.83,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 29.085,
+          "queries": 15,
+          "membership_queries": 9,
+          "sql_ms": 0.69,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 32.743,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 1.08,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 28.75,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.88,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 30.763,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.7,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.069,
+          "queries": 14,
+          "membership_queries": 9,
+          "sql_ms": 0.88,
+          "peak_bytes": 76021760
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 36.102,
+          "queries": 23,
+          "membership_queries": 16,
+          "sql_ms": 1,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.666,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.09,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 46.333,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.47,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 34.442,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.12,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.931,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.03,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.665,
+          "queries": 23,
+          "membership_queries": 16,
+          "sql_ms": 1.17,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.32,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.836,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.07,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.132,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.866,
+          "queries": 22,
+          "membership_queries": 16,
+          "sql_ms": 1.19,
+          "peak_bytes": 76021760
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 50.517,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.04,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 49.952,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.12,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 56.263,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.11,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 50.022,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1.11,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 44.189,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 1,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 47.308,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.99,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.969,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.82,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 52.984,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.97,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 52.029,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.99,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 51.578,
+          "queries": 10,
+          "membership_queries": 6,
+          "sql_ms": 0.96,
+          "peak_bytes": 76021760
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 2.017,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.33,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.6,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.956,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.389,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.275,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.22,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.536,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.27,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.625,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.813,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.3,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.783,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.29,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.583,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.25,
+          "peak_bytes": 76021760
+        }
+      ]
+    }
+  },
+  "after": {
+    "Mitglied": {
+      "dashboard": [
+        {
+          "ms": 56.815,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.49,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 57.619,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.47,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 62.778,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.67,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 63.277,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.76,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 71.202,
+          "queries": 29,
+          "membership_queries": 3,
+          "sql_ms": 2.07,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 63.827,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.73,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 54.047,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.35,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 55.221,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.51,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 55.442,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.58,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 68.296,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.79,
+          "peak_bytes": 73924608
+        }
+      ],
+      "public": [
+        {
+          "ms": 31.325,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.69,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 31.797,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.67,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 38.262,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.8,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 35.749,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.75,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 44.068,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.77,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 30.254,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.71,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 28.205,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.66,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 33.28,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.73,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 28.541,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.62,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 28.722,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.61,
+          "peak_bytes": 73924608
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 31.912,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.28,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 37.823,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.14,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 45.424,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.34,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 41.722,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.19,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 50.081,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.35,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 33.465,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.16,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 33.786,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.18,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 36.548,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.11,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 34.258,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.14,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 37.496,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.07,
+          "peak_bytes": 73924608
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 27.004,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 0.97,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 28.014,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.05,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 28.6,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.04,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 31.122,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.14,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 29.787,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.05,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 23.11,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 0.94,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 23.866,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 0.85,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 24.592,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.15,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 36.931,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 1.08,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 25.842,
+          "queries": 10,
+          "membership_queries": 4,
+          "sql_ms": 0.92,
+          "peak_bytes": 73924608
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 1.339,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.21,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 0.837,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.14,
+          "peak_bytes": 71827456
+        },
+        {
+          "ms": 1.393,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.26,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.373,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.27,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.342,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.22,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 0.959,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.18,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.189,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.17,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.166,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.21,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.531,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.26,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.001,
+          "queries": 4,
+          "membership_queries": 4,
+          "sql_ms": 0.18,
+          "peak_bytes": 73924608
+        }
+      ]
+    },
+    "Vorstand": {
+      "dashboard": [
+        {
+          "ms": 67.152,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.44,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 68.983,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.84,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 62.652,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.55,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 69.398,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.33,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 65.411,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.53,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 113.904,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 2.44,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 65.991,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.57,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 75.977,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.63,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 60.379,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.69,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 63.143,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.34,
+          "peak_bytes": 76021760
+        }
+      ],
+      "public": [
+        {
+          "ms": 34.171,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.66,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 33.874,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.77,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 27.458,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.63,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.813,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.88,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 30.204,
+          "queries": 11,
+          "membership_queries": 3,
+          "sql_ms": 0.74,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.948,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.95,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 33.782,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.93,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 31.262,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.67,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.271,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.91,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 26.63,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.62,
+          "peak_bytes": 76021760
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 46.446,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.2,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 39.862,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.2,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 36.903,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.392,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.497,
+          "queries": 17,
+          "membership_queries": 6,
+          "sql_ms": 1.11,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.927,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.21,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.282,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.579,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.4,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.009,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.1,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.267,
+          "queries": 17,
+          "membership_queries": 6,
+          "sql_ms": 1.04,
+          "peak_bytes": 76021760
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 51.986,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.15,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 46.478,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.06,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.556,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.06,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 53.9,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.47,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.009,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.93,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 43.441,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.02,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.507,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.02,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 50.49,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.96,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 46.306,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.99,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.632,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.91,
+          "peak_bytes": 76021760
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 1.665,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.28,
+          "peak_bytes": 73924608
+        },
+        {
+          "ms": 1.618,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.31,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.445,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.407,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.743,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.27,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.47,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.831,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.733,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.098,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.33,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.896,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.32,
+          "peak_bytes": 76021760
+        }
+      ]
+    },
+    "Admin": {
+      "dashboard": [
+        {
+          "ms": 149.024,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 2.67,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 112.944,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 2.34,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 59.212,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.36,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 59.585,
+          "queries": 29,
+          "membership_queries": 3,
+          "sql_ms": 1.49,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 55.207,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 80.695,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.72,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 62.763,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.46,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 73.962,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.89,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 78.91,
+          "queries": 28,
+          "membership_queries": 3,
+          "sql_ms": 1.84,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 87.52,
+          "queries": 27,
+          "membership_queries": 3,
+          "sql_ms": 1.95,
+          "peak_bytes": 76021760
+        }
+      ],
+      "public": [
+        {
+          "ms": 52.792,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 1.13,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 44.807,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 1.88,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 26.979,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.71,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 28.557,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 1.23,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 27.485,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.59,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 37.421,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 33.71,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.75,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 38.186,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.66,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.723,
+          "queries": 11,
+          "membership_queries": 3,
+          "sql_ms": 0.92,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.844,
+          "queries": 10,
+          "membership_queries": 3,
+          "sql_ms": 0.95,
+          "peak_bytes": 76021760
+        }
+      ],
+      "navigation": [
+        {
+          "ms": 62.789,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 2.17,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 35.864,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.32,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 32.771,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.11,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 36.136,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.01,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.405,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 34.416,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.15,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 41.361,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.29,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 42.857,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.24,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.3,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 1.33,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 59.369,
+          "queries": 16,
+          "membership_queries": 6,
+          "sql_ms": 2.06,
+          "peak_bytes": 76021760
+        }
+      ],
+      "livewire": [
+        {
+          "ms": 73.78,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.65,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 43.931,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.95,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 39.082,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.94,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 40.925,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 46.359,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.05,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 45.136,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 0.96,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 59.601,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.25,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 54.976,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.18,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 57.202,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.19,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 76.615,
+          "queries": 11,
+          "membership_queries": 5,
+          "sql_ms": 1.94,
+          "peak_bytes": 76021760
+        }
+      ],
+      "mutation": [
+        {
+          "ms": 2.177,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.35,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.419,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.593,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.28,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.526,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.26,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.662,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.25,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 1.68,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.29,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.02,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.33,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.42,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.35,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.461,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.36,
+          "peak_bytes": 76021760
+        },
+        {
+          "ms": 2.322,
+          "queries": 6,
+          "membership_queries": 6,
+          "sql_ms": 0.37,
+          "peak_bytes": 76021760
+        }
+      ]
+    }
+  }
+}
