@@ -533,7 +533,7 @@ $tours = [
             [
                 'key' => 'profile-series-data',
                 'title' => 'Serienspezifische Daten',
-                'description' => 'Fülle alle elf Serienfelder aus und speichere deine Angaben. Vorhandene Angaben zählen mit.',
+                'description' => 'Fülle alle Serienfelder aus und speichere deine Angaben. Vorhandene Angaben zählen mit.',
                 'required_target' => false,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-series-data"]',
@@ -703,7 +703,7 @@ $tours = [
             [
                 'key' => 'profile-complete',
                 'title' => 'Profilpflege abschließen',
-                'description' => 'Prüfe, ob alle elf Angaben gespeichert sind. Fehlende Angaben kannst du ergänzen; mit Später bleibt dein Fortschritt erhalten.',
+                'description' => 'Prüfe, ob alle Angaben gespeichert sind. Fehlende Angaben kannst du ergänzen; mit Später bleibt dein Fortschritt erhalten.',
                 'required_target' => true,
                 'selectors' => [
                     'desktop' => '[data-tour-profile-key="profile-complete"]',

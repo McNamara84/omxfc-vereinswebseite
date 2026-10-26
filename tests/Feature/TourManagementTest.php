@@ -101,6 +101,49 @@ class TourManagementTest extends TestCase
                 : 'Einmalig 9 Baxx: Alle 13 Serienangaben speichern und die Tour abschließen.');
     }
 
+    #[TestWith([null, null, false])]
+    #[TestWith([null, TourAssignmentStatus::Pending, false])]
+    #[TestWith([null, TourAssignmentStatus::InProgress, false])]
+    #[TestWith([null, TourAssignmentStatus::Completed, false])]
+    #[TestWith([Role::Anwaerter, null, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::Pending, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::InProgress, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::Completed, false])]
+    #[TestWith([Role::Mitglied, null, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::Pending, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::InProgress, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::Completed, true])]
+    public function test_profile_tour_actions_require_an_eligible_members_team_role(?Role $role, ?TourAssignmentStatus $status, bool $eligible): void
+    {
+        $member = $this->createUserWithRole($role ?? Role::Mitglied);
+        if ($role === null) {
+            Team::membersTeam()->users()->detach($member);
+        }
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => ($eligible ? Role::Anwaerter : Role::Admin)->value]);
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+        $assignment = null;
+        if ($status !== null) {
+            $assignment = app(TourAssignmentService::class)->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+            $assignment->forceFill(['status' => $status])->save();
+        }
+
+        $response = $this->actingAs($member->refresh())->get(route('profile.show'))->assertOk()
+            ->assertSeeText('Profil pflegen')
+            ->assertSee('action="'.route('touren.restart', 'hauptmenue').'"', escape: false);
+        $restartAction = 'action="'.route('touren.restart', 'profilpflege').'"';
+        if ($eligible) {
+            $response->assertSee($restartAction, escape: false);
+        } else {
+            $response->assertDontSee($restartAction, escape: false);
+        }
+        if ($eligible && in_array($status, [TourAssignmentStatus::Pending, TourAssignmentStatus::InProgress], true)) {
+            $response->assertSee('action="'.route('touren.resume', $assignment).'"', escape: false);
+        } else {
+            $response->assertDontSeeText('Tour fortsetzen');
+        }
+    }
+
     public function test_vorstand_can_view_tour_admin_page(): void
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);

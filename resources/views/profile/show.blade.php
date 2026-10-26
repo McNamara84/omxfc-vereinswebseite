@@ -25,6 +25,7 @@
                         @foreach ($tourOverview as $tour)
                             @php
                                 $assignment = $tour['assignment'];
+                                $canUseTour = $tour['definition']->key !== 'profilpflege' || Auth::user()->canUseProfileTour();
                                 $statusValue = $tour['status']?->value;
                                 $statusLabel = match ($statusValue) {
                                     'completed' => 'Abgeschlossen',
@@ -78,22 +79,24 @@
                                                 Einmalig {{ $tour['reward_points'] }} Baxx: Alle {{ $tour['profile_field_count'] }} Serienangaben speichern und die Tour abschließen.
                                             @endif
                                         </p>
-                                        @if ($tour['is_open'])
+                                        @if ($tour['is_open'] && $canUseTour)
                                             <form method="POST" action="{{ route('touren.resume', $assignment) }}">
                                                 @csrf
                                                 <x-button type="submit" label="Tour fortsetzen" icon="o-play" class="btn-primary btn-sm" />
                                             </form>
                                         @endif
                                     @endif
-                                    <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
-                                        @csrf
-                                        <x-button
-                                            type="submit"
-                                            :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
-                                            icon="o-play"
-                                            class="btn-primary btn-sm"
-                                        />
-                                    </form>
+                                    @if ($canUseTour)
+                                        <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
+                                            @csrf
+                                            <x-button
+                                                type="submit"
+                                                :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
+                                                icon="o-play"
+                                                class="btn-primary btn-sm"
+                                            />
+                                        </form>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
