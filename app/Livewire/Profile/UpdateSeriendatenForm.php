@@ -17,40 +17,10 @@ class UpdateSeriendatenForm extends Component
 
     public array $state = [];
 
-    public array $autoren = [];
-
-    public array $zyklen = [];
-
-    public array $romane = [];
-
-    public array $figuren = [];
-
-    public array $schauplaetze = [];
-
-    public array $schlagworte = [];
-
-    public array $hardcover = [];
-
-    public array $covers = [];
-
     public function mount()
     {
         $user = Auth::user();
         $this->state = $user->only(array_keys(SeriesProfileCompletion::FIELDS));
-        $options = app(SeriesProfileOptions::class)->all();
-        foreach ($this->optionProperties() as $field => $property) {
-            $this->{$property} = $options[$field];
-        }
-    }
-
-    private function optionProperties(): array
-    {
-        return [
-            'einstiegsroman' => 'romane', 'lieblingsautor' => 'autoren',
-            'lieblingszyklus' => 'zyklen', 'lieblingsfigur' => 'figuren',
-            'lieblingsschauplatz' => 'schauplaetze', 'lieblingsthema' => 'schlagworte',
-            'lieblingshardcover' => 'hardcover', 'lieblingscover' => 'covers',
-        ];
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)
@@ -69,11 +39,7 @@ class UpdateSeriendatenForm extends Component
 
     public function render()
     {
-        $options = [];
-        foreach ($this->optionProperties() as $field => $property) {
-            $options[$field] = $this->{$property};
-        }
-        $options['lesestand'] = $options['lieblingsroman'] = $this->romane;
+        $options = app(SeriesProfileOptions::class)->all();
         $user = Auth::user()->fresh();
         $unavailable = [];
         foreach ($options as $field => &$values) {

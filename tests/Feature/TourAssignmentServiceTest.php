@@ -11,13 +11,52 @@ use App\Models\User;
 use App\Services\Profile\ProfileTourCompletionService;
 use App\Services\Profile\SeriesProfileCompletion;
 use App\Services\TourAssignmentService;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class TourAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_assign_if_missing_recovers_when_another_request_inserts_after_the_lookup(): void
+    {
+        $member = User::factory()->create();
+        $service = app(TourAssignmentService::class);
+        $connection = DB::connection();
+        $dispatcher = $connection->getEventDispatcher();
+        $connection->setEventDispatcher(clone $dispatcher);
+        $inserted = false;
+        $winner = null;
+        try {
+            // Reproduce the competing insert after the empty SELECT, before our INSERT.
+            $connection->listen(function (QueryExecuted $query) use ($member, $service, &$inserted, &$winner): void {
+                if ($inserted || ! str_starts_with($query->sql, 'select ') || ! str_contains($query->sql, 'tour_assignments')) {
+                    return;
+                }
+                $inserted = true;
+                $winner = $service->assignIfMissing($member, 'profilpflege', TourAssignmentSource::Manual);
+                $winner->forceFill([
+                    'status' => TourAssignmentStatus::InProgress,
+                    'current_step_key' => 'profile-series-data',
+                ])->save();
+            });
+
+            $assignment = $service->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+        } finally {
+            $connection->setEventDispatcher($dispatcher);
+        }
+
+        $this->assertTrue($inserted);
+        $this->assertSame($winner->id, $assignment->id);
+        $this->assertFalse($assignment->wasRecentlyCreated);
+        $this->assertSame(TourAssignmentSource::Manual, $assignment->assigned_via);
+        $this->assertSame(TourAssignmentStatus::InProgress, $assignment->status);
+        $this->assertSame('profile-series-data', $assignment->current_step_key);
+        $this->assertSame(1, TourAssignment::where('user_id', $member->id)->where('tour_key', 'profilpflege')->count());
+    }
 
     public function test_profile_overview_exposes_the_central_reward_and_required_field_count(): void
     {
