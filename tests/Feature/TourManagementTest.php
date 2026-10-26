@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
+use App\Models\Team;
 use App\Models\TourAssignment;
+use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -50,6 +53,95 @@ class TourManagementTest extends TestCase
             ->get(route('profile.show'))
             ->assertOk()
             ->assertDontSeeText('Touren & Hilfestart');
+    }
+
+    #[TestWith([null])]
+    #[TestWith([Role::Anwaerter])]
+    #[TestWith([Role::Mitwirkender])]
+    #[TestWith([Role::Mitglied])]
+    #[TestWith([Role::Ehrenmitglied])]
+    #[TestWith([Role::Kassenwart])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Admin])]
+    public function test_completion_note_requires_an_eligible_members_team_role(?Role $role): void
+    {
+        $member = $this->createUserWithRole($role ?? Role::Mitglied);
+        if ($role === null) {
+            Team::membersTeam()->users()->detach($member);
+        }
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => Role::Admin->value]);
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        $response = $this->actingAs($member->refresh())->get(route('profile.show'))->assertOk()
+            ->assertSeeText('Touren & Hilfestart')->assertSee('data-profile-series-form', escape: false);
+        if ($role !== null && $role !== Role::Anwaerter) {
+            $response->assertSee('data-tour-profile-key="profile-complete"', escape: false);
+        } else {
+            $response->assertDontSee('data-tour-profile-key="profile-complete"', escape: false);
+        }
+    }
+
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function test_profile_reward_copy_uses_overview_amount_and_field_count(bool $rewardReceived): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+        $overview = app(TourAssignmentService::class)->selfServiceOverviewForUser($member)
+            ->firstWhere('definition.key', 'profilpflege');
+        $overview['reward_points'] = 9;
+        $overview['profile_field_count'] = 13;
+        $overview['reward_received'] = $rewardReceived;
+        $this->mock(TourAssignmentService::class)->shouldReceive('selfServiceOverviewForUser')
+            ->once()->withArgs(fn ($user) => $user->is($member))->andReturn(collect([$overview]));
+
+        $this->actingAs($member)->get(route('profile.show'))->assertOk()
+            ->assertSeeText($rewardReceived
+                ? 'Die einmaligen 9 Baxx hast du bereits erhalten.'
+                : 'Einmalig 9 Baxx: Alle 13 Serienangaben speichern und die Tour abschließen.');
+    }
+
+    #[TestWith([null, null, false])]
+    #[TestWith([null, TourAssignmentStatus::Pending, false])]
+    #[TestWith([null, TourAssignmentStatus::InProgress, false])]
+    #[TestWith([null, TourAssignmentStatus::Completed, false])]
+    #[TestWith([Role::Anwaerter, null, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::Pending, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::InProgress, false])]
+    #[TestWith([Role::Anwaerter, TourAssignmentStatus::Completed, false])]
+    #[TestWith([Role::Mitglied, null, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::Pending, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::InProgress, true])]
+    #[TestWith([Role::Mitglied, TourAssignmentStatus::Completed, true])]
+    public function test_profile_tour_actions_require_an_eligible_members_team_role(?Role $role, ?TourAssignmentStatus $status, bool $eligible): void
+    {
+        $member = $this->createUserWithRole($role ?? Role::Mitglied);
+        if ($role === null) {
+            Team::membersTeam()->users()->detach($member);
+        }
+        $otherTeam = Team::factory()->create(['name' => 'AG Test', 'personal_team' => false]);
+        $otherTeam->users()->attach($member, ['role' => ($eligible ? Role::Anwaerter : Role::Admin)->value]);
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+        $assignment = null;
+        if ($status !== null) {
+            $assignment = app(TourAssignmentService::class)->assignIfMissing($member, 'profilpflege', TourAssignmentSource::System);
+            $assignment->forceFill(['status' => $status])->save();
+        }
+
+        $response = $this->actingAs($member->refresh())->get(route('profile.show'))->assertOk()
+            ->assertSeeText('Profil pflegen')
+            ->assertSee('action="'.route('touren.restart', 'hauptmenue').'"', escape: false);
+        $restartAction = 'action="'.route('touren.restart', 'profilpflege').'"';
+        if ($eligible) {
+            $response->assertSee($restartAction, escape: false);
+        } else {
+            $response->assertDontSee($restartAction, escape: false);
+        }
+        if ($eligible && in_array($status, [TourAssignmentStatus::Pending, TourAssignmentStatus::InProgress], true)) {
+            $response->assertSee('action="'.route('touren.resume', $assignment).'"', escape: false);
+        } else {
+            $response->assertDontSeeText('Tour fortsetzen');
+        }
     }
 
     public function test_vorstand_can_view_tour_admin_page(): void

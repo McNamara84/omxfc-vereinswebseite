@@ -342,6 +342,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Determine if the user may use the profile tour regardless of the active team.
+     */
+    public function canUseProfileTour(): bool
+    {
+        $role = $this->mitgliederTeamRole();
+
+        return $role !== null && $role !== Role::Anwaerter;
+    }
+
+    /**
      * Check if the user has any of the given roles in the Mitglieder-Team.
      */
     public function hasAnyMitgliederTeamRole(Role ...$roles): bool

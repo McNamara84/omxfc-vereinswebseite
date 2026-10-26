@@ -16,6 +16,7 @@
     <testsuites>
         <testsuite name="Maddraxikon MariaDB">
             <file>tests/Feature/BaxxMariaDbConcurrencyTest.php</file>
+            <file>tests/Feature/ProfileTourMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/RomantauschMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/RomantauschReviewRegressionTest.php</file>
             <file>tests/Feature/BildersucheMariaDbConcurrencyTest.php</file>

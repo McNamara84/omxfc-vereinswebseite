@@ -5,13 +5,21 @@ namespace App\Services;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
 use App\Models\TourAssignment;
+use App\Models\TourRewardGrant;
 use App\Models\User;
+use App\Services\Profile\ProfileTourCompletionService;
+use App\Services\Profile\SeriesProfileCompletion;
+use App\Support\Tours\TourCompletionResult;
 use App\Support\Tours\TourDefinition;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TourAssignmentService
 {
     public const SESSION_SUPPRESSION_KEY = 'tour.dismissed_assignments';
+
+    public const SESSION_ACTIVE_KEY = 'tour.active_assignment';
 
     public function __construct(
         private readonly TourRegistry $tourRegistry,
@@ -39,20 +47,11 @@ class TourAssignmentService
     ): TourAssignment {
         $definition = $this->tourRegistry->definition($tourKey);
 
-        $existingAssignment = TourAssignment::query()
-            ->where('user_id', $user->id)
-            ->where('tour_key', $definition->key)
-            ->where('tour_version', $definition->version)
-            ->first();
-
-        if ($existingAssignment) {
-            return $existingAssignment;
-        }
-
-        return TourAssignment::query()->create([
+        return TourAssignment::query()->firstOrCreate([
             'user_id' => $user->id,
             'tour_key' => $definition->key,
             'tour_version' => $definition->version,
+        ], [
             'status' => TourAssignmentStatus::Pending,
             'assigned_via' => $source,
             'assigned_by_user_id' => $assignedBy?->id,
@@ -74,31 +73,36 @@ class TourAssignmentService
     ): TourAssignment {
         $definition = $this->tourRegistry->definition($tourKey);
 
-        return TourAssignment::query()->updateOrCreate(
-            [
-                'user_id' => $user->id,
-                'tour_key' => $definition->key,
-                'tour_version' => $definition->version,
-            ],
-            [
-                'status' => TourAssignmentStatus::Pending,
-                'assigned_via' => $source,
-                'assigned_by_user_id' => $assignedBy?->id,
-                'assigned_at' => now(),
-                'started_at' => null,
-                'completed_at' => null,
-                'dismissed_at' => null,
-                'next_prompt_at' => null,
-                'current_step_key' => null,
-                'metadata' => [],
-            ],
-        );
+        return DB::transaction(function () use ($user, $definition, $source, $assignedBy) {
+            User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
+
+            return TourAssignment::query()->updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'tour_key' => $definition->key,
+                    'tour_version' => $definition->version,
+                ],
+                [
+                    'status' => TourAssignmentStatus::Pending,
+                    'assigned_via' => $source,
+                    'assigned_by_user_id' => $assignedBy?->id,
+                    'assigned_at' => now(),
+                    'started_at' => null,
+                    'completed_at' => null,
+                    'dismissed_at' => null,
+                    'next_prompt_at' => null,
+                    'current_step_key' => null,
+                    'metadata' => [],
+                ],
+            );
+        });
     }
 
     public function currentPromptableAssignmentForUser(User $user, array $suppressedAssignmentIds = []): ?TourAssignment
     {
         $assignments = TourAssignment::query()
             ->where('user_id', $user->id)
+            ->when(! $user->canUseProfileTour(), fn ($query) => $query->where('tour_key', '!=', 'profilpflege'))
             ->whereIn('status', [
                 TourAssignmentStatus::Pending->value,
                 TourAssignmentStatus::InProgress->value,
@@ -108,13 +112,17 @@ class TourAssignmentService
                 $query->whereNull('next_prompt_at')
                     ->orWhere('next_prompt_at', '<=', now());
             })
+            ->orderByRaw('case when tour_key = ? then 0 else 1 end', ['profilpflege'])
             ->orderByRaw('case when status = ? then 0 else 1 end', [TourAssignmentStatus::InProgress->value])
             ->orderBy('assigned_at')
             ->orderBy('id')
             ->get();
 
         foreach ($assignments as $assignment) {
-            return $this->activeAssignment($assignment);
+            $active = $this->activeAssignment($assignment);
+            if ($active->isPromptDue() && ! in_array($active->id, $suppressedAssignmentIds, true)) {
+                return $active;
+            }
         }
 
         return null;
@@ -136,55 +144,61 @@ class TourAssignmentService
 
     public function start(TourAssignment $assignment): TourAssignment
     {
-        $assignment = $this->activeAssignment($assignment);
-
-        if ($assignment->status === TourAssignmentStatus::Completed) {
-            return $assignment;
-        }
-
-        $assignment->forceFill([
+        return $this->mutateOpenAssignment($assignment, fn (TourAssignment $current) => [
             'status' => TourAssignmentStatus::InProgress,
-            'started_at' => $assignment->started_at ?? now(),
-        ])->save();
-
-        return $assignment->fresh();
+            'started_at' => $current->started_at ?? now(),
+        ]);
     }
 
     public function rememberProgress(TourAssignment $assignment, string $stepKey): TourAssignment
     {
-        $assignment = $this->activeAssignment($assignment);
-
-        if ($assignment->status === TourAssignmentStatus::Completed) {
-            return $assignment;
+        if ($assignment->tour_key === 'profilpflege') {
+            abort_unless($assignment->tour_version === $this->tourRegistry->definition('profilpflege')->version, 409, 'Bitte starte die aktuelle Profilpflege-Tour.');
         }
 
-        $assignment->forceFill([
-            'status' => TourAssignmentStatus::InProgress,
-            'started_at' => $assignment->started_at ?? now(),
-            'current_step_key' => $stepKey,
-        ])->save();
+        return $this->mutateOpenAssignment($assignment, function (TourAssignment $current) use ($stepKey) {
+            if ($current->tour_key === 'profilpflege' && $current->started_at === null) {
+                throw ValidationException::withMessages(['tour' => 'Bitte starte zuerst die Tour.']);
+            }
 
-        return $assignment->fresh();
+            return [
+                'status' => TourAssignmentStatus::InProgress,
+                'started_at' => $current->started_at ?? now(),
+                'current_step_key' => $stepKey,
+            ];
+        });
     }
 
     public function dismiss(TourAssignment $assignment): TourAssignment
     {
+        return $this->mutateOpenAssignment($assignment, fn () => ['dismissed_at' => now()]);
+    }
+
+    private function mutateOpenAssignment(TourAssignment $assignment, callable $attributes): TourAssignment
+    {
+        $assignment = $this->activeAssignment($assignment);
+
+        return DB::transaction(function () use ($assignment, $attributes) {
+            $current = TourAssignment::query()->lockForUpdate()->findOrFail($assignment->id);
+            if ($current->status !== TourAssignmentStatus::Completed) {
+                $current->forceFill($attributes($current))->save();
+            }
+
+            return $current;
+        });
+    }
+
+    public function complete(TourAssignment $assignment): TourCompletionResult
+    {
+        if ($assignment->tour_key === 'profilpflege') {
+            return app(ProfileTourCompletionService::class)->complete($assignment);
+        }
+
         $assignment = $this->activeAssignment($assignment);
 
         if ($assignment->status === TourAssignmentStatus::Completed) {
-            return $assignment;
+            return new TourCompletionResult($assignment);
         }
-
-        $assignment->forceFill([
-            'dismissed_at' => now(),
-        ])->save();
-
-        return $assignment->fresh();
-    }
-
-    public function complete(TourAssignment $assignment): TourAssignment
-    {
-        $assignment = $this->activeAssignment($assignment);
 
         $assignment->forceFill([
             'status' => TourAssignmentStatus::Completed,
@@ -193,7 +207,7 @@ class TourAssignmentService
             'next_prompt_at' => null,
         ])->save();
 
-        return $assignment->fresh();
+        return new TourCompletionResult($assignment->fresh());
     }
 
     /**
@@ -207,7 +221,7 @@ class TourAssignmentService
             ->keyBy(fn (TourAssignment $assignment): string => $this->assignmentMapKey($assignment->tour_key, $assignment->tour_version));
 
         return collect($this->tourRegistry->selfServiceEnabled())
-            ->map(function (TourDefinition $definition) use ($assignments): array {
+            ->map(function (TourDefinition $definition) use ($assignments, $user): array {
                 $assignment = $assignments->get($this->assignmentMapKey($definition->key, $definition->version));
 
                 return [
@@ -216,6 +230,11 @@ class TourAssignmentService
                     'status' => $assignment?->status,
                     'is_completed' => $assignment?->status === TourAssignmentStatus::Completed,
                     'is_open' => $assignment?->status?->isOpen() ?? false,
+                    'reward_received' => $definition->key === 'profilpflege' && $this->profileRewardReceived($user->id),
+                    ...($definition->key === 'profilpflege' ? [
+                        'reward_points' => ProfileTourCompletionService::POINTS,
+                        'profile_field_count' => count(SeriesProfileCompletion::FIELDS),
+                    ] : []),
                 ];
             })
             ->values();
@@ -244,7 +263,20 @@ class TourAssignmentService
             'title' => $definition->title,
             'description' => $definition->description,
             'steps' => $definition->steps,
+            'start_mode' => $definition->startMode,
+            'entry_url' => $definition->entryRoute ? route($definition->entryRoute) : null,
+            ...($definition->key === 'profilpflege' ? [
+                'profile' => app(SeriesProfileCompletion::class)->forUser($assignment->user()->firstOrFail()),
+                'reward_received' => $this->profileRewardReceived($assignment->user_id),
+                'reward_points' => ProfileTourCompletionService::POINTS,
+            ] : []),
         ];
+    }
+
+    private function profileRewardReceived(int $userId): bool
+    {
+        return TourRewardGrant::query()
+            ->where('user_id', $userId)->where('reward_key', ProfileTourCompletionService::REWARD_KEY)->exists();
     }
 
     private function assignmentMapKey(string $tourKey, int $tourVersion): string
@@ -271,7 +303,7 @@ class TourAssignmentService
             'metadata' => $metadata,
         ])->save();
 
-        return $this->reassign(
+        return $this->assignIfMissing(
             user: $assignment->user,
             tourKey: $assignment->tour_key,
             source: $assignment->assigned_via,

@@ -25,6 +25,7 @@
                         @foreach ($tourOverview as $tour)
                             @php
                                 $assignment = $tour['assignment'];
+                                $canUseTour = $tour['definition']->key !== 'profilpflege' || Auth::user()->canUseProfileTour();
                                 $statusValue = $tour['status']?->value;
                                 $statusLabel = match ($statusValue) {
                                     'completed' => 'Abgeschlossen',
@@ -70,14 +71,32 @@
                                 </dl>
 
                                 <div class="mt-5 flex flex-wrap gap-2">
-                                    <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
-                                        @csrf
-                                        <x-button
-                                            :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
-                                            icon="o-play"
-                                            class="btn-primary btn-sm"
-                                        />
-                                    </form>
+                                    @if ($tour['definition']->key === 'profilpflege')
+                                        <p class="w-full text-sm font-semibold" data-profile-tour-reward>
+                                            @if ($tour['reward_received'])
+                                                Die einmaligen {{ $tour['reward_points'] }} Baxx hast du bereits erhalten.
+                                            @else
+                                                Einmalig {{ $tour['reward_points'] }} Baxx: Alle {{ $tour['profile_field_count'] }} Serienangaben speichern und die Tour abschließen.
+                                            @endif
+                                        </p>
+                                        @if ($tour['is_open'] && $canUseTour)
+                                            <form method="POST" action="{{ route('touren.resume', $assignment) }}">
+                                                @csrf
+                                                <x-button type="submit" label="Tour fortsetzen" icon="o-play" class="btn-primary btn-sm" />
+                                            </form>
+                                        @endif
+                                    @endif
+                                    @if ($canUseTour)
+                                        <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
+                                            @csrf
+                                            <x-button
+                                                type="submit"
+                                                :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
+                                                icon="o-play"
+                                                class="btn-primary btn-sm"
+                                            />
+                                        </form>
+                                    @endif
                                 </div>
                             </article>
                         @endforeach
@@ -97,8 +116,13 @@
 
 
             {{-- Serienspezifische Daten ergänzen --}}
-            <x-ui.panel title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
+            <x-ui.panel id="serienspezifische-daten" title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
                 @livewire('profile.update-seriendaten-form')
+                @if (($tourOverview ?? collect())->isNotEmpty() && Auth::user()->canUseProfileTour())
+                    <div class="mt-4 rounded-xl bg-base-200 p-4" data-tour-profile-key="profile-complete" tabindex="-1">
+                        <p>Für den Abschluss der Profilpflege-Tour müssen alle Serienangaben gespeichert sein. Du kannst die Tour jederzeit über „Touren &amp; Hilfestart“ fortsetzen.</p>
+                    </div>
+                @endif
             </x-ui.panel>
 
             @if (Auth::user()->hasRole(\App\Enums\Role::Ehrenmitglied))

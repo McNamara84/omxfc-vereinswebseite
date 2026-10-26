@@ -21,11 +21,15 @@ class TourController extends Controller
 
     public function current(Request $request): JsonResponse
     {
+        $payload = $this->tourAssignmentService->currentPromptablePayloadForUser(
+            $request->user(), $this->suppressedAssignmentIds($request),
+        );
+        if ($payload !== null) {
+            $payload['active_in_session'] = $request->session()->get(TourAssignmentService::SESSION_ACTIVE_KEY) === $payload['assignment_id'];
+        }
+
         return response()->json([
-            'tour' => $this->tourAssignmentService->currentPromptablePayloadForUser(
-                $request->user(),
-                $this->suppressedAssignmentIds($request),
-            ),
+            'tour' => $payload,
         ]);
     }
 
@@ -33,9 +37,12 @@ class TourController extends Controller
     {
         $this->ensureOwnAssignment($request, $tourAssignment);
 
+        $assignment = $this->tourAssignmentService->start($tourAssignment);
+        $this->activateInSession($request, $assignment);
+
         return response()->json([
             'tour' => $this->tourAssignmentService->payloadForAssignment(
-                $this->tourAssignmentService->start($tourAssignment),
+                $assignment,
             ),
         ]);
     }
@@ -67,6 +74,7 @@ class TourController extends Controller
         }
 
         $request->session()->put(TourAssignmentService::SESSION_SUPPRESSION_KEY, $suppressedAssignmentIds);
+        $request->session()->forget(TourAssignmentService::SESSION_ACTIVE_KEY);
 
         return response()->json([
             'suppressed' => true,
@@ -77,17 +85,38 @@ class TourController extends Controller
     {
         $this->ensureOwnAssignment($request, $tourAssignment);
 
-        $assignment = $this->tourAssignmentService->complete($tourAssignment);
+        $result = $this->tourAssignmentService->complete($tourAssignment);
+        $assignment = $result->assignment;
         $suppressedAssignmentIds = array_values(array_filter(
             $this->suppressedAssignmentIds($request),
             static fn (int $assignmentId): bool => $assignmentId !== $assignment->id,
         ));
 
         $request->session()->put(TourAssignmentService::SESSION_SUPPRESSION_KEY, $suppressedAssignmentIds);
+        $request->session()->forget(TourAssignmentService::SESSION_ACTIVE_KEY);
 
         return response()->json([
             'completed' => true,
+            'reward' => $result->reward,
         ]);
+    }
+
+    public function resume(Request $request, TourAssignment $tourAssignment): RedirectResponse
+    {
+        abort_unless($tourAssignment->tour_key === 'profilpflege', 404);
+        $this->ensureOwnAssignment($request, $tourAssignment);
+        $assignment = $this->tourAssignmentService->start($tourAssignment);
+        $this->activateInSession($request, $assignment);
+
+        return redirect()->route('profile.show');
+    }
+
+    private function activateInSession(Request $request, TourAssignment $assignment): void
+    {
+        $request->session()->put(TourAssignmentService::SESSION_ACTIVE_KEY, $assignment->id);
+        $request->session()->put(TourAssignmentService::SESSION_SUPPRESSION_KEY, array_values(array_filter(
+            $this->suppressedAssignmentIds($request), fn (int $id) => $id !== $assignment->id,
+        )));
     }
 
     public function restart(Request $request, string $tourKey): RedirectResponse
@@ -97,6 +126,7 @@ class TourController extends Controller
             ['tour_key' => ['required', 'string', Rule::in($this->selfServiceTourKeys())]],
         )->validate();
 
+        $this->ensureTourEligibility($request, $validated['tour_key']);
         $assignment = $this->tourAssignmentService->reassign(
             user: $request->user(),
             tourKey: $validated['tour_key'],
@@ -109,6 +139,7 @@ class TourController extends Controller
         ));
 
         $request->session()->put(TourAssignmentService::SESSION_SUPPRESSION_KEY, $suppressedAssignmentIds);
+        $request->session()->forget(TourAssignmentService::SESSION_ACTIVE_KEY);
 
         return back()->with('status', 'Tour neu zugewiesen.');
     }
@@ -116,6 +147,14 @@ class TourController extends Controller
     private function ensureOwnAssignment(Request $request, TourAssignment $tourAssignment): void
     {
         abort_unless($request->user()->id === $tourAssignment->user_id, 403);
+        $this->ensureTourEligibility($request, $tourAssignment->tour_key);
+    }
+
+    private function ensureTourEligibility(Request $request, string $tourKey): void
+    {
+        if ($tourKey === 'profilpflege') {
+            abort_unless($request->user()->canUseProfileTour(), 403);
+        }
     }
 
     /**

@@ -69,7 +69,7 @@ class UpdateSeriendatenFormTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_mount_populates_initial_state_and_lists(): void
+    public function test_mount_populates_initial_state_and_renders_catalog_options(): void
     {
         $user = $this->actingMember();
         $user->forceFill([
@@ -102,15 +102,43 @@ class UpdateSeriendatenFormTest extends TestCase
             ->assertSet('state.lieblingszyklus', 'Z1')
             ->assertSet('state.lieblingsthema', 'Thema1')
             ->assertSet('state.lieblingshardcover', '1 - Hardcover1')
-            ->assertSet('state.lieblingscover', 'MX 1 Roman1')
-            ->assertSet('autoren', ['Author1', 'Author2'])
-            ->assertSet('zyklen', ['Z1', 'Z2'])
-            ->assertSet('romane', ['1 - Roman1', '2 - Roman2'])
-            ->assertSet('figuren', ['Figur1', 'Figur2'])
-            ->assertSet('schauplaetze', ['Ort1', 'Ort2'])
-            ->assertSet('schlagworte', ['Thema1', 'Thema2'])
-            ->assertSet('hardcover', ['1 - Hardcover1', '2 - Hardcover2'])
-            ->assertSet('covers', ['MX 1 Roman1', 'MX 2 Roman2', 'HC 1 Hardcover1', 'HC 2 Hardcover2']);
+            ->assertSet('state.lieblingscover', 'MX 1 Roman1');
+
+        $options = $component->viewData('fieldOptions');
+        foreach ([
+            'einstiegsroman' => ['1 - Roman1', '2 - Roman2'],
+            'lesestand' => ['1 - Roman1', '2 - Roman2'],
+            'lieblingsroman' => ['1 - Roman1', '2 - Roman2'],
+            'lieblingsautor' => ['Author1', 'Author2'],
+            'lieblingszyklus' => ['Z1', 'Z2'],
+            'lieblingsfigur' => ['Figur1', 'Figur2'],
+            'lieblingsschauplatz' => ['Ort1', 'Ort2'],
+            'lieblingsthema' => ['Thema1', 'Thema2'],
+            'lieblingshardcover' => ['1 - Hardcover1', '2 - Hardcover2'],
+            'lieblingscover' => ['MX 1 Roman1', 'MX 2 Roman2', 'HC 1 Hardcover1', 'HC 2 Hardcover2'],
+        ] as $field => $values) {
+            $this->assertSame($values, $options[$field], $field);
+            foreach ($values as $value) {
+                $component->assertSeeHtml('value="'.$value.'"');
+            }
+        }
+    }
+
+    public function test_only_profile_state_is_serialized_on_mount_validation_and_save(): void
+    {
+        $user = $this->actingMember();
+        $component = Livewire::test(UpdateSeriendatenForm::class)->assertSee('2 - Roman2');
+        $this->assertSame(['state'], array_keys($component->snapshot['data']));
+
+        $component->set('state.einstiegsroman', 'Unbekannter Roman')
+            ->call('updateSeriendaten')->assertHasErrors('einstiegsroman')->assertSee('2 - Roman2');
+        $this->assertSame(['state'], array_keys($component->snapshot['data']));
+
+        $component->set('state.einstiegsroman', '1 - Roman1')
+            ->call('updateSeriendaten')->assertHasNoErrors()->assertDispatched('profile-series-saved')
+            ->assertSet('state.einstiegsroman', '1 - Roman1')->assertSee('2 - Roman2');
+        $this->assertSame(['state'], array_keys($component->snapshot['data']));
+        $this->assertSame('1 - Roman1', $user->fresh()->einstiegsroman);
     }
 
     public function test_seriendaten_can_be_updated(): void

@@ -31,6 +31,13 @@ class BaxxMilestoneActivityService
         }
 
         DB::transaction(function () use ($userPoint, $membersTeam): void {
+            // Serialize the snapshot and first progress insert with profile writes
+            // and other milestone callbacks. InnoDB must not validate the user FK
+            // against a snapshot predating a concurrent update of that user.
+            if (! User::query()->whereKey($userPoint->user_id)->lockForUpdate()->first()) {
+                return;
+            }
+
             ['baseline' => $baselineEarnedBaxx, 'current' => $currentEarnedBaxx] = $this->earnedBaxxSnapshot($userPoint, $membersTeam->id);
             $progress = $this->lockProgress($userPoint->user_id, $baselineEarnedBaxx);
             $processedEarnedBaxx = max($baselineEarnedBaxx, (int) $progress->processed_count);
@@ -60,7 +67,7 @@ class BaxxMilestoneActivityService
             }
 
             $this->markProcessedCount($progress, $currentEarnedBaxx);
-        });
+        }, 3);
     }
 
     /**

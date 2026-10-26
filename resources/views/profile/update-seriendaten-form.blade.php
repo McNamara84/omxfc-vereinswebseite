@@ -1,103 +1,29 @@
-<!-- resources/views/profile/update-seriendaten-form.blade.php -->
-<div>
-    <x-form wire:submit="updateSeriendaten" class="max-w-xl">
-        @php
-            $romanOptions = collect($romane)->map(fn($r) => ['id' => $r, 'name' => $r])->toArray();
-            $autorOptions = collect($autoren)->map(fn($a) => ['id' => $a, 'name' => $a])->toArray();
-            $hardcoverOptions = collect($hardcover)->map(fn($h) => ['id' => $h, 'name' => $h])->toArray();
-            $coverOptions = collect($covers)->map(fn($c) => ['id' => $c, 'name' => $c])->toArray();
-            $zyklusOptions = collect($zyklen)->map(fn($z) => ['id' => $z, 'name' => $z . '-Zyklus'])->toArray();
-            $figurOptions = collect($figuren)->map(fn($f) => ['id' => $f, 'name' => $f])->toArray();
-            $schauplatzOptions = collect($schauplaetze)->map(fn($s) => ['id' => $s, 'name' => $s])->toArray();
-            $themaOptions = collect($schlagworte)->map(fn($t) => ['id' => $t, 'name' => $t])->toArray();
-        @endphp
-
-        <!-- Einstiegsroman Dropdown -->
-        <x-select
-            id="einstiegsroman"
-            label="{{ __('Einstiegsroman (optional)') }}"
-            wire:model="state.einstiegsroman"
-            :options="$romanOptions"
-            placeholder="Roman auswählen"
-            title="Der Roman, mit dem du in die MADDRAX-Serie eingestiegen bist." />
-
-        <!-- Lesestand Dropdown -->
-        <x-select
-            id="lesestand"
-            label="{{ __('Aktueller Lesestand (optional)') }}"
-            wire:model="state.lesestand"
-            :options="$romanOptions"
-            placeholder="Roman auswählen"
-            title="Der letzte Roman, den du gelesen hast. Wird auf deinem Profil angezeigt." />
-
-        <!-- Lieblingsautor Dropdown -->
-        <x-select
-            id="lieblingsautor"
-            label="{{ __('Lieblingsautor:in (optional)') }}"
-            wire:model="state.lieblingsautor"
-            :options="$autorOptions"
-            placeholder="Autor:in auswählen" />
-
-        <!-- Lieblingsroman Dropdown -->
-        <x-select
-            id="lieblingsroman"
-            label="{{ __('Lieblingsroman (optional)') }}"
-            wire:model="state.lieblingsroman"
-            :options="$romanOptions"
-            placeholder="Roman auswählen" />
-
-        <!-- Lieblingshardcover Dropdown -->
-        <x-select
-            id="lieblingshardcover"
-            label="{{ __('Lieblingshardcover (optional)') }}"
-            wire:model="state.lieblingshardcover"
-            :options="$hardcoverOptions"
-            placeholder="Hardcover auswählen" />
-
-        <!-- Lieblingscover Dropdown -->
-        <x-select
-            id="lieblingscover"
-            label="{{ __('Lieblingscover (optional)') }}"
-            wire:model="state.lieblingscover"
-            :options="$coverOptions"
-            placeholder="Cover auswählen" />
-
-        <!-- Lieblingszyklus Dropdown -->
-        <x-select
-            id="lieblingszyklus"
-            label="{{ __('Lieblingszyklus (optional)') }}"
-            wire:model="state.lieblingszyklus"
-            :options="$zyklusOptions"
-            placeholder="Zyklus auswählen" />
-
-        <!-- Lieblingsfigur Dropdown -->
-        <x-select
-            id="lieblingsfigur"
-            label="{{ __('Lieblingsfigur (optional)') }}"
-            wire:model="state.lieblingsfigur"
-            :options="$figurOptions"
-            placeholder="Figur auswählen" />
-
-        <!-- Lieblingsschauplatz Dropdown -->
-        <x-select
-            id="lieblingsschauplatz"
-            label="{{ __('Lieblingsschauplatz (optional)') }}"
-            wire:model="state.lieblingsschauplatz"
-            :options="$schauplatzOptions"
-            placeholder="Schauplatz auswählen" />
-
-        <!-- Lieblingsthema Dropdown -->
-        <x-select
-            id="lieblingsthema"
-            label="{{ __('Lieblingsthema (optional)') }}"
-            wire:model="state.lieblingsthema"
-            :options="$themaOptions"
-            placeholder="Thema auswählen" />
-
-        <!-- TODO: Lieblingsmutation -->
-
+<div data-profile-series-form>
+    <p class="mb-4 text-sm" aria-live="polite" data-profile-series-completion>
+        {{ $completion['filled'] }} von {{ $completion['total'] }} Angaben gespeichert.
+        Die Angaben sind freiwillig. Für den Abschluss der Profilpflege-Tour müssen alle {{ $completion['total'] }} Felder ausgefüllt und gespeichert sein.
+    </p>
+    @if ($unavailable !== [])
+        <p class="mb-4 text-sm text-warning" role="status">Einige Auswahllisten sind derzeit nicht verfügbar: {{ implode(', ', $unavailable) }}. Vorhandene Angaben bleiben erhalten. Bitte versuche es später erneut.</p>
+    @endif
+    <x-form wire:submit="updateSeriendaten" class="max-w-xl" data-profile-series-fields>
+        @foreach ($fields as $field => $label)
+            <div data-tour-profile-key="profile-field-{{ $field }}" wire:key="series-field-{{ $field }}">
+                @if ($field === 'lieblingsmutation')
+                    <x-input id="{{ $field }}" label="{{ $label }} (optional)" wire:model="state.{{ $field }}" maxlength="255" hint="Trage den konkreten Namen deiner Lieblingsmutation ein." />
+                @else
+                    @php
+                        $options = collect($fieldOptions[$field])->map(fn ($value) => ['id' => $value, 'name' => $field === 'lieblingszyklus' ? $value . '-Zyklus' : $value])->all();
+                    @endphp
+                    <x-select id="{{ $field }}" label="{{ $label }} (optional)" wire:model="state.{{ $field }}" :options="$options" placeholder="Bitte auswählen" />
+                @endif
+                @error($field)
+                    <p class="mt-1 text-sm text-error" role="alert">{{ $message }}</p>
+                @enderror
+            </div>
+        @endforeach
         <x-slot:actions>
-            <x-button id="saveButton" type="submit" class="btn-primary">
+            <x-button id="saveButton" type="submit" class="btn-primary" data-tour-profile-key="profile-series-save" wire:loading.attr="disabled" wire:target="updateSeriendaten">
                 {{ __('Speichern') }}
             </x-button>
         </x-slot:actions>

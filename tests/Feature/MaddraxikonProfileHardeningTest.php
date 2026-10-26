@@ -91,7 +91,7 @@ class MaddraxikonProfileHardeningTest extends TestCase
         $step = collect(config('tours.profilpflege.steps'))
             ->firstWhere('key', 'profile-maddraxikon-baxx');
 
-        $this->assertSame(2, config('tours.profilpflege.version'));
+        $this->assertSame(3, config('tours.profilpflege.version'));
         $this->assertSame(
             '[data-tour-profile-key="profile-maddraxikon-baxx"]',
             $step['selectors']['desktop'] ?? null,
