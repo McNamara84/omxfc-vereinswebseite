@@ -328,6 +328,7 @@ function hideRunner(resetPayload = false) {
     state.target = null;
 
     if (resetPayload) {
+        clearTourError();
         state.generation += 1;
         state.invitation = false;
         state.payload = null;

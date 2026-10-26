@@ -407,6 +407,36 @@ describe('profile tour workflow', () => {
         expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
     });
 
+    it('clears a background fetch error on reset before showing the next invitation', async () => {
+        window.omxfcHttp.get.mockRejectedValueOnce(new Error('Alte Einladung nicht erreichbar'));
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        await flush();
+        const error = document.getElementById('tour-runner-error');
+        const panel = document.getElementById('tour-runner-panel');
+        expect(panel.classList.contains('hidden')).toBe(true);
+        expect(error.classList.contains('hidden')).toBe(false);
+        expect(error.textContent).toBe('Alte Einladung nicht erreichbar');
+
+        const request = deferred();
+        tour = { ...payload(), assignment_id: 99 };
+        window.omxfcHttp.get.mockImplementationOnce(() => request.promise);
+        document.getElementById('lieblingsmutation').focus();
+        document.dispatchEvent(new CustomEvent('livewire:navigated'));
+        const errorHiddenOnReset = error.classList.contains('hidden');
+        await flush();
+        request.resolve({ data: { tour: structuredClone(tour) } });
+        await flush();
+
+        expect(errorHiddenOnReset).toBe(true);
+        expect(error.classList.contains('hidden')).toBe(true);
+        expect(panel.classList.contains('hidden')).toBe(false);
+        expect(panel.dataset.invitation).toBe('true');
+        expect(document.activeElement.id).toBe('lieblingsmutation');
+        expect(window.omxfcHttp.post).not.toHaveBeenCalled();
+        await click('tour-runner-start');
+        expect(window.omxfcHttp.post).toHaveBeenCalledWith('/99/start');
+    });
+
     it.each(['navigation', 'profile-save'])('shows a current fetch failure during %s despite the fetch incrementing its generation', async source => {
         window.omxfcHttp.get.mockRejectedValueOnce(new Error('Einladung nicht erreichbar'));
         if (source === 'navigation') document.dispatchEvent(new CustomEvent('livewire:navigated'));
