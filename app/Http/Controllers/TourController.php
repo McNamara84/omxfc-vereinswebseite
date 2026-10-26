@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Models\TourAssignment;
 use App\Services\TourAssignmentService;
@@ -154,8 +153,7 @@ class TourController extends Controller
     private function ensureTourEligibility(Request $request, string $tourKey): void
     {
         if ($tourKey === 'profilpflege') {
-            $role = $request->user()->mitgliederTeamRole();
-            abort_unless($role !== null && $role !== Role::Anwaerter, 403);
+            abort_unless($request->user()->canUseProfileTour(), 403);
         }
     }
 
