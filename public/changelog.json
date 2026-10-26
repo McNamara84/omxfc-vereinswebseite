@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.19.0",
+    "pub_date": "2026-10-26",
+    "notes": [
+      "[New] Der Maddraxikon-Serienbonus belohnt aktive Mitglieder mit verknüpftem Wiki-Konto für aufeinanderfolgende Aktivitätstage: 1 Baxx am ersten Tag, 2 am zweiten, 3 am dritten und so weiter, ohne Bonusobergrenze und zusätzlich zu den regulären Beitrags-Baxx. Auch kleine gültige Korrekturen zählen; pro Tag gibt es einen Bonus außerhalb des regulären Tageslimits. Die Prüfung erfolgt frühestens nach 24 Stunden. Ein ausgelassener Kalendertag beendet die Serie; maßgeblich ist die Zeit in Berlin.",
+      "[New] Dashboard, Profil und Challenges & Baxx zeigen die Maddraxikon-Serie mit bestätigten Tagen, offenen Prüfungen und Hinweisen auf verzögerte Synchronisation. Im Profil lassen sich der Monatsverlauf, der persönliche Rekord und die Bonusbilanz nach Korrekturen einsehen. Werden Beiträge nachträglich ungültig, werden betroffene Tagesboni und Folgetage neu berechnet.",
+      "[New] Die überarbeitete Tour Profil pflegen vergibt einmalig 5 Baxx, wenn alle elf Serienangaben gespeichert sind und die Tour abgeschlossen wird. Vorhandene Angaben zählen mit; auch Mitglieder mit einer früher abgeschlossenen Tour können die neue Belohnung erhalten. Unter Profil & Einstellungen → Touren & Hilfestart lässt sich die Tour fortsetzen oder erneut starten, ohne den Bonus mehrfach zu vergeben.",
+      "[New] Die Maddraxikon-Verwaltung zeigt offene Serienberechnungen und die letzten Bonusbuchungen einschließlich Korrekturen. Administratoren können eine erneute Prüfung anstoßen und bei historischen Beiträgen nach manueller Prüfung einen begründeten Nicht-Bot-Nachweis hinterlegen.",
+      "[Improved] Im Profil lässt sich jetzt die Lieblingsmutation als Freitext eintragen. Eine Fortschrittsanzeige zählt gespeicherte Serienangaben; beim Tourabschluss werden fehlende Felder genannt. Teilprofile bleiben speicherbar, und vorübergehend nicht verfügbare Auswahllisten überschreiben keine vorhandenen Angaben.",
+      "[Improved] Karten, Diagramme, Rollenspiel-Funktionen und 3D-Ansichten laden ihre zusätzlichen Bestandteile erst auf den jeweiligen Seiten. Dadurch muss beim Einstieg weniger heruntergeladen werden; beim Seitenwechsel werden nicht mehr benötigte Karten und Ansichten zuverlässiger beendet.",
+      "[Improved] Die Romantauschbörse und das Angebotsformular zeigen die aktuell gültigen Baxx-Regeln einschließlich Sonderaktionen und deaktivierter Vergütungen. Nach einem Tauschabschluss nennt die Bestätigung die tatsächlich vergebenen Baxx oder weist auf eine ausbleibende Vergütung hin.",
+      "[Improved] Romantausch-Formulare zeigen eine Fehlerübersicht auch bei inzwischen veränderten Angeboten oder Gesuchen. Wird eine Tauschzuordnung durch das Löschen eines Angebots oder Gesuchs aufgehoben, erklärt der Aktivitätsfeed die Ursache und welcher Eintrag wieder verfügbar ist.",
+      "[Fixed] Gleichzeitige Challenge-Bestätigungen, Rezensionen und Missionsabschlüsse können keine mehrfachen Baxx-Vergaben mehr auslösen. Schlägt eine Buchung fehl, bleiben keine nur teilweise gespeicherten Abschlüsse zurück.",
+      "[Fixed] Beim Veröffentlichen von Fanfiction gelten jetzt durchgängig die aktuell konfigurierten Baxx-Regeln statt eines festen Betrags. Deaktivierte Vergütungen werden dabei berücksichtigt.",
+      "[Fixed] Belohnungskäufe lassen sich bei wiederholten oder gleichzeitigen Erstattungsanfragen nicht mehr mehrfach erstatten.",
+      "[Fixed] Bereits zugeordnete oder abgeschlossene Romantausch-Angebote und Gesuche lassen sich über veraltete Formulare nicht mehr verändern. Gleichzeitige Zuordnungen und wiederholte Tauschbestätigungen erzeugen keine doppelten Matches oder zusätzlichen Baxx.",
+      "[Fixed] Fotos in Romantausch-Stapeln werden vollständig und ohne doppelte Einträge angezeigt; das freie Fotokontingent aktualisiert sich beim Markieren zum Entfernen. Fehlgeschlagene Speichervorgänge erhalten vorhandene Fotos, und noch von anderen Angeboten verwendete Bilder werden beim Löschen nicht entfernt.",
+      "[Fixed] Challenge-Prüfungen und manuelle Tauschabschlüsse berücksichtigen die Rolle im Mitglieder-Team. Ein Wechsel des aktuell gewählten Teams entzieht berechtigten Vereinsrollen den Zugriff nicht; eine Verwaltungsrolle ausschließlich in einem anderen Team gewährt ihn nicht.",
+      "[Fixed] Missionen im Maddraxiversum lassen sich wieder zuverlässig über die Schaltfläche Starte Mission beginnen; auch die Fokussteuerung des Missionsdialogs wurde korrigiert."
+    ]
+  },
+  {
     "version": "1.18.0",
     "pub_date": "2026-10-18",
     "notes": [
