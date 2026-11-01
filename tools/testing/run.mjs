@@ -3,7 +3,11 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const sqliteEnvironment = { APP_ENV: 'testing', DB_CONNECTION: 'sqlite', DB_DATABASE: ':memory:', CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync', SCOUT_DRIVER: 'null', MADDRAXIKON_IDENTITY_HMAC_PEPPERS: 'test-v1:0123456789abcdef0123456789abcdef' };
-const mariaConfigurations = ['phpunit.mariadb.xml', 'phpunit.rpg-mariadb.xml', 'phpunit.veranstaltungs-baxx-mariadb.xml'];
+const mariaConfigurations = [
+    ['phpunit.mariadb.xml', 'omxfc_maddraxikon_test'],
+    ['phpunit.rpg-mariadb.xml', 'omxfc_rpg_test'],
+    ['phpunit.veranstaltungs-baxx-mariadb.xml', 'omxfc_veranstaltungen_test'],
+];
 
 export function commandsFor(scope, { runtime = 'docker', args = [], node = process.execPath, ci = Boolean(process.env.CI) } = {}) {
     if (!['fast', 'all', 'php', 'unit', 'mariadb'].includes(scope)) throw new Error('Scope must be fast, all, php, unit, or mariadb');
@@ -19,14 +23,18 @@ export function commandsFor(scope, { runtime = 'docker', args = [], node = proce
         commands.push({ command: node, args: ['node_modules/vitest/vitest.mjs', 'run', '--config', 'vitest.config.js'] });
         // Node 26 expands --test glob patterns itself, including when shell is false.
         commands.push(scope === 'fast'
-            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/coverage-script.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs'] }
+            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/coverage-script.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs', 'tests/Node/php86-compatibility.test.mjs'] }
             : runtime === 'docker'
             ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'node', 'node', '--test', 'tests/Node/*.test.mjs'] }
             : { command: node, args: ['--test', 'tests/Node/*.test.mjs'] });
     }
     if (['all', 'mariadb'].includes(scope)) {
         if (runtime === 'docker') commands.push({ command: 'docker', args: [...compose, 'up', '-d', '--wait', 'db'] });
-        for (const configuration of mariaConfigurations) commands.push(php(['vendor/bin/pest', '--configuration', configuration, '--fail-on-skipped', '--compact', ...args]));
+        for (const [configuration, database] of mariaConfigurations) commands.push({
+            ...php(['vendor/bin/pest', '--configuration', configuration, '--fail-on-skipped', '--compact', ...args]),
+            // Workers inherit process variables, including $_SERVER in PHP.
+            env: { ...sqliteEnvironment, DB_CONNECTION: 'mysql', DB_DATABASE: database },
+        });
     }
     if (scope === 'all') {
         commands.push(php(['vendor/bin/pest', 'tests/Arch.php', '--compact']));

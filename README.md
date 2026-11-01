@@ -34,6 +34,8 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Konfiguration](#konfiguration)
     - [Preisstruktur](#preisstruktur)
     - [Zugriffskontrolle](#zugriffskontrolle)
+  - [Abhängigkeiten und Supply-Chain-Prüfungen](#abhängigkeiten-und-supply-chain-prüfungen)
+  - [Zusätzlicher PHP-8.6-Kompatibilitätscheck](#zusätzlicher-php-86-kompatibilitätscheck)
   - [Tests \& Qualitätssicherung](#tests--qualitätssicherung)
   - [Deployment](#deployment)
   - [Nützliche Artisan-Befehle](#nützliche-artisan-befehle)
@@ -939,18 +941,17 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **24. Oktober 2026**. PHP 8.5.12 basiert auf Debian
-Trixie; Node 26.12.1 verwendet Alpine 3.24 und npm 12.2.1. Composer 2.10.3 ist
+Stand der Aktualisierung: **1. November 2026**. PHP 8.5.12 basiert auf Debian
+Trixie; Node 26.13.0 verwendet Alpine 3.24 und npm 12.2.1. Composer 2.11.1 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.31.8 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
 nginx 1.31.8 enthält die [aktuellen Sicherheitskorrekturen](https://nginx.org/en/CHANGES).
 Livewire 4.4.8 behebt [GHSA-mhf7-xp6r-6qrc](https://github.com/livewire/livewire/security/advisories/GHSA-mhf7-xp6r-6qrc).
-Der aktualisierte Composer-Image-Digest enthält PHP 8.5.12; der bisherige Neubau
-enthielt noch PHP 8.5.11 und ließ dadurch die Image-Sicherheitsprüfung scheitern.
-Die Prüfsumme der unveränderten Composer-2.10.3-PHAR bleibt davon unabhängig.
-Der MariaDB-Digest wurde auf den Neubau vom 17. Oktober aktualisiert und ist in
+Composer-Image-Digest und Prüfsumme der Composer-2.11.1-PHAR sind unabhängig
+voneinander geprüft und gepinnt. PHP verwendet die Image-Neubauten vom
+31. Oktober. Der MariaDB-Digest wurde auf den Neubau vom 28. Oktober aktualisiert und ist in
 Dockerfile, Test-Stack und CI einheitlich gepinnt.
 Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
 Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
@@ -975,24 +976,27 @@ verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselb
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.3 unterstützt nun PHPUnit 13.4.3; beide Testwerkzeuge
-sind entsprechend aktualisiert. maryUI 2.9.10 benötigt
+aktualisiert. Pest 5.3.4 und PHPUnit 13.4.5 sind gemeinsam aktualisiert,
+ebenso Pest Browser 5.2.0, PHPStan 2.3.4 und Rector 2.8.3. maryUI 2.9.11 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
 
-Die erneute vollständige Auflösung vom 18. Oktober aktualisiert Intervention Image
-auf 4.4.0, Guzzle auf 8.3.0, Promises auf 3.1.0, PSR-7 auf 3.2.0, CommonMark
-auf 2.10.4, Whoops auf 2.18.7 und robots-txt auf 2.5.5. Die indirekten
-JavaScript-Testabhängigkeiten css-color 7.1.7 und dom-selector 10.0.4 sind ebenfalls
-im Lockfile aktualisiert. Die Auflösung vom 24. Oktober ergänzt Laravel 13.38.0,
-Livewire 4.4.8, Carbon 3.15.0 und ParaTest 7.27.4 sowie alle kompatiblen transitiven
-Updates. Alpine samt Plugins steht auf 3.17.5, Chart.js auf 4.6.1 und Vite auf 8.3.5.
-League URI 7.9.0 und Symfony 8.1.9 sind bereits aktuell.
+Die vollständige Auflösung vom 1. November aktualisiert 46 Composer-Pakete,
+darunter Laravel 13.39.0, Intervention Image 4.4.1, Guzzle 8.3.1, CommonMark
+2.10.7, Carbon 3.15.1, League URI 7.9.1, Symfony 8.1.10 und ParaTest 7.27.5.
+Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
+transitiven Updates. Der gezielte npm-Sicherheitspatch für `ip-address` steht auf
+10.7.5; der kompatible Undici-6-Zweig bleibt für npm erhalten.
+Der benötigte Selector-Parser-Override ist auf 7.1.7 aktualisiert.
+Livewire 4.4.8, Alpine samt Plugins 3.17.5, Chart.js 4.6.1 und Vite 8.3.5 sind aktuell.
 Vitest/Coverage 5.0.5, Playwright 1.64.1 mit passenden Browsern,
 axe 4.14.0, daisyUI 5.7.50, jsdom 30.1.3 und Zod 4.6.7 sind gemeinsam geprüft.
-Alle 15 externen GitHub-Action-Pins wurden gegen die veröffentlichten Tags
-am 24. Oktober verifiziert; `docker/login-action` wurde auf 4.7.0 und der
-Grype-Scanner auf 0.121.0 aktualisiert. Die bereits aktuellen Pakete bleiben in ihren unterstützten Linien.
+Alle 15 bisherigen externen GitHub-Action-Pins wurden gegen die veröffentlichten
+Tags am 1. November verifiziert. Die PHP-Coverage-Badge-Action verwendete trotz
+aktuellem Release weiterhin PHP 7.4 und einen unfixierten Composer-Download;
+sie ist durch `tools/testing/php-coverage-badge.mjs` ersetzt. Die verbleibenden
+14 Action-Pins sind aktuell, ebenso `docker/login-action` 4.7.0 und Grype 0.121.0.
+Nextcloud ist von dieser Aktualisierung ausgenommen.
 
 Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
 der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
@@ -1191,6 +1195,39 @@ fehlendes `wire:navigate`. Die erneute vollständige PHP-Abnahme im folgenden
 Testrefactoring ist erfolgreich; Messbedingungen und Ergebnisse sind dort
 dokumentiert.
 
+## Zusätzlicher PHP-8.6-Kompatibilitätscheck
+
+Der Workflow [PHP 8.6 Compatibility](.github/workflows/php86-compatibility.yml)
+läuft bei Pull Requests gegen `main`, Pushes auf `main`, täglich um 05:17 UTC
+(06:17 MEZ / 07:17 MESZ) und manuell. Er verwendet ausdrücklich die PHP-8.6-Reihe,
+zunächst als Vorabversion und nach Veröffentlichung als aktuelle stabile Version.
+
+Die Probe prüft nacheinander die festgeschriebenen Composer-Abhängigkeiten,
+Anwendungsstart und Assets, PHP-Suiten und Qualitätsregeln, MariaDB,
+Pest Browser, Chromium und Firefox. Nach einer fehlgeschlagenen Voraussetzung
+entfallen die Folgestufen. MariaDB startet erst nach erfolgreichen PHP-Prüfungen;
+Browser werden erst bei Bedarf installiert. Abhängigkeiten und Assets werden
+innerhalb des Probelaufs wiederverwendet.
+
+Der abschließende Check zeigt **„PHP 8.6: kompatibel“**, **„nicht kompatibel“**
+oder **„nicht prüfbar“** im Namen und erläutert das Ergebnis in der Zusammenfassung.
+Eine erkannte Inkompatibilität bleibt ein grüner, unverbindlicher Check. Fehlende
+Builds, Downloadfehler oder ungültige Prüfdaten ergeben „nicht prüfbar“. Reguläre
+PHP-8.5- und Sicherheitsprüfungen bleiben verpflichtend. Logs und Browserdiagnosen
+werden 14 Tage als Artefakte gespeichert; ein zusätzliches README-Badge gibt es nicht.
+
+Da die produktive Vorgabe `~8.5.0` PHP 8.6 ausschließt, erweitert die Probe
+ausschließlich diese Root-Vorgabe und die zugehörigen Lock-Metadaten in einer
+isolierten Arbeitskopie. Composers eigene Hashfunktion und ein vollständiger
+Vergleich aller Paketmetadaten sichern den unveränderten Paketstand. Anforderungen
+der Abhängigkeiten und Plattformprüfungen bleiben aktiv. Ein positives Ergebnis
+bezeichnet technische Kompatibilität unter diesen Testbedingungen; es stellt
+die produktive PHP-Version nicht um.
+
+Plan und Prüfnachweise stehen im
+[Implementierungsplan](docs/Implementierungsplan-Abhaengigkeiten-PHP-8.6.md) und
+[Umsetzungsbericht](docs/Abhaengigkeiten-PHP-8.6-Ergebnis.md).
+
 ## Tests & Qualitätssicherung
 
 Für Windows und Docker gibt es einen eigenen Test-Stack. Er kopiert die aktuellen
@@ -1199,6 +1236,9 @@ Entwicklungsdatenbank und Entwicklungscontainer werden dabei nicht verwendet.
 Mitversionierte Buchdaten und das Protokoll-PDF werden als Testfixtures kopiert.
 SQLite-Tests laufen im Speicher; die drei MariaDB-Suiten erhalten eigene
 Testdatenbanken in einem flüchtigen MariaDB-Container ohne freigegebenen Hostport.
+Dateibasierte SQLite-Browser-Tests benötigen zusätzlich die `sqlite3`-CLI für
+Laravels Schema-Dump. Development- und Playwright-PHP-Images enthalten sie;
+die PHP-8.6-Probe stellt sie bei Bedarf erst nach erfolgreicher Paketinstallation bereit.
 
 ```powershell
 # Einmalig und nach Änderungen an Abhängigkeiten oder Testimages:
@@ -1401,7 +1441,7 @@ Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.12.1 und gepatchtem npm 12.2.1 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.13.0 und gepatchtem npm 12.2.1 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

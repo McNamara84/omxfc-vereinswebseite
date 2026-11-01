@@ -60,14 +60,14 @@
         "alpinejs": "^3.17.5",
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3",
-        "three": "^0.186.1"
+        "three": "^0.187.0"
     },
     "allowScripts": {
         "fsevents@2.3.3": true
     },
     "overrides": {
         "@tailwindcss/typography": {
-            "postcss-selector-parser": "7.1.6"
+            "postcss-selector-parser": "7.1.7"
         }
     }
 }

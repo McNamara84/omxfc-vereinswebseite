@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Reviewed same-major security replacements for npm 12.2.1 bundled dependencies; remove after upstream fixes.",
   "dependencies": {
-    "ip-address": "10.7.4",
+    "ip-address": "10.7.5",
     "undici": "6.29.1"
   }
 }
