@@ -100,6 +100,20 @@ Ein neuer Regressionstest führt den tatsächlichen Bash-Vorbereitungsschritt mi
 
 Zusätzlich wurden die von Workflow-Dateien abhängigen PHP-Tests und die nachfolgenden PHPStan-, Rector-, Architektur- und Profanity-Prüfungen mit einer Kopie des echten Repository-Indexes unter PHP 8.6.0 RC4 erfolgreich ausgeführt. `actionlint` bestätigt den geänderten Workflow. Ein neuer gehosteter Lauf nach Übernahme des Fixes muss noch zeigen, ob die späteren MariaDB- und Browserstufen unter dem vom Runner verwendeten PHP-8.6-Build weitere Blocker finden.
 
+## Nachprüfung des Chromium-Blockers
+
+Der [anschließende PHP-8.6-Lauf](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/41327384620/job/124910070254) besteht die regulären 4.341 PHP-Tests, sämtliche Qualitätsregeln, die drei MariaDB-Suiten mit zusammen 591 Tests und Pest Browser mit 77 Assertions. Chromium erreicht 274 bestandene Tests, zwei bestehende Skips und neun fehlgeschlagene Tests. Firefox wird anschließend wie vorgesehen ausgelassen.
+
+Auch dieser Blocker entsteht durch die Testvorbereitung: Die vorherigen PHP-Tests registrieren in `AppServiceProvider` vereinfachte Blade-Komponenten für Konsolentests. Die dabei kompilierten Seiten bleiben in `storage/framework/views` liegen. Bei den anschließenden HTTP-Anfragen verwendet Laravel diese kompilierten Seiten weiter, obwohl im Webprozess die vollständigen Komponenten registriert sind. Beispielsweise fehlt dem Passwortfeld aus der Testkomponente die zugängliche Beschriftung; weitere Fehler betreffen Select-Beschriftungen, Tabellen, Hinweise und das Modal-Verhalten.
+
+Das lässt sich unabhängig vom gehosteten Runner unter PHP 8.6.0 RC4 reproduzieren: Nach `AuthenticationTest` schlägt der unveränderte Chromium-Test für die Login-Beschriftungen mit demselben HTML und derselben Accessibility-Meldung fehl. Eine Bereinigung des View-Caches behebt diesen Fehler. Eine Inkompatibilität von Pest, Playwright oder einer anderen Abhängigkeit muss dafür nicht abgewartet werden.
+
+Das gemeinsame Playwright-Setup führt deshalb nach Migration und Seeding `php artisan view:clear` aus, bevor es die Bereitschaft für Browser-Anfragen signalisiert. Die Reihenfolge ist wichtig, da auch Konsolen-Seeding wieder Ansichten kompilieren kann. Die Bereinigung gilt für Chromium und Firefox sowie lokale Browserläufe. Schlägt sie fehl, bricht das Setup ab. Die bestehenden Browser- und Accessibility-Assertions bleiben unverändert. Laravel dokumentiert den Befehl in der [Beschreibung des View-Caches](https://laravel.com/framework/docs/13.x/views#optimizing-views).
+
+Drei neue Vitest-Regressionen prüfen die Bereinigung nach dem Seeding und vor der Bereitschaft sowie das Abbruchverhalten bei Fehlern der Schema-Initialisierung und Cache-Bereinigung. Zusammen mit den vorhandenen Playwright-Hilfstests bestehen alle 15 Tests.
+
+Die fünf betroffenen Browser-Testdateien wurden unter PHP 8.6.0 RC4 mit unveränderten Abhängigkeiten erneut geprüft. Vorher liefen in derselben Arbeitskopie sechs PHP-Testdateien mit 50 erfolgreichen Tests und 142 Assertions, um den gefüllten View-Cache der früheren CI-Stufe nachzustellen. Chromium und Firefox bestehen anschließend jeweils alle 25 Tests ohne Wiederholungsversuche. Damit bestehen in Chromium auch alle neun zuvor fehlgeschlagenen Fälle. Ein neuer vollständiger gehosteter Lauf bleibt für die abschließende PHP-8.6-Kompatibilitätsanzeige erforderlich.
+
 ## Sicherheitsbefunde und verbleibende Grenzen
 
 Grype 0.121.0 meldet für die neu gebauten Produktions-, Nginx-, MariaDB- und Typesense-Images **keine behebbaren High-/Critical-Befunde**. Die unveränderte vorhandene CI-Richtlinie blockiert solche Befunde weiterhin.
@@ -117,7 +131,7 @@ Beispielsweise enthält Trixie weiterhin MariaDB-Clientpakete 11.8.6 mit entspre
 
 Zwei transitive Major-Upgrades bleiben durch Upstream-Anforderungen blockiert: maryUI 2.9.11 verlangt `jfcherng/php-diff` 6.x statt des verfügbaren 7.0.1; dieser Zweig verlangt wiederum Sequence Matcher 4.x statt 5.x. Die Constraints werden nicht mit Alias-Versionen umgangen. npm 12.2.1 benötigt den kompatiblen Undici-6-Zweig; dessen aktuelle Patchversion 6.29.1 bleibt erhalten. Der Selector-Parser-Override bleibt notwendig, weil das aktuelle Tailwind Typography weiterhin Version 6.0.10 verlangt; der geprüfte Override wurde auf 7.1.7 angehoben.
 
-Die vollständige PHP-8.6-CI einschließlich deren eigener MariaDB- und Browserstufen sowie die tatsächliche GitHub-Anzeige werden erst nach einem Push auf GitHub ausgeführt. Lokale Prüfungen ersetzen diesen gehosteten Nachweis nicht. Es wurden weder ein Push noch ein Deployment vorgenommen. Die vorhandenen Coverage- und Mutation-Gates bleiben in der CI aktiv; eine neue vollständige lokale Coverage-/Mutationserhebung gehört nicht zu diesen Prüfnachweisen.
+Ein vollständiger erfolgreicher PHP-8.6-CI-Lauf einschließlich beider Browserstufen muss nach einem Push der letzten Korrektur auf GitHub bestätigt werden. Lokale Prüfungen ersetzen diesen gehosteten Nachweis nicht. Es wurden weder ein Push noch ein Deployment vorgenommen. Die vorhandenen Coverage- und Mutation-Gates bleiben in der CI aktiv; eine neue vollständige lokale Coverage-/Mutationserhebung gehört nicht zu diesen Prüfnachweisen.
 
 ## Reproduktion
 

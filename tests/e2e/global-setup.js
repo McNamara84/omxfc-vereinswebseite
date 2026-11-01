@@ -80,9 +80,12 @@ export default async function globalSetup() {
         throw new Error('Failed to load SQLite schema dump for Playwright.');
     }
 
-    // One application bootstrap replaces twelve separate Artisan processes.
-    // The schema dump above still precedes the regular migration validation.
+    // Migrations and seeding share one application bootstrap, after the schema dump.
     await runArtisan(['migrate', '--seed', '--seeder=Database\\Seeders\\PlaywrightSuiteSeeder']);
+
+    // PHP tests compile console-only Blade doubles into the shared view cache.
+    // Clear after seeding so HTTP requests compile the real, accessible components.
+    await runArtisan(['view:clear']);
 
     fs.writeFileSync(readyFilePath, 'ready\n');
 }

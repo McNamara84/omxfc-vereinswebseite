@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const nodeTestFiles = ['docker-utils', 'php-utils', 'navigation-utils', 'performance-metrics', 'playwright-node-utils']
+const nodeTestFiles = ['docker-utils', 'php-utils', 'navigation-utils', 'performance-metrics', 'playwright-node-utils', 'playwright-global-setup']
     .map(name => `**/${name}.test.js`);
 const configuredWorkers = Number(process.env.VITEST_WORKERS ?? 2);
 if (!Number.isInteger(configuredWorkers) || configuredWorkers < 1) {
