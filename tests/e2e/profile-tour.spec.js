@@ -100,7 +100,15 @@ for (const mobile of [false, true]) {
             else await input.selectOption(value);
         }
         await advanceTo(page, 'Angaben speichern');
-        await clickAndWaitForLivewireUpdate(page, page.locator('[data-tour-profile-key="profile-series-save"]'));
+        const saveButton = page.locator('[data-tour-profile-key="profile-series-save"]');
+        // A visible button can still be covered by the fixed tour panel in Firefox.
+        // Check the real pointer target before the shared click helper can force it.
+        await expect.poll(() => saveButton.evaluate(button => {
+            const bounds = button.getBoundingClientRect();
+            const target = document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            return target === button || button.contains(target);
+        }), { message: 'The profile tour must leave the save button clickable.' }).toBe(true);
+        await clickAndWaitForLivewireUpdate(page, saveButton);
         await expect(page.locator('[data-profile-series-completion]')).toContainText('11 von 11');
         await expect(page.locator('#tour-runner-reward')).toContainText('11 von 11');
         await advanceTo(page, 'Profilpflege abschließen');
