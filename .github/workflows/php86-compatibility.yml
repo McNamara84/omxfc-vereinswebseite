@@ -54,7 +54,8 @@ jobs:
       - name: Isolierte Arbeitskopie anlegen
         run: |
           mkdir -p "$RUNNER_TEMP/php86-probe"
-          git archive HEAD | tar -x -C "$RUNNER_TEMP/php86-probe"
+          # git archive excludes .github via export-ignore; tests need all tracked files.
+          git checkout-index --all --prefix="$RUNNER_TEMP/php86-probe/"
       - name: Abhängigkeiten, PHP, MariaDB und Browser nacheinander prüfen
         id: probe
         env:

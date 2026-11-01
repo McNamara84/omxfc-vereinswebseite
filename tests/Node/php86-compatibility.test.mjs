@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { classifyFailure, createStages, ProbeFailure, runStages, summarize, verifyResult } from '../../tools/ci/php86-compatibility.mjs';
 
 const stageNames = ['runtime', 'dependencies', 'application', 'php', 'mariadb', 'pest_browser', 'chromium', 'firefox'];
@@ -17,6 +17,48 @@ function temporaryDirectory(t) {
     });
     return directory;
 }
+
+test('the actual CI preparation retains export-ignored test inputs and excludes private untracked files', { skip: process.platform === 'win32' }, t => {
+    // Execute the workflow's Bash step on the same platform as the GitHub runner.
+    const directory = temporaryDirectory(t);
+    const source = path.join(directory, 'source with spaces');
+    const runnerTemp = path.join(directory, 'runner temp');
+    const archive = path.join(directory, 'distribution archive');
+    const emptyHooks = path.join(directory, 'empty hooks');
+    for (const folder of [source, runnerTemp, archive, emptyHooks]) mkdirSync(folder);
+    mkdirSync(path.join(source, '.github/workflows'), { recursive: true });
+    mkdirSync(path.join(source, 'resources/views'), { recursive: true });
+    const files = {
+        '.gitattributes': '* text eol=lf\n/.github export-ignore\nCHANGELOG.md export-ignore\n',
+        '.github/workflows/tia-baseline.yml': 'name: TIA fixture\n',
+        'CHANGELOG.md': 'Tracked changelog fixture\n',
+        'composer.json': '{"require":{"php":"~8.5.0"}}\n',
+        'resources/views/a view.blade.php': '<p>Tracked view with spaces</p>\n',
+    };
+    for (const [name, contents] of Object.entries(files)) writeFileSync(path.join(source, name), contents);
+    const git = (...args) => execFileSync('git', args, { cwd: source, encoding: 'utf8', windowsHide: true });
+    git('init', '--quiet');
+    git('add', '--', ...Object.keys(files));
+    git('-c', `core.hooksPath=${emptyHooks}`, '-c', 'commit.gpgsign=false', '-c', 'user.name=CI Fixture', '-c', 'user.email=ci-fixture@example.invalid', 'commit', '--quiet', '-m', 'Fixture');
+    writeFileSync(path.join(source, '.env.production'), 'PRIVATE_FIXTURE_VALUE=must-not-be-copied\n');
+
+    // Prove why the previous preparation lost this required workflow file.
+    execFileSync('tar', ['-xf', '-', '-C', archive], { cwd: source, input: execFileSync('git', ['archive', 'HEAD'], { cwd: source }) });
+    assert.equal(existsSync(path.join(archive, '.github/workflows/tia-baseline.yml')), false);
+
+    const workflow = readFileSync(new URL('../../.github/workflows/php86-compatibility.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const step = workflow.match(/- name: Isolierte Arbeitskopie anlegen\n {8}run: \|\n((?: {10}[^\n]*\n)+)/);
+    assert.ok(step, 'The actual working-copy preparation must be executable by this regression');
+    const script = step[1].split('\n').map(line => line.slice(10)).join('\n');
+    execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], { cwd: source, env: { ...process.env, RUNNER_TEMP: runnerTemp } });
+
+    const probe = path.join(runnerTemp, 'php86-probe');
+    for (const [name, contents] of Object.entries(files)) assert.equal(readFileSync(path.join(probe, name), 'utf8'), contents, name);
+    assert.equal(existsSync(path.join(probe, '.env.production')), false);
+    assert.equal(existsSync(path.join(probe, '.git')), false);
+    writeFileSync(path.join(probe, 'composer.json'), '{}\n');
+    assert.equal(readFileSync(path.join(source, 'composer.json'), 'utf8'), files['composer.json']);
+});
 
 for (const failingIndex of [1, 3, 4, 5, 6]) {
     test(`a failure in ${stageNames[failingIndex]} prevents every dependent stage from executing`, async () => {

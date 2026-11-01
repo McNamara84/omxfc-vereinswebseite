@@ -88,6 +88,18 @@ Nach dem letzten Selector-Parser-Patch wurden alle neu gebauten Asset-Dateien mi
 
 Die anfängliche RPG-Prüfung deckte die geerbte falsche Worker-Datenbank auf; die betroffenen MariaDB-Suiten wurden nach der Korrektur vollständig wiederholt. Die erste lokale Pest-Browser-Prüfung zeigte die fehlende SQLite-CLI; nach deren Ergänzung besteht die Regression. Es wurden keine Assertions oder Sicherheitsrichtlinien abgeschwächt.
 
+## Nachprüfung des ersten GitHub-Laufs
+
+Der [erste PHP-8.6-Lauf](https://github.com/McNamara84/omxfc-vereinswebseite/actions/runs/41325064930/job/124903171934) meldete nach 3.938 erfolgreichen Projekttests den ersten Blocker bei `Tests\Unit\TiaWorkflowCommandTest`. Der Test konnte `.github/workflows/tia-baseline.yml` nicht lesen; `file_get_contents` lieferte `false`. Die übrigen Stufen wurden daraufhin wie vorgesehen ausgelassen.
+
+Die Ursache war die Vorbereitung der Arbeitskopie: `git archive HEAD` berücksichtigt `/.github export-ignore` aus `.gitattributes`. Dadurch fehlten im Probelauf die CI-Dateien, obwohl sie im ausgecheckten Repository vorhanden sind. Dieser Fehler ist kein Nachweis einer Pest- oder PHP-8.6-Inkompatibilität und erfordert kein Abhängigkeitsupdate.
+
+Der Workflow verwendet deshalb jetzt `git checkout-index --all --prefix=…/`. Das übernimmt sämtliche versionierten Dateien einschließlich der für Tests benötigten, beim Distributionsexport ausgelassenen Dateien. Private unversionierte Dateien und das ursprüngliche `.git`-Verzeichnis werden weiterhin nicht kopiert; Änderungen der Probe bleiben von der Quelle isoliert. Die Exportregeln und die bestehenden PHP-Testassertions bleiben erhalten.
+
+Ein neuer Regressionstest führt den tatsächlichen Bash-Vorbereitungsschritt mit einem Git-Testrepository aus. Er reproduziert zunächst den Verlust der Workflow-Datei durch `git archive` und prüft anschließend die vollständige isolierte Kopie, Dateinamen mit Leerzeichen und den Ausschluss unversionierter Dateien. Alle 15 Tests dieser Node-Prüfdatei bestehen unter Linux.
+
+Zusätzlich wurden die von Workflow-Dateien abhängigen PHP-Tests und die nachfolgenden PHPStan-, Rector-, Architektur- und Profanity-Prüfungen mit einer Kopie des echten Repository-Indexes unter PHP 8.6.0 RC4 erfolgreich ausgeführt. `actionlint` bestätigt den geänderten Workflow. Ein neuer gehosteter Lauf nach Übernahme des Fixes muss noch zeigen, ob die späteren MariaDB- und Browserstufen unter dem vom Runner verwendeten PHP-8.6-Build weitere Blocker finden.
+
 ## Sicherheitsbefunde und verbleibende Grenzen
 
 Grype 0.121.0 meldet für die neu gebauten Produktions-, Nginx-, MariaDB- und Typesense-Images **keine behebbaren High-/Critical-Befunde**. Die unveränderte vorhandene CI-Richtlinie blockiert solche Befunde weiterhin.
