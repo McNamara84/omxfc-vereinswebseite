@@ -46,9 +46,15 @@ test('the fast scope selects only isolated PHP Unit and retains all JS tests', (
 
 test('the complete scope includes all three MariaDB suites and regular browsers', () => {
     const commands = commandsFor('all');
-    for (const configuration of ['phpunit.mariadb.xml', 'phpunit.rpg-mariadb.xml', 'phpunit.veranstaltungs-baxx-mariadb.xml']) {
+    for (const [configuration, database] of [
+        ['phpunit.mariadb.xml', 'omxfc_maddraxikon_test'],
+        ['phpunit.rpg-mariadb.xml', 'omxfc_rpg_test'],
+        ['phpunit.veranstaltungs-baxx-mariadb.xml', 'omxfc_veranstaltungen_test'],
+    ]) {
         const command = commands.find(command => command.args.includes(configuration));
         assert.ok(command.args.includes('--fail-on-skipped'));
+        assert.equal(command.env.DB_CONNECTION, 'mysql');
+        assert.equal(command.env.DB_DATABASE, database);
     }
     assert.ok(commands.some(command => command.args.includes('node_modules/playwright/cli.js') && command.args.includes('browser')));
     assert.ok(commands.some(command => command.args.includes('tests/Browser/ModalBackdropPreviewTest.php')));

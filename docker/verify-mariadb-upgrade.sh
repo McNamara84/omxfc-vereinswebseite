@@ -3,7 +3,7 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/deployment-database.sh"
 image="${1:?Pass the verified MariaDB 13.0.2 image}"
-old_image='mariadb:12.3.3@sha256:2bdff1534a7e569fecaf4b10b66ad0d410806e382d9db29ba305448addda97c4'
+old_image='mariadb:12.3.3@sha256:d46e102fa8b9b72bfcdeb56f9dd538742092119dc8b11f31fe662605cd234cd9'
 id="omxfc-mariadb-upgrade-$(date -u +%s)-$$"
 old_container="$id-old"
 new_container="$id-new"

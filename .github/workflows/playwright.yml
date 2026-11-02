@@ -34,7 +34,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.10.3@sha256:7a2d379d5b8ffdaa028580ef26494c36d2feef4b178d3dd1473a4dbc5e17c8d6
+          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
           extensions: zip, sockets
           coverage: none
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0

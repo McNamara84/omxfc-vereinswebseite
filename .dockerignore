@@ -23,6 +23,7 @@ Thumbs.db
 /public/vendor/livewire
 /storage/framework/cache/*
 /storage/framework/sessions/*
+/storage/framework/testing/*
 /storage/framework/views/*
 /storage/logs/*
 /storage/*.key

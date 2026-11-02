@@ -1,10 +1,10 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2.10.3@sha256:b6dcd72ca98fa19d0e5b8476de179859704891fad06dd9e0b96833d4c430a5fc AS composer-bin
+FROM composer:2.11.1@sha256:537fb03057ed901ae06bde7ef25af348903485ae1acc7fc789b80d8bac666f35 AS composer-bin
 
 RUN apk upgrade --no-cache
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.12-fpm-trixie@sha256:f49965c6e6a237eb3b27a6fc565e167839dc8abc65ee0652af0078f6ecdf4bbd AS php-base
+FROM php:8.5.12-fpm-trixie@sha256:c34bcf437ed61bd5e4c1114494eaf1ffd54253bce2b95d263bfa18b350ee8432 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -54,7 +54,7 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interactio
 
 # Build Stage für Node/Vite. Die Tailwind-Quellen aus Composer-Paketen stammen
 # aus demselben frischen Vendor-Baum, der später im Production-Image landet.
-FROM node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS node-base
+FROM node:26.13.0-alpine3.24@sha256:c6ad9e9c1d80f6eb607c26b4b0a132ff7a2344fad1c78ea3baa2a7d4c8de6d94 AS node-base
 
 COPY docker/patch-npm-security.sh /opt/npm-patches/patch-npm-security.sh
 COPY docker/npm-security/ /opt/npm-patches/npm-security/
@@ -147,11 +147,16 @@ RUN composer dump-autoload --optimize --no-interaction \
     && chown -R www-data:www-data storage bootstrap/cache public/vendor/livewire \
     && chmod -R 775 storage bootstrap/cache public/vendor/livewire
 
+# File-backed SQLite browser tests load Laravel's schema dump through this CLI.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 9000
 
 # Native Linux test tools avoid Windows bind-mount overhead for dependencies.
 # Both stages reuse the same PHP/dependency build as the isolated test runner.
-FROM node:26.12.1-trixie-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec AS test-node-bin
+FROM node:26.13.0-trixie-slim@sha256:e4db4c914bf8ad241bd24804fc25d272d89bad97e68cdc8a1414862790a02c39 AS test-node-bin
 
 FROM development AS test-node
 

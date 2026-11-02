@@ -520,14 +520,17 @@ body.cover-rating-session-open .website-feedback-root {
     pointer-events: auto;
 }
 
-/* Leave the centered form field below the guide usable on narrow screens. */
+/* Keep the guide clear of centered profile inputs and their save button. */
+.tour-runner-panel[data-profile-tour="true"] {
+    max-height: 35dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
 @media (max-width: 767px) {
     .tour-runner-panel[data-profile-tour="true"] {
         top: 0.5rem;
         bottom: auto;
-        max-height: 35dvh;
-        overflow-y: auto;
-        overscroll-behavior: contain;
     }
 }
 
