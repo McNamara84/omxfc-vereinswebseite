@@ -1,20 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="108" height="20" role="img">
-    <linearGradient id="s" x2="0" y2="100%">
-        <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
-        <stop offset="1" stop-opacity=".1"/>
-    </linearGradient>
-    <clipPath id="r">
-        <rect width="108" height="20" rx="3" fill="#fff"/>
-    </clipPath>
-    <g clip-path="url(#r)">
-        <rect width="63" height="20" fill="#555"/>
-        <rect x="63" width="45" height="20" fill="#97ca00"/>
-        <rect width="108" height="20" fill="url(#s)"/>
-    </g>
-    <g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110">
-        <text aria-hidden="true" x="315" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="530">coverage</text>
-        <text x="315" y="140" transform="scale(.1)" fill="#fff" textLength="530">coverage</text>
-        <text aria-hidden="true" x="850" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="350">86 %</text>
-        <text x="850" y="140" transform="scale(.1)" fill="#fff" textLength="350">86 %</text>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="153" height="20" role="img" aria-label="PHP Coverage: 88.4%">
+<title>PHP Coverage: 88.4%</title>
+<linearGradient id="shade" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
+<clipPath id="round"><rect width="153" height="20" rx="3"/></clipPath>
+<g clip-path="url(#round)"><path fill="#555" d="M0 0h101v20H0z"/><path fill="#97ca00" d="M101 0h52v20h-52z"/><path fill="url(#shade)" d="M0 0h153v20H0z"/></g>
+<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11"><text x="50.5" y="15" fill="#010101" fill-opacity=".3">PHP Coverage</text><text x="50.5" y="14">PHP Coverage</text><text x="127" y="15" fill="#010101" fill-opacity=".3">88.4%</text><text x="127" y="14">88.4%</text></g>
 </svg>
