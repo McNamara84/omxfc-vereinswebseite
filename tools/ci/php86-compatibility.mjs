@@ -14,8 +14,13 @@ export class ProbeFailure extends Error {
 export function classifyFailure(kind, result) {
     if (result.signal || result.code === 124 || result.code === null) return 'unavailable';
     // Network and provisioning errors must never masquerade as PHP incompatibility.
-    if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|EAI_AGAIN|curl error|Could not resolve|timed? out|rate limit|Too Many Requests|certificate|Could not open input file|No such file|command not found|Cannot connect to the Docker daemon/i.test(result.output)) return 'unavailable';
+    if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|EAI_AGAIN|curl error|Could not resolve|rate limit|Too Many Requests|certificate|Could not open input file|No such file|command not found|Cannot connect to the Docker daemon/i.test(result.output)) return 'unavailable';
+    // A completed test report can include an assertion timeout; it is still a test failure.
+    if (kind === 'test' && /[1-9]\d*\s+failed\b/i.test(result.output)) return 'incompatible';
+    if (/timed? out/i.test(result.output)) return 'unavailable';
     if (kind === 'composer' && /requires php|requires ext-|not compatible with your PHP|not supported by your PHP|does not satisfy that requirement|platform requirements/i.test(result.output)) return 'incompatible';
+    // Composer's post-autoload scripts boot Laravel and can fail in the PHP runtime.
+    if (kind === 'composer' && /Fatal error|Parse error|\b(?:TypeError|ErrorException)\b/i.test(result.output)) return 'incompatible';
     if (['test', 'application', 'build'].includes(kind) && /FAIL(?:ED|URES)?|[1-9]\d*\s+failed|[1-9]\d*\s+errors?|Fatal error|Parse error|TypeError|ErrorException|Exception|Assertion|not supported|requires PHP|ERROR|Error:/i.test(result.output)) return 'incompatible';
     return 'unavailable';
 }

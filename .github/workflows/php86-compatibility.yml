@@ -36,9 +36,10 @@ jobs:
         id: php
         continue-on-error: true
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
           php-version: '8.6'
-          update: true
           coverage: none
           extensions: uri, pdo_sqlite, sqlite3, pdo_mysql, mbstring, intl, zip, gd, exif, sockets, pcntl, bcmath
           tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c

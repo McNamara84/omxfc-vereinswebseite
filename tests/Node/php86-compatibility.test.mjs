@@ -106,6 +106,42 @@ test('actual PHP dependency and test errors are distinguished from download fail
     assert.equal(classifyFailure('test', { code: 1, output: 'Error: browser download timed out' }), 'unavailable');
 });
 
+test('completed Playwright assertion timeouts are test failures rather than provisioning failures', () => {
+    for (const output of [
+        'Error: Timed out 10000ms waiting for expect(locator).toBeVisible()\n  1 failed\n  282 passed (20.8m)',
+        'Error: Timed out 10000ms waiting for expect(page.getByText("Download")).toBeVisible()\n  1 failed',
+        'TimeoutError: page.waitForResponse: Timeout 15000ms exceeded while waiting for event "response"\n  1 failed',
+    ]) {
+        assert.equal(classifyFailure('test', { code: 1, output }), 'incompatible', output);
+    }
+    assert.equal(classifyFailure('setup', { code: 1, output: 'Error: browser download timed out\n1 failed attempt' }), 'unavailable');
+    assert.equal(classifyFailure('test', { code: 1, output: 'Error: browser download timed out' }), 'unavailable');
+});
+
+test('Composer post-autoload PHP runtime failures are compatibility diagnoses', () => {
+    const scriptFailure = '\nScript @php artisan package:discover --ansi handling the post-autoload-dump event returned with error code 255';
+    for (const diagnostic of [
+        'PHP Fatal error: Uncaught Error: Call to undefined function incompatible_php_api()',
+        'PHP Parse error: syntax error, unexpected token',
+        'TypeError: Package\\Provider::boot(): Argument #1 must be of type string, null given',
+        'ErrorException: PHP 8.6 runtime incompatibility',
+    ]) {
+        assert.equal(classifyFailure('composer', { code: 1, output: diagnostic + scriptFailure }), 'incompatible', diagnostic);
+    }
+    assert.equal(classifyFailure('composer', { code: 1, output: 'Failed to install dependencies: unknown Composer error' }), 'unavailable');
+});
+
+test('concrete infrastructure failures and interrupted processes still override runtime and test diagnostics', () => {
+    for (const kind of ['test', 'composer']) {
+        const diagnostics = '\nPHP Fatal error: Uncaught TypeError: boot failed\n1 failed';
+        for (const failure of ['curl error 28: Operation timed out', 'ENOTFOUND repo.packagist.org', 'ECONNRESET', 'certificate verify failed']) {
+            assert.equal(classifyFailure(kind, { code: 1, output: failure + diagnostics }), 'unavailable', `${kind}: ${failure}`);
+        }
+        assert.equal(classifyFailure(kind, { code: 124, output: diagnostics }), 'unavailable');
+        assert.equal(classifyFailure(kind, { code: null, signal: 'SIGKILL', output: diagnostics }), 'unavailable');
+    }
+});
+
 test('the real stage definitions defer MariaDB and browser provisioning until their stage', () => {
     const calls = [];
     const stages = createStages('/unused', '/unused', (...args) => { calls.push(args); }, {}, 'unused');

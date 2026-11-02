@@ -126,6 +126,16 @@ Die Layoutregression prüft mit dem tatsächlich gebauten Stylesheet bei 720 und
 
 Unter PHP 8.6.0 RC4 bestehen nach der Korrektur jeweils alle fünf Profilpflege-Tourtests und die Layoutprüfung in Chromium und Firefox ohne Wiederholungsversuche. Damit sind sowohl die eigentliche Tour mit Speichern und einmaliger Belohnung als auch acht Kombinationen aus Bildschirmbreite und -höhe je Browser geprüft. Zusätzlich besteht der betroffene Firefox-Desktop-Test fünfmal hintereinander, ebenfalls ohne Wiederholungsversuche nach Fehlern. Der ursprüngliche Firefox-Fehler trat lokal im unveränderten Gesamtszenario nicht zuverlässig auf: Fünf Firefox-Desktop-Läufe mit dem bisherigen Stand bestanden ebenfalls. Der isolierte Layouttest sichert deshalb zusätzlich die konkret im CI-Screenshot sichtbare Überdeckung ab. Ein neuer vollständiger gehosteter Lauf bleibt erforderlich.
 
+## Erste PR-Reviewrunde am 2. November 2026
+
+Alle drei Hinweise wurden bestätigt und behoben:
+
+- Die gepinnte `setup-php`-Version nimmt `update` als Umgebungsvariable entgegen, nicht als Action-Input. Der PHP-8.6-Schritt setzt deshalb jetzt `env.update: 'true'`. Damit fordert die Action auch bei bereits vorinstalliertem PHP ein Update an. Das entspricht der [Dokumentation der verwendeten Version](https://github.com/shivammathur/setup-php/blob/eb7c497e18156a6bbabfef1d3a82760b9eda3962/README.md#force-update-setup).
+- Eine abgeschlossene Testausführung mit einer Fehlerbilanz wie `1 failed` wird als `nicht kompatibel` erkannt, auch wenn eine Playwright-Assertion `Timed out ... waiting for expect(locator).toBeVisible()` meldet. Diese Diagnose hat Vorrang vor der unspezifischen Timeout-Erkennung. Konkrete Infrastrukturfehler wie DNS-, Verbindungs- und Zertifikatsfehler sowie abgebrochene Prozesse behalten Vorrang und ergeben weiterhin `nicht prüfbar`. Ein Browser-Download-Timeout ohne abgeschlossene Testbilanz bleibt ebenfalls `nicht prüfbar`.
+- PHP-Laufzeitdiagnosen wie `Fatal error`, `Parse error`, `TypeError` und `ErrorException` werden auch während Composer-Befehlen als `nicht kompatibel` erkannt. Das deckt insbesondere Laravels `artisan package:discover` aus `post-autoload-dump` ab. Allgemeine Composer-Fehler ohne eindeutige Plattform- oder PHP-Laufzeitdiagnose bleiben `nicht prüfbar`.
+
+Drei neue Regressionen prüfen abgeschlossene Playwright-Assertion-Timeouts, Composer-Skriptfehler und den weiterhin geltenden Vorrang konkreter Infrastrukturfehler. Die ersten beiden Regressionen schlagen mit dem bisherigen Klassifizierer fehl und bestehen nach der Korrektur. Unter Linux bestehen alle 18 Tests in `tests/Node/php86-compatibility.test.mjs`; unter Windows bestehen 17 bei einem bestehenden Linux-spezifischen Skip. `actionlint` bestätigt den geänderten Workflow.
+
 ## Sicherheitsbefunde und verbleibende Grenzen
 
 Grype 0.121.0 meldet für die neu gebauten Produktions-, Nginx-, MariaDB- und Typesense-Images **keine behebbaren High-/Critical-Befunde**. Die unveränderte vorhandene CI-Richtlinie blockiert solche Befunde weiterhin.
