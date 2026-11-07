@@ -20,10 +20,11 @@ class RpgInventoryController extends Controller
         $this->authorize('manage-rpg-inventory');
         $search = trim($request->validate(['search' => ['nullable', 'string', 'max:100']])['search'] ?? '');
         $team = app(RpgAccess::class)->team();
-        $characters = RpgCharacter::select(['id', 'user_id', 'character_name'])->with('user:id,name,nickname')
+        $characters = RpgCharacter::select(['id', 'user_id', 'character_name'])->with('user:id,alias,name,vorname,nachname')
             ->whereIn('user_id', $team->activeUsers()->select('users.id'))
             ->when($search !== '', fn ($query) => $query->where(fn ($q) => $q->where('character_name', 'like', '%'.$search.'%')
-                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', '%'.$search.'%')->orWhere('nickname', 'like', '%'.$search.'%'))))
+                ->orWhereHas('user', fn ($u) => $u->where('name', 'like', '%'.$search.'%')->orWhere('alias', 'like', '%'.$search.'%')
+                    ->orWhere('vorname', 'like', '%'.$search.'%')->orWhere('nachname', 'like', '%'.$search.'%'))))
             ->orderBy('character_name')->paginate(20)->withQueryString();
 
         return view('rpg.inventory.index', compact('characters', 'search'));
@@ -38,7 +39,7 @@ class RpgInventoryController extends Controller
         foreach ($state['stocks'] as $id => $quantity) {
             $catalog[$id] ??= ['id' => $id, 'name' => 'Unbekannter Altbestand: '.$id, 'kind' => 'unknown'];
         }
-        $peers = $canManage ? RpgCharacter::select(['id', 'user_id', 'character_name', 'revision'])->with('user:id,name,nickname')
+        $peers = $canManage ? RpgCharacter::select(['id', 'user_id', 'character_name', 'revision'])->with('user:id,alias,name,vorname,nachname')
             ->where('id', '!=', $rpgCharacter->id)->whereIn('user_id', app(RpgAccess::class)->team()->activeUsers()->select('users.id'))
             ->orderBy('character_name')->get()->map(fn ($character) => ['id' => $character->id, 'revision' => $character->revision,
                 'name' => $character->displayName().' ('.$character->user->nicknameOrName().')'])->values()->all() : [];

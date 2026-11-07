@@ -49,6 +49,18 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/RpgInventoryControllerTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_inventory_index_displays_the_actual_owner_name",
+      "test_inventory_counterparties_display_the_actual_owner_name",
+      "test_inventory_search_uses_existing_owner_fields_and_keeps_the_team_scope"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/e2e/accessibility-homepage.spec.js",
     "runner": "playwright",
     "laravel": false,

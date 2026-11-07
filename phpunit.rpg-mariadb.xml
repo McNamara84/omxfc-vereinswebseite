@@ -10,6 +10,7 @@
             <file>tests/Feature/RpgProgressionMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/RpgCheckMariaDbConcurrencyTest.php</file>
             <file>tests/Feature/RpgCombatMariaDbConcurrencyTest.php</file>
+            <file>tests/Feature/RpgInventoryControllerTest.php</file>
         </testsuite>
     </testsuites>
     <php>
