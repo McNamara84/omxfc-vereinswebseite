@@ -131,6 +131,58 @@ class RpgCharacterSheetLayoutServiceTest extends TestCase
         $this->assertSame($with['frame_content_height'], $without['frame_content_height']);
     }
 
+    public static function descriptionAreas(): array
+    {
+        return [
+            'default without portrait' => [false, false, false],
+            'default with portrait' => [true, false, false],
+            'expanded traits without portrait' => [false, true, false],
+            'expanded traits with portrait' => [true, true, false],
+            'occupied tables without portrait' => [false, true, true],
+            'occupied tables with portrait' => [true, true, true],
+        ];
+    }
+
+    #[DataProvider('descriptionAreas')]
+    public function test_description_lines_leave_room_for_padding_and_border(bool $withPortrait, bool $expandedTraits, bool $occupiedTables): void
+    {
+        $data = $this->sheet(str_repeat('W', 5000), $withPortrait);
+        if ($expandedTraits) {
+            foreach (['advantages', 'disadvantages', 'trainings', 'professions'] as $field) {
+                $data[$field] = str_repeat('W', $occupiedTables ? 310 : 40);
+            }
+        }
+        if ($occupiedTables) {
+            $data['weapons'] = array_fill(0, 7, $data['weapons'][0]);
+            $data['armor'] = array_fill(0, 6, $data['armor'][0]);
+        }
+        $layout = $this->layout->prepare($data)['layout'];
+        $textHeight = $layout['description_height'] - 12 - (2 + ($withPortrait ? 0.25 : 0)) * 72 / 25.4;
+
+        $this->assertTrue($layout['description']['truncated']);
+        $this->assertSame(6.5, $layout['description']['font_size']);
+        $this->assertStringEndsWith('…', end($layout['description']['lines']));
+        $this->assertFits($layout['description'], 85.1 * 72 / 25.4, $textHeight);
+    }
+
+    public function test_the_portrait_separator_can_reduce_description_capacity_by_one_line(): void
+    {
+        $data = $this->sheet(str_repeat('W', 5000), true);
+        $data['advantages'] = str_repeat('W', 100);
+        $data['disadvantages'] = str_repeat('W', 100);
+        $data['trainings'] = str_repeat('W', 40);
+        $data['professions'] = '';
+        $layout = $this->layout->prepare($data)['layout'];
+        $textHeight = $layout['description_height'] - 12 - 2.25 * 72 / 25.4;
+
+        // A seventeenth line would fit only if the 0.25mm separator were ignored.
+        $this->assertGreaterThan($textHeight, 17 * $layout['description']['line_height']);
+        $this->assertLessThanOrEqual($textHeight + 0.25 * 72 / 25.4, 17 * $layout['description']['line_height']);
+        $this->assertCount(16, $layout['description']['lines']);
+        $this->assertTrue($layout['description']['truncated']);
+        $this->assertFits($layout['description'], 85.1 * 72 / 25.4, $textHeight);
+    }
+
     public function test_long_traits_can_use_empty_writing_rows_without_further_shortening(): void
     {
         $sheet = $this->sheet('Beschreibung');

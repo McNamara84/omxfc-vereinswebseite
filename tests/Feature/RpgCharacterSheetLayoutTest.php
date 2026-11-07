@@ -35,6 +35,8 @@ class RpgCharacterSheetLayoutTest extends TestCase
             'wide traits' => [true, true, true, 'wide'],
             'wide traits without portrait' => [false, true, false, 'wide'],
             'fully occupied tables' => [true, true, true, 'occupied'],
+            'fully occupied tables with long description' => [true, true, false, 'occupied-long'],
+            'fully occupied tables with long description without portrait' => [false, true, false, 'occupied-long'],
             'empty equipment tables' => [false, true, false, 'no-equipment'],
             'fits after font reduction' => [true, false, false, 'smaller'],
             'escaped description' => [true, false, false, 'html'],
@@ -50,7 +52,7 @@ class RpgCharacterSheetLayoutTest extends TestCase
         $data['character']['description'] = match ($description) {
             'empty' => '',
             'short' => 'Eine weit gereiste Figur.',
-            'long', 'wide' => str_repeat('Technisch versiert und weit gereist. ', 500),
+            'long', 'wide', 'occupied-long' => str_repeat('Technisch versiert und weit gereist. ', 500),
             'unbroken' => str_repeat('ÄÖÜWWWWß', 1000),
             'smaller' => str_repeat('W', 340),
             'html' => '<script>alert("Figur")</script> & <b>Beschreibung</b>',
@@ -66,7 +68,7 @@ class RpgCharacterSheetLayoutTest extends TestCase
             $data['portrait'] = 'data:image/png;base64,'.base64_encode(ob_get_clean());
         }
         $sheet = (new RpgCharacterSheetPresenter)->present($data, (new RpgCharacterCombatCalculator)->calculate($data));
-        if ($description === 'occupied') {
+        if (in_array($description, ['occupied', 'occupied-long'], true)) {
             $sheet['weapons'] = array_fill(0, 7, $sheet['weapons'][1]);
             $sheet['armor'] = array_fill(0, 6, $sheet['armor'][0]);
         } elseif ($description === 'no-equipment') {
@@ -82,7 +84,7 @@ class RpgCharacterSheetLayoutTest extends TestCase
             $sheet['specializations'] = mb_substr(str_repeat('Beruf: Soldat 3, Kunde: Geschichte 2, Unterhalten: Geschichten 2, ', 5), 0, 240);
         }
         $sheet = (new RpgCharacterSheetLayoutService)->prepare($sheet);
-        if ($maximumText && ! in_array($description, ['wide', 'occupied'], true)) {
+        if ($maximumText && ! in_array($description, ['wide', 'occupied', 'occupied-long'], true)) {
             foreach ($sheet['layout']['traits']['rows'] as $key => $row) {
                 $this->assertFalse($row['truncated'], $key.' wurde trotz verfügbarer Leerzeilen gekürzt.');
             }
@@ -105,6 +107,17 @@ class RpgCharacterSheetLayoutTest extends TestCase
                 foreach (explode(' ', $node->getAttribute('class')) as $class) {
                     if (in_array($class, ['traits', 'trait-row', 'trait-text', 'attributes', 'value-list', 'skills', 'skill-list', 'portrait-frame', 'portrait-image', 'description', 'specializations', 'weapon-section', 'weapon-table', 'armor-section', 'armor-table', 'bottom-box', 'equipment-text', 'equipment-sub', 'notes', 'situational', 'rule-sources'], true)) {
                         $boxes[$class][] = $frame->get_border_box();
+                    }
+                    if ($class === 'prepared-line') {
+                        $parent = $frame->get_parent();
+                        $parentNode = $parent?->get_node();
+                        if ($parentNode instanceof DOMElement && in_array('description', explode(' ', $parentNode->getAttribute('class')), true)) {
+                            $lineBox = $frame->get_border_box();
+                            $contentBox = $parent->get_content_box();
+                            if ($lineBox['y'] + $lineBox['h'] > $contentBox['y'] + $contentBox['h'] + 0.01) {
+                                $clipped[] = 'Beschreibung überschreitet den Inhaltsbereich: '.$node->nodeValue;
+                            }
+                        }
                     }
                 }
             }

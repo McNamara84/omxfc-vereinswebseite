@@ -46,13 +46,15 @@ final class RpgCharacterSheetLayoutService
         $frameContentHeight = $frameHeight - $this->pt(2.9);
         $withPortrait = ! empty($characterData['portrait']);
         $descriptionHeight = $frameContentHeight - $this->pt($withPortrait ? 55.25 : 2);
+        // Reserve the label, 1mm vertical padding on each side and the portrait separator.
+        $descriptionTextHeight = $descriptionHeight - 12 - $this->pt($withPortrait ? 2.25 : 2);
 
         $characterData['layout'] = [
             'traits' => $traits,
             'attributes_height' => $attributesHeight,
             'frame_content_height' => $frameContentHeight,
             'description_height' => $descriptionHeight,
-            'description' => $this->fitText((string) ($characterData['description'] ?? ''), $this->pt(85.1), $descriptionHeight - 12),
+            'description' => $this->fitText((string) ($characterData['description'] ?? ''), $this->pt(85.1), $descriptionTextHeight),
             'weapon_blank_rows' => $weaponBlankRows - $removedWeaponRows,
             'armor_blank_rows' => $armorBlankRows - $removedArmorRows,
             'weapon_height' => $this->pt(52 - $removedWeaponRows * 5),
