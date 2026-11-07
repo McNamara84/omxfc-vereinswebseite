@@ -15,6 +15,8 @@ class RpgInventoryControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // The MariaDB job runs these controller assertions without an asset build.
+        $this->withoutVite();
         $this->progressionFixtures();
         $this->withoutExceptionHandling();
     }
