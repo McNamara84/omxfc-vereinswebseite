@@ -46,6 +46,37 @@ class RpgCombatHttpTest extends TestCase
         $this->assertSame(2, Activity::where('subject_type', RpgCombatMilestone::class)->count());
     }
 
+    public function test_native_form_binds_each_revision_to_the_selected_character(): void
+    {
+        $input = $this->combatInput();
+        unset($input['revision'], $input['opponent_revision']);
+        $input['revisions'] = [$this->character->id => 0, 99999 => 7];
+        $input['opponent_revisions'] = [$this->otherCharacter->id => 0, 99999 => 8];
+        $this->actingAs($this->player)->post(route('rpg.combats.store'), $input)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseCount('rpg_combats', 1);
+        $this->assertSame([0, 0], RpgCombat::firstOrFail()->participants()->orderBy('side')->pluck('character_revision')->all());
+    }
+
+    public function test_native_form_rejects_a_missing_selected_revision(): void
+    {
+        $input = $this->combatInput();
+        unset($input['revision']);
+        $input['revisions'] = [99999 => 0];
+        $this->actingAs($this->player)->post(route('rpg.combats.store'), $input)->assertSessionHasErrors('revision');
+        $this->assertDatabaseCount('rpg_combats', 0);
+    }
+
+    public function test_native_form_does_not_replace_a_stale_revision_with_the_current_one(): void
+    {
+        $input = $this->combatInput();
+        unset($input['revision'], $input['opponent_revision']);
+        $input['revisions'] = [$this->character->id => 0];
+        $input['opponent_revisions'] = [$this->otherCharacter->id => 0, 99999 => 1];
+        $this->otherCharacter->forceFill(['revision' => 1])->save();
+        $this->actingAs($this->player)->post(route('rpg.combats.store'), $input)->assertSessionHasErrors();
+        $this->assertDatabaseCount('rpg_combats', 0);
+    }
+
     public function test_complete_fight_and_retries_never_roll_twice(): void
     {
         $combat = $this->activeCombat();

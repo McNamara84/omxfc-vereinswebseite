@@ -84,13 +84,16 @@ async function dismissMenuTour(page) {
 
 for (const mobile of [false, true]) {
     test(`profile tour guides real saved input and rewards once (${mobile ? 'mobile' : 'desktop'})`, async ({ page }) => {
-        test.setTimeout(120_000);
+        // This scenario completes the tour twice, including all eleven real
+        // inputs and an accessibility audit. CI's retry records the large
+        // profile catalogue in its trace and exhausted the old 120s budget.
+        test.setTimeout(240_000);
         if (mobile) await page.setViewportSize({ width: 390, height: 844 });
         const member = fixture('empty');
         await login(page, member.email);
         expect(fixture('inspect', String(member.userId)).points).toBe(0);
         await clickTourAction(page, 'start', 'starten');
-        await expect(page).toHaveURL(/\/user\/profile$/);
+        await expect(page).toHaveURL(/\/user\/profile$/, { timeout: 30_000 });
         await advanceTo(page, 'Einstiegsroman');
         for (const [field, value] of Object.entries(member.values)) {
             // Use the current tour field or scroll the actual input into view.
@@ -157,7 +160,7 @@ test('an already complete profile with old tour completion earns the new bonus',
     const member = fixture('complete');
     await login(page, member.email);
     await clickTourAction(page, 'start', 'starten');
-    await expect(page).toHaveURL(/\/user\/profile$/);
+    await expect(page).toHaveURL(/\/user\/profile$/, { timeout: 30_000 });
     await advanceTo(page, 'Profilpflege abschließen');
     await clickTourAction(page, 'complete', 'abschliessen');
     await expect(page.locator('#tour-runner-panel')).toBeHidden();
@@ -169,7 +172,7 @@ test('completion recovers after the final progress request fails', async ({ page
     const member = fixture('complete');
     await login(page, member.email);
     await clickTourAction(page, 'start', 'starten');
-    await expect(page).toHaveURL(/\/user\/profile$/);
+    await expect(page).toHaveURL(/\/user\/profile$/, { timeout: 30_000 });
     await advanceTo(page, 'Browser-Sitzungen');
 
     let failed = false;

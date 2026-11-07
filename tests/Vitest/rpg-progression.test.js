@@ -30,6 +30,17 @@ describe('RPG progression forms', () => {
         expect(value.operations[1].languageText).toBe('Deutsch');
         expect(value.previewResult).toBeNull();
     });
+    it('renews ordinary skills and language advantages without inventing missing languages', () => {
+        const value = component({ languages: undefined, renewedOperations: [
+            { type: 'skill', name: 'Nahkampf', steps: 1, reason: 'Training' },
+            { type: 'advantage', name: 'Sprachbegabt', steps: 1, reason: 'Unterricht', languages: ['Deutsch'] },
+        ] });
+        expect(value.operations[0].specialization).toBe('');
+        expect(value.operations[0].languageText).toBe('');
+        expect(value.payload().operations[0]).toMatchObject({ name: 'Nahkampf', reason: 'Training' });
+        expect(value.payload().operations[1].languages).toEqual(['Deutsch']);
+        expect(value.previewResult).toBeNull();
+    });
     it('registers after Alpine has already started and tolerates missing Alpine', () => {
         const original = window.Alpine;
         delete window.Alpine;

@@ -10,6 +10,7 @@ use App\Services\RpgCombat\CombatQuery;
 use App\Services\RpgCombat\CombatService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class RpgCombatController extends Controller
 {
@@ -32,7 +33,23 @@ class RpgCombatController extends Controller
 
     public function store(Request $request)
     {
-        $combat = $this->service->challenge($request->user(), $request->except('_token'));
+        $input = $request->except('_token');
+        // Native forms submit every hidden revision when JavaScript is disabled.
+        // Keep each value bound to the participant shown when the form was opened.
+        foreach (['revisions' => ['revision', 'character_id'], 'opponent_revisions' => ['opponent_revision', 'opponent_id'], 'npc_revisions' => ['npc_revision', 'npc_id']] as $map => [$field, $participant]) {
+            if (! array_key_exists($map, $input)) {
+                continue;
+            }
+            $data = $request->validate([$map => ['required', 'array', 'max:10000'], $map.'.*' => ['required', 'integer', 'min:0'],
+                $participant => ['required', 'integer', 'min:1']]);
+            $revision = $data[$map][(int) $data[$participant]] ?? null;
+            if ($revision === null) {
+                throw ValidationException::withMessages([$field => 'Die Revision des ausgewählten Teilnehmers fehlt. Bitte das Formular neu öffnen.']);
+            }
+            $input[$field] = $revision;
+            unset($input[$map]);
+        }
+        $combat = $this->service->challenge($request->user(), $input);
 
         return redirect()->route('rpg.combats.show', $combat);
     }

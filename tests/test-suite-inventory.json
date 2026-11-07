@@ -4364,6 +4364,9 @@
     "database": true,
     "methods": [
       "test_invitation_acceptance_and_pages_do_not_change_originals",
+      "test_native_form_binds_each_revision_to_the_selected_character",
+      "test_native_form_rejects_a_missing_selected_revision",
+      "test_native_form_does_not_replace_a_stale_revision_with_the_current_one",
       "test_complete_fight_and_retries_never_roll_twice",
       "test_characters_saved_through_the_editor_can_challenge_accept_and_fight_with_zero_strength",
       "test_combat_listing_shows_the_berlin_creation_date",
@@ -4536,6 +4539,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_native_npc_form_uses_only_the_selected_participant_revisions",
       "test_invitation_and_acceptance_have_npc_snapshots_locks_dashboard_and_notifications",
       "test_unaccepted_invitation_can_be_closed_without_effects",
       "test_complete_combat_and_retries_never_roll_twice_or_change_originals",
@@ -7814,6 +7818,7 @@
     "database": false,
     "methods": [
       "restores explicitly renewed operations for a fresh server preview",
+      "renews ordinary skills and language advantages without inventing missing languages",
       "registers after Alpine has already started and tolerates missing Alpine",
       "sends intended operations without preview prices or UI fields",
       "transmits language choices, specializations and equipment only for relevant purchases",

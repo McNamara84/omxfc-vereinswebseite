@@ -111,6 +111,8 @@ class RpgInventoryTest extends TestCase
         $this->inventoryBook('grant', ['incoming' => [$this->position('item:seil')]]);
         $this->assertSame('superseded', $request->fresh()->status);
         $this->assertSame(60, $this->character->experienceBalance());
+        $this->actingAs($this->player)->get(route('rpg.advancements.show', $request))
+            ->assertOk()->assertSee('Durch Charakteränderung überholt')->assertSee('Auf aktuellem Stand erneut prüfen');
         $this->actingAs($this->player)->get(route('rpg.characters.improve', $this->character))->assertOk()->assertViewHas('config', fn ($config) => $config['renewedOperations'] === []);
         $this->get(route('rpg.characters.improve', ['rpgCharacter' => $this->character, 'erneuern' => $request->id]))->assertOk()
             ->assertViewHas('config', fn ($config) => $config['renewedOperations'] === $request->operations);
