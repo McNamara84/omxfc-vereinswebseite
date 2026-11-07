@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\RpgInventoryEntry;
+use App\Models\RpgInventoryTransaction;
 use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgCharacterCombatCalculator;
 use App\Services\RpgCharacterSheetPresenter;
@@ -211,6 +212,82 @@ class RpgInventoryTest extends TestCase
         $this->postJson(route('rpg.inventory.store', $this->character), $input + ['preview_hash' => $preview['preview_hash']])->assertOk()->assertJsonStructure(['redirect']);
         $this->actingAs($this->player)->get(route('rpg.inventory.show', $this->character))->assertOk()->assertSee('100 Bucks')->assertSee('Bestand übernehmen');
         $this->assertCount(1, app(RpgInventoryHistory::class)->forCharacter($this->character->fresh()));
+    }
+
+    #[DataProvider('nonEquipMetadata')]
+    public function test_non_equip_metadata_is_rejected_before_preview_or_booking(string $kind, array $metadata): void
+    {
+        $stock = [$this->position('item:seil', 2), $this->position('item:kettenhemd'), $this->position('item:holzschild'),
+            $this->position('clothing:kleidung-wanderer'), $this->position('item:energiegewehr'), $this->position('ammo:energiegewehr', 80)];
+        if ($kind !== 'initialize') {
+            $this->inventoryInitialize(100, $stock);
+        }
+        $changes = match ($kind) {
+            'initialize' => ['amount' => 100, 'set' => $stock],
+            'grant' => ['incoming' => [$this->position('item:seil')]],
+            'loss' => ['outgoing' => [$this->position('item:seil')]],
+            'correct' => ['amount' => 120, 'set' => [$this->position('item:seil', 3)]],
+            'money' => ['amount' => 10],
+            'purchase' => ['amount' => 30, 'incoming' => [$this->position('item:bogen')], 'external_party' => 'Händler'],
+            'sale' => ['amount' => 5, 'outgoing' => [$this->position('item:seil')], 'external_party' => 'Händler', 'price_reason' => 'Ausgehandelter Preis'],
+            'swap' => ['incoming' => [$this->position('item:bogen')], 'outgoing' => [$this->position('item:seil')], 'external_party' => 'Händler'],
+            'regenerate' => ['minutes' => 1],
+            'reversal' => ['reversal_of' => $this->inventoryBook('grant', ['incoming' => [$this->position('item:seil')]])->id],
+        };
+        $input = $this->inventoryInput($kind, $changes);
+        $preview = app(RpgInventoryService::class)->preview($this->leader, $this->character->id, $input);
+        $before = $this->character->fresh();
+        $transactions = RpgInventoryTransaction::count();
+        $entries = RpgInventoryEntry::count();
+        $input['metadata'] = $metadata;
+        $input['preview_hash'] = $preview['preview_hash'];
+        $message = $kind === 'reversal' ? 'Eine Rückbuchung darf keine zusätzlichen Bestands- oder Preisänderungen enthalten.'
+            : 'Ausrüstungsangaben sind nur beim Ausrüstungswechsel möglich.';
+
+        $this->actingAs($this->leader);
+        foreach (['rpg.inventory.preview', 'rpg.inventory.store'] as $route) {
+            $this->postJson(route($route, $this->character), $input)
+                ->assertUnprocessable()->assertJsonValidationErrors('inventory')->assertJsonPath('errors.inventory.0', $message);
+        }
+
+        $this->assertSame($before->payload, $this->character->fresh()->payload);
+        $this->assertSame($before->revision, $this->character->fresh()->revision);
+        $this->assertDatabaseCount('rpg_inventory_transactions', $transactions);
+        $this->assertDatabaseCount('rpg_inventory_entries', $entries);
+    }
+
+    public static function nonEquipMetadata(): array
+    {
+        $cases = [];
+        foreach (['initialize', 'grant', 'loss', 'correct', 'money', 'purchase', 'sale', 'swap', 'regenerate', 'reversal'] as $kind) {
+            foreach (['notes' => 'Versteckte Änderung', 'armor' => 'kettenhemd', 'shield' => 'holzschild', 'clothing' => 'kleidung-wanderer'] as $field => $value) {
+                $cases[$kind.': '.$field] = [$kind, [$field => $value]];
+            }
+        }
+        foreach (['empty string' => '', 'null' => null, 'whitespace' => '  '] as $name => $value) {
+            $cases['grant: notes '.$name] = ['grant', ['notes' => $value]];
+        }
+
+        return $cases;
+    }
+
+    public function test_equip_can_set_clear_and_restore_metadata_without_changing_stock_or_bucks(): void
+    {
+        $this->inventoryInitialize(100, [$this->position('item:kettenhemd'), $this->position('item:holzschild'), $this->position('clothing:kleidung-wanderer')]);
+        $before = $this->state();
+        $metadata = ['notes' => 'Ausrüstung angelegt', 'armor' => 'kettenhemd', 'shield' => 'holzschild', 'clothing' => 'kleidung-wanderer'];
+        $this->inventoryBook('equip', ['metadata' => $metadata]);
+        $this->assertEquals($metadata, array_intersect_key($this->state(), $metadata));
+        $clear = $this->inventoryBook('equip', ['metadata' => array_fill_keys(array_keys($metadata), null)]);
+        foreach (array_keys($metadata) as $field) {
+            $this->assertSame('', $this->state()[$field]);
+        }
+        $this->assertSame($before['stocks'], $this->state()['stocks']);
+        $this->assertSame($before['bucks'], $this->state()['bucks']);
+        $this->inventoryBook('reversal', ['reversal_of' => $clear->id]);
+        $this->assertEquals($metadata, array_intersect_key($this->state(), $metadata));
+        $this->assertSame($before['stocks'], $this->state()['stocks']);
+        $this->assertSame($before['bucks'], $this->state()['bucks']);
     }
 
     #[DataProvider('invalidBookings')]

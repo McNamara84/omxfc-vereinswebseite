@@ -4490,7 +4490,7 @@
       "test_legacy_magazines_are_suggestions_until_explicitly_confirmed",
       "test_unknown_legacy_positions_can_be_explicitly_removed_during_takeover",
       "test_non_inventory_advancement_does_not_generate_an_inventory_transaction",
-      "test_correction_and_reversal_restore_metadata_without_destroying_other_stock",
+      "test_correction_and_equipment_reversals_preserve_independent_stock_and_metadata",
       "test_saved_pdf_includes_inventory_without_any_experience_entries"
     ],
     "seeders": []
@@ -4528,6 +4528,8 @@
       "test_reversal_preserves_later_stock_changes_and_is_recorded_once",
       "test_owner_and_admin_cannot_write_and_foreign_members_cannot_read",
       "test_leader_can_use_http_preview_and_store_and_owner_sees_history",
+      "test_non_equip_metadata_is_rejected_before_preview_or_booking",
+      "test_equip_can_set_clear_and_restore_metadata_without_changing_stock_or_bucks",
       "test_invalid_bookings_leave_state_revision_and_journal_unchanged",
       "test_journal_models_are_immutable"
     ],

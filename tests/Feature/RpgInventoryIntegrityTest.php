@@ -179,15 +179,22 @@ class RpgInventoryIntegrityTest extends TestCase
         $this->assertSame(100, $this->character->fresh()->payload['equipment']['bucks_balance']);
     }
 
-    public function test_correction_and_reversal_restore_metadata_without_destroying_other_stock(): void
+    public function test_correction_and_equipment_reversals_preserve_independent_stock_and_metadata(): void
     {
-        $transaction = $this->inventoryBook('correct', ['amount' => 120, 'set' => [$this->position('item:seil', 2)], 'metadata' => ['notes' => 'Korrigierte Ausrüstung']]);
+        $transaction = $this->inventoryBook('correct', ['amount' => 120, 'set' => [$this->position('item:seil', 2)]]);
+        $equipment = $this->inventoryBook('equip', ['metadata' => ['notes' => 'Korrigierte Ausrüstung']]);
         $this->assertSame($this->character->id, $transaction->entries->first()->character->id);
         $this->inventoryBook('grant', ['incoming' => [$this->position('item:bogen')]]);
         $this->inventoryBook('reversal', ['reversal_of' => $transaction->id]);
         $state = app(RpgInventoryAdapter::class)->state($this->character->fresh()->payload);
         $this->assertSame(100, $state['bucks']);
+        $this->assertSame('Korrigierte Ausrüstung', $state['notes']);
+        $this->assertSame(1, $state['stocks']['item:bogen']);
+        $this->assertArrayNotHasKey('item:seil', $state['stocks']);
+        $this->inventoryBook('reversal', ['reversal_of' => $equipment->id]);
+        $state = app(RpgInventoryAdapter::class)->state($this->character->fresh()->payload);
         $this->assertSame('', $state['notes']);
+        $this->assertSame(100, $state['bucks']);
         $this->assertSame(1, $state['stocks']['item:bogen']);
         $this->assertArrayNotHasKey('item:seil', $state['stocks']);
     }

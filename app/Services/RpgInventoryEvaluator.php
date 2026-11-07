@@ -28,6 +28,7 @@ final class RpgInventoryEvaluator
         $this->ensure(in_array($kind, ['grant', 'purchase', 'swap'], true) || $incoming === [], 'Dieser Vorgang erlaubt keinen Wareneingang.');
         $this->ensure(in_array($kind, ['loss', 'sale', 'swap'], true) || $outgoing === [], 'Dieser Vorgang erlaubt keinen Warenausgang.');
         $this->ensure($kind !== 'equip' || $amount === null, 'Ausrüstungswechsel verändern kein Geld.');
+        $this->ensure($kind === 'equip' || $input['metadata'] === [], 'Ausrüstungsangaben sind nur beim Ausrüstungswechsel möglich.');
         $this->ensure($kind !== 'regenerate' || ($amount === null && $input['metadata'] === []), 'Regeneration verändert nur die Ladung.');
         foreach ([...array_keys($incoming), ...array_keys($outgoing)] as $id) {
             $this->ensure(isset(RpgInventoryCatalog::positions()[$id]), 'Unbekannte Katalogposition: '.$id);
@@ -117,7 +118,7 @@ final class RpgInventoryEvaluator
         $result['bucks'] -= $after['bucks'] - $before['bucks'];
         foreach (['clothing', 'armor', 'shield', 'notes'] as $key) {
             if ($before[$key] !== $after[$key]) {
-                $this->ensure($current[$key] === $after[$key], 'Später geänderte Ausrüstungsangaben verhindern die Rückbuchung. Bitte eine Korrektur buchen.');
+                $this->ensure($current[$key] === $after[$key], 'Später geänderte Ausrüstungsangaben verhindern die Rückbuchung. Bitte die Angaben über einen Ausrüstungswechsel korrigieren.');
                 $result[$key] = $before[$key];
             }
         }
