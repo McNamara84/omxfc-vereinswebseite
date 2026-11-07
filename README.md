@@ -291,6 +291,15 @@ und beim PDF-Export angegeben. Ältere Charaktere ohne Quellenangaben verwenden 
 Basisregelwerk. Die Kulturzuordnungen, Regelboni und der Nachrichtentwurf für Stefan
 stehen im [Implementierungsplan](docs/RPG-Regelwerk/Implementierungsplan-1-Erweiterung.md).
 
+Der PDF-Hauptbogen bleibt auf einer A4-Seite. Rechts steht die Kurzbeschreibung
+unter dem Porträt; ohne Porträt nutzt sie den gesamten Kasten. Die Ausgabe wählt
+die größte passende Schriftstufe aus 7,6 / 7,2 / 6,7 / 6,5 pt und kürzt verbleibenden
+Überlauf mit „…“. Der vollständige Beschreibungstext bleibt gespeichert.
+Vorteile, Nachteile, Ausbildung und Beruf dürfen links mehrzeilig umbrechen.
+Bei langen Angaben werden zuerst leere Schreibzeilen der Waffen- und
+Rüstungstabellen für zusätzlichen Platz genutzt. Ist das Seitenbudget auch bei
+der Mindestschrift ausgeschöpft, werden überlange Angaben ebenfalls sichtbar gekürzt.
+
 ### Erfahrungspunkte und Charakterverbesserung
 
 Unter **Meine Charaktere** (`/rpg/charaktere`) sieht die aktuelle Leitung der

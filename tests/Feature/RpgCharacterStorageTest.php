@@ -534,18 +534,25 @@ class RpgCharacterStorageTest extends TestCase
     {
         Storage::fake('private');
         $this->actingAgMember();
+        $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
 
         $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
             'character_name' => 'PDF Held',
+            'description' => $description,
             'portrait' => UploadedFile::fake()->image('avatar.png', 10, 10),
         ]))->assertRedirect(route('rpg.characters.index'));
 
         $character = RpgCharacter::query()->firstOrFail();
+        $storedPayload = $character->payload;
 
         Pdf::shouldReceive('view')
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['character_name'] === 'PDF Held'
-                && str_starts_with($data['portrait'] ?? '', 'data:image/png;base64,')))
+                && str_starts_with($data['portrait'] ?? '', 'data:image/png;base64,')
+                && $data['character']['description'] === $description
+                && $data['sheet']['description'] === $description
+                && $data['sheet']['layout']['description']['truncated']
+                && $data['sheet']['layout']['description']['font_size'] === 6.5))
             ->andReturn(new class extends PdfBuilder
             {
                 public function toResponse($request): Response
@@ -556,6 +563,7 @@ class RpgCharacterStorageTest extends TestCase
 
         $this->get(route('rpg.characters.pdf', $character))
             ->assertOk();
+        $this->assertSame($storedPayload, $character->fresh()->payload);
     }
 
     public function test_saved_character_pdf_is_owner_scoped(): void

@@ -68,23 +68,23 @@ final class RpgCharacterSheetPresenter
             'race_culture' => $this->short(trim((string) ($character['race'] ?? '').' · '.(string) ($character['culture'] ?? ''), ' ·'), 85),
             'creation_level' => $creationLevel,
             'rule_sources' => implode(' · ', array_column($rules['sources'] ?? RpgCharEditorRuleCatalog::snapshots([]), 'name')),
-            'trainings' => $this->short($this->trainingText($data['trainings'] ?? []), 100),
-            'professions' => $this->short($this->specializationText($skills, 'Beruf'), 100),
-            'description' => $this->short($character['description'] ?? '', 230),
+            'trainings' => $this->normalize($this->trainingText($data['trainings'] ?? [])),
+            'professions' => $this->normalize($this->specializationText($skills, 'Beruf')),
+            'description' => $this->normalize($character['description'] ?? ''),
             'portrait' => is_string($data['portrait'] ?? null) ? $data['portrait'] : null,
             'attributes' => $this->attributeRows($data['attributes'] ?? []),
             'skill_columns' => $this->skillColumns($skills),
             'specializations' => $this->short($this->allSpecializationsText($skills, $data['languages'] ?? []), 240),
-            'advantages' => $this->short($this->advantageText(
+            'advantages' => $this->normalize($this->advantageText(
                 $data['advantages'] ?? [],
                 $data['advantage_details'] ?? [],
                 $data['advantage_counts'] ?? [],
                 $data['advantage_effects'] ?? [],
-            ), 310),
-            'disadvantages' => $this->short($this->specialText(
+            )),
+            'disadvantages' => $this->normalize($this->specialText(
                 $data['disadvantages'] ?? [],
                 $data['disadvantage_details'] ?? [],
-            ), 310),
+            )),
             'combat' => $combat,
             'weapons' => $this->weaponRows(is_array($combat['weapons'] ?? null) ? $combat['weapons'] : []),
             'armor' => is_array($combat['armor'] ?? null) ? $combat['armor'] : [],
@@ -414,14 +414,19 @@ final class RpgCharacterSheetPresenter
 
     private function short(mixed $value, int $limit): string
     {
-        if (! is_scalar($value) && $value !== null) {
-            return '';
-        }
-
-        $normalized = trim(preg_replace('/\s+/', ' ', (string) $value) ?? '');
+        $normalized = $this->normalize($value);
 
         return Str::length($normalized) <= $limit
             ? $normalized
             : Str::substr($normalized, 0, max(0, $limit - 1)).'…';
+    }
+
+    private function normalize(mixed $value): string
+    {
+        if (! is_scalar($value) && $value !== null) {
+            return '';
+        }
+
+        return trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
     }
 }

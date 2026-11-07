@@ -615,6 +615,7 @@ class RpgCharacterSheetService
         $combat = (new RpgCharacterCombatCalculator)->calculate($data);
         $data['combat'] = $combat;
         $data['sheet'] = (new RpgCharacterSheetPresenter)->present($data, $combat); // @pest-ignore-profanity -- Structured character-sheet payload key.
+        $data['sheet'] = (new RpgCharacterSheetLayoutService)->prepare($data['sheet']); // @pest-ignore-profanity -- Structured character-sheet payload key.
 
         return Pdf::view('rpg.char-sheet', $data) /* @pest-ignore-profanity -- Existing RPG view path. */
             ->driver('dompdf')

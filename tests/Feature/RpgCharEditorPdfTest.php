@@ -441,8 +441,8 @@ class RpgCharEditorPdfTest extends TestCase
             'portrait' => null,
         ])->render();
 
-        $this->assertStringContainsString('<tr><th>Vorteile</th><td>Zäh</td></tr>', $html);
-        $this->assertStringNotContainsString('<tr><th>Vorteile</th><td>Zäh </td></tr>', $html);
+        $this->assertMatchesRegularExpression('/class="prepared-line"[^>]*>Zäh<\/div>/', $html);
+        $this->assertDoesNotMatchRegularExpression('/class="prepared-line"[^>]*>Zäh\s+<\/div>/', $html);
     }
 
     public function test_failed_pdf_prepare_redirect_keeps_editor_input_for_recovery(): void
@@ -714,6 +714,31 @@ class RpgCharEditorPdfTest extends TestCase
         } finally {
             File::deleteDirectory($fontPath);
         }
+    }
+
+    public function test_editor_pdf_fits_the_description_without_shortening_the_cached_source(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+        $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
+        $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['description' => $description]));
+        $path = parse_url($prepared->headers->get('Location'), PHP_URL_PATH);
+        $cacheKey = 'rpg-char-editor-pdf:'.basename($path);
+
+        Pdf::shouldReceive('view')->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['description'] === $description
+                && $data['sheet']['description'] === $description
+                && $data['sheet']['layout']['description']['truncated']
+                && $data['sheet']['layout']['description']['font_size'] === 6.5))
+            ->andReturn(new class extends PdfBuilder
+            {
+                public function toResponse($request): Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $this->get($path)->assertOk();
+        $this->assertSame($description, Cache::store('rpg_pdf_exports')->get($cacheKey)['data']['character']['description']);
     }
 
     public function test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created(): void
