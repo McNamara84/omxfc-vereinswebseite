@@ -78,6 +78,13 @@ final class RpgInventoryAdapter
                 $ammo[] = ['id' => $id, 'source' => $row['name'], 'unit' => $row['unit'], 'quantity' => $quantity];
             }
         }
+        // This selected attack is virtual: keep its PDF data without turning it
+        // into stock that can be granted, lost or traded.
+        foreach ($existing['items'] ?? [] as $item) {
+            if (($item['id'] ?? '') === 'faustschlag-tritt') {
+                $items[] = $item;
+            }
+        }
         self::ensure(count($items) <= 64, 'Höchstens 64 Gegenstandsarten sind technisch unterstützt.');
         self::ensure(is_int($state['bucks']) && $state['bucks'] >= 0 && $state['bucks'] <= RpgInventoryCatalog::MONEY_MAX, 'Ungültiger Bucks-Bestand.');
         self::ensure(($state['stocks']['ammo:energiegewehr'] ?? 0) <= 100 * ($state['stocks']['item:energiegewehr'] ?? 0), 'Das Energiegewehr fasst maximal 100 Schuss je Exemplar.');

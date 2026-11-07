@@ -32,6 +32,14 @@ final class RpgInventoryEvaluator
         foreach ([...array_keys($incoming), ...array_keys($outgoing)] as $id) {
             $this->ensure(isset(RpgInventoryCatalog::positions()[$id]), 'Unbekannte Katalogposition: '.$id);
         }
+        // Incoming goods must never fund either participant's outgoing goods.
+        $this->ensureOutgoingStock($before['stocks'], $outgoing, 'Charakter');
+        $otherBefore = null;
+        if ($otherPayload !== null) {
+            $otherBefore = $this->adapter->state($otherPayload);
+            $this->ensure($otherBefore['confirmed'], 'Bitte zuerst den Bestand der Gegenpartei bestätigen.');
+            $this->ensureOutgoingStock($otherBefore['stocks'], $incoming, 'Gegenpartei');
+        }
         foreach ($set as $id => $quantity) {
             $this->ensure(isset(RpgInventoryCatalog::positions()[$id]) || (isset($before['stocks'][$id]) && $quantity === 0), 'Unbekannte Katalogposition: '.$id);
             $after['stocks'][$id] = $quantity;
@@ -82,9 +90,7 @@ final class RpgInventoryEvaluator
         }
         $after = $this->finish($after);
         $other = null;
-        if ($otherPayload !== null) {
-            $otherBefore = $this->adapter->state($otherPayload);
-            $this->ensure($otherBefore['confirmed'], 'Bitte zuerst den Bestand der Gegenpartei bestätigen.');
+        if ($otherBefore !== null) {
             $otherAfter = $otherBefore;
             foreach (array_unique([...array_keys($before['stocks']), ...array_keys($after['stocks'])]) as $id) {
                 $delta = ($after['stocks'][$id] ?? 0) - ($before['stocks'][$id] ?? 0);
@@ -154,6 +160,13 @@ final class RpgInventoryEvaluator
         }
 
         return $state;
+    }
+
+    private function ensureOutgoingStock(array $stocks, array $outgoing, string $party): void
+    {
+        foreach ($outgoing as $id => $quantity) {
+            $this->ensure(($stocks[$id] ?? 0) >= $quantity, 'Nicht genügend Bestand für Warenausgang ('.$party.'): '.RpgInventoryCatalog::positions()[$id]['name']);
+        }
     }
 
     private function quantities(array $rows, bool $zero = false): array

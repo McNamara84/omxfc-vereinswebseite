@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\RpgCharacter;
+use App\Models\RpgInventoryEntry;
+use App\Models\RpgInventoryTransaction;
 use App\Services\RpgInventoryAdapter;
 use App\Services\RpgInventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,6 +78,95 @@ class RpgInventoryTradeTest extends TestCase
         $this->inventoryBook('reversal', ['reversal_of' => $transaction->id, 'other_revision' => $other->fresh()->revision]);
         $this->assertSame(100, $this->state()['bucks']);
         $this->assertSame(10, app(RpgInventoryAdapter::class)->state($other->fresh()->payload)['bucks']);
+    }
+
+    #[DataProvider('unfundedOverlappingSwaps')]
+    public function test_overlapping_swap_quantities_cannot_hide_insufficient_pre_trade_stock(bool $external, int $owned, int $otherOwned, int $outgoing, int $incoming, string $position): void
+    {
+        if ($owned > 0) {
+            $this->inventoryBook('grant', ['incoming' => [$this->position($position, $owned)]]);
+        }
+        $other = null;
+        $party = ['external_party' => 'Händler'];
+        if (! $external) {
+            $other = RpgCharacter::factory()->create(['user_id' => $this->player->id, 'payload' => $this->progressionPayload()]);
+            $this->inventoryInitialize(100, $otherOwned > 0 ? [$this->position($position, $otherOwned)] : [], $other);
+            $party = ['other_character_id' => $other->id, 'other_revision' => $other->fresh()->revision];
+        }
+        $before = $this->character->fresh();
+        $otherBefore = $other?->fresh();
+        $transactions = RpgInventoryTransaction::count();
+        $entries = RpgInventoryEntry::count();
+        $input = $this->inventoryInput('swap', $party + ['outgoing' => [$this->position($position, $outgoing)],
+            'incoming' => [$this->position($position, $incoming)], 'amount' => 10, 'cash_direction' => 'expense',
+            'preview_hash' => str_repeat('0', 64)]);
+        $service = app(RpgInventoryService::class);
+
+        foreach (['preview', 'book'] as $method) {
+            try {
+                $service->{$method}($this->leader, $this->character->id, $input);
+                $this->fail('Overlapping quantities concealed missing outgoing stock in '.$method.'.');
+            } catch (ValidationException $exception) {
+                $this->assertStringContainsString('Warenausgang', $exception->errors()['inventory'][0]);
+            }
+        }
+
+        $this->assertSame($before->payload, $this->character->fresh()->payload);
+        $this->assertSame($before->revision, $this->character->fresh()->revision);
+        if ($other !== null) {
+            $this->assertSame($otherBefore->payload, $other->fresh()->payload);
+            $this->assertSame($otherBefore->revision, $other->fresh()->revision);
+        }
+        $this->assertDatabaseCount('rpg_inventory_transactions', $transactions);
+        $this->assertDatabaseCount('rpg_inventory_entries', $entries);
+    }
+
+    public static function unfundedOverlappingSwaps(): array
+    {
+        return [
+            'external missing item' => [true, 0, 0, 1, 1, 'item:bogen'],
+            'external insufficient item' => [true, 1, 0, 2, 1, 'item:bogen'],
+            'both characters missing item' => [false, 0, 0, 1, 1, 'item:bogen'],
+            'initiator missing item' => [false, 0, 1, 1, 1, 'item:bogen'],
+            'counterparty missing item' => [false, 1, 0, 1, 1, 'item:bogen'],
+            'initiator insufficient quantity' => [false, 1, 2, 2, 1, 'item:bogen'],
+            'counterparty insufficient quantity' => [false, 2, 1, 1, 2, 'item:bogen'],
+            'both characters insufficient quantity' => [false, 1, 1, 2, 2, 'item:bogen'],
+            'missing ammunition' => [false, 0, 0, 1, 1, 'ammo:pfeile'],
+            'counterparty missing clothing' => [false, 1, 0, 1, 1, 'clothing:kleidung-einfach'],
+        ];
+    }
+
+    #[DataProvider('fundedOverlappingSwaps')]
+    public function test_overlapping_swaps_remain_valid_when_both_characters_own_the_outgoing_goods(int $owned, int $otherOwned, int $outgoing, int $incoming): void
+    {
+        $this->inventoryBook('grant', ['incoming' => [$this->position('item:bogen', $owned)]]);
+        $payload = $this->progressionPayload();
+        $unarmed = ['id' => 'faustschlag-tritt', 'quantity' => 1];
+        $payload['equipment']['items'] = [$unarmed];
+        $other = RpgCharacter::factory()->create(['user_id' => $this->player->id, 'payload' => $payload]);
+        $this->inventoryInitialize(100, [$this->position('item:bogen', $otherOwned)], $other);
+        $before = $this->character->fresh();
+        $otherBefore = $other->fresh();
+        $transaction = $this->inventoryBook('swap', ['incoming' => [$this->position('item:bogen', $incoming)],
+            'outgoing' => [$this->position('item:bogen', $outgoing)], 'amount' => 10, 'cash_direction' => 'expense',
+            'other_character_id' => $other->id, 'other_revision' => $otherBefore->revision]);
+
+        $otherState = app(RpgInventoryAdapter::class)->state($other->fresh()->payload);
+        $this->assertSame($owned - $outgoing + $incoming, $this->state()['stocks']['item:bogen']);
+        $this->assertSame($otherOwned - $incoming + $outgoing, $otherState['stocks']['item:bogen']);
+        $this->assertSame(90, $this->state()['bucks']);
+        $this->assertSame(110, $otherState['bucks']);
+        $this->assertContains($unarmed, $other->fresh()->payload['equipment']['items']);
+        $this->assertArrayNotHasKey('item:faustschlag-tritt', $otherState['stocks']);
+        $this->assertSame($before->revision + 1, $this->character->fresh()->revision);
+        $this->assertSame($otherBefore->revision + 1, $other->fresh()->revision);
+        $this->assertCount(2, $transaction->entries);
+    }
+
+    public static function fundedOverlappingSwaps(): array
+    {
+        return ['equal quantities' => [1, 1, 1, 1], 'different quantities' => [2, 3, 2, 3]];
     }
 
     public function test_insufficient_counterparty_stock_rolls_back_both_sides(): void

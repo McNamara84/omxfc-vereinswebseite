@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\RpgInventoryEntry;
 use App\Services\RpgCharacterAdvancementService;
+use App\Services\RpgCharacterCombatCalculator;
+use App\Services\RpgCharacterSheetPresenter;
 use App\Services\RpgInventoryAdapter;
 use App\Services\RpgInventoryHistory;
 use App\Services\RpgInventoryService;
@@ -48,6 +50,48 @@ class RpgInventoryTest extends TestCase
         $this->assertSame(12, $state['stocks']['ammo:revolver']);
         $this->assertSame([], $this->character->fresh()->payload['advantages']);
         $this->assertSame(0, $this->character->experienceBalance());
+    }
+
+    public function test_legacy_takeover_and_later_bookings_preserve_the_selected_unarmed_attack(): void
+    {
+        $payload = $this->character->payload;
+        $unarmed = ['id' => 'faustschlag-tritt', 'quantity' => 1, 'name' => 'Faustschlag / Tritt', 'counts_toward_limit' => false];
+        $payload['equipment']['items'] = [$unarmed, ['id' => 'messer-dolch', 'quantity' => 1]];
+        $this->character->update(['payload' => $payload]);
+        $calculator = app(RpgCharacterCombatCalculator::class);
+        $expected = collect($calculator->calculate($payload)['weapons'])->firstWhere('id', 'faustschlag-tritt');
+        $initial = $this->character->initial_payload;
+
+        $this->inventoryInitialize(0);
+        $this->assertContains($unarmed, $this->character->fresh()->payload['equipment']['items']);
+        $grant = $this->inventoryBook('grant', ['incoming' => [$this->position('item:seil')]]);
+        $this->inventoryBook('loss', ['outgoing' => [$this->position('item:messer-dolch')]]);
+        $this->inventoryBook('reversal', ['reversal_of' => $grant->id]);
+
+        $saved = $this->character->fresh();
+        $this->assertSame([$unarmed], $saved->payload['equipment']['items']);
+        $this->assertSame([], $this->state()['stocks']);
+        $this->assertSame($initial, $saved->initial_payload);
+        $combat = $calculator->calculate($saved->payload);
+        $this->assertSame($expected, collect($combat['weapons'])->firstWhere('id', 'faustschlag-tritt'));
+        $sheet = app(RpgCharacterSheetPresenter::class)->present($saved->payload, $combat);
+        $html = view('rpg.char-sheet', ['sheet' => $sheet, 'combat' => $combat])->render();
+        $this->assertStringContainsString('Faustschlag / Tritt', $html);
+        $this->assertStringContainsString('1W6-1+VM', $html);
+    }
+
+    public function test_rebuilding_zero_stock_preserves_only_a_previously_selected_virtual_attack(): void
+    {
+        $adapter = app(RpgInventoryAdapter::class);
+        $state = $adapter->state($this->character->payload);
+        $state['bucks'] = 0;
+        $state['stocks'] = ['item:bogen' => 0];
+        $this->assertSame([], $adapter->equipment($state)['items']);
+        $unarmed = ['id' => 'faustschlag-tritt', 'quantity' => 1];
+        $equipment = $adapter->equipment($state, ['items' => [$unarmed]]);
+        $this->assertSame([$unarmed], $equipment['items']);
+        $this->assertSame([], $equipment['ammunition']);
+        $this->assertSame([], $adapter->state(['equipment' => $equipment])['stocks']);
     }
 
     public function test_clothing_is_retained_when_changed_and_armor_is_deactivated_when_removed(): void

@@ -4117,6 +4117,7 @@
     "database": true,
     "methods": [
       "test_ag_rollenspiel_member_can_store_first_character_for_free",
+      "test_saving_preserves_the_selected_unarmed_attack_and_its_pdf_values",
       "test_ag_rollenspiel_member_can_store_techno_with_full_fp_budget",
       "test_store_rejects_unspent_level_dependent_ap_and_fp_budgets",
       "test_non_editor_member_cannot_use_character_storage_routes",
@@ -4504,6 +4505,8 @@
     "methods": [
       "test_initialization_confirms_zero_without_changing_initial_payload_or_experience",
       "test_later_high_tech_and_more_than_six_items_need_no_advantage_or_experience",
+      "test_legacy_takeover_and_later_bookings_preserve_the_selected_unarmed_attack",
+      "test_rebuilding_zero_stock_preserves_only_a_previously_selected_virtual_attack",
       "test_clothing_is_retained_when_changed_and_armor_is_deactivated_when_removed",
       "test_munition_is_not_refilled_by_other_equipment_or_high_tech_advantage",
       "test_new_character_ammunition_converts_starting_packages_once",
@@ -4528,6 +4531,8 @@
       "test_negotiation_uses_winner_direction_and_integer_rounding",
       "test_ammunition_without_price_needs_a_ruling_and_is_not_limited_to_twenty",
       "test_character_swap_transfers_goods_ammunition_and_cash_atomically_and_can_be_reversed",
+      "test_overlapping_swap_quantities_cannot_hide_insufficient_pre_trade_stock",
+      "test_overlapping_swaps_remain_valid_when_both_characters_own_the_outgoing_goods",
       "test_insufficient_counterparty_stock_rolls_back_both_sides",
       "test_invalid_trade_has_no_partial_money_or_goods_changes"
     ],
