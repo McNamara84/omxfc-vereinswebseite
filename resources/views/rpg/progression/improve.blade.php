@@ -1,6 +1,7 @@
 <x-member-layout>
     <x-member-page class="max-w-5xl">
         <x-ui.page-header title="Charakter verbessern" eyebrow="Rollenspiel" :description="$character->displayName()" />
+        <a class="btn btn-ghost my-2" href="{{ route('rpg.inventory.show', $character) }}">Ausrüstung ansehen</a>
         <div class="flex flex-wrap gap-2 my-4"><a class="btn btn-ghost" href="{{ route('rpg.characters.index') }}">Meine Charaktere</a><a class="btn btn-ghost" href="{{ route('rpg.characters.history', $character) }}">EP und Verlauf</a></div>
         @include('rpg.progression.partials.messages')
         <p class="font-semibold">Erhalten: {{ $history['received'] }} EP · Ausgegeben: {{ $history['spent'] }} EP · Verfügbar: {{ $history['balance'] }} EP</p>

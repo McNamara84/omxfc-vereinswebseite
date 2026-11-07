@@ -79,6 +79,7 @@ final class RpgCharacterAdvancementService
                 $this->ensure($result['cost'] === $request->cost && $result['payload'] === $request->after_payload, 'Die Vorschau ist nicht mehr aktuell. Bitte den Antrag erneuern.');
                 $this->ensure($character->experienceBalance() >= $result['cost'], 'Die verfügbaren Erfahrungspunkte reichen nicht aus.');
                 $character->experienceEntries()->create(['rpg_advancement_request_id' => $request->id, 'amount' => -$result['cost']]);
+                app(RpgInventoryService::class)->recordAdvancement($actor, $character, $request->id, $character->payload, $result['payload']);
                 $character->payload = $result['payload'];
                 $character->revision++;
                 $character->save();

@@ -20,6 +20,16 @@ const component = (overrides = {}) => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('RPG progression forms', () => {
+    it('restores explicitly renewed operations for a fresh server preview', () => {
+        const value = component({ renewedOperations: [
+            { type: 'skill', name: 'Kunde: Wetter', steps: 1, reason: 'Gelernt' },
+            { type: 'advantage', name: 'Panzerung', steps: 1, reason: 'Mutation', languages: ['Deutsch'] },
+        ] });
+        expect(value.operations).toHaveLength(2);
+        expect(value.payload().operations[0]).toMatchObject({ name: 'Kunde: Wetter', reason: 'Gelernt' });
+        expect(value.operations[1].languageText).toBe('Deutsch');
+        expect(value.previewResult).toBeNull();
+    });
     it('registers after Alpine has already started and tolerates missing Alpine', () => {
         const original = window.Alpine;
         delete window.Alpine;

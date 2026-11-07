@@ -19,6 +19,7 @@
                     <a href="{{ route('rpg.adventures.create') }}" class="btn btn-outline">EP vergeben</a>
                     <a href="{{ route('rpg.advancements.index') }}" class="btn btn-outline">Verbesserungen prüfen</a>
                 @endcan
+                @can('manage-rpg-inventory')<a href="{{ route('rpg.inventory.index') }}" class="btn btn-outline">Ausrüstung verwalten</a>@endcan
                 <a href="{{ route('rpg.char-editor') }}" class="btn btn-primary">
                     <x-icon name="o-plus" class="h-4 w-4" />
                     Neuer Charakter
@@ -92,6 +93,7 @@
                                                     <a href="{{ route('rpg.characters.improve', $character) }}" class="btn btn-primary btn-sm">Charakter verbessern</a>
                                                 @endcan
                                                 <a href="{{ route('rpg.characters.history', $character) }}" class="btn btn-ghost btn-sm">Verlauf</a>
+                                                <a href="{{ route('rpg.inventory.show', $character) }}" class="btn btn-ghost btn-sm">Ausrüstung ansehen</a>
                                                 <a href="{{ route('rpg.characters.pdf', $character) }}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" data-testid="rpg-character-pdf-button">
                                                     <x-icon name="o-document-text" class="h-4 w-4" />
                                                     PDF

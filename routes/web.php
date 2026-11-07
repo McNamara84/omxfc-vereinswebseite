@@ -38,6 +38,7 @@ use App\Http\Controllers\RpgCharacterController;
 use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\RpgCheckController;
 use App\Http\Controllers\RpgCombatController;
+use App\Http\Controllers\RpgInventoryController;
 use App\Http\Controllers\RpgNpcController;
 use App\Http\Controllers\RpgProgressionController;
 use App\Http\Controllers\StatistikController;
@@ -431,6 +432,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::post('/{combat}/aktion', 'command')->whereNumber('combat')->name('command')->middleware('throttle:60,1');
             Route::post('/{combat}/entscheidung/{decision}', 'decide')->whereNumber(['combat', 'decision'])->name('decide')->middleware('throttle:60,1');
         });
+
+    Route::prefix('rpg')->controller(RpgInventoryController::class)->group(function () {
+        Route::get('/inventare', 'index')->name('rpg.inventory.index');
+        Route::get('/charaktere/{rpgCharacter}/ausruestung', 'show')->whereNumber('rpgCharacter')->name('rpg.inventory.show');
+        Route::post('/charaktere/{rpgCharacter}/ausruestung/vorschau', 'preview')->whereNumber('rpgCharacter')->name('rpg.inventory.preview');
+        Route::post('/charaktere/{rpgCharacter}/ausruestung/buchungen', 'store')->whereNumber('rpgCharacter')->name('rpg.inventory.store');
+    });
 
     Route::prefix('rpg')->controller(RpgProgressionController::class)
         ->middleware('can:access-rpg-char-editor')->group(function () {

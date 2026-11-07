@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Services\RpgAccess;
 use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgExperienceAwardService;
+use App\Services\RpgInventoryService;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ $data = json_decode(fgets(STDIN), true, flags: JSON_THROW_ON_ERROR);
 try {
     $actor = User::findOrFail($data['actor']);
     $result = match ($data['action']) {
+        'inventory' => app(RpgInventoryService::class)->book($actor, $data['character'], $data['input']),
         'award' => app(RpgExperienceAwardService::class)->award($actor, $data['input']),
         'submit' => app(RpgCharacterAdvancementService::class)->submit($actor, $data['character'], $data['input']),
         'delete' => DB::transaction(function () use ($actor, $data) {

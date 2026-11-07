@@ -25,7 +25,18 @@ export function rpgProgression(config) {
         title: '', completedOn: config.today, hours: 6, minutes: 0, cycleBonus: 0,
         selectedCharacter: '', participants: [], operations: [],
         init() {
-            if (config.mode === 'improve') this.addOperation();
+            if (config.mode === 'improve') {
+                if (config.renewedOperations?.length) {
+                    for (const operation of config.renewedOperations) {
+                        this.addOperation();
+                        const row = this.operations.at(-1);
+                        Object.assign(row, operation, { languageText: (operation.languages ?? config.languages ?? []).join('\n') });
+                        if (operation.type === 'skill' && operation.name.includes(': ')) {
+                            [row.name, row.specialization] = operation.name.split(/: (.*)/s);
+                        }
+                    }
+                } else this.addOperation();
+            }
         },
         invalidate() {
             this.previewResult = null;

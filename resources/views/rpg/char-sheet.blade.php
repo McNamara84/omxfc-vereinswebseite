@@ -93,7 +93,7 @@
     </style>
 </head>
 <body>
-@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']))
+@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']) || ! empty($sheet['inventory_history']) || isset($sheet['progression_payload']['equipment']['schema_version']))
     <div class="page-number">Seite </div>
 @endif
 @php
@@ -313,6 +313,7 @@
             <td class="equipment-cell">
                 <div class="bottom-box">
                     <div class="bottom-title">Wichtige Ausrüstung</div>
+                    @if(isset($sheet['progression_payload']['equipment']['stock_confirmed_at']))<div class="equipment-sub"><strong>Spielgeld:</strong> {{ $sheet['progression_payload']['equipment']['bucks_balance'] ?? 0 }} Bucks</div>@endif
                     <div class="equipment-text">{{ $sheet['equipment'] }}</div>
                     @if($sheet['ammunition'])<div class="equipment-sub"><strong>Munition:</strong> {{ $sheet['ammunition'] }}</div>@endif
                     @if($sheet['notes'])<div class="notes"><strong>Notizen:</strong> {{ $sheet['notes'] }}</div>@endif
@@ -323,7 +324,7 @@
     </table>
     <div class="rule-sources">{{ $sheet['rule_sources'] ?? 'Basisregelwerk' }}</div>
 </div>
-@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']))
+@if(! empty($sheet['experience']['entries']) || ! empty($sheet['progression_payload']['progression']['metadata_history']) || ! empty($sheet['inventory_history']) || isset($sheet['progression_payload']['equipment']['schema_version']))
     @include('rpg.partials.character-progression-history')
 @endif
 </body>

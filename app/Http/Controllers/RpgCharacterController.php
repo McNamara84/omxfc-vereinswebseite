@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Services\RpgAccess;
 use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
+use App\Services\RpgInventoryAdapter;
+use App\Services\RpgInventoryHistory;
 use App\Services\RpgProgressionHistory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +54,7 @@ class RpgCharacterController extends Controller
         $pdfPayload = $this->characterSheetService->validatedPdfPayload($request);
         $payload = $pdfPayload;
         unset($payload['portrait']);
+        $payload = app(RpgInventoryAdapter::class)->initializeNew($payload);
         $characterName = $payload['character']['character_name'] === '' ? 'Charakter' : $payload['character']['character_name'];
         $payload['character']['character_name'] = $characterName;
 
@@ -94,6 +97,7 @@ class RpgCharacterController extends Controller
             $character = RpgCharacter::lockForUpdate()->findOrFail($rpgCharacter->id);
             $data = $character->payload;
             $data['experience'] = app(RpgProgressionHistory::class)->forCharacter($character);
+            $data['inventory_history'] = app(RpgInventoryHistory::class)->forCharacter($character);
             $data['portrait'] = $this->portraitDataUrl($character);
 
             return $data;

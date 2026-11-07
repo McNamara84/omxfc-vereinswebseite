@@ -24,6 +24,7 @@ class RpgCharacterSheetLayoutTest extends TestCase
             'maximum text lengths' => [false, true],
             'maximum text lengths with portrait' => [true, true],
             'saved character with experience summary' => [true, true, true],
+            'saved inventory with money and full descriptions' => [true, true, true, 'inventory'],
             'empty description' => [false, false, false, 'empty'],
             'empty description with portrait' => [true, false, false, 'empty'],
             'short description' => [false, false, false, 'short'],
@@ -60,6 +61,11 @@ class RpgCharacterSheetLayoutTest extends TestCase
         };
         if ($withExperience) {
             $data['experience'] = ['received' => 80, 'spent' => 50, 'balance' => 30, 'entries' => []];
+        }
+        if ($description === 'inventory') {
+            $data['equipment']['schema_version'] = 1;
+            $data['equipment']['stock_confirmed_at'] = '2026-11-07T12:00:00+01:00';
+            $data['equipment']['bucks_balance'] = 1000000000;
         }
         if ($withPortrait) {
             $image = imagecreatetruecolor($imageWidth, $imageHeight);
@@ -154,7 +160,7 @@ class RpgCharacterSheetLayoutTest extends TestCase
         $pdf->loadHtml(view('rpg.char-sheet', ['sheet' => $sheet])->render());
         $pdf->render();
 
-        $this->assertSame(1, $pdf->getCanvas()->get_page_count());
+        $this->assertSame($description === 'inventory' ? 2 : 1, $pdf->getCanvas()->get_page_count());
         $this->assertSame([], $clipped, 'Gerenderter Text wird durch einen übergeordneten Bereich abgeschnitten.');
         $footer = $boxes['rule-sources'][0];
         $frame = $boxes['portrait-frame'][0];

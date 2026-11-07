@@ -621,6 +621,18 @@
     "seeders": []
   },
   {
+    "file": "tests/e2e/rpg-inventory.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "leader manages persistent ammunition and trade while owner reads the updated PDF",
+      "reversal shows authoritative differences and mobile forms remain accessible",
+      "catalogue search and character barter show both sides before booking"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/e2e/rpg-npcs.spec.js",
     "runner": "playwright",
     "laravel": false,
@@ -4094,7 +4106,7 @@
     "laravel": true,
     "database": true,
     "methods": [
-      "test_equipment_details_remain_visible_above_source_footer"
+      "test_sheet_layout_remains_aligned_and_visible"
     ],
     "seeders": []
   },
@@ -4440,6 +4452,81 @@
       "test_admin_alone_may_not_award_points",
       "test_former_member_cannot_receive_points",
       "test_credit_and_activity_roll_back_together"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgInventoryIntegrityTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_stale_revision_or_tampered_preview_cannot_book",
+      "test_missing_preview_cannot_book",
+      "test_missing_character_is_a_not_found_result_and_not_an_internal_error",
+      "test_reversal_cannot_hide_an_unrelated_additional_stock_change",
+      "test_leadership_change_between_preview_and_booking_revokes_authority",
+      "test_departed_owner_retains_read_access_but_cannot_receive_new_bookings",
+      "test_journal_failure_rolls_back_money_state_and_revision",
+      "test_reversal_of_spent_goods_or_changed_metadata_is_rejected",
+      "test_journal_and_rollback_cannot_destroy_recorded_bookings",
+      "test_character_deletion_removes_private_entries",
+      "test_legacy_magazines_are_suggestions_until_explicitly_confirmed",
+      "test_unknown_legacy_positions_can_be_explicitly_removed_during_takeover",
+      "test_non_inventory_advancement_does_not_generate_an_inventory_transaction",
+      "test_correction_and_reversal_restore_metadata_without_destroying_other_stock",
+      "test_saved_pdf_includes_inventory_without_any_experience_entries"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgInventoryMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_simultaneous_retries_book_money_and_goods_exactly_once",
+      "test_competing_purchases_cannot_overspend_or_duplicate_goods",
+      "test_opposing_character_trades_preserve_totals_without_deadlocks",
+      "test_inventory_and_advancement_approval_never_overwrite_each_other",
+      "test_character_deletion_racing_with_booking_leaves_no_private_entries"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgInventoryTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_initialization_confirms_zero_without_changing_initial_payload_or_experience",
+      "test_later_high_tech_and_more_than_six_items_need_no_advantage_or_experience",
+      "test_clothing_is_retained_when_changed_and_armor_is_deactivated_when_removed",
+      "test_munition_is_not_refilled_by_other_equipment_or_high_tech_advantage",
+      "test_new_character_ammunition_converts_starting_packages_once",
+      "test_energy_regeneration_is_capped_and_needs_game_time",
+      "test_inventory_change_supersedes_a_pending_advancement_without_spending_experience",
+      "test_identical_retries_book_only_once_but_changed_key_content_is_rejected",
+      "test_reversal_preserves_later_stock_changes_and_is_recorded_once",
+      "test_owner_and_admin_cannot_write_and_foreign_members_cannot_read",
+      "test_leader_can_use_http_preview_and_store_and_owner_sees_history",
+      "test_invalid_bookings_leave_state_revision_and_journal_unchanged",
+      "test_journal_models_are_immutable"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgInventoryTradeTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_purchase_and_sale_book_goods_and_money_together",
+      "test_negotiation_uses_winner_direction_and_integer_rounding",
+      "test_ammunition_without_price_needs_a_ruling_and_is_not_limited_to_twenty",
+      "test_character_swap_transfers_goods_ammunition_and_cash_atomically_and_can_be_reversed",
+      "test_insufficient_counterparty_stock_rolls_back_both_sides",
+      "test_invalid_trade_has_no_partial_money_or_goods_changes"
     ],
     "seeders": []
   },
@@ -7040,6 +7127,17 @@
     "seeders": []
   },
   {
+    "file": "tests/Unit/RpgInventoryCatalogTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_prices_are_exact_numbers_and_ambiguous_values_are_not_free",
+      "test_starting_ammunition_obeys_projectile_and_magazine_units"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Unit/TiaWorkflowCommandTest.php",
     "runner": "php-unit",
     "laravel": false,
@@ -7685,11 +7783,38 @@
     "seeders": []
   },
   {
+    "file": "tests/Vitest/rpg-inventory.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "requires an explicit takeover of unknown money and ammunition",
+      "sends only explicit quantities and prices and both character revisions",
+      "retains stock and notes when preparing an equipment change",
+      "clears previous trade and preview data when switching operations",
+      "filters catalogue names and categories while retaining selected stock",
+      "prepares a reversal with the counterparty revision",
+      "prepares a single-character reversal without inventing a counterparty",
+      "invalidates a confirmed preview when inputs change",
+      "displays character and catalogue names without markup",
+      "sends CSRF and uses the authoritative preview for saving",
+      "discards a preview response when the input changed while loading",
+      "blocks concurrent requests and saving without a preview",
+      "shows validation failures and clears an invalid booking preview",
+      "handles a non-JSON server error and allows retrying",
+      "focuses the error when the preview request loses its connection",
+      "registers the lazy Alpine component"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Vitest/rpg-progression.test.js",
     "runner": "vitest",
     "laravel": false,
     "database": false,
     "methods": [
+      "restores explicitly renewed operations for a fresh server preview",
+      "registers after Alpine has already started and tolerates missing Alpine",
       "sends intended operations without preview prices or UI fields",
       "transmits language choices, specializations and equipment only for relevant purchases",
       "prevents duplicate participants and converts hours and explicit zero overrides",
