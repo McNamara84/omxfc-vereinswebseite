@@ -23,18 +23,18 @@ final class RpgCharacterSheetLayoutService
         $this->font = $this->metrics->getFont('DejaVu Sans');
     }
 
-    public function prepare(array $sheet): array
+    public function prepare(array $characterData): array
     {
         // Includes the title and ten bordered rows; regression tests measure the
         // actual Dompdf boxes so template/font changes cannot silently misalign it.
         $skillsHeight = $this->pt(49.75);
-        $weaponBlankRows = max(0, 7 - max(1, count($sheet['weapons'] ?? [])));
+        $weaponBlankRows = max(0, 7 - max(1, count($characterData['weapons'] ?? [])));
         // Four rows including blanks fit the compact default armor section.
-        $armorBlankRows = max(0, 4 - max(1, count($sheet['armor'] ?? [])));
-        $armorHeight = max(25, 12 + count($sheet['armor'] ?? []) * 3.5);
+        $armorBlankRows = max(0, 4 - max(1, count($characterData['armor'] ?? [])));
+        $armorHeight = max(25, 12 + count($characterData['armor'] ?? []) * 3.5);
         $baseHeight = $this->pt(96 - ($armorHeight - 25));
         $traitsBudget = max($this->pt(16), $baseHeight + $this->pt(-1 - 24 + $weaponBlankRows * 5 + $armorBlankRows * 2) - $skillsHeight);
-        $traits = $this->traits($sheet, $traitsBudget);
+        $traits = $this->traits($characterData, $traitsBudget);
         $traitsHeight = array_sum(array_column($traits['rows'], 'height'));
         $attributesHeight = max($this->pt(24), $baseHeight - $this->pt(1) - $skillsHeight - $traitsHeight);
         $frameHeight = $traitsHeight + $this->pt(1) + $attributesHeight + $skillsHeight;
@@ -44,22 +44,22 @@ final class RpgCharacterSheetLayoutService
         $extraHeight = max(0, $extraHeight - $this->pt($removedWeaponRows * 5));
         $removedArmorRows = min($armorBlankRows, (int) ceil($extraHeight / $this->pt(2)));
         $frameContentHeight = $frameHeight - $this->pt(2.9);
-        $withPortrait = ! empty($sheet['portrait']);
+        $withPortrait = ! empty($characterData['portrait']);
         $descriptionHeight = $frameContentHeight - $this->pt($withPortrait ? 55.25 : 2);
 
-        $sheet['layout'] = [
+        $characterData['layout'] = [
             'traits' => $traits,
             'attributes_height' => $attributesHeight,
             'frame_content_height' => $frameContentHeight,
             'description_height' => $descriptionHeight,
-            'description' => $this->fitText((string) ($sheet['description'] ?? ''), $this->pt(85.1), $descriptionHeight - 12),
+            'description' => $this->fitText((string) ($characterData['description'] ?? ''), $this->pt(85.1), $descriptionHeight - 12),
             'weapon_blank_rows' => $weaponBlankRows - $removedWeaponRows,
             'armor_blank_rows' => $armorBlankRows - $removedArmorRows,
             'weapon_height' => $this->pt(52 - $removedWeaponRows * 5),
             'armor_height' => $this->pt($armorHeight - $removedArmorRows * 2),
         ];
 
-        return $sheet;
+        return $characterData;
     }
 
     /** Fit plain text using the same font and explicit line heights as the PDF. */
@@ -89,14 +89,14 @@ final class RpgCharacterSheetLayoutService
         return $wrapped + ['font_size' => $size, 'line_height' => $lineHeight];
     }
 
-    private function traits(array $sheet, float $budget): array
+    private function traits(array $characterData, float $budget): array
     {
         $width = $this->pt(84);
         foreach (self::FONT_SIZES as $size) {
             $lineHeight = $this->lineHeight($size);
             $rows = [];
             foreach (self::TRAITS as $key => $label) {
-                $wrapped = $this->wrap((string) ($sheet[$key] ?? ''), $width, $size, 32);
+                $wrapped = $this->wrap((string) ($characterData[$key] ?? ''), $width, $size, 32);
                 $rows[$key] = $wrapped + ['label' => $label, 'height' => max($this->pt(4), count($wrapped['lines']) * $lineHeight + 2)];
             }
             if (array_sum(array_column($rows, 'height')) <= $budget) {
@@ -123,7 +123,7 @@ final class RpgCharacterSheetLayoutService
                 }
             }
             foreach ($rows as $key => &$row) {
-                $wrapped = $this->wrap((string) ($sheet[$key] ?? ''), $width, $size, $limits[$key]);
+                $wrapped = $this->wrap((string) ($characterData[$key] ?? ''), $width, $size, $limits[$key]);
                 if ($wrapped['truncated']) {
                     $last = array_key_last($wrapped['lines']);
                     $wrapped['lines'][$last] = $this->ellipsis($wrapped['lines'][$last], $width, $size);
