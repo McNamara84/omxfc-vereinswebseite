@@ -212,6 +212,7 @@
                 </div>
             </td>
             <td class="portrait-cell">
+                {{-- Dompdf adds border and padding to this content height; box-sizing is unsupported. --}}
                 <div class="portrait-frame" style="height: {{ $layout['frame_content_height'] }}pt">
                     @if($sheet['portrait'])
                         <img class="portrait-image" src="{{ $sheet['portrait'] }}" alt="Porträt">

@@ -98,15 +98,19 @@ class RpgCharacterSheetLayoutTest extends TestCase
         $this->assertNotEmpty($sheet['combat']['situational_notes']);
 
         $boxes = [];
+        $frameContentHeight = 0.0;
         $clipped = [];
         $renderedDescription = [];
         $pdf = new Dompdf;
-        $pdf->setCallbacks([['event' => 'end_frame', 'f' => function (Frame $frame) use (&$boxes, &$clipped, &$renderedDescription): void {
+        $pdf->setCallbacks([['event' => 'end_frame', 'f' => function (Frame $frame) use (&$boxes, &$frameContentHeight, &$clipped, &$renderedDescription): void {
             $node = $frame->get_node();
             if ($node instanceof DOMElement) {
                 foreach (explode(' ', $node->getAttribute('class')) as $class) {
                     if (in_array($class, ['traits', 'trait-row', 'trait-text', 'attributes', 'value-list', 'skills', 'skill-list', 'portrait-frame', 'portrait-image', 'description', 'specializations', 'weapon-section', 'weapon-table', 'armor-section', 'armor-table', 'bottom-box', 'equipment-text', 'equipment-sub', 'notes', 'situational', 'rule-sources'], true)) {
                         $boxes[$class][] = $frame->get_border_box();
+                    }
+                    if ($class === 'portrait-frame') {
+                        $frameContentHeight = $frame->get_content_box()['h'];
                     }
                     if ($class === 'prepared-line') {
                         $parent = $frame->get_parent();
@@ -154,9 +158,11 @@ class RpgCharacterSheetLayoutTest extends TestCase
         $this->assertSame([], $clipped, 'Gerenderter Text wird durch einen übergeordneten Bereich abgeschnitten.');
         $footer = $boxes['rule-sources'][0];
         $frame = $boxes['portrait-frame'][0];
-        $this->assertEqualsWithDelta($boxes['traits'][0]['y'], $frame['y'], 72 / 25.4);
+        $this->assertEqualsWithDelta($sheet['layout']['frame_content_height'], $frameContentHeight, 0.01, 'Dompdf muss die CSS-Höhe als Inhaltshöhe verwenden.');
+        $this->assertEqualsWithDelta(2.9 * 72 / 25.4, $frame['h'] - $frameContentHeight, 0.01, 'Rahmen und Innenabstände müssen genau einmal zur Außenhöhe hinzukommen.');
+        $this->assertEqualsWithDelta($boxes['traits'][0]['y'], $frame['y'], 0.05 * 72 / 25.4);
         foreach ($boxes['skill-list'] as $box) {
-            $this->assertEqualsWithDelta($box['y'] + $box['h'], $frame['y'] + $frame['h'], 72 / 25.4, 'Rahmen und letzte Fertigkeitszeile sind nicht bündig.');
+            $this->assertEqualsWithDelta($box['y'] + $box['h'], $frame['y'] + $frame['h'], 0.05 * 72 / 25.4, 'Rahmen und letzte Fertigkeitszeile sind nicht bündig.');
             $this->assertLessThan($boxes['specializations'][0]['y'], $box['y'] + $box['h'], 'Fertigkeiten überschneiden sich mit Spezialisierungen.');
         }
         foreach ($boxes['value-list'] as $box) {

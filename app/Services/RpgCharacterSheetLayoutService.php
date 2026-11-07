@@ -43,6 +43,8 @@ final class RpgCharacterSheetLayoutService
         $removedWeaponRows = min($weaponBlankRows, (int) ceil($extraHeight / $this->pt(5)));
         $extraHeight = max(0, $extraHeight - $this->pt($removedWeaponRows * 5));
         $removedArmorRows = min($armorBlankRows, (int) ceil($extraHeight / $this->pt(2)));
+        // Dompdf ignores box-sizing: CSS height is the content height, so reserve
+        // the frame's 1mm padding and 0.45mm border on each side exactly once.
         $frameContentHeight = $frameHeight - $this->pt(2.9);
         $withPortrait = ! empty($characterData['portrait']);
         $descriptionHeight = $frameContentHeight - $this->pt($withPortrait ? 55.25 : 2);
