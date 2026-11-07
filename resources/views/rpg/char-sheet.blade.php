@@ -6,7 +6,7 @@
     <style>
         @page { size: A4 portrait; margin: 4mm; }
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
+        body { margin: 0; padding: 0; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 7.6pt; line-height: 1.13; color: #111; }
         .rule-sources { margin-top: 1mm; font-size: 6pt; text-align: center; }
         .sheet { width: 202mm; position: relative; page-break-after: avoid; }
@@ -16,33 +16,35 @@
         .logo-cell { width: 54mm; padding: 1.5mm 4mm 1mm 1mm; }
         .logo { width: 48mm; height: 20.4mm; object-fit: contain; }
         .meta-cell { padding: 1mm 0 0 4mm; }
-        .meta-table th { width: 29mm; height: 5.7mm; padding: 0 1.5mm 0.7mm 0; vertical-align: bottom; font-size: 9pt; text-align: left; }
-        .meta-table td { height: 5.7mm; padding: 0 1.5mm 0.7mm; border-bottom: 0.35mm solid #111; vertical-align: bottom; font-size: 8.4pt; white-space: nowrap; overflow: hidden; }
+        .meta-table th { width: 29mm; height: 5mm; padding: 0 1.5mm 0.4mm 0; vertical-align: bottom; font-size: 9pt; text-align: left; }
+        .meta-table td { height: 5mm; padding: 0 1.5mm 0.4mm; border-bottom: 0.35mm solid #111; vertical-align: bottom; font-size: 8.4pt; white-space: nowrap; overflow: hidden; }
         .meta-table td.race-culture { white-space: normal; font-size: 7pt; line-height: 1.1; }
-        .traits { height: 17mm; padding: 0 1mm; }
-        .trait-table th { width: 28mm; height: 4mm; padding: 0 1mm 0.5mm 0; vertical-align: bottom; font-size: 8.3pt; text-align: left; white-space: nowrap; }
-        .trait-table td { height: 4mm; padding: 0 1mm 0.5mm; border-bottom: 0.25mm solid #111; vertical-align: bottom; overflow: hidden; white-space: nowrap; }
-        .core { height: 76mm; margin-top: 1mm; }
-        .values-cell { width: 112mm; padding-right: 4mm; }
-        .portrait-cell { width: 90mm; }
+        .trait-row { position: relative; }
+        .trait-label { position: absolute; left: 0; top: 0; width: 24mm; font-size: 7.6pt; line-height: 12pt; }
+        .trait-text { margin-left: 24mm; width: 84mm; padding-bottom: 1pt; border-bottom: 0.25mm solid #111; }
+        .prepared-line { white-space: pre; }
+        .core { margin-top: 1mm; }
+        .values-cell { width: 55.44554455%; padding: 0 4mm 0 0; }
+        .portrait-cell { width: 44.55445545%; padding: 0; }
         .section-title { margin: 0 0 1mm; font-size: 8.8pt; font-weight: 700; }
-        .attributes { height: 28mm; }
-        .attribute-column { width: 50%; padding-right: 4mm; }
+        .attributes .section-title, .skills .section-title { line-height: 10.5pt; margin-bottom: 0.5mm; }
+        .attributes { margin-top: 1mm; }
+        .attribute-column { width: 50%; padding: 0 4mm 0 0; }
         .value-list { width: 46mm; table-layout: auto; }
-        .value-list td { height: 4mm; vertical-align: middle; font-size: 8.1pt; }
+        .value-list td { height: 3.6mm; padding: 0; vertical-align: middle; font-size: 7.6pt; }
         .value-list .value-name { width: 36mm; padding-right: 1mm; }
-        .value-list .value-box { width: 9mm; padding-top: 0.3mm; border: 0.45mm solid #111; text-align: center; font-weight: 700; }
-        .skills { margin-top: 2mm; }
-        .skill-column { width: 50%; padding-right: 3mm; }
+        .value-list .value-box { width: 9mm; border: 0.45mm solid #111; text-align: center; font-weight: 700; }
+        .skills { margin-top: 0; }
+        .skill-column { width: 50%; padding: 0 3mm 0 0; }
         .skill-list { width: 46mm; table-layout: auto; }
-        .skill-list td { height: 4mm; vertical-align: middle; font-size: 8pt; }
+        .skill-list td { height: 3mm; padding: 0; vertical-align: middle; font-size: 7.6pt; line-height: 9pt; }
         .skill-list .skill-name { width: 36mm; padding-right: 1mm; }
-        .skill-list .skill-value { width: 9mm; padding-top: 0.3mm; border: 0.35mm solid #111; text-align: center; font-weight: 700; }
-        .portrait-frame { height: 76mm; border: 0.45mm double #111; padding: 1mm; overflow: hidden; }
+        .skill-list .skill-value { width: 9mm; border: 0.35mm solid #111; text-align: center; font-weight: 700; }
+        .portrait-frame { border: 0.45mm double #111; padding: 1mm; overflow: hidden; }
         .portrait-image { width: 100%; height: 52mm; object-fit: cover; display: block; }
-        .portrait-placeholder { width: 100%; height: 23mm; padding-top: 29mm; text-align: center; color: #666; font-size: 8pt; }
-        .description { height: 18mm; margin-top: 1mm; padding: 1mm; border-top: 0.25mm solid #777; overflow: hidden; font-size: 6.7pt; line-height: 1.18; }
-        .description strong { font-size: 7pt; }
+        .description { padding: 1mm; overflow: hidden; }
+        .description.with-portrait { margin-top: 1mm; border-top: 0.25mm solid #777; }
+        .description-label { height: 12pt; line-height: 12pt; font-size: 7.6pt; font-weight: bold; }
         .specializations { height: 7mm; margin-top: 1mm; padding: 1mm; border-bottom: 0.35mm solid #111; overflow: hidden; }
         .specializations strong { font-size: 8pt; }
         .combat-summary { height: 15mm; padding-top: 2mm; }
@@ -51,13 +53,13 @@
         .combat-label { display: block; font-size: 7.3pt; font-weight: 700; }
         .combat-value { display: block; margin-top: 1mm; font-size: 9.4pt; font-weight: 700; }
         .combat-formula { display: block; margin-top: 0.4mm; font-size: 5.4pt; color: #333; white-space: nowrap; }
-        .weapon-section { height: 52mm; overflow: hidden; }
+        .weapon-section { overflow: hidden; }
         .weapon-table { border: 0.35mm solid #111; }
         .weapon-table th { height: 4.8mm; padding: 0.7mm 0.6mm; border-bottom: 0.25mm solid #111; background: #eee; font-size: 6.5pt; text-align: left; }
         .weapon-table td { height: 4.4mm; padding: 0.35mm 0.6mm; border-bottom: 0.2mm solid #777; font-size: 6.2pt; overflow: hidden; }
         .weapon-name { font-weight: 700; }
         .weapon-alt { display: block; font-size: 5.2pt; font-weight: 400; color: #333; white-space: nowrap; }
-        .armor-section { height: 25mm; margin-top: 1mm; overflow: hidden; }
+        .armor-section { margin-top: 1mm; overflow: hidden; }
         .armor-table { border: 0.35mm solid #111; }
         .armor-table th { height: 3.6mm; padding: 0.3mm 0.6mm; background: #eee; border-bottom: 0.25mm solid #111; font-size: 5.8pt; text-align: left; }
         .armor-table td { height: 2mm; padding: 0.15mm 0.7mm; border-bottom: 0.18mm solid #777; font-size: 5.4pt; }
@@ -114,6 +116,11 @@
         $sheet = (new \App\Services\RpgCharacterSheetPresenter())->present($fallbackPayload, $fallbackCombat);
     }
 
+    if (! isset($sheet['layout'])) {
+        $sheet = (new \App\Services\RpgCharacterSheetLayoutService())->prepare($sheet);
+    }
+    $layout = $sheet['layout'];
+
     $logoPath = public_path('images/rpg/maddrax-bastei-logo.jpg');
     $logo = is_file($logoPath) ? 'data:image/jpeg;base64,'.base64_encode(file_get_contents($logoPath)) : null;
     $signed = static fn (int $value): string => $value >= 0 ? '+'.$value : (string) $value;
@@ -122,8 +129,8 @@
     $defense = $combat['defense'] ?? [];
     $initiative = $combat['initiative'] ?? [];
     $movement = $combat['movement'] ?? [];
-    $weaponBlankRows = max(0, 7 - max(1, count($sheet['weapons'])));
-    $armorBlankRows = max(0, 6 - max(1, count($sheet['armor'])));
+    $weaponBlankRows = $layout['weapon_blank_rows'];
+    $armorBlankRows = $layout['armor_blank_rows'];
 @endphp
 <div class="sheet">
     @if($sheet['experience'] ?? null)
@@ -154,19 +161,22 @@
         </tr>
     </table>
 
-    <div class="traits">
-        <table class="trait-table">
-            <tr><th>Vorteile</th><td>{{ $sheet['advantages'] }}</td></tr>
-            <tr><th>Nachteile</th><td>{{ $sheet['disadvantages'] }}</td></tr>
-            <tr><th>Ausbildung</th><td>{{ $sheet['trainings'] }}</td></tr>
-            <tr><th>Beruf</th><td>{{ $sheet['professions'] }}</td></tr>
-        </table>
-    </div>
-
     <table class="core">
         <tr>
             <td class="values-cell">
-                <div class="attributes">
+                <div class="traits">
+                    @foreach($layout['traits']['rows'] as $trait)
+                        <div class="trait-row" style="height: {{ $trait['height'] }}pt">
+                            <strong class="trait-label">{{ $trait['label'] }}</strong>
+                            <div class="trait-text" style="font-size: {{ $layout['traits']['font_size'] }}pt; line-height: {{ $layout['traits']['line_height'] }}pt">
+                                @foreach($trait['lines'] as $line)
+                                    <div class="prepared-line" style="height: {{ $layout['traits']['line_height'] }}pt">{{ $line }}</div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="attributes" style="height: {{ $layout['attributes_height'] }}pt">
                     <div class="section-title">Attribute</div>
                     <table>
                         <tr>
@@ -202,13 +212,16 @@
                 </div>
             </td>
             <td class="portrait-cell">
-                <div class="portrait-frame">
+                <div class="portrait-frame" style="height: {{ $layout['frame_content_height'] }}pt">
                     @if($sheet['portrait'])
                         <img class="portrait-image" src="{{ $sheet['portrait'] }}" alt="Porträt">
-                    @else
-                        <div class="portrait-placeholder">Porträt / Symbol</div>
                     @endif
-                    <div class="description"><strong>Kurzbeschreibung:</strong> {{ $sheet['description'] }}</div>
+                    <div class="description {{ $sheet['portrait'] ? 'with-portrait' : 'without-portrait' }}" style="height: {{ $layout['description_height'] }}pt; font-size: {{ $layout['description']['font_size'] }}pt; line-height: {{ $layout['description']['line_height'] }}pt">
+                        <div class="description-label">Kurzbeschreibung:</div>
+                        @foreach($layout['description']['lines'] as $line)
+                            <div class="prepared-line" style="height: {{ $layout['description']['line_height'] }}pt">{{ $line }}</div>
+                        @endforeach
+                    </div>
                 </div>
             </td>
         </tr>
@@ -227,7 +240,7 @@
         </tr>
     </table>
 
-    <div class="weapon-section">
+    <div class="weapon-section" style="height: {{ $layout['weapon_height'] }}pt">
         <div class="section-title">Waffen</div>
         <table class="weapon-table">
             <thead>
@@ -264,7 +277,7 @@
         </table>
     </div>
 
-    <div class="armor-section">
+    <div class="armor-section" style="height: {{ $layout['armor_height'] }}pt">
         <div class="section-title">Rüstung / Schild</div>
         <table class="armor-table">
             <thead><tr><th style="width: 48%">Gegenstand</th><th style="width: 13%">SF</th><th style="width: 18%">BM</th><th style="width: 21%">Status</th></tr></thead>

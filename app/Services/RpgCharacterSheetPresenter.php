@@ -70,7 +70,7 @@ final class RpgCharacterSheetPresenter
             'rule_sources' => implode(' · ', array_column($rules['sources'] ?? RpgCharEditorRuleCatalog::snapshots([]), 'name')),
             'trainings' => $this->short($this->trainingText($data['trainings'] ?? []), 100),
             'professions' => $this->short($this->specializationText($skills, 'Beruf'), 100),
-            'description' => $this->short($character['description'] ?? '', 230),
+            'description' => $this->normalize($character['description'] ?? ''),
             'portrait' => is_string($data['portrait'] ?? null) ? $data['portrait'] : null,
             'attributes' => $this->attributeRows($data['attributes'] ?? []),
             'skill_columns' => $this->skillColumns($skills),
@@ -414,14 +414,19 @@ final class RpgCharacterSheetPresenter
 
     private function short(mixed $value, int $limit): string
     {
-        if (! is_scalar($value) && $value !== null) {
-            return '';
-        }
-
-        $normalized = trim(preg_replace('/\s+/', ' ', (string) $value) ?? '');
+        $normalized = $this->normalize($value);
 
         return Str::length($normalized) <= $limit
             ? $normalized
             : Str::substr($normalized, 0, max(0, $limit - 1)).'…';
+    }
+
+    private function normalize(mixed $value): string
+    {
+        if (! is_scalar($value) && $value !== null) {
+            return '';
+        }
+
+        return trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
     }
 }

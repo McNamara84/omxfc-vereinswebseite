@@ -75,8 +75,22 @@ class RpgCharacterSheetPresenterTest extends TestCase
 
         $this->assertSame('Abenteurer', $sheet['trainings']);
         $this->assertLessThanOrEqual(70, mb_strlen($sheet['character_name']));
-        $this->assertLessThanOrEqual(230, mb_strlen($sheet['description']));
+        $this->assertSame(trim($data['character']['description']), $sheet['description']);
         $this->assertStringEndsWith('…', $sheet['character_name']);
+    }
+
+    public function test_description_is_normalized_without_discarding_text_for_pdf_layout(): void
+    {
+        $description = "  Eine\n\nweit\tgereiste\u{00a0}Figur. ".str_repeat('Vollständige Beschreibung. ', 80);
+        $data = ['character' => ['description' => $description]];
+        $sheet = (new RpgCharacterSheetPresenter)->present($data, (new RpgCharacterCombatCalculator)->calculate($data));
+
+        $this->assertSame('Eine weit gereiste Figur. '.rtrim(str_repeat('Vollständige Beschreibung. ', 80)), $sheet['description']);
+        $this->assertSame($description, $data['character']['description']);
+        foreach ([null, [], new \stdClass] as $invalidDescription) {
+            $data['character']['description'] = $invalidDescription;
+            $this->assertSame('', (new RpgCharacterSheetPresenter)->present($data, [])['description']);
+        }
     }
 
     public function test_it_formats_structured_advantage_instances_and_languages(): void
