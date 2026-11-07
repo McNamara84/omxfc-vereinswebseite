@@ -148,6 +148,73 @@ class RpgCharacterSheetLayoutServiceTest extends TestCase
         $this->assertSame(2, count($sheet['armor']));
     }
 
+    public static function traitLengths(): array
+    {
+        $cases = [];
+        foreach (['advantages' => 310, 'disadvantages' => 310, 'trainings' => 100, 'professions' => 100] as $field => $oldLimit) {
+            $cases[$field.' fits beyond old cap'] = [$field, $oldLimit, false];
+            $cases[$field.' overflows available area'] = [$field, $oldLimit, true];
+        }
+        $cases['structured advantages fit beyond old cap'] = ['advantages', 310, false, true];
+        $cases['structured advantages overflow available area'] = ['advantages', 310, true, true];
+
+        return $cases;
+    }
+
+    #[DataProvider('traitLengths')]
+    public function test_trait_values_are_fitted_after_full_presentation(string $field, int $oldLimit, bool $overflow, bool $structuredAdvantages = false): void
+    {
+        $data = require __DIR__.'/../Fixtures/rpg-sheet-layout.php';
+        $repetitions = $overflow ? 200 : 13;
+        $rawText = str_repeat("Alte\tSprachen\nund Kulturen. ", $repetitions).'ENDE-DER-ANGABE';
+        $normalized = str_repeat('Alte Sprachen und Kulturen. ', $repetitions).'ENDE-DER-ANGABE';
+        $expected = $normalized;
+
+        switch ($field) {
+            case 'advantages':
+                $data['advantages'] = ['Gesteigerter Sinn'];
+                $data['advantage_details'] = ['Gesteigerter Sinn' => $rawText];
+                $expected = 'Gesteigerter Sinn: '.$normalized;
+                if ($structuredAdvantages) {
+                    $data['advantage_effects'] = [['name' => 'Gesteigerter Sinn', 'target' => 'Sehen', 'justification' => $rawText]];
+                    $expected = 'Gesteigerter Sinn: Sehen – '.$normalized;
+                }
+                break;
+            case 'disadvantages':
+                $data['disadvantages'] = ['Verwundbarkeit'];
+                $data['disadvantage_details'] = ['Verwundbarkeit' => $rawText];
+                $expected = 'Verwundbarkeit: '.$normalized;
+                break;
+            case 'trainings':
+                $data['trainings'] = [$rawText];
+                break;
+            case 'professions':
+                $data['skills'][] = ['name' => 'Beruf: '.$rawText, 'value' => 2];
+                $expected = $normalized.' 2';
+                break;
+        }
+        $original = $data;
+        $presented = (new RpgCharacterSheetPresenter)->present($data, (new RpgCharacterCombatCalculator)->calculate($data));
+
+        $this->assertGreaterThan($oldLimit, mb_strlen($expected));
+        $this->assertSame($expected, $presented[$field], 'Der Presenter muss den vollständigen normalisierten Text an das Layout weitergeben.');
+
+        $prepared = $this->layout->prepare($presented);
+        $row = $prepared['layout']['traits']['rows'][$field];
+        $rendered = implode(' ', $row['lines']);
+
+        $this->assertSame($overflow, $row['truncated']);
+        if ($overflow) {
+            $this->assertStringEndsWith('…', $rendered);
+            $this->assertStringStartsWith(mb_substr($rendered, 0, -1), $expected);
+        } else {
+            $this->assertSame($expected, $rendered);
+            $this->assertStringContainsString('ENDE-DER-ANGABE', $rendered);
+        }
+        $this->assertSame($expected, $prepared[$field]);
+        $this->assertSame($original, $data);
+    }
+
     public function test_extreme_traits_are_visibly_shortened_when_no_empty_rows_are_available(): void
     {
         $sheet = $this->sheet('Beschreibung');
