@@ -70,6 +70,7 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::define('manage-rpg-experience', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
+        Gate::define('manage-rpg-inventory', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
         Gate::define('access-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isMember($user->id));
         Gate::define('access-rpg-combats', fn (User $user): bool => config('rpg-combat.enabled') && app(RpgAccess::class)->isMember($user->id));
         Gate::define('manage-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));

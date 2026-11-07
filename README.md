@@ -300,6 +300,48 @@ Bei langen Angaben werden zuerst leere Schreibzeilen der Waffen- und
 Rüstungstabellen für zusätzlichen Platz genutzt. Ist das Seitenbudget auch bei
 der Mindestschrift ausgeschöpft, werden überlange Angaben ebenfalls sichtbar gekürzt.
 
+### Inventar, Munition und Handel
+
+Unter **Meine Charaktere → Ausrüstung verwalten** (`/rpg/inventare`) verwaltet
+die aktuelle Leitung der AG Rollenspiel die Katalogausrüstung ihrer aktiven
+AG-Mitglieder. Besitzer sehen ihren Bestand und den Inventarverlauf über
+**Ausrüstung ansehen**. Nur die tatsächliche, aktive AG-Leitung darf schreiben;
+eine Administratorrolle allein genügt nicht.
+
+Funde, Verluste, Verbrauch, Kleidung, aktive Rüstung/Schild und Notizen werden
+mit Handlungsbegründung, Ereignisdatum und verbindlicher Vorschau gebucht.
+Kauf, Verkauf und Tausch erfassen Waren, Munition und Spielgeld gemeinsam;
+bei einem Handel zweier Charaktere werden beide Bestände atomar geändert.
+Preise sind Richtwerte, Abweichungen brauchen eine Begründung. Bucks sind
+Spielgeld und vollständig von den vereinsinternen Baxx getrennt.
+
+Neue Charaktere erhalten einmalig ihre Startmunition und null Bucks. Bei
+Bestandscharakteren bestätigt die Leitung zunächst tatsächliches Geld und
+Munition, einschließlich eines möglichen Nullbestands. Munition wird danach
+eigenständig geführt und durch Ausrüstungsänderungen nicht aufgefüllt.
+Energiegewehr-Ladung regeneriert nur anhand bestätigter Spielminuten.
+Übungskämpfe behalten ihre eigene Simulationsmunition ohne Rückbuchung in
+das Charakterinventar.
+
+Spätere High-Tech-Funde benötigen weder den gleichnamigen Vorteil noch EP;
+Benutzungsvoraussetzungen gelten weiterhin. Der ausdrückliche Erwerb des
+High-Tech-Vorteils bleibt ein EP-Vorgang. Inventaränderungen machen offene
+Verbesserungsanträge sichtbar überholt; die bisherigen Operationen können
+auf dem aktuellen Stand erneut geprüft werden. Journal und PDF dokumentieren
+die Änderungen. Rückbuchungen verwenden den aktuellen Bestand und erhalten
+spätere Änderungen. Ein Schema-Rollback mit bestehenden Buchungen wird blockiert.
+
+Vor Nutzung die Migrationen und den Asset-Build ausführen. Gezielte Prüfungen:
+
+```powershell
+npm run docker:dev:test:php -- --filter='RpgInventory|RpgCharacter|RpgExperience|RpgProgression'
+npm run test -- tests/Vitest/rpg-inventory.test.js tests/Vitest/rpg-progression.test.js
+npm run test:e2e:docker -- tests/e2e/rpg-inventory.spec.js --project=chromium
+```
+
+Die echten Nebenläufigkeitsprüfungen stehen in `phpunit.rpg-mariadb.xml`
+und verwenden ausschließlich die isolierte Datenbank `omxfc_rpg_test`.
+
 ### Erfahrungspunkte und Charakterverbesserung
 
 Unter **Meine Charaktere** (`/rpg/charaktere`) sieht die aktuelle Leitung der

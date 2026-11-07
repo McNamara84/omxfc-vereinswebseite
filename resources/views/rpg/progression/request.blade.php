@@ -7,6 +7,9 @@
         <p class="text-sm my-3">Beantragt am {{ $advancement->created_at->format('d.m.Y H:i') }}.</p>
         @include('rpg.progression.partials.changes', ['changes' => $advancement->changes])
         @include('rpg.progression.partials.state')
+        @if($advancement->status === 'superseded')
+            @can('improve', $character)<a class="btn btn-primary my-3" href="{{ route('rpg.characters.improve', ['rpgCharacter' => $character, 'erneuern' => $advancement->id]) }}">Auf aktuellem Stand erneut prüfen</a>@endcan
+        @endif
         @if($advancement->decided_at)
             <p>Entschieden am {{ $advancement->decided_at->format('d.m.Y H:i') }} von {{ $advancement->reviewer?->nicknameOrName() ?? 'Ehemaliges Mitglied' }}.</p>
             @if($advancement->decision_reason)<p class="whitespace-pre-wrap">{{ $advancement->decision_reason }}</p>@endif

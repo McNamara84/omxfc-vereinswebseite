@@ -3,6 +3,7 @@
         <x-ui.page-header title="Erfahrung und Verlauf" eyebrow="Rollenspiel" :description="$character->displayName()" />
         <div class="flex flex-wrap gap-3 my-4"><a class="btn btn-ghost" href="{{ route('rpg.characters.index') }}">Meine Charaktere</a>@can('improve', $character)<a class="btn btn-primary" href="{{ route('rpg.characters.improve', $character) }}">Charakter verbessern</a>@endcan</div>
         @include('rpg.progression.partials.messages')
+        @can('viewInventory', $character)<a class="btn btn-ghost my-2" href="{{ route('rpg.inventory.show', $character) }}">Ausrüstung und Inventarverlauf</a>@endcan
         @include('rpg.progression.partials.state')
         @can('manage-rpg-experience')
             @php
