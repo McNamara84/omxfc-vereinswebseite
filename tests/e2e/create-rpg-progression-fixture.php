@@ -5,6 +5,8 @@ use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\RpgExperienceAwardService;
+use App\Services\RpgInventoryService;
+use App\Support\RpgInventoryCatalog;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -51,4 +53,19 @@ if (($argv[1] ?? '') === 'funded') {
         ]],
     ]);
 }
-echo json_encode(['leader' => $leader->email, 'player' => $player->email, 'character_id' => $character->id, 'character_name' => $characterName], JSON_THROW_ON_ERROR).PHP_EOL;
+$other = null;
+if (($argv[1] ?? '') === 'inventory-trade') {
+    $other = RpgCharacter::factory()->create(['user_id' => $player->id, 'character_name' => 'Tauschpartner '.$suffix, 'payload' => $character->payload]);
+    foreach ([[$character, 'seil'], [$other, 'bogen']] as [$target, $item]) {
+        $target->refresh();
+        $input = ['submission_key' => (string) Str::uuid(), 'revision' => $target->revision,
+            'catalog_version' => RpgInventoryCatalog::VERSION, 'kind' => 'initialize', 'reason' => 'Vorbereitung des Handelstests',
+            'occurred_on' => now()->timezone('Europe/Berlin')->toDateString(), 'amount' => 100, 'set' => [['id' => 'item:'.$item, 'quantity' => 2]]];
+        $service = app(RpgInventoryService::class);
+        $preview = $service->preview($leader, $target->id, $input);
+        $service->book($leader, $target->id, $input + ['preview_hash' => $preview['preview_hash']]);
+    }
+}
+
+echo json_encode(['leader' => $leader->email, 'player' => $player->email, 'character_id' => $character->id,
+    'character_name' => $characterName, 'other_character_id' => $other?->id], JSON_THROW_ON_ERROR).PHP_EOL;

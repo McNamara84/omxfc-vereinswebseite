@@ -34,6 +34,7 @@ class RpgAdvancementRequest extends Model
             'approved' => 'Genehmigt',
             'rejected' => 'Abgelehnt',
             'withdrawn' => 'Zurückgezogen',
+            'superseded' => 'Durch Charakteränderung überholt',
             default => 'Zur Prüfung',
         };
     }

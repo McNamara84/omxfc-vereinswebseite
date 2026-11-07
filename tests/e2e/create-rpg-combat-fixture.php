@@ -70,6 +70,12 @@ foreach (['player' => 'Arkon', 'other' => 'Mira'] as $role => $name) {
             'skills' => [['name' => 'Nahkampf', 'value' => $skillValue]], 'advantages' => [], 'disadvantages' => [], 'advantage_effects' => [], 'equipment' => ['items' => []]]]);
 }
 $extra = [];
+if ($scenario === 'npc') {
+    // Keep a differently revised, last-sorted character in every run. Native
+    // forms must not confuse its hidden revision with the selected opponent's.
+    RpgCharacter::factory()->create(['user_id' => $users['other']->id, 'character_name' => 'ZZZ Revisionskontrolle '.$suffix,
+        'payload' => $characters['other']->payload])->forceFill(['revision' => 7])->save();
+}
 if (in_array($scenario, ['psychic', 'simultaneous'], true)) {
     $payload = $characters['player']->payload;
     if ($scenario === 'psychic') {

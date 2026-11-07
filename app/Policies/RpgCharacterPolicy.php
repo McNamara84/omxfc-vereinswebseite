@@ -8,6 +8,18 @@ use App\Services\RpgAccess;
 
 class RpgCharacterPolicy
 {
+    public function viewInventory(User $user, RpgCharacter $rpgCharacter): bool
+    {
+        return $this->view($user, $rpgCharacter) || $this->manageInventory($user, $rpgCharacter);
+    }
+
+    public function manageInventory(User $user, RpgCharacter $rpgCharacter): bool
+    {
+        $access = app(RpgAccess::class);
+
+        return $access->isLeader($user) && $access->isMember($rpgCharacter->user_id);
+    }
+
     public function improve(User $user, RpgCharacter $rpgCharacter): bool
     {
         return $this->view($user, $rpgCharacter) && app(RpgAccess::class)->isMember($user->id);

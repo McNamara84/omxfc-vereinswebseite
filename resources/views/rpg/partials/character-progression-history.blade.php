@@ -21,6 +21,11 @@
     <h2>Vollständige Ausrüstung</h2>
     @foreach($current['equipment']['items'] ?? [] as $item)<p>{{ $item['quantity'] ?? 1 }} × {{ $item['name'] ?? $item['id'] }}</p>@endforeach
     <p>{{ $current['equipment']['notes'] ?? '' }}</p>
+    <h2>Spielgeld und Munition</h2>
+    <p>Bucks: {{ isset($current['equipment']['stock_confirmed_at']) ? ($current['equipment']['bucks_balance'] ?? 0) : 'Noch nicht bestätigt' }}</p>
+    @foreach($current['equipment']['ammunition'] ?? [] as $ammo)<p>{{ $ammo['source'] }}: {{ $ammo['quantity'] }} {{ $ammo['unit'] }}</p>@endforeach
+    <h2>Kleidungsbestand</h2>
+    @foreach($current['equipment']['clothing_stock'] ?? [] as $id => $quantity)<p>{{ $quantity }} × {{ \App\Support\RpgCharEditorEquipment::clothingMap()[$id]['name'] ?? $id }}</p>@endforeach
     @if(! empty($current['progression']['metadata_history']))
         <h2>Ergänzte Herkunftsangaben</h2>
         @foreach($current['progression']['metadata_history'] as $metadata)
@@ -30,6 +35,18 @@
         @endforeach
     @endif
 </div>
+@if(! empty($sheet['inventory_history']))
+<div class="progression-pages">
+    <h1>{{ $current['character']['character_name'] ?? 'Charakter' }} – Inventarverlauf</h1>
+    @foreach($sheet['inventory_history'] as $entry)
+        <h2>#{{ $entry['id'] }} · {{ $entry['title'] }} · {{ $entry['date'] }}</h2>
+        <p>Gebucht {{ $entry['booked_at'] }} · {{ $entry['actor'] }}</p><p>{{ $entry['reason'] }}</p>
+        @foreach($entry['changes'] as $change)<p>{{ $change['name'] }}: {{ is_bool($change['before']) ? ($change['before'] ? 'Ja' : 'Nein') : ($change['before'] ?? 'Unbekannt') }} → {{ is_bool($change['after']) ? ($change['after'] ? 'Ja' : 'Nein') : ($change['after'] ?? 'Unbekannt') }}</p>@endforeach
+        @if(! empty($entry['details']['price']))<p>Vereinbarter Preis: {{ $entry['details']['price']['agreed'] }} Bucks · {{ $entry['details']['price_reason'] }}</p>@endif
+    @endforeach
+</div>
+@endif
+@if(! empty($sheet['experience']['entries']))
 <div class="progression-pages">
     <h1>{{ $current['character']['character_name'] ?? 'Charakter' }} – Erfahrungsverlauf</h1>
     @foreach($sheet['experience']['entries'] ?? [] as $entry)
@@ -53,3 +70,4 @@
         @endif
     @endforeach
 </div>
+@endif

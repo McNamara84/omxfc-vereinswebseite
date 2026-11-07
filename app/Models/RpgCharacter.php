@@ -62,6 +62,11 @@ class RpgCharacter extends Model
         return $this->hasMany(RpgExperienceEntry::class);
     }
 
+    public function inventoryEntries(): HasMany
+    {
+        return $this->hasMany(RpgInventoryEntry::class);
+    }
+
     public function advancements(): HasMany
     {
         return $this->hasMany(RpgAdvancementRequest::class);

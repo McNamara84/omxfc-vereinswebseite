@@ -123,6 +123,7 @@ final class RpgCharacterAdvancementEvaluator
             $payload['attributes'][$target]++;
         }
         if ($name === 'High-Tech-Ausrüstung') {
+            $this->require(! empty($payload['equipment']['stock_confirmed_at']), 'Die Leitung muss zuerst den tatsächlichen Inventarbestand übernehmen.');
             $items = $operation['items'] ?? [];
             $this->require(count($items) === 4, 'Bitte genau vier High-Tech-Gegenstände wählen.');
             foreach ($items as $id) {
@@ -140,7 +141,12 @@ final class RpgCharacterAdvancementEvaluator
                 }
             }
             $payload['equipment']['items'] = array_values($merged);
-            $payload['equipment']['ammunition'] = (new RpgCharacterSheetService)->equipmentAmmunitionPayload($payload['equipment']['items']);
+            $this->require(count($merged) <= 64 && array_all($merged, fn ($item) => $item['quantity'] <= 20), 'Zu viele Gegenstände: maximal 64 Arten und 20 Stück je Art.');
+            // Equipment gained during play does not refill existing ammunition.
+            if (($payload['equipment']['schema_version'] ?? 0) === 1) {
+                $adapter = new RpgInventoryAdapter;
+                $payload['equipment'] = $adapter->equipment($adapter->state($payload), $payload['equipment']);
+            }
         } else {
             $this->require(empty($operation['items']), 'Gegenstände können nur mit High-Tech-Ausrüstung erworben werden.');
         }

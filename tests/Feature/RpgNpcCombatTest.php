@@ -48,6 +48,19 @@ class RpgNpcCombatTest extends TestCase
         return app(CombatService::class)->command($this->player, $this->invitation()->id, 'accept', (string) Str::uuid());
     }
 
+    public function test_native_npc_form_uses_only_the_selected_participant_revisions(): void
+    {
+        $input = ['kind' => 'npc_vs_player', 'npc_id' => $this->npc->id, 'opponent_id' => $this->character->id,
+            'npc_revisions' => [$this->npc->id => $this->npc->revision, 99999 => 7],
+            'opponent_revisions' => [$this->character->id => $this->character->revision, 99999 => 8],
+            'distance' => 1, 'submission_key' => (string) Str::uuid()];
+        $this->actingAs($this->leader)->get(route('rpg.combats.create', ['npc_id' => $this->npc->id]))->assertOk()
+            ->assertSee('name="npc_revisions['.$this->npc->id.']"', false)
+            ->assertSee('name="opponent_revisions['.$this->character->id.']"', false);
+        $this->post(route('rpg.combats.store'), $input)->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertDatabaseCount('rpg_combats', 1);
+    }
+
     private function step(RpgCombat $combat, string $type, int $side, array $input = []): RpgCombat
     {
         $decision = $combat->decisions()->where('status', 'pending')->where('type', $type)->where('side', $side)->sole();

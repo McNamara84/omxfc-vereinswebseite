@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\RpgCharacterAdvancementEvaluator;
 use App\Services\RpgCharacterProgressionAdapter;
 use App\Services\RpgExperienceAwardCalculator;
+use App\Services\RpgInventoryAdapter;
 use App\Support\RpgCharEditorEquipment;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -138,6 +139,7 @@ class RpgProgressionRulesTest extends TestCase
         $id = $items[0]['id'];
         $payload = $this->progressionPayload();
         $payload['equipment'] = ['notes' => 'Persönlicher Gegenstand', 'items' => [['id' => $id, 'name' => $items[0]['name'], 'quantity' => 1]]];
+        $payload = app(RpgInventoryAdapter::class)->initializeNew($payload);
         $result = $this->evaluate([$this->operation('advantage', 'High-Tech-Ausrüstung', extra: ['items' => array_fill(0, 4, $id)])], $payload);
         $this->assertSame(20, $result['cost']);
         $this->assertCount(1, $result['payload']['equipment']['items']);

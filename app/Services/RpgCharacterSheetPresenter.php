@@ -90,6 +90,7 @@ final class RpgCharacterSheetPresenter
             'armor' => is_array($combat['armor'] ?? null) ? $combat['armor'] : [],
             'equipment' => $this->equipmentText($equipment),
             'ammunition' => $this->ammunitionText($equipment['ammunition'] ?? []),
+            'inventory_history' => $data['inventory_history'] ?? [],
             'notes' => $this->short($equipment['notes'] ?? '', 180),
             'experience' => $data['experience'] ?? null,
             'progression_payload' => $data,

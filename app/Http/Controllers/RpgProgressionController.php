@@ -68,9 +68,11 @@ class RpgProgressionController extends Controller
         return view('rpg.progression.adventure', ['adventure' => $adventure->load(['awards.character.user', 'user'])]);
     }
 
-    public function improve(RpgCharacter $rpgCharacter)
+    public function improve(Request $request, RpgCharacter $rpgCharacter)
     {
         $this->authorize('improve', $rpgCharacter);
+        $renew = $request->validate(['erneuern' => ['nullable', 'integer', 'min:1']])['erneuern'] ?? null;
+        $renewedOperations = $renew === null ? [] : $rpgCharacter->advancements()->where('status', 'superseded')->findOrFail($renew)->operations;
         $payload = (new RpgCharacterProgressionAdapter)->normalize($rpgCharacter->payload);
         $skills = array_values(array_unique([
             ...array_column(RpgCharacterSheetService::skillRuleConfig()['skills'], 'name'),
@@ -93,6 +95,7 @@ class RpgProgressionController extends Controller
                 'advantages' => RpgCharEditorSpecialRules::advantages(),
                 'languages' => $payload['languages'] ?? [],
                 'equipment' => array_values(array_filter(RpgCharEditorEquipment::items(), RpgCharEditorEquipment::requiresHighTechAdvantage(...))),
+                'renewedOperations' => $renewedOperations,
             ],
         ]);
     }

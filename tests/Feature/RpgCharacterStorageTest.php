@@ -7,7 +7,10 @@ use App\Models\RewardPurchase;
 use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\RpgCharacterCombatCalculator;
+use App\Services\RpgCharacterSheetPresenter;
 use App\Services\RpgCharacterSlotService;
+use App\Services\RpgInventoryAdapter;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
@@ -157,6 +160,31 @@ class RpgCharacterStorageTest extends TestCase
         $this->assertNotNull($character->portrait_path);
         Storage::disk('private')->assertExists($character->portrait_path);
         $this->assertSame(0, RewardPurchase::query()->count());
+    }
+
+    public function test_saving_preserves_the_selected_unarmed_attack_and_its_pdf_values(): void
+    {
+        $this->actingAgMember();
+        $input = $this->validCharacterPayload();
+        $input['equipment_items'][] = ['id' => 'faustschlag-tritt', 'quantity' => 1];
+
+        $this->post(route('rpg.characters.store'), $input)->assertSessionHasNoErrors()->assertRedirect(route('rpg.characters.index'));
+
+        $character = RpgCharacter::firstOrFail();
+        $unarmed = collect($character->initial_payload['equipment']['items'])->firstWhere('id', 'faustschlag-tritt');
+        $this->assertNotNull($unarmed);
+        $this->assertContains($unarmed, $character->payload['equipment']['items']);
+        $this->assertArrayNotHasKey('item:faustschlag-tritt', app(RpgInventoryAdapter::class)->state($character->payload)['stocks']);
+
+        $combat = app(RpgCharacterCombatCalculator::class)->calculate($character->payload);
+        $weapon = collect($combat['weapons'])->firstWhere('id', 'faustschlag-tritt');
+        $this->assertNotNull($weapon);
+        $this->assertSame(3, $weapon['attack']);
+        $this->assertSame(1, $weapon['damage_modifier']);
+        $sheet = app(RpgCharacterSheetPresenter::class)->present($character->payload, $combat);
+        $html = view('rpg.char-sheet', ['sheet' => $sheet, 'combat' => $combat])->render();
+        $this->assertStringContainsString('Faustschlag / Tritt', $html);
+        $this->assertStringContainsString('1W6+1+VM', $html);
     }
 
     public function test_ag_rollenspiel_member_can_store_techno_with_full_fp_budget(): void

@@ -17,6 +17,7 @@ export const features = [
     alpineFeature('char-editor', () => import('../alpine/char-editor'), 'registerCharEditor'),
     alpineFeature('rpg-checks', () => import('../alpine/rpg-checks'), 'registerRpgChecks'),
     alpineFeature('rpg-progression', () => import('../alpine/rpg-progression'), 'registerRpgProgression'),
+    alpineFeature('rpg-inventory', () => import('../alpine/rpg-inventory'), 'registerRpgInventory'),
 ];
 
 export const featureLifecycle = createFeatureLifecycle(features);
