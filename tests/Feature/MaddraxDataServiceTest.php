@@ -26,7 +26,6 @@ class MaddraxDataServiceTest extends TestCase
 
         $ref = new \ReflectionClass(MaddraxDataService::class);
         $property = $ref->getProperty('data');
-        $property->setAccessible(true);
         $property->setValue(null, null);
 
         $data = [

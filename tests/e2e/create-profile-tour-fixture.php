@@ -41,6 +41,7 @@ if (MaddraxDataService::loadData() === []) {
         (string) Str::uuid(),
         ['maddrax' => json_encode([[
             'nummer' => 1, 'titel' => 'Tour-Testroman', 'text' => ['Tour-Testautor'], 'zyklus' => 'Tour-Testzyklus',
+            'bewertung' => 0, 'stimmen' => 0,
             'personen' => ['Tour-Testfigur'], 'orte' => ['Tour-Testort'], 'schlagworte' => ['Tour-Testthema'],
         ]], JSON_THROW_ON_ERROR)],
     ));

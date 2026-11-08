@@ -1250,7 +1250,7 @@ dokumentiert.
 
 Der Workflow [PHP 8.6 Compatibility](.github/workflows/php86-compatibility.yml)
 läuft bei Pull Requests gegen `main`, Pushes auf `main`, täglich um 05:17 UTC
-(06:17 MEZ / 07:17 MESZ) und manuell. Er verwendet ausdrücklich die PHP-8.6-Reihe,
+(06:17 MEZ / 07:17 MESZ), für Merge Queues und manuell. Er verwendet ausdrücklich die PHP-8.6-Reihe,
 zunächst als Vorabversion und nach Veröffentlichung als aktuelle stabile Version.
 
 Die Probe prüft nacheinander die festgeschriebenen Composer-Abhängigkeiten,
@@ -1260,24 +1260,28 @@ entfallen die Folgestufen. MariaDB startet erst nach erfolgreichen PHP-Prüfunge
 Browser werden erst bei Bedarf installiert. Abhängigkeiten und Assets werden
 innerhalb des Probelaufs wiederverwendet.
 
-Der abschließende Check zeigt **„PHP 8.6: kompatibel“**, **„nicht kompatibel“**
-oder **„nicht prüfbar“** im Namen und erläutert das Ergebnis in der Zusammenfassung.
-Eine erkannte Inkompatibilität bleibt ein grüner, unverbindlicher Check. Fehlende
-Builds, Downloadfehler oder ungültige Prüfdaten ergeben „nicht prüfbar“. Reguläre
-PHP-8.5- und Sicherheitsprüfungen bleiben verpflichtend. Logs und Browserdiagnosen
-werden 14 Tage als Artefakte gespeichert; ein zusätzliches README-Badge gibt es nicht.
+Der feste abschließende Check **„PHP 8.6 erforderlich“** schlägt bei Inkompatibilität,
+PHP-Deprecations oder unvollständigen Prüfnachweisen fehl. Die Zusammenfassung
+unterscheidet weiterhin **„kompatibel“**, **„nicht kompatibel“** und **„nicht prüfbar“**.
+Auch das Deployment wartet für dieselbe Revision auf einen erfolgreichen Lauf.
+Reguläre PHP-8.5- und Sicherheitsprüfungen bleiben verpflichtend. Logs und
+Browserdiagnosen werden 14 Tage als Artefakte gespeichert.
 
-Da die produktive Vorgabe `~8.5.0` PHP 8.6 ausschließt, erweitert die Probe
-ausschließlich diese Root-Vorgabe und die zugehörigen Lock-Metadaten in einer
-isolierten Arbeitskopie. Composers eigene Hashfunktion und ein vollständiger
-Vergleich aller Paketmetadaten sichern den unveränderten Paketstand. Anforderungen
-der Abhängigkeiten und Plattformprüfungen bleiben aktiv. Ein positives Ergebnis
-bezeichnet technische Kompatibilität unter diesen Testbedingungen; es stellt
-die produktive PHP-Version nicht um.
+Composer unterstützt regulär `~8.5.0 || ~8.6.0`. Die isolierte Prüfung verändert
+weder Manifest noch Lockfile; Hashvergleiche sichern beide Dateien und sämtliche
+Paketmetadaten ab. Anforderungen der Abhängigkeiten und Plattformprüfungen bleiben
+aktiv. Die produktive Laufzeit bleibt zunächst PHP 8.5.
 
-Plan und Prüfnachweise stehen im
-[Implementierungsplan](docs/Implementierungsplan-Abhaengigkeiten-PHP-8.6.md) und
-[Umsetzungsbericht](docs/Abhaengigkeiten-PHP-8.6-Ergebnis.md).
+`composer test:compatibility` prüft den eigenen PHP-Bestand mit AST- und
+Syntaxprüfungen auf veraltete Nutzung und PHP-8.5-kompatible Syntax. Die
+PHP-8.6-Pipeline prüft außerdem die kompilierten Blade-Views. PHPUnit und Laravel
+erfassen PHP-Deprecations auch während Tests und in Unterprozessen; die
+Browserphasen werten zusätzlich die PHP- und Laravel-Diagnoselogs aus.
+
+Änderungen und aktuelle Prüfnachweise stehen im
+[Modernisierungsbericht](docs/PHP-8.6-Modernisierung-Ergebnis.md). Der
+[frühere Abhängigkeitsbericht](docs/Abhaengigkeiten-PHP-8.6-Ergebnis.md)
+dokumentiert den vorherigen unverbindlichen Check.
 
 ## Tests & Qualitätssicherung
 

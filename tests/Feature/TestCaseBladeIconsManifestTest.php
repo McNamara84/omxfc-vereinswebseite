@@ -14,9 +14,7 @@ class TestCaseBladeIconsManifestTest extends TestCase
     {
         $reflection = new \ReflectionClass(TestCase::class);
         $readyProperty = $reflection->getProperty('bladeIconsManifestReady');
-        $readyProperty->setAccessible(true);
         $ensureMethod = $reflection->getMethod('ensureBladeIconsManifest');
-        $ensureMethod->setAccessible(true);
 
         $manifestPath = app()->bootstrapPath('cache/blade-icons.php');
         $originalManifestExists = is_file($manifestPath);

@@ -287,7 +287,7 @@ class FantreffenAdminDashboard extends Component
                 'Teilnahme bestätigt am',
                 'Gutgeschriebene Baxx',
                 'Baxx vergeben am',
-            ]);
+            ], escape: '');
 
             foreach ($anmeldungen as $anmeldung) {
                 $vergabe = $vergaben->get($anmeldung->user_id);
@@ -323,7 +323,7 @@ class FantreffenAdminDashboard extends Component
                     $anmeldung->teilnahme_bestaetigt_am?->format('d.m.Y H:i') ?? '',
                     $vergabe?->points ?? 0,
                     $vergabe?->created_at?->format('d.m.Y H:i') ?? '',
-                ]));
+                ]), escape: '');
             }
 
             fclose($output);

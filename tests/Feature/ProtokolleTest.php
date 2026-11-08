@@ -51,6 +51,9 @@ class ProtokolleTest extends TestCase
 
     public function test_jhv_2026_protokoll_can_be_downloaded(): void
     {
+        Storage::fake('private');
+        Storage::disk('private')->put('protokolle/2026-07-15-jhv.pdf', "%PDF-1.7\n%%EOF\n");
+
         $this->actingAs($this->actingMember());
 
         $response = $this->get('/protokolle/download/2026-07-15-jhv.pdf');

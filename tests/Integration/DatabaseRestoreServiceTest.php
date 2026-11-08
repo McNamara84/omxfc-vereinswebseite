@@ -74,7 +74,6 @@ class DatabaseRestoreServiceTest extends TestCase
 
         $service = app(DatabaseRestoreService::class);
         $method = new \ReflectionMethod($service, 'prepareSqlFile');
-        $method->setAccessible(true);
 
         $this->expectException(DatabaseMaintenanceException::class);
         $this->expectExceptionMessage('groessenvalidiert');

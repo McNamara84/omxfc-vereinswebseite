@@ -43,6 +43,40 @@ class MitgliederControllerTest extends TestCase
         $this->assertStringContainsString('Name', $csv);
     }
 
+    public function test_csv_export_roundtrips_quotes_backslashes_multiline_text_and_empty_fields(): void
+    {
+        $this->actingKassenwart();
+        $member = User::factory()->create([
+            'vorname' => 'Jörg, \\"Leser"\\',
+            'nachname' => "Müller\nZweite Zeile",
+            'strasse' => 'C:\\Verein\\',
+            'hausnummer' => '',
+        ]);
+        Team::membersTeam()->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $response = $this->post('/mitglieder/export-csv', ['export_fields' => ['name', 'email', 'adresse']]);
+        $response->assertOk();
+        $csv = $response->streamedContent();
+        $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
+        $stream = fopen('php://temp', 'w+');
+        fwrite($stream, substr($csv, 3));
+        rewind($stream);
+        $headers = fgetcsv($stream, escape: '');
+        $matched = null;
+        while (($row = fgetcsv($stream, escape: '')) !== false) {
+            if (($row[3] ?? null) === $member->email) {
+                $matched = array_combine($headers, $row);
+            }
+        }
+        fclose($stream);
+
+        $this->assertNotNull($matched);
+        $this->assertSame($member->vorname, $matched['Vorname']);
+        $this->assertSame($member->nachname, $matched['Nachname']);
+        $this->assertSame($member->strasse, $matched['Straße']);
+        $this->assertSame('', $matched['Hausnummer']);
+    }
+
     public function test_get_all_emails_returns_only_for_privileged_roles(): void
     {
         $team = Team::membersTeam();

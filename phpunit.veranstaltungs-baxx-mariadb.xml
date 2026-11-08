@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-    bootstrap="vendor/autoload.php" colors="true" stopOnFailure="true"
-    failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true"
+    bootstrap="tests/bootstrap.php" colors="true" stopOnFailure="true"
+    failOnWarning="true" failOnDeprecation="true" failOnRisky="true" failOnEmptyTestSuite="true"
     cacheDirectory=".phpunit.cache/veranstaltungs-baxx-mariadb">
     <testsuites>
         <testsuite name="Veranstaltungs-Baxx MariaDB">
@@ -10,6 +10,10 @@
         </testsuite>
     </testsuites>
     <php>
+        <env name="APP_LOCALE" value="de" force="true"/>
+        <env name="APP_FALLBACK_LOCALE" value="de" force="true"/>
+        <env name="MADDRAXIKON_STREAKS_ENABLED" value="false" force="true"/>
+        <ini name="error_reporting" value="-1"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_CONFIG_CACHE" value="bootstrap/cache/config-veranstaltungs-baxx-test.php" force="true"/>
         <env name="DB_CONNECTION" value="mysql" force="true"/>

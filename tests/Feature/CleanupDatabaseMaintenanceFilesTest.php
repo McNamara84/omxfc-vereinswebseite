@@ -50,7 +50,6 @@ class CleanupDatabaseMaintenanceFilesTest extends TestCase
 
         $command = new CleanupDatabaseMaintenanceFiles;
         $method = new \ReflectionMethod($command, 'isPathInside');
-        $method->setAccessible(true);
 
         $this->assertFalse($method->invoke($command, '/tmp/Storage/app/private', '/tmp/storage'));
     }

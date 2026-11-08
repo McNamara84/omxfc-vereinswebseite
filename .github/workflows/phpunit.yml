@@ -41,6 +41,8 @@ jobs:
         run: chmod -R 777 storage bootstrap/cache
       - name: Run PHPStan for migrated Pest tests
         run: composer test:types
+      - name: Verify PHP source compatibility
+        run: composer test:compatibility
       - name: Verify Pest Rector migration
         run: composer test:rector
       - name: Run architecture and security rules

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="vendor/autoload.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" recordTestRunHistory="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="tests/bootstrap.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnDeprecation="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" recordTestRunHistory="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
     <!-- Pest 5 TIA only supports functional Pest tests, not PHPUnit test classes. -->
     <testsuites>
         <testsuite name="Pest TIA">
@@ -7,12 +7,16 @@
             <file>tests/Unit/UriSupportTest.php</file>
         </testsuite>
     </testsuites>
-    <source>
+    <source ignoreSuppressionOfDeprecations="true" ignoreSuppressionOfPhpDeprecations="true">
         <include>
             <directory suffix=".php">app</directory>
         </include>
     </source>
     <php>
+        <env name="APP_LOCALE" value="de" force="true"/>
+        <env name="APP_FALLBACK_LOCALE" value="de" force="true"/>
+        <env name="MADDRAXIKON_STREAKS_ENABLED" value="false" force="true"/>
+        <ini name="error_reporting" value="-1"/>
         <ini name="memory_limit" value="512M"/>
         <env name="APP_ENV" value="testing" force="true"/>
         <env name="APP_CONFIG_CACHE" value="bootstrap/cache/config-phpunit.php" force="true"/>

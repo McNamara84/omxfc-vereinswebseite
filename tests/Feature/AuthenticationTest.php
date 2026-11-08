@@ -4,11 +4,28 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
+
+    #[DataProvider('invalidUsernames')]
+    public function test_invalid_username_types_are_validated_without_php_deprecations(mixed $username): void
+    {
+        $this->postJson('/login', ['email' => $username, 'password' => 'invalid-password'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('email');
+        $this->assertGuest();
+    }
+
+    public static function invalidUsernames(): iterable
+    {
+        yield 'null' => [null];
+        yield 'array' => [['invalid@example.test']];
+        yield 'integer' => [1234];
+    }
 
     public function test_login_screen_can_be_rendered(): void
     {

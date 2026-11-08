@@ -6,6 +6,18 @@ use Illuminate\Contracts\View\View;
 
 trait HasAccessibleLabel
 {
+    public function errorFieldName(): string
+    {
+        $field = parent::errorFieldName();
+        if ($field !== null) {
+            return $field;
+        }
+
+        $name = $this->attributes->get('name');
+
+        return is_string($name) ? $name : '';
+    }
+
     public function render(): View|\Closure|string
     {
         $template = parent::render();

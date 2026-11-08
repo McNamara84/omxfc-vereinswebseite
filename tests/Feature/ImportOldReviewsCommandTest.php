@@ -67,6 +67,25 @@ class ImportOldReviewsCommandTest extends TestCase
         ]);
     }
 
+    public function test_legacy_csv_import_preserves_quotes_backslashes_and_multiline_content(): void
+    {
+        $team = Team::membersTeam();
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Autor1']);
+        $user = User::factory()->create(['email' => 'legacy@example.com', 'current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+        $content = "Grüße; \"zitiert\"\nPfad C:\\Verein\\Datei und \\\"Altformat\\\"";
+        // Literal fixture for the legacy dialect: doubled enclosure quotes and
+        // backslash-escaped quotes must retain their historical interpretation.
+        $csv = "topic;author;timestamp;content\n";
+        $csv .= '001 - Roman1;legacy@example.com;13. März 2025, 12:34;"Grüße; ""zitiert""'."\n".'Pfad C:\\Verein\\Datei und \\"Altformat\\""'."\n";
+        File::put($this->testStoragePath.'/app/private/reviews.csv', $csv);
+
+        $this->artisan('reviews:import-old', ['--path' => 'private/reviews.csv'])->assertExitCode(0);
+
+        $review = Review::where('book_id', $book->id)->where('user_id', $user->id)->sole();
+        $this->assertSame($content, $review->content);
+    }
+
     public function test_fresh_import_preserves_reviews_and_unrelated_baxx_when_provenance_is_unknown(): void
     {
         $team = Team::membersTeam();

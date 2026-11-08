@@ -45,7 +45,6 @@ class KompendiumPathValidationTest extends TestCase
     private function isValidRomanPath(string $path): bool
     {
         $method = new ReflectionMethod(KompendiumController::class, 'isValidRomanPath');
-        $method->setAccessible(true);
 
         return $method->invoke($this->controller, $path);
     }

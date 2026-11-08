@@ -28,10 +28,10 @@
     "require": {
         "ext-uri": "*",
         "ext-zip": "*",
-        "php": "~8.5.0",
+        "php": "~8.5.0 || ~8.6.0",
         "dompdf/dompdf": "^3.1.6",
         "intervention/image": "^4.4.1",
-        "laravel/framework": "^13.39.0",
+        "laravel/framework": "^13.40.0",
         "laravel/jetstream": "^5.5.3",
         "laravel/sanctum": "^4.3.3",
         "laravel/scout": "^11.9.0",
@@ -103,7 +103,8 @@
         "test:mutate": "@php -d xdebug.mode=coverage vendor/bin/pest tests/Unit/UriSupportTest.php tests/Unit/MaddraxikonIdentityHmacPeppersTest.php --mutate --path=app --covered-only --min=100 --compact",
         "test:tia": "@php -d xdebug.mode=coverage vendor/bin/pest --configuration phpunit.tia.xml --tia --compact",
         "test:tia:fresh": "@php -d xdebug.mode=coverage vendor/bin/pest --configuration phpunit.tia.xml --tia --fresh --compact",
-        "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G"
+        "test:types": "@php vendor/bin/phpstan analyse --memory-limit=1G",
+        "test:compatibility": "@php tools/ci/php-compatibility.php"
     },
     "extra": {
         "laravel": {

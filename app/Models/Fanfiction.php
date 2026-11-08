@@ -316,7 +316,7 @@ class Fanfiction extends Model
 
         try {
             $wrappedHtml = '<div>'.$html.'</div>';
-            $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
+            $encodedHtml = mb_encode_numericentity($wrappedHtml, [0x80, 0x10FFFF, 0, 0x1FFFFF], 'UTF-8');
 
             $loaded = $dom->loadHTML(
                 '<?xml version="1.0" encoding="UTF-8"?>'.$encodedHtml,

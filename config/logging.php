@@ -53,6 +53,13 @@ return [
 
     'channels' => [
 
+        'php_deprecations' => [
+            'driver' => 'single',
+            'path' => env('PHP_DEPRECATIONS_LOG', storage_path('logs/php-deprecations.log')),
+            'level' => 'warning',
+            'tap' => [RedactSensitiveLogContext::class],
+        ],
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),
