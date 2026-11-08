@@ -25,6 +25,7 @@ final class RpgInventoryService
 
         return DB::transaction(function () use ($actor, $characterId, $data): array {
             $this->access->requireLeader($actor, lock: true);
+            $this->refreshCatalog($data);
             $characters = $this->characters($actor, $characterId, $data);
 
             return $this->calculate($characters, $characterId, $data);
@@ -47,12 +48,13 @@ final class RpgInventoryService
 
                 return $existing;
             }
+            $this->refreshCatalog($data);
             $result = $this->calculate($characters, $characterId, $data);
             RpgInventoryAdapter::ensure(hash_equals($result['preview_hash'], $data['preview_hash']), 'Die Vorschau ist nicht mehr aktuell. Bitte erneut prüfen.');
             $transaction = RpgInventoryTransaction::create([
                 'team_id' => $team->id, 'actor_id' => $actor->id, 'submission_key' => $data['submission_key'],
                 'submission_hash' => $hash, 'kind' => $data['kind'], 'reason' => $data['reason'],
-                'occurred_on' => $data['occurred_on'], 'created_at' => now(), 'catalog_version' => RpgInventoryCatalog::VERSION,
+                'occurred_on' => $data['occurred_on'], 'created_at' => now(), 'catalog_version' => $this->catalogVersion(),
                 'reversal_of' => $data['reversal_of'],
                 'details' => ['price' => $result['price'], 'price_reason' => $data['price_reason'], 'external_party' => $data['external_party'],
                     'trade_values' => $result['trade_values'], 'winner' => $data['winner'], 'success_points' => $data['success_points'],
@@ -90,7 +92,7 @@ final class RpgInventoryService
             'team_id' => $this->access->team()->id, 'actor_id' => $actor->id, 'submission_key' => (string) Str::uuid(),
             'submission_hash' => $this->hash([$requestId, $changes]), 'kind' => 'advancement', 'reason' => 'Genehmigter High-Tech-Vorteil, Antrag #'.$requestId,
             'occurred_on' => now()->timezone('Europe/Berlin')->toDateString(), 'created_at' => now(),
-            'catalog_version' => RpgInventoryCatalog::VERSION, 'advancement_id' => $requestId, 'details' => ['entry_count' => 1],
+            'catalog_version' => $this->catalogVersion(), 'advancement_id' => $requestId, 'details' => ['entry_count' => 1],
         ]);
         $this->record($transaction, $character, compact('before', 'after', 'changes'));
     }
@@ -161,6 +163,19 @@ final class RpgInventoryService
         return $result;
     }
 
+    private function catalogVersion(): string
+    {
+        return app(RpgEquipmentCatalogResolver::class)->resolve()->version();
+    }
+
+    private function refreshCatalog(array $data): void
+    {
+        $catalog = app(RpgEquipmentCatalogResolver::class)->resolve();
+        RpgInventoryAdapter::ensure($catalog->version() === $data['catalog_version'], 'Der Katalog wurde inzwischen geaendert. Bitte neu laden.');
+        $this->adapter->useCatalog($catalog);
+        $this->evaluator->useCatalog($catalog);
+    }
+
     private function hash(array $data): string
     {
         return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR));
@@ -170,7 +185,7 @@ final class RpgInventoryService
     {
         $rules = [
             'submission_key' => ['required', 'uuid'], 'revision' => ['required', 'integer', 'min:0'],
-            'catalog_version' => ['required', Rule::in([RpgInventoryCatalog::VERSION])],
+            'catalog_version' => ['required', 'string', 'max:100'],
             'kind' => ['required', Rule::in(array_diff(array_keys(RpgInventoryTransaction::kinds()), ['advancement']))],
             'reason' => ['required', 'string', 'max:4000'], 'occurred_on' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now()->timezone('Europe/Berlin')->toDateString()],
             'preview_hash' => ['nullable', 'string', 'size:64'], 'other_character_id' => ['nullable', 'integer', 'min:1'],
@@ -180,6 +195,10 @@ final class RpgInventoryService
             'success_points' => ['sometimes', 'integer', 'between:0,1000'], 'minutes' => ['sometimes', 'integer', 'between:0,1000000'],
             'metadata' => ['sometimes', 'array:clothing,armor,shield,notes'], 'metadata.*' => ['nullable', 'string', 'max:4000'],
             'reversal_of' => ['nullable', 'integer', 'min:1'],
+            'version_change' => ['sometimes', 'array:source,target,quantity'],
+            'version_change.source' => ['required_with:version_change', 'string', 'max:255'],
+            'version_change.target' => ['required_with:version_change', 'string', 'max:255'],
+            'version_change.quantity' => ['required_with:version_change', 'integer', 'between:1,20'],
         ];
         foreach (['incoming', 'outgoing', 'set'] as $field) {
             $rules[$field] = ['sometimes', 'array', 'max:128'];
@@ -191,7 +210,7 @@ final class RpgInventoryService
         $data = Validator::make($input, $rules)->validate();
         $data = array_replace(['preview_hash' => null, 'other_character_id' => null, 'other_revision' => null,
             'external_party' => '', 'amount' => null, 'price_reason' => '', 'cash_direction' => 'income', 'winner' => 'none',
-            'success_points' => 0, 'minutes' => 0, 'metadata' => [], 'incoming' => [], 'outgoing' => [], 'set' => [], 'reversal_of' => null], $data);
+            'success_points' => 0, 'minutes' => 0, 'metadata' => [], 'version_change' => [], 'incoming' => [], 'outgoing' => [], 'set' => [], 'reversal_of' => null], $data);
         foreach (['reason', 'external_party', 'price_reason'] as $field) {
             $data[$field] = trim($data[$field] ?? '');
         }
@@ -202,12 +221,15 @@ final class RpgInventoryService
         foreach (['incoming', 'outgoing', 'set'] as $key) {
             $data[$key] = array_map(fn ($row) => ['id' => $row['id'], 'quantity' => (int) $row['quantity']], $data[$key]);
         }
+        if ($data['version_change'] !== []) {
+            $data['version_change']['quantity'] = (int) $data['version_change']['quantity'];
+        }
         $data['metadata'] = array_map(fn ($value) => trim($value ?? ''), $data['metadata']);
         RpgInventoryAdapter::ensure(($data['kind'] === 'reversal') === ($data['reversal_of'] !== null), 'Unzulässiger Rückbuchungsbezug.');
         RpgInventoryAdapter::ensure($data['other_character_id'] === null || in_array($data['kind'], ['purchase', 'sale', 'swap', 'reversal'], true), 'Eine Gegenpartei ist nur beim Handel möglich.');
         RpgInventoryAdapter::ensure($data['other_character_id'] === null || $data['external_party'] === '', 'Bitte entweder einen Charakter oder eine externe Gegenpartei wählen.');
         if ($data['kind'] === 'reversal') {
-            RpgInventoryAdapter::ensure($data['incoming'] === [] && $data['outgoing'] === [] && $data['set'] === []
+            RpgInventoryAdapter::ensure($data['incoming'] === [] && $data['outgoing'] === [] && $data['set'] === [] && $data['version_change'] === []
                 && $data['metadata'] === [] && $data['amount'] === null && $data['minutes'] === 0
                 && $data['external_party'] === '' && $data['price_reason'] === '' && $data['winner'] === 'none'
                 && $data['success_points'] === 0, 'Eine Rückbuchung darf keine zusätzlichen Bestands- oder Preisänderungen enthalten.');

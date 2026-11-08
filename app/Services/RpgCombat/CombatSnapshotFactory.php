@@ -5,14 +5,16 @@ namespace App\Services\RpgCombat;
 use App\Models\RpgCharacter;
 use App\Services\RpgCharacterProgressionAdapter;
 use App\Services\RpgCharacterPsychicCalculator;
-use App\Support\RpgCharEditorEquipment;
 use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCombatRules;
+use App\Support\RpgEquipmentCatalog;
 use Illuminate\Validation\ValidationException;
 
 final class CombatSnapshotFactory
 {
+    public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+
     /** SL-10: explicit assignments, not guesses based on display names. */
     public const TWO_HANDED = ['harpoon-speer', 'lanze-hellebarde', 'kampfstab', 'zweihandschwert', 'streitaxt',
         'kettensaege', 'bogen', 'armbrust', 'gewehr-bolzer', 'maschinenpistole', 'automatikgewehr', 'energiegewehr', 'kanone'];
@@ -72,7 +74,7 @@ final class CombatSnapshotFactory
         $this->ensure($raceSource === RpgCharEditorRuleCatalog::BASE || in_array($raceSource, array_column($sources, 'id'), true), 'Die Regelquelle dieser Rasse ist nicht freigeschaltet.');
         $equipment = $data['equipment'] ?? [];
         $this->ensure(is_array($equipment) && is_array($equipment['items'] ?? []), 'Ungültiges Inventar.');
-        $catalog = RpgCharEditorEquipment::itemMap();
+        $catalog = $this->catalog->itemMap();
         $weapons = [];
         $items = [];
         foreach ($equipment['items'] ?? [] as $selection) {
@@ -130,14 +132,17 @@ final class CombatSnapshotFactory
         $ranged = collect($modes)->firstWhere('kind', 'ranged');
         $capacity = $ranged ? (int) preg_replace('/\D/', '', (string) ($ranged['magazine'] ?? '')) : 0;
         $ammunition = $ranged ? ($capacity > 0 ? 4 * $capacity : (($ranged['type'] === 'Wurfgeschoss' && $id !== 'geworfener-stein') ? 1 : 30)) : 0;
+        if (isset($item['ammunitionProfile'])) {
+            $ammunition = $item['ammunitionProfile']['starting'];
+        }
         if ($id === 'energiegewehr') {
             $ammunition = $capacity;
         }
 
         return [
             'instance' => $instance, 'id' => $id, 'name' => $item['name'], 'modes' => $modes,
-            'hands' => in_array($id, self::TWO_HANDED, true) ? 2 : 1,
-            'size' => in_array($id, self::TWO_HANDED, true) ? 'large' : 'medium',
+            'hands' => $item['hands'] ?? (in_array($id, self::TWO_HANDED, true) ? 2 : 1),
+            'size' => $item['size'] ?? (in_array($id, self::TWO_HANDED, true) ? 'large' : 'medium'),
             'education' => (int) ($item['minimumEducation'] ?? ($ranged && $ranged['type'] === 'Schießpulverwaffe' ? 2 : 0)),
             'capacity' => $capacity, 'loaded' => $capacity, 'reserve' => max(0, $ammunition - $capacity),
             'thrown' => $ranged && $ranged['type'] === 'Wurfgeschoss' && $id !== 'geworfener-stein',

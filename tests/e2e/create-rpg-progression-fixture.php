@@ -4,9 +4,9 @@ use App\Enums\Role;
 use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\RpgEquipmentCatalogResolver;
 use App\Services\RpgExperienceAwardService;
 use App\Services\RpgInventoryService;
-use App\Support\RpgInventoryCatalog;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -59,7 +59,7 @@ if (($argv[1] ?? '') === 'inventory-trade') {
     foreach ([[$character, 'seil'], [$other, 'bogen']] as [$target, $item]) {
         $target->refresh();
         $input = ['submission_key' => (string) Str::uuid(), 'revision' => $target->revision,
-            'catalog_version' => RpgInventoryCatalog::VERSION, 'kind' => 'initialize', 'reason' => 'Vorbereitung des Handelstests',
+            'catalog_version' => app(RpgEquipmentCatalogResolver::class)->resolve()->version(), 'kind' => 'initialize', 'reason' => 'Vorbereitung des Handelstests',
             'occurred_on' => now()->timezone('Europe/Berlin')->toDateString(), 'amount' => 100, 'set' => [['id' => 'item:'.$item, 'quantity' => 2]]];
         $service = app(RpgInventoryService::class);
         $preview = $service->preview($leader, $target->id, $input);

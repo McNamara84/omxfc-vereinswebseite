@@ -51,17 +51,18 @@ class RpgCharacterController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
-        $pdfPayload = $this->characterSheetService->validatedPdfPayload($request);
-        $payload = $pdfPayload;
-        unset($payload['portrait']);
-        $payload = app(RpgInventoryAdapter::class)->initializeNew($payload);
-        $characterName = $payload['character']['character_name'] === '' ? 'Charakter' : $payload['character']['character_name'];
-        $payload['character']['character_name'] = $characterName;
-
         $storedPortrait = ['path' => null, 'mime' => null, 'original_name' => null];
 
         try {
-            DB::transaction(function () use ($request, $user, $payload, $pdfPayload, $characterName, &$storedPortrait): void {
+            DB::transaction(function () use ($request, $user, &$storedPortrait): void {
+                app(RpgAccess::class)->team(lock: true);
+                $pdfPayload = app(RpgCharacterSheetService::class)->validatedPdfPayload($request);
+                $payload = $pdfPayload;
+                unset($payload['portrait']);
+                $payload = app(RpgInventoryAdapter::class)->initializeNew($payload);
+                $characterName = $payload['character']['character_name'] === '' ? 'Charakter' : $payload['character']['character_name'];
+                $payload['character']['character_name'] = $characterName;
+
                 $this->slotService->ensureFreeSlotForStore(
                     $user,
                     $request->boolean('purchase_slot_if_needed'),

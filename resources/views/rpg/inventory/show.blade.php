@@ -56,6 +56,11 @@
                         @endforeach
                         <label class="fieldset sm:col-span-2">Ausrüstungsnotizen<textarea class="textarea w-full" maxlength="4000" x-model="metadata.notes"></textarea></label>
                     </section>
+                    <section x-show="kind === 'item_version_change'" class="grid gap-3 sm:grid-cols-3">
+                        <label class="fieldset">Quellversion<select aria-label="Quellversion" class="select w-full" x-model="versionChange.source"><option value="">Bitte wählen</option>@foreach($catalog as $id => $row)@if(isset($row['type_id']) && ($state['stocks'][$id] ?? 0) > 0)<option value="{{ $id }}">{{ $row['name'] }}</option>@endif @endforeach</select></label>
+                        <label class="fieldset">Zielversion<select aria-label="Zielversion" class="select w-full" x-model="versionChange.target"><option value="">Bitte wählen</option>@foreach($catalog as $id => $row)@if(isset($row['type_id']))<option value="{{ $id }}">{{ $row['name'] }}</option>@endif @endforeach</select></label>
+                        <label class="fieldset">Anzahl<input class="input w-full" type="number" min="1" max="20" x-model="versionChange.quantity" /></label>
+                    </section>
                     <button type="submit" class="btn btn-primary">Buchung prüfen</button>
                 </fieldset>
             </form>

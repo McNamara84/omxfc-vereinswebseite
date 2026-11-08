@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
-use App\Support\RpgCharEditorEquipment;
+use App\Support\RpgEquipmentCatalog;
 
 final class RpgCharacterCombatCalculator
 {
+    public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+
     private const ATTRIBUTE_LABELS = [
         'st' => 'ST',
         'ge' => 'GE',
@@ -166,7 +168,7 @@ final class RpgCharacterCombatCalculator
             return [];
         }
 
-        $itemMap = RpgCharEditorEquipment::itemMap();
+        $itemMap = $this->catalog->itemMap();
         $items = [];
 
         foreach ($selected as $selectedItem) {
@@ -177,6 +179,10 @@ final class RpgCharacterCombatCalculator
             $id = (string) ($selectedItem['id'] ?? '');
 
             if (! isset($itemMap[$id])) {
+                if (str_starts_with($id, 'custom-')) {
+                    throw new \InvalidArgumentException('Unbekannte eigene Gegenstandsversion: '.$id);
+                }
+
                 continue;
             }
 

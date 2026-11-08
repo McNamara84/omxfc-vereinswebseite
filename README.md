@@ -342,6 +342,32 @@ npm run test:e2e:docker -- tests/e2e/rpg-inventory.spec.js --project=chromium
 Die echten Nebenläufigkeitsprüfungen stehen in `phpunit.rpg-mariadb.xml`
 und verwenden ausschließlich die isolierte Datenbank `omxfc_rpg_test`.
 
+### Eigene Gegenstände der Spielleitung
+
+Unter **Meine Charaktere → Gegenstände verwalten** (`/rpg/gegenstaende`) kann
+die aktive Leitung der AG Rollenspiel eigene Ausrüstung entwerfen. Schaden,
+Schutzfaktor und Tauschwert werden nach dem Regelwerk berechnet; eine verbindliche
+Servervorschau zeigt die Werte und den Rechenweg vor dem Speichern.
+Vergleichsgrundlage, weitere Eigenschaften und Bucks-Richtpreis legt die Leitung fest.
+
+Neue Gegenstände sind zunächst nur für spätere Vergaben verfügbar. Die Leitung
+kann jeden Typ ausdrücklich als Startausrüstung freigeben. Erschaffungsregeln,
+High-Tech-Voraussetzungen und die einmalige Startmunition gelten weiterhin.
+Ein Freigabeentzug betrifft neue Auswahlen; vorhandene Exemplare bleiben erhalten.
+
+Gespeicherte Werte sind unveränderliche Versionen. Eine neue Fassung verändert
+bereits vergebene Exemplare, historische Buchungen und begonnene Kämpfe nicht.
+Über **Ausrüstung verwalten → Gegenstandsversion wechseln** kann die Leitung
+bestimmte Exemplare mit Vorschau und Begründung ausdrücklich umstellen.
+Der Wechsel verändert weder Geld noch Munition. Archivierung erhält alte
+Versionen für Bestand, Handel, PDF und Rückbuchungen.
+
+Vor der Nutzung die Migrationen und den Asset-Build ausführen. Die gezielten
+Tests heißen `RpgItemCreationRulesTest`, `RpgItemManagementTest`,
+`RpgItemMariaDbConcurrencyTest`, `tests/Vitest/rpg-items.test.js` und
+`tests/e2e/rpg-items.spec.js`. Die MariaDB-Prüfungen verwenden ausschließlich
+die separate Datenbank `omxfc_rpg_test` und `phpunit.rpg-mariadb.xml`.
+
 ### Erfahrungspunkte und Charakterverbesserung
 
 Unter **Meine Charaktere** (`/rpg/charaktere`) sieht die aktuelle Leitung der

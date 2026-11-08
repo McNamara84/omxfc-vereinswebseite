@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Support\RpgCharEditorEquipment;
 use App\Support\RpgCharEditorSpecialRules;
+use App\Support\RpgEquipmentCatalog;
 use App\Support\RpgExperienceRules;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -11,6 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 final class RpgCharacterAdvancementEvaluator
 {
+    public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+
     public function evaluate(array $original, array $operations): array
     {
         $validated = Validator::make(['operations' => $operations], [
@@ -127,8 +130,9 @@ final class RpgCharacterAdvancementEvaluator
             $items = $operation['items'] ?? [];
             $this->require(count($items) === 4, 'Bitte genau vier High-Tech-Gegenstände wählen.');
             foreach ($items as $id) {
-                $item = RpgCharEditorEquipment::itemMap()[$id] ?? null;
+                $item = $this->catalog->itemMap()[$id] ?? null;
                 $this->require($item !== null && RpgCharEditorEquipment::requiresHighTechAdvantage($item), 'Bitte gültige High-Tech-Gegenstände wählen.');
+                $this->catalog->assertAvailable('item:'.$id);
                 $payload['equipment']['items'][] = ['id' => $id, 'name' => $item['name'], 'quantity' => 1];
             }
             $merged = [];
@@ -144,7 +148,7 @@ final class RpgCharacterAdvancementEvaluator
             $this->require(count($merged) <= 64 && array_all($merged, fn ($item) => $item['quantity'] <= 20), 'Zu viele Gegenstände: maximal 64 Arten und 20 Stück je Art.');
             // Equipment gained during play does not refill existing ammunition.
             if (($payload['equipment']['schema_version'] ?? 0) === 1) {
-                $adapter = new RpgInventoryAdapter;
+                $adapter = new RpgInventoryAdapter($this->catalog);
                 $payload['equipment'] = $adapter->equipment($adapter->state($payload), $payload['equipment']);
             }
         } else {

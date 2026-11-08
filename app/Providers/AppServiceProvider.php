@@ -12,9 +12,11 @@ use App\Livewire\Profile\UpdateProfileInformationForm;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Memberships\MembershipContext;
+use App\Services\RpgEquipmentCatalogResolver;
 use App\Services\TourAssignmentService;
 use App\Support\Navigation\NavigationBuilder;
 use App\Support\Navigation\NavigationContext;
+use App\Support\RpgEquipmentCatalog;
 use App\Support\TestingBladeComponentRegistry;
 use App\View\Components\AccessibleFile;
 use App\View\Components\AccessibleInput;
@@ -67,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(RpgEquipmentCatalog::class, fn () => app(RpgEquipmentCatalogResolver::class)->resolve());
         $this->app->scoped(MembershipContext::class);
         if (! Route::hasMacro('livewire')) {
             Route::macro('livewire', function (string $uri, string $component) {

@@ -3,7 +3,7 @@ export function rpgInventory(config) {
         config, kind: config.state.confirmed ? 'grant' : 'initialize', reason: '', occurredOn: config.today,
         incoming: [], outgoing: [], setRows: [], amount: config.state.confirmed ? '' : 0, catalogSearch: '', catalogCategory: '',
         cashDirection: 'income', externalParty: '', otherId: '', winner: 'none', successPoints: 0,
-        priceReason: '', minutes: 0, metadata: {}, reversalOf: null,
+        priceReason: '', minutes: 0, versionChange: { source: '', target: '', quantity: 1 }, metadata: {}, reversalOf: null,
         busy: false, error: '', previewResult: null, generation: 0, nextId: 0,
         init() { this.resetKind(); },
         invalidate() { this.previewResult = null; this.generation++; },
@@ -14,6 +14,7 @@ export function rpgInventory(config) {
                 clothing: config.state.clothing, armor: config.state.armor,
                 shield: config.state.shield, notes: config.state.notes,
             } : {};
+            this.versionChange = { source: '', target: '', quantity: 1 };
             this.reversalOf = null; this.otherId = ''; this.externalParty = '';
             this.winner = 'none'; this.successPoints = 0; this.priceReason = ''; this.minutes = 0;
             if (['initialize', 'correct'].includes(this.kind)) {
@@ -47,6 +48,7 @@ export function rpgInventory(config) {
                 winner: this.winner, success_points: Number(this.successPoints), price_reason: this.priceReason,
                 minutes: Number(this.minutes), reversal_of: this.reversalOf,
                 preview_hash: this.previewResult?.preview_hash ?? null,
+                ...(this.kind === 'item_version_change' ? { version_change: { ...this.versionChange, quantity: Number(this.versionChange.quantity) } } : {}),
             };
         },
         label(id) { return Number(id) === config.characterId ? 'Dieser Charakter' : (config.peers.find((row) => row.id === Number(id))?.name ?? 'Gegenpartei'); },

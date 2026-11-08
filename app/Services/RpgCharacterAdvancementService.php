@@ -20,7 +20,7 @@ final class RpgCharacterAdvancementService
         Gate::forUser($actor)->authorize('improve', $character);
         $data = $this->validated($input);
         $this->ensure((int) $data['revision'] === $character->revision, 'Der Charakter wurde inzwischen geändert. Bitte die Seite neu öffnen.');
-        $result = $this->evaluator->evaluate($character->payload, $data['operations']);
+        $result = app(RpgCharacterAdvancementEvaluator::class)->evaluate($character->payload, $data['operations']);
         $balance = $character->experienceBalance();
         $this->ensure($result['cost'] <= $balance, 'Die verfügbaren Erfahrungspunkte reichen nicht aus.');
 
@@ -75,7 +75,7 @@ final class RpgCharacterAdvancementService
                 $this->ensure($this->access->isMember($character->user_id, $team), 'Der Besitzer ist nicht mehr Mitglied der AG Rollenspiel.');
                 $this->ensure($request->revision === $character->revision && $request->before_payload === $character->payload, 'Der Charakter wurde inzwischen geändert. Bitte einen neuen Antrag einreichen.');
                 $this->ensure($request->rule_version === RpgExperienceRules::VERSION, 'Die Regelversion hat sich geändert. Bitte einen neuen Antrag einreichen.');
-                $result = $this->evaluator->evaluate($character->payload, $request->operations);
+                $result = app(RpgCharacterAdvancementEvaluator::class)->evaluate($character->payload, $request->operations);
                 $this->ensure($result['cost'] === $request->cost && $result['payload'] === $request->after_payload, 'Die Vorschau ist nicht mehr aktuell. Bitte den Antrag erneuern.');
                 $this->ensure($character->experienceBalance() >= $result['cost'], 'Die verfügbaren Erfahrungspunkte reichen nicht aus.');
                 $character->experienceEntries()->create(['rpg_advancement_request_id' => $request->id, 'amount' => -$result['cost']]);
