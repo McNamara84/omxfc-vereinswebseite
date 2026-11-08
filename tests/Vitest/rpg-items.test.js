@@ -42,6 +42,13 @@ describe('item designer', () => {
         expect(form.has('hands')).toBe(false); form.input.category = 'melee_weapons'; expect(form.has('hands')).toBe(true);
         form.input.category = 'unknown'; expect(form.fields()).toEqual(common);
     });
+    it.each([[undefined, 5], [null, 5], [1, 5], [5, 5], ['12', 12], [1000, 1000]])('normalizes a saved technology factor %s to %s', (techFactor, expected) => {
+        const form = rpgItems({ ...config(), input: { tech_factor: techFactor } });
+        expect(form.input.tech_factor).toBe(expected);
+        expect(form.payload().input.tech_factor).toBe(1);
+        form.input.category = 'high_tech'; form.categoryChanged();
+        expect(form.payload().input.tech_factor).toBe(expected);
+    });
     it('invalidates a checked preview after an edit', () => {
         const form = component(); form.result = { preview_hash: 'checked' }; form.invalidate();
         expect(form.result).toBeNull(); expect(form.payload().preview_hash).toBeNull();

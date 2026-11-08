@@ -47,8 +47,10 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (DB::table('rpg_item_types')->exists() || DB::table('rpg_ammunition_profiles')->exists()) {
-            throw new RuntimeException('Gespeicherte RPG-Gegenstandsversionen müssen erhalten bleiben.');
+        foreach (['rpg_item_types', 'rpg_item_versions', 'rpg_ammunition_profiles'] as $table) {
+            if (Schema::hasTable($table) && DB::table($table)->exists()) {
+                throw new RuntimeException('Gespeicherte RPG-Gegenstandsversionen müssen erhalten bleiben.');
+            }
         }
         Schema::dropIfExists('rpg_item_versions');
         Schema::dropIfExists('rpg_ammunition_profiles');

@@ -15,7 +15,10 @@ use App\Services\RpgInventoryAdapter;
 use App\Services\RpgItemService;
 use App\Support\RpgEquipmentCatalog;
 use App\Support\RpgInventoryCatalog;
+use Illuminate\Database\Events\TransactionBeginning;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\RpgInventoryFixtures;
@@ -85,6 +88,33 @@ class RpgItemManagementTest extends TestCase
         $otherTeam = Team::factory()->create(['personal_team' => false]);
         $item->itemType->update(['team_id' => $otherTeam->id]);
         $this->get(route('rpg.items.show', $item->itemType))->assertForbidden();
+    }
+
+    public function test_preview_and_save_use_one_transaction_each_and_version_retries_remain_idempotent(): void
+    {
+        $baseLevel = DB::transactionLevel();
+        $levels = [];
+        Event::listen(TransactionBeginning::class, function (TransactionBeginning $event) use (&$levels): void {
+            $levels[] = $event->connection->transactionLevel();
+        });
+        $first = $this->createItem();
+        $type = $first->itemType;
+        $data = $this->input(['masterwork' => true]);
+        $data['revision'] = $type->revision;
+        $service = app(RpgItemService::class);
+        $data['preview_hash'] = $service->preview($this->leader, $data, $type->id)['preview_hash'];
+
+        $second = $service->save($this->leader, $data, $type->id);
+        $retry = $service->save($this->leader, $data, $type->id);
+
+        $this->assertSame(array_fill(0, 5, $baseLevel + 1), $levels);
+        $this->assertSame($baseLevel, DB::transactionLevel());
+        $this->assertSame($second->id, $retry->id);
+        $this->assertSame(2, $type->fresh()->current_version);
+        $this->assertSame('4', $first->fresh()->definition['tw']);
+        $this->assertSame('12', $second->definition['tw']);
+        $this->assertDatabaseCount('rpg_item_types', 1);
+        $this->assertDatabaseCount('rpg_item_versions', 2);
     }
 
     public function test_versions_freeze_values_and_explicit_switch_is_reversible(): void
@@ -219,7 +249,9 @@ class RpgItemManagementTest extends TestCase
         $saved = RpgCharacter::where('character_name', 'Neuer Held')->firstOrFail();
         $this->assertContains($item->reference, array_column($saved->payload['equipment']['items'], 'id'));
         app(RpgItemService::class)->configure($this->leader, $item->item_type_id, ['revision' => 2, 'starting_equipment' => false]);
-        $this->postJson(route('rpg.char-editor.pdf'), $data)->assertUnprocessable();
+        $this->postJson(route('rpg.char-editor.pdf'), $data)->assertUnprocessable()
+            ->assertJsonValidationErrors(['inventory'])
+            ->assertJsonPath('errors.inventory.0', 'Die Ausrüstungsfreigabe wurde geändert. Bitte neu laden.');
         $this->get(route('rpg.characters.pdf', $saved))->assertOk();
     }
 

@@ -5190,6 +5190,7 @@
     "methods": [
       "test_only_active_leader_can_manage_and_http_roundtrip_is_idempotent",
       "test_forged_values_stale_previews_and_foreign_type_fail",
+      "test_preview_and_save_use_one_transaction_each_and_version_retries_remain_idempotent",
       "test_versions_freeze_values_and_explicit_switch_is_reversible",
       "test_start_release_archive_and_old_inventory_have_distinct_contexts",
       "test_persisted_versions_reject_mutation",
@@ -5214,6 +5215,18 @@
       "test_competing_switches_cannot_duplicate_or_lose_items",
       "test_release_change_invalidates_a_pending_version_preview",
       "test_withdrawing_start_release_against_character_creation_is_atomic"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgItemMigrationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_rollback_accepts_missing_or_empty_tables",
+      "test_rollback_preserves_all_tables_when_any_existing_table_has_data",
+      "test_an_empty_schema_can_be_recreated_after_rollback"
     ],
     "seeders": []
   },
@@ -9064,6 +9077,7 @@
       "normalizes type-specific education and throwing profiles",
       "never submits a technology factor on a low-tech object",
       "reopens a saved low-tech version without an invalid hidden technology control",
+      "normalizes a saved technology factor %s to %s",
       "invalidates a checked preview after an edit",
       "ignores a preview that arrives after the form changed",
       "retains inputs and focuses the server error",

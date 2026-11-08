@@ -171,7 +171,7 @@ final class RpgInventoryService
     private function refreshCatalog(array $data): void
     {
         $catalog = app(RpgEquipmentCatalogResolver::class)->resolve();
-        RpgInventoryAdapter::ensure($catalog->version() === $data['catalog_version'], 'Der Katalog wurde inzwischen geaendert. Bitte neu laden.');
+        RpgInventoryAdapter::ensure($catalog->version() === $data['catalog_version'], 'Der Katalog wurde inzwischen geändert. Bitte neu laden.');
         $this->adapter->useCatalog($catalog);
         $this->evaluator->useCatalog($catalog);
     }

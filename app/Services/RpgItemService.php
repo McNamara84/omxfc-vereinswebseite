@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\RpgAmmunitionProfile;
 use App\Models\RpgItemType;
 use App\Models\RpgItemVersion;
+use App\Models\Team;
 use App\Models\User;
 use App\Support\CombatHash;
 use Illuminate\Support\Facades\DB;
@@ -24,20 +25,8 @@ final class RpgItemService
             $team = $this->access->requireLeader($actor, lock: true);
             $data = $this->validated($input);
             $type = $this->type($actor, $typeId, $data['revision']);
-            $this->ensure(! $type || ! $type->archived, 'Archivierte Gegenstände zuerst wieder aktivieren.');
-            try {
-                $result = $this->evaluator->evaluate($data['input']);
-            } catch (InvalidArgumentException $error) {
-                throw ValidationException::withMessages(['input' => $error->getMessage()]);
-            }
-            $this->ensure(! $type || $type->category === $result['definition']['category'], 'Die Kategorie eines Gegenstandstyps darf nicht geändert werden.');
-            $ammo = $result['definition']['ammunitionProfile'] ?? null;
-            if ($ammo && $ammo['id'] !== '') {
-                $this->ensure(isset($this->catalogs->resolve()->ammunition()[$ammo['id']]), 'Unbekanntes oder fremdes Munitionsprofil.');
-            }
-            $result['preview_hash'] = CombatHash::make([$team->id, $typeId, $data['revision'], $data['input'], $result]);
 
-            return $result;
+            return $this->evaluatePreview($team, $type, $data);
         }, 3);
     }
 
@@ -53,9 +42,10 @@ final class RpgItemService
 
                 return $existing;
             }
-            $result = $this->preview($actor, $input, $typeId);
+            $type = $this->type($actor, $typeId, $data['revision']);
+            $result = $this->evaluatePreview($team, $type, $data);
             $this->ensure(is_string($data['preview_hash']) && hash_equals($result['preview_hash'], $data['preview_hash']), 'Bitte eine aktuelle Vorschau prüfen.');
-            $type = $typeId ? RpgItemType::findOrFail($typeId) : RpgItemType::create(['team_id' => $team->id, 'public_id' => (string) Str::uuid(),
+            $type ??= RpgItemType::create(['team_id' => $team->id, 'public_id' => (string) Str::uuid(),
                 'created_by' => $actor->id, 'category' => $result['definition']['category']]);
             $version = $typeId ? $type->current_version + 1 : 1;
             $definition = $result['definition'];
@@ -81,6 +71,24 @@ final class RpgItemService
             $type = $this->type($actor, $typeId, (int) $data['revision']);
             $type->update(array_diff_key($data, ['revision' => true]) + ['revision' => $type->revision + 1]);
         }, 3);
+    }
+
+    private function evaluatePreview(Team $team, ?RpgItemType $type, array $data): array
+    {
+        $this->ensure(! $type || ! $type->archived, 'Archivierte Gegenstände zuerst wieder aktivieren.');
+        try {
+            $result = $this->evaluator->evaluate($data['input']);
+        } catch (InvalidArgumentException $error) {
+            throw ValidationException::withMessages(['input' => $error->getMessage()]);
+        }
+        $this->ensure(! $type || $type->category === $result['definition']['category'], 'Die Kategorie eines Gegenstandstyps darf nicht geändert werden.');
+        $ammo = $result['definition']['ammunitionProfile'] ?? null;
+        if ($ammo && $ammo['id'] !== '') {
+            $this->ensure(isset($this->catalogs->resolve()->ammunition()[$ammo['id']]), 'Unbekanntes oder fremdes Munitionsprofil.');
+        }
+        $result['preview_hash'] = CombatHash::make([$team->id, $type?->id, $data['revision'], $data['input'], $result]);
+
+        return $result;
     }
 
     private function type(User $actor, ?int $id, int $revision): ?RpgItemType

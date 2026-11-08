@@ -407,7 +407,7 @@ class RpgCharacterSheetService
         }
         if ($customSelected) {
             abort_unless($request->user() && app(RpgAccess::class)->isMember($request->user()->id), 403);
-            RpgInventoryAdapter::ensure($request->input('equipment_catalog_version') === $this->catalog->version(), 'Die Ausruestungsfreigabe wurde geaendert. Bitte neu laden.');
+            RpgInventoryAdapter::ensure($request->input('equipment_catalog_version') === $this->catalog->version(), 'Die Ausrüstungsfreigabe wurde geändert. Bitte neu laden.');
         }
         $validCreationLevels = RpgCharEditorSpecialRules::validCreationLevels();
         $maximumSkillPoints = max(array_column(RpgCharEditorSpecialRules::CREATION_LEVELS, 'skillPoints'));

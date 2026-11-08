@@ -2,7 +2,7 @@ export function rpgItems(config) {
     return {
         config, busy: false, error: '', result: null, generation: 0,
         input: { name: '', description: '', category: 'low_tech', size: 'medium', rarity: 'common', beautiful: false,
-            material: 0, high_tech: false, tech_factor: 5, utility: 1, bucks: 1, reference: '', minimum_education: 0,
+            material: 0, high_tech: false, utility: 1, bucks: 1, reference: '', minimum_education: 0,
             masterwork: false, attributes: ['st'], hands: 1, throwable: false, weapon_type: 'Projektilwaffe', precision: 0,
             fire_rate: 'E', range_increment: 10, max_range: 50, magazine: 0, ammunition_id: 'ammo:pfeile',
             ammunition_name: '', ammunition_unit: 'Schuss', effectiveness: 0, movement_modifier: 0,
