@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="153" height="20" role="img" aria-label="PHP Coverage: 88.7%">
-<title>PHP Coverage: 88.7%</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="153" height="20" role="img" aria-label="PHP Coverage: 88.8%">
+<title>PHP Coverage: 88.8%</title>
 <linearGradient id="shade" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient>
 <clipPath id="round"><rect width="153" height="20" rx="3"/></clipPath>
 <g clip-path="url(#round)"><path fill="#555" d="M0 0h101v20H0z"/><path fill="#97ca00" d="M101 0h52v20h-52z"/><path fill="url(#shade)" d="M0 0h153v20H0z"/></g>
-<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11"><text x="50.5" y="15" fill="#010101" fill-opacity=".3">PHP Coverage</text><text x="50.5" y="14">PHP Coverage</text><text x="127" y="15" fill="#010101" fill-opacity=".3">88.7%</text><text x="127" y="14">88.7%</text></g>
+<g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" font-size="11"><text x="50.5" y="15" fill="#010101" fill-opacity=".3">PHP Coverage</text><text x="50.5" y="14">PHP Coverage</text><text x="127" y="15" fill="#010101" fill-opacity=".3">88.8%</text><text x="127" y="14">88.8%</text></g>
 </svg>
