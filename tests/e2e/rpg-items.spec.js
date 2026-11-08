@@ -1,6 +1,7 @@
 import { expect as baseExpect, test } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { createPhpProcess } from './utils/php.js';
 
 const expect = baseExpect.configure({ timeout: 30_000 });
@@ -21,8 +22,9 @@ test('leader designs, releases and versions equipment while existing stock keeps
     await page.locator('[name="password"]').fill('password');
     await page.locator('button[type=submit]').click();
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached();
     await page.goto('/rpg/gegenstaende/neu', { timeout: 60_000 });
-    const name = 'Klinge aus Wudan';
+    const name = 'Klinge aus Wudan ' + randomUUID();
     await page.getByLabel('Name', { exact: true }).fill(name);
     await page.getByLabel('Kategorie', { exact: true }).selectOption('melee_weapons');
     await page.getByLabel('Beschreibung und besondere Wirkungen', { exact: true }).fill('Eine ausgewogene Klinge.');

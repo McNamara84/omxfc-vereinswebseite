@@ -7978,6 +7978,7 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "test_it_rejects_a_missing_custom_item_version_instead_of_dropping_its_effects",
       "test_it_calculates_defense_initiative_movement_and_weapon_values",
       "test_it_exposes_alternate_throwing_and_natural_weapon_modes",
       "test_it_ignores_unselected_active_protection_and_adds_situational_notes",

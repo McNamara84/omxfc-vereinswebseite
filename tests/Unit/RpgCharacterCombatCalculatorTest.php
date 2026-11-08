@@ -7,6 +7,16 @@ use PHPUnit\Framework\TestCase;
 
 class RpgCharacterCombatCalculatorTest extends TestCase
 {
+    public function test_it_rejects_a_missing_custom_item_version_instead_of_dropping_its_effects(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unbekannte eigene Gegenstandsversion: custom-missing-v1');
+
+        (new RpgCharacterCombatCalculator)->calculate([
+            'equipment' => ['items' => [['id' => 'custom-missing-v1', 'quantity' => 1]]],
+        ]);
+    }
+
     public function test_it_calculates_defense_initiative_movement_and_weapon_values(): void
     {
         $combat = (new RpgCharacterCombatCalculator)->calculate([
