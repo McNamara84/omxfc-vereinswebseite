@@ -18,6 +18,23 @@ function temporaryDirectory(t) {
     return directory;
 }
 
+test('scheduled and manual compatibility checks cannot cancel required push checks', () => {
+    const workflow = readFileSync(new URL('../../.github/workflows/php86-compatibility.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const concurrency = workflow.match(/^concurrency:\n {2}group: (.+)\n {2}cancel-in-progress: (.+)$/m);
+    assert.ok(concurrency, 'The workflow must declare its cancellation policy');
+    assert.equal(concurrency[2], 'true');
+    const groupFor = (eventName, ref) => concurrency[1].replace(/\$\{\{\s*github\.(event_name|ref)\s*\}\}/g, (_, property) => (
+        property === 'event_name' ? eventName : ref
+    ));
+    const push = groupFor('push', 'refs/heads/main');
+    assert.doesNotMatch(push, /\$\{\{/);
+    for (const eventName of ['schedule', 'workflow_dispatch']) {
+        assert.notEqual(push, groupFor(eventName, 'refs/heads/main'), eventName);
+    }
+    assert.equal(push, groupFor('push', 'refs/heads/main'), 'New pushes still supersede earlier pushes on the same branch');
+    assert.notEqual(groupFor('workflow_dispatch', 'refs/heads/main'), groupFor('workflow_dispatch', 'refs/heads/review'));
+});
+
 test('the actual CI preparation retains export-ignored test inputs and excludes private untracked files', { skip: process.platform === 'win32' }, t => {
     // Execute the workflow's Bash step on the same platform as the GitHub runner.
     const directory = temporaryDirectory(t);

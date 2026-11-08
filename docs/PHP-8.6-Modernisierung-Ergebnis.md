@@ -79,6 +79,10 @@ erfolgreiche HTTP-Antworten und Prozesse mit Exit-Code 0 umgehen die Prüfung
 nicht. Nicht verfügbare Laufzeiten, fehlende Diagnosen und übersprungene Stufen
 blockieren den festen Check **PHP 8.6 erforderlich**. Das Deployment wartet
 ebenfalls auf diesen Workflow; Zeitbudgets und Merge-Queue-Auslöser sind angepasst.
+[Concurrency-Gruppen](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency)
+enthalten Ereignistyp und Ref. Dadurch können Zeitplan-
+und manuelle Läufe keine für das Deployment erforderlichen Push-Prüfungen
+abbrechen; neue Pushes desselben Branches ersetzen weiterhin ältere Push-Läufe.
 
 Im aktiven GitHub-Ruleset [Secure main, ID 4508779](https://github.com/McNamara84/omxfc-vereinswebseite/rules/4508779)
 ist **PHP 8.6 erforderlich** seit dem 8. November 2026 als erforderlicher
@@ -139,11 +143,11 @@ achtsekündige Navigationslimit für `/mitglieder`. Der vollständige Nachlauf i
 der regulären CI-Aufteilung bestand anschließend mit 147 und 139 Tests sowie
 je einem Skip; beide Testgruppen benötigten keine Wiederholung.
 
-Zusätzlich erfolgreich: alle 110 Node-Tests unter Linux, alle 607 Vitest-Tests
+Zusätzlich erfolgreich: alle 111 Node-Tests unter Linux, alle 607 Vitest-Tests
 in 42 Dateien, der Vite-Produktionsbuild, Composer-Validierung und
 Plattformprüfungen auf beiden PHP-Reihen sowie Pint für alle 45 geänderten
-PHP-Dateien. Nach der letzten Änderung am CI-Koordinator wurden dessen 26
-Node-Regressionstests erneut vollständig bestanden. Composer meldet für das
+PHP-Dateien. Die 27 Node-Regressionstests für CI-Koordinator und Release-Freigabe
+einschließlich der Ereignistrennung bestehen vollständig. Composer meldet für das
 finale Lockfile keine bekannten Sicherheitsadvisories. Actionlint validiert
 alle drei geänderten Workflows.
 
