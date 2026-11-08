@@ -83,6 +83,18 @@ test('the CI browser selection matches the Playwright configuration', () => {
     assert.deepEqual(browsers.map(command => command.args.at(-1)), ['--project=chromium', '--project=firefox']);
 });
 
+test('the native dialog pilot belongs to the complete host and Docker scopes, not the fast scope', () => {
+    assert.ok(!commandsFor('fast').some(command => command.args.includes('vitest.browser.config.js')));
+    for (const runtime of ['host', 'docker']) {
+        const command = commandsFor('all', { runtime }).find(command => command.args.includes('vitest.browser.config.js'));
+        assert.ok(command);
+        assert.ok(command.args.includes('node_modules/vitest/vitest.mjs'));
+        if (runtime === 'docker') assert.ok(command.args.includes('browser'));
+        assert.ok(!command.args.includes('--since-last-run'));
+        assert.ok(!command.args.includes('--coverage'));
+    }
+});
+
 test('a failed command stops the sequence and propagates its exit code', async () => {
     let starts = 0;
     const spawnFn = () => { starts++; const child = new EventEmitter(); queueMicrotask(() => child.emit('exit', 7)); return child; };

@@ -7574,6 +7574,26 @@
     "seeders": []
   },
   {
+    "file": "tests/Node/deprecation-check.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the actual CI install step rejects deprecations from global, security and project installations",
+      "the actual CI install step permits ordinary warnings and captures both output streams",
+      "the actual CI install step preserves installer failures through tee and stops dependent work",
+      "recognizes npm, Node, Vite and browser deprecation warning formats with ANSI and CRLF",
+      "permits ordinary warnings and test titles or data mentioning deprecated APIs",
+      "checked processes forward both streams, preserve Node options and allow normal warnings",
+      "runtime deprecations in the main process fail with their source",
+      "checked TAP runs reject console deprecations but permit ordinary diagnostics",
+      "a split warning without a final newline fails even when the child exits successfully",
+      "ordinary child failures keep their exit code and missing scripts fail",
+      "deprecations during Vitest configuration and inside a worker reach the check"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Node/feature-bundles.test.mjs",
     "runner": "node",
     "laravel": false,
@@ -7674,6 +7694,7 @@
       "explicit PHP filters are forwarded as arguments and unknown scopes fail",
       "each browser project gets a separate setup invocation and a fresh server",
       "the CI browser selection matches the Playwright configuration",
+      "the native dialog pilot belongs to the complete host and Docker scopes, not the fast scope",
       "a failed command stops the sequence and propagates its exit code",
       "the complete Node command discovers every matching fixture without shell expansion",
       "a failure discovered through the literal Node glob propagates to the complete runner"
@@ -8393,6 +8414,18 @@
     "database": false,
     "methods": [
       "sets global http instance with default header"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/browser/navigation-search.browser.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "öffnet einen nativen modalen Dialog per Tastatur und fokussiert die Suche",
+      "sucht nach Eingabe und navigiert mit Pfeiltasten durch echte Links",
+      "schließt mit Escape, gibt den Fokus zurück und öffnet ohne alten Suchzustand"
     ],
     "seeders": []
   },
@@ -9151,6 +9184,7 @@
     "database": false,
     "methods": [
       "nutzt die gefälschte aktuelle Zeit auch über das Ende der Sommerzeit",
+      "übernimmt einen ZonedDateTime als Instant ohne die Prozesszeitzone zu ändern",
       "formatiert Epoch-Millis als ISO-Instant mit Millisekunden",
       "formatiert datetime-local-Werte minuten-genau in UTC",
       "bildet Start- und Endwert aus demselben Basis-Instant",

@@ -12,7 +12,7 @@ vi.mock('../../resources/js/alpine/rpg-checks', () => ({ registerRpgChecks: mock
 vi.mock('../../resources/js/alpine/rpg-progression', () => ({ registerRpgProgression: mocks.progression }));
 vi.mock('../../resources/js/features/alpine', () => ({ mountAlpineFeature: (register, root) => { register(); return mocks.alpine(root); } }));
 let lifecycle;
-afterEach(() => { lifecycle?.destroy(); vi.clearAllMocks(); document.body.innerHTML = ''; });
+afterEach(() => { lifecycle?.destroy(); document.body.innerHTML = ''; });
 it.each([
     ['member', '<div id="map" data-member-map-enabled></div>'], ['map', '<div data-maddraxiversum-map></div>'],
     ['poll', '<section data-poll-charts><canvas></canvas></section>'], ['admin', '<div id="admin-charts-config"></div>'],
@@ -24,7 +24,9 @@ it.each([
     document.body.innerHTML = html;
     lifecycle = (await import('../../resources/js/features/index')).featureLifecycle;
     lifecycle.scan();
-    await vi.waitFor(() => expect(document.body.firstElementChild.dataset.featureState).toBe('ready'));
+    await vi.waitFor(() => expect(document.body.firstElementChild.dataset.featureState).toBe('ready'), {
+        message: `Das Feature ${name} wird nach dem dynamischen Import bereit`,
+    });
     expect(mocks[name]).toHaveBeenCalledTimes(1);
     for (const [key, mock] of Object.entries(mocks)) if (key !== name && key !== 'alpine') expect(mock).not.toHaveBeenCalled();
     document.dispatchEvent(new Event('livewire:navigating'));

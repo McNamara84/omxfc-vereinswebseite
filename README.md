@@ -1066,7 +1066,7 @@ transitiven Updates. Der gezielte npm-Sicherheitspatch für `ip-address` steht a
 10.7.5; der kompatible Undici-6-Zweig bleibt für npm erhalten.
 Der benötigte Selector-Parser-Override ist auf 7.1.7 aktualisiert.
 Livewire 4.4.8, Alpine samt Plugins 3.17.5, Chart.js 4.6.1 und Vite 8.3.5 sind aktuell.
-Vitest/Coverage 5.0.5, Playwright 1.64.1 mit passenden Browsern,
+Vitest/Coverage/Browser-Provider 5.1.0, Playwright 1.64.1 mit passenden Browsern,
 axe 4.14.0, daisyUI 5.7.50, jsdom 30.1.3 und Zod 4.6.7 sind gemeinsam geprüft.
 Alle 15 bisherigen externen GitHub-Action-Pins wurden gegen die veröffentlichten
 Tags am 1. November verifiziert. Die PHP-Coverage-Badge-Action verwendete trotz
@@ -1378,6 +1378,60 @@ ein begrenzter Subprozess-Test schützt vor dem von CodeQL erkannten Backtrackin
 Vitest verwendet standardmäßig zwei Worker. Mit `VITEST_WORKERS=1` lässt sich
 ein serieller Diagnosevergleich durchführen. `npm run test:changed` und TIA sind
 zusätzliche lokale Einstiege; im PR laufen weiterhin alle funktionalen Prüfungen.
+
+Mit Vitest 5.1 stehen folgende zusätzliche Einstiege zur Verfügung:
+
+| Befehl | Verwendung |
+| --- | --- |
+| `npm run test:watch` | Node-/jsdom-Tests im Watch-Modus bearbeiten. |
+| `npm run test:failed` | Zuletzt fehlgeschlagene Tests erneut ausführen; ohne vorherige Fehler erfolgreich beenden. |
+| `npm run test:browser` | Den Chromium-Pilot für native Dialoge, Tastaturbedienung und Fokus der Navigationssuche ausführen. |
+| `npm run test:incremental` | **Experimentell, lokal:** Tests seit dem letzten Lauf auswählen (`--since-last-run`). |
+| `npm run test:trace` | **Experimentell, lokal:** Async-Warteschritte bei Fehlern als Trace-Timeline anzeigen. |
+
+`test:incremental` verwendet einen lokalen Cache und Dateizeitstempel; der erste
+Lauf zeichnet die Abhängigkeiten auf. Neue, zuvor nicht geladene Dateien oder
+zurückgesetzte Zeitstempel können einen vollständigen Lauf erfordern. Vor dem
+Abschluss einer Änderung bleiben `npm run test:coverage` und
+`npm run test:coverage:check` die verbindliche Prüfung. CI und `test:fast`
+aktivieren die neuen experimentellen Optionen nicht.
+
+Der Browser-Pilot benötigt keinen Laravel-Server und keine Datenbank. Chromium
+wird passend zum festgeschriebenen Playwright installiert:
+
+```sh
+node node_modules/playwright/cli.js install chromium
+npm run test:browser
+
+# Im vorhandenen Docker-Teststack, nach Neubau des Browser-Images:
+docker compose -f docker-compose.tests.yml build browser
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps browser npm run test:browser
+```
+
+Die schnellen Node-/jsdom-Suiten bleiben eigenständig. `test:all` führt zusätzlich
+den Browser-Pilot aus; die bestehenden Playwright-E2E-Projekte prüfen weiter die
+vollständige Anwendung. Der Pilot verwendet echte Dialog- und Fokus-APIs sowie
+stabile Browser-Assertions. Die experimentellen Import-Map-Mocks sind ausdrücklich
+abgeschaltet. Bei Fehlern zeichnet der stabile Trace View die relevanten Schritte
+auf. Der Browserbericht liegt unter `test-results/vitest-browser/index.html`,
+Fehleranhänge unter `test-results/vitest-browser/attachments/`. Der zusätzliche
+HTML-Coverage-Bericht liegt unter `coverage/index.html`; die bisherigen JSON-Berichte
+und geschützten Coverage-Untergrenzen bleiben maßgeblich.
+
+Die CI prüft npm-Installationsmeldungen und überwacht Testprozesse mit
+`tools/testing/check-deprecations.mjs`. Node-Deprecations werden mit
+`--throw-deprecation` und `--trace-deprecation` zu Fehlern; bekannte
+Deprecation-Warnformate aus Vitest, Vite und Browserbibliotheken führen ebenfalls
+zum Fehler. Gewöhnliche Konsolenwarnungen bleiben zulässig. Lokal kann dieselbe
+Prüfung direkt vor einen Node-Aufruf gesetzt werden:
+
+```sh
+node tools/testing/check-deprecations.mjs --run node_modules/vitest/vitest.mjs run --config vitest.config.js
+```
+
+Die Modernisierungen und Prüfnachweise stehen im
+[Vitest-5.1-Ergebnisbericht](docs/Vitest-5.1-Ergebnis.md).
+
 Der nachweislich doppelte PayPal-Sichtbarkeitstest ist in `spenden.spec.js`
 abgedeckt. Der Homepage-Zeitmessungslauf wird separat über
 `npm run test:e2e:benchmark` und den bisherigen Performance-Workflow ausgeführt.
@@ -1506,7 +1560,7 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5 trennt fünf reine Node-Testdateien von 26 DOM-Testdateien; die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5.1 trennt sechs reine Node-Testdateien von 37 DOM-Testdateien; der Chromium-Pilot läuft separat. Die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
 Die PHPUnit-13.4-Diagnosen `test:stability:repeat` und `test:stability:retry` sind manuelle Zusatzprüfungen. Retry ersetzt keinen regulär erfolgreichen Testlauf.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.

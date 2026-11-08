@@ -14,7 +14,6 @@ let cleanup;
 const tick = async () => { await vi.advanceTimersByTimeAsync(0); };
 beforeEach(() => {
     vi.useFakeTimers();
-    vi.clearAllMocks();
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     window.alert = vi.fn();

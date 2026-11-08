@@ -30,7 +30,6 @@ describe('Playwright global setup after PHP tests', () => {
 
     beforeEach(() => {
         originalEnvironment = { ...process.env };
-        vi.clearAllMocks();
         harness.events.length = 0;
         harness.dirtyViews = true;
         harness.failCleanup = false;

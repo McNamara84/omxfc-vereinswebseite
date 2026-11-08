@@ -12,20 +12,30 @@ function jsonResponse(data, { ok = true, status = 200, statusText = 'OK' } = {})
 }
 
 describe('http client', () => {
+    let originalHeaders;
+    let originalHead;
+
+    beforeEach(() => {
+        originalHead = document.head.innerHTML;
+        originalHeaders = { ...http.defaults.headers.common };
+        document.head.innerHTML = '';
+        vi.stubGlobal('fetch', vi.fn());
+        http.defaults.headers.common = { 'X-Requested-With': 'XMLHttpRequest' };
+    });
+
+    afterEach(() => {
+        http.defaults.headers.common = originalHeaders;
+        document.head.innerHTML = originalHead;
+        vi.unstubAllGlobals();
+    });
+
     it('preserves explicit headers and omits null and undefined values', async () => {
-        global.fetch = vi.fn().mockResolvedValue(jsonResponse({ ok: true }));
+        fetch.mockResolvedValue(jsonResponse({ ok: true }));
         await http.get('/test', { headers: { Accept: 'application/json', Empty: null, Missing: undefined } });
         const headers = global.fetch.mock.calls[0][1].headers;
         expect(headers.get('Accept')).toBe('application/json');
         expect(headers.has('Empty')).toBe(false);
         expect(headers.has('Missing')).toBe(false);
-    });
-    beforeEach(() => {
-        document.head.innerHTML = '';
-        global.fetch = vi.fn();
-        http.defaults.headers.common = {
-            'X-Requested-With': 'XMLHttpRequest',
-        };
     });
 
     it('sendet Standard-Header und parsed JSON-Antworten', async () => {

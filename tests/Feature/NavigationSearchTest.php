@@ -14,8 +14,10 @@ use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Features\SupportDisablingBackButtonCache\SupportDisablingBackButtonCache;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -83,10 +85,19 @@ class NavigationSearchTest extends TestCase
         $this->getJson(route('mary.spotlight', $query))->assertStatus(422);
     }
 
-    public function test_overlong_query_is_rejected_without_redirect(): void
+    #[TestWith([false])]
+    #[TestWith([true])]
+    public function test_overlong_query_is_rejected_without_redirect(bool $disableBackButtonCache): void
     {
-        $this->getJson(route('mary.spotlight', ['search' => str_repeat('a', 101)]))
-            ->assertStatus(422)->assertHeader('Cache-Control', 'max-age=0, no-store, private');
+        SupportDisablingBackButtonCache::$disableBackButtonCache = $disableBackButtonCache;
+
+        try {
+            $response = $this->getJson(route('mary.spotlight', ['search' => str_repeat('a', 101)]))
+                ->assertStatus(422);
+            $this->assertPrivateSearchHeaders($response->headers);
+        } finally {
+            SupportDisablingBackButtonCache::$disableBackButtonCache = false;
+        }
     }
 
     public function test_direct_guest_requests_cannot_select_members_or_admin_scope(): void
@@ -167,7 +178,8 @@ class NavigationSearchTest extends TestCase
         config(['database-maintenance.enabled' => true]);
         $user = $this->actingMember(Role::Admin);
         $url = route('mary.spotlight', ['search' => 'Datenbank']);
-        $this->getJson($url)->assertJsonCount(1)->assertHeader('Cache-Control', 'max-age=0, no-store, private');
+        $response = $this->getJson($url)->assertJsonCount(1);
+        $this->assertPrivateSearchHeaders($response->headers);
         Team::membersTeam()->users()->updateExistingPivot($user->id, ['role' => Role::Mitglied->value]);
         $this->actingAs($user->fresh())->getJson($url)->assertExactJson([]);
     }
@@ -284,5 +296,14 @@ class NavigationSearchTest extends TestCase
             $this->assertSame($expected, $active[0]['key']);
             $this->assertSame('location', $active[0]['aria_current']);
         }
+    }
+
+    private function assertPrivateSearchHeaders(ResponseHeaderBag $headers): void
+    {
+        // Livewire may add stricter directives; the privacy requirements must remain intact.
+        $this->assertTrue($headers->hasCacheControlDirective('private'));
+        $this->assertTrue($headers->hasCacheControlDirective('no-store'));
+        $this->assertSame('0', $headers->getCacheControlDirective('max-age'));
+        $this->assertFalse($headers->hasCacheControlDirective('public'));
     }
 }
