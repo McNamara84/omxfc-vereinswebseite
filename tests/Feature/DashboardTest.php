@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -8,273 +10,166 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class DashboardTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(DashboardTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        Cache::flush();
-        Config::set('app.testing_minimal_layout', true);
-    }
+beforeEach(function (): void {
+    Cache::flush();
+    Config::set('app.testing_minimal_layout', true);
+});
 
-    private function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role->value]);
-
-        return $user;
-    }
-
-    public function test_dashboard_prioritizes_quick_actions_and_keeps_all_twelve_metrics(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-
-        $expectedGroups = [
-            'important' => 'Jetzt wichtig',
-            'progress' => 'Mein Fortschritt',
-            'community' => 'Community',
-        ];
-
-        $crawler = new Crawler($response->getContent());
-        $groups = $crawler->filter('[data-testid^="dashboard-metric-group-"]');
-        $this->assertCount(3, $groups);
-
-        foreach ($expectedGroups as $key => $title) {
-            $group = $crawler->filter("[data-testid=\"dashboard-metric-group-{$key}\"]");
-            $this->assertCount(1, $group);
-            if ($key === 'important') {
-                $this->assertSame($title, trim($group->filter('h2')->text()));
-                $this->assertSame($group->filter('h2')->attr('id'), $group->attr('aria-labelledby'));
-            } else {
-                $this->assertSame($title, $group->attr('aria-label'));
-            }
-            $this->assertCount($key === 'important' ? 2 : 4, $group->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
+test('dashboard prioritizes quick actions and keeps all twelve metrics', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $expectedGroups = ['important' => 'Jetzt wichtig', 'progress' => 'Mein Fortschritt', 'community' => 'Community'];
+    $crawler = new Crawler($response->getContent());
+    $groups = $crawler->filter('[data-testid^="dashboard-metric-group-"]');
+    expect($groups)->toHaveCount(3);
+    foreach ($expectedGroups as $key => $title) {
+        $group = $crawler->filter("[data-testid=\"dashboard-metric-group-{$key}\"]");
+        expect($group)->toHaveCount(1);
+        if ($key === 'important') {
+            expect(trim($group->filter('h2')->text()))->toBe($title)
+                ->and($group->attr('aria-labelledby'))->toBe($group->filter('h2')->attr('id'));
+        } else {
+            expect($group->attr('aria-label'))->toBe($title);
         }
-        $this->assertCount(12, $crawler->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'));
-        $this->assertLessThan(strpos($response->getContent(), 'dashboard-metric-group-important'), strpos($response->getContent(), 'dashboard-quick-actions'));
+        expect($group->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'))->toHaveCount($key === 'important' ? 2 : 4);
     }
+    expect($crawler->filter('[data-testid^="dashboard-metric-"]:not([data-testid^="dashboard-metric-group-"])'))->toHaveCount(12)
+        ->and(strpos($response->getContent(), 'dashboard-quick-actions'))->toBeLessThan(strpos($response->getContent(), 'dashboard-metric-group-important'));
+});
 
-    #[TestWith([Role::Admin])]
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Kassenwart])]
-    public function test_dashboard_shows_applicants_for_privileged_roles(Role $role): void
-    {
-        $team = Team::membersTeam();
-        $user = $this->createUserWithRole($role);
-        $applicant = User::factory()->create();
-        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
+test('dashboard shows applicants for privileged roles', function (Role $role): void {
+    $team = Team::membersTeam();
+    $user = $this->createUserWithRole($role);
+    $applicant = User::factory()->create();
+    $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertSeeText('Mitgliedsanträge');
+    $response->assertSeeText($applicant->name);
+    $crawler = new Crawler($response->getContent());
+    $table = $crawler->filter('table');
+    expect($table->count())->toBeGreaterThan(0)
+        ->and(trim($table->first()->filter('th')->eq(0)->text()))->toBe('Name')
+        ->and(trim($table->first()->filter('button')->eq(0)->text()))->toBe('Genehmigen');
+})->with([[Role::Admin], [Role::Vorstand], [Role::Kassenwart]]);
 
-        $response = $this->actingAs($user)->get('/dashboard');
+test('dashboard hides applicants for regular members', function (): void {
+    $team = Team::membersTeam();
+    $user = $this->createUserWithRole(Role::Mitglied);
+    $applicant = User::factory()->create();
+    $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertDontSee('Mitgliedsanträge');
+    $response->assertDontSee($applicant->name);
+});
 
-        $response->assertOk();
-        $response->assertSeeText('Mitgliedsanträge');
-        $response->assertSeeText($applicant->name);
+test('dashboard shows pending verification task', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    $team = Team::membersTeam();
+    Todo::create(['team_id' => $team->id, 'created_by' => $user->id, 'assigned_to' => $user->id, 'title' => 'Abschließen', 'description' => 'Wartet auf Verifizierung', 'points' => 5, 'status' => TodoStatus::Completed]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertSeeText('1 Verifizierung');
+    $response->assertSeeText('Abgeschlossene Challenges warten auf Freigabe.');
+    $crawler = new Crawler($response->getContent());
+    $verificationTask = $crawler->filter('[data-testid="dashboard-task-verification"]');
+    expect($verificationTask)->toHaveCount(1)
+        ->and($verificationTask->attr('href'))->toBe(route('todos.index', ['filter' => 'pending']));
+})->with([[Role::Admin], [Role::Vorstand], [Role::Kassenwart]]);
 
-        $crawler = new Crawler($response->getContent());
-        $table = $crawler->filter('table');
-        $this->assertGreaterThan(0, $table->count());
-        $this->assertSame('Name', trim($table->first()->filter('th')->eq(0)->text()));
-        $this->assertSame('Genehmigen', trim($table->first()->filter('button')->eq(0)->text()));
+test('dashboard hides pending verification card for members', function (): void {
+    $user = $this->createUserWithRole(Role::Mitglied);
+    $team = Team::membersTeam();
+    Todo::create(['team_id' => $team->id, 'created_by' => $user->id, 'assigned_to' => $user->id, 'title' => 'Verifizierung wartet', 'description' => 'Soll nicht sichtbar sein', 'points' => 5, 'status' => TodoStatus::Completed]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertDontSee('dashboard-task-verification');
+});
+
+test('dashboard displays top user summary', function (): void {
+    $user = $this->createUserWithRole(Role::Admin);
+    $team = Team::membersTeam();
+    $topUsers = User::factory()->count(3)->create(['current_team_id' => $team->id]);
+    $topUsers->first()->update(['name' => 'Top Klarname', 'alias' => 'TopNickname']);
+    foreach ($topUsers as $index => $topUser) {
+        $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
+        UserPoint::create(['user_id' => $topUser->id, 'team_id' => $team->id, 'points' => [1234, 1040, 980][$index]]);
     }
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $crawler = new Crawler($response->getContent());
+    expect(trim($crawler->filter('h2')->reduce(fn (Crawler $node) => trim($node->text()) === 'Top 3 Baxx-Sammler')->text()))->toBe('Top 3 Baxx-Sammler');
+    $topList = $crawler->filter('[data-dashboard-top-users]');
+    expect($topList->count())->toBe(1)
+        ->and($topList->attr('aria-label'))->toContain('Top 3 Baxx-Sammler')
+        ->and($topList->attr('aria-label'))->toContain('1.234 Baxx')
+        ->and($topList->filter('[data-dashboard-top-user-item]')->count())->toBe(3);
+    $srSummary = $topList->filter('[data-dashboard-top-summary]');
+    expect($srSummary->count())->toBe(1)
+        ->and(trim($srSummary->text()))->toContain('Top 3 Baxx-Sammler');
+    $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
+    expect($payload[0]['name'])->toBe('TopNickname')
+        ->and($payload[0]['formatted_points'])->toBe('1.234')
+        ->and($payload[0]['points'])->toBe(1234);
+});
 
-    public function test_dashboard_hides_applicants_for_regular_members(): void
-    {
-        $team = Team::membersTeam();
-        $user = $this->createUserWithRole(Role::Mitglied);
-        $applicant = User::factory()->create();
-        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertDontSee('Mitgliedsanträge');
-        $response->assertDontSee($applicant->name);
+test('dashboard uses dynamic top users panel title for shorter rankings', function (): void {
+    $user = $this->createUserWithRole(Role::Admin);
+    $team = Team::membersTeam();
+    $topUsers = User::factory()->count(2)->create(['current_team_id' => $team->id]);
+    foreach ($topUsers as $index => $topUser) {
+        $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
+        UserPoint::create(['user_id' => $topUser->id, 'team_id' => $team->id, 'points' => [300, 220][$index]]);
     }
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertSeeText('Top 2 Baxx-Sammler');
+    $response->assertDontSeeText('TOP 3 Baxx-Sammler');
+});
 
-    #[TestWith([Role::Admin])]
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Kassenwart])]
-    public function test_dashboard_shows_pending_verification_task(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $team = Team::membersTeam();
+test('dashboard shows personalized header and quick actions for members', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id, 'vorname' => 'Alex', 'alias' => 'DashboardNick']);
+    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $response->assertOk();
+    $response->assertSeeText('Willkommen zurück, Alex');
+    $response->assertDontSeeText('Willkommen zurück, DashboardNick');
+    $response->assertSeeText('Schnellstart');
+    $response->assertSeeText('Challenges & Baxx');
+    $response->assertSeeText('Veranstaltung');
+    $response->assertDontSeeText('Fantreffen verwalten');
+});
 
-        Todo::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'assigned_to' => $user->id,
-            'title' => 'Abschließen',
-            'description' => 'Wartet auf Verifizierung',
-            'points' => 5,
-            'status' => TodoStatus::Completed,
-        ]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertSeeText('1 Verifizierung');
-        $response->assertSeeText('Abgeschlossene Challenges warten auf Freigabe.');
-
-        $crawler = new Crawler($response->getContent());
-        $verificationTask = $crawler->filter('[data-testid="dashboard-task-verification"]');
-        $this->assertCount(1, $verificationTask);
-        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationTask->attr('href'));
-    }
-
-    public function test_dashboard_hides_pending_verification_card_for_members(): void
-    {
-        $user = $this->createUserWithRole(Role::Mitglied);
-        $team = Team::membersTeam();
-
-        Todo::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'assigned_to' => $user->id,
-            'title' => 'Verifizierung wartet',
-            'description' => 'Soll nicht sichtbar sein',
-            'points' => 5,
-            'status' => TodoStatus::Completed,
-        ]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertDontSee('dashboard-task-verification');
-    }
-
-    public function test_dashboard_displays_top_user_summary(): void
-    {
-        $user = $this->createUserWithRole(Role::Admin);
-        $team = Team::membersTeam();
-
-        $topUsers = User::factory()->count(3)->create(['current_team_id' => $team->id]);
-        $topUsers->first()->update([
-            'name' => 'Top Klarname',
-            'alias' => 'TopNickname',
-        ]);
-
-        foreach ($topUsers as $index => $topUser) {
-            $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
-            UserPoint::create([
-                'user_id' => $topUser->id,
-                'team_id' => $team->id,
-                'points' => [1234, 1040, 980][$index],
-            ]);
-        }
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-
-        $crawler = new Crawler($response->getContent());
-        $this->assertSame('Top 3 Baxx-Sammler', trim($crawler->filter('h2')->reduce(function (Crawler $node) {
-            return trim($node->text()) === 'Top 3 Baxx-Sammler';
-        })->text()));
-        $topList = $crawler->filter('[data-dashboard-top-users]');
-        $this->assertSame(1, $topList->count());
-        $this->assertStringContainsString('Top 3 Baxx-Sammler', $topList->attr('aria-label'));
-        $this->assertStringContainsString('1.234 Baxx', $topList->attr('aria-label'));
-        $this->assertSame(3, $topList->filter('[data-dashboard-top-user-item]')->count());
-        $srSummary = $topList->filter('[data-dashboard-top-summary]');
-        $this->assertSame(1, $srSummary->count());
-        $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
-        $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
-        $this->assertSame('TopNickname', $payload[0]['name']);
-        $this->assertSame('1.234', $payload[0]['formatted_points']);
-        $this->assertSame(1234, $payload[0]['points']);
-    }
-
-    public function test_dashboard_uses_dynamic_top_users_panel_title_for_shorter_rankings(): void
-    {
-        $user = $this->createUserWithRole(Role::Admin);
-        $team = Team::membersTeam();
-
-        $topUsers = User::factory()->count(2)->create(['current_team_id' => $team->id]);
-
-        foreach ($topUsers as $index => $topUser) {
-            $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
-            UserPoint::create([
-                'user_id' => $topUser->id,
-                'team_id' => $team->id,
-                'points' => [300, 220][$index],
-            ]);
-        }
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertSeeText('Top 2 Baxx-Sammler');
-        $response->assertDontSeeText('TOP 3 Baxx-Sammler');
-    }
-
-    public function test_dashboard_shows_personalized_header_and_quick_actions_for_members(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create([
-            'current_team_id' => $team->id,
-            'vorname' => 'Alex',
-            'alias' => 'DashboardNick',
-        ]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-
-        $response->assertOk();
-        $response->assertSeeText('Willkommen zurück, Alex');
-        $response->assertDontSeeText('Willkommen zurück, DashboardNick');
-        $response->assertSeeText('Schnellstart');
-        $response->assertSeeText('Challenges & Baxx');
-        $response->assertSeeText('Veranstaltung');
-        $response->assertDontSeeText('Fantreffen verwalten');
-    }
-
-    public function test_dashboard_prioritizes_governance_work_in_tasks_instead_of_quick_actions(): void
-    {
-        $user = $this->createUserWithRole(Role::Admin);
-        $team = Team::membersTeam();
-        $applicant = User::factory()->create();
-        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
-
-        Todo::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'assigned_to' => $user->id,
-            'title' => 'Dashboard Quick Action',
-            'description' => 'Soll als Schnellaktion auftauchen',
-            'points' => 5,
-            'status' => TodoStatus::Completed,
-        ]);
-
-        $response = $this->actingAs($user)->get('/dashboard');
-        $quickActions = collect($response->viewData('quickActions'));
-        $tasks = collect($response->viewData('tasks'));
-        $earnBaxxAction = $quickActions->firstWhere('title', 'Challenges & Baxx');
-        $verificationTask = $tasks->firstWhere('key', 'verification');
-        $applicantTask = $tasks->firstWhere('key', 'applicants');
-
-        $response->assertOk();
-        $response->assertSeeText('1 Mitgliedsantrag');
-        $response->assertSeeText('1 Verifizierung');
-        $this->assertNotNull($earnBaxxAction);
-        $this->assertNull($quickActions->firstWhere('title', 'Verifizierungen prüfen'));
-        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationTask['href'] ?? null);
-        $this->assertSame(1, $verificationTask['count'] ?? null);
-        $this->assertSame('#dashboard-applicants', $applicantTask['href'] ?? null);
-    }
-}
+test('dashboard prioritizes governance work in tasks instead of quick actions', function (): void {
+    $user = $this->createUserWithRole(Role::Admin);
+    $team = Team::membersTeam();
+    $applicant = User::factory()->create();
+    $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
+    Todo::create(['team_id' => $team->id, 'created_by' => $user->id, 'assigned_to' => $user->id, 'title' => 'Dashboard Quick Action', 'description' => 'Soll als Schnellaktion auftauchen', 'points' => 5, 'status' => TodoStatus::Completed]);
+    $response = $this->actingAs($user)->get('/dashboard');
+    $quickActions = collect($response->viewData('quickActions'));
+    $tasks = collect($response->viewData('tasks'));
+    $earnBaxxAction = $quickActions->firstWhere('title', 'Challenges & Baxx');
+    $verificationTask = $tasks->firstWhere('key', 'verification');
+    $applicantTask = $tasks->firstWhere('key', 'applicants');
+    $response->assertOk();
+    $response->assertSeeText('1 Mitgliedsantrag');
+    $response->assertSeeText('1 Verifizierung');
+    expect($earnBaxxAction)->not->toBeNull()
+        ->and($quickActions->firstWhere('title', 'Verifizierungen prüfen'))->toBeNull()
+        ->and($verificationTask['href'] ?? null)->toBe(route('todos.index', ['filter' => 'pending']))
+        ->and($verificationTask['count'] ?? null)->toBe(1)
+        ->and($applicantTask['href'] ?? null)->toBe('#dashboard-applicants');
+});

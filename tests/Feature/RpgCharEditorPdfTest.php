@@ -1,3058 +1,1043 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Models\Team;
-use App\Models\User;
 use App\Services\RpgCharacterSheetService;
-use App\Support\RpgCharEditorSpecialRules;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Dompdf\Dompdf;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Tests\TestCase;
 
-class RpgCharEditorPdfTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RpgCharEditorPdfTestFixtures::class);
 
-    protected function setUp(): void
+beforeEach(function (): void {
+    Cache::store('rpg_pdf_exports')->flush();
+});
+
+afterEach(function (): void {
+    Cache::store('rpg_pdf_exports')->flush();
+});
+
+test('char sheet formats gender values for pdf view', function (): void {
+    $html = view('rpg.char-sheet', ['character' => ['player_name' => 'Spieler Eins', 'character_name' => 'Foo Bar', 'gender' => 'maennlich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => '', 'equipment' => ''], 'attributes' => [], 'skills' => [], 'advantages' => [], 'disadvantages' => [], 'portrait' => null])->render();
+    expect($html)->toContain('Barbar · Landbewohner · männlich')
+        ->toContain('Figurenstärke')
+        ->toMatch('/Figurenstärke<\/th>\s*<td>3<\/td>/')->not->toContain('maennlich');
+});
+
+test('char sheet does not render trailing spaces for plain advantages', function (): void {
+    $html = view('rpg.char-sheet', ['character' => ['player_name' => '', 'character_name' => '', 'gender' => 'maennlich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => '', 'equipment' => ''], 'attributes' => [], 'skills' => [], 'advantages' => ['Zäh'], 'disadvantages' => [], 'advantage_details' => [], 'disadvantage_details' => [], 'advantage_counts' => [], 'portrait' => null])->render();
+    expect($html)->toMatch('/class="prepared-line"[^>]*>Zäh<\/div>/');
+    $this->assertDoesNotMatchRegularExpression('/class="prepared-line"[^>]*>Zäh\s+<\/div>/', $html);
+});
+
+test('failed pdf prepare redirect keeps editor input for recovery', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->from(route('rpg.char-editor'))->actingAs($member)->post(route('rpg.char-editor.pdf'), $this->validPdfPayload(['character_name' => 'Kept PDF Character', 'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image')]));
+    $response->assertRedirect(route('rpg.char-editor'))->assertSessionHasErrors('portrait_data_url')->assertSessionHasInput('character_name', 'Kept PDF Character')->assertSessionHasInput('race', 'Barbar')->assertSessionHasInput('clothing', 'kleidung-einfach');
+});
+
+test('pdf export post redirects to get viewer url', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+    $response->assertStatus(Response::HTTP_SEE_OTHER)->assertRedirect();
+    $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+    expect($path)->toMatch('#^/rpg/char-editor/pdf/[0-9a-f-]{36}$#');
+});
+
+test('pdf export includes structured equipment and server ammunition', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['equipment']['clothing']['id'] ?? null) === 'kleidung-wanderer' && collect($data['equipment']['items'])->contains(fn ($item) => $item['id'] === 'bogen' && $item['quantity'] === 2) && collect($data['equipment']['ammunition'])->contains(fn ($ammo) => $ammo['source'] === 'Bogen' && $ammo['quantity'] === 60 && $ammo['unit'] === 'Pfeile') && ($data['equipment']['notes'] ?? null) === 'Bogen gewachst'))->andReturn(new class extends PdfBuilder
     {
-        parent::setUp();
-
-        Cache::store('rpg_pdf_exports')->flush();
-    }
-
-    protected function tearDown(): void
-    {
-        Cache::store('rpg_pdf_exports')->flush();
-
-        parent::tearDown();
-    }
-
-    private function validPdfPayload(array $overrides = []): array
-    {
-        $payload = array_replace_recursive([
-            'figurenstaerke' => 3,
-            'player_name' => 'Spieler Eins',
-            'character_name' => 'Foo Bar',
-            'gender' => 'maennlich',
-            'race' => 'Barbar',
-            'culture' => 'Landbewohner',
-            'description' => 'Ein erfahrener Charakter aus Wudan.',
-            'attributes' => [
-                'st' => 2,
-                'ge' => 1,
-            ],
-            'barbar_attribute_bonus' => 'st',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                ['name' => 'Kunde: Wetter', 'value' => 1],
-                ['name' => 'Fernkampf', 'value' => 4],
-                ['name' => 'Handeln', 'value' => 4],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Feuerwaffen', 'value' => 4],
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Auffällig'],
-            'advantage_details' => [],
-            'disadvantage_details' => [],
-            'advantage_counts' => [],
-            'advantage_effects' => [],
-            'languages' => [],
-            'clothing' => 'kleidung-einfach',
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-            ],
-            'equipment' => 'Messer, Seil, Feldflasche',
-        ], $overrides);
-
-        if (! array_key_exists('attributes', $overrides)) {
-            $payload['attributes'] = $this->validAttributesForRace((string) ($payload['race'] ?? ''));
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['clothing' => 'kleidung-wanderer', 'equipment_items' => [['id' => 'bogen', 'quantity' => 2], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]], 'equipment' => 'Bogen gewachst']));
+    $response->assertOk();
+});
 
-        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'advantage_details', 'disadvantage_details', 'advantage_counts', 'advantage_effects', 'languages', 'equipment_items'] as $listKey) {
-            if (array_key_exists($listKey, $overrides)) {
-                $payload[$listKey] = $overrides[$listKey];
-            }
+test('pdf export requires valid clothing from equipment rules', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['clothing' => 'smoking']));
+    $response->assertSessionHasErrors('clothing');
+});
+
+test('pdf export requires exactly six counted equipment items', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['equipment_items' => [['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]]]));
+    $response->assertSessionHasErrors(['equipment_items' => 'Zu Beginn müssen genau 6 gezählte Ausrüstungsgegenstände gewählt werden.']);
+});
+
+test('pdf export accepts unarmed attack without counting it as starting item', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function (array $data): bool {
+        $items = collect($data['equipment']['items'] ?? []);
+
+        return $items->contains(fn ($item) => $item['id'] === 'faustschlag-tritt' && $item['quantity'] === 1 && $item['counts_toward_limit'] === false) && $items->contains(fn ($item) => $item['id'] === 'schlagring-stein' && $item['counts_toward_limit'] === true);
+    }))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['equipment_items' => [['id' => 'faustschlag-tritt', 'quantity' => 1], ['id' => 'schlagring-stein', 'quantity' => 1], ['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]]]));
+    $response->assertOk();
+});
 
-        if (! array_key_exists('advantage_effects', $overrides)) {
-            $payload['advantage_effects'] = $this->advantageEffectsForPayload($payload);
+test('pdf export does not count unarmed attack toward required item total', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['equipment_items' => [['id' => 'faustschlag-tritt', 'quantity' => 1], ['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]]]));
+    $response->assertSessionHasErrors('equipment_items');
+});
+
+test('pdf export rejects unknown equipment ids', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['equipment_items' => [['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1], ['id' => 'laserdrache', 'quantity' => 1]]]));
+    $response->assertSessionHasErrors('equipment_items');
+});
+
+test('pdf export rejects high tech equipment without advantage', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['equipment_items' => [['id' => 'funkgeraet', 'quantity' => 1], ['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]]]));
+    $response->assertSessionHasErrors('equipment_items');
+});
+
+test('pdf export limits high tech equipment to four with advantage', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'disadvantages' => ['Auffällig'], 'equipment_items' => [['id' => 'funkgeraet', 'quantity' => 5], ['id' => 'seil', 'quantity' => 1]]]));
+    $response->assertSessionHasErrors('equipment_items');
+});
+
+test('pdf export get route can be opened repeatedly by pdf viewers', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+    $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+    Pdf::shouldReceive('view')->twice()->with('rpg.char-sheet', \Mockery::type('array'))->andReturnUsing(fn () => new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-
-        if (! array_key_exists('attribute_adjustments', $overrides)) {
-            $payload['attributes'] = $this->completeAttributeBudgetForPayload($payload);
-            $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
-        }
-
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        if (! array_key_exists('languages', $overrides)) {
-            $languageValue = collect($payload['skills'])->firstWhere('name', 'Sprachen')['value'] ?? 0;
-            $payload['languages'] = (int) $languageValue > 0
-                ? array_map(static fn (int $index): string => 'Testsprache '.$index, range(1, (int) $languageValue))
-                : [];
-        }
-
-        if (! array_key_exists('equipment_items', $overrides)
-            && (in_array($payload['race'], ['Techno', 'Präkristofluu'], true)
-                || in_array('High-Tech-Ausrüstung', $this->canonicalAdvantages($payload['advantages']), true))) {
-            $payload['equipment_items'] = [
-                ['id' => 'fernglas', 'quantity' => 1],
-                ['id' => 'funkgeraet', 'quantity' => 1],
-                ['id' => 'gasmaske', 'quantity' => 1],
-                ['id' => 'atemgeraet', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-            ];
-        }
-
-        return $payload;
-    }
-
-    /** @return array<string, int> */
-    private function completeAttributeBudgetForPayload(array $payload): array
-    {
-        $attributes = is_array($payload['attributes'] ?? null) ? $payload['attributes'] : [];
-        $levelRules = RpgCharEditorSpecialRules::creationLevel((int) ($payload['figurenstaerke'] ?? 3));
-        $requiredPoints = (int) $levelRules['attributePoints'] + (trim((string) ($payload['extra_ap_attribute'] ?? '')) === '' ? 0 : 1);
-        $modifiers = match ($payload['race'] ?? '') {
-            'Guul' => ['au' => -1],
-            'Nosfera' => ['ge' => 1, 'au' => -1],
-            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-            'Wulfane' => ['ro' => 1, 'au' => -1],
-            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
-            default => [],
-        };
-        $bonuses = [];
-
-        foreach ($payload['advantage_effects'] ?? [] as $effect) {
-            if (($effect['name'] ?? '') === 'Gesteigertes Attribut') {
-                $target = (string) ($effect['target'] ?? '');
-                $bonuses[$target] = ($bonuses[$target] ?? 0) + 1;
-            }
-        }
-
-        $usedPoints = 0;
-        foreach (RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS as $attribute) {
-            $adjustment = (int) ($attributes[$attribute] ?? 0)
-                - (int) ($modifiers[$attribute] ?? 0)
-                - (int) ($bonuses[$attribute] ?? 0);
-            $usedPoints += max($adjustment, 0);
-        }
-
-        foreach (RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS as $attribute) {
-            if ($usedPoints >= $requiredPoints) {
-                break;
-            }
-            if (array_key_exists($attribute, $attributes)) {
-                continue;
-            }
-
-            $attributes[$attribute] = (int) ($modifiers[$attribute] ?? 0)
-                + (int) ($bonuses[$attribute] ?? 0)
-                + 1;
-            $usedPoints++;
-        }
-
-        return $attributes;
-    }
-
-    /** @return list<array{name: string, value: int}> */
-    private function completeSkillBudgetForPayload(array $payload): array
-    {
-        $skills = is_array($payload['skills'] ?? null) ? array_values($payload['skills']) : [];
-        $levelRules = RpgCharEditorSpecialRules::creationLevel((int) ($payload['figurenstaerke'] ?? 3));
-        $skillBudget = (int) $levelRules['skillPoints'];
-        $skillMax = (int) $levelRules['skillMax'];
-        $service = app(RpgCharacterSheetService::class);
-        $validateCultureRequirements = new \ReflectionMethod($service, 'validateCultureRequirements');
-        $freeSkillGrants = new \ReflectionMethod($service, 'freeSkillGrants');
-        $skillPointsUsed = new \ReflectionMethod($service, 'skillPointsUsed');
-        $skillPools = [
-            'techno' => $payload['techno_skill_points'] ?? [],
-            'praekristofluu' => $payload['praekristofluu_skill_points'] ?? [],
-        ];
-        $cultureChoices = [
-            'bunkermensch_bonus_skill' => $payload['bunkermensch_bonus_skill'] ?? '',
-            'mensch_21_first_bonus_skill' => $payload['mensch_21_first_bonus_skill'] ?? '',
-            'mensch_21_second_bonus_skill' => $payload['mensch_21_second_bonus_skill'] ?? '',
-        ];
-
-        try {
-            $validateCultureRequirements->invoke(
-                $service,
-                (string) ($payload['culture'] ?? ''),
-                $skills,
-            );
-        } catch (ValidationException) {
-            return $skills;
-        }
-
-        $fillers = ['Handeln', 'Heiler', 'Reiten', 'Unterhalten', 'Diebeskunst', 'Heimlichkeit', 'Fernkampf', 'Athletik', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker'];
-
-        foreach ($fillers as $filler) {
-            try {
-                $grants = $freeSkillGrants->invoke(
-                    $service,
-                    (string) ($payload['race'] ?? ''),
-                    (string) ($payload['culture'] ?? ''),
-                    $skills,
-                    $skillPools,
-                    $cultureChoices,
-                    $skillMax,
-                );
-            } catch (ValidationException) {
-                return $skills;
-            }
-
-            $usedPoints = $skillPointsUsed->invoke($service, $skills, $grants);
-            if ($usedPoints >= $skillBudget) {
-                break;
-            }
-            if (in_array($filler, array_column($skills, 'name'), true)) {
-                continue;
-            }
-
-            $skills[] = [
-                'name' => $filler,
-                'value' => min($skillMax, $skillBudget - $usedPoints),
-            ];
-        }
-
-        return $skills;
-    }
-
-    private function canonicalAdvantages(array $advantages): array
-    {
-        $aliases = [
-            'Zaeh' => 'Zäh',
-            'Natuerliche Waffen' => 'Natürliche Waffen',
-            'High-Tech-Ausruestung' => 'High-Tech-Ausrüstung',
-        ];
-
-        return array_map(static fn (string $name): string => $aliases[$name] ?? $name, $advantages);
-    }
-
-    private function advantageEffectsForPayload(array $payload): array
-    {
-        $advantages = $this->canonicalAdvantages($payload['advantages'] ?? []);
-        $racial = match ($payload['race'] ?? '') {
-            'Guul' => ['Natürliche Waffen'],
-            'Hydrit' => ['Kiemen', 'Natürliche Waffen'],
-            'Nosfera' => ['Nachtsicht'],
-            'Techno', 'Präkristofluu' => ['High-Tech-Ausrüstung'],
-            default => [],
-        };
-        $details = $payload['advantage_details'] ?? [];
-        $counts = $payload['advantage_counts'] ?? [];
-        $effects = [];
-
-        foreach (array_diff($advantages, ['Zäh', ...$racial]) as $advantage) {
-            $count = in_array($advantage, ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Panzerung', 'Regeneration'], true)
-                ? max(1, (int) ($counts[$advantage] ?? 1))
-                : 1;
-            $detail = trim((string) ($details[$advantage] ?? $details[str_replace(' ', '_', $advantage)] ?? ''));
-
-            for ($index = 0; $index < $count; $index++) {
-                $target = match ($advantage) {
-                    'Gesteigertes Attribut' => $this->attributeTargetFromDetail($detail),
-                    'Gesteigerter Sinn' => in_array($detail, ['Sehen', 'Hören', 'Riechen', 'Schmecken', 'Tasten'], true) ? $detail : 'Sehen',
-                    'Psychische Kraft' => 'Telepathie',
-                    default => '',
-                };
-                $requiresReason = in_array($advantage, ['Gesteigertes Attribut', 'Gesteigerter Sinn', 'Nachtsicht', 'Natürliche Waffen', 'Panzerung', 'Regeneration', 'Schnell', 'Tiergefährte'], true);
-                $effects[] = [
-                    'name' => $advantage,
-                    'target' => $target,
-                    'justification' => $requiresReason ? ($detail !== '' ? $detail : 'Testbegründung') : '',
-                ];
-            }
-        }
-
-        return $effects;
-    }
-
-    private function attributeTargetFromDetail(string $detail): string
-    {
-        $labels = ['ST' => 'st', 'GE' => 'ge', 'RO' => 'ro', 'WI' => 'wi', 'WA' => 'wa', 'IN' => 'in', 'AU' => 'au'];
-        foreach ($labels as $label => $target) {
-            if (str_contains(mb_strtoupper($detail), $label)) {
-                return $target;
-            }
-        }
-
-        return 'wi';
-    }
-
-    private function attributeAdjustmentsForPayload(array $payload): array
-    {
-        $modifiers = match ($payload['race'] ?? '') {
-            'Guul' => ['au' => -1],
-            'Nosfera' => ['ge' => 1, 'au' => -1],
-            'Taratze' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-            'Wulfane' => ['ro' => 1, 'au' => -1],
-            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
-            default => [],
-        };
-        $bonuses = [];
-        foreach ($payload['advantage_effects'] ?? [] as $effect) {
-            if (($effect['name'] ?? '') === 'Gesteigertes Attribut') {
-                $target = (string) ($effect['target'] ?? '');
-                $bonuses[$target] = ($bonuses[$target] ?? 0) + 1;
-            }
-        }
-
-        $adjustments = [];
-        foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
-            $adjustments[$attribute] = max(-1, min(1, (int) ($payload['attributes'][$attribute] ?? 0)
-                - (int) ($modifiers[$attribute] ?? 0)
-                - (int) ($bonuses[$attribute] ?? 0)));
-        }
-
-        return $adjustments;
-    }
-
-    private function validAttributesForRace(string $race): array
-    {
-        return match (trim($race)) {
-            'Barbar' => ['st' => 2, 'ge' => 1],
-            'Guul' => ['st' => 1, 'ge' => 1, 'au' => -1],
-            'Nosfera' => ['st' => 1, 'ge' => 2, 'au' => -1],
-            'Taratze' => ['st' => 2, 'ge' => 1, 'wa' => 1, 'in' => -1, 'au' => -1],
-            'Wulfane' => ['st' => 1, 'ge' => 1, 'ro' => 1, 'au' => -1],
-            'Techno' => ['st' => 0, 'ge' => 1, 'ro' => -1, 'in' => 1],
-            default => ['st' => 1, 'ge' => 1],
-        };
-    }
-
-    private function createMember(Role|string $role = Role::Mitglied): User
-    {
-        $team = Team::membersTeam();
-
-        if (! $team) {
-            $team = Team::factory()->create(['name' => 'Mitglieder', 'personal_team' => false]);
-        }
-
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role instanceof Role ? $role->value : $role]);
-
-        return $user->refresh();
-    }
-
-    private function addAgRollenspielMembership(User $user): User
-    {
-        $owner = User::factory()->create();
-
-        $team = Team::factory()->create([
-            'user_id' => $owner->id,
-            'name' => 'AG Rollenspiel',
-            'personal_team' => false,
-        ]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        return $user->refresh();
-    }
-
-    private function createManagementUserWithDifferentCurrentTeam(Role $role): User
-    {
-        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-
-        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
-        $managementTeam->users()->attach($user, ['role' => $role->value]);
-
-        $otherTeam = Team::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Nebenverein',
-            'personal_team' => false,
-        ]);
-        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
-
-        return $user->refresh();
-    }
-
-    public function test_char_sheet_formats_gender_values_for_pdf_view(): void
-    {
-        $html = view('rpg.char-sheet', [
-            'character' => [
-                'player_name' => 'Spieler Eins',
-                'character_name' => 'Foo Bar',
-                'gender' => 'maennlich',
-                'race' => 'Barbar',
-                'culture' => 'Landbewohner',
-                'description' => '',
-                'equipment' => '',
-            ],
-            'attributes' => [],
-            'skills' => [],
-            'advantages' => [],
-            'disadvantages' => [],
-            'portrait' => null,
-        ])->render();
-
-        $this->assertStringContainsString('Barbar · Landbewohner · männlich', $html);
-        $this->assertStringContainsString('Figurenstärke', $html);
-        $this->assertMatchesRegularExpression('/Figurenstärke<\/th>\s*<td>3<\/td>/', $html);
-        $this->assertStringNotContainsString('maennlich', $html);
-    }
-
-    public function test_char_sheet_does_not_render_trailing_spaces_for_plain_advantages(): void
-    {
-        $html = view('rpg.char-sheet', [
-            'character' => [
-                'player_name' => '',
-                'character_name' => '',
-                'gender' => 'maennlich',
-                'race' => 'Barbar',
-                'culture' => 'Landbewohner',
-                'description' => '',
-                'equipment' => '',
-            ],
-            'attributes' => [],
-            'skills' => [],
-            'advantages' => ['Zäh'],
-            'disadvantages' => [],
-            'advantage_details' => [],
-            'disadvantage_details' => [],
-            'advantage_counts' => [],
-            'portrait' => null,
-        ])->render();
-
-        $this->assertMatchesRegularExpression('/class="prepared-line"[^>]*>Zäh<\/div>/', $html);
-        $this->assertDoesNotMatchRegularExpression('/class="prepared-line"[^>]*>Zäh\s+<\/div>/', $html);
-    }
-
-    public function test_failed_pdf_prepare_redirect_keeps_editor_input_for_recovery(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $response = $this
-            ->from(route('rpg.char-editor'))
-            ->actingAs($member)
-            ->post(route('rpg.char-editor.pdf'), $this->validPdfPayload([
-                'character_name' => 'Kept PDF Character',
-                'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
-            ]));
-
-        $response
-            ->assertRedirect(route('rpg.char-editor'))
-            ->assertSessionHasErrors('portrait_data_url')
-            ->assertSessionHasInput('character_name', 'Kept PDF Character')
-            ->assertSessionHasInput('race', 'Barbar')
-            ->assertSessionHasInput('clothing', 'kleidung-einfach');
-    }
-
-    public function test_pdf_export_post_redirects_to_get_viewer_url(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
-
-        $response
-            ->assertStatus(Response::HTTP_SEE_OTHER)
-            ->assertRedirect();
-
-        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
-
-        $this->assertMatchesRegularExpression('#^/rpg/char-editor/pdf/[0-9a-f-]{36}$#', $path);
-    }
-
-    public function test_pdf_export_includes_structured_equipment_and_server_ammunition(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['equipment']['clothing']['id'] ?? null) === 'kleidung-wanderer'
-                && collect($data['equipment']['items'])->contains(fn ($item) => $item['id'] === 'bogen' && $item['quantity'] === 2)
-                && collect($data['equipment']['ammunition'])->contains(fn ($ammo) => $ammo['source'] === 'Bogen' && $ammo['quantity'] === 60 && $ammo['unit'] === 'Pfeile')
-                && ($data['equipment']['notes'] ?? null) === 'Bogen gewachst'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'clothing' => 'kleidung-wanderer',
-            'equipment_items' => [
-                ['id' => 'bogen', 'quantity' => 2],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-            ],
-            'equipment' => 'Bogen gewachst',
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_requires_valid_clothing_from_equipment_rules(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'clothing' => 'smoking',
-        ]));
-
-        $response->assertSessionHasErrors('clothing');
-    }
-
-    public function test_pdf_export_requires_exactly_six_counted_equipment_items(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors([
-            'equipment_items' => 'Zu Beginn müssen genau 6 gezählte Ausrüstungsgegenstände gewählt werden.',
-        ]);
-    }
-
-    public function test_pdf_export_accepts_unarmed_attack_without_counting_it_as_starting_item(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function (array $data): bool {
-                $items = collect($data['equipment']['items'] ?? []);
-
-                return $items->contains(fn ($item) => $item['id'] === 'faustschlag-tritt'
-                    && $item['quantity'] === 1
-                    && $item['counts_toward_limit'] === false)
-                    && $items->contains(fn ($item) => $item['id'] === 'schlagring-stein'
-                        && $item['counts_toward_limit'] === true);
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'equipment_items' => [
-                ['id' => 'faustschlag-tritt', 'quantity' => 1],
-                ['id' => 'schlagring-stein', 'quantity' => 1],
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_does_not_count_unarmed_attack_toward_required_item_total(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'equipment_items' => [
-                ['id' => 'faustschlag-tritt', 'quantity' => 1],
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('equipment_items');
-    }
-
-    public function test_pdf_export_rejects_unknown_equipment_ids(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'laserdrache', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('equipment_items');
-    }
-
-    public function test_pdf_export_rejects_high_tech_equipment_without_advantage(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'equipment_items' => [
-                ['id' => 'funkgeraet', 'quantity' => 1],
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('equipment_items');
-    }
-
-    public function test_pdf_export_limits_high_tech_equipment_to_four_with_advantage(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-            'disadvantages' => ['Auffällig'],
-            'equipment_items' => [
-                ['id' => 'funkgeraet', 'quantity' => 5],
-                ['id' => 'seil', 'quantity' => 1],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('equipment_items');
-    }
-
-    public function test_pdf_export_get_route_can_be_opened_repeatedly_by_pdf_viewers(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
-        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
-
-        Pdf::shouldReceive('view')
-            ->twice()
-            ->with('rpg.char-sheet', \Mockery::type('array'))
-            ->andReturnUsing(fn () => new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $this->actingAs($member)->get($path)->assertOk();
-        $this->actingAs($member)->get($path)->assertOk();
-    }
-
-    public function test_real_pdf_exports_use_a_writable_private_font_cache_for_repeated_rendering(): void
-    {
-        $fontPath = storage_path('framework/testing/pdf-fonts-'.Str::uuid());
-        config([
-            'laravel-pdf.dompdf.font_dir' => $fontPath,
-            'laravel-pdf.dompdf.font_cache' => $fontPath,
-        ]);
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        try {
-            $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'character_name' => 'Ärztin Groß',
-                'description' => 'Überleben in der Straße: äöü ÄÖÜ ß, 12.345,67.',
-            ]));
-            $path = parse_url($prepared->headers->get('Location'), PHP_URL_PATH);
-
-            for ($render = 0; $render < 2; $render++) {
-                $response = $this->actingAs($member)->get($path)->assertOk();
-                $response->assertHeader('content-type', 'application/pdf');
-                $this->assertStringStartsWith('%PDF-', $response->getContent());
-                $this->assertGreaterThan(1000, strlen($response->getContent()));
-            }
-
-            $this->assertDirectoryExists($fontPath);
-            $this->assertTrue(is_writable($fontPath));
-            $this->assertFalse(config('laravel-pdf.dompdf.is_remote_enabled'));
-        } finally {
-            File::deleteDirectory($fontPath);
-        }
-    }
-
-    public function test_editor_pdf_fits_the_description_without_shortening_the_cached_source(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
-        $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['description' => $description]));
+    });
+    $this->actingAs($member)->get($path)->assertOk();
+    $this->actingAs($member)->get($path)->assertOk();
+});
+
+test('real pdf exports use a writable private font cache for repeated rendering', function (): void {
+    $fontPath = storage_path('framework/testing/pdf-fonts-'.Str::uuid());
+    config(['laravel-pdf.dompdf.font_dir' => $fontPath, 'laravel-pdf.dompdf.font_cache' => $fontPath]);
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    try {
+        $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Ärztin Groß', 'description' => 'Überleben in der Straße: äöü ÄÖÜ ß, 12.345,67.']));
         $path = parse_url($prepared->headers->get('Location'), PHP_URL_PATH);
-        $cacheKey = 'rpg-char-editor-pdf:'.basename($path);
-
-        Pdf::shouldReceive('view')->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['description'] === $description
-                && $data['sheet']['description'] === $description
-                && $data['sheet']['layout']['description']['truncated']
-                && $data['sheet']['layout']['description']['font_size'] === 6.5))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $this->get($path)->assertOk();
-        $this->assertSame($description, Cache::store('rpg_pdf_exports')->get($cacheKey)['data']['character']['description']);
-    }
-
-    public function test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $firstResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'character_name' => 'Erster Charakter',
-        ]));
-        $firstToken = basename(parse_url($firstResponse->headers->get('Location'), PHP_URL_PATH));
-        $firstCacheKey = 'rpg-char-editor-pdf:'.$firstToken;
-        $firstSessionPayloadKey = 'rpg-char-editor-pdf.'.$firstToken;
-
-        $firstResponse
-            ->assertRedirect()
-            ->assertSessionMissing($firstSessionPayloadKey)
-            ->assertSessionHas('rpg-char-editor-pdf.active-token', $firstToken);
-
-        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
-
-        $secondResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'character_name' => 'Zweiter Charakter',
-        ]));
-        $secondToken = basename(parse_url($secondResponse->headers->get('Location'), PHP_URL_PATH));
-        $secondCacheKey = 'rpg-char-editor-pdf:'.$secondToken;
-        $secondSessionPayloadKey = 'rpg-char-editor-pdf.'.$secondToken;
-
-        $secondResponse
-            ->assertRedirect()
-            ->assertSessionMissing($firstSessionPayloadKey)
-            ->assertSessionMissing($secondSessionPayloadKey)
-            ->assertSessionHas('rpg-char-editor-pdf.active-token', $secondToken);
-
-        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($firstCacheKey));
-        $this->assertTrue(Cache::store('rpg_pdf_exports')->has($secondCacheKey));
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)->get('/rpg/char-editor/pdf/'.$firstToken)->assertNotFound();
-    }
-
-    public function test_pdf_export_get_route_is_scoped_to_exporting_user(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $otherMember = $this->addAgRollenspielMembership($this->createMember());
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
-        $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::type('array'))
-            ->andReturnUsing(fn () => new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $this->actingAs($otherMember)->get($path)->assertNotFound();
-        $this->actingAs($member)->get($path)->assertOk();
-    }
-
-    public function test_pdf_export_get_route_rejects_unknown_tokens(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)
-            ->get('/rpg/char-editor/pdf/00000000-0000-4000-8000-000000000000')
-            ->assertNotFound();
-    }
-
-    public function test_pdf_export_get_route_rejects_expired_tokens(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $token = '00000000-0000-4000-8000-000000000001';
-
-        Pdf::shouldReceive('view')->never();
-
-        $cacheKey = 'rpg-char-editor-pdf:'.$token;
-
-        Cache::store('rpg_pdf_exports')->put($cacheKey, [
-            'user_id' => (string) $member->getAuthIdentifier(),
-            'expires_at' => now()->subMinute()->getTimestamp(),
-            'data' => $this->validPdfPayload(),
-        ], now()->addMinute());
-
-        $this->withSession([
-            'rpg-char-editor-pdf.active-token' => $token,
-        ])
-            ->actingAs($member)
-            ->get('/rpg/char-editor/pdf/'.$token)
-            ->assertNotFound()
-            ->assertSessionMissing('rpg-char-editor-pdf.active-token');
-
-        $this->assertFalse(Cache::store('rpg_pdf_exports')->has($cacheKey));
-    }
-
-    public function test_pdf_view_receives_normalized_browser_payload_for_disabled_editor_fields(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                return $data['character'] === [
-                    'player_name' => 'Holger',
-                    'character_name' => 'Holli',
-                    'gender' => 'weiblich',
-                    'race' => 'Barbar',
-                    'culture' => 'Landbewohner',
-                    'description' => 'Beschreibung aus dem Editor',
-                    'equipment' => 'Seil und Messer',
-                ]
-                    && $data['attributes'] === [
-                        'st' => '2',
-                        'ge' => '1',
-                        'ro' => '0',
-                        'wi' => '0',
-                        'wa' => '0',
-                        'in' => '0',
-                        'au' => '0',
-                    ]
-                    && $data['skills'] === [
-                        ['name' => 'Nahkampf', 'value' => '4'],
-                        ['name' => 'Überleben', 'value' => '1'],
-                        ['name' => 'Intuition', 'value' => '1'],
-                        ['name' => 'Beruf: Landwirt', 'value' => '2'],
-                        ['name' => 'Kunde: Wetter', 'value' => '1'],
-                        ['name' => 'Diebeskunst', 'value' => '4'],
-                        ['name' => 'Fernkampf', 'value' => '4'],
-                        ['name' => 'Handeln', 'value' => '4'],
-                        ['name' => 'Fahren', 'value' => '4'],
-                        ['name' => 'Heiler', 'value' => '1'],
-                    ]
-                    && $data['advantages'] === ['Zäh', 'Anführer']
-                    && $data['disadvantages'] === ['Abergläubisch']
-                    && $data['portrait'] === null;
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
-            '_token' => 'ignored by payload whitelist',
-            'figurenstaerke' => 3,
-            'player_name' => 'Holger',
-            'character_name' => 'Holli',
-            'gender' => 'weiblich',
-            'race' => 'Barbar',
-            'culture' => 'Landbewohner',
-            'description' => 'Beschreibung aus dem Editor',
-            'attributes' => [
-                'st' => '2',
-                'ge' => '1',
-                'unknown' => '99',
-            ],
-            'attribute_adjustments' => [
-                'st' => 1,
-                'ge' => 1,
-                'ro' => 0,
-                'wi' => 0,
-                'wa' => 0,
-                'in' => 0,
-                'au' => 0,
-            ],
-            'barbar_attribute_bonus' => 'st',
-            'skills' => [
-                ['value' => '4'],
-                ['name' => 'Nahkampf', 'value' => '4'],
-                ['name' => 'Überleben', 'value' => '1'],
-                ['name' => 'Intuition', 'value' => '1'],
-                ['name' => 'Beruf: Landwirt', 'value' => '2'],
-                ['name' => 'Kunde: Wetter', 'value' => '1'],
-                ['name' => 'Diebeskunst', 'value' => '4'],
-                ['name' => 'Fernkampf', 'value' => '4'],
-                ['name' => 'Handeln', 'value' => '4'],
-                ['name' => 'Fahren', 'value' => '4'],
-                ['name' => 'Heiler', 'value' => '1'],
-                ['name' => '', 'value' => '4'],
-            ],
-            'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''],
-            'advantage_effects' => [
-                ['name' => 'Anführer', 'target' => '', 'justification' => ''],
-            ],
-            'disadvantages' => ['Aberglaeubisch', ''],
-            'disadvantage_details' => ['Aberglaeubisch' => 'Salz, Omen, dreimal klopfen'],
-            'languages' => [],
-            'clothing' => 'kleidung-einfach',
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-            ],
-            'equipment' => 'Seil und Messer',
-            'unexpected' => 'wird nicht an die PDF-View gereicht',
-        ]);
-
-        $response->assertSessionHasNoErrors();
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_missing_or_invalid_gender_for_all_cultures(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $payloadWithoutGender = $this->validPdfPayload();
-        unset($payloadWithoutGender['gender']);
-
-        foreach ([$payloadWithoutGender, $this->validPdfPayload(['gender' => '']), $this->validPdfPayload(['gender' => 'unbekannt'])] as $payload) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-            $response->assertSessionHasErrors('gender');
+        for ($render = 0; $render < 2; $render++) {
+            $response = $this->actingAs($member)->get($path)->assertOk();
+            $response->assertHeader('content-type', 'application/pdf');
+            expect($response->getContent())->toStartWith('%PDF-')
+                ->and(strlen($response->getContent()))->toBeGreaterThan(1000);
         }
+        expect($fontPath)->toBeDirectory()
+            ->and(is_writable($fontPath))->toBeTrue()
+            ->and(config('laravel-pdf.dompdf.is_remote_enabled'))->toBeFalse();
+    } finally {
+        File::deleteDirectory($fontPath);
     }
+});
 
-    public function test_pdf_export_rejects_missing_or_invalid_race_and_culture(): void
+test('editor pdf fits the description without shortening the cached source', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
+    $prepared = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['description' => $description]));
+    $path = parse_url($prepared->headers->get('Location'), PHP_URL_PATH);
+    $cacheKey = 'rpg-char-editor-pdf:'.basename($path);
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['description'] === $description && $data['sheet']['description'] === $description && $data['sheet']['layout']['description']['truncated'] && $data['sheet']['layout']['description']['font_size'] === 6.5))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $payloadWithoutRace = $this->validPdfPayload();
-        unset($payloadWithoutRace['race']);
-
-        foreach ([$payloadWithoutRace, $this->validPdfPayload(['race' => '']), $this->validPdfPayload(['race' => 'Unbekannte Rasse'])] as $payload) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-            $response->assertSessionHasErrors('race');
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
+    });
+    $this->get($path)->assertOk();
+    expect(Cache::store('rpg_pdf_exports')->get($cacheKey)['data']['character']['description'])->toBe($description);
+});
 
-        $payloadWithoutCulture = $this->validPdfPayload();
-        unset($payloadWithoutCulture['culture']);
+test('pdf export replaces previous cached payload when new export is created', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $firstResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Erster Charakter']));
+    $firstToken = basename(parse_url($firstResponse->headers->get('Location'), PHP_URL_PATH));
+    $firstCacheKey = 'rpg-char-editor-pdf:'.$firstToken;
+    $firstSessionPayloadKey = 'rpg-char-editor-pdf.'.$firstToken;
+    $firstResponse->assertRedirect()->assertSessionMissing($firstSessionPayloadKey)->assertSessionHas('rpg-char-editor-pdf.active-token', $firstToken);
+    expect(Cache::store('rpg_pdf_exports')->has($firstCacheKey))->toBeTrue();
+    $secondResponse = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Zweiter Charakter']));
+    $secondToken = basename(parse_url($secondResponse->headers->get('Location'), PHP_URL_PATH));
+    $secondCacheKey = 'rpg-char-editor-pdf:'.$secondToken;
+    $secondSessionPayloadKey = 'rpg-char-editor-pdf.'.$secondToken;
+    $secondResponse->assertRedirect()->assertSessionMissing($firstSessionPayloadKey)->assertSessionMissing($secondSessionPayloadKey)->assertSessionHas('rpg-char-editor-pdf.active-token', $secondToken);
+    expect(Cache::store('rpg_pdf_exports')->has($firstCacheKey))->toBeFalse()
+        ->and(Cache::store('rpg_pdf_exports')->has($secondCacheKey))->toBeTrue();
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->get('/rpg/char-editor/pdf/'.$firstToken)->assertNotFound();
+});
 
-        foreach ([$payloadWithoutCulture, $this->validPdfPayload(['culture' => '']), $this->validPdfPayload(['culture' => 'Atlantisbewohner'])] as $payload) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-            $response->assertSessionHasErrors('culture');
+test('pdf export get route is scoped to exporting user', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $otherMember = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+    $path = parse_url($response->headers->get('Location'), PHP_URL_PATH);
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::type('array'))->andReturnUsing(fn () => new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-    }
+    });
+    $this->actingAs($otherMember)->get($path)->assertNotFound();
+    $this->actingAs($member)->get($path)->assertOk();
+});
 
-    public function test_pdf_export_accepts_negative_race_modifier_floor_from_rulebook(): void
+test('pdf export get route rejects unknown tokens', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->get('/rpg/char-editor/pdf/00000000-0000-4000-8000-000000000000')->assertNotFound();
+});
+
+test('pdf export get route rejects expired tokens', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $token = '00000000-0000-4000-8000-000000000001';
+    Pdf::shouldReceive('view')->never();
+    $cacheKey = 'rpg-char-editor-pdf:'.$token;
+    Cache::store('rpg_pdf_exports')->put($cacheKey, ['user_id' => (string) $member->getAuthIdentifier(), 'expires_at' => now()->subMinute()->getTimestamp(), 'data' => $this->validPdfPayload()], now()->addMinute());
+    $this->withSession(['rpg-char-editor-pdf.active-token' => $token])->actingAs($member)->get('/rpg/char-editor/pdf/'.$token)->assertNotFound()->assertSessionMissing('rpg-char-editor-pdf.active-token');
+    expect(Cache::store('rpg_pdf_exports')->has($cacheKey))->toBeFalse();
+});
+
+test('pdf view receives normalized browser payload for disabled editor fields', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === ['player_name' => 'Holger', 'character_name' => 'Holli', 'gender' => 'weiblich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => 'Beschreibung aus dem Editor', 'equipment' => 'Seil und Messer'] && $data['attributes'] === ['st' => '2', 'ge' => '1', 'ro' => '0', 'wi' => '0', 'wa' => '0', 'in' => '0', 'au' => '0'] && $data['skills'] === [['name' => 'Nahkampf', 'value' => '4'], ['name' => 'Überleben', 'value' => '1'], ['name' => 'Intuition', 'value' => '1'], ['name' => 'Beruf: Landwirt', 'value' => '2'], ['name' => 'Kunde: Wetter', 'value' => '1'], ['name' => 'Diebeskunst', 'value' => '4'], ['name' => 'Fernkampf', 'value' => '4'], ['name' => 'Handeln', 'value' => '4'], ['name' => 'Fahren', 'value' => '4'], ['name' => 'Heiler', 'value' => '1']] && $data['advantages'] === ['Zäh', 'Anführer'] && $data['disadvantages'] === ['Abergläubisch'] && $data['portrait'] === null))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', ['_token' => 'ignored by payload whitelist', 'figurenstaerke' => 3, 'player_name' => 'Holger', 'character_name' => 'Holli', 'gender' => 'weiblich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => 'Beschreibung aus dem Editor', 'attributes' => ['st' => '2', 'ge' => '1', 'unknown' => '99'], 'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'barbar_attribute_bonus' => 'st', 'skills' => [['value' => '4'], ['name' => 'Nahkampf', 'value' => '4'], ['name' => 'Überleben', 'value' => '1'], ['name' => 'Intuition', 'value' => '1'], ['name' => 'Beruf: Landwirt', 'value' => '2'], ['name' => 'Kunde: Wetter', 'value' => '1'], ['name' => 'Diebeskunst', 'value' => '4'], ['name' => 'Fernkampf', 'value' => '4'], ['name' => 'Handeln', 'value' => '4'], ['name' => 'Fahren', 'value' => '4'], ['name' => 'Heiler', 'value' => '1'], ['name' => '', 'value' => '4']], 'advantages' => ['Zaeh', 'Zaeh', 'Anfuehrer', ''], 'advantage_effects' => [['name' => 'Anführer', 'target' => '', 'justification' => '']], 'disadvantages' => ['Aberglaeubisch', ''], 'disadvantage_details' => ['Aberglaeubisch' => 'Salz, Omen, dreimal klopfen'], 'languages' => [], 'clothing' => 'kleidung-einfach', 'equipment_items' => [['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1], ['id' => 'bogen', 'quantity' => 1]], 'equipment' => 'Seil und Messer', 'unexpected' => 'wird nicht an die PDF-View gereicht']);
+    $response->assertSessionHasNoErrors();
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '-2'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'au' => -2,
-            ],
-            'advantages' => ['Zäh', 'Natürliche Waffen'],
-            'disadvantages' => ['Primitiv', 'Gejagt'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_barbar_attribute_above_absolute_max(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'barbar_attribute_bonus' => 'st',
-            'attributes' => [
-                'st' => 3,
-                'ge' => 0,
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('attributes');
-    }
-
-    public function test_pdf_export_rejects_unmodified_attribute_above_base_max(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'barbar_attribute_bonus' => 'st',
-            'attributes' => [
-                'st' => 2,
-                'ge' => 2,
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('attributes');
-    }
-
-    public function test_pdf_export_rejects_attribute_point_budget_overflow(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'barbar_attribute_bonus' => 'st',
-            'attributes' => [
-                'st' => 2,
-                'ge' => 1,
-                'ro' => 1,
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('attributes');
-    }
-
-    public function test_pdf_export_derives_guul_natural_weapons_without_a_separate_skill(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Guul'
-                    && $data['character']['culture'] === 'Stadtbewohner'
-                    && ($data['attributes']['au'] ?? null) === '-1'
-                    && ! $skills->has('Natürliche Waffen')
-                    && (($skills['Nahkampf'] ?? [])['value'] ?? null) === '2'
-                    && in_array('Natürliche Waffen', $data['advantages'], true)
-                    && in_array('Primitiv', $data['disadvantages'], true)
-                    && in_array('Gejagt', $data['disadvantages'], true);
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'au' => -1,
-            ],
-            'advantages' => ['Zäh', 'Natürliche Waffen'],
-            'disadvantages' => ['Primitiv', 'Gejagt'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Nahkampf', 'value' => 2],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_adds_missing_automatic_guul_advantage_server_side(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Natürliche Waffen', $data['advantages'], true)))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'au' => -1,
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Primitiv', 'Gejagt'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_creation_adjustment_that_cancels_guul_modifier(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '0'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [],
-            'advantages' => ['Zäh', 'Natürliche Waffen'],
-            'disadvantages' => ['Primitiv', 'Gejagt'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_guul_with_invalid_au_modifier_label(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'au' => 1,
-            ],
-            'advantages' => ['Zäh', 'Natürliche Waffen'],
-            'disadvantages' => ['Primitiv', 'Gejagt'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-
+test('pdf export rejects missing or invalid gender for all cultures', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $payloadWithoutGender = $this->validPdfPayload();
+    unset($payloadWithoutGender['gender']);
+    foreach ([$payloadWithoutGender, $this->validPdfPayload(['gender' => '']), $this->validPdfPayload(['gender' => 'unbekannt'])] as $payload) {
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertSessionHasErrors('attributes');
+        $response->assertSessionHasErrors('gender');
     }
+});
 
-    public function test_pdf_export_accepts_creation_adjustment_that_cancels_nosfera_ge_bonus(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['ge'] ?? null) === '0'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Nosfera',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'au' => -1,
-            ],
-            'advantages' => ['Zäh', 'Nachtsicht'],
-            'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-        ]);
-        $payload['attributes'] = ['st' => 1, 'ge' => 0, 'ro' => 1, 'au' => -1];
-        $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
-        $payload['skills'] = [
-            ['name' => 'Intuition', 'value' => 2],
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_adds_missing_automatic_nosfera_advantage_server_side(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Nachtsicht', $data['advantages'], true)))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Nosfera',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'ge' => 1,
-                'au' => -1,
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-        ]);
-
-        $payload['skills'] = [
-            ['name' => 'Intuition', 'value' => 2],
-            ['name' => 'Heimlichkeit', 'value' => 2],
-            ['name' => 'Beruf', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 1],
-            ['name' => 'Unterhalten', 'value' => 1],
-        ];
-        $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_techno_without_bildung_race_bonus(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $payload = $this->validPdfPayload([
-            'race' => 'Techno',
-            'culture' => 'Bunkermensch',
-            'attributes' => [
-                'st' => -1,
-                'ro' => -1,
-                'in' => 1,
-            ],
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-            'disadvantages' => ['Tödliche Immunschwäche'],
-        ]);
-        $payload['skills'] = [
-            ['name' => 'Bildung', 'value' => 2],
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Fahren', 'value' => 2],
-            ['name' => 'Feuerwaffen', 'value' => 2],
-            ['name' => 'Heiler', 'value' => 2],
-            ['name' => 'Pilot', 'value' => 2],
-            ['name' => 'Techniker', 'value' => 2],
-            ['name' => 'Wissenschaftler', 'value' => 2],
-        ];
-
+test('pdf export rejects missing or invalid race and culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $payloadWithoutRace = $this->validPdfPayload();
+    unset($payloadWithoutRace['race']);
+    foreach ([$payloadWithoutRace, $this->validPdfPayload(['race' => '']), $this->validPdfPayload(['race' => 'Unbekannte Rasse'])] as $payload) {
         $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response->assertSessionHasErrors('race');
+    }
+    $payloadWithoutCulture = $this->validPdfPayload();
+    unset($payloadWithoutCulture['culture']);
+    foreach ([$payloadWithoutCulture, $this->validPdfPayload(['culture' => '']), $this->validPdfPayload(['culture' => 'Atlantisbewohner'])] as $payload) {
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+        $response->assertSessionHasErrors('culture');
+    }
+});
 
+test('pdf export accepts negative race modifier floor from rulebook', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '-2'))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'attributes' => ['au' => -2], 'advantages' => ['Zäh', 'Natürliche Waffen'], 'disadvantages' => ['Primitiv', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export rejects barbar attribute above absolute max', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['barbar_attribute_bonus' => 'st', 'attributes' => ['st' => 3, 'ge' => 0]]));
+    $response->assertSessionHasErrors('attributes');
+});
+
+test('pdf export rejects unmodified attribute above base max', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['barbar_attribute_bonus' => 'st', 'attributes' => ['st' => 2, 'ge' => 2]]));
+    $response->assertSessionHasErrors('attributes');
+});
+
+test('pdf export rejects attribute point budget overflow', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['barbar_attribute_bonus' => 'st', 'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 1]]));
+    $response->assertSessionHasErrors('attributes');
+});
+
+test('pdf export derives guul natural weapons without a separate skill', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+
+        return $data['character']['race'] === 'Guul' && $data['character']['culture'] === 'Stadtbewohner' && ($data['attributes']['au'] ?? null) === '-1' && ! $skills->has('Natürliche Waffen') && (($skills['Nahkampf'] ?? [])['value'] ?? null) === '2' && in_array('Natürliche Waffen', $data['advantages'], true) && in_array('Primitiv', $data['disadvantages'], true) && in_array('Gejagt', $data['disadvantages'], true);
+    }))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'attributes' => ['au' => -1], 'advantages' => ['Zäh', 'Natürliche Waffen'], 'disadvantages' => ['Primitiv', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 2], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export adds missing automatic guul advantage server side', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Natürliche Waffen', $data['advantages'], true)))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'attributes' => ['au' => -1], 'advantages' => ['Zäh'], 'disadvantages' => ['Primitiv', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export accepts creation adjustment that cancels guul modifier', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['au'] ?? null) === '0'))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'attributes' => [], 'advantages' => ['Zäh', 'Natürliche Waffen'], 'disadvantages' => ['Primitiv', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export rejects guul with invalid au modifier label', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $payload = $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'attributes' => ['au' => 1], 'advantages' => ['Zäh', 'Natürliche Waffen'], 'disadvantages' => ['Primitiv', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertSessionHasErrors('attributes');
+});
+
+test('pdf export accepts creation adjustment that cancels nosfera ge bonus', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['attributes']['ge'] ?? null) === '0'))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Nosfera', 'culture' => 'Stadtbewohner', 'attributes' => ['au' => -1], 'advantages' => ['Zäh', 'Nachtsicht'], 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt']]);
+    $payload['attributes'] = ['st' => 1, 'ge' => 0, 'ro' => 1, 'au' => -1];
+    $payload['attribute_adjustments'] = $this->attributeAdjustmentsForPayload($payload);
+    $payload['skills'] = [['name' => 'Intuition', 'value' => 2], ['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export adds missing automatic nosfera advantage server side', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Nachtsicht', $data['advantages'], true)))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $payload = $this->validPdfPayload(['race' => 'Nosfera', 'culture' => 'Stadtbewohner', 'attributes' => ['ge' => 1, 'au' => -1], 'advantages' => ['Zäh'], 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt']]);
+    $payload['skills'] = [['name' => 'Intuition', 'value' => 2], ['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]];
+    $payload['skills'] = $this->completeSkillBudgetForPayload($payload);
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertOk();
+});
+
+test('pdf export rejects techno without bildung race bonus', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $payload = $this->validPdfPayload(['race' => 'Techno', 'culture' => 'Bunkermensch', 'attributes' => ['st' => -1, 'ro' => -1, 'in' => 1], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'disadvantages' => ['Tödliche Immunschwäche']]);
+    $payload['skills'] = [['name' => 'Bildung', 'value' => 2], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Heiler', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2]];
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
+    $response->assertSessionHasErrors('skills');
+});
+
+test('pdf export accepts hydrit with meeresbewohner culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Hydrit' && $data['character']['culture'] === 'Meeresbewohner'))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Hydrit', 'culture' => 'Meeresbewohner', 'skills' => [['name' => 'Athletik', 'value' => 2], ['name' => 'Bildung', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf: Farmer', 'value' => 1], ['name' => 'Wissenschaftler', 'value' => 1]], 'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'], 'disadvantages' => ['Anfälligkeit gegen Wahnsinn']]));
+    $response->assertOk();
+});
+
+test('pdf export rejects hydrit with other culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Hydrit', 'culture' => 'Landbewohner']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export rejects meeresbewohner for non hydrit', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Barbar', 'culture' => 'Meeresbewohner']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export rejects missing culture skill requirements', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $cases = ['Landbewohner ohne Wetterkunde' => $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2]]]), 'Stadtbewohner ohne Wahlbonus' => $this->validPdfPayload(['culture' => 'Stadtbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1]]]), 'Meeresbewohner ohne Berufsbonus' => $this->validPdfPayload(['race' => 'Hydrit', 'culture' => 'Meeresbewohner', 'skills' => [['name' => 'Athletik', 'value' => 2], ['name' => 'Bildung', 'value' => 1], ['name' => 'Wissenschaftler', 'value' => 1]], 'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'], 'disadvantages' => ['Anfälligkeit gegen Wahnsinn']]), 'Bunkermensch ohne Nahkampf' => $this->validPdfPayload(['race' => 'Techno', 'culture' => 'Bunkermensch', 'attributes' => ['st' => -1, 'ro' => -1, 'in' => 1], 'skills' => [['name' => 'Bildung', 'value' => 3], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Heiler', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2]], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'disadvantages' => ['Tödliche Immunschwäche']]), 'Mensch des 21. Jahrhunderts ohne zweiten Wissensbonus' => $this->validPdfPayload(['race' => 'Präkristofluu', 'culture' => 'Mensch des 21. Jahrhunderts', 'skills' => [['name' => 'Beruf', 'value' => 3], ['name' => 'Bildung', 'value' => 1], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2]], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung']]), 'Nomade ohne Bewegungsbonus' => $this->validPdfPayload(['culture' => 'Nomade', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]]), 'Ruinenbewohner ohne Diebeskunst' => $this->validPdfPayload(['culture' => 'Ruinenbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Heimlichkeit', 'value' => 1], ['name' => 'Fernkampf', 'value' => 1]]]), 'Untergrundbewohner ohne Bergmann' => $this->validPdfPayload(['culture' => 'Untergrundbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Athletik', 'value' => 1]]]), 'Volk der 13 Inseln ohne Beruf' => $this->validPdfPayload(['culture' => 'Volk der 13 Inseln', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Athletik', 'value' => 1]]]), 'Disuuslachter ohne Seemann' => $this->validPdfPayload(['culture' => 'Disuuslachter (Nordmann)', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]])];
+    foreach ($cases as $payload) {
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
         $response->assertSessionHasErrors('skills');
     }
+});
 
-    public function test_pdf_export_accepts_hydrit_with_meeresbewohner_culture(): void
+test('pdf export accepts techno with bunkermensch culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Techno' && $data['character']['culture'] === 'Bunkermensch'))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Hydrit'
-                && $data['character']['culture'] === 'Meeresbewohner'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Hydrit',
-            'culture' => 'Meeresbewohner',
-            'skills' => [
-                ['name' => 'Athletik', 'value' => 2],
-                ['name' => 'Bildung', 'value' => 1],
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Beruf: Farmer', 'value' => 1],
-                ['name' => 'Wissenschaftler', 'value' => 1],
-            ],
-            'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'],
-            'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_hydrit_with_other_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Hydrit',
-            'culture' => 'Landbewohner',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_rejects_meeresbewohner_for_non_hydrit(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Barbar',
-            'culture' => 'Meeresbewohner',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_rejects_missing_culture_skill_requirements(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $cases = [
-            'Landbewohner ohne Wetterkunde' => $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                ],
-            ]),
-            'Stadtbewohner ohne Wahlbonus' => $this->validPdfPayload([
-                'culture' => 'Stadtbewohner',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf', 'value' => 1],
-                    ['name' => 'Kunde', 'value' => 1],
-                ],
-            ]),
-            'Meeresbewohner ohne Berufsbonus' => $this->validPdfPayload([
-                'race' => 'Hydrit',
-                'culture' => 'Meeresbewohner',
-                'skills' => [
-                    ['name' => 'Athletik', 'value' => 2],
-                    ['name' => 'Bildung', 'value' => 1],
-                    ['name' => 'Wissenschaftler', 'value' => 1],
-                ],
-                'advantages' => ['Zäh', 'Kiemen', 'Natürliche Waffen'],
-                'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
-            ]),
-            'Bunkermensch ohne Nahkampf' => $this->validPdfPayload([
-                'race' => 'Techno',
-                'culture' => 'Bunkermensch',
-                'attributes' => [
-                    'st' => -1,
-                    'ro' => -1,
-                    'in' => 1,
-                ],
-                'skills' => [
-                    ['name' => 'Bildung', 'value' => 3],
-                    ['name' => 'Fahren', 'value' => 2],
-                    ['name' => 'Feuerwaffen', 'value' => 2],
-                    ['name' => 'Heiler', 'value' => 2],
-                    ['name' => 'Pilot', 'value' => 2],
-                    ['name' => 'Techniker', 'value' => 2],
-                    ['name' => 'Wissenschaftler', 'value' => 2],
-                ],
-                'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-                'disadvantages' => ['Tödliche Immunschwäche'],
-            ]),
-            'Mensch des 21. Jahrhunderts ohne zweiten Wissensbonus' => $this->validPdfPayload([
-                'race' => 'Präkristofluu',
-                'culture' => 'Mensch des 21. Jahrhunderts',
-                'skills' => [
-                    ['name' => 'Beruf', 'value' => 3],
-                    ['name' => 'Bildung', 'value' => 1],
-                    ['name' => 'Fahren', 'value' => 2],
-                    ['name' => 'Feuerwaffen', 'value' => 2],
-                ],
-                'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-            ]),
-            'Nomade ohne Bewegungsbonus' => $this->validPdfPayload([
-                'culture' => 'Nomade',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                ],
-            ]),
-            'Ruinenbewohner ohne Diebeskunst' => $this->validPdfPayload([
-                'culture' => 'Ruinenbewohner',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Heimlichkeit', 'value' => 1],
-                    ['name' => 'Fernkampf', 'value' => 1],
-                ],
-            ]),
-            'Untergrundbewohner ohne Bergmann' => $this->validPdfPayload([
-                'culture' => 'Untergrundbewohner',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Athletik', 'value' => 1],
-                ],
-            ]),
-            'Volk der 13 Inseln ohne Beruf' => $this->validPdfPayload([
-                'culture' => 'Volk der 13 Inseln',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Athletik', 'value' => 1],
-                ],
-            ]),
-            'Disuuslachter ohne Seemann' => $this->validPdfPayload([
-                'culture' => 'Disuuslachter (Nordmann)',
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                ],
-            ]),
-        ];
-
-        foreach ($cases as $payload) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $payload);
-
-            $response->assertSessionHasErrors('skills');
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-    }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Techno', 'culture' => 'Bunkermensch', 'attributes' => ['st' => -1, 'ro' => -1, 'in' => 1], 'skills' => [['name' => 'Bildung', 'value' => 3], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Heiler', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2]], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'disadvantages' => ['Tödliche Immunschwäche']]));
+    $response->assertOk();
+});
 
-    public function test_pdf_export_accepts_techno_with_bunkermensch_culture(): void
+test('pdf export rejects techno with other culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Techno', 'culture' => 'Stadtbewohner']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export rejects bunkermensch for non techno', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Barbar', 'culture' => 'Bunkermensch']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export accepts praekristofluu with mensch des 21 jahrhunderts culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Präkristofluu' && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts'))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Techno'
-                && $data['character']['culture'] === 'Bunkermensch'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Techno',
-            'culture' => 'Bunkermensch',
-            'attributes' => [
-                'st' => -1,
-                'ro' => -1,
-                'in' => 1,
-            ],
-            'skills' => [
-                ['name' => 'Bildung', 'value' => 3],
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Fahren', 'value' => 2],
-                ['name' => 'Feuerwaffen', 'value' => 2],
-                ['name' => 'Heiler', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 2],
-                ['name' => 'Techniker', 'value' => 2],
-                ['name' => 'Wissenschaftler', 'value' => 2],
-            ],
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-            'disadvantages' => ['Tödliche Immunschwäche'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_techno_with_other_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Techno',
-            'culture' => 'Stadtbewohner',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_rejects_bunkermensch_for_non_techno(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Barbar',
-            'culture' => 'Bunkermensch',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_accepts_praekristofluu_with_mensch_des_21_jahrhunderts_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Präkristofluu'
-                && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Präkristofluu',
-            'culture' => 'Mensch des 21. Jahrhunderts',
-            'skills' => [
-                ['name' => 'Beruf', 'value' => 3],
-                ['name' => 'Bildung', 'value' => 2],
-                ['name' => 'Fahren', 'value' => 2],
-                ['name' => 'Feuerwaffen', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 2],
-                ['name' => 'Techniker', 'value' => 2],
-                ['name' => 'Wissenschaftler', 'value' => 2],
-            ],
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_praekristofluu_request_pool_with_mensch_21_bonus_choices(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Präkristofluu'
-                    && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts'
-                    && (int) ($skills->get('Bildung')['value'] ?? 0) === 3
-                    && (int) ($skills->get('Techniker')['value'] ?? 0) === 3
-                    && (int) ($skills->get('Wissenschaftler')['value'] ?? 0) === 3;
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Präkristofluu',
-            'culture' => 'Mensch des 21. Jahrhunderts',
-            'skills' => [
-                ['name' => 'Beruf', 'value' => 3],
-                ['name' => 'Bildung', 'value' => 3],
-                ['name' => 'Fahren', 'value' => 2],
-                ['name' => 'Feuerwaffen', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 2],
-                ['name' => 'Techniker', 'value' => 3],
-                ['name' => 'Wissenschaftler', 'value' => 3],
-            ],
-            'praekristofluu_skill_points' => [
-                'Bildung' => 2,
-                'Fahren' => 2,
-                'Feuerwaffen' => 2,
-                'Pilot' => 2,
-                'Techniker' => 2,
-                'Wissenschaftler' => 2,
-            ],
-            'mensch_21_first_bonus_skill' => 'Techniker',
-            'mensch_21_second_bonus_skill' => 'Wissenschaftler',
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_invalid_mensch_21_bonus_choice_inputs(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $validPraekristofluuPayload = [
-            'race' => 'Präkristofluu',
-            'culture' => 'Mensch des 21. Jahrhunderts',
-            'skills' => [
-                ['name' => 'Beruf', 'value' => 3],
-                ['name' => 'Bildung', 'value' => 3],
-                ['name' => 'Fahren', 'value' => 2],
-                ['name' => 'Feuerwaffen', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 2],
-                ['name' => 'Techniker', 'value' => 3],
-                ['name' => 'Wissenschaftler', 'value' => 3],
-            ],
-            'praekristofluu_skill_points' => [
-                'Bildung' => 2,
-                'Fahren' => 2,
-                'Feuerwaffen' => 2,
-                'Pilot' => 2,
-                'Techniker' => 2,
-                'Wissenschaftler' => 2,
-            ],
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-        ];
-
-        foreach ([
-            'duplicate bonus choices' => [
-                'mensch_21_first_bonus_skill' => 'Techniker',
-                'mensch_21_second_bonus_skill' => 'Techniker',
-            ],
-            'unsupported bonus choice' => [
-                'mensch_21_first_bonus_skill' => 'Heiler',
-                'mensch_21_second_bonus_skill' => 'Wissenschaftler',
-            ],
-        ] as $overrides) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(array_replace(
-                $validPraekristofluuPayload,
-                $overrides,
-            )));
-
-            $response->assertSessionHasErrors('skills');
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-    }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Präkristofluu', 'culture' => 'Mensch des 21. Jahrhunderts', 'skills' => [['name' => 'Beruf', 'value' => 3], ['name' => 'Bildung', 'value' => 2], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2]], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung']]));
+    $response->assertOk();
+});
 
-    public function test_pdf_export_rejects_praekristofluu_with_other_culture(): void
+test('pdf export accepts praekristofluu request pool with mensch 21 bonus choices', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+
+        return $data['character']['race'] === 'Präkristofluu' && $data['character']['culture'] === 'Mensch des 21. Jahrhunderts' && (int) ($skills->get('Bildung')['value'] ?? 0) === 3 && (int) ($skills->get('Techniker')['value'] ?? 0) === 3 && (int) ($skills->get('Wissenschaftler')['value'] ?? 0) === 3;
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Präkristofluu',
-            'culture' => 'Landbewohner',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_rejects_mensch_des_21_jahrhunderts_for_non_praekristofluu(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Barbar',
-            'culture' => 'Mensch des 21. Jahrhunderts',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_accepts_nosfera_with_general_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Nosfera'
-                    && $data['character']['culture'] === 'Stadtbewohner'
-                    && ($data['attributes']['ge'] ?? null) === '1'
-                    && ($data['attributes']['au'] ?? null) === '-1'
-                    && $skills->has('Intuition')
-                    && $skills->has('Heimlichkeit')
-                    && in_array('Nachtsicht', $data['advantages'], true)
-                    && ! in_array('Psychisches Reservoir', $data['advantages'], true)
-                    && in_array('Blutdurst', $data['disadvantages'], true)
-                    && in_array('Lichtscheu', $data['disadvantages'], true)
-                    && in_array('Gejagt', $data['disadvantages'], true);
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Nosfera',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'ge' => 1,
-                'au' => -1,
-            ],
-            'skills' => [
-                ['name' => 'Intuition', 'value' => 2],
-                ['name' => 'Heimlichkeit', 'value' => 2],
-                ['name' => 'Beruf', 'value' => 1],
-                ['name' => 'Kunde', 'value' => 1],
-                ['name' => 'Unterhalten', 'value' => 1],
-            ],
-            'advantages' => ['Zäh', 'Nachtsicht'],
-            'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_taratze_with_general_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-                $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
-
-                return $data['character']['race'] === 'Taratze'
-                    && $data['character']['culture'] === 'Stadtbewohner'
-                    && ($data['attributes']['st'] ?? null) === '1'
-                    && ($data['attributes']['wa'] ?? null) === '1'
-                    && ($data['attributes']['in'] ?? null) === '-1'
-                    && ($data['attributes']['au'] ?? null) === '-1'
-                    && $skillValue('Intuition') === '2'
-                    && $skillValue('Heimlichkeit') === '1'
-                    && $skillValue('Überleben') === '1'
-                    && in_array('Auffällig', $data['disadvantages'], true)
-                    && in_array('Primitiv', $data['disadvantages'], true)
-                    && in_array('Gejagt', $data['disadvantages'], true);
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Taratze',
-            'culture' => 'Stadtbewohner',
-            'attributes' => [
-                'st' => 1,
-                'wa' => 1,
-                'in' => -1,
-                'au' => -1,
-            ],
-            'skills' => [
-                ['name' => 'Intuition', 'value' => 2],
-                ['name' => 'Heimlichkeit', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Beruf', 'value' => 1],
-                ['name' => 'Kunde', 'value' => 1],
-                ['name' => 'Unterhalten', 'value' => 1],
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_wulfane_with_general_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-                $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
-
-                return $data['character']['race'] === 'Wulfane'
-                    && $data['character']['culture'] === 'Landbewohner'
-                    && ($data['attributes']['ro'] ?? null) === '1'
-                    && ($data['attributes']['au'] ?? null) === '-1'
-                    && $skillValue('Intuition') === '1'
-                    && $skillValue('Nahkampf') === '1'
-                    && in_array('Ehrenkodex', $data['disadvantages'], true);
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Wulfane',
-            'culture' => 'Landbewohner',
-            'attributes' => [
-                'ro' => 1,
-                'au' => -1,
-            ],
-            'skills' => [
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Beruf: Landwirt', 'value' => 2],
-                ['name' => 'Kunde: Wetter', 'value' => 1],
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Ehrenkodex'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_nomade_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar'
-                && $data['character']['culture'] === 'Nomade'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Nomade',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Reiten', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_ruinenbewohner_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Barbar'
-                    && $data['character']['culture'] === 'Ruinenbewohner'
-                    && $skills->has('Diebeskunst')
-                    && $skills->has('Heimlichkeit')
-                    && $skills->has('Fernkampf')
-                    && ! $skills->has('Fernwaffen');
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Ruinenbewohner',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Diebeskunst', 'value' => 1],
-                ['name' => 'Heimlichkeit', 'value' => 1],
-                ['name' => 'Fernkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_untergrundbewohner_culture(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Barbar'
-                    && $data['character']['culture'] === 'Untergrundbewohner'
-                    && $skills->has('Athletik')
-                    && $skills->has('Beruf: Bergmann')
-                    && $skills->has('Überleben');
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Untergrundbewohner',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 1],
-                ['name' => 'Beruf: Bergmann', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_disuuslachter_culture_for_barbar(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $data['character']['race'] === 'Barbar'
-                    && $data['character']['culture'] === 'Disuuslachter (Nordmann)'
-                    && $skills->has('Nahkampf')
-                    && $skills->has('Überleben')
-                    && $skills->has('Beruf: Seemann');
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Disuuslachter (Nordmann)',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Beruf: Seemann', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_disuuslachter_culture_for_non_barbar(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Nosfera',
-            'culture' => 'Disuuslachter (Nordmann)',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_accepts_volk_der_13_inseln_for_barbar_with_required_advantage(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar'
-                && $data['character']['culture'] === 'Volk der 13 Inseln'
-                && in_array('Psychische Kraft', $data['advantages'], true)))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'gender' => 'weiblich',
-            'culture' => 'Volk der 13 Inseln',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 1],
-                ['name' => 'Beruf: Bauer', 'value' => 1],
-            ],
-            'advantages' => ['Zaeh', 'Psychische Kraft'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_male_volk_der_13_inseln_without_required_advantage(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['gender'] === 'maennlich'
-                && $data['character']['culture'] === 'Volk der 13 Inseln'
-                && ! in_array('Psychische Kraft', $data['advantages'], true)))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'gender' => 'maennlich',
-            'culture' => 'Volk der 13 Inseln',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 1],
-                ['name' => 'Beruf: Fischer', 'value' => 1],
-            ],
-            'advantages' => ['Zaeh'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_volk_der_13_inseln_without_valid_gender(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        foreach (['', 'unbekannt'] as $gender) {
-            $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'gender' => $gender,
-                'culture' => 'Volk der 13 Inseln',
-                'advantages' => ['Zaeh'],
-            ]));
-
-            $response->assertSessionHasErrors('gender');
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-    }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Präkristofluu', 'culture' => 'Mensch des 21. Jahrhunderts', 'skills' => [['name' => 'Beruf', 'value' => 3], ['name' => 'Bildung', 'value' => 3], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 3], ['name' => 'Wissenschaftler', 'value' => 3]], 'praekristofluu_skill_points' => ['Bildung' => 2, 'Fahren' => 2, 'Feuerwaffen' => 2, 'Pilot' => 2, 'Techniker' => 2, 'Wissenschaftler' => 2], 'mensch_21_first_bonus_skill' => 'Techniker', 'mensch_21_second_bonus_skill' => 'Wissenschaftler', 'advantages' => ['Zäh', 'High-Tech-Ausrüstung']]));
+    $response->assertOk();
+});
 
-    public function test_pdf_export_rejects_volk_der_13_inseln_for_non_barbar(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'race' => 'Guul',
-            'culture' => 'Volk der 13 Inseln',
-        ]));
-
-        $response->assertSessionHasErrors('culture');
-    }
-
-    public function test_pdf_export_rejects_female_volk_der_13_inseln_without_psychische_kraft(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'gender' => 'weiblich',
-            'culture' => 'Volk der 13 Inseln',
-            'advantages' => ['Zaeh'],
-        ]));
-
-        $response->assertSessionHasErrors('advantage_effects');
-    }
-
-    public function test_pdf_normalizes_skill_and_special_collection_payloads_to_trimmed_scalar_strings(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                return $data['attributes'] === [
-                    'st' => '2',
-                    'ge' => '1',
-                    'ro' => '0',
-                    'wi' => '0',
-                    'wa' => '0',
-                    'in' => '0',
-                    'au' => '0',
-                ]
-                    && $data['skills'] === [
-                        ['name' => 'Nahkampf', 'value' => '1'],
-                        ['name' => 'Überleben', 'value' => '1'],
-                        ['name' => 'Intuition', 'value' => '1'],
-                        ['name' => 'Beruf: Viehzüchter', 'value' => '2'],
-                        ['name' => 'Kunde: Wetter', 'value' => '1'],
-                        ['name' => 'Diebeskunst', 'value' => '4'],
-                        ['name' => 'Fernkampf', 'value' => '4'],
-                        ['name' => 'Handeln', 'value' => '4'],
-                        ['name' => 'Fahren', 'value' => '4'],
-                        ['name' => 'Heiler', 'value' => '4'],
-                    ]
-                    && $data['advantages'] === ['Zäh', 'Anführer']
-                    && $data['disadvantages'] === ['Abergläubisch'];
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
-            'figurenstaerke' => 3,
-            'character_name' => 'Collection Payload',
-            'gender' => 'maennlich',
-            'race' => 'Barbar',
-            'culture' => 'Landbewohner',
-            'attributes' => [
-                'st' => ' 2 ',
-                'ge' => 1,
-                'ro' => 0,
-                'wi' => 0,
-                'wa' => 0,
-                'in' => 0,
-                'au' => 0,
-            ],
-            'attribute_adjustments' => [
-                'st' => 1,
-                'ge' => 1,
-                'ro' => 0,
-                'wi' => 0,
-                'wa' => 0,
-                'in' => 0,
-                'au' => 0,
-            ],
-            'barbar_attribute_bonus' => 'st',
-            'skills' => [
-                ['name' => ['manipuliert'], 'value' => '4'],
-                ['name' => ' Nahkampf ', 'value' => 1],
-                ['name' => ' Überleben ', 'value' => 1],
-                ['name' => ' Intuition ', 'value' => 1],
-                ['name' => ' Beruf: Viehzüchter ', 'value' => 2],
-                ['name' => ' Kunde: Wetter ', 'value' => 1],
-                ['name' => ' Diebeskunst ', 'value' => 4],
-                ['name' => ' Fernkampf ', 'value' => 4],
-                ['name' => ' Handeln ', 'value' => 4],
-                ['name' => ' Fahren ', 'value' => 4],
-                ['name' => ' Heiler ', 'value' => 4],
-                ['name' => false, 'value' => '3'],
-            ],
-            'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'],
-            'advantage_effects' => [
-                ['name' => 'Anfuehrer', 'target' => '', 'justification' => ''],
-            ],
-            'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'],
-            'disadvantage_details' => [' Aberglaeubisch ' => ' Salz, Omen, dreimal klopfen '],
-            'languages' => [],
-            'clothing' => 'kleidung-einfach',
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-            ],
-        ]);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_new_rulebook_disadvantages(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Taratzenfutter', $data['disadvantages'], true)))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'disadvantages' => ['Taratzenfutter'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_unknown_advantages_and_disadvantages(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'advantages' => ['Zäh', 'Laserblick'],
-            ]))
-            ->assertSessionHasErrors('advantages');
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'disadvantages' => ['Pechmagnet'],
-            ]))
-            ->assertSessionHasErrors('disadvantages');
-    }
-
-    public function test_pdf_export_rejects_unknown_and_restricted_skills(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                    ['name' => 'Fernwaffen', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                    ['name' => 'Natürliche Waffen', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-    }
-
-    public function test_pdf_export_rejects_invalid_skill_values_and_duplicates(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 5],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Nahkampf', 'value' => 2],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-    }
-
-    public function test_pdf_export_rejects_skill_point_budget_overflow(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                ['name' => 'Kunde: Wetter', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Diebeskunst', 'value' => 4],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Fernkampf', 'value' => 4],
-                ['name' => 'Feuerwaffen', 'value' => 4],
-                ['name' => 'Handeln', 'value' => 1],
-            ],
-        ]));
-
+test('pdf export rejects invalid mensch 21 bonus choice inputs', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $validPraekristofluuPayload = ['race' => 'Präkristofluu', 'culture' => 'Mensch des 21. Jahrhunderts', 'skills' => [['name' => 'Beruf', 'value' => 3], ['name' => 'Bildung', 'value' => 3], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 3], ['name' => 'Wissenschaftler', 'value' => 3]], 'praekristofluu_skill_points' => ['Bildung' => 2, 'Fahren' => 2, 'Feuerwaffen' => 2, 'Pilot' => 2, 'Techniker' => 2, 'Wissenschaftler' => 2], 'advantages' => ['Zäh', 'High-Tech-Ausrüstung']];
+    foreach (['duplicate bonus choices' => ['mensch_21_first_bonus_skill' => 'Techniker', 'mensch_21_second_bonus_skill' => 'Techniker'], 'unsupported bonus choice' => ['mensch_21_first_bonus_skill' => 'Heiler', 'mensch_21_second_bonus_skill' => 'Wissenschaftler']] as $overrides) {
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(array_replace($validPraekristofluuPayload, $overrides)));
         $response->assertSessionHasErrors('skills');
     }
+});
 
-    public function test_pdf_export_applies_base_skill_grant_to_only_one_specialization(): void
+test('pdf export rejects praekristofluu with other culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Präkristofluu', 'culture' => 'Landbewohner']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export rejects mensch des 21 jahrhunderts for non praekristofluu', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Barbar', 'culture' => 'Mensch des 21. Jahrhunderts']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export accepts nosfera with general culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+
+        return $data['character']['race'] === 'Nosfera' && $data['character']['culture'] === 'Stadtbewohner' && ($data['attributes']['ge'] ?? null) === '1' && ($data['attributes']['au'] ?? null) === '-1' && $skills->has('Intuition') && $skills->has('Heimlichkeit') && in_array('Nachtsicht', $data['advantages'], true) && ! in_array('Psychisches Reservoir', $data['advantages'], true) && in_array('Blutdurst', $data['disadvantages'], true) && in_array('Lichtscheu', $data['disadvantages'], true) && in_array('Gejagt', $data['disadvantages'], true);
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Nosfera', 'culture' => 'Stadtbewohner', 'attributes' => ['ge' => 1, 'au' => -1], 'skills' => [['name' => 'Intuition', 'value' => 2], ['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]], 'advantages' => ['Zäh', 'Nachtsicht'], 'disadvantages' => ['Blutdurst', 'Lichtscheu', 'Gejagt']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('pdf export accepts taratze with general culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+        $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Stadtbewohner',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Überleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Kunde', 'value' => 1],
-                ['name' => 'Unterhalten', 'value' => 1],
-                ['name' => 'Beruf: Künstler', 'value' => 4],
-                ['name' => 'Beruf: Seemann', 'value' => 4],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Diebeskunst', 'value' => 4],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Fernkampf', 'value' => 2],
-            ],
-        ]));
-
-        $response->assertSessionHasErrors('skills');
-    }
-
-    public function test_pdf_export_enforces_skill_cross_rules(): void
+        return $data['character']['race'] === 'Taratze' && $data['character']['culture'] === 'Stadtbewohner' && ($data['attributes']['st'] ?? null) === '1' && ($data['attributes']['wa'] ?? null) === '1' && ($data['attributes']['in'] ?? null) === '-1' && ($data['attributes']['au'] ?? null) === '-1' && $skillValue('Intuition') === '2' && $skillValue('Heimlichkeit') === '1' && $skillValue('Überleben') === '1' && in_array('Auffällig', $data['disadvantages'], true) && in_array('Primitiv', $data['disadvantages'], true) && in_array('Gejagt', $data['disadvantages'], true);
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Taratze', 'culture' => 'Stadtbewohner', 'attributes' => ['st' => 1, 'wa' => 1, 'in' => -1, 'au' => -1], 'skills' => [['name' => 'Intuition', 'value' => 2], ['name' => 'Heimlichkeit', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]], 'advantages' => ['Zäh'], 'disadvantages' => ['Auffällig', 'Primitiv', 'Gejagt']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('pdf export accepts wulfane with general culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+        $skillValue = fn (string $skillName) => ($skills[$skillName] ?? [])['value'] ?? null;
 
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Bildung', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'skills' => [
-                    ['name' => 'Nahkampf', 'value' => 1],
-                    ['name' => 'Überleben', 'value' => 1],
-                    ['name' => 'Intuition', 'value' => 1],
-                    ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-                    ['name' => 'Kunde: Wetter', 'value' => 1],
-                    ['name' => 'Wissenschaftler', 'value' => 1],
-                ],
-            ]))
-            ->assertSessionHasErrors('skills');
-    }
-
-    public function test_pdf_export_accepts_skill_aliases_and_specializations(): void
+        return $data['character']['race'] === 'Wulfane' && $data['character']['culture'] === 'Landbewohner' && ($data['attributes']['ro'] ?? null) === '1' && ($data['attributes']['au'] ?? null) === '-1' && $skillValue('Intuition') === '1' && $skillValue('Nahkampf') === '1' && in_array('Ehrenkodex', $data['disadvantages'], true);
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Wulfane', 'culture' => 'Landbewohner', 'attributes' => ['ro' => 1, 'au' => -1], 'skills' => [['name' => 'Intuition', 'value' => 1], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Beruf: Landwirt', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1]], 'advantages' => ['Zäh'], 'disadvantages' => ['Ehrenkodex']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function ($data) {
-                $skills = collect($data['skills'])->keyBy('name');
-
-                return $skills->has('Überleben')
-                    && $skills->has('Beruf: Künstler')
-                    && (($skills['Beruf: Künstler'] ?? [])['value'] ?? null) === '2';
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'culture' => 'Stadtbewohner',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Ueberleben', 'value' => 1],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf: Kuenstler', 'value' => 2],
-                ['name' => 'Kunde', 'value' => 1],
-                ['name' => 'Unterhalten', 'value' => 1],
-            ],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_applies_advantage_costs_and_repeatable_counts(): void
+test('pdf export accepts nomade culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar' && $data['character']['culture'] === 'Nomade'))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Nomade', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Reiten', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['advantage_counts']['Panzerung'] ?? null) === 2))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
+test('pdf export accepts ruinenbewohner culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'Panzerung'],
-            'advantage_counts' => ['Panzerung' => 2],
-            'advantage_details' => ['Panzerung' => 'Mutierte Hornplatten'],
-            'disadvantages' => ['Auffällig', 'Taratzenfutter'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_required_special_details_with_form_normalized_keys(): void
+        return $data['character']['race'] === 'Barbar' && $data['character']['culture'] === 'Ruinenbewohner' && $skills->has('Diebeskunst') && $skills->has('Heimlichkeit') && $skills->has('Fernkampf') && ! $skills->has('Fernwaffen');
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Ruinenbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Diebeskunst', 'value' => 1], ['name' => 'Heimlichkeit', 'value' => 1], ['name' => 'Fernkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantages'] === ['Zäh', 'Gesteigertes Attribut']
-                && $data['disadvantages'] === ['Auffällig']
-                && $data['advantage_details'] === ['Gesteigertes Attribut' => 'st – ST +1']
-                && $data['advantage_counts'] === ['Gesteigertes Attribut' => 1]
-                && collect($data['advantage_effects'])->contains(fn ($effect) => $effect === [
-                    'name' => 'Gesteigertes Attribut',
-                    'target' => 'st',
-                    'justification' => 'ST +1',
-                ])
-                && $data['disadvantage_details'] === []))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
+test('pdf export accepts untergrundbewohner culture', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'Gesteigertes Attribut'],
-            'advantage_details' => [
-                'Gesteigertes_Attribut' => 'ST +1',
-                'Tiergefaehrte' => 'Rabe',
-            ],
-            'disadvantages' => ['Auffaellig'],
-            'disadvantage_details' => ['Feind' => 'Rivalin'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_accepts_three_unit_advantage_with_two_compensations(): void
+        return $data['character']['race'] === 'Barbar' && $data['character']['culture'] === 'Untergrundbewohner' && $skills->has('Athletik') && $skills->has('Beruf: Bergmann') && $skills->has('Überleben');
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Untergrundbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Athletik', 'value' => 1], ['name' => 'Beruf: Bergmann', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['creation']['advantage_budget']['used'] === 3
-                && $data['creation']['advantage_budget']['required_compensations'] === 2))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
+test('pdf export accepts disuuslachter culture for barbar', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'Gestaltwandler'],
-            'disadvantages' => ['Auffällig', 'Taratzenfutter', 'Blutdurst'],
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_missing_required_special_details(): void
+        return $data['character']['race'] === 'Barbar' && $data['character']['culture'] === 'Disuuslachter (Nordmann)' && $skills->has('Nahkampf') && $skills->has('Überleben') && $skills->has('Beruf: Seemann');
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Disuuslachter (Nordmann)', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Beruf: Seemann', 'value' => 1], ['name' => 'Intuition', 'value' => 1]]]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('pdf export rejects disuuslachter culture for non barbar', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Nosfera', 'culture' => 'Disuuslachter (Nordmann)']));
+    $response->assertSessionHasErrors('culture');
+});
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'Anführer'],
-            'disadvantages' => ['Aberglaeubisch'],
-        ]));
-
-        $response->assertSessionHasErrors('disadvantage_details');
-    }
-
-    public function test_pdf_export_validates_special_detail_and_count_payload_limits(): void
+test('pdf export accepts volk der 13 inseln for barbar with required advantage', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['race'] === 'Barbar' && $data['character']['culture'] === 'Volk der 13 Inseln' && in_array('Psychische Kraft', $data['advantages'], true)))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['gender' => 'weiblich', 'culture' => 'Volk der 13 Inseln', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Athletik', 'value' => 1], ['name' => 'Beruf: Bauer', 'value' => 1]], 'advantages' => ['Zaeh', 'Psychische Kraft']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantage_details' => ['Gesteigertes_Attribut' => str_repeat('x', 256)],
-            'disadvantage_details' => ['Feind' => str_repeat('x', 256)],
-            'advantage_counts' => ['Panzerung' => 21],
-        ]));
-
-        $response->assertSessionHasErrors([
-            'advantage_details.Gesteigertes_Attribut',
-            'disadvantage_details.Feind',
-            'advantage_counts.Panzerung',
-        ]);
-    }
-
-    public function test_pdf_export_ignores_legacy_counts_for_non_repeatable_advantages(): void
+test('pdf export accepts male volk der 13 inseln without required advantage', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character']['gender'] === 'maennlich' && $data['character']['culture'] === 'Volk der 13 Inseln' && ! in_array('Psychische Kraft', $data['advantages'], true)))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['gender' => 'maennlich', 'culture' => 'Volk der 13 Inseln', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Athletik', 'value' => 1], ['name' => 'Beruf: Fischer', 'value' => 1]], 'advantages' => ['Zaeh']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantage_counts'] === []))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'advantages' => ['Zäh', 'Anführer'],
-            'advantage_counts' => ['Anführer' => 2],
-            'disadvantages' => ['Auffällig'],
-        ]));
-
-        $response->assertOk();
+test('pdf export rejects volk der 13 inseln without valid gender', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    foreach (['', 'unbekannt'] as $gender) {
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['gender' => $gender, 'culture' => 'Volk der 13 Inseln', 'advantages' => ['Zaeh']]));
+        $response->assertSessionHasErrors('gender');
     }
+});
 
-    public function test_portrait_data_url_payload_ignores_non_scalar_values(): void
+test('pdf export rejects volk der 13 inseln for non barbar', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['race' => 'Guul', 'culture' => 'Volk der 13 Inseln']));
+    $response->assertSessionHasErrors('culture');
+});
+
+test('pdf export rejects female volk der 13 inseln without psychische kraft', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['gender' => 'weiblich', 'culture' => 'Volk der 13 Inseln', 'advantages' => ['Zaeh']]));
+    $response->assertSessionHasErrors('advantage_effects');
+});
+
+test('pdf normalizes skill and special collection payloads to trimmed scalar strings', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['attributes'] === ['st' => '2', 'ge' => '1', 'ro' => '0', 'wi' => '0', 'wa' => '0', 'in' => '0', 'au' => '0'] && $data['skills'] === [['name' => 'Nahkampf', 'value' => '1'], ['name' => 'Überleben', 'value' => '1'], ['name' => 'Intuition', 'value' => '1'], ['name' => 'Beruf: Viehzüchter', 'value' => '2'], ['name' => 'Kunde: Wetter', 'value' => '1'], ['name' => 'Diebeskunst', 'value' => '4'], ['name' => 'Fernkampf', 'value' => '4'], ['name' => 'Handeln', 'value' => '4'], ['name' => 'Fahren', 'value' => '4'], ['name' => 'Heiler', 'value' => '4']] && $data['advantages'] === ['Zäh', 'Anführer'] && $data['disadvantages'] === ['Abergläubisch']))->andReturn(new class extends PdfBuilder
     {
-        $sheetService = app(RpgCharacterSheetService::class);
-        $method = new \ReflectionMethod($sheetService, 'portraitDataUrlPayload');
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', ['figurenstaerke' => 3, 'character_name' => 'Collection Payload', 'gender' => 'maennlich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'attributes' => ['st' => ' 2 ', 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'barbar_attribute_bonus' => 'st', 'skills' => [['name' => ['manipuliert'], 'value' => '4'], ['name' => ' Nahkampf ', 'value' => 1], ['name' => ' Überleben ', 'value' => 1], ['name' => ' Intuition ', 'value' => 1], ['name' => ' Beruf: Viehzüchter ', 'value' => 2], ['name' => ' Kunde: Wetter ', 'value' => 1], ['name' => ' Diebeskunst ', 'value' => 4], ['name' => ' Fernkampf ', 'value' => 4], ['name' => ' Handeln ', 'value' => 4], ['name' => ' Fahren ', 'value' => 4], ['name' => ' Heiler ', 'value' => 4], ['name' => false, 'value' => '3']], 'advantages' => [' Zaeh ', ['manipuliert'], false, 'Anfuehrer', 'Zaeh'], 'advantage_effects' => [['name' => 'Anfuehrer', 'target' => '', 'justification' => '']], 'disadvantages' => [['manipuliert'], ' Aberglaeubisch ', null, 'Aberglaeubisch'], 'disadvantage_details' => [' Aberglaeubisch ' => ' Salz, Omen, dreimal klopfen '], 'languages' => [], 'clothing' => 'kleidung-einfach', 'equipment_items' => [['id' => 'messer-dolch', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wasserschlauch', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1], ['id' => 'bogen', 'quantity' => 1]]]);
+    $response->assertOk();
+});
 
-        $this->assertNull($method->invoke($sheetService, ['manipuliert']));
-        $this->assertNull($method->invoke($sheetService, (object) ['manipuliert' => true]));
-    }
-
-    public function test_pdf_export_rejects_character_name_above_database_column_length(): void
+test('pdf export accepts new rulebook disadvantages', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => in_array('Taratzenfutter', $data['disadvantages'], true)))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['disadvantages' => ['Taratzenfutter']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('pdf export rejects unknown advantages and disadvantages', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Laserblick']]))->assertSessionHasErrors('advantages');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['disadvantages' => ['Pechmagnet']]))->assertSessionHasErrors('disadvantages');
+});
 
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-                'character_name' => str_repeat('A', 256),
-            ]))
-            ->assertSessionHasErrors('character_name');
-    }
+test('pdf export rejects unknown and restricted skills', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Fernwaffen', 'value' => 1]]]))->assertSessionHasErrors('skills');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Natürliche Waffen', 'value' => 1]]]))->assertSessionHasErrors('skills');
+});
 
-    public function test_pdf_normalizes_character_fields_to_trimmed_scalar_strings(): void
+test('pdf export rejects invalid skill values and duplicates', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 5], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1]]]))->assertSessionHasErrors('skills');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Nahkampf', 'value' => 2], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1]]]))->assertSessionHasErrors('skills');
+});
+
+test('pdf export rejects skill point budget overflow', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Athletik', 'value' => 4], ['name' => 'Diebeskunst', 'value' => 4], ['name' => 'Fahren', 'value' => 4], ['name' => 'Fernkampf', 'value' => 4], ['name' => 'Feuerwaffen', 'value' => 4], ['name' => 'Handeln', 'value' => 1]]]));
+    $response->assertSessionHasErrors('skills');
+});
+
+test('pdf export applies base skill grant to only one specialization', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Stadtbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1], ['name' => 'Beruf: Künstler', 'value' => 4], ['name' => 'Beruf: Seemann', 'value' => 4], ['name' => 'Athletik', 'value' => 4], ['name' => 'Diebeskunst', 'value' => 4], ['name' => 'Fahren', 'value' => 4], ['name' => 'Fernkampf', 'value' => 2]]]));
+    $response->assertSessionHasErrors('skills');
+});
+
+test('pdf export enforces skill cross rules', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Bildung', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1]]]))->assertSessionHasErrors('skills');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Wissenschaftler', 'value' => 1]]]))->assertSessionHasErrors('skills');
+});
+
+test('pdf export accepts skill aliases and specializations', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(function ($data) {
+        $skills = collect($data['skills'])->keyBy('name');
+
+        return $skills->has('Überleben') && $skills->has('Beruf: Künstler') && (($skills['Beruf: Künstler'] ?? [])['value'] ?? null) === '2';
+    }))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['culture' => 'Stadtbewohner', 'skills' => [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Ueberleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Kuenstler', 'value' => 2], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1]]]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === [
-                'player_name' => 'Holger',
-                'character_name' => '',
-                'gender' => 'weiblich',
-                'race' => 'Barbar',
-                'culture' => 'Landbewohner',
-                'description' => '',
-                'equipment' => '',
-            ]))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'player_name' => ' Holger ',
-            'character_name' => ['manipuliert'],
-            'gender' => ' weiblich ',
-            'race' => ' Barbar ',
-            'culture' => ' Landbewohner ',
-            'description' => ['manipuliert'],
-            'equipment' => null,
-        ]));
-
-        $response->assertOk();
-        $this->assertStringContainsString('charakter.pdf', $response->headers->get('content-disposition'));
-    }
-
-    public function test_pdf_includes_base64_portrait_from_editor_preview_when_file_input_is_disabled(): void
+test('pdf export applies advantage costs and repeatable counts', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => ($data['advantage_counts']['Panzerung'] ?? null) === 2))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
-        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Panzerung'], 'advantage_counts' => ['Panzerung' => 2], 'advantage_details' => ['Panzerung' => 'Mutierte Hornplatten'], 'disadvantages' => ['Auffällig', 'Taratzenfutter']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['portrait'] === $dataUrl))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(['character_name' => 'Preview Portrait']),
-            'portrait_data_url' => $dataUrl,
-        ]);
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_rejects_editor_preview_portrait_data_url_above_character_limit(): void
+test('pdf export accepts required special details with form normalized keys', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantages'] === ['Zäh', 'Gesteigertes Attribut'] && $data['disadvantages'] === ['Auffällig'] && $data['advantage_details'] === ['Gesteigertes Attribut' => 'st – ST +1'] && $data['advantage_counts'] === ['Gesteigertes Attribut' => 1] && collect($data['advantage_effects'])->contains(fn ($effect) => $effect === ['name' => 'Gesteigertes Attribut', 'target' => 'st', 'justification' => 'ST +1']) && $data['disadvantage_details'] === []))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Gesteigertes Attribut'], 'advantage_details' => ['Gesteigertes_Attribut' => 'ST +1', 'Tiergefaehrte' => 'Rabe'], 'disadvantages' => ['Auffaellig'], 'disadvantage_details' => ['Feind' => 'Rivalin']]));
+    $response->assertOk();
+});
 
-        $maxChars = (new \ReflectionClass(RpgCharacterSheetService::class))
-            ->getReflectionConstant('PORTRAIT_DATA_URL_MAX_CHARS')
-            ->getValue();
-
-        Pdf::shouldReceive('view')->never();
-
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(),
-            'portrait_data_url' => str_repeat('A', $maxChars + 1),
-        ]);
-
-        $response->assertSessionHasErrors('portrait_data_url');
-    }
-
-    public function test_pdf_rejects_editor_preview_portrait_data_url_with_line_breaks(): void
+test('pdf export accepts three unit advantage with two compensations', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['creation']['advantage_budget']['used'] === 3 && $data['creation']['advantage_budget']['required_compensations'] === 2))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
-        $base64 = base64_encode($image->get());
-        $dataUrl = 'data:image/png;base64,'.substr($base64, 0, 8)."\n".substr($base64, 8);
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Gestaltwandler'], 'disadvantages' => ['Auffällig', 'Taratzenfutter', 'Blutdurst']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('pdf export rejects missing required special details', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Anführer'], 'disadvantages' => ['Aberglaeubisch']]));
+    $response->assertSessionHasErrors('disadvantage_details');
+});
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(),
-            'portrait_data_url' => $dataUrl,
-        ]);
+test('pdf export validates special detail and count payload limits', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantage_details' => ['Gesteigertes_Attribut' => str_repeat('x', 256)], 'disadvantage_details' => ['Feind' => str_repeat('x', 256)], 'advantage_counts' => ['Panzerung' => 21]]));
+    $response->assertSessionHasErrors(['advantage_details.Gesteigertes_Attribut', 'disadvantage_details.Feind', 'advantage_counts.Panzerung']);
+});
 
-        $response->assertSessionHasErrors([
-            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
-        ]);
-    }
-
-    public function test_pdf_rejects_editor_preview_portrait_data_url_with_mismatched_mime_type(): void
+test('pdf export ignores legacy counts for non repeatable advantages', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['advantage_counts'] === []))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $image = UploadedFile::fake()->image('avatar.jpg', 1, 1);
-        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['advantages' => ['Zäh', 'Anführer'], 'advantage_counts' => ['Anführer' => 2], 'disadvantages' => ['Auffällig']]));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->never();
+test('portrait data url payload ignores non scalar values', function (): void {
+    $sheetService = app(RpgCharacterSheetService::class);
+    $method = new \ReflectionMethod($sheetService, 'portraitDataUrlPayload');
+    expect($method->invoke($sheetService, ['manipuliert']))->toBeNull()
+        ->and($method->invoke($sheetService, (object) ['manipuliert' => true]))->toBeNull();
+});
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(),
-            'portrait_data_url' => $dataUrl,
-        ]);
+test('pdf export rejects character name above database column length', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => str_repeat('A', 256)]))->assertSessionHasErrors('character_name');
+});
 
-        $response->assertSessionHasErrors([
-            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
-        ]);
-    }
-
-    public function test_pdf_rejects_invalid_editor_preview_portrait_data(): void
+test('pdf normalizes character fields to trimmed scalar strings', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['character'] === ['player_name' => 'Holger', 'character_name' => '', 'gender' => 'weiblich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => '', 'equipment' => '']))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['player_name' => ' Holger ', 'character_name' => ['manipuliert'], 'gender' => ' weiblich ', 'race' => ' Barbar ', 'culture' => ' Landbewohner ', 'description' => ['manipuliert'], 'equipment' => null]));
+    $response->assertOk();
+    expect($response->headers->get('content-disposition'))->toContain('charakter.pdf');
+});
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(),
-            'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
-        ]);
-
-        $response->assertSessionHasErrors([
-            'portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.',
-        ]);
-    }
-
-    public function test_pdf_downloads_with_sanitized_filename_for_ag_rollenspiel_member(): void
+test('pdf includes base64 portrait from editor preview when file input is disabled', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+    $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => $data['portrait'] === $dataUrl))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(['character_name' => 'Preview Portrait']), 'portrait_data_url' => $dataUrl]);
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::type('array'))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
+test('pdf rejects editor preview portrait data url above character limit', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $maxChars = (new \ReflectionClass(RpgCharacterSheetService::class))->getReflectionConstant('PORTRAIT_DATA_URL_MAX_CHARS')->getValue();
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(), 'portrait_data_url' => str_repeat('A', $maxChars + 1)]);
+    $response->assertSessionHasErrors('portrait_data_url');
+});
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'character_name' => 'Foo/Bar',
-            'gender' => 'maennlich',
-            'portrait' => UploadedFile::fake()->image('avatar.jpg'),
-        ]));
+test('pdf rejects editor preview portrait data url with line breaks', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+    $base64 = base64_encode($image->get());
+    $dataUrl = 'data:image/png;base64,'.substr($base64, 0, 8)."\n".substr($base64, 8);
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(), 'portrait_data_url' => $dataUrl]);
+    $response->assertSessionHasErrors(['portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.']);
+});
 
-        $this->assertStringContainsString('foobar.pdf', $response->headers->get('content-disposition'));
-    }
+test('pdf rejects editor preview portrait data url with mismatched mime type', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $image = UploadedFile::fake()->image('avatar.jpg', 1, 1);
+    $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+    Pdf::shouldReceive('view')->never();
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(), 'portrait_data_url' => $dataUrl]);
+    $response->assertSessionHasErrors(['portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.']);
+});
 
-    public function test_rejects_non_image_portrait_for_ag_rollenspiel_member(): void
+test('pdf rejects invalid editor preview portrait data', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(), 'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image')]);
+    $response->assertSessionHasErrors(['portrait_data_url' => 'Das Porträt konnte nicht für den PDF-Export verarbeitet werden.']);
+});
+
+test('pdf downloads with sanitized filename for ag rollenspiel member', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::type('array'))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Foo/Bar', 'gender' => 'maennlich', 'portrait' => UploadedFile::fake()->image('avatar.jpg')]));
+    expect($response->headers->get('content-disposition'))->toContain('foobar.pdf');
+});
 
-        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
-            'portrait' => UploadedFile::fake()->create('bad.exe', 10, 'application/octet-stream'),
-        ]);
+test('rejects non image portrait for ag rollenspiel member', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', ['portrait' => UploadedFile::fake()->create('bad.exe', 10, 'application/octet-stream')]);
+    $response->assertSessionHasErrors('portrait');
+});
 
-        $response->assertSessionHasErrors('portrait');
-    }
+test('pdf endpoint renders real pdf for ag rollenspiel member', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+    $response->assertOk();
+    $response->assertHeader('content-type', 'application/pdf');
+    expect($response->headers->get('content-disposition'))->toContain('foo-bar.pdf')
+        ->and($response->getContent())->toStartWith('%PDF');
+});
 
-    public function test_pdf_endpoint_renders_real_pdf_for_ag_rollenspiel_member(): void
+test('pdf generates without portrait for global admin with different current team', function (): void {
+    $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => array_key_exists('portrait', $data) && is_null($data['portrait'])))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Foo', 'gender' => 'maennlich']));
+    $response->assertOk();
+});
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload());
+test('pdf endpoint renders real pdf with uploaded portrait', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [...$this->validPdfPayload(['character_name' => 'Mit Portrait']), 'portrait' => UploadedFile::fake()->image('avatar.png', 120, 120)]);
+    $response->assertOk();
+    expect($response->headers->get('content-disposition'))->toContain('mit-portrait.pdf')
+        ->and($response->getContent())->toStartWith('%PDF');
+});
 
-        $response->assertOk();
-        $response->assertHeader('content-type', 'application/pdf');
-        $this->assertStringContainsString('foo-bar.pdf', $response->headers->get('content-disposition'));
-        $this->assertStringStartsWith('%PDF', $response->getContent());
-    }
-
-    public function test_pdf_generates_without_portrait_for_global_admin_with_different_current_team(): void
+test('pdf export accepts training allocations and calculates active combat values', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $skills = [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Fahren', 'value' => 4], ['name' => 'Unterhalten: Geschichten', 'value' => 1]];
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['trainings'] === ['Arbeiter'] && collect($data['training_allocations'])->contains(fn (array $allocation): bool => $allocation === ['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4]) && ($data['equipment']['active_armor_id'] ?? null) === 'verstaerktes-leder' && ($data['equipment']['active_shield_id'] ?? null) === 'holzschild' && ($data['combat']['active_armor']['id'] ?? null) === 'verstaerktes-leder' && ($data['combat']['active_shield']['id'] ?? null) === 'holzschild' && ($data['combat']['defense']['parade'] ?? null) === 3 && ($data['combat']['defense']['damage_reduction'] ?? null) === 2 && ($data['sheet']['trainings'] ?? null) === 'Arbeiter'))->andReturn(new class extends PdfBuilder
     {
-        $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => $skills, 'trainings' => ['Arbeiter'], 'training_allocations' => [['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4], ['training' => 'Arbeiter', 'skill' => 'Unterhalten: Geschichten', 'points' => 1]], 'equipment_items' => [['id' => 'schwert', 'quantity' => 1], ['id' => 'bogen', 'quantity' => 1], ['id' => 'verstaerktes-leder', 'quantity' => 1], ['id' => 'holzschild', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1]], 'active_armor_id' => 'verstaerktes-leder', 'active_shield_id' => 'holzschild']));
+    $response->assertOk();
+});
 
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => array_key_exists('portrait', $data) && is_null($data['portrait'])))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
+test('pdf export rejects invalid training definitions allocations and prerequisites', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['trainings' => ['Raumpilot']]))->assertSessionHasErrors('trainings');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['trainings' => ['Krieger'], 'training_allocations' => [['training' => 'Krieger', 'skill' => 'Heiler', 'points' => 5]]]))->assertSessionHasErrors('training_allocations');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['trainings' => ['Arbeiter'], 'training_allocations' => [['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4]]]))->assertSessionHasErrors('training_allocations');
+    $seherSkills = [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf: Viehzüchter', 'value' => 2], ['name' => 'Kunde: Wetter', 'value' => 1], ['name' => 'Kunde', 'value' => 4], ['name' => 'Sprachen', 'value' => 1]];
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['skills' => $seherSkills, 'trainings' => ['Seher'], 'training_allocations' => [['training' => 'Seher', 'skill' => 'Kunde', 'points' => 4], ['training' => 'Seher', 'skill' => 'Sprachen', 'points' => 1]]]))->assertSessionHasErrors('trainings');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['trainings' => ["Rev'rend", 'Krieger', 'Arbeiter']]))->assertSessionHasErrors('trainings');
+});
 
-        $response = $this->followingRedirects()->actingAs($admin)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'character_name' => 'Foo',
-            'gender' => 'maennlich',
-        ]));
+test('pdf export rejects active armor or shield outside the selected equipment', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['active_armor_id' => 'verstaerktes-leder']))->assertSessionHasErrors('active_armor_id');
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['active_shield_id' => 'bogen']))->assertSessionHasErrors('active_shield_id');
+});
 
-        $response->assertOk();
-    }
+test('real pdf stays on exactly one a4 page', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['description' => str_repeat('Lange Charakterbeschreibung für den Ausdruck. ', 20), 'equipment' => str_repeat('Ausführliche Ausrüstungsnotiz. ', 20)]));
+    $response->assertOk();
+    $content = $response->getContent();
+    expect($content)->toStartWith('%PDF')
+        ->and(preg_match_all('/\/Type\s*\/Page\b/', $content))->toBe(1)
+        ->and($content)->toMatch('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+595(?:\.\d+)?\s+841(?:\.\d+)?\s*\]/');
+});
 
-    public function test_pdf_endpoint_renders_real_pdf_with_uploaded_portrait(): void
+test('pdf includes base64 portrait when uploaded for ag rollenspiel member', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn ($data) => str_starts_with($data['portrait'] ?? '', 'data:image')))->andReturn(new class extends PdfBuilder
     {
-        $member = $this->addAgRollenspielMembership($this->createMember());
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
+        }
+    });
+    $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload(['character_name' => 'Foo', 'gender' => 'maennlich', 'portrait' => UploadedFile::fake()->image('avatar.png')]));
+    $response->assertOk();
+});
 
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', [
-            ...$this->validPdfPayload(['character_name' => 'Mit Portrait']),
-            'portrait' => UploadedFile::fake()->image('avatar.png', 120, 120),
-        ]);
+test('member without ag rollenspiel is forbidden from pdf endpoint', function (): void {
+    $member = $this->createMember();
+    $this->actingAs($member)->post('/rpg/char-editor/pdf', ['character_name' => 'Foo'])->assertForbidden();
+});
 
-        $response->assertOk();
-        $this->assertStringContainsString('mit-portrait.pdf', $response->headers->get('content-disposition'));
-        $this->assertStringStartsWith('%PDF', $response->getContent());
-    }
-
-    public function test_pdf_export_accepts_training_allocations_and_calculates_active_combat_values(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $skills = [
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Überleben', 'value' => 1],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-            ['name' => 'Kunde: Wetter', 'value' => 1],
-            ['name' => 'Fahren', 'value' => 4],
-            ['name' => 'Unterhalten: Geschichten', 'value' => 1],
-        ];
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(function (array $data): bool {
-                return $data['trainings'] === ['Arbeiter']
-                    && collect($data['training_allocations'])->contains(fn (array $allocation): bool => $allocation === [
-                        'training' => 'Arbeiter',
-                        'skill' => 'Fahren',
-                        'points' => 4,
-                    ])
-                    && ($data['equipment']['active_armor_id'] ?? null) === 'verstaerktes-leder'
-                    && ($data['equipment']['active_shield_id'] ?? null) === 'holzschild'
-                    && ($data['combat']['active_armor']['id'] ?? null) === 'verstaerktes-leder'
-                    && ($data['combat']['active_shield']['id'] ?? null) === 'holzschild'
-                    && ($data['combat']['defense']['parade'] ?? null) === 3
-                    && ($data['combat']['defense']['damage_reduction'] ?? null) === 2
-                    && ($data['sheet']['trainings'] ?? null) === 'Arbeiter';
-            }))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'skills' => $skills,
-            'trainings' => ['Arbeiter'],
-            'training_allocations' => [
-                ['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4],
-                ['training' => 'Arbeiter', 'skill' => 'Unterhalten: Geschichten', 'points' => 1],
-            ],
-            'equipment_items' => [
-                ['id' => 'schwert', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-                ['id' => 'verstaerktes-leder', 'quantity' => 1],
-                ['id' => 'holzschild', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-            ],
-            'active_armor_id' => 'verstaerktes-leder',
-            'active_shield_id' => 'holzschild',
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_pdf_export_rejects_invalid_training_definitions_allocations_and_prerequisites(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'trainings' => ['Raumpilot'],
-        ]))->assertSessionHasErrors('trainings');
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'trainings' => ['Krieger'],
-            'training_allocations' => [
-                ['training' => 'Krieger', 'skill' => 'Heiler', 'points' => 5],
-            ],
-        ]))->assertSessionHasErrors('training_allocations');
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'trainings' => ['Arbeiter'],
-            'training_allocations' => [
-                ['training' => 'Arbeiter', 'skill' => 'Fahren', 'points' => 4],
-            ],
-        ]))->assertSessionHasErrors('training_allocations');
-
-        $seherSkills = [
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Überleben', 'value' => 1],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Beruf: Viehzüchter', 'value' => 2],
-            ['name' => 'Kunde: Wetter', 'value' => 1],
-            ['name' => 'Kunde', 'value' => 4],
-            ['name' => 'Sprachen', 'value' => 1],
-        ];
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'skills' => $seherSkills,
-            'trainings' => ['Seher'],
-            'training_allocations' => [
-                ['training' => 'Seher', 'skill' => 'Kunde', 'points' => 4],
-                ['training' => 'Seher', 'skill' => 'Sprachen', 'points' => 1],
-            ],
-        ]))->assertSessionHasErrors('trainings');
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'trainings' => ["Rev'rend", 'Krieger', 'Arbeiter'],
-        ]))->assertSessionHasErrors('trainings');
-    }
-
-    public function test_pdf_export_rejects_active_armor_or_shield_outside_the_selected_equipment(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'active_armor_id' => 'verstaerktes-leder',
-        ]))->assertSessionHasErrors('active_armor_id');
-
-        $this->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'active_shield_id' => 'bogen',
-        ]))->assertSessionHasErrors('active_shield_id');
-    }
-
-    public function test_real_pdf_stays_on_exactly_one_a4_page(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'description' => str_repeat('Lange Charakterbeschreibung für den Ausdruck. ', 20),
-            'equipment' => str_repeat('Ausführliche Ausrüstungsnotiz. ', 20),
-        ]));
-
-        $response->assertOk();
-        $content = $response->getContent();
-        $this->assertStringStartsWith('%PDF', $content);
-        $this->assertSame(1, preg_match_all('/\/Type\s*\/Page\b/', $content));
-        $this->assertMatchesRegularExpression('/\/MediaBox\s*\[\s*0(?:\.0+)?\s+0(?:\.0+)?\s+595(?:\.\d+)?\s+841(?:\.\d+)?\s*\]/', $content);
-    }
-
-    public function test_pdf_includes_base64_portrait_when_uploaded_for_ag_rollenspiel_member(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => str_starts_with($data['portrait'] ?? '', 'data:image')))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $response = $this->followingRedirects()->actingAs($member)->post('/rpg/char-editor/pdf', $this->validPdfPayload([
-            'character_name' => 'Foo',
-            'gender' => 'maennlich',
-            'portrait' => UploadedFile::fake()->image('avatar.png'),
-        ]));
-
-        $response->assertOk();
-    }
-
-    public function test_member_without_ag_rollenspiel_is_forbidden_from_pdf_endpoint(): void
-    {
-        $member = $this->createMember();
-
-        $this->actingAs($member)
-            ->post('/rpg/char-editor/pdf', ['character_name' => 'Foo'])
-            ->assertForbidden();
-    }
-
-    public function test_dompdf_dependency_is_installed(): void
-    {
-        $this->assertTrue(class_exists('Dompdf\\Dompdf'));
-    }
-}
+test('dompdf dependency is installed', function (): void {
+    expect(class_exists(Dompdf::class))->toBeTrue();
+});

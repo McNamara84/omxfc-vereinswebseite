@@ -1,288 +1,176 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\Reward;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\UserPoint;
 use App\Services\RewardService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use LogicException;
-use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class MitgliederKarteFeatureTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(MitgliederKarteFeatureTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function (): void {
+    Config::set('app.testing_minimal_layout', true);
+});
 
-        Config::set('app.testing_minimal_layout', true);
-    }
+test('locked members see preview with unlock cta', function (): void {
+    $user = $this->actingMember();
+    $this->actingAs($user);
+    $response = $this->get('/mitglieder/karte');
+    $response->assertOk();
+    $response->assertViewIs('mitglieder.karte');
+    $response->assertSee('Mitgliederkarte freischalten');
+    $response->assertSee('data-member-map', false);
+    $response->assertSee('data-testid="member-map-earn-baxx-cta"', false);
+    $response->assertSee('Zu Baxx verdienen');
+    $response->assertViewHas('availableBaxx', 0);
+    $response->assertViewHas('canPurchase', false);
+});
 
-    private function purchaseMemberMapReward(User $user): void
-    {
-        $reward = Reward::query()->where('slug', 'mitgliederkarte')->firstOrFail();
-        $membersTeam = Team::membersTeam();
+test('locked preview remains reachable when members team is missing', function (): void {
+    $user = $this->actingMember();
+    Team::membersTeam()?->delete();
+    $this->actingAs($user->fresh());
+    $response = $this->get('/mitglieder/karte');
+    $response->assertOk();
+    $response->assertViewIs('mitglieder.karte');
+    $response->assertSee('Mitgliederkarte freischalten');
+    $response->assertViewHas('walletWarning', fn ($warning) => is_string($warning) && $warning !== '');
+    expect($response->viewData('memberData'))->toBe('[]');
+});
 
-        $this->assertNotNull($membersTeam, 'Das Mitglieder-Team fehlt für purchaseMemberMapReward().');
+test('missing member map reward is restored instead of returning 404', function (): void {
+    $user = $this->actingMember();
+    Reward::query()->where('slug', 'mitgliederkarte')->delete();
+    $response = $this->actingAs($user)->get('/mitglieder/karte');
+    $response->assertOk();
+    $response->assertViewIs('mitglieder.karte');
+    $response->assertSee('Mitgliederkarte freischalten');
+    $reward = Reward::query()->where('slug', 'mitgliederkarte')->first();
+    expect($reward)->not->toBeNull()
+        ->and($reward->title)->toBe('Mitgliederkarte')
+        ->and($reward->category)->toBe('Allgemein')
+        ->and($reward->is_active)->toBeTrue()
+        ->and($reward->cost_baxx)->toBeGreaterThan(0);
+});
 
-        if (! $membersTeam->users()->whereKey($user->id)->exists()) {
-            $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-        }
+test('purchase returns friendly error when reward purchase throws logic exception', function (): void {
+    $user = $this->actingMember();
+    $reward = Reward::query()->firstOrCreate(['slug' => 'mitgliederkarte'], ['title' => 'Mitgliederkarte', 'description' => 'Interaktive Karte aller freigeschalteten Mitglieder.', 'cost_baxx' => 250, 'is_active' => true, 'category' => 'Allgemein', 'sort_order' => 0]);
+    $this->mock(RewardService::class, function ($mock) use ($reward) {
+        $mock->shouldReceive('resolveMitgliederkarteReward')->once()->andReturn($reward);
+        $mock->shouldReceive('purchaseReward')->once()->andThrow(new LogicException('Boom'));
+    });
+    $response = $this->actingAs($user)->post(route('mitglieder.karte.purchase'));
+    $response->assertRedirect(route('mitglieder.karte'));
+    $response->assertSessionHasErrors('reward');
+});
 
-        UserPoint::query()->create([
-            'user_id' => $user->id,
-            'team_id' => $membersTeam->id,
-            'points' => $reward->cost_baxx,
-        ]);
-        app(RewardService::class)->purchaseReward($user, $reward);
-    }
+test('coordinates are cached', function (): void {
+    Cache::flush();
+    $count = 0;
+    $responses = ['12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]];
+    Http::swap(new Factory);
+    Http::fake(['nominatim.openstreetmap.org/*' => function ($request) use (&$count, $responses) {
+        $count++;
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-    public function test_locked_members_see_preview_with_unlock_cta(): void
-    {
-        $user = $this->actingMember();
-        $this->actingAs($user);
+        return Http::response([$responses[$query['postalcode']]], 200);
+    }]);
+    $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
+    $this->purchaseMemberMapReward($user);
+    $this->actingAs($user);
+    $this->get('/mitglieder/karte');
+    $this->get('/mitglieder/karte');
+    expect($count)->toEqual(1);
+});
 
-        $response = $this->get('/mitglieder/karte');
+test('member center coordinates are average', function (): void {
+    Cache::flush();
+    $responses = ['11111' => ['lat' => '50.0', 'lon' => '8.0'], '22222' => ['lat' => '52.0', 'lon' => '10.0'], '12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]];
+    Http::swap(new Factory);
+    Http::fake(['nominatim.openstreetmap.org/*' => function ($request) use ($responses) {
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-        $response->assertSee('Mitgliederkarte freischalten');
-        $response->assertSee('data-member-map', false);
-        $response->assertSee('data-testid="member-map-earn-baxx-cta"', false);
-        $response->assertSee('Zu Baxx verdienen');
-        $response->assertViewHas('availableBaxx', 0);
-        $response->assertViewHas('canPurchase', false);
-    }
+        return Http::response([$responses[$query['postalcode']]], 200);
+    }]);
+    $user = $this->actingMember(Role::Mitglied, ['plz' => '11111', 'land' => 'Deutschland']);
+    $this->purchaseMemberMapReward($user);
+    $this->actingMember(Role::Mitglied, ['plz' => '22222', 'land' => 'Deutschland']);
+    $this->actingAs($user);
+    $response = $this->get('/mitglieder/karte');
+    $response->assertOk();
+    $response->assertViewIs('mitglieder.karte');
+    $memberCenterLat = $response->viewData('membersCenterLat');
+    $memberCenterLon = $response->viewData('membersCenterLon');
+    // The seeded admin user has coordinates (48.0, 11.0) provided by the
+    // default HTTP stubs in the test case. Together with the two members
+    // created above (50/8 and 52/10), the expected center is the average
+    // of all three sets of coordinates.
+    expect($memberCenterLat)->toEqualWithDelta(50.0, 0.0001);
+    expect($memberCenterLon)->toEqualWithDelta(9.666666666699999, 0.0001);
+});
 
-    public function test_locked_preview_remains_reachable_when_members_team_is_missing(): void
-    {
-        $user = $this->actingMember();
+test('map data is cached', function (): void {
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::fake(['nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200)]);
+    $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
+    $this->purchaseMemberMapReward($user);
+    $this->actingAs($user);
+    $this->get('/mitglieder/karte');
+    $team = Team::membersTeam();
+    $cacheKey = "member_map_data_v2_team_{$team->id}";
+    expect(Cache::has($cacheKey))->toBeTrue();
+});
 
-        Team::membersTeam()?->delete();
+test('unlocked map uses members team even when current team differs', function (): void {
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::fake(['nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200)]);
+    $membersTeam = Team::membersTeam();
+    $otherTeam = Team::factory()->create(['name' => 'Andere AG']);
+    $user = User::factory()->create(['current_team_id' => $otherTeam->id, 'plz' => '12345', 'land' => 'Deutschland', 'stadt' => 'Musterstadt']);
+    $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $this->purchaseMemberMapReward($user);
+    $this->actingAs($user);
+    $response = $this->get('/mitglieder/karte');
+    $response->assertOk();
+    $memberData = json_decode($response->viewData('memberData'), true);
+    expect(array_column($memberData, 'city'))->toContain('Musterstadt')
+        ->and(Cache::has("member_map_data_v2_team_{$membersTeam->id}"))->toBeTrue()
+        ->and(Cache::has("member_map_data_v2_team_{$otherTeam->id}"))->toBeFalse();
+});
 
-        $this->actingAs($user->fresh());
-
-        $response = $this->get('/mitglieder/karte');
-
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-        $response->assertSee('Mitgliederkarte freischalten');
-        $response->assertViewHas('walletWarning', fn ($warning) => is_string($warning) && $warning !== '');
-        $this->assertSame('[]', $response->viewData('memberData'));
-    }
-
-    public function test_missing_member_map_reward_is_restored_instead_of_returning_404(): void
-    {
-        $user = $this->actingMember();
-
-        Reward::query()->where('slug', 'mitgliederkarte')->delete();
-
-        $response = $this->actingAs($user)
-            ->get('/mitglieder/karte');
-
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-        $response->assertSee('Mitgliederkarte freischalten');
-
-        $reward = Reward::query()->where('slug', 'mitgliederkarte')->first();
-
-        $this->assertNotNull($reward);
-        $this->assertSame('Mitgliederkarte', $reward->title);
-        $this->assertSame('Allgemein', $reward->category);
-        $this->assertTrue($reward->is_active);
-        $this->assertGreaterThan(0, $reward->cost_baxx);
-    }
-
-    public function test_purchase_returns_friendly_error_when_reward_purchase_throws_logic_exception(): void
-    {
-        $user = $this->actingMember();
-        $reward = Reward::query()->firstOrCreate(
-            ['slug' => 'mitgliederkarte'],
-            [
-                'title' => 'Mitgliederkarte',
-                'description' => 'Interaktive Karte aller freigeschalteten Mitglieder.',
-                'cost_baxx' => 250,
-                'is_active' => true,
-                'category' => 'Allgemein',
-                'sort_order' => 0,
-            ],
-        );
-
-        $this->mock(RewardService::class, function ($mock) use ($reward) {
-            $mock->shouldReceive('resolveMitgliederkarteReward')
-                ->once()
-                ->andReturn($reward);
-
-            $mock->shouldReceive('purchaseReward')
-                ->once()
-                ->andThrow(new LogicException('Boom'));
-        });
-
-        $response = $this->actingAs($user)
-            ->post(route('mitglieder.karte.purchase'));
-
-        $response->assertRedirect(route('mitglieder.karte'));
-        $response->assertSessionHasErrors('reward');
-    }
-
-    public function test_coordinates_are_cached(): void
-    {
-        Cache::flush();
-        $count = 0;
-        $responses = ['12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]];
-        Http::swap(new Factory);
-        Http::fake([
-            'nominatim.openstreetmap.org/*' => function ($request) use (&$count, $responses) {
-                $count++;
-                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-
-                return Http::response([$responses[$query['postalcode']]], 200);
-            },
-        ]);
-
-        $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
-        $this->purchaseMemberMapReward($user);
-        $this->actingAs($user);
-
-        $this->get('/mitglieder/karte');
-        $this->get('/mitglieder/karte');
-
-        $this->assertEquals(1, $count);
-    }
-
-    public function test_member_center_coordinates_are_average(): void
-    {
-        Cache::flush();
-        $responses = [
-            '11111' => ['lat' => '50.0', 'lon' => '8.0'],
-            '22222' => ['lat' => '52.0', 'lon' => '10.0'],
-            '12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON],
-        ];
-        Http::swap(new Factory);
-        Http::fake([
-            'nominatim.openstreetmap.org/*' => function ($request) use ($responses) {
-                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-
-                return Http::response([$responses[$query['postalcode']]], 200);
-            },
-        ]);
-
-        $user = $this->actingMember(Role::Mitglied, ['plz' => '11111', 'land' => 'Deutschland']);
-        $this->purchaseMemberMapReward($user);
-        $this->actingMember(Role::Mitglied, ['plz' => '22222', 'land' => 'Deutschland']);
-
-        $this->actingAs($user);
-        $response = $this->get('/mitglieder/karte');
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-
-        $memberCenterLat = $response->viewData('membersCenterLat');
-        $memberCenterLon = $response->viewData('membersCenterLon');
-
-        // The seeded admin user has coordinates (48.0, 11.0) provided by the
-        // default HTTP stubs in the test case. Together with the two members
-        // created above (50/8 and 52/10), the expected center is the average
-        // of all three sets of coordinates.
-        $this->assertEqualsWithDelta(50.0, $memberCenterLat, 0.0001);
-        $this->assertEqualsWithDelta(9.6666666667, $memberCenterLon, 0.0001);
-    }
-
-    public function test_map_data_is_cached(): void
-    {
-        Cache::flush();
-        Http::swap(new Factory);
-        Http::fake([
-            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
-        ]);
-
-        $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
-        $this->purchaseMemberMapReward($user);
-        $this->actingAs($user);
-
-        $this->get('/mitglieder/karte');
-
-        $team = Team::membersTeam();
-        $cacheKey = "member_map_data_v2_team_{$team->id}";
-        $this->assertTrue(Cache::has($cacheKey));
-    }
-
-    public function test_unlocked_map_uses_members_team_even_when_current_team_differs(): void
-    {
-        Cache::flush();
-        Http::swap(new Factory);
-        Http::fake([
-            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
-        ]);
-
-        $membersTeam = Team::membersTeam();
-        $otherTeam = Team::factory()->create(['name' => 'Andere AG']);
-        $user = User::factory()->create([
-            'current_team_id' => $otherTeam->id,
-            'plz' => '12345',
-            'land' => 'Deutschland',
-            'stadt' => 'Musterstadt',
-        ]);
-        $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $this->purchaseMemberMapReward($user);
-        $this->actingAs($user);
-
-        $response = $this->get('/mitglieder/karte');
-
-        $response->assertOk();
-        $memberData = json_decode($response->viewData('memberData'), true);
-
-        $this->assertContains('Musterstadt', array_column($memberData, 'city'));
-        $this->assertTrue(Cache::has("member_map_data_v2_team_{$membersTeam->id}"));
-        $this->assertFalse(Cache::has("member_map_data_v2_team_{$otherTeam->id}"));
-    }
-
-    public function test_map_view_contains_accessibility_attributes_and_data(): void
-    {
-        Cache::flush();
-        Http::swap(new Factory);
-        Http::fake([
-            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
-        ]);
-
-        $user = $this->actingMember(Role::Mitglied, [
-            'plz' => '12345',
-            'land' => 'Deutschland',
-            'stadt' => 'Musterstadt',
-        ]);
-        $this->purchaseMemberMapReward($user);
-        $this->actingAs($user);
-
-        $response = $this->get('/mitglieder/karte');
-
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-        $response->assertSee('data-member-map', false);
-        $response->assertSee('aria-label="Mitgliederkarte"', false);
-        $response->assertSee('style="min-height: 600px;"', false);
-
-        $memberData = json_decode($response->viewData('memberData'), true);
-
-        $this->assertIsArray($memberData);
-        $this->assertNotEmpty($memberData);
-        $this->assertContains('Musterstadt', array_column($memberData, 'city'));
-        $this->assertContains(route('profile.view', $user->id), array_column($memberData, 'profile_url'));
-
-        $stammtischData = json_decode($response->viewData('stammtischData'), true);
-        $this->assertIsArray($stammtischData);
-        $this->assertCount(3, $stammtischData);
-        $this->assertSame('Regionalstammtisch München', $stammtischData[0]['name']);
-    }
-}
+test('map view contains accessibility attributes and data', function (): void {
+    Cache::flush();
+    Http::swap(new Factory);
+    Http::fake(['nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200)]);
+    $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland', 'stadt' => 'Musterstadt']);
+    $this->purchaseMemberMapReward($user);
+    $this->actingAs($user);
+    $response = $this->get('/mitglieder/karte');
+    $response->assertOk();
+    $response->assertViewIs('mitglieder.karte');
+    $response->assertSee('data-member-map', false);
+    $response->assertSee('aria-label="Mitgliederkarte"', false);
+    $response->assertSee('style="min-height: 600px;"', false);
+    $memberData = json_decode($response->viewData('memberData'), true);
+    expect($memberData)->toBeArray()->not->toBeEmpty()
+        ->and(array_column($memberData, 'city'))->toContain('Musterstadt')
+        ->and(array_column($memberData, 'profile_url'))->toContain(route('profile.view', $user->id));
+    $stammtischData = json_decode($response->viewData('stammtischData'), true);
+    expect($stammtischData)->toBeArray()
+        ->toHaveCount(3)
+        ->and($stammtischData[0]['name'])->toBe('Regionalstammtisch München');
+});

@@ -1,87 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Services\MaddraxDataService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
-use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class MaddraxDataServiceTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(MaddraxDataServiceTestFixtures::class);
 
-    private string $testStoragePath;
+beforeEach(function (): void {
+    $this->testStoragePath = base_path('storage/testing');
+    $this->app->useStoragePath($this->testStoragePath);
+    File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+    config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
+    $ref = new \ReflectionClass(MaddraxDataService::class);
+    $property = $ref->getProperty('data');
+    $property->setValue(null, null);
+    $data = [['nummer' => 1, 'zyklus' => 'Z1', 'titel' => 'Roman1', 'text' => ['Author1', 'Author2'], 'personen' => ['Figur1'], 'orte' => ['Ort1'], 'schlagworte' => ['Thema1']], ['nummer' => 2, 'zyklus' => 'Z2', 'titel' => 'Roman2', 'text' => ['Author1'], 'personen' => ['Figur2'], 'orte' => ['Ort2'], 'schlagworte' => ['Thema2']]];
+    File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function (): void {
+    File::deleteDirectory($this->testStoragePath);
+});
 
-        $this->testStoragePath = base_path('storage/testing');
-        $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
-        config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
+test('service extracts information', function (): void {
+    $this->actingAs($this->actingMember());
+    $this->assertArraysAreIdentical(['Author1', 'Author2'], MaddraxDataService::getAutoren());
+    $this->assertArraysAreIdentical(['Z1', 'Z2'], MaddraxDataService::getZyklen());
+    $this->assertArraysAreIdentical(['1 - Roman1', '2 - Roman2'], MaddraxDataService::getRomane());
+    $this->assertArraysAreIdentical(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
+    $this->assertArraysAreIdentical(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
+    $this->assertArraysAreIdentical(['Thema1', 'Thema2'], MaddraxDataService::getSchlagworte());
+});
 
-        $ref = new \ReflectionClass(MaddraxDataService::class);
-        $property = $ref->getProperty('data');
-        $property->setValue(null, null);
+test('load data returns empty when file is missing', function (): void {
+    File::delete($this->testStoragePath.'/app/private/maddrax.json');
+    $this->actingAs($this->actingMember());
+    $this->assertArraysAreIdentical([], MaddraxDataService::loadData());
+});
 
-        $data = [
-            [
-                'nummer' => 1,
-                'zyklus' => 'Z1',
-                'titel' => 'Roman1',
-                'text' => ['Author1', 'Author2'],
-                'personen' => ['Figur1'],
-                'orte' => ['Ort1'],
-                'schlagworte' => ['Thema1'],
-            ],
-            [
-                'nummer' => 2,
-                'zyklus' => 'Z2',
-                'titel' => 'Roman2',
-                'text' => ['Author1'],
-                'personen' => ['Figur2'],
-                'orte' => ['Ort2'],
-                'schlagworte' => ['Thema2'],
-            ],
-        ];
-        File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
-    }
-
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->testStoragePath);
-        parent::tearDown();
-    }
-
-    public function test_service_extracts_information(): void
-    {
-        $this->actingAs($this->actingMember());
-
-        $this->assertArraysAreIdentical(['Author1', 'Author2'], MaddraxDataService::getAutoren());
-        $this->assertArraysAreIdentical(['Z1', 'Z2'], MaddraxDataService::getZyklen());
-        $this->assertArraysAreIdentical(['1 - Roman1', '2 - Roman2'], MaddraxDataService::getRomane());
-        $this->assertArraysAreIdentical(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
-        $this->assertArraysAreIdentical(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
-        $this->assertArraysAreIdentical(['Thema1', 'Thema2'], MaddraxDataService::getSchlagworte());
-    }
-
-    public function test_load_data_returns_empty_when_file_is_missing(): void
-    {
-        File::delete($this->testStoragePath.'/app/private/maddrax.json');
-        $this->actingAs($this->actingMember());
-
-        $this->assertArraysAreIdentical([], MaddraxDataService::loadData());
-    }
-
-    public function test_load_data_returns_empty_when_json_is_invalid(): void
-    {
-        File::put($this->testStoragePath.'/app/private/maddrax.json', '{invalid');
-        $this->actingAs($this->actingMember());
-
-        $this->assertArraysAreIdentical([], MaddraxDataService::getAutoren());
-    }
-}
+test('load data returns empty when json is invalid', function (): void {
+    File::put($this->testStoragePath.'/app/private/maddrax.json', '{invalid');
+    $this->actingAs($this->actingMember());
+    $this->assertArraysAreIdentical([], MaddraxDataService::getAutoren());
+});

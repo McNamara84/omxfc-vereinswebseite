@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Livewire\Profile\UpdateReviewNotificationForm;
@@ -8,40 +10,21 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class UpdateReviewNotificationFormTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_current_notification_setting_is_available(): void
-    {
-        $this->actingAs($user = User::factory()->create(['notify_new_review' => true]));
+test('current notification setting is available', function (): void {
+    $this->actingAs($user = User::factory()->create(['notify_new_review' => true]));
+    Livewire::test(UpdateReviewNotificationForm::class)->assertSet('notifyNewReview', true)->assertViewIs('profile.update-review-notification-form');
+});
 
-        Livewire::test(UpdateReviewNotificationForm::class)
-            ->assertSet('notifyNewReview', true)
-            ->assertViewIs('profile.update-review-notification-form');
-    }
+test('review notification can be enabled', function (): void {
+    $this->actingAs($user = User::factory()->create(['notify_new_review' => false]));
+    Livewire::test(UpdateReviewNotificationForm::class)->set('notifyNewReview', true)->call('save')->assertHasNoErrors();
+    expect($user->fresh()->notify_new_review)->toBeTrue();
+});
 
-    public function test_review_notification_can_be_enabled(): void
-    {
-        $this->actingAs($user = User::factory()->create(['notify_new_review' => false]));
-
-        Livewire::test(UpdateReviewNotificationForm::class)
-            ->set('notifyNewReview', true)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertTrue($user->fresh()->notify_new_review);
-    }
-
-    public function test_review_notification_can_be_disabled(): void
-    {
-        $this->actingAs($user = User::factory()->create(['notify_new_review' => true]));
-
-        Livewire::test(UpdateReviewNotificationForm::class)
-            ->set('notifyNewReview', false)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertFalse($user->fresh()->notify_new_review);
-    }
-}
+test('review notification can be disabled', function (): void {
+    $this->actingAs($user = User::factory()->create(['notify_new_review' => true]));
+    Livewire::test(UpdateReviewNotificationForm::class)->set('notifyNewReview', false)->call('save')->assertHasNoErrors();
+    expect($user->fresh()->notify_new_review)->toBeFalse();
+});

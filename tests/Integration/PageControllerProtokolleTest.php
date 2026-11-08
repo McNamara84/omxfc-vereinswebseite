@@ -1,59 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Http\Controllers\PageController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
-#[CoversClass(PageController::class)]
-class PageControllerProtokolleTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_protokolle_view_contains_expected_structure(): void
-    {
-        $controller = new PageController;
+covers(PageController::class);
 
-        $response = $controller->protokolle();
+test('protokolle view contains expected structure', function (): void {
+    $controller = new PageController;
+    $response = $controller->protokolle();
+    expect($response->name())->toBe('pages.protokolle');
+    $viewData = $response->getData()['protokolle'] ?? [];
+    expect($viewData)->toHaveKey(2023)
+        ->and($viewData[2023][0]['titel'])->toBe('Gründungsversammlung')
+        ->and($viewData)->toHaveKey(2024)
+        ->and($viewData[2024])->toHaveCount(3)
+        ->and($viewData)->toHaveKey(2025)
+        ->and($viewData[2025])->toHaveCount(2)
+        ->and($viewData[2025][1]['titel'])->toBe('Außerordentliche Mitgliederversammlung')
+        ->and($viewData)->toHaveKey(2026)
+        ->and($viewData[2026])->toHaveCount(2)
+        ->and($viewData[2026][0]['titel'])->toBe('Außerordentliche Mitgliederversammlung')
+        ->and($viewData[2026][1])->toBe(['datum' => '15. Juli 2026', 'titel' => 'Jahreshauptversammlung', 'datei' => '2026-07-15-jhv.pdf']);
+    $years = array_keys($viewData);
+    $this->assertArraysAreIdentical([2026, 2025, 2024, 2023], $years);
+});
 
-        $this->assertSame('pages.protokolle', $response->name());
-
-        $viewData = $response->getData()['protokolle'] ?? [];
-
-        $this->assertArrayHasKey(2023, $viewData);
-        $this->assertSame('Gründungsversammlung', $viewData[2023][0]['titel']);
-        $this->assertArrayHasKey(2024, $viewData);
-        $this->assertCount(3, $viewData[2024]);
-        $this->assertArrayHasKey(2025, $viewData);
-        $this->assertCount(2, $viewData[2025]);
-        $this->assertSame('Außerordentliche Mitgliederversammlung', $viewData[2025][1]['titel']);
-        $this->assertArrayHasKey(2026, $viewData);
-        $this->assertCount(2, $viewData[2026]);
-        $this->assertSame('Außerordentliche Mitgliederversammlung', $viewData[2026][0]['titel']);
-        $this->assertSame([
-            'datum' => '15. Juli 2026',
-            'titel' => 'Jahreshauptversammlung',
-            'datei' => '2026-07-15-jhv.pdf',
-        ], $viewData[2026][1]);
-
-        $years = array_keys($viewData);
-        $this->assertArraysAreIdentical([2026, 2025, 2024, 2023], $years);
-    }
-
-    public function test_download_protokoll_streams_file_from_private_disk(): void
-    {
-        Storage::fake('private');
-        Storage::disk('private')->put('protokolle/example.pdf', 'demo');
-
-        $controller = new PageController;
-
-        $response = $controller->downloadProtokoll('example.pdf');
-
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-        $this->assertStringContainsString('example.pdf', $response->headers->get('content-disposition'));
-    }
-}
+test('download protokoll streams file from private disk', function (): void {
+    Storage::fake('private');
+    Storage::disk('private')->put('protokolle/example.pdf', 'demo');
+    $controller = new PageController;
+    $response = $controller->downloadProtokoll('example.pdf');
+    expect($response)->toBeInstanceOf(StreamedResponse::class)
+        ->and($response->headers->get('content-disposition'))->toContain('example.pdf');
+});

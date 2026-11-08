@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Mail\AntragAnAdmin;
@@ -10,65 +12,35 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
-class CustomEmailVerificationControllerTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_email_can_be_verified_and_mails_sent(): void
-    {
-        Mail::fake();
+test('email can be verified and mails sent', function (): void {
+    Mail::fake();
+    $user = User::factory()->unverified()->create();
+    $verificationUrl = URL::temporarySignedRoute('verification.verify.de', now()->addMinutes(60), ['id' => $user->id, 'hash' => sha1($user->email)]);
+    $response = $this->get($verificationUrl);
+    $response->assertRedirect(route('mitglied.werden.bestaetigt', absolute: false));
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+    Mail::assertQueued(AntragAnVorstand::class, fn ($mail) => $mail->hasTo('vorstand@maddrax-fanclub.de') && $mail->hasTo('kassenwart@maddrax-fanclub.de'));
+    Mail::assertQueued(AntragAnAdmin::class, fn ($mail) => $mail->hasTo('info@maddraxikon.com'));
+});
 
-        $user = User::factory()->unverified()->create();
+test('verification fails with invalid hash', function (): void {
+    Mail::fake();
+    $user = User::factory()->unverified()->create();
+    $verificationUrl = URL::temporarySignedRoute('verification.verify.de', now()->addMinutes(60), ['id' => $user->id, 'hash' => sha1('wrong-email')]);
+    $response = $this->get($verificationUrl);
+    $response->assertStatus(403);
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+    Mail::assertNothingSent();
+});
 
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify.de',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
-
-        $response = $this->get($verificationUrl);
-
-        $response->assertRedirect(route('mitglied.werden.bestaetigt', absolute: false));
-        $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        Mail::assertQueued(AntragAnVorstand::class, fn ($mail) => $mail->hasTo('vorstand@maddrax-fanclub.de') && $mail->hasTo('kassenwart@maddrax-fanclub.de'));
-        Mail::assertQueued(AntragAnAdmin::class, fn ($mail) => $mail->hasTo('info@maddraxikon.com'));
-    }
-
-    public function test_verification_fails_with_invalid_hash(): void
-    {
-        Mail::fake();
-
-        $user = User::factory()->unverified()->create();
-
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify.de',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1('wrong-email')]
-        );
-
-        $response = $this->get($verificationUrl);
-
-        $response->assertStatus(403);
-        $this->assertFalse($user->fresh()->hasVerifiedEmail());
-        Mail::assertNothingSent();
-    }
-
-    public function test_already_verified_user_gets_redirected_with_message(): void
-    {
-        Mail::fake();
-
-        $user = User::factory()->create();
-
-        $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify.de',
-            now()->addMinutes(60),
-            ['id' => $user->id, 'hash' => sha1($user->email)]
-        );
-
-        $response = $this->get($verificationUrl);
-
-        $response->assertRedirect(route('mitglied.werden.bestaetigt', absolute: false));
-        $response->assertSessionHas('status', 'Deine E-Mail-Adresse wurde bereits verifiziert.');
-        Mail::assertNothingSent();
-    }
-}
+test('already verified user gets redirected with message', function (): void {
+    Mail::fake();
+    $user = User::factory()->create();
+    $verificationUrl = URL::temporarySignedRoute('verification.verify.de', now()->addMinutes(60), ['id' => $user->id, 'hash' => sha1($user->email)]);
+    $response = $this->get($verificationUrl);
+    $response->assertRedirect(route('mitglied.werden.bestaetigt', absolute: false));
+    $response->assertSessionHas('status', 'Deine E-Mail-Adresse wurde bereits verifiziert.');
+    Mail::assertNothingSent();
+});

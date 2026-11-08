@@ -1,146 +1,106 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration\Services\Romantausch;
 
 use App\Services\Romantausch\BookPhotoService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Tests\TestCase;
 
-class BookPhotoServiceTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(BookPhotoServiceTestFixtures::class);
 
-    private BookPhotoService $service;
+beforeEach(function (): void {
+    $this->service = new BookPhotoService;
+});
 
-    public function test_second_upload_failure_cleans_up_the_first_file(): void
+test('second upload failure cleans up the first file', function (): void {
+    Storage::fake('public');
+    $image = UploadedFile::fake()->image('second.jpg');
+    $failed = new class($image->getPathname(), 'second.jpg', null, null, true) extends UploadedFile
     {
-        Storage::fake('public');
-        $image = UploadedFile::fake()->image('second.jpg');
-        $failed = new class($image->getPathname(), 'second.jpg', null, null, true) extends UploadedFile
+        public function storeAs($path, $name = null, $options = [])
         {
-            public function storeAs($path, $name = null, $options = [])
-            {
-                throw new RuntimeException('disk unavailable');
-            }
-        };
-        try {
-            $this->service->uploadPhotos([UploadedFile::fake()->image('first.jpg'), $failed]);
-            $this->fail('The failed upload must not succeed.');
-        } catch (RuntimeException $error) {
-            $this->assertSame('Foto-Upload fehlgeschlagen.', $error->getMessage());
-            $this->assertSame([], Storage::disk('public')->allFiles('book-offers'));
+            throw new RuntimeException('disk unavailable');
         }
+    };
+    try {
+        $this->service->uploadPhotos([UploadedFile::fake()->image('first.jpg'), $failed]);
+        $this->fail('The failed upload must not succeed.');
+    } catch (RuntimeException $error) {
+        expect($error->getMessage())->toBe('Foto-Upload fehlgeschlagen.')
+            ->and(Storage::disk('public')->allFiles('book-offers'))->toBe([]);
     }
+});
 
-    public function test_missing_and_corrupted_image_files_are_not_stored(): void
-    {
-        Storage::fake('public');
-        $missing = UploadedFile::fake()->image('missing.jpg');
-        unlink($missing->getRealPath());
-        $corrupt = UploadedFile::fake()->create('broken.jpg', 1, 'image/jpeg');
-        $this->assertSame([], $this->service->uploadPhotos([null, $missing, $corrupt]));
-        $this->assertSame([], Storage::disk('public')->allFiles('book-offers'));
-    }
+test('missing and corrupted image files are not stored', function (): void {
+    Storage::fake('public');
+    $missing = UploadedFile::fake()->image('missing.jpg');
+    unlink($missing->getRealPath());
+    $corrupt = UploadedFile::fake()->create('broken.jpg', 1, 'image/jpeg');
+    expect($this->service->uploadPhotos([null, $missing, $corrupt]))->toBe([])
+        ->and(Storage::disk('public')->allFiles('book-offers'))->toBe([]);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = new BookPhotoService;
-    }
-
-    public function test_upload_photos_stores_files(): void
-    {
-        Storage::fake('public');
-
-        $files = [
-            UploadedFile::fake()->image('test1.jpg'),
-            UploadedFile::fake()->image('test2.png'),
-        ];
-
-        $paths = $this->service->uploadPhotos($files);
-
-        $this->assertCount(2, $paths);
-
-        foreach ($paths as $path) {
-            Storage::disk('public')->assertExists($path);
-            $this->assertStringStartsWith(BookPhotoService::STORAGE_PATH.'/', $path);
-        }
-    }
-
-    public function test_upload_photos_rejects_invalid_extensions(): void
-    {
-        Storage::fake('public');
-
-        $files = [
-            UploadedFile::fake()->create('test.txt', 10, 'text/plain'),
-        ];
-
-        $paths = $this->service->uploadPhotos($files);
-
-        // Ungültige Dateien werden übersprungen
-        $this->assertCount(0, $paths);
-    }
-
-    public function test_upload_photos_accepts_valid_extensions(): void
-    {
-        Storage::fake('public');
-
-        foreach (BookPhotoService::ALLOWED_EXTENSIONS as $ext) {
-            $files = [UploadedFile::fake()->image("test.$ext")];
-            $paths = $this->service->uploadPhotos($files);
-
-            $this->assertCount(1, $paths, "Extension '$ext' should be accepted");
-            Storage::disk('public')->assertExists($paths[0]);
-        }
-    }
-
-    public function test_delete_photo_removes_file(): void
-    {
-        Storage::fake('public');
-
-        $file = UploadedFile::fake()->image('test.jpg');
-        $paths = $this->service->uploadPhotos([$file]);
-        $path = $paths[0];
-
+test('upload photos stores files', function (): void {
+    Storage::fake('public');
+    $files = [UploadedFile::fake()->image('test1.jpg'), UploadedFile::fake()->image('test2.png')];
+    $paths = $this->service->uploadPhotos($files);
+    expect($paths)->toHaveCount(2);
+    foreach ($paths as $path) {
         Storage::disk('public')->assertExists($path);
+        expect($path)->toStartWith(BookPhotoService::STORAGE_PATH.'/');
+    }
+});
 
-        $this->service->deletePhoto($path);
+test('upload photos rejects invalid extensions', function (): void {
+    Storage::fake('public');
+    $files = [UploadedFile::fake()->create('test.txt', 10, 'text/plain')];
+    $paths = $this->service->uploadPhotos($files);
+    // Ungültige Dateien werden übersprungen
+    expect($paths)->toHaveCount(0);
+});
 
+test('upload photos accepts valid extensions', function (): void {
+    Storage::fake('public');
+    foreach (BookPhotoService::ALLOWED_EXTENSIONS as $ext) {
+        $files = [UploadedFile::fake()->image("test.{$ext}")];
+        $paths = $this->service->uploadPhotos($files);
+        expect($paths)->toHaveCount(1);
+        Storage::disk('public')->assertExists($paths[0]);
+    }
+});
+
+test('delete photo removes file', function (): void {
+    Storage::fake('public');
+    $file = UploadedFile::fake()->image('test.jpg');
+    $paths = $this->service->uploadPhotos([$file]);
+    $path = $paths[0];
+    Storage::disk('public')->assertExists($path);
+    $this->service->deletePhoto($path);
+    Storage::disk('public')->assertMissing($path);
+});
+
+test('delete photos removes multiple files', function (): void {
+    Storage::fake('public');
+    $files = [UploadedFile::fake()->image('test1.jpg'), UploadedFile::fake()->image('test2.jpg')];
+    $paths = $this->service->uploadPhotos($files);
+    foreach ($paths as $path) {
+        Storage::disk('public')->assertExists($path);
+    }
+    $this->service->deletePhotos($paths);
+    foreach ($paths as $path) {
         Storage::disk('public')->assertMissing($path);
     }
+});
 
-    public function test_delete_photos_removes_multiple_files(): void
-    {
-        Storage::fake('public');
-
-        $files = [
-            UploadedFile::fake()->image('test1.jpg'),
-            UploadedFile::fake()->image('test2.jpg'),
-        ];
-
-        $paths = $this->service->uploadPhotos($files);
-
-        foreach ($paths as $path) {
-            Storage::disk('public')->assertExists($path);
-        }
-
-        $this->service->deletePhotos($paths);
-
-        foreach ($paths as $path) {
-            Storage::disk('public')->assertMissing($path);
-        }
-    }
-
-    public function test_constants_have_expected_values(): void
-    {
-        $this->assertEquals(3, BookPhotoService::MAX_PHOTOS);
-        $this->assertEquals(2048, BookPhotoService::MAX_FILE_SIZE_KB);
-        $this->assertEquals('book-offers', BookPhotoService::STORAGE_PATH);
-        $this->assertContains('jpg', BookPhotoService::ALLOWED_EXTENSIONS);
-        $this->assertContains('png', BookPhotoService::ALLOWED_EXTENSIONS);
-        $this->assertContains('webp', BookPhotoService::ALLOWED_EXTENSIONS);
-    }
-}
+test('constants have expected values', function (): void {
+    expect(BookPhotoService::MAX_PHOTOS)->toEqual(3)
+        ->and(BookPhotoService::MAX_FILE_SIZE_KB)->toEqual(2048)
+        ->and(BookPhotoService::STORAGE_PATH)->toEqual('book-offers')
+        ->and(BookPhotoService::ALLOWED_EXTENSIONS)->toContain('jpg')
+        ->toContain('png')
+        ->toContain('webp');
+});

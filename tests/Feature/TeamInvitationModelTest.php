@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -8,73 +10,31 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class TeamInvitationModelTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_team_invitation_can_be_created_with_mass_assignment(): void
-    {
-        $team = Team::factory()->create();
+test('team invitation can be created with mass assignment', function (): void {
+    $team = Team::factory()->create();
+    $invitation = $team->teamInvitations()->create(['email' => 'invitee@example.com', 'role' => Role::Admin->value, 'id' => 999]);
+    $invitation->refresh();
+    $this->assertDatabaseHas('team_invitations', ['id' => $invitation->id, 'team_id' => $team->id, 'email' => 'invitee@example.com', 'role' => Role::Admin->value]);
+    expect($invitation->id)->not->toEqual(999);
+});
 
-        $invitation = $team->teamInvitations()->create([
-            'email' => 'invitee@example.com',
-            'role' => Role::Admin->value,
-            'id' => 999,
-        ]);
+test('role can be nullable', function (): void {
+    $team = Team::factory()->create();
+    $invitation = $team->teamInvitations()->create(['email' => 'nullrole@example.com', 'role' => null]);
+    expect($invitation->role)->toBeNull();
+    $this->assertDatabaseHas('team_invitations', ['id' => $invitation->id, 'role' => null]);
+});
 
-        $invitation->refresh();
+test('team invitation belongs to team', function (): void {
+    $team = Team::factory()->create();
+    $invitation = $team->teamInvitations()->create(['email' => 'relation@example.com', 'role' => 'Member']);
+    expect($invitation->team->is($team))->toBeTrue();
+});
 
-        $this->assertDatabaseHas('team_invitations', [
-            'id' => $invitation->id,
-            'team_id' => $team->id,
-            'email' => 'invitee@example.com',
-            'role' => Role::Admin->value,
-        ]);
-        $this->assertNotEquals(999, $invitation->id);
-    }
-
-    public function test_role_can_be_nullable(): void
-    {
-        $team = Team::factory()->create();
-
-        $invitation = $team->teamInvitations()->create([
-            'email' => 'nullrole@example.com',
-            'role' => null,
-        ]);
-
-        $this->assertNull($invitation->role);
-        $this->assertDatabaseHas('team_invitations', [
-            'id' => $invitation->id,
-            'role' => null,
-        ]);
-    }
-
-    public function test_team_invitation_belongs_to_team(): void
-    {
-        $team = Team::factory()->create();
-
-        $invitation = $team->teamInvitations()->create([
-            'email' => 'relation@example.com',
-            'role' => 'Member',
-        ]);
-
-        $this->assertTrue($invitation->team->is($team));
-    }
-
-    public function test_email_must_be_unique_per_team(): void
-    {
-        $team = Team::factory()->create();
-
-        $team->teamInvitations()->create([
-            'email' => 'duplicate@example.com',
-            'role' => Role::Admin->value,
-        ]);
-
-        $this->expectException(QueryException::class);
-
-        $team->teamInvitations()->create([
-            'email' => 'duplicate@example.com',
-            'role' => 'Editor',
-        ]);
-    }
-}
+test('email must be unique per team', function (): void {
+    $team = Team::factory()->create();
+    $team->teamInvitations()->create(['email' => 'duplicate@example.com', 'role' => Role::Admin->value]);
+    expect(fn () => $team->teamInvitations()->create(['email' => 'duplicate@example.com', 'role' => 'Editor']))->toThrow(QueryException::class);
+});

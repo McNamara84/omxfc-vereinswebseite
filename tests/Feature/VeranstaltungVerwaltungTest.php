@@ -1,322 +1,129 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\FantreffenAnmeldung;
-use App\Models\Team;
-use App\Models\User;
 use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
 use App\Models\VeranstaltungsMerchartikel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
-class VeranstaltungVerwaltungTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(VeranstaltungVerwaltungTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function (): void {
+    Config::set('app.testing_minimal_layout', true);
+});
 
-        Config::set('app.testing_minimal_layout', true);
-    }
+test('admin can open event management index', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $response = $this->withoutVite()->actingAs($admin)->get(route('admin.veranstaltungen.index'));
+    $response->assertOk();
+    $response->assertSee('Veranstaltungen verwalten');
+    $response->assertSee('Jubiläumsfeier zu Band 700');
+});
 
-    protected function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
+test('regular member cannot open event management index', function (): void {
+    $member = $this->createUserWithRole(Role::Mitglied);
+    $response = $this->actingAs($member)->get(route('admin.veranstaltungen.index'));
+    $response->assertForbidden();
+});
 
-        $user->teams()->attach($team->id, [
-            'role' => $role->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+test('management user with other active team can open event management index', function (string $roleValue): void {
+    $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
+    $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.index'));
+    $response->assertOk();
+    $response->assertSee('Veranstaltungen verwalten');
+})->with([[Role::Admin->value], [Role::Vorstand->value]]);
 
-        return $user;
-    }
+test('management user with other active team can open event registration list', function (string $roleValue): void {
+    $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
+    $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+    $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.anmeldungen', $veranstaltung));
+    $response->assertOk();
+    $response->assertSee('Anmeldungen');
+})->with([[Role::Admin->value], [Role::Vorstand->value]]);
 
-    protected function createUserWithRoleAndDifferentCurrentTeam(Role $role): User
-    {
-        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
+test('event management index marks archived events as still accessible for registration lists', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $response = $this->withoutVite()->actingAs($admin)->get(route('admin.veranstaltungen.index'));
+    $response->assertOk();
+    $response->assertSee('Archivierte Veranstaltung');
+    $response->assertSee('Anmeldeliste weiterhin verfügbar.');
+});
 
-        $managementTeam->users()->attach($user->id, [
-            'role' => $role->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+test('admin can create event with structured data', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $response = $this->actingAs($admin)->post(route('admin.veranstaltungen.store'), ['titel' => 'Leserabend 2027', 'slug' => 'leserabend-2027', 'status' => 'veroeffentlicht', 'veranstaltungsart' => 'Leserabend', 'untertitel' => 'Ein Abend für die Community', 'teaser' => 'Testevent mit dynamischen Feldern.', 'beschreibung' => 'Beschreibung im Markdown-Format', 'datum_von' => '2027-02-20 19:30:00', 'ort_name' => 'Bürgerzentrum Köln', 'ort_adresse' => 'Köln', 'anmeldung_aktiv' => '1', 'zahlung_aktiv' => '1', 'merch_deadline' => '2027-02-01 18:00:00', 'gastgebuehr' => '12.50', 'ist_highlight' => '1']);
+    $veranstaltung = Veranstaltung::query()->where('slug', 'leserabend-2027')->first();
+    $response->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    expect($veranstaltung)->not->toBeNull()
+        ->and($veranstaltung->titel)->toBe('Leserabend 2027')
+        ->and($veranstaltung->anmeldung_aktiv)->toBeTrue()
+        ->and($veranstaltung->zahlung_aktiv)->toBeTrue()
+        ->and($veranstaltung->ist_highlight)->toBeTrue()
+        ->and($veranstaltung->merch_deadline?->format('Y-m-d H:i:s'))->toBe('2027-02-01 18:00:00')
+        ->and((float) $veranstaltung->tshirt_preis)->toBe(FantreffenAnmeldung::TSHIRT_PRICE)
+        ->and(Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail()->ist_highlight)->toBeFalse();
+});
 
-        $otherTeam = Team::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Nebenverein',
-            'personal_team' => false,
-        ]);
-        $otherTeam->users()->attach($user->id, [
-            'role' => Role::Mitglied->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+test('admin can add merchandise article without description', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+    $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), ['bezeichnung' => 'Poster', 'preis' => '7.50', 'sort_order' => 4, 'is_active' => '1'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $artikel = VeranstaltungsMerchartikel::query()->where('veranstaltung_id', $veranstaltung->id)->where('bezeichnung', 'Poster')->first();
+    expect($artikel)->not->toBeNull()
+        ->and($artikel->beschreibung)->toBeNull();
+});
 
-        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+test('admin can add update and delete merchandise article with variants', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+    $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), ['bezeichnung' => 'Stoffbeutel', 'beschreibung' => 'Limitierter Beutel.', 'preis' => '12.50', 'sort_order' => 2, 'varianten' => "Rot\nBlau", 'is_active' => '1'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $artikel = VeranstaltungsMerchartikel::query()->where('veranstaltung_id', $veranstaltung->id)->where('bezeichnung', 'Stoffbeutel')->first();
+    expect($artikel)->not->toBeNull()
+        ->and($artikel->varianten()->count())->toBe(2);
+    $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), ['bezeichnung' => 'Sammlerbeutel', 'beschreibung' => 'Aktualisierte Beschreibung.', 'preis' => '15.00', 'sort_order' => 1, 'varianten' => "Schwarz\nWeiß", 'is_active' => '1'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $artikel->refresh();
+    expect($artikel->bezeichnung)->toBe('Sammlerbeutel')
+        ->and($artikel->preis)->toBe('15.00')
+        ->and($artikel->is_active)->toBeTrue()
+        ->and($artikel->varianten()->where('is_active', true)->count())->toBe(2)
+        ->and($artikel->varianten()->where('bezeichnung', 'Schwarz')->exists())->toBeTrue();
+    $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), ['bezeichnung' => 'Sammlerbeutel', 'beschreibung' => 'Aktualisierte Beschreibung.', 'preis' => '15.00', 'sort_order' => 1, 'varianten' => "Schwarz\nWeiß", 'is_active' => '0'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $artikel->refresh();
+    expect($artikel->is_active)->toBeFalse();
+    $this->actingAs($admin)->delete(route('admin.veranstaltungen.merch.destroy', [$veranstaltung, $artikel]))->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $this->assertDatabaseMissing('veranstaltungs_merchartikel', ['id' => $artikel->id]);
+});
 
-        return $user->refresh();
-    }
+test('invalid merch update does not repopulate all article forms with old values', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+    $erstesArtikel = $veranstaltung->merchartikel()->create(['bezeichnung' => 'Erster Artikel', 'beschreibung' => 'Bestehende Beschreibung eins.', 'preis' => 9.5, 'sort_order' => 1, 'is_active' => true]);
+    $zweitesArtikel = $veranstaltung->merchartikel()->create(['bezeichnung' => 'Zweiter Artikel', 'beschreibung' => 'Bestehende Beschreibung zwei.', 'preis' => 11.0, 'sort_order' => 2, 'is_active' => true]);
+    $response = $this->withoutVite()->followingRedirects()->from(route('admin.veranstaltungen.edit', $veranstaltung))->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $erstesArtikel]), ['merch_form_id' => (string) $erstesArtikel->id, 'bezeichnung' => '', 'beschreibung' => 'Fehlerhafte Zwischenbeschreibung', 'preis' => '14.00', 'sort_order' => 3, 'varianten' => "Fehlerhafte Variante A\nFehlerhafte Variante B", 'is_active' => '1']);
+    $response->assertSee('Zweiter Artikel');
+    $content = $response->getContent();
+    expect($content)->toBeString()
+        ->and(preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?name="bezeichnung" value=""/s', $content))->toBe(1)
+        ->and(preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Variante A/s', $content))->toBe(1)
+        ->and(preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Zwischenbeschreibung/s', $content))->toBe(1)
+        ->and(preg_match('/action="[^"]*\/merch\/'.$zweitesArtikel->id.'".*?Fehlerhafte Variante A/s', $content))->toBe(0);
+});
 
-    public function test_admin_can_open_event_management_index(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $response = $this->withoutVite()->actingAs($admin)->get(route('admin.veranstaltungen.index'));
-
-        $response->assertOk();
-        $response->assertSee('Veranstaltungen verwalten');
-        $response->assertSee('Jubiläumsfeier zu Band 700');
-    }
-
-    public function test_regular_member_cannot_open_event_management_index(): void
-    {
-        $member = $this->createUserWithRole(Role::Mitglied);
-
-        $response = $this->actingAs($member)->get(route('admin.veranstaltungen.index'));
-
-        $response->assertForbidden();
-    }
-
-    #[TestWith([Role::Admin->value])]
-    #[TestWith([Role::Vorstand->value])]
-    public function test_management_user_with_other_active_team_can_open_event_management_index(string $roleValue): void
-    {
-        $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
-
-        $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.index'));
-
-        $response->assertOk();
-        $response->assertSee('Veranstaltungen verwalten');
-    }
-
-    #[TestWith([Role::Admin->value])]
-    #[TestWith([Role::Vorstand->value])]
-    public function test_management_user_with_other_active_team_can_open_event_registration_list(string $roleValue): void
-    {
-        $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
-        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
-
-        $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.anmeldungen', $veranstaltung));
-
-        $response->assertOk();
-        $response->assertSee('Anmeldungen');
-    }
-
-    public function test_event_management_index_marks_archived_events_as_still_accessible_for_registration_lists(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $response = $this->withoutVite()->actingAs($admin)->get(route('admin.veranstaltungen.index'));
-
-        $response->assertOk();
-        $response->assertSee('Archivierte Veranstaltung');
-        $response->assertSee('Anmeldeliste weiterhin verfügbar.');
-    }
-
-    public function test_admin_can_create_event_with_structured_data(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $response = $this->actingAs($admin)->post(route('admin.veranstaltungen.store'), [
-            'titel' => 'Leserabend 2027',
-            'slug' => 'leserabend-2027',
-            'status' => 'veroeffentlicht',
-            'veranstaltungsart' => 'Leserabend',
-            'untertitel' => 'Ein Abend für die Community',
-            'teaser' => 'Testevent mit dynamischen Feldern.',
-            'beschreibung' => 'Beschreibung im Markdown-Format',
-            'datum_von' => '2027-02-20 19:30:00',
-            'ort_name' => 'Bürgerzentrum Köln',
-            'ort_adresse' => 'Köln',
-            'anmeldung_aktiv' => '1',
-            'zahlung_aktiv' => '1',
-            'merch_deadline' => '2027-02-01 18:00:00',
-            'gastgebuehr' => '12.50',
-            'ist_highlight' => '1',
-        ]);
-
-        $veranstaltung = Veranstaltung::query()->where('slug', 'leserabend-2027')->first();
-
-        $response->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-        $this->assertNotNull($veranstaltung);
-        $this->assertSame('Leserabend 2027', $veranstaltung->titel);
-        $this->assertTrue($veranstaltung->anmeldung_aktiv);
-        $this->assertTrue($veranstaltung->zahlung_aktiv);
-        $this->assertTrue($veranstaltung->ist_highlight);
-        $this->assertSame('2027-02-01 18:00:00', $veranstaltung->merch_deadline?->format('Y-m-d H:i:s'));
-        $this->assertSame(FantreffenAnmeldung::TSHIRT_PRICE, (float) $veranstaltung->tshirt_preis);
-
-        $this->assertFalse(Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail()->ist_highlight);
-    }
-
-    public function test_admin_can_add_merchandise_article_without_description(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
-
-        $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), [
-            'bezeichnung' => 'Poster',
-            'preis' => '7.50',
-            'sort_order' => 4,
-            'is_active' => '1',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $artikel = VeranstaltungsMerchartikel::query()
-            ->where('veranstaltung_id', $veranstaltung->id)
-            ->where('bezeichnung', 'Poster')
-            ->first();
-
-        $this->assertNotNull($artikel);
-        $this->assertNull($artikel->beschreibung);
-    }
-
-    public function test_admin_can_add_update_and_delete_merchandise_article_with_variants(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
-
-        $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), [
-            'bezeichnung' => 'Stoffbeutel',
-            'beschreibung' => 'Limitierter Beutel.',
-            'preis' => '12.50',
-            'sort_order' => 2,
-            'varianten' => "Rot\nBlau",
-            'is_active' => '1',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $artikel = VeranstaltungsMerchartikel::query()
-            ->where('veranstaltung_id', $veranstaltung->id)
-            ->where('bezeichnung', 'Stoffbeutel')
-            ->first();
-
-        $this->assertNotNull($artikel);
-        $this->assertSame(2, $artikel->varianten()->count());
-
-        $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), [
-            'bezeichnung' => 'Sammlerbeutel',
-            'beschreibung' => 'Aktualisierte Beschreibung.',
-            'preis' => '15.00',
-            'sort_order' => 1,
-            'varianten' => "Schwarz\nWeiß",
-            'is_active' => '1',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $artikel->refresh();
-        $this->assertSame('Sammlerbeutel', $artikel->bezeichnung);
-        $this->assertSame('15.00', $artikel->preis);
-        $this->assertTrue($artikel->is_active);
-        $this->assertSame(2, $artikel->varianten()->where('is_active', true)->count());
-        $this->assertTrue($artikel->varianten()->where('bezeichnung', 'Schwarz')->exists());
-
-        $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), [
-            'bezeichnung' => 'Sammlerbeutel',
-            'beschreibung' => 'Aktualisierte Beschreibung.',
-            'preis' => '15.00',
-            'sort_order' => 1,
-            'varianten' => "Schwarz\nWeiß",
-            'is_active' => '0',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $artikel->refresh();
-        $this->assertFalse($artikel->is_active);
-
-        $this->actingAs($admin)->delete(route('admin.veranstaltungen.merch.destroy', [$veranstaltung, $artikel]))
-            ->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $this->assertDatabaseMissing('veranstaltungs_merchartikel', ['id' => $artikel->id]);
-    }
-
-    public function test_invalid_merch_update_does_not_repopulate_all_article_forms_with_old_values(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
-
-        $erstesArtikel = $veranstaltung->merchartikel()->create([
-            'bezeichnung' => 'Erster Artikel',
-            'beschreibung' => 'Bestehende Beschreibung eins.',
-            'preis' => 9.50,
-            'sort_order' => 1,
-            'is_active' => true,
-        ]);
-
-        $zweitesArtikel = $veranstaltung->merchartikel()->create([
-            'bezeichnung' => 'Zweiter Artikel',
-            'beschreibung' => 'Bestehende Beschreibung zwei.',
-            'preis' => 11.00,
-            'sort_order' => 2,
-            'is_active' => true,
-        ]);
-
-        $response = $this->withoutVite()
-            ->followingRedirects()
-            ->from(route('admin.veranstaltungen.edit', $veranstaltung))
-            ->actingAs($admin)
-            ->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $erstesArtikel]), [
-                'merch_form_id' => (string) $erstesArtikel->id,
-                'bezeichnung' => '',
-                'beschreibung' => 'Fehlerhafte Zwischenbeschreibung',
-                'preis' => '14.00',
-                'sort_order' => 3,
-                'varianten' => "Fehlerhafte Variante A\nFehlerhafte Variante B",
-                'is_active' => '1',
-            ]);
-
-        $response->assertSee('Zweiter Artikel');
-
-        $content = $response->getContent();
-        $this->assertIsString($content);
-        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?name="bezeichnung" value=""/s', $content));
-        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
-        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Zwischenbeschreibung/s', $content));
-        $this->assertSame(0, preg_match('/action="[^"]*\/merch\/'.$zweitesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
-    }
-
-    public function test_admin_can_add_and_update_markdown_section(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
-
-        $this->actingAs($admin)->post(route('admin.veranstaltungen.abschnitte.store', $veranstaltung), [
-            'titel' => 'FAQ',
-            'schluessel' => 'faq',
-            'markdown_inhalt' => "## Frage\nAntwort",
-            'sort_order' => 8,
-            'is_visible' => '1',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $abschnitt = VeranstaltungsAbschnitt::query()
-            ->where('veranstaltung_id', $veranstaltung->id)
-            ->where('schluessel', 'faq')
-            ->first();
-
-        $this->assertNotNull($abschnitt);
-
-        $this->actingAs($admin)->put(route('admin.veranstaltungen.abschnitte.update', [$veranstaltung, $abschnitt]), [
-            'titel' => 'FAQ aktualisiert',
-            'schluessel' => 'faq',
-            'markdown_inhalt' => "## Neue Frage\nNeue Antwort",
-            'sort_order' => 3,
-            'is_visible' => '1',
-        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
-
-        $abschnitt->refresh();
-        $this->assertSame('FAQ aktualisiert', $abschnitt->titel);
-        $this->assertSame(3, $abschnitt->sort_order);
-        $this->assertStringContainsString('Neue Antwort', $abschnitt->markdown_inhalt);
-    }
-}
+test('admin can add and update markdown section', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+    $this->actingAs($admin)->post(route('admin.veranstaltungen.abschnitte.store', $veranstaltung), ['titel' => 'FAQ', 'schluessel' => 'faq', 'markdown_inhalt' => "## Frage\nAntwort", 'sort_order' => 8, 'is_visible' => '1'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $abschnitt = VeranstaltungsAbschnitt::query()->where('veranstaltung_id', $veranstaltung->id)->where('schluessel', 'faq')->first();
+    expect($abschnitt)->not->toBeNull();
+    $this->actingAs($admin)->put(route('admin.veranstaltungen.abschnitte.update', [$veranstaltung, $abschnitt]), ['titel' => 'FAQ aktualisiert', 'schluessel' => 'faq', 'markdown_inhalt' => "## Neue Frage\nNeue Antwort", 'sort_order' => 3, 'is_visible' => '1'])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+    $abschnitt->refresh();
+    expect($abschnitt->titel)->toBe('FAQ aktualisiert')
+        ->and($abschnitt->sort_order)->toBe(3)
+        ->and($abschnitt->markdown_inhalt)->toContain('Neue Antwort');
+});

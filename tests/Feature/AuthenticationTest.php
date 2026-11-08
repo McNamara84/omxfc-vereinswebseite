@@ -1,88 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class AuthenticationTest extends TestCase
-{
-    use RefreshDatabase;
-
-    #[DataProvider('invalidUsernames')]
-    public function test_invalid_username_types_are_validated_without_php_deprecations(mixed $username): void
-    {
-        $this->postJson('/login', ['email' => $username, 'password' => 'invalid-password'])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors('email');
-        $this->assertGuest();
-    }
-
-    public static function invalidUsernames(): iterable
-    {
-        yield 'null' => [null];
-        yield 'array' => [['invalid@example.test']];
-        yield 'integer' => [1234];
-    }
-
-    public function test_login_screen_can_be_rendered(): void
-    {
-        $response = $this->withoutVite()->get('/login');
-
-        $response->assertStatus(200);
-    }
-
-    public function test_users_can_authenticate_using_the_login_screen(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
-
-    public function test_users_can_not_authenticate_with_invalid_password(): void
-    {
-        $user = User::factory()->create();
-
-        $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'wrong-password',
-        ]);
-
-        $this->assertGuest();
-    }
-
-    public function test_login_form_has_accessible_structure_and_test_ids(): void
-    {
-        $response = $this->withoutVite()->get('/login');
-
-        // data-testid-Attribute für E2E-Tests
-        $response->assertSee('data-testid="login-email"', false);
-        $response->assertSee('data-testid="login-password"', false);
-        $response->assertSee('data-testid="login-submit"', false);
-
-        // Semantische Struktur: H1-Heading, Label-Legenden, Formular-Action
-        $html = $response->getContent();
-        $this->assertStringContainsString('<h1', $html);
-        $this->assertStringContainsString('Login', $html);
-        $this->assertMatchesRegularExpression('/<(legend|span)[^>]*>\s*E-Mail/si', $html);
-        $this->assertMatchesRegularExpression('/<legend[^>]*>\s*Passwort/si', $html);
-        $this->assertStringContainsString('autocomplete="username"', $html);
-        $this->assertStringContainsString('autocomplete="current-password"', $html);
-    }
-
-    public function test_login_validation_errors(): void
-    {
-        $response = $this->from('/login')->post('/login', []);
-
-        $response->assertRedirect('/login');
-        $response->assertSessionHasErrors(['email', 'password']);
-    }
-}
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
+dataset('AuthenticationTest.invalidUsernames', static function (): iterable {
+    yield 'null' => [null];
+    yield 'array' => [['invalid@example.test']];
+    yield 'integer' => [1234];
+});
+test('invalid username types are validated without php deprecations', function (mixed $username): void {
+    $this->postJson('/login', ['email' => $username, 'password' => 'invalid-password'])->assertUnprocessable()->assertJsonValidationErrors('email');
+    $this->assertGuest();
+})->with('AuthenticationTest.invalidUsernames');
+test('login screen can be rendered', function (): void {
+    $response = $this->withoutVite()->get('/login');
+    $response->assertStatus(200);
+});
+test('users can authenticate using the login screen', function (): void {
+    $user = User::factory()->create();
+    $response = $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard', absolute: false));
+});
+test('users can not authenticate with invalid password', function (): void {
+    $user = User::factory()->create();
+    $this->post('/login', ['email' => $user->email, 'password' => 'wrong-password']);
+    $this->assertGuest();
+});
+test('login form has accessible structure and test ids', function (): void {
+    $response = $this->withoutVite()->get('/login');
+    // data-testid-Attribute für E2E-Tests
+    $response->assertSee('data-testid="login-email"', false);
+    $response->assertSee('data-testid="login-password"', false);
+    $response->assertSee('data-testid="login-submit"', false);
+    // Semantische Struktur: H1-Heading, Label-Legenden, Formular-Action
+    $html = $response->getContent();
+    expect($html)->toContain('<h1')
+        ->toContain('Login')
+        ->toMatch('/<(legend|span)[^>]*>\s*E-Mail/si')
+        ->toMatch('/<legend[^>]*>\s*Passwort/si')
+        ->toContain('autocomplete="username"')
+        ->toContain('autocomplete="current-password"');
+});
+test('login validation errors', function (): void {
+    $response = $this->from('/login')->post('/login', []);
+    $response->assertRedirect('/login');
+    $response->assertSessionHasErrors(['email', 'password']);
+});

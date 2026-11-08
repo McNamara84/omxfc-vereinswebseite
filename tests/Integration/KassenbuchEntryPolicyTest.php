@@ -1,240 +1,131 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Enums\KassenbuchEditReasonType;
-use App\Enums\KassenbuchEntryType;
 use App\Enums\Role;
 use App\Models\KassenbuchEditRequest;
-use App\Models\KassenbuchEntry;
 use App\Models\Team;
-use App\Models\User;
 use App\Policies\KassenbuchEntryPolicy;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
-#[CoversClass(KassenbuchEntryPolicy::class)]
-class KassenbuchEntryPolicyTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(KassenbuchEntryPolicyTestFixtures::class);
 
-    private KassenbuchEntryPolicy $policy;
+covers(KassenbuchEntryPolicy::class);
 
-    private Team $team;
+beforeEach(function (): void {
+    $this->policy = new KassenbuchEntryPolicy;
+    $this->team = Team::membersTeam();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('view all allows finance roles', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    expect($this->policy->viewAll($user))->toBeTrue();
+})->with([[Role::Vorstand], [Role::Admin], [Role::Kassenwart]]);
 
-        $this->policy = new KassenbuchEntryPolicy;
-        $this->team = Team::membersTeam();
-    }
+test('view all denies regular member', function (): void {
+    $user = $this->createUserWithRole(Role::Mitglied);
+    expect($this->policy->viewAll($user))->toBeFalse();
+});
 
-    private function createUserWithRole(Role $role): User
-    {
-        $user = User::factory()->create(['current_team_id' => $this->team->id]);
-        $this->team->users()->attach($user, ['role' => $role->value]);
+test('manage allows kassenwart and admin', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    expect($this->policy->manage($user))->toBeTrue();
+})->with([[Role::Kassenwart], [Role::Admin]]);
 
-        return $user;
-    }
+test('manage denies vorstand role', function (): void {
+    $user = $this->createUserWithRole(Role::Vorstand);
+    expect($this->policy->manage($user))->toBeFalse();
+});
 
-    private function createKassenbuchEntry(User $creator): KassenbuchEntry
-    {
-        return KassenbuchEntry::create([
-            'team_id' => $this->team->id,
-            'created_by' => $creator->id,
-            'buchungsdatum' => now(),
-            'betrag' => 50.00,
-            'beschreibung' => 'Test-Eintrag',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
-    }
+test('manage denies regular members', function (): void {
+    $user = $this->createUserWithRole(Role::Mitglied);
+    expect($this->policy->manage($user))->toBeFalse();
+});
 
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Admin])]
-    #[TestWith([Role::Kassenwart])]
-    public function test_view_all_allows_finance_roles(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $this->assertTrue($this->policy->viewAll($user));
-    }
+test('request edit allows kassenwart and admin', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    $entry = $this->createKassenbuchEntry($user);
+    expect($this->policy->requestEdit($user, $entry))->toBeTrue();
+})->with([[Role::Kassenwart], [Role::Admin]]);
 
-    public function test_view_all_denies_regular_member(): void
-    {
-        $user = $this->createUserWithRole(Role::Mitglied);
-        $this->assertFalse($this->policy->viewAll($user));
-    }
+test('request edit denies vorstand', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    expect($this->policy->requestEdit($vorstand, $entry))->toBeFalse();
+});
 
-    #[TestWith([Role::Kassenwart])]
-    #[TestWith([Role::Admin])]
-    public function test_manage_allows_kassenwart_and_admin(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $this->assertTrue($this->policy->manage($user));
-    }
+test('request edit denies mitglied', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $mitglied = $this->createUserWithRole(Role::Mitglied);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    expect($this->policy->requestEdit($mitglied, $entry))->toBeFalse();
+});
 
-    public function test_manage_denies_vorstand_role(): void
-    {
-        $user = $this->createUserWithRole(Role::Vorstand);
-        $this->assertFalse($this->policy->manage($user));
-    }
+test('request delete allows kassenwart and admin', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    $entry = $this->createKassenbuchEntry($user);
+    expect($this->policy->requestDelete($user, $entry))->toBeTrue();
+})->with([[Role::Kassenwart], [Role::Admin]]);
 
-    public function test_manage_denies_regular_members(): void
-    {
-        $user = $this->createUserWithRole(Role::Mitglied);
-        $this->assertFalse($this->policy->manage($user));
-    }
+test('request delete denies vorstand', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    expect($this->policy->requestDelete($vorstand, $entry))->toBeFalse();
+});
 
-    // ==================== Request Edit Policy Tests ====================
+test('request delete denies mitglied', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $mitglied = $this->createUserWithRole(Role::Mitglied);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    expect($this->policy->requestDelete($mitglied, $entry))->toBeFalse();
+});
 
-    #[TestWith([Role::Kassenwart])]
-    #[TestWith([Role::Admin])]
-    public function test_request_edit_allows_kassenwart_and_admin(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $entry = $this->createKassenbuchEntry($user);
+test('edit allows with approved request', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $entry = $this->createKassenbuchEntry($user);
+    // Create approved request
+    KassenbuchEditRequest::create(['kassenbuch_entry_id' => $entry->id, 'requested_by' => $user->id, 'processed_by' => $vorstand->id, 'reason_type' => KassenbuchEditReasonType::Tippfehler->value, 'status' => KassenbuchEditRequest::STATUS_APPROVED, 'processed_at' => now()]);
+    expect($this->policy->edit($user, $entry))->toBeTrue();
+})->with([[Role::Kassenwart], [Role::Admin]]);
 
-        $this->assertTrue($this->policy->requestEdit($user, $entry));
-    }
+test('edit denies without approved request', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    expect($this->policy->edit($kassenwart, $entry))->toBeFalse();
+});
 
-    public function test_request_edit_denies_vorstand(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $entry = $this->createKassenbuchEntry($kassenwart);
+test('edit denies with pending request', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    KassenbuchEditRequest::create(['kassenbuch_entry_id' => $entry->id, 'requested_by' => $kassenwart->id, 'reason_type' => KassenbuchEditReasonType::Tippfehler->value, 'status' => KassenbuchEditRequest::STATUS_PENDING]);
+    expect($this->policy->edit($kassenwart, $entry))->toBeFalse();
+});
 
-        $this->assertFalse($this->policy->requestEdit($vorstand, $entry));
-    }
+test('edit denies vorstand even with approved request', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $entry = $this->createKassenbuchEntry($kassenwart);
+    KassenbuchEditRequest::create(['kassenbuch_entry_id' => $entry->id, 'requested_by' => $kassenwart->id, 'processed_by' => $vorstand->id, 'reason_type' => KassenbuchEditReasonType::Tippfehler->value, 'status' => KassenbuchEditRequest::STATUS_APPROVED, 'processed_at' => now()]);
+    expect($this->policy->edit($vorstand, $entry))->toBeFalse();
+});
 
-    public function test_request_edit_denies_mitglied(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $mitglied = $this->createUserWithRole(Role::Mitglied);
-        $entry = $this->createKassenbuchEntry($kassenwart);
+test('process edit request allows vorstand and admin', function (Role $role): void {
+    $user = $this->createUserWithRole($role);
+    expect($this->policy->processEditRequest($user))->toBeTrue();
+})->with([[Role::Vorstand], [Role::Admin]]);
 
-        $this->assertFalse($this->policy->requestEdit($mitglied, $entry));
-    }
+test('process edit request denies kassenwart', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    expect($this->policy->processEditRequest($kassenwart))->toBeFalse();
+});
 
-    #[TestWith([Role::Kassenwart])]
-    #[TestWith([Role::Admin])]
-    public function test_request_delete_allows_kassenwart_and_admin(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $entry = $this->createKassenbuchEntry($user);
-
-        $this->assertTrue($this->policy->requestDelete($user, $entry));
-    }
-
-    public function test_request_delete_denies_vorstand(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        $this->assertFalse($this->policy->requestDelete($vorstand, $entry));
-    }
-
-    public function test_request_delete_denies_mitglied(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $mitglied = $this->createUserWithRole(Role::Mitglied);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        $this->assertFalse($this->policy->requestDelete($mitglied, $entry));
-    }
-
-    // Note: The test for "pending request exists" was removed because
-    // this check was moved from Policy to Controller for better UX
-    // (user-friendly error message instead of 403)
-
-    // ==================== Edit Policy Tests ====================
-
-    #[TestWith([Role::Kassenwart])]
-    #[TestWith([Role::Admin])]
-    public function test_edit_allows_with_approved_request(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $entry = $this->createKassenbuchEntry($user);
-
-        // Create approved request
-        KassenbuchEditRequest::create([
-            'kassenbuch_entry_id' => $entry->id,
-            'requested_by' => $user->id,
-            'processed_by' => $vorstand->id,
-            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
-            'status' => KassenbuchEditRequest::STATUS_APPROVED,
-            'processed_at' => now(),
-        ]);
-
-        $this->assertTrue($this->policy->edit($user, $entry));
-    }
-
-    public function test_edit_denies_without_approved_request(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        $this->assertFalse($this->policy->edit($kassenwart, $entry));
-    }
-
-    public function test_edit_denies_with_pending_request(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        KassenbuchEditRequest::create([
-            'kassenbuch_entry_id' => $entry->id,
-            'requested_by' => $kassenwart->id,
-            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
-            'status' => KassenbuchEditRequest::STATUS_PENDING,
-        ]);
-
-        $this->assertFalse($this->policy->edit($kassenwart, $entry));
-    }
-
-    public function test_edit_denies_vorstand_even_with_approved_request(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        KassenbuchEditRequest::create([
-            'kassenbuch_entry_id' => $entry->id,
-            'requested_by' => $kassenwart->id,
-            'processed_by' => $vorstand->id,
-            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
-            'status' => KassenbuchEditRequest::STATUS_APPROVED,
-            'processed_at' => now(),
-        ]);
-
-        $this->assertFalse($this->policy->edit($vorstand, $entry));
-    }
-
-    // ==================== Process Edit Request Policy Tests ====================
-
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Admin])]
-    public function test_process_edit_request_allows_vorstand_and_admin(Role $role): void
-    {
-        $user = $this->createUserWithRole($role);
-
-        $this->assertTrue($this->policy->processEditRequest($user));
-    }
-
-    public function test_process_edit_request_denies_kassenwart(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-
-        $this->assertFalse($this->policy->processEditRequest($kassenwart));
-    }
-
-    public function test_process_edit_request_denies_mitglied(): void
-    {
-        $mitglied = $this->createUserWithRole(Role::Mitglied);
-
-        $this->assertFalse($this->policy->processEditRequest($mitglied));
-    }
-}
+test('process edit request denies mitglied', function (): void {
+    $mitglied = $this->createUserWithRole(Role::Mitglied);
+    expect($this->policy->processEditRequest($mitglied))->toBeFalse();
+});

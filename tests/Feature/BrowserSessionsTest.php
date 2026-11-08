@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
@@ -8,17 +10,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class BrowserSessionsTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_other_browser_sessions_can_be_logged_out(): void
-    {
-        $this->actingAs(User::factory()->create());
-
-        Livewire::test(LogoutOtherBrowserSessionsForm::class)
-            ->set('password', 'password')
-            ->call('logoutOtherBrowserSessions')
-            ->assertSuccessful();
-    }
-}
+test('other browser sessions can be logged out', function (): void {
+    $this->actingAs(User::factory()->create());
+    Livewire::test(LogoutOtherBrowserSessionsForm::class)->set('password', 'password')->call('logoutOtherBrowserSessions')->assertSuccessful();
+});

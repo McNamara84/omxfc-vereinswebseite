@@ -84,7 +84,7 @@ final class RpgCharEditorSpecialRules
     ];
 
     /**
-     * @return array<string, array<string, mixed>>
+     * @return array<string, array{cost: int, ...}>
      */
     public static function advantages(): array
     {

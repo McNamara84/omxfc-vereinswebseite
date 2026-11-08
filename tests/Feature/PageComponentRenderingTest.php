@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -8,27 +10,15 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class PageComponentRenderingTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_public_page_component_renders_with_default_classes(): void
-    {
-        $this->get('/chronik')
-            ->assertOk()
-            ->assertSee('max-w-6xl', false)
-            ->assertSee('bg-base-100', false);
-    }
+test('public page component renders with default classes', function (): void {
+    $this->get('/chronik')->assertOk()->assertSee('max-w-6xl', false)->assertSee('bg-base-100', false);
+});
 
-    public function test_member_page_component_renders_for_dashboard(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $this->actingAs($user)
-            ->get('/dashboard')
-            ->assertOk()
-            ->assertSee('max-w-7xl', false);
-    }
-}
+test('member page component renders for dashboard', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $this->actingAs($user)->get('/dashboard')->assertOk()->assertSee('max-w-7xl', false);
+});

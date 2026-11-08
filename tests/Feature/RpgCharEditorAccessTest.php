@@ -1,158 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Js;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class RpgCharEditorAccessTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RpgCharEditorAccessTestFixtures::class);
 
-    private function createMember(Role|string $role = Role::Mitglied): User
-    {
-        $team = Team::membersTeam();
+test('ag rollenspiel member can access editor', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $this->actingAs($member)->get('/rpg/char-editor')->assertOk()->assertSee('Charakter-Editor')->assertSee('data-testid="char-editor-form"', false)->assertSee('action="'.route('rpg.characters.store').'"', false)->assertSee('formaction="'.route('rpg.char-editor.pdf').'"', false);
+});
 
-        if (! $team) {
-            $team = Team::factory()->create(['name' => 'Mitglieder', 'personal_team' => false]);
-        }
+test('editor exposes special rule descriptions to assistive technology', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $this->actingAs($member)->get('/rpg/char-editor')->assertOk()->assertSee('window.rpgCharEditorRules', false)->assertSee('data-testid="attribute-help-st"', false)->assertSee('aria-describedby="attribute-description-st"', false)->assertSee('id="attribute-description-st"', false)->assertSee('x-text="attributeTooltip(', false)->assertSee('aria-describedby="advantage-description-0"', false)->assertSee('id="advantage-description-0"', false)->assertSee('x-text="advantageTooltip(', false)->assertSee('aria-describedby="disadvantage-description-0"', false)->assertSee('id="disadvantage-description-0"', false)->assertSee('x-text="disadvantageTooltip(', false);
+});
 
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role instanceof Role ? $role->value : $role]);
+test('editor base text inputs have accessible names', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $response = $this->actingAs($member)->get('/rpg/char-editor');
+    $response->assertOk();
+    $crawler = new Crawler($response->getContent());
+    expect($crawler->filter('input[name="player_name"]:not([type="hidden"])[aria-label="Spielername"]'))->toHaveCount(1)
+        ->and($crawler->filter('input[name="character_name"]:not([type="hidden"])[aria-label="Charaktername"]'))->toHaveCount(1);
+});
 
-        return $user->refresh();
-    }
+test('editor only exposes whitelisted old input to javascript', function (): void {
+    $member = $this->addAgRollenspielMembership($this->createMember());
+    $oldInput = ['player_name' => 'Geretteter Spieler', 'attributes' => ['st' => 2], 'rule_sources' => ['expansion-1' => '0'], 'marsianer_replacement_skill' => 'Heiler', 'marsianer_bonus_skill' => 'Unterhalten'];
+    $this->withSession(['_old_input' => $oldInput + ['email' => 'privat@example.test', 'password' => 'super-secret-old-input']])->actingAs($member)->get('/rpg/char-editor')->assertOk()->assertSee('window.rpgCharEditorOldInput', false)->assertSee('window.rpgCharEditorOldInput = '.Js::from(Arr::only($oldInput, ['rule_sources', 'marsianer_replacement_skill', 'marsianer_bonus_skill', 'player_name', 'attributes']))->toHtml().';', false)->assertSee('Geretteter Spieler')->assertDontSee('privat@example.test')->assertDontSee('super-secret-old-input');
+});
 
-    private function addAgRollenspielMembership(User $user): User
-    {
-        $owner = User::factory()->create();
+test('global admin can access editor with different current team', function (): void {
+    $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
+    $this->actingAs($admin)->get('/rpg/char-editor')->assertOk()->assertSee('Charakter-Editor');
+});
 
-        $team = Team::factory()->create([
-            'user_id' => $owner->id,
-            'name' => 'AG Rollenspiel',
-            'personal_team' => false,
-        ]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        return $user->refresh();
-    }
-
-    private function createManagementUserWithDifferentCurrentTeam(Role $role): User
-    {
-        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-
-        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
-        $managementTeam->users()->attach($user, ['role' => $role->value]);
-
-        $otherTeam = Team::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Nebenverein',
-            'personal_team' => false,
-        ]);
-        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
-
-        return $user->refresh();
-    }
-
-    public function test_ag_rollenspiel_member_can_access_editor(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $this->actingAs($member)
-            ->get('/rpg/char-editor')
-            ->assertOk()
-            ->assertSee('Charakter-Editor')
-            ->assertSee('data-testid="char-editor-form"', false)
-            ->assertSee('action="'.route('rpg.characters.store').'"', false)
-            ->assertSee('formaction="'.route('rpg.char-editor.pdf').'"', false);
-    }
-
-    public function test_editor_exposes_special_rule_descriptions_to_assistive_technology(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-
-        $this->actingAs($member)
-            ->get('/rpg/char-editor')
-            ->assertOk()
-            ->assertSee('window.rpgCharEditorRules', false)
-            ->assertSee('data-testid="attribute-help-st"', false)
-            ->assertSee('aria-describedby="attribute-description-st"', false)
-            ->assertSee('id="attribute-description-st"', false)
-            ->assertSee('x-text="attributeTooltip(', false)
-            ->assertSee('aria-describedby="advantage-description-0"', false)
-            ->assertSee('id="advantage-description-0"', false)
-            ->assertSee('x-text="advantageTooltip(', false)
-            ->assertSee('aria-describedby="disadvantage-description-0"', false)
-            ->assertSee('id="disadvantage-description-0"', false)
-            ->assertSee('x-text="disadvantageTooltip(', false);
-    }
-
-    public function test_editor_base_text_inputs_have_accessible_names(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $response = $this->actingAs($member)->get('/rpg/char-editor');
-
-        $response->assertOk();
-        $crawler = new Crawler($response->getContent());
-
-        $this->assertCount(1, $crawler->filter('input[name="player_name"]:not([type="hidden"])[aria-label="Spielername"]'));
-        $this->assertCount(1, $crawler->filter('input[name="character_name"]:not([type="hidden"])[aria-label="Charaktername"]'));
-    }
-
-    public function test_editor_only_exposes_whitelisted_old_input_to_javascript(): void
-    {
-        $member = $this->addAgRollenspielMembership($this->createMember());
-        $oldInput = [
-            'player_name' => 'Geretteter Spieler',
-            'attributes' => ['st' => 2],
-            'rule_sources' => ['expansion-1' => '0'],
-            'marsianer_replacement_skill' => 'Heiler',
-            'marsianer_bonus_skill' => 'Unterhalten',
-        ];
-
-        $this->withSession([
-            '_old_input' => $oldInput + [
-                'email' => 'privat@example.test',
-                'password' => 'super-secret-old-input',
-            ],
-        ])
-            ->actingAs($member)
-            ->get('/rpg/char-editor')
-            ->assertOk()
-            ->assertSee('window.rpgCharEditorOldInput', false)
-            ->assertSee('window.rpgCharEditorOldInput = '.Js::from(Arr::only($oldInput, ['rule_sources', 'marsianer_replacement_skill', 'marsianer_bonus_skill', 'player_name', 'attributes']))->toHtml().';', false)
-            ->assertSee('Geretteter Spieler')
-            ->assertDontSee('privat@example.test')
-            ->assertDontSee('super-secret-old-input');
-    }
-
-    public function test_global_admin_can_access_editor_with_different_current_team(): void
-    {
-        $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
-
-        $this->actingAs($admin)
-            ->get('/rpg/char-editor')
-            ->assertOk()
-            ->assertSee('Charakter-Editor');
-    }
-
-    public function test_member_without_ag_rollenspiel_is_forbidden_from_editor(): void
-    {
-        $user = $this->createMember();
-
-        $this->actingAs($user)
-            ->get('/rpg/char-editor')
-            ->assertForbidden();
-    }
-}
+test('member without ag rollenspiel is forbidden from editor', function (): void {
+    $user = $this->createMember();
+    $this->actingAs($user)->get('/rpg/char-editor')->assertForbidden();
+});

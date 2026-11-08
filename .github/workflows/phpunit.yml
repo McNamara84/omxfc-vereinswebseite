@@ -173,7 +173,7 @@ jobs:
       - name: Verify fresh MariaDB migrations
         run: php artisan migrate:fresh --force
       - name: Execute Maddraxikon tests on MariaDB
-        run: php vendor/bin/phpunit --configuration=phpunit.mariadb.xml
+        run: php vendor/bin/pest --configuration=phpunit.mariadb.xml --fail-on-skipped --compact
 
   rpg_mariadb:
     runs-on: ubuntu-latest
@@ -389,7 +389,9 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
       - name: Reject coverage regressions
-        run: node tools/testing/check-coverage.mjs tests/coverage-baselines/php.json coverage/php-snapshot.json
+        run: |
+          node tools/testing/check-coverage.mjs tests/coverage-baselines/php.json coverage/php-snapshot.json
+          node tools/testing/check-coverage.mjs tests/coverage-baselines/php-pest-modernization-before.json coverage/php-snapshot.json
       - name: Create PHP coverage badge
         if: github.ref == 'refs/heads/main'
         run: node tools/testing/php-coverage-badge.mjs coverage/php-snapshot.json badge-output/php-coverage.svg

@@ -1,56 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Support\RpgCharEditorRuleCatalog as Catalog;
 use App\Support\RpgCharEditorTraining;
 use PHPUnit\Framework\TestCase;
 
-class RpgCharEditorRuleCatalogTest extends TestCase
-{
-    public function test_javascript_fixture_matches_the_shared_server_definitions(): void
-    {
-        $this->assertSame([
-            'ruleCatalog' => Catalog::ruleConfig(),
-            'trainingRules' => RpgCharEditorTraining::ruleConfig(),
-        ], json_decode(file_get_contents(__DIR__.'/../Fixtures/rpg-extension-rules.json'), true, flags: JSON_THROW_ON_ERROR));
-    }
+pest()->extend(TestCase::class);
 
-    public function test_sources_are_complete_and_disabled_expansions_are_not_snapshotted(): void
-    {
-        $this->assertTrue(Catalog::sources()['expansion-1']['defaultEnabled']);
-        $this->assertSame(['base'], array_column(Catalog::snapshots([]), 'id'));
-        $this->assertSame(['base'], array_column(Catalog::snapshots(['expansion-1' => false]), 'id'));
-        $snapshots = Catalog::snapshots(['expansion-1' => true]);
-        $this->assertSame(['base', 'expansion-1'], array_column($snapshots, 'id'));
-        $this->assertSame('Stefan Küppers', $snapshots[1]['author']);
-        $this->assertArrayNotHasKey('defaultEnabled', $snapshots[1]);
-        foreach ([...Catalog::races(), ...Catalog::cultures(), ...RpgCharEditorTraining::definitions()] as $definition) {
-            $this->assertArrayHasKey($definition['source'], Catalog::sources());
-        }
-    }
+test('javascript fixture matches the shared server definitions', function (): void {
+    expect(json_decode(file_get_contents(__DIR__.'/../Fixtures/rpg-extension-rules.json'), true, flags: JSON_THROW_ON_ERROR))->toBe(['ruleCatalog' => Catalog::ruleConfig(), 'trainingRules' => RpgCharEditorTraining::ruleConfig()]);
+});
 
-    public function test_exclusive_cultures_and_baseline_restrictions_remain_consistent(): void
-    {
-        $this->assertSame(['Ruinenbewohner'], Catalog::allowedCultures('Morlock'));
-        $this->assertSame(['Marsianische Städter'], Catalog::allowedCultures('Marsianer'));
-        $this->assertSame(['Mensch des 21. Jahrhunderts'], Catalog::allowedCultures('Agarther'));
-        $this->assertSame(['Meeresbewohner'], Catalog::allowedCultures('Hydrit'));
-        $this->assertSame(['Bunkermensch'], Catalog::allowedCultures('Techno'));
-        foreach (['Guul', 'Nosfera', 'Taratze', 'Wulfane'] as $race) {
-            $this->assertNotContains('Volk der 13 Inseln', Catalog::allowedCultures($race));
-            $this->assertNotContains('Marsianische Städter', Catalog::allowedCultures($race));
-        }
-        $this->assertContains('Volk der 13 Inseln', Catalog::allowedCultures('Barbar'));
+test('sources are complete and disabled expansions are not snapshotted', function (): void {
+    expect(Catalog::sources()['expansion-1']['defaultEnabled'])->toBeTrue()
+        ->and(array_column(Catalog::snapshots([]), 'id'))->toBe(['base'])
+        ->and(array_column(Catalog::snapshots(['expansion-1' => false]), 'id'))->toBe(['base']);
+    $snapshots = Catalog::snapshots(['expansion-1' => true]);
+    expect(array_column($snapshots, 'id'))->toBe(['base', 'expansion-1'])
+        ->and($snapshots[1]['author'])->toBe('Stefan Küppers')
+        ->and($snapshots[1])->not->toHaveKey('defaultEnabled');
+    foreach ([...Catalog::races(), ...Catalog::cultures(), ...RpgCharEditorTraining::definitions()] as $definition) {
+        expect(Catalog::sources())->toHaveKey($definition['source']);
     }
+});
 
-    public function test_martian_replacement_deduplicates_existing_pool_skills(): void
-    {
-        $this->assertContains('Nahkampf', Catalog::humanPool('Agarther'));
-        $this->assertNotContains('Feuerwaffen', Catalog::humanPool('Agarther'));
-        $this->assertCount(6, Catalog::humanPool('Marsianer', 'Nahkampf'));
-        $this->assertCount(5, Catalog::humanPool('Marsianer', 'Bildung'));
-        $this->assertSame(['Pilot', 'Wissenschaftler', 'Athletik', 'Unterhalten'], Catalog::MARTIAN_BONUS_SKILLS);
-        $this->assertSame(['Bildung' => 1, 'Techniker' => 1], Catalog::cultures()[Catalog::MARTIAN_CULTURE]['skills']);
+test('exclusive cultures and baseline restrictions remain consistent', function (): void {
+    expect(Catalog::allowedCultures('Morlock'))->toBe(['Ruinenbewohner'])
+        ->and(Catalog::allowedCultures('Marsianer'))->toBe(['Marsianische Städter'])
+        ->and(Catalog::allowedCultures('Agarther'))->toBe(['Mensch des 21. Jahrhunderts'])
+        ->and(Catalog::allowedCultures('Hydrit'))->toBe(['Meeresbewohner'])
+        ->and(Catalog::allowedCultures('Techno'))->toBe(['Bunkermensch']);
+    foreach (['Guul', 'Nosfera', 'Taratze', 'Wulfane'] as $race) {
+        expect(Catalog::allowedCultures($race))->not->toContain('Volk der 13 Inseln')
+            ->and(Catalog::allowedCultures($race))->not->toContain('Marsianische Städter');
     }
-}
+    expect(Catalog::allowedCultures('Barbar'))->toContain('Volk der 13 Inseln');
+});
+
+test('martian replacement deduplicates existing pool skills', function (): void {
+    expect(Catalog::humanPool('Agarther'))->toContain('Nahkampf')
+        ->and(Catalog::humanPool('Agarther'))->not->toContain('Feuerwaffen')
+        ->and(Catalog::humanPool('Marsianer', 'Nahkampf'))->toHaveCount(6)
+        ->and(Catalog::humanPool('Marsianer', 'Bildung'))->toHaveCount(5)
+        ->and(Catalog::MARTIAN_BONUS_SKILLS)->toBe(['Pilot', 'Wissenschaftler', 'Athletik', 'Unterhalten'])
+        ->and(Catalog::cultures()[Catalog::MARTIAN_CULTURE]['skills'])->toBe(['Bildung' => 1, 'Techniker' => 1]);
+});

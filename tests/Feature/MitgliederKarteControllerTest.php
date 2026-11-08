@@ -1,113 +1,50 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\TodoStatus;
 use App\Livewire\TodoIndex;
-use App\Models\Team;
-use App\Models\Todo;
-use App\Models\TodoCategory;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class MitgliederKarteControllerTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(MitgliederKarteControllerTestFixtures::class);
 
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
+test('member can assign todo', function (): void {
+    $user = $this->actingMember();
+    $todo = $this->createTodo($user);
+    Livewire::actingAs($user)->test(TodoIndex::class)->call('assign', $todo->id)->assertHasNoErrors();
+    $todo->refresh();
+    expect($todo->status)->toBe(TodoStatus::Assigned)
+        ->and($todo->assigned_to)->toBe($user->id);
+});
 
-        return $user;
-    }
+test('assigned user can complete todo', function (): void {
+    $user = $this->actingMember();
+    $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
+    Livewire::actingAs($user)->test(TodoIndex::class)->call('complete', $todo->id)->assertHasNoErrors();
+    $todo->refresh();
+    expect($todo->status)->toBe(TodoStatus::Completed)
+        ->and($todo->completed_at)->not->toBeNull();
+});
 
-    private function createTodo(User $creator, array $attrs = []): Todo
-    {
-        $team = Team::membersTeam();
-        $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+test('admin can verify completed todo and award points', function (): void {
+    $assignee = $this->actingMember();
+    $admin = $this->actingMember('Admin');
+    $todo = $this->createTodo($admin, ['assigned_to' => $assignee->id, 'status' => TodoStatus::Completed->value, 'completed_at' => now()]);
+    Livewire::actingAs($admin)->test(TodoIndex::class)->call('verify', $todo->id)->assertHasNoErrors();
+    $todo->refresh();
+    expect($todo->status)->toBe(TodoStatus::Verified)
+        ->and($todo->verified_by)->toBe($admin->id);
+    $this->assertDatabaseHas('user_points', ['user_id' => $assignee->id, 'todo_id' => $todo->id, 'points' => $todo->points]);
+});
 
-        return Todo::create(array_merge([
-            'team_id' => $team->id,
-            'created_by' => $creator->id,
-            'title' => 'Todo',
-            'description' => 'desc',
-            'points' => 5,
-            'category_id' => $category->id,
-            'status' => TodoStatus::Open->value,
-        ], $attrs));
-    }
-
-    public function test_member_can_assign_todo(): void
-    {
-        $user = $this->actingMember();
-        $todo = $this->createTodo($user);
-
-        Livewire::actingAs($user)
-            ->test(TodoIndex::class)
-            ->call('assign', $todo->id)
-            ->assertHasNoErrors();
-
-        $todo->refresh();
-        $this->assertSame(TodoStatus::Assigned, $todo->status);
-        $this->assertSame($user->id, $todo->assigned_to);
-    }
-
-    public function test_assigned_user_can_complete_todo(): void
-    {
-        $user = $this->actingMember();
-        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
-
-        Livewire::actingAs($user)
-            ->test(TodoIndex::class)
-            ->call('complete', $todo->id)
-            ->assertHasNoErrors();
-
-        $todo->refresh();
-        $this->assertSame(TodoStatus::Completed, $todo->status);
-        $this->assertNotNull($todo->completed_at);
-    }
-
-    public function test_admin_can_verify_completed_todo_and_award_points(): void
-    {
-        $assignee = $this->actingMember();
-        $admin = $this->actingMember('Admin');
-        $todo = $this->createTodo($admin, [
-            'assigned_to' => $assignee->id,
-            'status' => TodoStatus::Completed->value,
-            'completed_at' => now(),
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(TodoIndex::class)
-            ->call('verify', $todo->id)
-            ->assertHasNoErrors();
-
-        $todo->refresh();
-        $this->assertSame(TodoStatus::Verified, $todo->status);
-        $this->assertSame($admin->id, $todo->verified_by);
-        $this->assertDatabaseHas('user_points', [
-            'user_id' => $assignee->id,
-            'todo_id' => $todo->id,
-            'points' => $todo->points,
-        ]);
-    }
-
-    public function test_assigned_user_can_release_todo(): void
-    {
-        $user = $this->actingMember();
-        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
-
-        Livewire::actingAs($user)
-            ->test(TodoIndex::class)
-            ->call('release', $todo->id)
-            ->assertHasNoErrors();
-
-        $todo->refresh();
-        $this->assertNull($todo->assigned_to);
-        $this->assertSame(TodoStatus::Open, $todo->status);
-    }
-}
+test('assigned user can release todo', function (): void {
+    $user = $this->actingMember();
+    $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
+    Livewire::actingAs($user)->test(TodoIndex::class)->call('release', $todo->id)->assertHasNoErrors();
+    $todo->refresh();
+    expect($todo->assigned_to)->toBeNull()
+        ->and($todo->status)->toBe(TodoStatus::Open);
+});

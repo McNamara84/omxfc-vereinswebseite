@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Enums\Role;
@@ -8,47 +10,31 @@ use App\Models\User;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
-#[CoversClass(UserRoleService::class)]
-class UserRoleServiceTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_get_role_returns_members_role(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Admin->value]);
+covers(UserRoleService::class);
 
-        $service = new UserRoleService;
+test('get role returns members role', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Admin->value]);
+    $service = new UserRoleService;
+    expect($service->getRole($user, $team))->toBe(Role::Admin);
+});
 
-        $this->assertSame(Role::Admin, $service->getRole($user, $team));
-    }
+test('get role throws when membership missing', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $service = new UserRoleService;
+    expect(fn () => $service->getRole($user, $team))->toThrow(ModelNotFoundException::class);
+});
 
-    public function test_get_role_throws_when_membership_missing(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-
-        $service = new UserRoleService;
-
-        $this->expectException(ModelNotFoundException::class);
-
-        $service->getRole($user, $team);
-    }
-
-    public function test_get_role_throws_on_invalid_role(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Gast']);
-
-        $service = new UserRoleService;
-
-        $this->expectException(ModelNotFoundException::class);
-
-        $service->getRole($user, $team);
-    }
-}
+test('get role throws on invalid role', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => 'Gast']);
+    $service = new UserRoleService;
+    expect(fn () => $service->getRole($user, $team))->toThrow(ModelNotFoundException::class);
+});

@@ -1,50 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class LoginResponseTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(LoginResponseTestFixtures::class);
 
-    private function createMember(Role $role = Role::Mitglied): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role->value]);
+test('anwaerter is logged out on login', function (): void {
+    $user = $this->createMember(Role::Anwaerter);
+    $response = $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $response->assertRedirect(route('login', absolute: false));
+    $this->assertGuest();
+    $response->assertSessionHasErrors('email');
+});
 
-        return $user;
-    }
-
-    public function test_anwaerter_is_logged_out_on_login(): void
-    {
-        $user = $this->createMember(Role::Anwaerter);
-
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $response->assertRedirect(route('login', absolute: false));
-        $this->assertGuest();
-        $response->assertSessionHasErrors('email');
-    }
-
-    public function test_regular_member_is_redirected_to_dashboard(): void
-    {
-        $user = $this->createMember();
-
-        $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
-        ]);
-
-        $this->assertAuthenticatedAs($user);
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
-}
+test('regular member is redirected to dashboard', function (): void {
+    $user = $this->createMember();
+    $response = $this->post('/login', ['email' => $user->email, 'password' => 'password']);
+    $this->assertAuthenticatedAs($user);
+    $response->assertRedirect(route('dashboard', absolute: false));
+});

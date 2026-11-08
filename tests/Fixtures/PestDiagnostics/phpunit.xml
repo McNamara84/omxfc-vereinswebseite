@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="../../../vendor/autoload.php" failOnEmptyTestSuite="true" failOnWarning="true" failOnRisky="true" recordTestRunHistory="false">
+    <testsuites>
+        <testsuite name="Pest diagnostics fixture">
+            <file>DiagnosticsTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>

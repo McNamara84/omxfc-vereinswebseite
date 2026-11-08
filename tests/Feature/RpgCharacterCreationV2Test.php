@@ -1,595 +1,211 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use App\Services\RpgCharacterSheetService;
 use App\Support\RpgCharEditorRuleCatalog;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
-class RpgCharacterCreationV2Test extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RpgCharacterCreationV2TestFixtures::class);
 
-    /** @return array<string, int> */
-    private function completeAttributeAdjustmentsForLevel(int $level): array
-    {
-        $adjustments = ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0];
-        $budgets = [1 => 0, 2 => 1, 3 => 2, 4 => 3, 5 => 4];
+test('v2 payload persists rule origin and one free advantage', function (): void {
+    $data = $this->validate($this->payload(['advantages' => ['Zäh', 'Schnell'], 'advantage_effects' => [['name' => 'Schnell', 'target' => '', 'justification' => 'Nanotechnologie']]]));
+    expect($data['rules'])->toBe(['edition' => 2007, 'creation_level' => 3, 'payload_version' => 2, 'sources' => RpgCharEditorRuleCatalog::snapshots([])])
+        ->and($data['creation']['advantage_budget']['used'])->toBe(1)
+        ->and($data['creation']['advantage_budget']['required_compensations'])->toBe(0)
+        ->and($data['creation']['attribute_adjustments']['st'])->toBe(1)
+        ->and($data['advantages'])->toContain('Schnell');
+});
 
-        foreach (array_slice(array_keys($adjustments), 0, $budgets[$level]) as $attribute) {
-            $adjustments[$attribute] = 1;
-        }
-
-        return $adjustments;
+test('v2 rejects missing compensation and accepts gestaltwandler with two', function (): void {
+    try {
+        $this->validate($this->payload(['advantages' => ['Zäh', 'Kampfreflexe', 'Kaltblütig'], 'advantage_effects' => [['name' => 'Kampfreflexe', 'target' => '', 'justification' => ''], ['name' => 'Kaltblütig', 'target' => '', 'justification' => '']]]));
+        $this->fail('Eine fehlende Kompensation wurde nicht abgelehnt.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('disadvantages');
     }
+    $data = $this->validate($this->payload(['advantages' => ['Zäh', 'Gestaltwandler'], 'disadvantages' => ['Auffällig', 'Blutdurst'], 'advantage_effects' => [['name' => 'Gestaltwandler', 'target' => '', 'justification' => '']]]));
+    expect($data['creation']['advantage_budget']['used'])->toBe(3)
+        ->and($data['creation']['advantage_budget']['available_compensations'])->toBe(2);
+});
 
-    /**
-     * Complete paid FP fixture for the default Barbar/Landbewohner selection.
-     *
-     * @param  list<array{name: string, value: int}>  $requestedSkills
-     * @return list<array{name: string, value: int}>
-     */
-    private function completeSkillsForLevel(int $level, array $requestedSkills = []): array
-    {
-        $budgets = [1 => 10, 2 => 15, 3 => 20, 4 => 40, 5 => 60];
-        $maximums = [1 => 3, 2 => 3, 3 => 4, 4 => 5, 5 => 6];
-        $grants = [
-            'Nahkampf' => 1,
-            'Überleben' => 1,
-            'Intuition' => 1,
-            'Beruf: Viehzüchter' => 2,
-            'Kunde: Wetter' => 1,
-        ];
-        $skills = array_map(
-            static fn (string $name, int $value): array => ['name' => $name, 'value' => $value],
-            array_keys($grants),
-            array_values($grants),
-        );
+test('v2 rejects client attribute value that disagrees with evaluator', function (): void {
+    expect(fn () => $this->validate($this->payload(['attributes' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0]])))->toThrow(ValidationException::class);
+});
 
-        foreach ($requestedSkills as $requestedSkill) {
-            $index = array_search($requestedSkill['name'], array_column($skills, 'name'), true);
-            if ($index === false) {
-                $skills[] = $requestedSkill;
-            } else {
-                $skills[$index] = $requestedSkill;
-            }
-        }
+test('v2 ap trade and enhanced attribute are calculated server side', function (): void {
+    $data = $this->validate($this->payload(['attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 1, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => -1], 'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 1, 'wi' => 1, 'wa' => 0, 'in' => 0, 'au' => -1], 'extra_ap_attribute' => 'au', 'advantages' => ['Zäh', 'Gesteigertes Attribut'], 'advantage_effects' => [['name' => 'Gesteigertes Attribut', 'target' => 'wi', 'justification' => 'Mutation']]]));
+    expect($data['creation']['attribute_budget']['used'])->toBe(3)
+        ->and($data['creation']['attribute_budget']['extra'])->toBe(1)
+        ->and($data['attributes']['wi'])->toBe('1');
+});
 
-        $used = array_reduce(
-            $skills,
-            static fn (int $sum, array $skill): int => $sum + max(
-                $skill['value'] - ($grants[$skill['name']] ?? 0),
-                0,
-            ),
-            0,
-        );
-        $remaining = $budgets[$level] - $used;
-
-        foreach (['Athletik', 'Fernkampf', 'Handeln', 'Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Reiten', 'Techniker', 'Unterhalten'] as $name) {
-            if ($remaining <= 0 || in_array($name, array_column($skills, 'name'), true)) {
-                continue;
-            }
-
-            $points = min($maximums[$level], $remaining);
-            $skills[] = ['name' => $name, 'value' => $points];
-            $remaining -= $points;
-        }
-
-        if ($remaining !== 0) {
-            throw new \RuntimeException("Das Test-Fixture für Figurenstärke {$level} konnte nicht vollständig verteilt werden.");
-        }
-
-        return $skills;
+test('v2 validates language capacity with and without sprachbegabt', function (): void {
+    $skills = $this->completeSkillsForLevel(3, [['name' => 'Sprachen', 'value' => 2]]);
+    try {
+        $this->validate($this->payload(['skills' => $skills, 'languages' => ['Deutsch', 'Englisch', 'Französisch']]));
+        $this->fail('Zu viele Sprachen ohne Sprachbegabt wurden nicht abgelehnt.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('languages');
     }
+    $data = $this->validate($this->payload(['skills' => $skills, 'advantages' => ['Zäh', 'Sprachbegabt'], 'advantage_effects' => [['name' => 'Sprachbegabt', 'target' => '', 'justification' => '']], 'languages' => ['Deutsch', 'Englisch', 'Französisch', 'Schwedisch', 'Dänisch', 'Finnisch']]));
+    expect($data['languages'])->toHaveCount(6);
+});
 
-    private function payload(array $overrides = []): array
-    {
-        $requestedLevel = $overrides['figurenstaerke'] ?? 3;
-        $fixtureLevel = filter_var($requestedLevel, FILTER_VALIDATE_INT);
-        $fixtureLevel = in_array($fixtureLevel, [1, 2, 3, 4, 5], true) ? $fixtureLevel : 3;
-        $attributeAdjustments = $this->completeAttributeAdjustmentsForLevel($fixtureLevel);
-        $attributes = $attributeAdjustments;
-        $attributes['st']++;
-
-        $payload = array_replace_recursive([
-            'figurenstaerke' => 3,
-            'player_name' => 'Regeltest',
-            'character_name' => 'Niveau Drei',
-            'gender' => 'maennlich',
-            'race' => 'Barbar',
-            'culture' => 'Landbewohner',
-            'description' => '',
-            'barbar_attribute_bonus' => 'st',
-            'attribute_adjustments' => $attributeAdjustments,
-            'attributes' => $attributes,
-            'skills' => $this->completeSkillsForLevel($fixtureLevel),
-            'advantages' => ['Zäh'],
-            'disadvantages' => [],
-            'advantage_effects' => [],
-            'languages' => [],
-            'clothing' => 'kleidung-einfach',
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-            ],
-        ], $overrides);
-
-        foreach (['attribute_adjustments', 'attributes', 'skills', 'advantages', 'disadvantages', 'advantage_effects', 'languages', 'equipment_items'] as $key) {
-            if (array_key_exists($key, $overrides)) {
-                $payload[$key] = $overrides[$key];
-            }
-        }
-
-        return $payload;
+test('v2 requires exactly four high tech items with advantage', function (): void {
+    $threeHighTech = [['id' => 'fernglas', 'quantity' => 1], ['id' => 'funkgeraet', 'quantity' => 1], ['id' => 'gasmaske', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1], ['id' => 'wochenration', 'quantity' => 1]];
+    try {
+        $this->validate($this->payload(['advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'advantage_effects' => [['name' => 'High-Tech-Ausrüstung', 'target' => '', 'justification' => '']], 'equipment_items' => $threeHighTech]));
+        $this->fail('Drei High-Tech-Gegenstände wurden akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('equipment_items');
     }
+    $fourHighTech = $threeHighTech;
+    $fourHighTech[3] = ['id' => 'atemgeraet', 'quantity' => 1];
+    $data = $this->validate($this->payload(['advantages' => ['Zäh', 'High-Tech-Ausrüstung'], 'advantage_effects' => [['name' => 'High-Tech-Ausrüstung', 'target' => '', 'justification' => '']], 'equipment_items' => $fourHighTech]));
+    expect($data['equipment']['items'])->toHaveCount(6);
+});
 
-    private function validate(array $payload): array
-    {
-        return app(RpgCharacterSheetService::class)->validatedPdfPayload(Request::create('/', 'POST', $payload));
+test('v2 rejects legacy natural weapon skill', function (): void {
+    expect(fn () => $this->validate($this->payload(['skills' => [...$this->payload()['skills'], ['name' => 'Natürliche Waffen', 'value' => 1]], 'advantages' => ['Zäh', 'Natürliche Waffen'], 'advantage_effects' => [['name' => 'Natürliche Waffen', 'target' => '', 'justification' => 'Klauen']]])))->toThrow(ValidationException::class);
+});
+
+test('v2 volk der dreizehn inseln requires paid telepathy', function (): void {
+    $skills = [['name' => 'Nahkampf', 'value' => 1], ['name' => 'Überleben', 'value' => 1], ['name' => 'Intuition', 'value' => 1], ['name' => 'Athletik', 'value' => 1], ['name' => 'Beruf: Bauer', 'value' => 1], ['name' => 'Handeln', 'value' => 4], ['name' => 'Fahren', 'value' => 4], ['name' => 'Feuerwaffen', 'value' => 4], ['name' => 'Heiler', 'value' => 4], ['name' => 'Pilot', 'value' => 4]];
+    try {
+        $this->validate($this->payload(['gender' => 'weiblich', 'culture' => 'Volk der 13 Inseln', 'skills' => $skills, 'advantages' => ['Zäh', 'Psychische Kraft'], 'advantage_effects' => [['name' => 'Psychische Kraft', 'target' => 'Empathie', 'justification' => '']]]));
+        $this->fail('Eine andere psychische Kraft als Telepathie wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('advantage_effects');
     }
+    $data = $this->validate($this->payload(['gender' => 'weiblich', 'culture' => 'Volk der 13 Inseln', 'skills' => $skills, 'advantages' => ['Zäh', 'Psychische Kraft'], 'advantage_effects' => [['name' => 'Psychische Kraft', 'target' => 'Telepathie', 'justification' => '']]]));
+    expect($data['creation']['advantage_budget']['used'])->toBe(1)
+        ->and(collect($data['advantage_effects'])->firstWhere('name', 'Psychische Kraft')['target'])->toBe('Telepathie');
+});
 
-    public function test_v2_payload_persists_rule_origin_and_one_free_advantage(): void
-    {
-        $data = $this->validate($this->payload([
-            'advantages' => ['Zäh', 'Schnell'],
-            'advantage_effects' => [['name' => 'Schnell', 'target' => '', 'justification' => 'Nanotechnologie']],
-        ]));
-
-        $this->assertSame(['edition' => 2007, 'creation_level' => 3, 'payload_version' => 2, 'sources' => RpgCharEditorRuleCatalog::snapshots([])], $data['rules']);
-        $this->assertSame(1, $data['creation']['advantage_budget']['used']);
-        $this->assertSame(0, $data['creation']['advantage_budget']['required_compensations']);
-        $this->assertSame(1, $data['creation']['attribute_adjustments']['st']);
-        $this->assertContains('Schnell', $data['advantages']);
-    }
-
-    public function test_v2_rejects_missing_compensation_and_accepts_gestaltwandler_with_two(): void
-    {
-        try {
-            $this->validate($this->payload([
-                'advantages' => ['Zäh', 'Kampfreflexe', 'Kaltblütig'],
-                'advantage_effects' => [
-                    ['name' => 'Kampfreflexe', 'target' => '', 'justification' => ''],
-                    ['name' => 'Kaltblütig', 'target' => '', 'justification' => ''],
-                ],
-            ]));
-            $this->fail('Eine fehlende Kompensation wurde nicht abgelehnt.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('disadvantages', $exception->errors());
-        }
-
-        $data = $this->validate($this->payload([
-            'advantages' => ['Zäh', 'Gestaltwandler'],
-            'disadvantages' => ['Auffällig', 'Blutdurst'],
-            'advantage_effects' => [['name' => 'Gestaltwandler', 'target' => '', 'justification' => '']],
-        ]));
-
-        $this->assertSame(3, $data['creation']['advantage_budget']['used']);
-        $this->assertSame(2, $data['creation']['advantage_budget']['available_compensations']);
-    }
-
-    public function test_v2_rejects_client_attribute_value_that_disagrees_with_evaluator(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $this->validate($this->payload([
-            'attributes' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-        ]));
-    }
-
-    public function test_v2_ap_trade_and_enhanced_attribute_are_calculated_server_side(): void
-    {
-        $data = $this->validate($this->payload([
-            'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 1, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => -1],
-            'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 1, 'wi' => 1, 'wa' => 0, 'in' => 0, 'au' => -1],
-            'extra_ap_attribute' => 'au',
-            'advantages' => ['Zäh', 'Gesteigertes Attribut'],
-            'advantage_effects' => [['name' => 'Gesteigertes Attribut', 'target' => 'wi', 'justification' => 'Mutation']],
-        ]));
-
-        $this->assertSame(3, $data['creation']['attribute_budget']['used']);
-        $this->assertSame(1, $data['creation']['attribute_budget']['extra']);
-        $this->assertSame('1', $data['attributes']['wi']);
-    }
-
-    public function test_v2_validates_language_capacity_with_and_without_sprachbegabt(): void
-    {
-        $skills = $this->completeSkillsForLevel(3, [['name' => 'Sprachen', 'value' => 2]]);
-
-        try {
-            $this->validate($this->payload(['skills' => $skills, 'languages' => ['Deutsch', 'Englisch', 'Französisch']]));
-            $this->fail('Zu viele Sprachen ohne Sprachbegabt wurden nicht abgelehnt.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('languages', $exception->errors());
-        }
-
-        $data = $this->validate($this->payload([
-            'skills' => $skills,
-            'advantages' => ['Zäh', 'Sprachbegabt'],
-            'advantage_effects' => [['name' => 'Sprachbegabt', 'target' => '', 'justification' => '']],
-            'languages' => ['Deutsch', 'Englisch', 'Französisch', 'Schwedisch', 'Dänisch', 'Finnisch'],
-        ]));
-
-        $this->assertCount(6, $data['languages']);
-    }
-
-    public function test_v2_requires_exactly_four_high_tech_items_with_advantage(): void
-    {
-        $threeHighTech = [
-            ['id' => 'fernglas', 'quantity' => 1],
-            ['id' => 'funkgeraet', 'quantity' => 1],
-            ['id' => 'gasmaske', 'quantity' => 1],
-            ['id' => 'seil', 'quantity' => 1],
-            ['id' => 'rucksack', 'quantity' => 1],
-            ['id' => 'wochenration', 'quantity' => 1],
-        ];
-
-        try {
-            $this->validate($this->payload([
-                'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-                'advantage_effects' => [['name' => 'High-Tech-Ausrüstung', 'target' => '', 'justification' => '']],
-                'equipment_items' => $threeHighTech,
-            ]));
-            $this->fail('Drei High-Tech-Gegenstände wurden akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('equipment_items', $exception->errors());
-        }
-
-        $fourHighTech = $threeHighTech;
-        $fourHighTech[3] = ['id' => 'atemgeraet', 'quantity' => 1];
-        $data = $this->validate($this->payload([
-            'advantages' => ['Zäh', 'High-Tech-Ausrüstung'],
-            'advantage_effects' => [['name' => 'High-Tech-Ausrüstung', 'target' => '', 'justification' => '']],
-            'equipment_items' => $fourHighTech,
-        ]));
-
-        $this->assertCount(6, $data['equipment']['items']);
-    }
-
-    public function test_v2_rejects_legacy_natural_weapon_skill(): void
-    {
-        $this->expectException(ValidationException::class);
-
-        $this->validate($this->payload([
-            'skills' => [...$this->payload()['skills'], ['name' => 'Natürliche Waffen', 'value' => 1]],
-            'advantages' => ['Zäh', 'Natürliche Waffen'],
-            'advantage_effects' => [[
-                'name' => 'Natürliche Waffen',
-                'target' => '',
-                'justification' => 'Klauen',
-            ]],
-        ]));
-    }
-
-    public function test_v2_volk_der_dreizehn_inseln_requires_paid_telepathy(): void
-    {
-        $skills = [
-            ['name' => 'Nahkampf', 'value' => 1],
-            ['name' => 'Überleben', 'value' => 1],
-            ['name' => 'Intuition', 'value' => 1],
-            ['name' => 'Athletik', 'value' => 1],
-            ['name' => 'Beruf: Bauer', 'value' => 1],
-            ['name' => 'Handeln', 'value' => 4],
-            ['name' => 'Fahren', 'value' => 4],
-            ['name' => 'Feuerwaffen', 'value' => 4],
-            ['name' => 'Heiler', 'value' => 4],
-            ['name' => 'Pilot', 'value' => 4],
-        ];
-
-        try {
-            $this->validate($this->payload([
-                'gender' => 'weiblich',
-                'culture' => 'Volk der 13 Inseln',
-                'skills' => $skills,
-                'advantages' => ['Zäh', 'Psychische Kraft'],
-                'advantage_effects' => [['name' => 'Psychische Kraft', 'target' => 'Empathie', 'justification' => '']],
-            ]));
-            $this->fail('Eine andere psychische Kraft als Telepathie wurde akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('advantage_effects', $exception->errors());
-        }
-
-        $data = $this->validate($this->payload([
-            'gender' => 'weiblich',
-            'culture' => 'Volk der 13 Inseln',
-            'skills' => $skills,
-            'advantages' => ['Zäh', 'Psychische Kraft'],
-            'advantage_effects' => [['name' => 'Psychische Kraft', 'target' => 'Telepathie', 'justification' => '']],
-        ]));
-
-        $this->assertSame(1, $data['creation']['advantage_budget']['used']);
-        $this->assertSame('Telepathie', collect($data['advantage_effects'])->firstWhere('name', 'Psychische Kraft')['target']);
-    }
-
-    public function test_v2_accepts_creation_levels_one_to_five_and_requires_all_seven_adjustments(): void
-    {
-        foreach ([null, 0, 6] as $level) {
-            $payload = $this->payload();
-            if ($level === null) {
-                unset($payload['figurenstaerke']);
-            } else {
-                $payload['figurenstaerke'] = $level;
-            }
-
-            try {
-                $this->validate($payload);
-                $this->fail('Eine ungültige Figurenstärke wurde akzeptiert.');
-            } catch (ValidationException $exception) {
-                $this->assertArrayHasKey('figurenstaerke', $exception->errors());
-            }
-        }
-
-        $levelPayloads = [
-            1 => [
-                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'advantages' => [],
-            ],
-            2 => [
-                'attribute_adjustments' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'attributes' => ['st' => 2, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'advantages' => [],
-            ],
-            3 => [],
-            4 => [],
-            5 => [],
-        ];
-
-        foreach ($levelPayloads as $level => $overrides) {
-            $data = $this->validate($this->payload(['figurenstaerke' => $level, ...$overrides]));
-
-            $this->assertSame($level, $data['rules']['creation_level']);
-            $this->assertSame($level, $data['creation']['level_rules']['level']);
-        }
-
+test('v2 accepts creation levels one to five and requires all seven adjustments', function (): void {
+    foreach ([null, 0, 6] as $level) {
         $payload = $this->payload();
-        unset($payload['attribute_adjustments']['au']);
-
+        if ($level === null) {
+            unset($payload['figurenstaerke']);
+        } else {
+            $payload['figurenstaerke'] = $level;
+        }
         try {
             $this->validate($payload);
-            $this->fail('Eine unvollständige Attributherkunft wurde akzeptiert.');
+            $this->fail('Eine ungültige Figurenstärke wurde akzeptiert.');
         } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('attribute_adjustments.au', $exception->errors());
+            expect($exception->errors())->toHaveKey('figurenstaerke');
         }
     }
-
-    public function test_v2_rejects_unspent_level_dependent_ap_and_fp_budgets(): void
-    {
-        try {
-            $this->validate($this->payload([
-                'figurenstaerke' => 4,
-                'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            ]));
-            $this->fail('Ein nicht vollständig verteiltes AP-Budget wurde akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertContains(
-                'Die verfügbaren Attributspunkte müssen vollständig verteilt werden.',
-                $exception->errors()['attributes'] ?? [],
-            );
-        }
-
-        try {
-            $this->validate($this->payload([
-                'figurenstaerke' => 4,
-                'skills' => $this->completeSkillsForLevel(3),
-            ]));
-            $this->fail('Ein nicht vollständig verteiltes FP-Budget wurde akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertContains(
-                'Die verfügbaren Fertigkeitspunkte müssen vollständig verteilt werden.',
-                $exception->errors()['skills'] ?? [],
-            );
-        }
+    $levelPayloads = [1 => ['attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'advantages' => []], 2 => ['attribute_adjustments' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 2, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'advantages' => []], 3 => [], 4 => [], 5 => []];
+    foreach ($levelPayloads as $level => $overrides) {
+        $data = $this->validate($this->payload(['figurenstaerke' => $level, ...$overrides]));
+        expect($data['rules']['creation_level'])->toBe($level)
+            ->and($data['creation']['level_rules']['level'])->toBe($level);
     }
-
-    public function test_v2_applies_level_dependent_skill_caps_and_point_budgets(): void
-    {
-        $levelOneBase = [
-            'figurenstaerke' => 1,
-            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'advantages' => [],
-        ];
-
-        try {
-            $this->validate($this->payload($levelOneBase + [
-                'skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 4]],
-            ]));
-            $this->fail('Ein FW über dem Maximum von Figurenstärke 1 wurde akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('skills', $exception->errors());
-        }
-
-        try {
-            $this->validate($this->payload($levelOneBase + [
-                'skills' => [
-                    ...$this->payload()['skills'],
-                    ['name' => 'Handeln', 'value' => 3],
-                    ['name' => 'Fahren', 'value' => 3],
-                    ['name' => 'Feuerwaffen', 'value' => 3],
-                    ['name' => 'Heiler', 'value' => 2],
-                ],
-            ]));
-            $this->fail('Mehr als 10 FP auf Figurenstärke 1 wurden akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('skills', $exception->errors());
-        }
-
-        $levelFour = $this->validate($this->payload([
-            'figurenstaerke' => 4,
-            'skills' => $this->completeSkillsForLevel(4, [['name' => 'Handeln', 'value' => 5]]),
-        ]));
-        $levelFive = $this->validate($this->payload([
-            'figurenstaerke' => 5,
-            'skills' => $this->completeSkillsForLevel(5, [['name' => 'Handeln', 'value' => 6]]),
-        ]));
-
-        $this->assertSame('5', collect($levelFour['skills'])->firstWhere('name', 'Handeln')['value']);
-        $this->assertSame('6', collect($levelFive['skills'])->firstWhere('name', 'Handeln')['value']);
+    $payload = $this->payload();
+    unset($payload['attribute_adjustments']['au']);
+    try {
+        $this->validate($payload);
+        $this->fail('Eine unvollständige Attributherkunft wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('attribute_adjustments.au');
     }
+});
 
-    public function test_v2_applies_level_dependent_training_budgets(): void
-    {
-        $trainings = ['Arbeiter', 'Arzt (Heilkundiger)', 'Krieger'];
-
-        try {
-            $this->validate($this->payload([
-                'figurenstaerke' => 1,
-                'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-                'advantages' => [],
-                'trainings' => $trainings,
-            ]));
-            $this->fail('Ausbildungen für 15 FP wurden auf Figurenstärke 1 akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('trainings', $exception->errors());
-        }
-
-        try {
-            $this->validate($this->payload([
-                'figurenstaerke' => 4,
-                'trainings' => $trainings,
-            ]));
-            $this->fail('Ausbildungen ohne Punkteverteilung wurden akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('training_allocations', $exception->errors());
-            $this->assertArrayNotHasKey('trainings', $exception->errors());
-        }
+test('v2 rejects unspent level dependent ap and fp budgets', function (): void {
+    try {
+        $this->validate($this->payload(['figurenstaerke' => 4, 'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0]]));
+        $this->fail('Ein nicht vollständig verteiltes AP-Budget wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors()['attributes'] ?? [])->toContain('Die verfügbaren Attributspunkte müssen vollständig verteilt werden.');
     }
-
-    public function test_v2_allows_additive_race_and_culture_grants_above_the_purchased_skill_cap(): void
-    {
-        $data = $this->validate($this->payload([
-            'figurenstaerke' => 1,
-            'race' => 'Techno',
-            'culture' => 'Bunkermensch',
-            'barbar_attribute_bonus' => '',
-            'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'attributes' => ['st' => -1, 'ge' => 0, 'ro' => -1, 'wi' => 0, 'wa' => 0, 'in' => 1, 'au' => 0],
-            'techno_skill_points' => [
-                'Fahren' => 2,
-                'Feuerwaffen' => 2,
-                'Heiler' => 2,
-                'Pilot' => 2,
-                'Techniker' => 2,
-                'Wissenschaftler' => 2,
-            ],
-            'bunkermensch_bonus_skill' => 'Feuerwaffen',
-            'skills' => [
-                ['name' => 'Bildung', 'value' => 4],
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Fahren', 'value' => 2],
-                ['name' => 'Feuerwaffen', 'value' => 3],
-                ['name' => 'Heiler', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 2],
-                ['name' => 'Techniker', 'value' => 2],
-                ['name' => 'Wissenschaftler', 'value' => 2],
-                ['name' => 'Athletik', 'value' => 3],
-                ['name' => 'Fernkampf', 'value' => 3],
-                ['name' => 'Handeln', 'value' => 3],
-                ['name' => 'Unterhalten', 'value' => 1],
-            ],
-            'advantages' => [],
-            'disadvantages' => ['Tödliche Immunschwäche'],
-            'equipment_items' => [
-                ['id' => 'fernglas', 'quantity' => 1],
-                ['id' => 'funkgeraet', 'quantity' => 1],
-                ['id' => 'gasmaske', 'quantity' => 1],
-                ['id' => 'atemgeraet', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-            ],
-        ]));
-
-        $this->assertSame('4', collect($data['skills'])->firstWhere('name', 'Bildung')['value']);
-        $this->assertSame('3', collect($data['skills'])->firstWhere('name', 'Feuerwaffen')['value']);
-        $this->assertContains('Taratzenfutter', $data['disadvantages']);
-        $this->assertContains('High-Tech-Ausrüstung', $data['advantages']);
+    try {
+        $this->validate($this->payload(['figurenstaerke' => 4, 'skills' => $this->completeSkillsForLevel(3)]));
+        $this->fail('Ein nicht vollständig verteiltes FP-Budget wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors()['skills'] ?? [])->toContain('Die verfügbaren Fertigkeitspunkte müssen vollständig verteilt werden.');
     }
+});
 
-    public function test_v2_derives_repeat_counts_and_attribute_bonuses_from_effect_instances(): void
-    {
-        $data = $this->validate($this->payload([
-            'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 1, 'wa' => 1, 'in' => 0, 'au' => 0],
-            'advantages' => ['Zäh', 'Gesteigertes Attribut'],
-            'disadvantages' => ['Auffällig'],
-            'advantage_counts' => ['Gesteigertes Attribut' => 20],
-            'advantage_effects' => [
-                ['name' => 'Gesteigertes Attribut', 'target' => 'wi', 'justification' => 'Mutation'],
-                ['name' => 'Gesteigertes Attribut', 'target' => 'wa', 'justification' => 'Implantat'],
-            ],
-        ]));
-
-        $this->assertSame(2, $data['advantage_counts']['Gesteigertes Attribut']);
-        $this->assertSame(1, $data['creation']['attribute_advantage_bonuses']['wi']);
-        $this->assertSame(1, $data['creation']['attribute_advantage_bonuses']['wa']);
-        $this->assertSame('1', $data['attributes']['wi']);
-        $this->assertSame('1', $data['attributes']['wa']);
+test('v2 applies level dependent skill caps and point budgets', function (): void {
+    $levelOneBase = ['figurenstaerke' => 1, 'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'advantages' => []];
+    try {
+        $this->validate($this->payload($levelOneBase + ['skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 4]]]));
+        $this->fail('Ein FW über dem Maximum von Figurenstärke 1 wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('skills');
     }
-
-    public function test_v2_negates_racial_disadvantage_and_never_counts_remaining_racial_one_as_compensation(): void
-    {
-        $data = $this->validate($this->payload([
-            'race' => 'Guul',
-            'culture' => 'Stadtbewohner',
-            'barbar_attribute_bonus' => '',
-            'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0],
-            'attributes' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => -1],
-            'skills' => [
-                ['name' => 'Heimlichkeit', 'value' => 2],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf', 'value' => 1],
-                ['name' => 'Kunde', 'value' => 1],
-                ['name' => 'Unterhalten', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Fernkampf', 'value' => 4],
-                ['name' => 'Handeln', 'value' => 4],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Feuerwaffen', 'value' => 4],
-            ],
-            'advantages' => ['Zäh'],
-            'disadvantages' => ['Gejagt'],
-            'negated_racial_disadvantages' => ['Primitiv'],
-        ]));
-
-        $this->assertNotContains('Primitiv', $data['disadvantages']);
-        $this->assertContains('Gejagt', $data['disadvantages']);
-        $this->assertSame(1, $data['creation']['advantage_budget']['used']);
-        $this->assertSame(0, $data['creation']['advantage_budget']['available_compensations']);
+    try {
+        $this->validate($this->payload($levelOneBase + ['skills' => [...$this->payload()['skills'], ['name' => 'Handeln', 'value' => 3], ['name' => 'Fahren', 'value' => 3], ['name' => 'Feuerwaffen', 'value' => 3], ['name' => 'Heiler', 'value' => 2]]]));
+        $this->fail('Mehr als 10 FP auf Figurenstärke 1 wurden akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('skills');
     }
+    $levelFour = $this->validate($this->payload(['figurenstaerke' => 4, 'skills' => $this->completeSkillsForLevel(4, [['name' => 'Handeln', 'value' => 5]])]));
+    $levelFive = $this->validate($this->payload(['figurenstaerke' => 5, 'skills' => $this->completeSkillsForLevel(5, [['name' => 'Handeln', 'value' => 6]])]));
+    expect(collect($levelFour['skills'])->firstWhere('name', 'Handeln')['value'])->toBe('5')
+        ->and(collect($levelFive['skills'])->firstWhere('name', 'Handeln')['value'])->toBe('6');
+});
 
-    public function test_v2_rejects_legacy_language_specializations_and_requires_madness_trigger(): void
-    {
-        try {
-            $this->validate($this->payload([
-                'skills' => [...$this->payload()['skills'], ['name' => 'Sprachen: Deutsch', 'value' => 1]],
-            ]));
-            $this->fail('Eine alte Sprachspezialisierung wurde akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('skills', $exception->errors());
-        }
-
-        try {
-            $this->validate($this->payload([
-                'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
-            ]));
-            $this->fail('Anfälligkeit gegen Wahnsinn wurde ohne Auslöser akzeptiert.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('disadvantage_details', $exception->errors());
-        }
-
-        $data = $this->validate($this->payload([
-            'disadvantages' => ['Anfälligkeit gegen Wahnsinn'],
-            'disadvantage_details' => ['Anfälligkeit gegen Wahnsinn' => 'Fleischverzehr'],
-        ]));
-
-        $this->assertSame('Fleischverzehr', $data['disadvantage_details']['Anfälligkeit gegen Wahnsinn']);
+test('v2 applies level dependent training budgets', function (): void {
+    $trainings = ['Arbeiter', 'Arzt (Heilkundiger)', 'Krieger'];
+    try {
+        $this->validate($this->payload(['figurenstaerke' => 1, 'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 1, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'advantages' => [], 'trainings' => $trainings]));
+        $this->fail('Ausbildungen für 15 FP wurden auf Figurenstärke 1 akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('trainings');
     }
-}
+    try {
+        $this->validate($this->payload(['figurenstaerke' => 4, 'trainings' => $trainings]));
+        $this->fail('Ausbildungen ohne Punkteverteilung wurden akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('training_allocations')
+            ->and($exception->errors())->not->toHaveKey('trainings');
+    }
+});
+
+test('v2 allows additive race and culture grants above the purchased skill cap', function (): void {
+    $data = $this->validate($this->payload(['figurenstaerke' => 1, 'race' => 'Techno', 'culture' => 'Bunkermensch', 'barbar_attribute_bonus' => '', 'attribute_adjustments' => ['st' => 0, 'ge' => 0, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => -1, 'ge' => 0, 'ro' => -1, 'wi' => 0, 'wa' => 0, 'in' => 1, 'au' => 0], 'techno_skill_points' => ['Fahren' => 2, 'Feuerwaffen' => 2, 'Heiler' => 2, 'Pilot' => 2, 'Techniker' => 2, 'Wissenschaftler' => 2], 'bunkermensch_bonus_skill' => 'Feuerwaffen', 'skills' => [['name' => 'Bildung', 'value' => 4], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Fahren', 'value' => 2], ['name' => 'Feuerwaffen', 'value' => 3], ['name' => 'Heiler', 'value' => 2], ['name' => 'Pilot', 'value' => 2], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2], ['name' => 'Athletik', 'value' => 3], ['name' => 'Fernkampf', 'value' => 3], ['name' => 'Handeln', 'value' => 3], ['name' => 'Unterhalten', 'value' => 1]], 'advantages' => [], 'disadvantages' => ['Tödliche Immunschwäche'], 'equipment_items' => [['id' => 'fernglas', 'quantity' => 1], ['id' => 'funkgeraet', 'quantity' => 1], ['id' => 'gasmaske', 'quantity' => 1], ['id' => 'atemgeraet', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1], ['id' => 'rucksack', 'quantity' => 1]]]));
+    expect(collect($data['skills'])->firstWhere('name', 'Bildung')['value'])->toBe('4')
+        ->and(collect($data['skills'])->firstWhere('name', 'Feuerwaffen')['value'])->toBe('3')
+        ->and($data['disadvantages'])->toContain('Taratzenfutter')
+        ->and($data['advantages'])->toContain('High-Tech-Ausrüstung');
+});
+
+test('v2 derives repeat counts and attribute bonuses from effect instances', function (): void {
+    $data = $this->validate($this->payload(['attributes' => ['st' => 2, 'ge' => 1, 'ro' => 0, 'wi' => 1, 'wa' => 1, 'in' => 0, 'au' => 0], 'advantages' => ['Zäh', 'Gesteigertes Attribut'], 'disadvantages' => ['Auffällig'], 'advantage_counts' => ['Gesteigertes Attribut' => 20], 'advantage_effects' => [['name' => 'Gesteigertes Attribut', 'target' => 'wi', 'justification' => 'Mutation'], ['name' => 'Gesteigertes Attribut', 'target' => 'wa', 'justification' => 'Implantat']]]));
+    expect($data['advantage_counts']['Gesteigertes Attribut'])->toBe(2)
+        ->and($data['creation']['attribute_advantage_bonuses']['wi'])->toBe(1)
+        ->and($data['creation']['attribute_advantage_bonuses']['wa'])->toBe(1)
+        ->and($data['attributes']['wi'])->toBe('1')
+        ->and($data['attributes']['wa'])->toBe('1');
+});
+
+test('v2 negates racial disadvantage and never counts remaining racial one as compensation', function (): void {
+    $data = $this->validate($this->payload(['race' => 'Guul', 'culture' => 'Stadtbewohner', 'barbar_attribute_bonus' => '', 'attribute_adjustments' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => 0], 'attributes' => ['st' => 1, 'ge' => 1, 'ro' => 0, 'wi' => 0, 'wa' => 0, 'in' => 0, 'au' => -1], 'skills' => [['name' => 'Heimlichkeit', 'value' => 2], ['name' => 'Intuition', 'value' => 1], ['name' => 'Beruf', 'value' => 1], ['name' => 'Kunde', 'value' => 1], ['name' => 'Unterhalten', 'value' => 1], ['name' => 'Athletik', 'value' => 4], ['name' => 'Fernkampf', 'value' => 4], ['name' => 'Handeln', 'value' => 4], ['name' => 'Fahren', 'value' => 4], ['name' => 'Feuerwaffen', 'value' => 4]], 'advantages' => ['Zäh'], 'disadvantages' => ['Gejagt'], 'negated_racial_disadvantages' => ['Primitiv']]));
+    expect($data['disadvantages'])->not->toContain('Primitiv')
+        ->toContain('Gejagt')
+        ->and($data['creation']['advantage_budget']['used'])->toBe(1)
+        ->and($data['creation']['advantage_budget']['available_compensations'])->toBe(0);
+});
+
+test('v2 rejects legacy language specializations and requires madness trigger', function (): void {
+    try {
+        $this->validate($this->payload(['skills' => [...$this->payload()['skills'], ['name' => 'Sprachen: Deutsch', 'value' => 1]]]));
+        $this->fail('Eine alte Sprachspezialisierung wurde akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('skills');
+    }
+    try {
+        $this->validate($this->payload(['disadvantages' => ['Anfälligkeit gegen Wahnsinn']]));
+        $this->fail('Anfälligkeit gegen Wahnsinn wurde ohne Auslöser akzeptiert.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors())->toHaveKey('disadvantage_details');
+    }
+    $data = $this->validate($this->payload(['disadvantages' => ['Anfälligkeit gegen Wahnsinn'], 'disadvantage_details' => ['Anfälligkeit gegen Wahnsinn' => 'Fleischverzehr']]));
+    expect($data['disadvantage_details']['Anfälligkeit gegen Wahnsinn'])->toBe('Fleischverzehr');
+});

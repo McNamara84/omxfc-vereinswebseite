@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -8,283 +10,132 @@ use App\Livewire\FanfictionEdit;
 use App\Models\Fanfiction;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class FanfictionPreviewTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(FanfictionPreviewTestFixtures::class);
 
-    private Team $memberTeam;
+beforeEach(function (): void {
+    $this->memberTeam = Team::membersTeam();
+    $this->vorstand = User::factory()->create();
+    $this->vorstand->teams()->attach($this->memberTeam, ['role' => Role::Vorstand->value]);
+    $this->vorstand->switchTeam($this->memberTeam);
+});
 
-    private User $vorstand;
+test('create preview toggle changes state', function (): void {
+    $this->actingAs($this->vorstand);
+    Livewire::test(FanfictionCreate::class)->assertSet('showPreview', false)->call('togglePreview')->assertSet('showPreview', true)->call('togglePreview')->assertSet('showPreview', false);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('create preview renders markdown', function (): void {
+    $this->actingAs($this->vorstand);
+    Livewire::test(FanfictionCreate::class)->set('content', '**Fettgedruckt** und *kursiv*')->call('togglePreview')->assertSet('showPreview', true)->assertSee('Fettgedruckt');
+});
 
-        $this->memberTeam = Team::membersTeam();
-        $this->vorstand = User::factory()->create();
-        $this->vorstand->teams()->attach($this->memberTeam, ['role' => Role::Vorstand->value]);
-        $this->vorstand->switchTeam($this->memberTeam);
+test('create preview html contains strong tag', function (): void {
+    $this->actingAs($this->vorstand);
+    $component = Livewire::test(FanfictionCreate::class)->set('content', '**Fett**')->call('togglePreview');
+    expect($component->get('previewHtml'))->toContain('<strong>Fett</strong>');
+});
+
+test('create preview with empty content shows empty html', function (): void {
+    $this->actingAs($this->vorstand);
+    Livewire::test(FanfictionCreate::class)->set('content', '')->call('togglePreview')->assertSet('showPreview', true)->assertSet('previewHtml', '');
+});
+
+test('edit preview toggle changes state', function (): void {
+    $fanfiction = Fanfiction::factory()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id]);
+    $this->actingAs($this->vorstand);
+    Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])->assertSet('showPreview', false)->call('togglePreview')->assertSet('showPreview', true)->call('togglePreview')->assertSet('showPreview', false);
+});
+
+test('edit preview renders existing content', function (): void {
+    $fanfiction = Fanfiction::factory()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => 'Eine **tolle** Geschichte']);
+    $this->actingAs($this->vorstand);
+    $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])->call('togglePreview');
+    expect($component->get('previewHtml'))->toContain('<strong>tolle</strong>');
+});
+
+test('edit preview renders modified content', function (): void {
+    $fanfiction = Fanfiction::factory()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => 'Alter Inhalt']);
+    $this->actingAs($this->vorstand);
+    $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])->set('content', '**Neuer** Inhalt')->call('togglePreview');
+    expect($component->get('previewHtml'))->toContain('<strong>Neuer</strong>');
+});
+
+test('edit preview resolves bild tags', function (): void {
+    $fanfiction = Fanfiction::factory()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => 'Text [bild:1:links:Illustration] weiter', 'photos' => ['fanfiction/test-foto.jpg']]);
+    $this->actingAs($this->vorstand);
+    $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])->call('togglePreview');
+    $previewHtml = $component->get('previewHtml');
+    expect($previewHtml)->toContain('fanfiction-bild--links')
+        ->toContain('<figcaption>Illustration</figcaption>')
+        ->toContain('test-foto.jpg');
+});
+
+test('edit preview excludes photos marked for removal', function (): void {
+    $fanfiction = Fanfiction::factory()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => '[bild:1] und [bild:2]', 'photos' => ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg']]);
+    $this->actingAs($this->vorstand);
+    $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])->call('togglePhotoRemoval', 'fanfiction/photo1.jpg')->call('togglePreview');
+    $previewHtml = $component->get('previewHtml');
+    // After removing photo1, only photo2 remains at index 0
+    expect($previewHtml)->toContain('photo2.jpg');
+});
+
+test('show page renders inline bild tags', function (): void {
+    $member = User::factory()->create();
+    $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
+    $member->switchTeam($this->memberTeam);
+    $fanfiction = Fanfiction::factory()->published()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => 'Geschichte mit [bild:1:zentriert:Cooles Bild] eingebettet.', 'photos' => ['fanfiction/inline-test.jpg']]);
+    $response = $this->actingAs($member)->get(route('fanfiction.show', $fanfiction));
+    $response->assertOk();
+    $response->assertSee('fanfiction-bild--zentriert', false);
+    $response->assertSee('Cooles Bild', false);
+});
+
+test('show page shows unreferenced photos in gallery', function (): void {
+    $member = User::factory()->create();
+    $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
+    $member->switchTeam($this->memberTeam);
+    $fanfiction = Fanfiction::factory()->published()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => 'Geschichte mit [bild:1] im Text.', 'photos' => ['fanfiction/referenced.jpg', 'fanfiction/gallery-only.jpg']]);
+    $response = $this->actingAs($member)->get(route('fanfiction.show', $fanfiction));
+    $response->assertOk();
+    // gallery-only.jpg should still appear in gallery section
+    $response->assertSee('gallery-only.jpg', false);
+});
+
+test('show page hides gallery when all photos referenced', function (): void {
+    $member = User::factory()->create();
+    $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
+    $member->switchTeam($this->memberTeam);
+    $fanfiction = Fanfiction::factory()->published()->create(['team_id' => $this->memberTeam->id, 'created_by' => $this->vorstand->id, 'content' => '[bild:1] und [bild:2]', 'photos' => ['fanfiction/a.jpg', 'fanfiction/b.jpg']]);
+    $response = $this->actingAs($member)->get(route('fanfiction.show', $fanfiction));
+    $response->assertOk();
+    // No separate gallery grid should be rendered
+    $response->assertDontSee('data-testid="fanfiction-gallery"', false);
+});
+
+test('create allows up to 10 photos', function (): void {
+    Storage::fake('public');
+    $this->actingAs($this->vorstand);
+    $photos = [];
+    for ($i = 0; $i < 10; $i++) {
+        $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
     }
+    Livewire::test(FanfictionCreate::class)->set('title', 'Viele Bilder')->set('content', 'Geschichte mit vielen Bildern darin')->set('authorType', 'external')->set('authorName', 'Autor')->set('photos', $photos)->set('status', 'draft')->call('save')->assertRedirect(route('admin.fanfiction.index'));
+    $fanfiction = Fanfiction::where('title', 'Viele Bilder')->first();
+    expect($fanfiction)->not->toBeNull()
+        ->and($fanfiction->photos)->toHaveCount(10);
+});
 
-    // ── Create-Vorschau ────────────────────────────────────────
-
-    public function test_create_preview_toggle_changes_state(): void
-    {
-        $this->actingAs($this->vorstand);
-
-        Livewire::test(FanfictionCreate::class)
-            ->assertSet('showPreview', false)
-            ->call('togglePreview')
-            ->assertSet('showPreview', true)
-            ->call('togglePreview')
-            ->assertSet('showPreview', false);
+test('create rejects more than 10 photos', function (): void {
+    Storage::fake('public');
+    $this->actingAs($this->vorstand);
+    $photos = [];
+    for ($i = 0; $i < 11; $i++) {
+        $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
     }
-
-    public function test_create_preview_renders_markdown(): void
-    {
-        $this->actingAs($this->vorstand);
-
-        Livewire::test(FanfictionCreate::class)
-            ->set('content', '**Fettgedruckt** und *kursiv*')
-            ->call('togglePreview')
-            ->assertSet('showPreview', true)
-            ->assertSee('Fettgedruckt');
-    }
-
-    public function test_create_preview_html_contains_strong_tag(): void
-    {
-        $this->actingAs($this->vorstand);
-
-        $component = Livewire::test(FanfictionCreate::class)
-            ->set('content', '**Fett**')
-            ->call('togglePreview');
-
-        $this->assertStringContainsString('<strong>Fett</strong>', $component->get('previewHtml'));
-    }
-
-    public function test_create_preview_with_empty_content_shows_empty_html(): void
-    {
-        $this->actingAs($this->vorstand);
-
-        Livewire::test(FanfictionCreate::class)
-            ->set('content', '')
-            ->call('togglePreview')
-            ->assertSet('showPreview', true)
-            ->assertSet('previewHtml', '');
-    }
-
-    // ── Edit-Vorschau ──────────────────────────────────────────
-
-    public function test_edit_preview_toggle_changes_state(): void
-    {
-        $fanfiction = Fanfiction::factory()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-        ]);
-
-        $this->actingAs($this->vorstand);
-
-        Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
-            ->assertSet('showPreview', false)
-            ->call('togglePreview')
-            ->assertSet('showPreview', true)
-            ->call('togglePreview')
-            ->assertSet('showPreview', false);
-    }
-
-    public function test_edit_preview_renders_existing_content(): void
-    {
-        $fanfiction = Fanfiction::factory()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => 'Eine **tolle** Geschichte',
-        ]);
-
-        $this->actingAs($this->vorstand);
-
-        $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
-            ->call('togglePreview');
-
-        $this->assertStringContainsString('<strong>tolle</strong>', $component->get('previewHtml'));
-    }
-
-    public function test_edit_preview_renders_modified_content(): void
-    {
-        $fanfiction = Fanfiction::factory()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => 'Alter Inhalt',
-        ]);
-
-        $this->actingAs($this->vorstand);
-
-        $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
-            ->set('content', '**Neuer** Inhalt')
-            ->call('togglePreview');
-
-        $this->assertStringContainsString('<strong>Neuer</strong>', $component->get('previewHtml'));
-    }
-
-    // ── Vorschau mit Bild-Tags ─────────────────────────────────
-
-    public function test_edit_preview_resolves_bild_tags(): void
-    {
-        $fanfiction = Fanfiction::factory()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => 'Text [bild:1:links:Illustration] weiter',
-            'photos' => ['fanfiction/test-foto.jpg'],
-        ]);
-
-        $this->actingAs($this->vorstand);
-
-        $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
-            ->call('togglePreview');
-
-        $previewHtml = $component->get('previewHtml');
-        $this->assertStringContainsString('fanfiction-bild--links', $previewHtml);
-        $this->assertStringContainsString('<figcaption>Illustration</figcaption>', $previewHtml);
-        $this->assertStringContainsString('test-foto.jpg', $previewHtml);
-    }
-
-    public function test_edit_preview_excludes_photos_marked_for_removal(): void
-    {
-        $fanfiction = Fanfiction::factory()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => '[bild:1] und [bild:2]',
-            'photos' => ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg'],
-        ]);
-
-        $this->actingAs($this->vorstand);
-
-        $component = Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
-            ->call('togglePhotoRemoval', 'fanfiction/photo1.jpg')
-            ->call('togglePreview');
-
-        $previewHtml = $component->get('previewHtml');
-        // After removing photo1, only photo2 remains at index 0
-        $this->assertStringContainsString('photo2.jpg', $previewHtml);
-    }
-
-    // ── Bild-Tags in Show-Ansicht ──────────────────────────────
-
-    public function test_show_page_renders_inline_bild_tags(): void
-    {
-        $member = User::factory()->create();
-        $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
-        $member->switchTeam($this->memberTeam);
-
-        $fanfiction = Fanfiction::factory()->published()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => 'Geschichte mit [bild:1:zentriert:Cooles Bild] eingebettet.',
-            'photos' => ['fanfiction/inline-test.jpg'],
-        ]);
-
-        $response = $this->actingAs($member)
-            ->get(route('fanfiction.show', $fanfiction));
-
-        $response->assertOk();
-        $response->assertSee('fanfiction-bild--zentriert', false);
-        $response->assertSee('Cooles Bild', false);
-    }
-
-    public function test_show_page_shows_unreferenced_photos_in_gallery(): void
-    {
-        $member = User::factory()->create();
-        $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
-        $member->switchTeam($this->memberTeam);
-
-        $fanfiction = Fanfiction::factory()->published()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => 'Geschichte mit [bild:1] im Text.',
-            'photos' => ['fanfiction/referenced.jpg', 'fanfiction/gallery-only.jpg'],
-        ]);
-
-        $response = $this->actingAs($member)
-            ->get(route('fanfiction.show', $fanfiction));
-
-        $response->assertOk();
-        // gallery-only.jpg should still appear in gallery section
-        $response->assertSee('gallery-only.jpg', false);
-    }
-
-    public function test_show_page_hides_gallery_when_all_photos_referenced(): void
-    {
-        $member = User::factory()->create();
-        $member->teams()->attach($this->memberTeam, ['role' => Role::Mitglied->value]);
-        $member->switchTeam($this->memberTeam);
-
-        $fanfiction = Fanfiction::factory()->published()->create([
-            'team_id' => $this->memberTeam->id,
-            'created_by' => $this->vorstand->id,
-            'content' => '[bild:1] und [bild:2]',
-            'photos' => ['fanfiction/a.jpg', 'fanfiction/b.jpg'],
-        ]);
-
-        $response = $this->actingAs($member)
-            ->get(route('fanfiction.show', $fanfiction));
-
-        $response->assertOk();
-        // No separate gallery grid should be rendered
-        $response->assertDontSee('data-testid="fanfiction-gallery"', false);
-    }
-
-    // ── Foto-Limit ─────────────────────────────────────────────
-
-    public function test_create_allows_up_to_10_photos(): void
-    {
-        Storage::fake('public');
-
-        $this->actingAs($this->vorstand);
-
-        $photos = [];
-        for ($i = 0; $i < 10; $i++) {
-            $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
-        }
-
-        Livewire::test(FanfictionCreate::class)
-            ->set('title', 'Viele Bilder')
-            ->set('content', 'Geschichte mit vielen Bildern darin')
-            ->set('authorType', 'external')
-            ->set('authorName', 'Autor')
-            ->set('photos', $photos)
-            ->set('status', 'draft')
-            ->call('save')
-            ->assertRedirect(route('admin.fanfiction.index'));
-
-        $fanfiction = Fanfiction::where('title', 'Viele Bilder')->first();
-        $this->assertNotNull($fanfiction);
-        $this->assertCount(10, $fanfiction->photos);
-    }
-
-    public function test_create_rejects_more_than_10_photos(): void
-    {
-        Storage::fake('public');
-
-        $this->actingAs($this->vorstand);
-
-        $photos = [];
-        for ($i = 0; $i < 11; $i++) {
-            $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
-        }
-
-        Livewire::test(FanfictionCreate::class)
-            ->set('title', 'Zu viele Bilder')
-            ->set('content', 'Geschichte mit zu vielen Bildern')
-            ->set('authorType', 'external')
-            ->set('authorName', 'Autor')
-            ->set('photos', $photos)
-            ->set('status', 'draft')
-            ->call('save')
-            ->assertHasErrors('photos');
-    }
-}
+    Livewire::test(FanfictionCreate::class)->set('title', 'Zu viele Bilder')->set('content', 'Geschichte mit zu vielen Bildern')->set('authorType', 'external')->set('authorName', 'Autor')->set('photos', $photos)->set('status', 'draft')->call('save')->assertHasErrors('photos');
+});

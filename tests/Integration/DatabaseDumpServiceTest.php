@@ -1,55 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Services\DatabaseMaintenance\DatabaseDumpService;
 use App\Services\DatabaseMaintenance\DatabaseMaintenanceException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
-class DatabaseDumpServiceTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(DatabaseDumpServiceTestFixtures::class);
 
-    private string $storageRoot;
+beforeEach(function (): void {
+    $this->storageRoot = storage_path('framework/testing/database-maintenance-dump');
+    File::deleteDirectory($this->storageRoot);
+    File::ensureDirectoryExists($this->storageRoot);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function (): void {
+    File::deleteDirectory($this->storageRoot);
+});
 
-        $this->storageRoot = storage_path('framework/testing/database-maintenance-dump');
-        File::deleteDirectory($this->storageRoot);
-        File::ensureDirectoryExists($this->storageRoot);
-    }
-
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->storageRoot);
-
-        parent::tearDown();
-    }
-
-    public function test_write_gzip_fails_closed_when_gzip_write_fails(): void
-    {
-        $path = $this->storageRoot.DIRECTORY_SEPARATOR.'read-only.sql.gz';
-        File::put($path, gzencode('existing') ?: '');
-
-        $gzip = gzopen($path, 'rb');
-        $this->assertIsResource($gzip);
-
-        $service = app(DatabaseDumpService::class);
-        $method = new \ReflectionMethod($service, 'writeGzip');
-
-        try {
-            $this->expectException(DatabaseMaintenanceException::class);
-            $this->expectExceptionMessage('Dump-Datei konnte nicht geschrieben werden');
-
-            $method->invoke($service, $gzip, 'select 1;');
-        } finally {
-            if (is_resource($gzip)) {
-                gzclose($gzip);
-            }
+test('write gzip fails closed when gzip write fails', function (): void {
+    $path = $this->storageRoot.DIRECTORY_SEPARATOR.'read-only.sql.gz';
+    File::put($path, gzencode('existing') ?: '');
+    $gzip = gzopen($path, 'rb');
+    expect($gzip)->toBeResource();
+    $service = app(DatabaseDumpService::class);
+    $method = new \ReflectionMethod($service, 'writeGzip');
+    try {
+        expect(fn () => $method->invoke($service, $gzip, 'select 1;'))->toThrow(DatabaseMaintenanceException::class, 'Dump-Datei konnte nicht geschrieben werden');
+    } finally {
+        if (is_resource($gzip)) {
+            gzclose($gzip);
         }
     }
-}
+});

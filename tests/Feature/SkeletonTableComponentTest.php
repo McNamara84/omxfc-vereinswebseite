@@ -1,82 +1,66 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
-class SkeletonTableComponentTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_skeleton_table_renders_with_default_props(): void
-    {
-        $html = Blade::render('<x-skeleton-table />');
+test('skeleton table renders with default props', function (): void {
+    $html = Blade::render('<x-skeleton-table />');
+    expect($html)->toContain('aria-hidden="true"')
+        ->toContain('skeleton')
+        ->toContain('<table')
+        ->toContain('<thead>')
+        ->toContain('<tbody>');
+});
 
-        $this->assertStringContainsString('aria-hidden="true"', $html);
-        $this->assertStringContainsString('skeleton', $html);
-        $this->assertStringContainsString('<table', $html);
-        $this->assertStringContainsString('<thead>', $html);
-        $this->assertStringContainsString('<tbody>', $html);
-    }
+test('skeleton table renders correct number of columns', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="3" :rows="1" />');
+    // 3 header columns + 3 body columns = 6 total <td>/<th> cells
+    expect(substr_count($html, '<th>'))->toEqual(3);
+    expect(substr_count($html, '<td>'))->toEqual(3);
+});
 
-    public function test_skeleton_table_renders_correct_number_of_columns(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="3" :rows="1" />');
+test('skeleton table renders correct number of rows', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="1" :rows="4" />');
+    // 1 header <tr> + 4 body <tr> = 5 total
+    expect(substr_count($html, '<tr>'))->toEqual(5);
+});
 
-        // 3 header columns + 3 body columns = 6 total <td>/<th> cells
-        $this->assertEquals(3, substr_count($html, '<th>'));
-        $this->assertEquals(3, substr_count($html, '<td>'));
-    }
+test('skeleton table renders avatar in first column', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="2" :rows="1" :hasAvatar="true" />');
+    expect($html)->toContain('rounded-full');
+});
 
-    public function test_skeleton_table_renders_correct_number_of_rows(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="1" :rows="4" />');
+test('skeleton table does not render avatar by default', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="2" :rows="1" />');
+    expect($html)->not->toContain('rounded-full');
+});
 
-        // 1 header <tr> + 4 body <tr> = 5 total
-        $this->assertEquals(5, substr_count($html, '<tr>'));
-    }
+test('skeleton table uses variable widths', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="5" :rows="2" />');
+    // All 5 width variants should appear
+    expect($html)->toContain('w-16');
+    expect($html)->toContain('w-20')
+        ->toContain('w-24')
+        ->toContain('w-28')
+        ->toContain('w-32');
+});
 
-    public function test_skeleton_table_renders_avatar_in_first_column(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="2" :rows="1" :hasAvatar="true" />');
+test('skeleton table is hidden from screen readers', function (): void {
+    $html = Blade::render('<x-skeleton-table />');
+    expect($html)->toContain('aria-hidden="true"');
+});
 
-        $this->assertStringContainsString('rounded-full', $html);
-    }
-
-    public function test_skeleton_table_does_not_render_avatar_by_default(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="2" :rows="1" />');
-
-        $this->assertStringNotContainsString('rounded-full', $html);
-    }
-
-    public function test_skeleton_table_uses_variable_widths(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="5" :rows="2" />');
-
-        // All 5 width variants should appear
-        $this->assertStringContainsString('w-16', $html);
-        $this->assertStringContainsString('w-20', $html);
-        $this->assertStringContainsString('w-24', $html);
-        $this->assertStringContainsString('w-28', $html);
-        $this->assertStringContainsString('w-32', $html);
-    }
-
-    public function test_skeleton_table_is_hidden_from_screen_readers(): void
-    {
-        $html = Blade::render('<x-skeleton-table />');
-
-        $this->assertStringContainsString('aria-hidden="true"', $html);
-    }
-
-    public function test_skeleton_table_with_single_column_and_row(): void
-    {
-        $html = Blade::render('<x-skeleton-table :columns="1" :rows="1" />');
-
-        $this->assertEquals(1, substr_count($html, '<th>'));
-        $this->assertEquals(1, substr_count($html, '<td>'));
-        $this->assertEquals(2, substr_count($html, '<tr>')); // 1 header + 1 body
-    }
-}
+test('skeleton table with single column and row', function (): void {
+    $html = Blade::render('<x-skeleton-table :columns="1" :rows="1" />');
+    expect(substr_count($html, '<th>'))->toEqual(1)
+        ->and(substr_count($html, '<td>'))->toEqual(1)
+        ->and(substr_count($html, '<tr>'))->toEqual(2);
+    // 1 header + 1 body
+});

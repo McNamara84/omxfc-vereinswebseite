@@ -1,30 +1,15 @@
 <?php
 
-use App\Enums\Role;
+declare(strict_types=1);
+
 use App\Models\KompendiumRoman;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\Team;
 use App\Models\User;
 use App\Support\TestingBladeComponentRegistry;
 use Mary\MaryServiceProvider;
 
-it('erstellt einen screenshot der neuen kompendium ui', function () {
-    $createKompendiumBrowserUser = function (int $points): User {
-        $team = Team::membersTeam() ?? Team::factory()->create(['name' => 'Mitglieder']);
-
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        $this->actingAs($user->refresh());
-
-        if ($points > 0) {
-            $user->incrementTeamPoints($points);
-        }
-
-        return $user->refresh();
-    };
-
+test('erstellt einen screenshot der neuen kompendium ui', function (): void {
     $purchaseKompendiumForBrowserUser = static function (User $user): void {
         $reward = Reward::query()->where('slug', 'kompendium')->firstOrFail();
 
@@ -39,7 +24,7 @@ it('erstellt einen screenshot der neuen kompendium ui', function () {
     try {
         (new MaryServiceProvider(app()))->registerComponents();
 
-        $user = $createKompendiumBrowserUser(150);
+        $user = $this->actingMemberWithPoints(150)->refresh();
 
         $purchaseKompendiumForBrowserUser($user);
 
@@ -69,7 +54,7 @@ it('erstellt einen screenshot der neuen kompendium ui', function () {
 
         $page = visit('/kompendium', ['waitUntil' => 'domcontentloaded'])
             ->resize(1440, 1800)
-            ->waitForText('Serien filtern');
+            ->assertSee('Serien filtern');
 
         $page->assertPathIs('/kompendium')
             ->assertSee('Maddrax-Kompendium')

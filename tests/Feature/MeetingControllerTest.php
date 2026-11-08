@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Meeting;
@@ -9,154 +11,92 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class MeetingControllerTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(CreatesUserWithRole::class, RefreshDatabase::class);
 
-    protected function tearDown(): void
-    {
-        Carbon::setTestNow();
+afterEach(function (): void {
+    Carbon::setTestNow();
+});
 
-        parent::tearDown();
-    }
+test('unknown meeting is forbidden', function (): void {
+    $this->actingAs($this->actingMember());
+    $response = $this->post('/treffen/umleiten', ['meeting' => 'unknown']);
+    $response->assertForbidden();
+    expect($response->exception)->toBeInstanceOf(HttpException::class)
+        ->and($response->exception?->getMessage())->toBe('Unbekanntes Meeting');
+});
 
-    public function test_unknown_meeting_is_forbidden(): void
-    {
-        $this->actingAs($this->actingMember());
+test('malformed meeting payload is forbidden', function (): void {
+    $this->actingAs($this->actingMember());
+    $response = $this->post('/treffen/umleiten', ['meeting' => ['maddraxikon']]);
+    $response->assertForbidden();
+    expect($response->exception)->toBeInstanceOf(HttpException::class)
+        ->and($response->exception?->getMessage())->toBe('Unbekanntes Meeting');
+});
 
-        $response = $this->post('/treffen/umleiten', ['meeting' => 'unknown']);
+test('meetings page returns seeded meeting data', function (): void {
+    Carbon::setTestNow('2026-05-14 12:00');
+    Meeting::query()->where('slug', 'maddraxikon')->update(['zoom_url' => 'https://example.com/zoom']);
+    $this->actingAs($this->actingMember());
+    $response = $this->get('/treffen');
+    $response->assertOk()->assertSeeText('AG Maddraxikon')->assertSee('value="maddraxikon"', false);
+    $meetings = $response->viewData('meetings');
+    expect($meetings)->toHaveCount(4)
+        ->and($meetings->first()->title)->toBe('AG Maddraxikon')
+        ->and($meetings->first()->display_rhythm)->toBe('Monatlich am 3. Montag')
+        ->and($meetings->first()->next_occurrence->equalTo(Carbon::parse('2026-05-18 20:00')))->toBeTrue();
+});
 
-        $response->assertForbidden();
-        $this->assertInstanceOf(HttpException::class, $response->exception);
-        $this->assertSame('Unbekanntes Meeting', $response->exception?->getMessage());
-    }
+test('meetings page handles note only without date', function (): void {
+    Carbon::setTestNow('2026-05-14 12:00');
+    $this->actingAs($this->actingMember());
+    $meetings = $this->get('/treffen')->viewData('meetings');
+    $last = $meetings->last();
+    expect($last->title)->toBe('CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch')
+        ->and($last->display_rhythm)->toBe('Jeden zweiten Dienstag nach einem Roman')
+        ->and($last->next_occurrence)->toBeNull();
+});
 
-    public function test_malformed_meeting_payload_is_forbidden(): void
-    {
-        $this->actingAs($this->actingMember());
+test('meetings page computes dates for all meetings', function (): void {
+    Carbon::setTestNow('2026-05-14 12:00');
+    $this->actingAs($this->actingMember());
+    $meetings = $this->get('/treffen')->viewData('meetings');
+    expect($meetings[0]->next_occurrence->equalTo(Carbon::parse('2026-05-18 20:00')))->toBeTrue()
+        ->and($meetings[1]->next_occurrence->equalTo(Carbon::parse('2026-06-10 19:00')))->toBeTrue()
+        ->and($meetings[2]->next_occurrence->equalTo(Carbon::parse('2026-06-03 20:00')))->toBeTrue();
+});
 
-        $response = $this->post('/treffen/umleiten', ['meeting' => ['maddraxikon']]);
+test('valid meeting redirects to configured zoom url', function (): void {
+    Meeting::query()->where('slug', 'maddraxikon')->update(['zoom_url' => 'https://example.com/zoom']);
+    $this->actingAs($this->actingMember());
+    $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])->assertRedirect('https://example.com/zoom');
+});
 
-        $response->assertForbidden();
-        $this->assertInstanceOf(HttpException::class, $response->exception);
-        $this->assertSame('Unbekanntes Meeting', $response->exception?->getMessage());
-    }
+test('valid meeting redirects to configured fallback zoom url', function (): void {
+    config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
+    Meeting::query()->where('slug', 'maddraxikon')->update(['zoom_url' => null]);
+    $this->actingAs($this->actingMember());
+    $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])->assertRedirect('https://example.com/fallback');
+});
 
-    public function test_meetings_page_returns_seeded_meeting_data(): void
-    {
-        Carbon::setTestNow('2026-05-14 12:00');
-        Meeting::query()->where('slug', 'maddraxikon')->update([
-            'zoom_url' => 'https://example.com/zoom',
-        ]);
-        $this->actingAs($this->actingMember());
+test('meetings page uses configured fallback zoom url', function (): void {
+    config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
+    Carbon::setTestNow('2026-05-14 12:00');
+    Meeting::query()->where('slug', 'maddraxikon')->update(['zoom_url' => null]);
+    $this->actingAs($this->actingMember());
+    $this->get('/treffen')->assertOk()->assertSee('value="maddraxikon"', false)->assertSeeText('Zoom-Meeting betreten');
+});
 
-        $response = $this->get('/treffen');
-        $response->assertOk()
-            ->assertSeeText('AG Maddraxikon')
-            ->assertSee('value="maddraxikon"', false);
+test('meetings page hides inactive meetings', function (): void {
+    Meeting::factory()->inactive()->create(['title' => 'Veraltetes Meeting', 'slug' => 'veraltetes-meeting']);
+    $this->actingAs($this->actingMember());
+    $this->get('/treffen')->assertOk()->assertDontSeeText('Veraltetes Meeting');
+});
 
-        $meetings = $response->viewData('meetings');
-        $this->assertCount(4, $meetings);
-        $this->assertSame('AG Maddraxikon', $meetings->first()->title);
-        $this->assertSame('Monatlich am 3. Montag', $meetings->first()->display_rhythm);
-        $this->assertTrue($meetings->first()->next_occurrence->equalTo(Carbon::parse('2026-05-18 20:00')));
-    }
-
-    public function test_meetings_page_handles_note_only_without_date(): void
-    {
-        Carbon::setTestNow('2026-05-14 12:00');
-        $this->actingAs($this->actingMember());
-
-        $meetings = $this->get('/treffen')->viewData('meetings');
-
-        $last = $meetings->last();
-        $this->assertSame('CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch', $last->title);
-        $this->assertSame('Jeden zweiten Dienstag nach einem Roman', $last->display_rhythm);
-        $this->assertNull($last->next_occurrence);
-    }
-
-    public function test_meetings_page_computes_dates_for_all_meetings(): void
-    {
-        Carbon::setTestNow('2026-05-14 12:00');
-        $this->actingAs($this->actingMember());
-
-        $meetings = $this->get('/treffen')->viewData('meetings');
-
-        $this->assertTrue($meetings[0]->next_occurrence->equalTo(Carbon::parse('2026-05-18 20:00')));
-        $this->assertTrue($meetings[1]->next_occurrence->equalTo(Carbon::parse('2026-06-10 19:00')));
-        $this->assertTrue($meetings[2]->next_occurrence->equalTo(Carbon::parse('2026-06-03 20:00')));
-    }
-
-    public function test_valid_meeting_redirects_to_configured_zoom_url(): void
-    {
-        Meeting::query()->where('slug', 'maddraxikon')->update([
-            'zoom_url' => 'https://example.com/zoom',
-        ]);
-
-        $this->actingAs($this->actingMember());
-
-        $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])
-            ->assertRedirect('https://example.com/zoom');
-    }
-
-    public function test_valid_meeting_redirects_to_configured_fallback_zoom_url(): void
-    {
-        config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
-
-        Meeting::query()->where('slug', 'maddraxikon')->update([
-            'zoom_url' => null,
-        ]);
-
-        $this->actingAs($this->actingMember());
-
-        $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])
-            ->assertRedirect('https://example.com/fallback');
-    }
-
-    public function test_meetings_page_uses_configured_fallback_zoom_url(): void
-    {
-        config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
-        Carbon::setTestNow('2026-05-14 12:00');
-
-        Meeting::query()->where('slug', 'maddraxikon')->update([
-            'zoom_url' => null,
-        ]);
-
-        $this->actingAs($this->actingMember());
-
-        $this->get('/treffen')
-            ->assertOk()
-            ->assertSee('value="maddraxikon"', false)
-            ->assertSeeText('Zoom-Meeting betreten');
-    }
-
-    public function test_meetings_page_hides_inactive_meetings(): void
-    {
-        Meeting::factory()->inactive()->create([
-            'title' => 'Veraltetes Meeting',
-            'slug' => 'veraltetes-meeting',
-        ]);
-
-        $this->actingAs($this->actingMember());
-
-        $this->get('/treffen')
-            ->assertOk()
-            ->assertDontSeeText('Veraltetes Meeting');
-    }
-
-    public function test_meeting_without_configured_zoom_url_is_forbidden(): void
-    {
-        Meeting::query()->where('slug', 'maddraxikon')->update([
-            'zoom_url' => null,
-        ]);
-
-        $this->actingAs($this->actingMember());
-
-        $response = $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon']);
-
-        $response->assertForbidden();
-        $this->assertInstanceOf(HttpException::class, $response->exception);
-        $this->assertSame('Für dieses Treffen ist noch kein Zoom-Link hinterlegt.', $response->exception?->getMessage());
-    }
-}
+test('meeting without configured zoom url is forbidden', function (): void {
+    Meeting::query()->where('slug', 'maddraxikon')->update(['zoom_url' => null]);
+    $this->actingAs($this->actingMember());
+    $response = $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon']);
+    $response->assertForbidden();
+    expect($response->exception)->toBeInstanceOf(HttpException::class)
+        ->and($response->exception?->getMessage())->toBe('Für dieses Treffen ist noch kein Zoom-Link hinterlegt.');
+});

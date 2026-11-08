@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Models\BaxxEarningRule;
@@ -10,158 +12,99 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
-class RewardModelTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_reward_active_scope_filters_inactive(): void
-    {
-        Reward::factory()->create(['is_active' => true, 'title' => 'Aktiv']);
-        Reward::factory()->create(['is_active' => false, 'title' => 'Inaktiv']);
+test('reward active scope filters inactive', function (): void {
+    Reward::factory()->create(['is_active' => true, 'title' => 'Aktiv']);
+    Reward::factory()->create(['is_active' => false, 'title' => 'Inaktiv']);
+    $active = Reward::active()->get();
+    expect($active)->toHaveCount(Reward::where('is_active', true)->count())
+        ->and($active->contains('title', 'Aktiv'))->toBeTrue();
+});
 
-        $active = Reward::active()->get();
+test('reward by category scope', function (): void {
+    Reward::factory()->create(['category' => 'Statistiken', 'title' => 'Stat-Test']);
+    Reward::factory()->create(['category' => 'Downloads', 'title' => 'DL-Test']);
+    $stats = Reward::byCategory('Statistiken')->get();
+    expect($stats->contains('title', 'Stat-Test'))->toBeTrue()
+        ->and($stats->contains('title', 'DL-Test'))->toBeFalse();
+});
 
-        $this->assertCount(
-            Reward::where('is_active', true)->count(),
-            $active
-        );
-        $this->assertTrue($active->contains('title', 'Aktiv'));
-    }
+test('reward has purchases relationship', function (): void {
+    $reward = Reward::factory()->create();
+    $user = User::factory()->create();
+    RewardPurchase::factory()->create(['user_id' => $user->id, 'reward_id' => $reward->id]);
+    expect($reward->purchases)->toHaveCount(1)
+        ->and($reward->activePurchases)->toHaveCount(1);
+});
 
-    public function test_reward_by_category_scope(): void
-    {
-        Reward::factory()->create(['category' => 'Statistiken', 'title' => 'Stat-Test']);
-        Reward::factory()->create(['category' => 'Downloads', 'title' => 'DL-Test']);
+test('active purchases excludes refunded', function (): void {
+    $reward = Reward::factory()->create();
+    $user = User::factory()->create();
+    RewardPurchase::factory()->create(['user_id' => $user->id, 'reward_id' => $reward->id, 'refunded_at' => now()]);
+    expect($reward->purchases)->toHaveCount(1)
+        ->and($reward->activePurchases)->toHaveCount(0);
+});
 
-        $stats = Reward::byCategory('Statistiken')->get();
+test('reward slug is auto generated', function (): void {
+    $reward = Reward::factory()->create(['title' => 'Mein tolles Feature', 'slug' => '']);
+    expect($reward->slug)->toEqual('mein-tolles-feature');
+});
 
-        $this->assertTrue($stats->contains('title', 'Stat-Test'));
-        $this->assertFalse($stats->contains('title', 'DL-Test'));
-    }
+test('reward purchase is refunded check', function (): void {
+    $purchase = RewardPurchase::factory()->create(['refunded_at' => null]);
+    expect($purchase->isRefunded())->toBeFalse();
+    $purchase->update(['refunded_at' => now()]);
+    expect($purchase->isRefunded())->toBeTrue();
+});
 
-    public function test_reward_has_purchases_relationship(): void
-    {
-        $reward = Reward::factory()->create();
-        $user = User::factory()->create();
+test('reward purchase active scope', function (): void {
+    RewardPurchase::factory()->create(['refunded_at' => null]);
+    RewardPurchase::factory()->create(['refunded_at' => now()]);
+    expect(RewardPurchase::active()->get())->toHaveCount(1)
+        ->and(RewardPurchase::refunded()->get())->toHaveCount(1);
+});
 
-        RewardPurchase::factory()->create([
-            'user_id' => $user->id,
-            'reward_id' => $reward->id,
-        ]);
+test('baxx earning rule get points for returns correct points', function (): void {
+    // 'rezension' should be seeded with 1 point
+    $points = BaxxEarningRule::getPointsFor('rezension');
+    expect($points)->toEqual(1);
+});
 
-        $this->assertCount(1, $reward->purchases);
-        $this->assertCount(1, $reward->activePurchases);
-    }
+test('baxx earning rule get every count for returns seeded interval', function (): void {
+    $everyCount = BaxxEarningRule::getEveryCountFor('rezension');
+    expect($everyCount)->toEqual(10);
+});
 
-    public function test_active_purchases_excludes_refunded(): void
-    {
-        $reward = Reward::factory()->create();
-        $user = User::factory()->create();
+test('baxx earning rule get points for unknown action returns zero', function (): void {
+    $points = BaxxEarningRule::getPointsFor('nonexistent_action');
+    expect($points)->toEqual(0);
+});
 
-        RewardPurchase::factory()->create([
-            'user_id' => $user->id,
-            'reward_id' => $reward->id,
-            'refunded_at' => now(),
-        ]);
+test('baxx earning rule ignores legacy cached model payloads', function (): void {
+    $legacyRule = BaxxEarningRule::query()->where('action_key', 'rezension')->firstOrFail();
+    Cache::forever('baxx_earning_rule_model_rezension', $legacyRule);
+    expect(BaxxEarningRule::getPointsFor('rezension'))->toEqual(1)
+        ->and(BaxxEarningRule::getEveryCountFor('rezension'))->toEqual(10);
+});
 
-        $this->assertCount(1, $reward->purchases);
-        $this->assertCount(0, $reward->activePurchases);
-    }
+test('romantausch rules are seeded for offer request and completed swap', function (): void {
+    $this->assertDatabaseHas('baxx_earning_rules', ['action_key' => 'romantausch_offer']);
+    $this->assertDatabaseHas('baxx_earning_rules', ['action_key' => 'romantausch_request', 'is_active' => false]);
+    $this->assertDatabaseHas('baxx_earning_rules', ['action_key' => 'romantausch_swap_complete']);
+});
 
-    public function test_reward_slug_is_auto_generated(): void
-    {
-        $reward = Reward::factory()->create([
-            'title' => 'Mein tolles Feature',
-            'slug' => '',
-        ]);
+test('baxx earning rule get points for inactive rule returns zero', function (): void {
+    $rule = BaxxEarningRule::where('action_key', 'rezension')->first();
+    $rule->update(['is_active' => false]);
+    $points = BaxxEarningRule::getPointsFor('rezension');
+    expect($points)->toEqual(0)
+        ->and(BaxxEarningRule::getEveryCountFor('rezension'))->toEqual(1);
+});
 
-        $this->assertEquals('mein-tolles-feature', $reward->slug);
-    }
-
-    public function test_reward_purchase_is_refunded_check(): void
-    {
-        $purchase = RewardPurchase::factory()->create(['refunded_at' => null]);
-        $this->assertFalse($purchase->isRefunded());
-
-        $purchase->update(['refunded_at' => now()]);
-        $this->assertTrue($purchase->isRefunded());
-    }
-
-    public function test_reward_purchase_active_scope(): void
-    {
-        RewardPurchase::factory()->create(['refunded_at' => null]);
-        RewardPurchase::factory()->create(['refunded_at' => now()]);
-
-        $this->assertCount(1, RewardPurchase::active()->get());
-        $this->assertCount(1, RewardPurchase::refunded()->get());
-    }
-
-    public function test_baxx_earning_rule_get_points_for_returns_correct_points(): void
-    {
-        // 'rezension' should be seeded with 1 point
-        $points = BaxxEarningRule::getPointsFor('rezension');
-        $this->assertEquals(1, $points);
-    }
-
-    public function test_baxx_earning_rule_get_every_count_for_returns_seeded_interval(): void
-    {
-        $everyCount = BaxxEarningRule::getEveryCountFor('rezension');
-
-        $this->assertEquals(10, $everyCount);
-    }
-
-    public function test_baxx_earning_rule_get_points_for_unknown_action_returns_zero(): void
-    {
-        $points = BaxxEarningRule::getPointsFor('nonexistent_action');
-        $this->assertEquals(0, $points);
-    }
-
-    public function test_baxx_earning_rule_ignores_legacy_cached_model_payloads(): void
-    {
-        $legacyRule = BaxxEarningRule::query()->where('action_key', 'rezension')->firstOrFail();
-
-        Cache::forever('baxx_earning_rule_model_rezension', $legacyRule);
-
-        $this->assertEquals(1, BaxxEarningRule::getPointsFor('rezension'));
-        $this->assertEquals(10, BaxxEarningRule::getEveryCountFor('rezension'));
-    }
-
-    public function test_romantausch_rules_are_seeded_for_offer_request_and_completed_swap(): void
-    {
-        $this->assertDatabaseHas('baxx_earning_rules', [
-            'action_key' => 'romantausch_offer',
-        ]);
-
-        $this->assertDatabaseHas('baxx_earning_rules', [
-            'action_key' => 'romantausch_request',
-            'is_active' => false,
-        ]);
-
-        $this->assertDatabaseHas('baxx_earning_rules', [
-            'action_key' => 'romantausch_swap_complete',
-        ]);
-    }
-
-    public function test_baxx_earning_rule_get_points_for_inactive_rule_returns_zero(): void
-    {
-        $rule = BaxxEarningRule::where('action_key', 'rezension')->first();
-        $rule->update(['is_active' => false]);
-
-        $points = BaxxEarningRule::getPointsFor('rezension');
-        $this->assertEquals(0, $points);
-        $this->assertEquals(1, BaxxEarningRule::getEveryCountFor('rezension'));
-    }
-
-    public function test_baxx_earning_rule_active_scope(): void
-    {
-        $active = BaxxEarningRule::active()->count();
-
-        $this->assertEquals(
-            BaxxEarningRule::where('is_active', true)->count(),
-            $active
-        );
-
-        BaxxEarningRule::active()->firstOrFail()->update(['is_active' => false]);
-        $this->assertEquals($active - 1, BaxxEarningRule::active()->count());
-    }
-}
+test('baxx earning rule active scope', function (): void {
+    $active = BaxxEarningRule::active()->count();
+    expect($active)->toEqual(BaxxEarningRule::where('is_active', true)->count());
+    BaxxEarningRule::active()->firstOrFail()->update(['is_active' => false]);
+    expect(BaxxEarningRule::active()->count())->toEqual($active - 1);
+});

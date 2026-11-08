@@ -1,61 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Services\RpgCharacterSheetService;
 use App\Support\RpgCharEditorTraining;
 use PHPUnit\Framework\TestCase;
 
-class RpgCharEditorTrainingTest extends TestCase
-{
-    public function test_training_costs_and_special_rules_match_the_rulebook_tables(): void
-    {
-        $definitions = RpgCharEditorTraining::definitions();
+pest()->extend(TestCase::class);
 
-        $this->assertSame([
-            'Arbeiter' => 5,
-            'Arzt (Heilkundiger)' => 5,
-            'Dieb' => 6,
-            'Forscher' => 6,
-            'Händler' => 5,
-            'Krieger' => 5,
-            "Rev'rend" => 15,
-            'Schamane (Göttersprecher)' => 5,
-            'Seher' => 5,
-            'Truveer' => 6,
-            'Gladiator' => 5,
-            'Priester' => 5,
-        ], array_map(static fn (array $training): int => $training['cost'], $definitions));
-        $this->assertSame(['Psychische Kraft'], $definitions['Seher']['requiredAdvantages']);
-        $this->assertSame(['Unterhalten' => 'Predigen'], $definitions["Rev'rend"]['suggestedSpecializations']);
-        $this->assertSame(
-            ['Nahkampf', 'Fernkampf', 'Feuerwaffen', 'Reiten', 'Fahren', 'Pilot'],
-            $definitions['Krieger']['skills'],
-        );
-    }
+test('training costs and special rules match the rulebook tables', function (): void {
+    $definitions = RpgCharEditorTraining::definitions();
+    expect(array_map(static fn (array $training): int => $training['cost'], $definitions))->toBe(['Arbeiter' => 5, 'Arzt (Heilkundiger)' => 5, 'Dieb' => 6, 'Forscher' => 6, 'Händler' => 5, 'Krieger' => 5, "Rev'rend" => 15, 'Schamane (Göttersprecher)' => 5, 'Seher' => 5, 'Truveer' => 6, 'Gladiator' => 5, 'Priester' => 5])
+        ->and($definitions['Seher']['requiredAdvantages'])->toBe(['Psychische Kraft'])
+        ->and($definitions["Rev'rend"]['suggestedSpecializations'])->toBe(['Unterhalten' => 'Predigen'])
+        ->and($definitions['Krieger']['skills'])->toBe(['Nahkampf', 'Fernkampf', 'Feuerwaffen', 'Reiten', 'Fahren', 'Pilot']);
+});
 
-    public function test_every_training_skill_is_a_known_or_specializable_base_skill(): void
-    {
-        $skillRules = RpgCharacterSheetService::skillRuleConfig();
-        $knownSkills = array_column($skillRules['skills'], 'name');
-
-        foreach (RpgCharEditorTraining::definitions() as $training) {
-            $this->assertNotEmpty($training['description']);
-            $this->assertGreaterThan(0, $training['cost']);
-            $this->assertNotEmpty($training['skills']);
-
-            foreach ($training['skills'] as $skill) {
-                $this->assertContains($skill, $knownSkills, "Unknown skill {$skill} in {$training['name']}.");
-            }
+test('every training skill is a known or specializable base skill', function (): void {
+    $skillRules = RpgCharacterSheetService::skillRuleConfig();
+    $knownSkills = array_column($skillRules['skills'], 'name');
+    foreach (RpgCharEditorTraining::definitions() as $training) {
+        expect($training['description'])->not->toBeEmpty()
+            ->and($training['cost'])->toBeGreaterThan(0)
+            ->and($training['skills'])->not->toBeEmpty();
+        foreach ($training['skills'] as $skill) {
+            expect($knownSkills)->toContain($skill);
         }
     }
+});
 
-    public function test_rule_config_is_a_json_friendly_list_with_backend_limits(): void
-    {
-        $config = RpgCharEditorTraining::ruleConfig();
-
-        $this->assertSame(RpgCharEditorTraining::MAX_TRAININGS, $config['maxTrainings']);
-        $this->assertSame(RpgCharEditorTraining::MAX_ALLOCATIONS, $config['maxAllocations']);
-        $this->assertSame(array_values(RpgCharEditorTraining::definitions()), $config['trainings']);
-    }
-}
+test('rule config is a json friendly list with backend limits', function (): void {
+    $config = RpgCharEditorTraining::ruleConfig();
+    expect($config['maxTrainings'])->toBe(RpgCharEditorTraining::MAX_TRAININGS)
+        ->and($config['maxAllocations'])->toBe(RpgCharEditorTraining::MAX_ALLOCATIONS)
+        ->and($config['trainings'])->toBe(array_values(RpgCharEditorTraining::definitions()));
+});

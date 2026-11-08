@@ -1,44 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Support\Tours\TourDefinition;
 use InvalidArgumentException;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(TourDefinition::class)]
-class TourDefinitionTest extends TestCase
-{
-    public function test_start_mode_defaults_to_automatic_when_omitted(): void
-    {
-        $this->assertSame('automatic', TourDefinition::fromArray('hauptmenue', [])->startMode);
-    }
+pest()->extend(TestCase::class);
 
-    #[TestWith(['automatic'])]
-    #[TestWith(['invitation'])]
-    public function test_supported_start_modes_are_preserved(string $startMode): void
-    {
-        $definition = TourDefinition::fromArray('profilpflege', ['start_mode' => $startMode]);
+covers(TourDefinition::class);
 
-        $this->assertSame($startMode, $definition->startMode);
-    }
+test('start mode defaults to automatic when omitted', function (): void {
+    expect(TourDefinition::fromArray('hauptmenue', [])->startMode)->toBe('automatic');
+});
 
-    #[TestWith(['invitaton'])]
-    #[TestWith([''])]
-    #[TestWith(['Invitation'])]
-    #[TestWith([' automatic'])]
-    #[TestWith([null])]
-    #[TestWith([false])]
-    #[TestWith([true])]
-    #[TestWith([1])]
-    #[TestWith([[]])]
-    public function test_invalid_start_modes_are_rejected(mixed $startMode): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Ungültiger start_mode für Tour [profilpflege]. Erlaubt sind automatic und invitation.');
+test('supported start modes are preserved', function (string $startMode): void {
+    $definition = TourDefinition::fromArray('profilpflege', ['start_mode' => $startMode]);
+    expect($definition->startMode)->toBe($startMode);
+})->with([['automatic'], ['invitation']]);
 
-        TourDefinition::fromArray('profilpflege', ['start_mode' => $startMode]);
-    }
-}
+test('invalid start modes are rejected', function (mixed $startMode): void {
+    expect(fn () => TourDefinition::fromArray('profilpflege', ['start_mode' => $startMode]))->toThrow(InvalidArgumentException::class, 'Ungültiger start_mode für Tour [profilpflege]. Erlaubt sind automatic und invitation.');
+})->with([['invitaton'], [''], ['Invitation'], [' automatic'], [null], [false], [true], [1], [[]]]);

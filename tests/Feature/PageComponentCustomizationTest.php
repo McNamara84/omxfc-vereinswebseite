@@ -1,37 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
-class PageComponentCustomizationTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(PageComponentCustomizationTestFixtures::class);
 
-    private function assertAllowsExtraClasses(string $component, string $extra, string $default): void
-    {
-        $html = Blade::render("<{$component} class=\"{$extra}\">Content</{$component}>");
+test('public page component allows extra classes', function (): void {
+    $this->assertAllowsExtraClasses('x-public-page', 'text-red-500', 'max-w-6xl');
+});
 
-        $this->assertStringContainsString($extra, $html);
-        $this->assertStringContainsString($default, $html);
-    }
+test('member page component allows extra classes', function (): void {
+    $this->assertAllowsExtraClasses('x-member-page', 'p-2', 'max-w-7xl');
+});
 
-    public function test_public_page_component_allows_extra_classes(): void
-    {
-        $this->assertAllowsExtraClasses('x-public-page', 'text-red-500', 'max-w-6xl');
-    }
-
-    public function test_member_page_component_allows_extra_classes(): void
-    {
-        $this->assertAllowsExtraClasses('x-member-page', 'p-2', 'max-w-7xl');
-    }
-
-    public function test_bento_card_renders_default_slot_only_once_without_value_or_description_slot(): void
-    {
-        $html = Blade::render('<x-bento-card title="Testkarte">Nur einmal</x-bento-card>');
-
-        $this->assertSame(1, substr_count($html, 'Nur einmal'));
-    }
-}
+test('bento card renders default slot only once without value or description slot', function (): void {
+    $html = Blade::render('<x-bento-card title="Testkarte">Nur einmal</x-bento-card>');
+    expect(substr_count($html, 'Nur einmal'))->toBe(1);
+});

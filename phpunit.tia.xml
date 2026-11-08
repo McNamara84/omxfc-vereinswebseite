@@ -1,10 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="tests/bootstrap.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnDeprecation="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" recordTestRunHistory="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
-    <!-- Pest 5 TIA only supports functional Pest tests, not PHPUnit test classes. -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd" bootstrap="tests/tia-bootstrap.php" colors="true" stopOnFailure="true" executionOrder="random" failOnWarning="true" failOnDeprecation="true" failOnRisky="true" failOnEmptyTestSuite="true" beStrictAboutOutputDuringTests="true" recordTestRunHistory="true" cacheDirectory=".phpunit.cache" backupGlobals="false" processIsolation="false">
     <testsuites>
         <testsuite name="Pest TIA">
-            <file>tests/Unit/MaddraxikonIdentityHmacPeppersTest.php</file>
-            <file>tests/Unit/UriSupportTest.php</file>
+            <directory>tests/Unit</directory>
+            <directory>tests/Feature</directory>
+            <directory>tests/Integration</directory>
+            <exclude>tests/Integration/TypesenseInternalSnapshotTest.php</exclude>
+            <exclude>tests/Feature/BaxxMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/BildersucheMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/CoverRatingMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/MaddraxikonOAuthAttemptStoreMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/MaddraxikonPipelineMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/MaddraxikonRatingSourceMariaDbTest.php</exclude>
+            <exclude>tests/Feature/MaddraxikonStreakMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/ProfileTourMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RomantauschMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgCheckMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgCombatMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgInventoryMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgItemMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgProgressionMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/VeranstaltungsBaxxMariaDbConcurrencyTest.php</exclude>
         </testsuite>
     </testsuites>
     <source ignoreSuppressionOfDeprecations="true" ignoreSuppressionOfPhpDeprecations="true">

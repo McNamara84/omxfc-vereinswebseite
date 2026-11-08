@@ -1,111 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\BookType;
-use App\Enums\Role;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
-use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class BookOfferModelTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(BookOfferModelTestFixtures::class);
 
-    private function createMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+test('book offer can be created', function (): void {
+    $user = $this->createMember();
+    $offer = BookOffer::create(['user_id' => $user->id, 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'book_number' => 1, 'book_title' => 'Roman1', 'condition' => 'neu']);
+    $this->assertDatabaseHas('book_offers', ['id' => $offer->id, 'user_id' => $user->id, 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'book_number' => 1, 'book_title' => 'Roman1', 'condition' => 'neu', 'completed' => false]);
+});
 
-        return $user;
-    }
+test('book offer belongs to a user', function (): void {
+    $user = $this->createMember();
+    $offer = BookOffer::create(['user_id' => $user->id, 'series' => 'Series', 'book_number' => 1, 'book_title' => 'Title', 'condition' => 'good']);
+    expect($offer->user->is($user))->toBeTrue();
+});
 
-    public function test_book_offer_can_be_created(): void
-    {
-        $user = $this->createMember();
+test('book offer has one swap', function (): void {
+    $user = $this->createMember();
+    $other = User::factory()->create();
+    $offer = BookOffer::create(['user_id' => $user->id, 'series' => 'Series', 'book_number' => 1, 'book_title' => 'Title', 'condition' => 'good']);
+    $request = BookRequest::create(['user_id' => $other->id, 'series' => 'Series', 'book_number' => 1, 'book_title' => 'Title', 'condition' => 'good']);
+    $swap = BookSwap::create(['offer_id' => $offer->id, 'request_id' => $request->id, 'completed_at' => now()]);
+    expect($offer->swap->is($swap))->toBeTrue();
+});
 
-        $offer = BookOffer::create([
-            'user_id' => $user->id,
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'book_title' => 'Roman1',
-            'condition' => 'neu',
-        ]);
-
-        $this->assertDatabaseHas('book_offers', [
-            'id' => $offer->id,
-            'user_id' => $user->id,
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'book_title' => 'Roman1',
-            'condition' => 'neu',
-            'completed' => false,
-        ]);
-    }
-
-    public function test_book_offer_belongs_to_a_user(): void
-    {
-        $user = $this->createMember();
-        $offer = BookOffer::create([
-            'user_id' => $user->id,
-            'series' => 'Series',
-            'book_number' => 1,
-            'book_title' => 'Title',
-            'condition' => 'good',
-        ]);
-
-        $this->assertTrue($offer->user->is($user));
-    }
-
-    public function test_book_offer_has_one_swap(): void
-    {
-        $user = $this->createMember();
-        $other = User::factory()->create();
-
-        $offer = BookOffer::create([
-            'user_id' => $user->id,
-            'series' => 'Series',
-            'book_number' => 1,
-            'book_title' => 'Title',
-            'condition' => 'good',
-        ]);
-
-        $request = BookRequest::create([
-            'user_id' => $other->id,
-            'series' => 'Series',
-            'book_number' => 1,
-            'book_title' => 'Title',
-            'condition' => 'good',
-        ]);
-
-        $swap = BookSwap::create([
-            'offer_id' => $offer->id,
-            'request_id' => $request->id,
-            'completed_at' => now(),
-        ]);
-
-        $this->assertTrue($offer->swap->is($swap));
-    }
-
-    public function test_completed_attribute_can_be_updated(): void
-    {
-        $user = $this->createMember();
-        $offer = BookOffer::create([
-            'user_id' => $user->id,
-            'series' => 'Series',
-            'book_number' => 1,
-            'book_title' => 'Title',
-            'condition' => 'good',
-        ]);
-
-        $offer->update(['completed' => true]);
-        $offer->refresh();
-
-        $this->assertTrue((bool) $offer->completed);
-    }
-}
+test('completed attribute can be updated', function (): void {
+    $user = $this->createMember();
+    $offer = BookOffer::create(['user_id' => $user->id, 'series' => 'Series', 'book_number' => 1, 'book_title' => 'Title', 'condition' => 'good']);
+    $offer->update(['completed' => true]);
+    $offer->refresh();
+    expect($offer->completed)->toBeTruthy();
+});

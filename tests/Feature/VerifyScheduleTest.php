@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Support\ScheduleInventory;
@@ -9,47 +11,33 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Tests\TestCase;
 use UnexpectedValueException;
 
-class VerifyScheduleTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_actual_schedule_contains_commands_and_named_jobs_in_berlin(): void
-    {
-        $output = new BufferedOutput;
-        $status = Artisan::call('app:verify-schedule', [], $output);
-        $text = $output->fetch();
-        $this->assertSame(0, $status, $text);
-        $this->assertStringContainsString('maddraxikon:heartbeat – on_one_server=false', $text);
-        $this->assertStringContainsString('maddraxikon:sync-job – on_one_server=false', $text);
-    }
+test('actual schedule contains commands and named jobs in berlin', function (): void {
+    $output = new BufferedOutput;
+    $status = Artisan::call('app:verify-schedule', [], $output);
+    $text = $output->fetch();
+    expect($status)->toBe(0)
+        ->and($text)->toContain('maddraxikon:heartbeat – on_one_server=false')
+        ->toContain('maddraxikon:sync-job – on_one_server=false');
+});
 
-    public function test_wrong_timezone_and_command_prefixes_cannot_satisfy_the_inventory(): void
-    {
-        Artisan::call('schedule:list', ['--json' => true]);
-        $events = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
-        foreach ($events as &$event) {
-            if (str_contains($event['command'], 'maddraxikon:heartbeat')) {
-                $event['command'] = 'php artisan maddraxikon:heartbeat-impostor';
-            }
+test('wrong timezone and command prefixes cannot satisfy the inventory', function (): void {
+    Artisan::call('schedule:list', ['--json' => true]);
+    $events = json_decode(Artisan::output(), true, flags: JSON_THROW_ON_ERROR);
+    foreach ($events as &$event) {
+        if (str_contains($event['command'], 'maddraxikon:heartbeat')) {
+            $event['command'] = 'php artisan maddraxikon:heartbeat-impostor';
         }
-        unset($event);
-
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('Aufgaben fehlen: maddraxikon:heartbeat');
-        ScheduleInventory::verify(json_encode($events, JSON_THROW_ON_ERROR));
     }
+    unset($event);
+    expect(fn () => ScheduleInventory::verify(json_encode($events, JSON_THROW_ON_ERROR)))->toThrow(UnexpectedValueException::class, 'Aufgaben fehlen: maddraxikon:heartbeat');
+});
 
-    public function test_wrong_timezone_is_rejected(): void
-    {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('Europe/Berlin');
-        ScheduleInventory::verify('[{"command":"php artisan member-map:refresh","expression":"0 * * * *","timezone":"UTC","on_one_server":false}]');
-    }
+test('wrong timezone is rejected', function (): void {
+    expect(fn () => ScheduleInventory::verify('[{"command":"php artisan member-map:refresh","expression":"0 * * * *","timezone":"UTC","on_one_server":false}]'))->toThrow(UnexpectedValueException::class, 'Europe/Berlin');
+});
 
-    public function test_missing_laravel_13_metadata_is_rejected(): void
-    {
-        $this->expectException(UnexpectedValueException::class);
-        $this->expectExceptionMessage('Unvollständiger');
-        ScheduleInventory::verify('[{"command":"php artisan member-map:refresh","expression":"0 * * * *","timezone":"Europe/Berlin"}]');
-    }
-}
+test('missing laravel 13 metadata is rejected', function (): void {
+    expect(fn () => ScheduleInventory::verify('[{"command":"php artisan member-map:refresh","expression":"0 * * * *","timezone":"Europe/Berlin"}]'))->toThrow(UnexpectedValueException::class, 'Unvollständiger');
+});

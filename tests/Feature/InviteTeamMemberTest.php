@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -12,53 +14,29 @@ use Laravel\Jetstream\Mail\TeamInvitation;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class InviteTeamMemberTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_team_members_can_be_invited_to_team(): void
-    {
-        if (! Features::sendsTeamInvitations()) {
-            $this->markTestSkipped('Team invitations not enabled.');
-        }
-
-        Mail::fake();
-
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
-
-        Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
-            ->set('addTeamMemberForm', [
-                'email' => 'test@example.com',
-                'role' => Role::Admin->value,
-            ])->call('addTeamMember');
-
-        Mail::assertQueued(TeamInvitation::class);
-
-        $this->assertCount(1, $user->currentTeam->fresh()->teamInvitations);
+test('team members can be invited to team', function (): void {
+    if (! Features::sendsTeamInvitations()) {
+        $this->markTestSkipped('Team invitations not enabled.');
     }
+    Mail::fake();
+    $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+    Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])->set('addTeamMemberForm', ['email' => 'test@example.com', 'role' => Role::Admin->value])->call('addTeamMember');
+    Mail::assertQueued(TeamInvitation::class);
+    expect($user->currentTeam->fresh()->teamInvitations)->toHaveCount(1);
+});
 
-    public function test_team_member_invitations_can_be_cancelled(): void
-    {
-        if (! Features::sendsTeamInvitations()) {
-            $this->markTestSkipped('Team invitations not enabled.');
-        }
-
-        Mail::fake();
-
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
-
-        // Add the team member...
-        $component = Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
-            ->set('addTeamMemberForm', [
-                'email' => 'test@example.com',
-                'role' => Role::Admin->value,
-            ])->call('addTeamMember');
-
-        $invitationId = $user->currentTeam->fresh()->teamInvitations->first()->id;
-
-        // Cancel the team invitation...
-        $component->call('cancelTeamInvitation', $invitationId);
-
-        $this->assertCount(0, $user->currentTeam->fresh()->teamInvitations);
+test('team member invitations can be cancelled', function (): void {
+    if (! Features::sendsTeamInvitations()) {
+        $this->markTestSkipped('Team invitations not enabled.');
     }
-}
+    Mail::fake();
+    $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+    // Add the team member...
+    $component = Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])->set('addTeamMemberForm', ['email' => 'test@example.com', 'role' => Role::Admin->value])->call('addTeamMember');
+    $invitationId = $user->currentTeam->fresh()->teamInvitations->first()->id;
+    // Cancel the team invitation...
+    $component->call('cancelTeamInvitation', $invitationId);
+    expect($user->currentTeam->fresh()->teamInvitations)->toHaveCount(0);
+});

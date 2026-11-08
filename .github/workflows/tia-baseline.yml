@@ -23,8 +23,7 @@ jobs:
           php-version: '8.5'
           tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
           extensions: gd, exif, zip, sockets
-          coverage: xdebug
-          ini-values: xdebug.mode=coverage
+          coverage: pcov
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -54,11 +53,14 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-          XDEBUG_MODE: coverage
         # This workflow publishes the baseline. Re-record it without fetching
         # a previous artifact through gh, even on a runner with an empty cache.
         # Full-suite acceptance remains in phpunit.yml.
         run: composer test:tia:fresh
+      - name: Verify recorded TIA graph
+        env:
+          TIA_GRAPH_DIRECTORY: ${{ steps.baseline-path.outputs.path }}
+        run: php -r "json_decode(file_get_contents(getenv('TIA_GRAPH_DIRECTORY').'/graph.json'), true, 512, JSON_THROW_ON_ERROR);"
       - name: Upload TIA baseline
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

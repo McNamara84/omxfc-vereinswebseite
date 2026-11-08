@@ -1,71 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
-use App\Data\WebsiteFeedback\WebsiteFeedbackData;
-use App\Enums\WebsiteFeedbackCategory;
 use App\Mail\WebsiteFeedbackReceived;
-use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class WebsiteFeedbackReceivedMailTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(WebsiteFeedbackReceivedMailTestFixtures::class);
 
-    public function test_named_feedback_builds_subject_content_and_reply_to(): void
-    {
-        $data = $this->feedback(
-            reporterName: 'Mara Mitglied',
-            reporterEmail: 'mara@example.com',
-        );
-        $mail = new WebsiteFeedbackReceived($data);
-        $envelope = $mail->envelope();
+test('named feedback builds subject content and reply to', function (): void {
+    $data = $this->feedback(reporterName: 'Mara Mitglied', reporterEmail: 'mara@example.com');
+    $mail = new WebsiteFeedbackReceived($data);
+    $envelope = $mail->envelope();
+    expect($mail)->toBeInstanceOf(ShouldQueue::class)
+        ->and($envelope->subject)->toBe('[Website-Feedback] Idee – Mitgliederbereich')
+        ->and($envelope->replyTo)->toHaveCount(1)
+        ->and($envelope->replyTo[0]->address)->toBe('mara@example.com')
+        ->and($envelope->replyTo[0]->name)->toBe('Mara Mitglied')
+        ->and($mail->content()->markdown)->toBe('emails.feedback.website-feedback')
+        ->and($mail->content()->with['feedback'])->toBe($data);
+});
 
-        $this->assertInstanceOf(ShouldQueue::class, $mail);
-        $this->assertSame('[Website-Feedback] Idee – Mitgliederbereich', $envelope->subject);
-        $this->assertCount(1, $envelope->replyTo);
-        $this->assertSame('mara@example.com', $envelope->replyTo[0]->address);
-        $this->assertSame('Mara Mitglied', $envelope->replyTo[0]->name);
-        $this->assertSame('emails.feedback.website-feedback', $mail->content()->markdown);
-        $this->assertSame($data, $mail->content()->with['feedback']);
-    }
+test('anonymous feedback contains no reporter identity or reply to', function (): void {
+    $mail = new WebsiteFeedbackReceived($this->feedback());
+    $html = $mail->render();
+    expect($mail->envelope()->replyTo)->toBe([])
+        ->and($html)->toContain('Anonym eingereicht')->not->toContain('mara@example.com')->not->toContain('Mara Mitglied');
+});
 
-    public function test_anonymous_feedback_contains_no_reporter_identity_or_reply_to(): void
-    {
-        $mail = new WebsiteFeedbackReceived($this->feedback());
-        $html = $mail->render();
-
-        $this->assertSame([], $mail->envelope()->replyTo);
-        $this->assertStringContainsString('Anonym eingereicht', $html);
-        $this->assertStringNotContainsString('mara@example.com', $html);
-        $this->assertStringNotContainsString('Mara Mitglied', $html);
-    }
-
-    public function test_feedback_message_is_escaped_in_the_rendered_mail(): void
-    {
-        $mail = new WebsiteFeedbackReceived($this->feedback(message: '<script>alert("x")</script> Gute Idee'));
-        $html = $mail->render();
-
-        $this->assertStringNotContainsString('<script>', $html);
-        $this->assertStringContainsString('&lt;script&gt;', $html);
-        $this->assertStringContainsString('Gute Idee', $html);
-    }
-
-    private function feedback(
-        string $message = 'Bitte ergänzt eine bessere Navigation.',
-        ?string $reporterName = null,
-        ?string $reporterEmail = null,
-    ): WebsiteFeedbackData {
-        return new WebsiteFeedbackData(
-            category: WebsiteFeedbackCategory::Idea,
-            message: $message,
-            pageTitle: 'Mitgliederbereich',
-            pageUrl: 'https://maddrax-fanclub.de/dashboard',
-            submittedAt: new CarbonImmutable('2026-08-02 12:00:00', 'Europe/Berlin'),
-            reporterName: $reporterName,
-            reporterEmail: $reporterEmail,
-        );
-    }
-}
+test('feedback message is escaped in the rendered mail', function (): void {
+    $mail = new WebsiteFeedbackReceived($this->feedback(message: '<script>alert("x")</script> Gute Idee'));
+    $html = $mail->render();
+    expect($html)->not->toContain('<script>')
+        ->toContain('&lt;script&gt;')
+        ->toContain('Gute Idee');
+});

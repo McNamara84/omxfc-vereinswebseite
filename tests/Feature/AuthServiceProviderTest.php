@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -10,56 +12,40 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
-class AuthServiceProviderTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function (): void {
+    // Ensure the gate definitions are registered
+    $this->app->register(AuthServiceProvider::class);
+});
 
-        // Ensure the gate definitions are registered
-        $this->app->register(AuthServiceProvider::class);
-    }
+test('owner can access dashboard', function (): void {
+    $user = User::factory()->withPersonalTeam()->create();
+    expect(Gate::forUser($user)->allows('access-dashboard'))->toBeTrue();
+});
 
-    public function test_owner_can_access_dashboard(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
+test('member with read permission can access dashboard', function (): void {
+    $team = Team::factory()->create(['personal_team' => false]);
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+    expect(Gate::forUser($user)->allows('access-dashboard'))->toBeTrue();
+});
 
-        $this->assertTrue(Gate::forUser($user)->allows('access-dashboard'));
-    }
+test('member without read permission cannot access dashboard', function (): void {
+    $team = Team::factory()->create(['personal_team' => false]);
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
+    expect(Gate::forUser($user)->allows('access-dashboard'))->toBeFalse();
+});
 
-    public function test_member_with_read_permission_can_access_dashboard(): void
-    {
-        $team = Team::factory()->create(['personal_team' => false]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+test('user without team membership cannot access dashboard', function (): void {
+    $team = Team::factory()->create(['personal_team' => false]);
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    expect(Gate::forUser($user)->allows('access-dashboard'))->toBeFalse();
+});
 
-        $this->assertTrue(Gate::forUser($user)->allows('access-dashboard'));
-    }
-
-    public function test_member_without_read_permission_cannot_access_dashboard(): void
-    {
-        $team = Team::factory()->create(['personal_team' => false]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
-
-        $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
-    }
-
-    public function test_user_without_team_membership_cannot_access_dashboard(): void
-    {
-        $team = Team::factory()->create(['personal_team' => false]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-
-        $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
-    }
-
-    public function test_user_without_current_team_cannot_access_dashboard_without_exception(): void
-    {
-        $user = User::factory()->create(['current_team_id' => Team::membersTeam()->id]);
-        $user->setRelation('currentTeam', null);
-
-        $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
-    }
-}
+test('user without current team cannot access dashboard without exception', function (): void {
+    $user = User::factory()->create(['current_team_id' => Team::membersTeam()->id]);
+    $user->setRelation('currentTeam', null);
+    expect(Gate::forUser($user)->allows('access-dashboard'))->toBeFalse();
+});

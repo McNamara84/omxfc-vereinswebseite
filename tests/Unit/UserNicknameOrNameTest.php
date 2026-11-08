@@ -1,65 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Models\User;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(User::class)]
-class UserNicknameOrNameTest extends TestCase
-{
-    public function test_it_prefers_a_trimmed_nickname(): void
-    {
-        $user = new User([
-            'name' => 'Max Mustermann',
-            'alias' => '  Maxi  ',
-        ]);
+pest()->extend(TestCase::class);
 
-        $this->assertSame('Maxi', $user->nicknameOrName());
-    }
+covers(User::class);
 
-    public function test_it_falls_back_to_the_name_without_a_nickname(): void
-    {
-        $user = new User([
-            'name' => 'Max Mustermann',
-            'alias' => null,
-        ]);
-
-        $this->assertSame('Max Mustermann', $user->nicknameOrName());
-    }
-
-    public function test_it_falls_back_to_the_name_for_a_blank_nickname(): void
-    {
-        $user = new User([
-            'name' => '  Max Mustermann  ',
-            'alias' => '   ',
-        ]);
-
-        $this->assertSame('Max Mustermann', $user->nicknameOrName());
-    }
-
-    public function test_it_falls_back_to_the_civil_name_when_name_is_blank(): void
-    {
-        $user = new User([
-            'name' => '   ',
-            'alias' => '   ',
-            'vorname' => '  Max  ',
-            'nachname' => '  Mustermann  ',
-        ]);
-
-        $this->assertSame('Max Mustermann', $user->nicknameOrName());
-    }
-
-    public function test_it_returns_a_safe_placeholder_when_all_names_are_blank(): void
-    {
-        $user = new User([
-            'name' => '   ',
-            'alias' => null,
-            'vorname' => '   ',
-            'nachname' => null,
-        ]);
-
-        $this->assertSame(User::UNKNOWN_DISPLAY_NAME, $user->nicknameOrName());
-    }
-}
+test('display names follow the nickname, name, civil name and placeholder priority', function (User $user, string $expected): void {
+    expect($user->nicknameOrName())->toBe($expected);
+})->with([
+    'it prefers a trimmed nickname' => [fn (): User => new User(['name' => 'Max Mustermann', 'alias' => '  Maxi  ']), 'Maxi'],
+    'it falls back to the name without a nickname' => [fn (): User => new User(['name' => 'Max Mustermann', 'alias' => null]), 'Max Mustermann'],
+    'it falls back to the name for a blank nickname' => [fn (): User => new User(['name' => '  Max Mustermann  ', 'alias' => '   ']), 'Max Mustermann'],
+    'it falls back to the civil name when name is blank' => [fn (): User => new User(['name' => '   ', 'alias' => '   ', 'vorname' => '  Max  ', 'nachname' => '  Mustermann  ']), 'Max Mustermann'],
+    'it returns a safe placeholder when all names are blank' => [fn (): User => new User(['name' => '   ', 'alias' => null, 'vorname' => '   ', 'nachname' => null]), User::UNKNOWN_DISPLAY_NAME],
+]);

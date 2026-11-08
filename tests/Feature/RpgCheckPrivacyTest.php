@@ -1,98 +1,62 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Services\RpgCheckQuery;
 use App\Services\RpgCheckService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Js;
-use Illuminate\Testing\TestResponse;
-use Symfony\Component\DomCrawler\Crawler;
-use Tests\Support\RpgCheckFixtures;
 use Tests\TestCase;
 
-class RpgCheckPrivacyTest extends TestCase
-{
-    use RefreshDatabase, RpgCheckFixtures;
+pest()->extend(TestCase::class)->use(RpgCheckPrivacyTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->checkFixtures();
-    }
+beforeEach(function (): void {
+    $this->checkFixtures();
+});
 
-    private function assertSecret(array $data): void
-    {
-        $forbidden = ['difficulty', 'modifiers', 'modifier_total', 'base_total', 'attribute_value', 'skill_value',
-            'dice', 'die_one', 'die_two', 'total', 'raw_total', 'margin', 'result_kind', 'winner_position',
-            'comparison_margin', 'resolution_reason', 'resolved_at', 'completed_at', 'executable'];
-        foreach ($data as $key => $value) {
-            $this->assertNotContains($key, $forbidden);
-            if (is_array($value)) {
-                $this->assertSecret($value);
-            }
-        }
-    }
+test('hidden result is absent from every player response', function (): void {
+    $input = $this->checkInput(visibility: 'hidden');
+    $input['difficulty'] = 743;
+    $input['participants'][0]['modifiers'] = [['value' => 913, 'description' => 'SECRET-SITUATION']];
+    $check = $this->createCheck(input: $input);
+    $this->dice([6, 6]);
+    $this->actingAs($this->player);
+    // Deterministically exercise the former false positive from page tokens.
+    $this->withSession(['_token' => 'csrf-token-743-913']);
+    $projection = $this->getJson(route('rpg.checks.show', $check))->assertOk()->json();
+    $html = $this->get(route('rpg.checks.show', $check))->assertSee('csrf-token-743-913');
+    $this->assertSecretHtml($html, $projection);
+    $response = $this->postJson(route('rpg.checks.roll', [$check, $check->participants[0]]))->assertOk();
+    $this->assertSecret($response->json());
+    $this->assertSecretHtml($this->get(route('rpg.checks.show', $check)), $response->json());
+    $this->assertSecret($this->getJson(route('rpg.checks.index', ['tab' => 'history']))->json('checks.0'));
+    $this->get(route('dashboard'))->assertOk()->assertDontSee('SECRET-SITUATION');
+    $this->actingAs($this->leader)->getJson(route('rpg.checks.show', $check))->assertJsonPath('participants.0.dice', [6, 6])->assertJsonPath('difficulty', 743);
+});
 
-    private function assertSecretHtml(TestResponse $response, array $projection): void
-    {
-        $response->assertOk()->assertDontSee('SECRET-SITUATION');
-        $this->assertSecret($projection);
-        $this->assertSame($projection, $response->viewData('data'));
-        // Check the complete data actually embedded for Alpine. Short numbers
-        // anywhere in the page can also occur in unrelated CSRF tokens or IDs.
-        $component = (new Crawler($response->getContent()))->filter('[x-data^="rpgChecks("]');
-        $this->assertCount(1, $component);
-        $this->assertSame('rpgChecks('.Js::from(['initial' => ['checks' => [$projection]], 'url' => $projection['url'], 'detail' => true])->toHtml().')', $component->attr('x-data'));
-    }
+test('hidden winner tie and decision have identical player projection', function (): void {
+    $check = $this->createCheck('opposed', 'hidden');
+    $this->dice([3, 4], [4, 3]);
+    $this->rollCheck($check);
+    $query = app(RpgCheckQuery::class);
+    $before = $query->detail($this->player, $check);
+    $this->rollCheck($check, $this->otherPlayer, 2);
+    expect($query->detail($this->player, $check))->toBe($before);
+    app(RpgCheckService::class)->resolve($this->leader, $check->id, 'side_2', 'SECRET-DECISION');
+    expect($query->detail($this->player, $check))->toBe($before);
+    $this->assertSecret($before);
+    expect($query->listing($this->player, hints: true)['total'])->toBe(0);
+});
 
-    public function test_hidden_result_is_absent_from_every_player_response(): void
-    {
-        $input = $this->checkInput(visibility: 'hidden');
-        $input['difficulty'] = 743;
-        $input['participants'][0]['modifiers'] = [['value' => 913, 'description' => 'SECRET-SITUATION']];
-        $check = $this->createCheck(input: $input);
-        $this->dice([6, 6]);
-        $this->actingAs($this->player);
-        // Deterministically exercise the former false positive from page tokens.
-        $this->withSession(['_token' => 'csrf-token-743-913']);
-        $projection = $this->getJson(route('rpg.checks.show', $check))->assertOk()->json();
-        $html = $this->get(route('rpg.checks.show', $check))->assertSee('csrf-token-743-913');
-        $this->assertSecretHtml($html, $projection);
-        $response = $this->postJson(route('rpg.checks.roll', [$check, $check->participants[0]]))->assertOk();
-        $this->assertSecret($response->json());
-        $this->assertSecretHtml($this->get(route('rpg.checks.show', $check)), $response->json());
-        $this->assertSecret($this->getJson(route('rpg.checks.index', ['tab' => 'history']))->json('checks.0'));
-        $this->get(route('dashboard'))->assertOk()->assertDontSee('SECRET-SITUATION');
-        $this->actingAs($this->leader)->getJson(route('rpg.checks.show', $check))->assertJsonPath('participants.0.dice', [6, 6])->assertJsonPath('difficulty', 743);
-    }
-
-    public function test_hidden_winner_tie_and_decision_have_identical_player_projection(): void
-    {
-        $check = $this->createCheck('opposed', 'hidden');
-        $this->dice([3, 4], [4, 3]);
-        $this->rollCheck($check);
-        $query = app(RpgCheckQuery::class);
-        $before = $query->detail($this->player, $check);
-        $this->rollCheck($check, $this->otherPlayer, 2);
-        $this->assertSame($before, $query->detail($this->player, $check));
-        app(RpgCheckService::class)->resolve($this->leader, $check->id, 'side_2', 'SECRET-DECISION');
-        $this->assertSame($before, $query->detail($this->player, $check));
-        $this->assertSecret($before);
-        $this->assertSame(0, $query->listing($this->player, hints: true)['total']);
-    }
-
-    public function test_open_comparison_never_exposes_opponents_numbers(): void
-    {
-        $check = $this->createCheck('opposed');
-        $this->dice([5, 6], [1, 2]);
-        $this->rollCheck($check);
-        $this->rollCheck($check, $this->otherPlayer, 2);
-        $data = app(RpgCheckQuery::class)->detail($this->player, $check);
-        $this->assertSame(13, $data['participants'][0]['total']);
-        $this->assertSame(['id', 'position', 'character_name'], array_keys($data['participants'][1]));
-        $this->assertSame(1, $data['winner_position']);
-        $this->assertArrayNotHasKey('comparison_margin', $data);
-        $this->assertArrayNotHasKey('margin', $data['participants'][0]);
-    }
-}
+test('open comparison never exposes opponents numbers', function (): void {
+    $check = $this->createCheck('opposed');
+    $this->dice([5, 6], [1, 2]);
+    $this->rollCheck($check);
+    $this->rollCheck($check, $this->otherPlayer, 2);
+    $data = app(RpgCheckQuery::class)->detail($this->player, $check);
+    expect($data['participants'][0]['total'])->toBe(13)
+        ->and(array_keys($data['participants'][1]))->toBe(['id', 'position', 'character_name'])
+        ->and($data['winner_position'])->toBe(1)
+        ->and($data)->not->toHaveKey('comparison_margin')
+        ->and($data['participants'][0])->not->toHaveKey('margin');
+});

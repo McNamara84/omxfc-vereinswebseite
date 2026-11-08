@@ -23,8 +23,12 @@ class Euro
         }
 
         $normalized = str_replace(',', '.', $normalized);
+        // The grammar permits at most one point; splitting/padding to three preserves both assigned values.
+        /* @pest-mutate-ignore: IncrementInteger */
         [$euros, $cents] = array_pad(explode('.', $normalized, 2), 2, '0');
 
+        // Arithmetic already coerces both validated digit strings to integers.
+        /* @pest-mutate-ignore: RemoveIntegerCast */
         return ((int) $euros * 100) + (int) str_pad($cents, 2, '0');
     }
 
@@ -45,7 +49,11 @@ class Euro
 
     private static function normalize(string|int|float $amount): string
     {
+        // Falling through to trim coerces integers identically in this weakly typed file.
+        /* @pest-mutate-ignore: RemoveEarlyReturn */
         if (is_int($amount)) {
+            // Weak return coercion and trim's fallback produce the same string; recheck if strict_types changes.
+            /* @pest-mutate-ignore: RemoveStringCast */
             return (string) $amount;
         }
 

@@ -1,6 +1,8 @@
 <?php
 
-it('zeigt für Vorschau-Modals deckende Backdrops', function () {
+declare(strict_types=1);
+
+test('zeigt für Vorschau-Modals deckende Backdrops', function (): void {
     $page = visit('/_testing/modal-vorschau', ['waitUntil' => 'domcontentloaded']);
 
     $page->assertTitle('Modal-Vorschau')

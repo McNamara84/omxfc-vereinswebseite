@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Enums\Role;
 use App\Models\Activity;
-use App\Models\Team;
 use App\Models\User;
 
-it('zeigt das kompakte dashboard responsiv und lädt den feed automatisch nach', function () {
-    $team = Team::membersTeam() ?? Team::factory()->create(['name' => 'Mitglieder']);
-    $member = User::factory()->create([
-        'current_team_id' => $team->id,
+test('zeigt das kompakte dashboard responsiv und lädt den feed automatisch nach', function (): void {
+    $member = $this->actingMember(Role::Mitglied, [
         'email_verified_at' => now(),
         'vorname' => 'Mara',
     ]);
-    $team->users()->attach($member, ['role' => Role::Mitglied->value]);
 
     foreach (range(1, 18) as $minutesAgo) {
         Activity::query()->create([
@@ -25,12 +23,10 @@ it('zeigt das kompakte dashboard responsiv und lädt den feed automatisch nach',
         ]);
     }
 
-    $this->actingAs($member->refresh());
-
     $page = visit('/', ['waitUntil' => 'domcontentloaded'])
         ->inLightMode()
         ->resize(1440, 1000)
-        ->waitForText('Schnellstart')
+        ->assertSee('Schnellstart')
         ->assertPathIs('/dashboard')
         ->assertSee('Willkommen zurück, Mara')
         ->assertSee('Zu erledigen')
@@ -49,7 +45,7 @@ it('zeigt das kompakte dashboard responsiv und lädt den feed automatisch nach',
         ->screenshot(true, 'dashboard-redesign-desktop');
 
     $page->script('document.querySelector("[data-dashboard-feed-sentinel]")?.scrollIntoView({ block: "center" })');
-    $page->waitForText('Ende des Aktivitätsverlaufs')
+    $page->assertSee('Ende des Aktivitätsverlaufs')
         ->assertScript('document.querySelectorAll("[data-testid=dashboard-activity]").length', 18)
         ->assertNoJavaScriptErrors();
 

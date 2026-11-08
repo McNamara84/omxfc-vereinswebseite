@@ -20,6 +20,14 @@ arch('policies keep the project naming convention')
     ->toBeClasses()
     ->toHaveSuffix('Policy');
 
+arch('application code does not depend on test infrastructure')
+    ->expect('App')
+    ->not->toUse(['Tests\\TestCase', 'PHPUnit\\Framework\\TestCase']);
+
+arch('pure monetary and progression rules do not depend on HTTP controllers')
+    ->expect(['App\Support\Euro', 'App\Support\RpgExperienceRules'])
+    ->not->toUse('App\Http\Controllers');
+
 arch()->preset()->php();
 
 // MD5/SHA-1 are non-secret cache/document IDs; mt_rand creates reversible map jitter.

@@ -1,460 +1,197 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\FantreffenVipAuthors;
 use App\Models\FantreffenVipAuthor;
-use App\Models\Team;
-use App\Models\User;
 use App\Models\Veranstaltung;
 use Database\Seeders\FantreffenPlaywrightSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
-use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class FantreffenVipAuthorsTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(FantreffenVipAuthorsTestFixtures::class);
 
-    protected Veranstaltung $veranstaltung;
+beforeEach(function (): void {
+    Config::set('app.testing_minimal_layout', true);
+    $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    $this->veranstaltung->update(['vip_autoren_aktiv' => true]);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('vip authors page is accessible for admin', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $response = $this->get($this->vipAuthorsRoute());
+    $response->assertStatus(200);
+    $response->assertSeeLivewire('fantreffen-vip-authors');
+});
 
-        Config::set('app.testing_minimal_layout', true);
-        $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
-        $this->veranstaltung->update(['vip_autoren_aktiv' => true]);
+test('legacy vip authors route redirects to canonical event route', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $this->get(route('admin.fantreffen.vip-authors'))->assertRedirect(route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']));
+});
+
+test('playwright seeder assigns vip authors to legacy event slug', function (): void {
+    $this->veranstaltung->update(['slug' => 'future-featured-event', 'status' => 'veroeffentlicht', 'ist_highlight' => true]);
+    $legacyVeranstaltung = Veranstaltung::query()->firstWhere('slug', 'maddrax-fantreffen-2026');
+    if (! $legacyVeranstaltung) {
+        $legacyVeranstaltung = Veranstaltung::create(['titel' => 'Maddrax-Fantreffen 2026', 'slug' => 'maddrax-fantreffen-2026', 'status' => 'archiviert', 'vip_autoren_aktiv' => true, 'ist_highlight' => false]);
     }
-
-    protected function vipAuthorsRoute(): string
-    {
-        return route('admin.veranstaltungen.vip-authors', ['veranstaltung' => $this->veranstaltung]);
-    }
-
-    protected function publicEventRoute(): string
-    {
-        return route('veranstaltungen.show', ['veranstaltung' => $this->veranstaltung]);
-    }
-
-    protected function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-
-        $user->teams()->attach($team->id, [
-            'role' => $role->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return $user;
-    }
-
-    #[Test]
-    public function test_vip_authors_page_is_accessible_for_admin(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $response = $this->get($this->vipAuthorsRoute());
-
-        $response->assertStatus(200);
-        $response->assertSeeLivewire('fantreffen-vip-authors');
-    }
-
-    #[Test]
-    public function test_legacy_vip_authors_route_redirects_to_canonical_event_route(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $this->get(route('admin.fantreffen.vip-authors'))
-            ->assertRedirect(route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']));
-    }
-
-    #[Test]
-    public function test_playwright_seeder_assigns_vip_authors_to_legacy_event_slug(): void
-    {
-        $this->veranstaltung->update([
-            'slug' => 'future-featured-event',
-            'status' => 'veroeffentlicht',
-            'ist_highlight' => true,
-        ]);
-
-        $legacyVeranstaltung = Veranstaltung::query()->firstWhere('slug', 'maddrax-fantreffen-2026');
-
-        if (! $legacyVeranstaltung) {
-            $legacyVeranstaltung = Veranstaltung::create([
-                'titel' => 'Maddrax-Fantreffen 2026',
-                'slug' => 'maddrax-fantreffen-2026',
-                'status' => 'archiviert',
-                'vip_autoren_aktiv' => true,
-                'ist_highlight' => false,
-            ]);
-        }
-
-        $this->seed(FantreffenPlaywrightSeeder::class);
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'name' => 'Oliver Fröhlich',
-            'veranstaltung_id' => $legacyVeranstaltung->id,
-        ]);
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'name' => 'Jo Zybell',
-            'veranstaltung_id' => $legacyVeranstaltung->id,
-        ]);
-    }
-
-    #[Test]
-    public function test_vip_authors_page_is_accessible_for_vorstand(): void
-    {
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $this->actingAs($vorstand);
-
-        $response = $this->get($this->vipAuthorsRoute());
-
-        $response->assertStatus(200);
-    }
-
-    #[Test]
-    public function test_vip_authors_page_is_accessible_for_kassenwart(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $this->actingAs($kassenwart);
-
-        $response = $this->get($this->vipAuthorsRoute());
-
-        $response->assertStatus(200);
-    }
-
-    #[Test]
-    public function test_vip_authors_page_is_not_accessible_for_regular_member(): void
-    {
-        $member = $this->createUserWithRole(Role::Mitglied);
-        $this->actingAs($member);
-
-        $response = $this->get($this->vipAuthorsRoute());
-
-        $response->assertStatus(403);
-    }
-
-    #[Test]
-    public function test_vip_authors_page_is_not_accessible_for_guests(): void
-    {
-        $response = $this->get($this->vipAuthorsRoute());
-
-        $response->assertRedirect('/login');
-    }
-
-    #[Test]
-    public function test_admin_can_create_vip_author(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('openForm')
-            ->set('name', 'Oliver Fröhlich')
-            ->set('pseudonym', 'Ian Rolf Hill')
-            ->set('is_active', true)
-            ->set('sort_order', 0)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'name' => 'Oliver Fröhlich',
-            'pseudonym' => 'Ian Rolf Hill',
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
-    }
-
-    #[Test]
-    public function test_admin_can_create_vip_author_with_tentative_status(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('openForm')
-            ->set('name', 'Vorbehalt Autor')
-            ->set('pseudonym', '')
-            ->set('is_active', true)
-            ->set('is_tentative', true)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'name' => 'Vorbehalt Autor',
-            'is_active' => true,
-            'is_tentative' => true,
-        ]);
-    }
-
-    #[Test]
-    public function test_admin_can_create_vip_author_without_pseudonym(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('openForm')
-            ->set('name', 'Jo Zybell')
-            ->set('pseudonym', '')
-            ->set('is_active', true)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'name' => 'Jo Zybell',
-            'pseudonym' => null,
-            'is_active' => true,
-        ]);
-    }
-
-    #[Test]
-    public function test_admin_can_edit_vip_author(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $author = FantreffenVipAuthor::create([
-            'name' => 'Original Name',
-            'pseudonym' => 'Original Pseudo',
-            'is_active' => true,
-            'is_tentative' => false,
-            'sort_order' => 0,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('edit', $author->id)
-            ->set('name', 'Updated Name')
-            ->set('pseudonym', 'Updated Pseudo')
-            ->set('is_tentative', true)
-            ->call('save')
-            ->assertHasNoErrors();
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'id' => $author->id,
-            'name' => 'Updated Name',
-            'pseudonym' => 'Updated Pseudo',
-            'is_tentative' => true,
-        ]);
-    }
-
-    #[Test]
-    public function test_admin_can_delete_vip_author(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        // Create three authors with consecutive sort_order values
-        $author1 = FantreffenVipAuthor::create(['name' => 'First', 'is_active' => true, 'sort_order' => 0]);
-        $author2 = FantreffenVipAuthor::create(['name' => 'To Delete', 'is_active' => true, 'sort_order' => 1]);
-        $author3 = FantreffenVipAuthor::create(['name' => 'Third', 'is_active' => true, 'sort_order' => 2]);
-
-        // Delete the middle author
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('delete', $author2->id);
-
-        // Verify author was deleted
-        $this->assertDatabaseMissing('fantreffen_vip_authors', [
-            'id' => $author2->id,
-        ]);
-
-        // Verify sort_order was recompacted (remaining authors should have consecutive values starting from 0)
-        $this->assertEquals(0, $author1->fresh()->sort_order);
-        $this->assertEquals(1, $author3->fresh()->sort_order);
-    }
-
-    #[Test]
-    public function test_admin_can_toggle_active_status(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $author = FantreffenVipAuthor::create([
-            'name' => 'Test Author',
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleActive', $author->id);
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'id' => $author->id,
-            'is_active' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleActive', $author->id);
-
-        $this->assertDatabaseHas('fantreffen_vip_authors', [
-            'id' => $author->id,
-            'is_active' => true,
-        ]);
-    }
-
-    #[Test]
-    public function test_move_up_swaps_positions_correctly(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $author1 = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
-        $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('moveUp', $author2->id);
-
-        $this->assertEquals(0, $author2->fresh()->sort_order);
-        $this->assertEquals(1, $author1->fresh()->sort_order);
-    }
-
-    #[Test]
-    public function test_move_down_swaps_positions_correctly(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $author1 = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
-        $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('moveDown', $author1->id);
-
-        $this->assertEquals(1, $author1->fresh()->sort_order);
-        $this->assertEquals(0, $author2->fresh()->sort_order);
-    }
-
-    #[Test]
-    public function test_move_up_at_top_does_nothing(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $author = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('moveUp', $author->id);
-
-        $this->assertEquals(0, $author->fresh()->sort_order);
-    }
-
-    #[Test]
-    public function test_move_down_at_bottom_does_nothing(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $author = FantreffenVipAuthor::create(['name' => 'Only', 'sort_order' => 0, 'is_active' => true]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('moveDown', $author->id);
-
-        $this->assertEquals(0, $author->fresh()->sort_order);
-    }
-
-    #[Test]
-    public function test_name_is_required(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('openForm')
-            ->set('name', '')
-            ->call('save')
-            ->assertHasErrors(['name' => 'required']);
-    }
-
-    #[Test]
-    public function test_vip_authors_displayed_on_public_page(): void
-    {
-        FantreffenVipAuthor::create([
-            'name' => 'Oliver Fröhlich',
-            'pseudonym' => 'Ian Rolf Hill',
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
-
-        $response = $this->get($this->publicEventRoute());
-
-        $response->assertStatus(200);
-        $response->assertSee('Gästeliste');
-        $response->assertSee('Oliver Fröhlich');
-        $response->assertSee('Ian Rolf Hill');
-    }
-
-    #[Test]
-    public function test_tentative_vip_authors_show_label_and_disclaimer_on_public_page(): void
-    {
-        FantreffenVipAuthor::create([
-            'name' => 'Vorbehalt Autor',
-            'pseudonym' => null,
-            'is_active' => true,
-            'is_tentative' => true,
-            'sort_order' => 0,
-        ]);
-
-        $response = $this->get($this->publicEventRoute());
-
-        $response->assertStatus(200);
-        $response->assertSee('Vorbehalt Autor');
-        $response->assertSee('(unter Vorbehalt)');
-
-        $crawler = new Crawler($response->getContent());
-        $this->assertSame(1, $crawler->filterXPath('//text()[contains(., "Vorbehalt Autor")]')->count());
-    }
-
-    #[Test]
-    public function test_inactive_vip_authors_not_displayed_on_public_page(): void
-    {
-        FantreffenVipAuthor::create([
-            'name' => 'Hidden Author',
-            'is_active' => false,
-            'sort_order' => 0,
-        ]);
-
-        $response = $this->get($this->publicEventRoute());
-
-        $response->assertStatus(200);
-        $response->assertDontSee('VIP-Autoren bestätigt!');
-        $response->assertDontSee('Hidden Author');
-    }
-
-    #[Test]
-    public function test_display_name_includes_pseudonym_when_set(): void
-    {
-        $author = FantreffenVipAuthor::create([
-            'name' => 'Oliver Fröhlich',
-            'pseudonym' => 'Ian Rolf Hill',
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
-
-        $this->assertEquals('Oliver Fröhlich („Ian Rolf Hill")', $author->display_name);
-    }
-
-    #[Test]
-    public function test_display_name_shows_only_name_without_pseudonym(): void
-    {
-        $author = FantreffenVipAuthor::create([
-            'name' => 'Jo Zybell',
-            'pseudonym' => null,
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
-
-        $this->assertEquals('Jo Zybell', $author->display_name);
-    }
-}
+    $this->seed(FantreffenPlaywrightSeeder::class);
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['name' => 'Oliver Fröhlich', 'veranstaltung_id' => $legacyVeranstaltung->id]);
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['name' => 'Jo Zybell', 'veranstaltung_id' => $legacyVeranstaltung->id]);
+});
+
+test('vip authors page is accessible for vorstand', function (): void {
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $this->actingAs($vorstand);
+    $response = $this->get($this->vipAuthorsRoute());
+    $response->assertStatus(200);
+});
+
+test('vip authors page is accessible for kassenwart', function (): void {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $this->actingAs($kassenwart);
+    $response = $this->get($this->vipAuthorsRoute());
+    $response->assertStatus(200);
+});
+
+test('vip authors page is not accessible for regular member', function (): void {
+    $member = $this->createUserWithRole(Role::Mitglied);
+    $this->actingAs($member);
+    $response = $this->get($this->vipAuthorsRoute());
+    $response->assertStatus(403);
+});
+
+test('vip authors page is not accessible for guests', function (): void {
+    $response = $this->get($this->vipAuthorsRoute());
+    $response->assertRedirect('/login');
+});
+
+test('admin can create vip author', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('openForm')->set('name', 'Oliver Fröhlich')->set('pseudonym', 'Ian Rolf Hill')->set('is_active', true)->set('sort_order', 0)->call('save')->assertHasNoErrors();
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['name' => 'Oliver Fröhlich', 'pseudonym' => 'Ian Rolf Hill', 'is_active' => true, 'sort_order' => 0]);
+});
+
+test('admin can create vip author with tentative status', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('openForm')->set('name', 'Vorbehalt Autor')->set('pseudonym', '')->set('is_active', true)->set('is_tentative', true)->call('save')->assertHasNoErrors();
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['name' => 'Vorbehalt Autor', 'is_active' => true, 'is_tentative' => true]);
+});
+
+test('admin can create vip author without pseudonym', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('openForm')->set('name', 'Jo Zybell')->set('pseudonym', '')->set('is_active', true)->call('save')->assertHasNoErrors();
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['name' => 'Jo Zybell', 'pseudonym' => null, 'is_active' => true]);
+});
+
+test('admin can edit vip author', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author = FantreffenVipAuthor::create(['name' => 'Original Name', 'pseudonym' => 'Original Pseudo', 'is_active' => true, 'is_tentative' => false, 'sort_order' => 0]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('edit', $author->id)->set('name', 'Updated Name')->set('pseudonym', 'Updated Pseudo')->set('is_tentative', true)->call('save')->assertHasNoErrors();
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['id' => $author->id, 'name' => 'Updated Name', 'pseudonym' => 'Updated Pseudo', 'is_tentative' => true]);
+});
+
+test('admin can delete vip author', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    // Create three authors with consecutive sort_order values
+    $author1 = FantreffenVipAuthor::create(['name' => 'First', 'is_active' => true, 'sort_order' => 0]);
+    $author2 = FantreffenVipAuthor::create(['name' => 'To Delete', 'is_active' => true, 'sort_order' => 1]);
+    $author3 = FantreffenVipAuthor::create(['name' => 'Third', 'is_active' => true, 'sort_order' => 2]);
+    // Delete the middle author
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('delete', $author2->id);
+    // Verify author was deleted
+    $this->assertDatabaseMissing('fantreffen_vip_authors', ['id' => $author2->id]);
+    // Verify sort_order was recompacted (remaining authors should have consecutive values starting from 0)
+    expect($author1->fresh()->sort_order)->toEqual(0);
+    expect($author3->fresh()->sort_order)->toEqual(1);
+});
+
+test('admin can toggle active status', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author = FantreffenVipAuthor::create(['name' => 'Test Author', 'is_active' => true, 'sort_order' => 0]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('toggleActive', $author->id);
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['id' => $author->id, 'is_active' => false]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('toggleActive', $author->id);
+    $this->assertDatabaseHas('fantreffen_vip_authors', ['id' => $author->id, 'is_active' => true]);
+});
+
+test('move up swaps positions correctly', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author1 = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
+    $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('moveUp', $author2->id);
+    expect($author2->fresh()->sort_order)->toEqual(0)
+        ->and($author1->fresh()->sort_order)->toEqual(1);
+});
+
+test('move down swaps positions correctly', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author1 = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
+    $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('moveDown', $author1->id);
+    expect($author1->fresh()->sort_order)->toEqual(1)
+        ->and($author2->fresh()->sort_order)->toEqual(0);
+});
+
+test('move up at top does nothing', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('moveUp', $author->id);
+    expect($author->fresh()->sort_order)->toEqual(0);
+});
+
+test('move down at bottom does nothing', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $author = FantreffenVipAuthor::create(['name' => 'Only', 'sort_order' => 0, 'is_active' => true]);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('moveDown', $author->id);
+    expect($author->fresh()->sort_order)->toEqual(0);
+});
+
+test('name is required', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    Livewire::actingAs($admin)->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])->call('openForm')->set('name', '')->call('save')->assertHasErrors(['name' => 'required']);
+});
+
+test('vip authors displayed on public page', function (): void {
+    FantreffenVipAuthor::create(['name' => 'Oliver Fröhlich', 'pseudonym' => 'Ian Rolf Hill', 'is_active' => true, 'sort_order' => 0]);
+    $response = $this->get($this->publicEventRoute());
+    $response->assertStatus(200);
+    $response->assertSee('Gästeliste');
+    $response->assertSee('Oliver Fröhlich');
+    $response->assertSee('Ian Rolf Hill');
+});
+
+test('tentative vip authors show label and disclaimer on public page', function (): void {
+    FantreffenVipAuthor::create(['name' => 'Vorbehalt Autor', 'pseudonym' => null, 'is_active' => true, 'is_tentative' => true, 'sort_order' => 0]);
+    $response = $this->get($this->publicEventRoute());
+    $response->assertStatus(200);
+    $response->assertSee('Vorbehalt Autor');
+    $response->assertSee('(unter Vorbehalt)');
+    $crawler = new Crawler($response->getContent());
+    expect($crawler->filterXPath('//text()[contains(., "Vorbehalt Autor")]')->count())->toBe(1);
+});
+
+test('inactive vip authors not displayed on public page', function (): void {
+    FantreffenVipAuthor::create(['name' => 'Hidden Author', 'is_active' => false, 'sort_order' => 0]);
+    $response = $this->get($this->publicEventRoute());
+    $response->assertStatus(200);
+    $response->assertDontSee('VIP-Autoren bestätigt!');
+    $response->assertDontSee('Hidden Author');
+});
+
+test('display name includes pseudonym when set', function (): void {
+    $author = FantreffenVipAuthor::create(['name' => 'Oliver Fröhlich', 'pseudonym' => 'Ian Rolf Hill', 'is_active' => true, 'sort_order' => 0]);
+    expect($author->display_name)->toEqual('Oliver Fröhlich („Ian Rolf Hill")');
+});
+
+test('display name shows only name without pseudonym', function (): void {
+    $author = FantreffenVipAuthor::create(['name' => 'Jo Zybell', 'pseudonym' => null, 'is_active' => true, 'sort_order' => 0]);
+    expect($author->display_name)->toEqual('Jo Zybell');
+});

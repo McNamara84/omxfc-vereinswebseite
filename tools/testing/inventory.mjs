@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -82,16 +82,33 @@ export function inventory(root = process.cwd()) {
         const relative = path.relative(root, filename).split(path.sep).join('/');
         if (!/(Test\.php|\.test\.(js|mjs)|\.(spec|benchmark)\.js)$/.test(relative) && relative !== 'tests/Arch.php') return [];
         const source = readFileSync(filename, 'utf8');
+        // File-local fixture traits and abstract transaction contexts carry the
+        // same database/seeder requirements as the Pest tests that use them.
+        const fixtureSources = [];
+        const seen = new Set();
+        const inspectFixtures = text => {
+            for (const match of text.matchAll(/\b([A-Za-z_]\w*Fixtures)::class/g)) {
+                const fixture = path.join(path.dirname(filename), `${match[1]}.php`);
+                if (seen.has(fixture) || !existsSync(fixture)) continue;
+                seen.add(fixture);
+                const contents = readFileSync(fixture, 'utf8');
+                fixtureSources.push(contents);
+                inspectFixtures(contents);
+            }
+        };
+        inspectFixtures(source);
+        const setupSource = [source, ...fixtureSources].join('\n');
         const classMethods = phpTestMethods(source);
         const declaredCases = declaredTestCases(source);
         const directory = relative.split('/')[1];
         let runner = { Unit: 'php-unit', Feature: 'php-feature', Integration: 'php-integration', Vitest: 'vitest', Node: 'node', e2e: 'playwright', Browser: 'pest-browser' }[directory] ?? 'architecture';
         if (/MariaDb/.test(path.basename(filename))) runner = 'mariadb';
         if (relative === 'tests/Integration/TypesenseInternalSnapshotTest.php') runner = 'typesense-manual';
+        if (relative.startsWith('tests/Fixtures/PestDiagnostics/')) runner = 'pest-diagnostic-fixture';
         if (directory === 'Browser' && !relative.endsWith('/ModalBackdropPreviewTest.php')) runner = 'pest-browser-manual';
         if (relative.endsWith('/homepage-performance.benchmark.js')) runner = 'benchmark';
-        const inheritsPestApplication = declaredCases.length > 0 && ['Feature', 'Integration', 'Browser'].includes(directory);
-        return [{ file: relative, runner, laravel: /use Tests\\TestCase;/.test(source) || inheritsPestApplication, database: /use (?:RefreshDatabase|DatabaseTransactions|DatabaseMigrations)/.test(source) || directory === 'Browser', methods: [...new Set([...classMethods, ...declaredCases])], seeders: [...new Set([...source.matchAll(/\b(\w+Seeder)\b/g)].map(match => match[1]))] }];
+        const laravel = /use (?:Tests\\TestCase|Illuminate\\Foundation\\Testing\\TestCase)(?:\s|;)/.test(setupSource) || directory === 'Browser';
+        return [{ file: relative, runner, laravel, database: /\b(?:RefreshDatabase|DatabaseTransactions|DatabaseMigrations|UsesCommittedMembershipDatabase)\b/.test(setupSource) || directory === 'Browser', methods: [...new Set([...classMethods, ...declaredCases])], seeders: [...new Set([...setupSource.matchAll(/\b(\w+Seeder)\b/g)].map(match => match[1]))] }];
     }).sort((a, b) => a.file.localeCompare(b.file));
 }
 

@@ -1,211 +1,91 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Models\Book;
 use App\Services\Maddraxikon\MaddraxikonRefreshLock;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
-class ImportMaddraxBooksCommandTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(ImportMaddraxBooksCommandTestFixtures::class);
 
-    private string $testStoragePath;
+beforeEach(function (): void {
+    $this->testStoragePath = base_path('storage/testing-maddrax-import');
+    $this->app->useStoragePath($this->testStoragePath);
+    File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+    File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->testStoragePath = base_path('storage/testing-maddrax-import');
-        $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
-        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
+afterEach(function (): void {
+    File::deleteDirectory($this->testStoragePath);
+});
+
+test('missing file fails entire import without partial writes', function (): void {
+    $this->writeValidFiles();
+    File::delete(storage_path('app/private/maddrax.json'));
+    $this->artisan('books:import')->expectsOutputToContain('JSON file not found')->expectsOutputToContain('Keine Bücher wurden importiert')->assertFailed();
+    expect(Book::count())->toBe(0);
+});
+
+test('invalid json and missing cycle fail closed', function (): void {
+    $this->writeValidFiles();
+    File::put(storage_path('app/private/maddrax.json'), '{ kaputt');
+    $this->artisan('books:import')->expectsOutputToContain('Invalid JSON')->assertFailed();
+    expect(Book::count())->toBe(0);
+    $this->writeValidFiles();
+    File::put(storage_path('app/private/maddrax.json'), json_encode([$this->row(1, null, 'Ohne Zyklus')]));
+    $this->artisan('books:import')->expectsOutputToContain('hat keinen Zyklus')->assertFailed();
+    expect(Book::count())->toBe(0);
+});
+
+test('import persists cycle and all supported series', function (): void {
+    $this->writeValidFiles();
+    $this->artisan('books:import')->assertSuccessful();
+    foreach (BookType::cases() as $type) {
+        $this->assertDatabaseHas('books', ['roman_number' => 1, 'type' => $type->value]);
     }
+    $this->assertDatabaseHas('books', ['roman_number' => 1, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'cycle' => 'Euree', 'maddraxikon_page_title' => 'MX 1']);
+    expect(Book::count())->toBe(6);
+});
 
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->testStoragePath);
-        parent::tearDown();
+test('duplicate number rejects every series before database write', function (): void {
+    $this->writeValidFiles();
+    File::put(storage_path('app/private/missionmars.json'), json_encode([$this->row(1, null, 'Eins'), $this->row(1, null, 'Doppelt')]));
+    $this->artisan('books:import')->expectsOutputToContain('doppelt')->assertFailed();
+    expect(Book::count())->toBe(0);
+});
+
+test('explicit legacy path is rejected when an active snapshot exists', function (): void {
+    $this->writeValidFiles();
+    $datasets = collect(BookType::cases())->mapWithKeys(fn (BookType $type): array => [$type->key() => [$this->row(1, $type === BookType::MaddraxDieDunkleZukunftDerErde ? 'Weltrat' : null, 'Snapshot '.$type->key())]])->all();
+    $json = collect($datasets)->map(static fn (array $rows): string => (string) json_encode($rows, JSON_THROW_ON_ERROR))->all();
+    DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate('33333333-3333-4333-8333-333333333333', $json));
+    $this->artisan('books:import')->assertSuccessful();
+    $this->assertDatabaseHas('books', ['roman_number' => 1, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'title' => 'Snapshot maddrax', 'cycle' => 'Weltrat']);
+    $this->artisan('books:import', ['--path' => 'private/maddrax.json'])->expectsOutputToContain('expliziter Dateipfad')->assertFailed();
+    $this->assertDatabaseHas('books', ['roman_number' => 1, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'title' => 'Snapshot maddrax', 'cycle' => 'Weltrat']);
+});
+
+test('explicit legacy path remains available before the first snapshot', function (): void {
+    $this->writeValidFiles();
+    File::put(storage_path('app/private/custom-maddrax.json'), json_encode([$this->row(1, 'Weltrat', 'Expliziter Import')]));
+    $this->artisan('books:import', ['--path' => 'private/custom-maddrax.json'])->assertSuccessful();
+    $this->assertDatabaseHas('books', ['roman_number' => 1, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value, 'title' => 'Expliziter Import', 'cycle' => 'Weltrat']);
+});
+
+test('import is rejected while a refresh holds the shared lock', function (): void {
+    $this->writeValidFiles();
+    $lock = app(MaddraxikonRefreshLock::class)->acquire();
+    expect($lock)->not->toBeNull();
+    try {
+        $this->artisan('books:import')->expectsOutputToContain('anderer Maddraxikon-Romandaten-Refresh')->assertFailed();
+    } finally {
+        $lock?->release();
     }
-
-    public function test_missing_file_fails_entire_import_without_partial_writes(): void
-    {
-        $this->writeValidFiles();
-        File::delete(storage_path('app/private/maddrax.json'));
-
-        $this->artisan('books:import')
-            ->expectsOutputToContain('JSON file not found')
-            ->expectsOutputToContain('Keine Bücher wurden importiert')
-            ->assertFailed();
-
-        $this->assertSame(0, Book::count());
-    }
-
-    public function test_invalid_json_and_missing_cycle_fail_closed(): void
-    {
-        $this->writeValidFiles();
-        File::put(storage_path('app/private/maddrax.json'), '{ kaputt');
-
-        $this->artisan('books:import')
-            ->expectsOutputToContain('Invalid JSON')
-            ->assertFailed();
-        $this->assertSame(0, Book::count());
-
-        $this->writeValidFiles();
-        File::put(storage_path('app/private/maddrax.json'), json_encode([
-            $this->row(1, null, 'Ohne Zyklus'),
-        ]));
-
-        $this->artisan('books:import')
-            ->expectsOutputToContain('hat keinen Zyklus')
-            ->assertFailed();
-        $this->assertSame(0, Book::count());
-    }
-
-    public function test_import_persists_cycle_and_all_supported_series(): void
-    {
-        $this->writeValidFiles();
-
-        $this->artisan('books:import')->assertSuccessful();
-
-        foreach (BookType::cases() as $type) {
-            $this->assertDatabaseHas('books', [
-                'roman_number' => 1,
-                'type' => $type->value,
-            ]);
-        }
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'cycle' => 'Euree',
-            'maddraxikon_page_title' => 'MX 1',
-        ]);
-        $this->assertSame(6, Book::count());
-    }
-
-    public function test_duplicate_number_rejects_every_series_before_database_write(): void
-    {
-        $this->writeValidFiles();
-        File::put(storage_path('app/private/missionmars.json'), json_encode([
-            $this->row(1, null, 'Eins'),
-            $this->row(1, null, 'Doppelt'),
-        ]));
-
-        $this->artisan('books:import')
-            ->expectsOutputToContain('doppelt')
-            ->assertFailed();
-
-        $this->assertSame(0, Book::count());
-    }
-
-    public function test_explicit_legacy_path_is_rejected_when_an_active_snapshot_exists(): void
-    {
-        $this->writeValidFiles();
-        $datasets = collect(BookType::cases())
-            ->mapWithKeys(fn (BookType $type): array => [
-                $type->key() => [
-                    $this->row(
-                        1,
-                        $type === BookType::MaddraxDieDunkleZukunftDerErde ? 'Weltrat' : null,
-                        'Snapshot '.$type->key(),
-                    ),
-                ],
-            ])
-            ->all();
-        $json = collect($datasets)
-            ->map(static fn (array $rows): string => (string) json_encode($rows, JSON_THROW_ON_ERROR))
-            ->all();
-
-        DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate(
-            '33333333-3333-4333-8333-333333333333',
-            $json,
-        ));
-
-        $this->artisan('books:import')->assertSuccessful();
-
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'title' => 'Snapshot maddrax',
-            'cycle' => 'Weltrat',
-        ]);
-
-        $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutputToContain('expliziter Dateipfad')
-            ->assertFailed();
-
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'title' => 'Snapshot maddrax',
-            'cycle' => 'Weltrat',
-        ]);
-    }
-
-    public function test_explicit_legacy_path_remains_available_before_the_first_snapshot(): void
-    {
-        $this->writeValidFiles();
-        File::put(storage_path('app/private/custom-maddrax.json'), json_encode([
-            $this->row(1, 'Weltrat', 'Expliziter Import'),
-        ]));
-
-        $this->artisan('books:import', ['--path' => 'private/custom-maddrax.json'])
-            ->assertSuccessful();
-
-        $this->assertDatabaseHas('books', [
-            'roman_number' => 1,
-            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'title' => 'Expliziter Import',
-            'cycle' => 'Weltrat',
-        ]);
-    }
-
-    public function test_import_is_rejected_while_a_refresh_holds_the_shared_lock(): void
-    {
-        $this->writeValidFiles();
-        $lock = app(MaddraxikonRefreshLock::class)->acquire();
-        $this->assertNotNull($lock);
-
-        try {
-            $this->artisan('books:import')
-                ->expectsOutputToContain('anderer Maddraxikon-Romandaten-Refresh')
-                ->assertFailed();
-        } finally {
-            $lock?->release();
-        }
-
-        $this->assertSame(0, Book::count());
-    }
-
-    private function writeValidFiles(): void
-    {
-        $rows = [
-            'maddrax.json' => [$this->row(1, 'Euree', 'Maddrax')],
-            'hardcovers.json' => [$this->row(1, null, 'Hardcover')],
-            'missionmars.json' => [$this->row(1, null, 'Mission Mars')],
-            'volkdertiefe.json' => [$this->row(1, null, 'Das Volk der Tiefe')],
-            '2012.json' => [$this->row(1, null, '2012')],
-            'abenteurer.json' => [$this->row(1, null, 'Die Abenteurer')],
-        ];
-
-        foreach ($rows as $filename => $data) {
-            File::put(storage_path('app/private/'.$filename), json_encode($data));
-        }
-    }
-
-    /** @return array<string, mixed> */
-    private function row(int $number, ?string $cycle, string $title): array
-    {
-        return [
-            'nummer' => $number,
-            'titel' => $title,
-            'zyklus' => $cycle,
-            'text' => ['Autor A', 'Autor B'],
-            'maddraxikon_seitentitel' => 'MX '.$number,
-        ];
-    }
-}
+    expect(Book::count())->toBe(0);
+});

@@ -1,42 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Models\Team;
 use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
-#[CoversClass(MembersTeamProvider::class)]
-class MembersTeamProviderTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_returns_team_when_exists(): void
-    {
-        $service = new MembersTeamProvider;
-        $team = $service->getMembersTeamOrAbort();
+covers(MembersTeamProvider::class);
 
-        $this->assertInstanceOf(Team::class, $team);
-        $this->assertSame('Mitglieder', $team->name);
+test('returns team when exists', function (): void {
+    $service = new MembersTeamProvider;
+    $team = $service->getMembersTeamOrAbort();
+    expect($team)->toBeInstanceOf(Team::class)
+        ->and($team->name)->toBe('Mitglieder');
+});
+
+test('redirects when team missing', function (): void {
+    Team::query()->where('name', 'Mitglieder')->delete();
+    Team::clearMembersTeamCache();
+    session()->start();
+    $service = new MembersTeamProvider;
+    try {
+        $service->getMembersTeamOrAbort();
+        $this->fail('Expected HttpResponseException not thrown');
+    } catch (HttpResponseException $e) {
+        expect($e->getResponse()->headers->get('Location'))->toEqual(url('/'))
+            ->and($e->getResponse()->getSession()->get('error'))->toEqual('Team "Mitglieder" nicht gefunden.');
     }
-
-    public function test_redirects_when_team_missing(): void
-    {
-        Team::query()->where('name', 'Mitglieder')->delete();
-        Team::clearMembersTeamCache();
-        session()->start();
-
-        $service = new MembersTeamProvider;
-
-        try {
-            $service->getMembersTeamOrAbort();
-            $this->fail('Expected HttpResponseException not thrown');
-        } catch (HttpResponseException $e) {
-            $this->assertEquals(url('/'), $e->getResponse()->headers->get('Location'));
-            $this->assertEquals('Team "Mitglieder" nicht gefunden.', $e->getResponse()->getSession()->get('error'));
-        }
-    }
-}
+});

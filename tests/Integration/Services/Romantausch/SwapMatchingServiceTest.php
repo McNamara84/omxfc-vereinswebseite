@@ -1,57 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration\Services\Romantausch;
 
 use App\Services\Romantausch\SwapMatchingService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class SwapMatchingServiceTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(SwapMatchingServiceTestFixtures::class);
 
-    private SwapMatchingService $service;
+beforeEach(function (): void {
+    $this->service = app(SwapMatchingService::class);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->service = app(SwapMatchingService::class);
-    }
+test('build book key format', function (): void {
+    $key = $this->service->buildBookKey('Maddrax', 42);
+    expect($key)->toEqual('Maddrax::42');
+});
 
-    public function test_build_book_key_format(): void
-    {
-        $key = $this->service->buildBookKey('Maddrax', 42);
-        $this->assertEquals('Maddrax::42', $key);
-    }
+test('build book key with special series', function (): void {
+    $key = $this->service->buildBookKey('Das Volk der Tiefe', 1);
+    expect($key)->toEqual('Das Volk der Tiefe::1');
+});
 
-    public function test_build_book_key_with_special_series(): void
-    {
-        $key = $this->service->buildBookKey('Das Volk der Tiefe', 1);
-        $this->assertEquals('Das Volk der Tiefe::1', $key);
-    }
+test('build book key consistency', function (): void {
+    // Gleiche Eingaben sollten immer gleiche Keys erzeugen
+    $key1 = $this->service->buildBookKey('Series', 10);
+    $key2 = $this->service->buildBookKey('Series', 10);
+    expect($key2)->toEqual($key1);
+});
 
-    public function test_build_book_key_consistency(): void
-    {
-        // Gleiche Eingaben sollten immer gleiche Keys erzeugen
-        $key1 = $this->service->buildBookKey('Series', 10);
-        $key2 = $this->service->buildBookKey('Series', 10);
+test('build book key different for different series', function (): void {
+    $key1 = $this->service->buildBookKey('SeriesA', 1);
+    $key2 = $this->service->buildBookKey('SeriesB', 1);
+    expect($key2)->not->toEqual($key1);
+});
 
-        $this->assertEquals($key1, $key2);
-    }
-
-    public function test_build_book_key_different_for_different_series(): void
-    {
-        $key1 = $this->service->buildBookKey('SeriesA', 1);
-        $key2 = $this->service->buildBookKey('SeriesB', 1);
-
-        $this->assertNotEquals($key1, $key2);
-    }
-
-    public function test_build_book_key_different_for_different_numbers(): void
-    {
-        $key1 = $this->service->buildBookKey('Series', 1);
-        $key2 = $this->service->buildBookKey('Series', 2);
-
-        $this->assertNotEquals($key1, $key2);
-    }
-}
+test('build book key different for different numbers', function (): void {
+    $key1 = $this->service->buildBookKey('Series', 1);
+    $key2 = $this->service->buildBookKey('Series', 2);
+    expect($key2)->not->toEqual($key1);
+});

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Team;
@@ -7,92 +9,38 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class PublicPagesContentTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_chronik_page_shows_heading(): void
-    {
-        $this->get('/chronik')
-            ->assertOk()
-            ->assertSee('Chronik des Offiziellen MADDRAX Fanclub e. V.');
-    }
+test('chronik page shows heading', function (): void {
+    $this->get('/chronik')->assertOk()->assertSee('Chronik des Offiziellen MADDRAX Fanclub e. V.');
+});
 
-    public function test_ehrenmitglieder_page_shows_member_names(): void
-    {
-        $this->get('/ehrenmitglieder')
-            ->assertOk()
-            ->assertSee('Ehrenmitglieder')
-            ->assertSee('Michael Edelbrock');
-    }
+test('ehrenmitglieder page shows member names', function (): void {
+    $this->get('/ehrenmitglieder')->assertOk()->assertSee('Ehrenmitglieder')->assertSee('Michael Edelbrock');
+});
 
-    public function test_satzung_page_shows_sections(): void
-    {
-        $this->get('/satzung')
-            ->assertOk()
-            ->assertSee('Satzung des Offiziellen MADDRAX Fanclub e.V.')
-            ->assertSee('§1 Name', false);
-    }
+test('satzung page shows sections', function (): void {
+    $this->get('/satzung')->assertOk()->assertSee('Satzung des Offiziellen MADDRAX Fanclub e.V.')->assertSee('§1 Name', false);
+});
 
-    public function test_mitglied_werden_page_shows_form_fields(): void
-    {
-        $this->get('/mitglied-werden')
-            ->assertOk()
-            ->assertSee('Mitglied werden')
-            ->assertSee('Vorname')
-            ->assertSee('Nachname');
-    }
+test('mitglied werden page shows form fields', function (): void {
+    $this->get('/mitglied-werden')->assertOk()->assertSee('Mitglied werden')->assertSee('Vorname')->assertSee('Nachname');
+});
 
-    public function test_mitglied_werden_erfolgreich_page_shows_success_message(): void
-    {
-        $this->get('/mitglied-werden/erfolgreich')
-            ->assertOk()
-            ->assertSee('Antrag erfolgreich eingereicht');
-    }
+test('mitglied werden erfolgreich page shows success message', function (): void {
+    $this->get('/mitglied-werden/erfolgreich')->assertOk()->assertSee('Antrag erfolgreich eingereicht');
+});
 
-    public function test_mitglied_werden_bestaetigt_page_shows_confirmation_message(): void
-    {
-        $this->get('/mitglied-werden/bestaetigt')
-            ->assertOk()
-            ->assertSee('Vielen Dank für deine Bestätigung!');
-    }
+test('mitglied werden bestaetigt page shows confirmation message', function (): void {
+    $this->get('/mitglied-werden/bestaetigt')->assertOk()->assertSee('Vielen Dank für deine Bestätigung!');
+});
 
-    public function test_spenden_page_shows_heading_and_description(): void
-    {
-        $this->get('/spenden')
-            ->assertOk()
-            ->assertSee('Spenden')
-            ->assertSee('Spenden helfen uns bei der Finanzierung der jährlichen Fantreffen sowie der Serverkosten dieser Webseite')
-            ->assertSee('kassenwart@maddrax-fanclub.de');
-    }
+test('spenden page shows heading and description', function (): void {
+    $this->get('/spenden')->assertOk()->assertSee('Spenden')->assertSee('Spenden helfen uns bei der Finanzierung der jährlichen Fantreffen sowie der Serverkosten dieser Webseite')->assertSee('kassenwart@maddrax-fanclub.de');
+});
 
-    public function test_arbeitsgruppen_page_shows_leader_schedule_and_contact(): void
-    {
-        $leader = User::factory()->create([
-            'name' => 'Martin Gobrecht',
-            'vorname' => 'Martin',
-        ]);
-
-        $ag = Team::factory()->create([
-            'name' => 'AG Öffentlichkeit',
-            'user_id' => $leader->id,
-            'personal_team' => false,
-            'description' => 'Beschreibung der AG',
-            'meeting_schedule' => 'jeden Dienstag',
-            'email' => 'ag@example.com',
-        ]);
-
-        $this->get('/arbeitsgruppen')
-            ->assertOk()
-            ->assertSee('AG Öffentlichkeit')
-            ->assertSee('Beschreibung der AG')
-            ->assertSeeText('Martin')
-            ->assertDontSeeText('Martin Gobrecht')
-            ->assertSee('jeden Dienstag')
-            ->assertSeeText('Kontakt aufnehmen')
-            ->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false)
-            ->assertSee('aria-label="Kontakt zur Arbeitsgruppe AG Öffentlichkeit aufnehmen"', false)
-            ->assertDontSee('ag@example.com', false)
-            ->assertDontSee('mailto:ag@example.com', false);
-    }
-}
+test('arbeitsgruppen page shows leader schedule and contact', function (): void {
+    $leader = User::factory()->create(['name' => 'Martin Gobrecht', 'vorname' => 'Martin']);
+    $ag = Team::factory()->create(['name' => 'AG Öffentlichkeit', 'user_id' => $leader->id, 'personal_team' => false, 'description' => 'Beschreibung der AG', 'meeting_schedule' => 'jeden Dienstag', 'email' => 'ag@example.com']);
+    $this->get('/arbeitsgruppen')->assertOk()->assertSee('AG Öffentlichkeit')->assertSee('Beschreibung der AG')->assertSeeText('Martin')->assertDontSeeText('Martin Gobrecht')->assertSee('jeden Dienstag')->assertSeeText('Kontakt aufnehmen')->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false)->assertSee('aria-label="Kontakt zur Arbeitsgruppe AG Öffentlichkeit aufnehmen"', false)->assertDontSee('ag@example.com', false)->assertDontSee('mailto:ag@example.com', false);
+});

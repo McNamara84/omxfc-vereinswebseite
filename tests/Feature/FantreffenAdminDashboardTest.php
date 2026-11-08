@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -8,791 +10,273 @@ use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
-use App\Models\VeranstaltungsMerchartikel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
-use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
-class FantreffenAdminDashboardTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(FantreffenAdminDashboardTestFixtures::class);
 
-    protected Veranstaltung $veranstaltung;
+beforeEach(function (): void {
+    Config::set('app.testing_minimal_layout', true);
+    $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('admin dashboard is accessible for admin', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $response = $this->get($this->dashboardRoute());
+    $response->assertStatus(200);
+    $response->assertSeeLivewire('fantreffen-admin-dashboard');
+});
 
-        Config::set('app.testing_minimal_layout', true);
-        $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+test('legacy admin dashboard route redirects to canonical event route', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $this->get(route('admin.fantreffen.2026'))->assertRedirect(route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']));
+});
+
+test('admin dashboard is accessible for vorstand', function () {
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $this->actingAs($vorstand);
+    $response = $this->get($this->dashboardRoute());
+    $response->assertStatus(200);
+});
+
+test('admin dashboard is accessible for kassenwart', function () {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $this->actingAs($kassenwart);
+    $response = $this->get($this->dashboardRoute());
+    $response->assertStatus(200);
+});
+
+test('admin dashboard is not accessible for regular member', function () {
+    $member = $this->createUserWithRole(Role::Mitglied);
+    $this->actingAs($member);
+    $response = $this->get($this->dashboardRoute());
+    $response->assertStatus(403);
+});
+
+test('admin dashboard is not accessible for guests', function () {
+    $response = $this->get($this->dashboardRoute());
+    $response->assertRedirect('/login');
+});
+
+test('admin dashboard displays all registrations', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    FantreffenAnmeldung::create(['vorname' => 'Anna', 'nachname' => 'Schmidt', 'email' => 'anna@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 30.0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'M']);
+    $response = $this->get($this->dashboardRoute());
+    $response->assertSee('Max Mustermann');
+    $response->assertSee('max@example.com');
+    $response->assertSee('Anna Schmidt');
+    $response->assertSee('anna@example.com');
+});
+
+test('admin dashboard shows correct statistics', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    $member = User::factory()->create();
+    $member->teams()->attach($team);
+    // 2 Gäste
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    FantreffenAnmeldung::create(['vorname' => 'Anna', 'nachname' => 'Schmidt', 'email' => 'anna@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 30.0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'M']);
+    // 1 Mitglied
+    FantreffenAnmeldung::create(['user_id' => $member->id, 'vorname' => $member->vorname, 'nachname' => $member->nachname, 'email' => $member->email, 'ist_mitglied' => true, 'payment_status' => 'free', 'payment_amount' => 0, 'tshirt_bestellt' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->assertSet('stats.total', 3)->assertSet('stats.mitglieder', 1)->assertSet('stats.gaeste', 2)->assertSet('stats.tshirts', 1)->assertSet('stats.zahlungen_ausstehend', 2)->assertSet('stats.zahlungen_offen_betrag', 35.0);
+});
+
+test('admin can mark member registration as orga team and make it free', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $registration = FantreffenAnmeldung::create(['vorname' => 'Lena', 'nachname' => 'Licht', 'email' => 'lena@example.com', 'ist_mitglied' => true, 'payment_status' => 'pending', 'payment_amount' => 25.0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'L', 'zahlungseingang' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleOrgaTeam', $registration->id);
+    $updatedRegistration = $registration->fresh();
+    expect($updatedRegistration->orga_team)->toBeTrue()
+        ->and($updatedRegistration->payment_status)->toBe('free')
+        ->and($updatedRegistration->zahlungseingang)->toBeTrue()
+        ->and((float) $updatedRegistration->payment_amount)->toEqual(0.0);
+});
+
+test('removing orga team status recalculates member payment', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $zahlungsEvent = Veranstaltung::create(['titel' => 'Orga-Testevent', 'slug' => 'orga-testevent', 'status' => 'veroeffentlicht', 'anmeldung_aktiv' => true, 'zahlung_aktiv' => true, 'tshirt_aktiv' => true, 'tshirt_preis' => 25]);
+    $registration = FantreffenAnmeldung::create(['veranstaltung_id' => $zahlungsEvent->id, 'vorname' => 'Kai', 'nachname' => 'Kraft', 'email' => 'kai@example.com', 'ist_mitglied' => true, 'orga_team' => true, 'payment_status' => 'free', 'payment_amount' => 0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'S', 'zahlungseingang' => true]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $zahlungsEvent])->call('toggleOrgaTeam', $registration->id);
+    $updated = $registration->fresh();
+    expect($updated->orga_team)->toBeFalse()
+        ->and($updated->payment_status)->toBe('pending')
+        ->and($updated->zahlungseingang)->toBeFalse()
+        ->and((float) $updated->payment_amount)->toEqual(25.0);
+});
+
+test('guests cannot be marked as orga team', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $this->actingAs($admin);
+    $registration = FantreffenAnmeldung::create(['vorname' => 'Nico', 'nachname' => 'Nord', 'email' => 'nico@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false, 'zahlungseingang' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleOrgaTeam', $registration->id);
+    $unchanged = $registration->fresh();
+    expect($unchanged->orga_team)->toBeFalse()
+        ->and($unchanged->payment_status)->toBe('pending')
+        ->and($unchanged->zahlungseingang)->toBeFalse();
+});
+
+test('admin can filter by member status', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    $member = User::factory()->create();
+    $member->teams()->attach($team);
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    FantreffenAnmeldung::create(['user_id' => $member->id, 'vorname' => $member->vorname, 'nachname' => $member->nachname, 'email' => $member->email, 'ist_mitglied' => true, 'payment_status' => 'free', 'payment_amount' => 0, 'tshirt_bestellt' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->set('filterMemberStatus', 'mitglieder')->assertSee($member->vorname)->assertDontSee('Max Mustermann');
+});
+
+test('admin can filter by tshirt status', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    FantreffenAnmeldung::create(['vorname' => 'Anna', 'nachname' => 'Schmidt', 'email' => 'anna@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 30.0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'M']);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->set('filterTshirt', 'mit_tshirt')->assertSee('Anna Schmidt')->assertDontSee('Max Mustermann');
+});
+
+test('admin can search by name', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    FantreffenAnmeldung::create(['vorname' => 'Anna', 'nachname' => 'Schmidt', 'email' => 'anna@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->set('search', 'Anna')->assertSee('Anna Schmidt')->assertDontSee('Max Mustermann');
+});
+
+test('admin can toggle zahlungseingang', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $anmeldung = FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false, 'zahlungseingang' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleZahlungseingang', $anmeldung->id);
+    $anmeldung->refresh();
+    expect($anmeldung->zahlungseingang)->toBeTrue();
+    // Toggle wieder zurück
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleZahlungseingang', $anmeldung->id);
+    $anmeldung->refresh();
+    expect($anmeldung->zahlungseingang)->toBeFalse();
+});
+
+test('admin can toggle tshirt fertig', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $anmeldung = FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 30.0, 'tshirt_bestellt' => true, 'tshirt_groesse' => 'L', 'tshirt_fertig' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleTshirtFertig', $anmeldung->id);
+    $anmeldung->refresh();
+    expect($anmeldung->tshirt_fertig)->toBeTrue();
+});
+
+test('admin can toggle specific merch status on order row', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $artikel = $this->createMerchartikel('Stoffbeutel', 12.0);
+    $anmeldung = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Mila', 'nachname' => 'Merch', 'email' => 'mila@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 12.0, 'zahlungseingang' => false]);
+    $bestellung = $anmeldung->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => false]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('toggleMerchFertig', $bestellung->id);
+    expect($bestellung->fresh()->status_erledigt)->toBeTrue();
+});
+
+test('admin can filter by open merch orders', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $artikel = $this->createMerchartikel('Stoffbeutel', 12.0);
+    $offen = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Offen', 'nachname' => 'Bestellt', 'email' => 'offen@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 12.0]);
+    $offen->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => false]);
+    $erledigt = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Erledigt', 'nachname' => 'Bestellt', 'email' => 'erledigt@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 12.0]);
+    $erledigt->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => true]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->set('filterTshirtFertig', 'offen')->assertSee('Offen Bestellt')->assertDontSee('Erledigt Bestellt');
+});
+
+test('admin can filter by completed merch without matching mixed open orders', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $artikel = $this->createMerchartikel('Stoffbeutel', 12.0);
+    $legacyFertig = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Legacy', 'nachname' => 'Fertig', 'email' => 'legacy-fertig@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 25.0, 'tshirt_bestellt' => true, 'tshirt_fertig' => true]);
+    $gemischt = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Gemischt', 'nachname' => 'Offen', 'email' => 'gemischt-offen@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 37.0, 'tshirt_bestellt' => true, 'tshirt_fertig' => true]);
+    $gemischt->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => false]);
+    $vollstaendig = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => 'Vollstaendig', 'nachname' => 'Erledigt', 'email' => 'vollstaendig-erledigt@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 12.0]);
+    $vollstaendig->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => true]);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->set('filterTshirtFertig', 'fertig')->assertSee($legacyFertig->full_name)->assertSee($vollstaendig->full_name)->assertDontSee($gemischt->full_name);
+});
+
+test('admin can export csv', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'mobile' => '0151 12345678', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    // Call exportCsv directly on the component instance
+    $this->actingAs($admin);
+    $livewireComponent = new FantreffenAdminDashboard;
+    $livewireComponent->mount($this->veranstaltung);
+    $response = $livewireComponent->exportCsv();
+    // Check that we got a StreamedResponse
+    expect($response)->toBeInstanceOf(StreamedResponse::class);
+    // Check headers
+    expect($response->headers->get('Content-Type'))->toEqual('text/csv; charset=UTF-8');
+    expect($response->headers->get('Content-Disposition'))->toContain($this->veranstaltung->slug.'-anmeldungen-');
+});
+
+test('admin csv export escapes quotes and sanitizes formula values', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial\\", 12.0);
+    $anmeldung = FantreffenAnmeldung::create(['veranstaltung_id' => $this->veranstaltung->id, 'vorname' => '=SUM(1+1)', 'nachname' => 'Evil', 'email' => 'evil@example.com', 'mobile' => '+4912345', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 12.0, 'zahlungseingang' => false, 'paypal_transaction_id' => '@paypal']);
+    $anmeldung->merchartikelBestellungen()->create(['veranstaltungs_merchartikel_id' => $artikel->id, 'preis_zum_bestellzeitpunkt' => 12.0, 'status_erledigt' => false]);
+    $this->actingAs($admin);
+    $livewireComponent = new FantreffenAdminDashboard;
+    $livewireComponent->mount($this->veranstaltung);
+    $response = $livewireComponent->exportCsv();
+    expect($response)->toBeInstanceOf(StreamedResponse::class);
+    ob_start();
+    $response->sendContent();
+    $csv = (string) ob_get_clean();
+    expect($csv)->toContain("'=SUM(1+1) Evil")
+        ->toContain("'+4912345")
+        ->toContain("'@paypal")
+        ->toContain('Beutel ""Deluxe""')
+        ->toContain('Spezial');
+    $stream = fopen('php://temp', 'w+');
+    fwrite($stream, substr($csv, 3));
+    rewind($stream);
+    $headers = fgetcsv($stream, escape: '');
+    $row = array_combine($headers, fgetcsv($stream, escape: ''));
+    expect($row['Merchandise'])->toBe("Beutel \"Deluxe\"\nSpezial\\")
+        ->and($row['Name'])->toBe("'=SUM(1+1) Evil")
+        ->and($row['Mobil'])->toBe("'+4912345")
+        ->and($row['PayPal ID'])->toBe("'@paypal")
+        ->and(fgetcsv($stream, escape: ''))->toBeFalse();
+    fclose($stream);
+});
+
+test('admin dashboard paginates results', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    // Create 25 registrations (pagination is 20 per page)
+    for ($i = 1; $i <= 25; $i++) {
+        FantreffenAnmeldung::create(['vorname' => "Person{$i}", 'nachname' => 'Test', 'email' => "person{$i}@example.com", 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
     }
-
-    protected function dashboardRoute(): string
-    {
-        return route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => $this->veranstaltung]);
-    }
-
-    protected function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-
-        // Attach user to team with role via pivot table
-        $user->teams()->attach($team->id, [
-            'role' => $role->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return $user;
-    }
-
-    protected function createMerchartikel(string $bezeichnung = 'T-Shirt', float $preis = 25.00, array $varianten = []): VeranstaltungsMerchartikel
-    {
-        $artikel = $this->veranstaltung->merchartikel()->create([
-            'bezeichnung' => $bezeichnung,
-            'preis' => $preis,
-            'sort_order' => 0,
-            'is_active' => true,
-        ]);
-
-        foreach ($varianten as $index => $variante) {
-            $artikel->varianten()->create([
-                'bezeichnung' => $variante,
-                'sort_order' => $index,
-                'is_active' => true,
-            ]);
-        }
-
-        return $artikel;
-    }
-
-    #[Test]
-    public function test_admin_dashboard_is_accessible_for_admin()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertStatus(200);
-        $response->assertSeeLivewire('fantreffen-admin-dashboard');
-    }
-
-    #[Test]
-    public function test_legacy_admin_dashboard_route_redirects_to_canonical_event_route(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $this->get(route('admin.fantreffen.2026'))
-            ->assertRedirect(route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']));
-    }
-
-    #[Test]
-    public function test_admin_dashboard_is_accessible_for_vorstand()
-    {
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-        $this->actingAs($vorstand);
-
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertStatus(200);
-    }
-
-    #[Test]
-    public function test_admin_dashboard_is_accessible_for_kassenwart()
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $this->actingAs($kassenwart);
-
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertStatus(200);
-    }
-
-    #[Test]
-    public function test_admin_dashboard_is_not_accessible_for_regular_member()
-    {
-        $member = $this->createUserWithRole(Role::Mitglied);
-        $this->actingAs($member);
-
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertStatus(403);
-    }
-
-    #[Test]
-    public function test_admin_dashboard_is_not_accessible_for_guests()
-    {
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertRedirect('/login');
-    }
-
-    #[Test]
-    public function test_admin_dashboard_displays_all_registrations()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Anna',
-            'nachname' => 'Schmidt',
-            'email' => 'anna@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 30.00,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'M',
-        ]);
-
-        $response = $this->get($this->dashboardRoute());
-
-        $response->assertSee('Max Mustermann');
-        $response->assertSee('max@example.com');
-        $response->assertSee('Anna Schmidt');
-        $response->assertSee('anna@example.com');
-    }
-
-    #[Test]
-    public function test_admin_dashboard_shows_correct_statistics()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $member = User::factory()->create();
-        $member->teams()->attach($team);
-
-        // 2 Gäste
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Anna',
-            'nachname' => 'Schmidt',
-            'email' => 'anna@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 30.00,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'M',
-        ]);
-
-        // 1 Mitglied
-        FantreffenAnmeldung::create([
-            'user_id' => $member->id,
-            'vorname' => $member->vorname,
-            'nachname' => $member->nachname,
-            'email' => $member->email,
-            'ist_mitglied' => true,
-            'payment_status' => 'free',
-            'payment_amount' => 0,
-            'tshirt_bestellt' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->assertSet('stats.total', 3)
-            ->assertSet('stats.mitglieder', 1)
-            ->assertSet('stats.gaeste', 2)
-            ->assertSet('stats.tshirts', 1)
-            ->assertSet('stats.zahlungen_ausstehend', 2)
-            ->assertSet('stats.zahlungen_offen_betrag', 35.00);
-    }
-
-    #[Test]
-    public function test_admin_can_mark_member_registration_as_orga_team_and_make_it_free()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $registration = FantreffenAnmeldung::create([
-            'vorname' => 'Lena',
-            'nachname' => 'Licht',
-            'email' => 'lena@example.com',
-            'ist_mitglied' => true,
-            'payment_status' => 'pending',
-            'payment_amount' => 25.00,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'L',
-            'zahlungseingang' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleOrgaTeam', $registration->id);
-
-        $updatedRegistration = $registration->fresh();
-
-        $this->assertTrue($updatedRegistration->orga_team);
-        $this->assertSame('free', $updatedRegistration->payment_status);
-        $this->assertTrue($updatedRegistration->zahlungseingang);
-        $this->assertEquals(0.00, (float) $updatedRegistration->payment_amount);
-    }
-
-    #[Test]
-    public function test_removing_orga_team_status_recalculates_member_payment()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $zahlungsEvent = Veranstaltung::create([
-            'titel' => 'Orga-Testevent',
-            'slug' => 'orga-testevent',
-            'status' => 'veroeffentlicht',
-            'anmeldung_aktiv' => true,
-            'zahlung_aktiv' => true,
-            'tshirt_aktiv' => true,
-            'tshirt_preis' => 25,
-        ]);
-
-        $registration = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $zahlungsEvent->id,
-            'vorname' => 'Kai',
-            'nachname' => 'Kraft',
-            'email' => 'kai@example.com',
-            'ist_mitglied' => true,
-            'orga_team' => true,
-            'payment_status' => 'free',
-            'payment_amount' => 0,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'S',
-            'zahlungseingang' => true,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $zahlungsEvent])
-            ->call('toggleOrgaTeam', $registration->id);
-
-        $updated = $registration->fresh();
-        $this->assertFalse($updated->orga_team);
-        $this->assertSame('pending', $updated->payment_status);
-        $this->assertFalse($updated->zahlungseingang);
-        $this->assertEquals(25.00, (float) $updated->payment_amount);
-    }
-
-    #[Test]
-    public function test_guests_cannot_be_marked_as_orga_team()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $this->actingAs($admin);
-
-        $registration = FantreffenAnmeldung::create([
-            'vorname' => 'Nico',
-            'nachname' => 'Nord',
-            'email' => 'nico@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-            'zahlungseingang' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleOrgaTeam', $registration->id);
-
-        $unchanged = $registration->fresh();
-        $this->assertFalse($unchanged->orga_team);
-        $this->assertSame('pending', $unchanged->payment_status);
-        $this->assertFalse($unchanged->zahlungseingang);
-    }
-
-    #[Test]
-    public function test_admin_can_filter_by_member_status()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $member = User::factory()->create();
-        $member->teams()->attach($team);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        FantreffenAnmeldung::create([
-            'user_id' => $member->id,
-            'vorname' => $member->vorname,
-            'nachname' => $member->nachname,
-            'email' => $member->email,
-            'ist_mitglied' => true,
-            'payment_status' => 'free',
-            'payment_amount' => 0,
-            'tshirt_bestellt' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->set('filterMemberStatus', 'mitglieder')
-            ->assertSee($member->vorname)
-            ->assertDontSee('Max Mustermann');
-    }
-
-    #[Test]
-    public function test_admin_can_filter_by_tshirt_status()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Anna',
-            'nachname' => 'Schmidt',
-            'email' => 'anna@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 30.00,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'M',
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->set('filterTshirt', 'mit_tshirt')
-            ->assertSee('Anna Schmidt')
-            ->assertDontSee('Max Mustermann');
-    }
-
-    #[Test]
-    public function test_admin_can_search_by_name()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Anna',
-            'nachname' => 'Schmidt',
-            'email' => 'anna@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->set('search', 'Anna')
-            ->assertSee('Anna Schmidt')
-            ->assertDontSee('Max Mustermann');
-    }
-
-    #[Test]
-    public function test_admin_can_toggle_zahlungseingang()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-            'zahlungseingang' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleZahlungseingang', $anmeldung->id);
-
-        $anmeldung->refresh();
-        $this->assertTrue($anmeldung->zahlungseingang);
-
-        // Toggle wieder zurück
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleZahlungseingang', $anmeldung->id);
-
-        $anmeldung->refresh();
-        $this->assertFalse($anmeldung->zahlungseingang);
-    }
-
-    #[Test]
-    public function test_admin_can_toggle_tshirt_fertig()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 30.00,
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'L',
-            'tshirt_fertig' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleTshirtFertig', $anmeldung->id);
-
-        $anmeldung->refresh();
-        $this->assertTrue($anmeldung->tshirt_fertig);
-    }
-
-    #[Test]
-    public function test_admin_can_toggle_specific_merch_status_on_order_row(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Mila',
-            'nachname' => 'Merch',
-            'email' => 'mila@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 12.00,
-            'zahlungseingang' => false,
-        ]);
-
-        $bestellung = $anmeldung->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => false,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('toggleMerchFertig', $bestellung->id);
-
-        $this->assertTrue($bestellung->fresh()->status_erledigt);
-    }
-
-    #[Test]
-    public function test_admin_can_filter_by_open_merch_orders(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
-
-        $offen = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Offen',
-            'nachname' => 'Bestellt',
-            'email' => 'offen@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 12.00,
-        ]);
-        $offen->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => false,
-        ]);
-
-        $erledigt = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Erledigt',
-            'nachname' => 'Bestellt',
-            'email' => 'erledigt@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 12.00,
-        ]);
-        $erledigt->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => true,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->set('filterTshirtFertig', 'offen')
-            ->assertSee('Offen Bestellt')
-            ->assertDontSee('Erledigt Bestellt');
-    }
-
-    #[Test]
-    public function test_admin_can_filter_by_completed_merch_without_matching_mixed_open_orders(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
-
-        $legacyFertig = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Legacy',
-            'nachname' => 'Fertig',
-            'email' => 'legacy-fertig@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 25.00,
-            'tshirt_bestellt' => true,
-            'tshirt_fertig' => true,
-        ]);
-
-        $gemischt = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Gemischt',
-            'nachname' => 'Offen',
-            'email' => 'gemischt-offen@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 37.00,
-            'tshirt_bestellt' => true,
-            'tshirt_fertig' => true,
-        ]);
-        $gemischt->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => false,
-        ]);
-
-        $vollstaendig = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => 'Vollstaendig',
-            'nachname' => 'Erledigt',
-            'email' => 'vollstaendig-erledigt@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 12.00,
-        ]);
-        $vollstaendig->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => true,
-        ]);
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->set('filterTshirtFertig', 'fertig')
-            ->assertSee($legacyFertig->full_name)
-            ->assertSee($vollstaendig->full_name)
-            ->assertDontSee($gemischt->full_name);
-    }
-
-    #[Test]
-    public function test_admin_can_export_csv()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'mobile' => '0151 12345678',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        // Call exportCsv directly on the component instance
-        $this->actingAs($admin);
-
-        $livewireComponent = new FantreffenAdminDashboard;
-        $livewireComponent->mount($this->veranstaltung);
-        $response = $livewireComponent->exportCsv();
-
-        // Check that we got a StreamedResponse
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-
-        // Check headers
-        $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
-        $this->assertStringContainsString($this->veranstaltung->slug.'-anmeldungen-', $response->headers->get('Content-Disposition'));
-    }
-
-    #[Test]
-    public function test_admin_csv_export_escapes_quotes_and_sanitizes_formula_values(): void
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-        $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial\\", 12.00);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'veranstaltung_id' => $this->veranstaltung->id,
-            'vorname' => '=SUM(1+1)',
-            'nachname' => 'Evil',
-            'email' => 'evil@example.com',
-            'mobile' => '+4912345',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 12.00,
-            'zahlungseingang' => false,
-            'paypal_transaction_id' => '@paypal',
-        ]);
-
-        $anmeldung->merchartikelBestellungen()->create([
-            'veranstaltungs_merchartikel_id' => $artikel->id,
-            'preis_zum_bestellzeitpunkt' => 12.00,
-            'status_erledigt' => false,
-        ]);
-
-        $this->actingAs($admin);
-
-        $livewireComponent = new FantreffenAdminDashboard;
-        $livewireComponent->mount($this->veranstaltung);
-        $response = $livewireComponent->exportCsv();
-
-        $this->assertInstanceOf(StreamedResponse::class, $response);
-
-        ob_start();
-        $response->sendContent();
-        $csv = (string) ob_get_clean();
-
-        $this->assertStringContainsString("'=SUM(1+1) Evil", $csv);
-        $this->assertStringContainsString("'+4912345", $csv);
-        $this->assertStringContainsString("'@paypal", $csv);
-        $this->assertStringContainsString('Beutel ""Deluxe""', $csv);
-        $this->assertStringContainsString('Spezial', $csv);
-        $stream = fopen('php://temp', 'w+');
-        fwrite($stream, substr($csv, 3));
-        rewind($stream);
-        $headers = fgetcsv($stream, escape: '');
-        $row = array_combine($headers, fgetcsv($stream, escape: ''));
-        $this->assertSame("Beutel \"Deluxe\"\nSpezial\\", $row['Merchandise']);
-        $this->assertSame("'=SUM(1+1) Evil", $row['Name']);
-        $this->assertSame("'+4912345", $row['Mobil']);
-        $this->assertSame("'@paypal", $row['PayPal ID']);
-        $this->assertFalse(fgetcsv($stream, escape: ''));
-        fclose($stream);
-    }
-
-    #[Test]
-    public function test_admin_dashboard_paginates_results()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        // Create 25 registrations (pagination is 20 per page)
-        for ($i = 1; $i <= 25; $i++) {
-            FantreffenAnmeldung::create([
-                'vorname' => "Person{$i}",
-                'nachname' => 'Test',
-                'email' => "person{$i}@example.com",
-                'ist_mitglied' => false,
-                'payment_status' => 'pending',
-                'payment_amount' => 5.00,
-                'tshirt_bestellt' => false,
-            ]);
-        }
-
-        $response = $this->actingAs($admin)->get($this->dashboardRoute());
-
-        // Should see latest 20 items first (descending order by creation)
-        $response->assertSee('Person25');
-        $response->assertSee('Person6');
-
-        // Should not see oldest items on first page
-        $response->assertDontSee('person5@example.com');
-        $response->assertDontSee('person1@example.com');
-    }
-
-    #[Test]
-    public function test_admin_can_delete_registration()
-    {
-        $admin = $this->createUserWithRole(Role::Admin);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        $this->assertEquals(1, FantreffenAnmeldung::count());
-
-        Livewire::actingAs($admin)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('deleteAnmeldung', $anmeldung->id);
-
-        $this->assertEquals(0, FantreffenAnmeldung::count());
-    }
-
-    #[Test]
-    public function test_vorstand_can_delete_registration()
-    {
-        $vorstand = $this->createUserWithRole(Role::Vorstand);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        Livewire::actingAs($vorstand)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('deleteAnmeldung', $anmeldung->id);
-
-        $this->assertEquals(0, FantreffenAnmeldung::count());
-    }
-
-    #[Test]
-    public function test_kassenwart_can_delete_registration()
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-
-        $anmeldung = FantreffenAnmeldung::create([
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'ist_mitglied' => false,
-            'payment_status' => 'pending',
-            'payment_amount' => 5.00,
-            'tshirt_bestellt' => false,
-        ]);
-
-        Livewire::actingAs($kassenwart)
-            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
-            ->call('deleteAnmeldung', $anmeldung->id);
-
-        $this->assertEquals(0, FantreffenAnmeldung::count());
-    }
-}
+    $response = $this->actingAs($admin)->get($this->dashboardRoute());
+    // Should see latest 20 items first (descending order by creation)
+    $response->assertSee('Person25');
+    $response->assertSee('Person6');
+    // Should not see oldest items on first page
+    $response->assertDontSee('person5@example.com');
+    $response->assertDontSee('person1@example.com');
+});
+
+test('admin can delete registration', function () {
+    $admin = $this->createUserWithRole(Role::Admin);
+    $anmeldung = FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    expect(FantreffenAnmeldung::count())->toEqual(1);
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('deleteAnmeldung', $anmeldung->id);
+    expect(FantreffenAnmeldung::count())->toEqual(0);
+});
+
+test('vorstand can delete registration', function () {
+    $vorstand = $this->createUserWithRole(Role::Vorstand);
+    $anmeldung = FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    Livewire::actingAs($vorstand)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('deleteAnmeldung', $anmeldung->id);
+    expect(FantreffenAnmeldung::count())->toEqual(0);
+});
+
+test('kassenwart can delete registration', function () {
+    $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+    $anmeldung = FantreffenAnmeldung::create(['vorname' => 'Max', 'nachname' => 'Mustermann', 'email' => 'max@example.com', 'ist_mitglied' => false, 'payment_status' => 'pending', 'payment_amount' => 5.0, 'tshirt_bestellt' => false]);
+    Livewire::actingAs($kassenwart)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])->call('deleteAnmeldung', $anmeldung->id);
+    expect(FantreffenAnmeldung::count())->toEqual(0);
+});
