@@ -4,8 +4,8 @@ namespace Tests\Support;
 
 use App\Models\RpgCharacter;
 use App\Models\RpgInventoryTransaction;
+use App\Services\RpgEquipmentCatalogResolver;
 use App\Services\RpgInventoryService;
-use App\Support\RpgInventoryCatalog;
 use Illuminate\Support\Str;
 
 trait RpgInventoryFixtures
@@ -17,7 +17,7 @@ trait RpgInventoryFixtures
         $character ??= $this->character;
 
         return array_replace(['submission_key' => (string) Str::uuid(), 'revision' => $character->fresh()->revision,
-            'catalog_version' => RpgInventoryCatalog::VERSION, 'kind' => $kind, 'reason' => 'Im Abenteuer ausgespielt.',
+            'catalog_version' => app(RpgEquipmentCatalogResolver::class)->resolve()->version(), 'kind' => $kind, 'reason' => 'Im Abenteuer ausgespielt.',
             'occurred_on' => now()->timezone('Europe/Berlin')->toDateString()], $overrides);
     }
 

@@ -121,7 +121,7 @@ return [
                 [
                     'visible_all' => [['visible_any' => [['vorstand' => true], ['has_non_personal_team' => true]]]],
                     'title' => 'Meine Charaktere',
-                    'route' => 'rpg.characters.index', 'active_patterns' => ['rpg.characters.*', 'rpg.adventures.*', 'rpg.advancements.*', 'rpg.checks.*', 'rpg.combats.*', 'rpg.npcs.*'], 'search_aliases' => ['RPG', 'Rollenspiel', 'Figuren'],
+                    'route' => 'rpg.characters.index', 'active_patterns' => ['rpg.characters.*', 'rpg.adventures.*', 'rpg.advancements.*', 'rpg.checks.*', 'rpg.combats.*', 'rpg.npcs.*', 'rpg.items.*'], 'search_aliases' => ['RPG', 'Rollenspiel', 'Figuren'],
                     'tour_key' => 'teams-characters',
                     'icon' => 'o-identification',
                     'visible_any' => [
@@ -251,6 +251,10 @@ return [
         'rpg.combats.index' => 'Übungskämpfe',
         'rpg.combats.create' => 'Zum Übungskampf herausfordern',
         'rpg.combats.show' => 'Übungskampf',
+        'rpg.items.index' => 'Gegenstände verwalten',
+        'rpg.items.create' => 'Gegenstand entwerfen',
+        'rpg.items.show' => 'Gegenstand',
+        'rpg.items.versions.create' => 'Neue Gegenstandsversion',
         'rpg.npcs.create' => 'NSC erstellen',
         'rpg.npcs.show' => 'NSC',
         'kompendium.admin' => 'Kompendium verwalten',

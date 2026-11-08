@@ -12,6 +12,7 @@ use App\Models\Poll;
 use App\Models\RpgCharacter;
 use App\Models\RpgCheck;
 use App\Models\RpgCombat;
+use App\Models\RpgItemType;
 use App\Models\RpgNpc;
 use App\Models\Team;
 use App\Models\ThreeDModel;
@@ -27,6 +28,7 @@ use App\Policies\PollPolicy;
 use App\Policies\RpgCharacterPolicy;
 use App\Policies\RpgCheckPolicy;
 use App\Policies\RpgCombatPolicy;
+use App\Policies\RpgItemPolicy;
 use App\Policies\RpgNpcPolicy;
 use App\Policies\TeamPolicy;
 use App\Policies\ThreeDModelPolicy;
@@ -68,9 +70,11 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+        Gate::policy(RpgItemType::class, RpgItemPolicy::class);
 
         Gate::define('manage-rpg-experience', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
         Gate::define('manage-rpg-inventory', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
+        Gate::define('manage-rpg-items', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
         Gate::define('access-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isMember($user->id));
         Gate::define('access-rpg-combats', fn (User $user): bool => config('rpg-combat.enabled') && app(RpgAccess::class)->isMember($user->id));
         Gate::define('manage-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));

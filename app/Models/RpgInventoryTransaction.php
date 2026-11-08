@@ -44,7 +44,7 @@ class RpgInventoryTransaction extends Model
         return ['initialize' => 'Bestand übernehmen', 'grant' => 'Vergabe / Fund', 'loss' => 'Verlust / Verbrauch',
             'correct' => 'Bestand korrigieren', 'equip' => 'Ausrüstung anpassen', 'money' => 'Geldbewegung',
             'purchase' => 'Kauf', 'sale' => 'Verkauf', 'swap' => 'Tausch', 'regenerate' => 'Energie regenerieren',
-            'reversal' => 'Rückbuchung', 'advancement' => 'High-Tech-Vorteil'];
+            'reversal' => 'Rückbuchung', 'advancement' => 'High-Tech-Vorteil', 'item_version_change' => 'Gegenstandsversion wechseln'];
     }
 
     public function label(): string

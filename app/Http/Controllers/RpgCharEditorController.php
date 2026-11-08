@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\RpgAccess;
 use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class RpgCharEditorController extends Controller
@@ -44,7 +46,8 @@ class RpgCharEditorController extends Controller
      */
     public function index(Request $request, RpgCharacterSlotService $slotService)
     {
-        $specialRules = RpgCharacterSheetService::specialRuleConfig();
+        $specialRules = app(RpgAccess::class)->isMember($request->user()->id)
+            ? $this->characterSheetService->editorRuleConfig() : self::specialRuleConfig();
 
         return view('rpg.char-editor', [
             'specialRules' => $specialRules,
@@ -59,7 +62,11 @@ class RpgCharEditorController extends Controller
      */
     public function storePdfExport(Request $request)
     {
-        $data = $this->characterSheetService->validatedPdfPayload($request);
+        $data = DB::transaction(function () use ($request): array {
+            app(RpgAccess::class)->team(lock: true);
+
+            return app(RpgCharacterSheetService::class)->validatedPdfPayload($request);
+        });
         $token = (string) Str::uuid();
 
         $this->forgetPreviousPdfExport($request);

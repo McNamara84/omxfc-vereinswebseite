@@ -9,6 +9,7 @@ use App\Services\RpgAccess;
 use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgCharacterProgressionAdapter;
 use App\Services\RpgCharacterSheetService;
+use App\Services\RpgEquipmentCatalogResolver;
 use App\Services\RpgExperienceAwardService;
 use App\Services\RpgProgressionHistory;
 use App\Support\RpgCharEditorEquipment;
@@ -94,7 +95,7 @@ class RpgProgressionController extends Controller
                 ],
                 'advantages' => RpgCharEditorSpecialRules::advantages(),
                 'languages' => $payload['languages'] ?? [],
-                'equipment' => array_values(array_filter(RpgCharEditorEquipment::items(), RpgCharEditorEquipment::requiresHighTechAdvantage(...))),
+                'equipment' => array_values(array_filter(app(RpgEquipmentCatalogResolver::class)->resolve()->items('selection'), RpgCharEditorEquipment::requiresHighTechAdvantage(...))),
                 'renewedOperations' => $renewedOperations,
             ],
         ]);

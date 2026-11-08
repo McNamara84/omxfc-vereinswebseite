@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\RpgCharacterController;
 use App\Models\RpgCharacter;
+use App\Models\RpgItemType;
 use App\Models\User;
 use App\Services\RpgAccess;
 use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgExperienceAwardService;
 use App\Services\RpgInventoryService;
+use App\Services\RpgItemService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +29,19 @@ $data = json_decode(fgets(STDIN), true, flags: JSON_THROW_ON_ERROR);
 try {
     $actor = User::findOrFail($data['actor']);
     $result = match ($data['action']) {
+        'item_configure' => (function () use ($actor, $data) {
+            app(RpgItemService::class)->configure($actor, $data['type'], $data['input']);
+
+            return RpgItemType::findOrFail($data['type']);
+        })(),
+        'character_create' => (function () use ($actor, $data) {
+            $request = Request::create('/rpg/charaktere', 'POST', $data['input']);
+            $request->setUserResolver(fn () => $actor);
+            app(RpgCharacterController::class)->store($request);
+
+            return RpgCharacter::where('user_id', $actor->id)->latest('id')->firstOrFail();
+        })(),
+        'item' => app(RpgItemService::class)->save($actor, $data['input'], $data['type'] ?? null),
         'inventory' => app(RpgInventoryService::class)->book($actor, $data['character'], $data['input']),
         'award' => app(RpgExperienceAwardService::class)->award($actor, $data['input']),
         'submit' => app(RpgCharacterAdvancementService::class)->submit($actor, $data['character'], $data['input']),
@@ -41,6 +59,8 @@ try {
     fwrite(STDOUT, json_encode(['ok' => true, 'id' => $result->id], JSON_THROW_ON_ERROR)."\n");
 } catch (ValidationException $exception) {
     fwrite(STDOUT, json_encode(['ok' => false, 'validation' => $exception->errors()], JSON_THROW_ON_ERROR)."\n");
+} catch (AuthorizationException) {
+    fwrite(STDOUT, json_encode(['ok' => false, 'forbidden' => true])."\n");
 } catch (ModelNotFoundException) {
     fwrite(STDOUT, json_encode(['ok' => false, 'deleted' => true], JSON_THROW_ON_ERROR)."\n");
 } catch (Throwable $exception) {

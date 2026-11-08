@@ -2,11 +2,17 @@
 
 namespace App\Services;
 
-use App\Support\RpgInventoryCatalog;
+use App\Support\RpgEquipmentCatalog;
 
 final class RpgInventoryEvaluator
 {
-    public function __construct(private RpgInventoryAdapter $adapter) {}
+    public function __construct(private RpgInventoryAdapter $adapter, private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+
+    public function useCatalog(RpgEquipmentCatalog $catalog): void
+    {
+        $this->catalog = $catalog;
+        $this->adapter->useCatalog($catalog);
+    }
 
     public function evaluate(array $payload, array $input, ?array $otherPayload = null): array
     {
@@ -21,6 +27,27 @@ final class RpgInventoryEvaluator
         $incoming = $this->quantities($input['incoming']);
         $outgoing = $this->quantities($input['outgoing']);
         $set = $this->quantities($input['set'], zero: true);
+        if ($kind === 'item_version_change') {
+            $this->ensure($amount === null, 'Ein Versionswechsel verändert kein Geld.');
+            $change = $input['version_change'];
+            $source = $this->catalog->positions()[$change['source'] ?? ''] ?? null;
+            $target = $this->catalog->positions()[$change['target'] ?? ''] ?? null;
+            $quantity = $change['quantity'] ?? 0;
+            $this->ensure($source && $target && isset($source['type_id']) && $source['type_id'] === ($target['type_id'] ?? null)
+                && $source['id'] !== $target['id'] && $quantity > 0, 'Quell- und Zielversion müssen zu demselben eigenen Gegenstand gehören.');
+            $this->ensure(($before['stocks'][$change['source']] ?? 0) >= $quantity, 'Nicht genügend Exemplare der Quellversion.');
+            $after['stocks'][$change['source']] -= $quantity;
+            $after['stocks'][$change['target']] = ($after['stocks'][$change['target']] ?? 0) + $quantity;
+            if ($after['stocks'][$change['source']] === 0) {
+                foreach (['armor', 'shield', 'clothing'] as $key) {
+                    if ($after[$key] === $source['id']) {
+                        $after[$key] = $target['id'];
+                    }
+                }
+            }
+        } else {
+            $this->ensure(($input['version_change'] ?? []) === [], 'Versionsangaben sind nur beim Versionswechsel erlaubt.');
+        }
         $this->ensure($input['other_character_id'] === null || $trade, 'Eine Gegenpartei ist nur beim Handel möglich.');
         $this->ensure($trade || ($input['winner'] === 'none' && $input['success_points'] === 0 && $input['external_party'] === '' && $input['price_reason'] === ''), 'Preisangaben sind nur beim Handel möglich.');
         $this->ensure($kind === 'regenerate' || $input['minutes'] === 0, 'Spielminuten sind nur bei Regeneration möglich.');
@@ -31,7 +58,12 @@ final class RpgInventoryEvaluator
         $this->ensure($kind === 'equip' || $input['metadata'] === [], 'Ausrüstungsangaben sind nur beim Ausrüstungswechsel möglich.');
         $this->ensure($kind !== 'regenerate' || ($amount === null && $input['metadata'] === []), 'Regeneration verändert nur die Ladung.');
         foreach ([...array_keys($incoming), ...array_keys($outgoing)] as $id) {
-            $this->ensure(isset(RpgInventoryCatalog::positions()[$id]), 'Unbekannte Katalogposition: '.$id);
+            $this->ensure(isset($this->catalog->positions()[$id]), 'Unbekannte Katalogposition: '.$id);
+        }
+        if ($otherPayload === null) {
+            foreach (array_keys($incoming) as $id) {
+                $this->catalog->assertAvailable($id);
+            }
         }
         // Incoming goods must never fund either participant's outgoing goods.
         $this->ensureOutgoingStock($before['stocks'], $outgoing, 'Charakter');
@@ -42,7 +74,7 @@ final class RpgInventoryEvaluator
             $this->ensureOutgoingStock($otherBefore['stocks'], $incoming, 'Gegenpartei');
         }
         foreach ($set as $id => $quantity) {
-            $this->ensure(isset(RpgInventoryCatalog::positions()[$id]) || (isset($before['stocks'][$id]) && $quantity === 0), 'Unbekannte Katalogposition: '.$id);
+            $this->ensure(isset($this->catalog->positions()[$id]) || (isset($before['stocks'][$id]) && $quantity === 0), 'Unbekannte Katalogposition: '.$id);
             $after['stocks'][$id] = $quantity;
         }
         foreach ($outgoing as $id => $quantity) {
@@ -135,7 +167,7 @@ final class RpgInventoryEvaluator
             $a = $before['stocks'][$id] ?? 0;
             $b = $after['stocks'][$id] ?? 0;
             if ($a !== $b) {
-                $changes[] = ['id' => $id, 'name' => RpgInventoryCatalog::positions()[$id]['name'] ?? $id, 'before' => $a, 'after' => $b];
+                $changes[] = ['id' => $id, 'name' => $this->catalog->positions()[$id]['name'] ?? $id, 'before' => $a, 'after' => $b];
             }
         }
         foreach (['bucks' => 'Bucks', 'confirmed' => 'Bestand bestätigt', 'clothing' => 'Aktive Kleidung', 'armor' => 'Aktive Rüstung', 'shield' => 'Aktiver Schild', 'notes' => 'Notizen'] as $key => $name) {
@@ -166,7 +198,7 @@ final class RpgInventoryEvaluator
     private function ensureOutgoingStock(array $stocks, array $outgoing, string $party): void
     {
         foreach ($outgoing as $id => $quantity) {
-            $this->ensure(($stocks[$id] ?? 0) >= $quantity, 'Nicht genügend Bestand für Warenausgang ('.$party.'): '.RpgInventoryCatalog::positions()[$id]['name']);
+            $this->ensure(($stocks[$id] ?? 0) >= $quantity, 'Nicht genügend Bestand für Warenausgang ('.$party.'): '.$this->catalog->positions()[$id]['name']);
         }
     }
 
@@ -186,7 +218,7 @@ final class RpgInventoryEvaluator
     {
         $sum = 0;
         foreach ($quantities as $id => $quantity) {
-            $value = RpgInventoryCatalog::positions()[$id][$field] ?? null;
+            $value = $this->catalog->positions()[$id][$field] ?? null;
             if ($value === null) {
                 return null;
             }

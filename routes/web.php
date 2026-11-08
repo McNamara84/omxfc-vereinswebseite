@@ -39,6 +39,7 @@ use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\RpgCheckController;
 use App\Http\Controllers\RpgCombatController;
 use App\Http\Controllers\RpgInventoryController;
+use App\Http\Controllers\RpgItemController;
 use App\Http\Controllers\RpgNpcController;
 use App\Http\Controllers\RpgProgressionController;
 use App\Http\Controllers\StatistikController;
@@ -431,6 +432,19 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::get('/{combat}', 'show')->whereNumber('combat')->name('show');
             Route::post('/{combat}/aktion', 'command')->whereNumber('combat')->name('command')->middleware('throttle:60,1');
             Route::post('/{combat}/entscheidung/{decision}', 'decide')->whereNumber(['combat', 'decision'])->name('decide')->middleware('throttle:60,1');
+        });
+
+    Route::prefix('rpg/gegenstaende')->name('rpg.items.')->controller(RpgItemController::class)
+        ->middleware('can:manage-rpg-items')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/neu', 'create')->name('create');
+            Route::post('/vorschau', 'preview')->name('preview')->middleware('throttle:30,1');
+            Route::post('/', 'store')->name('store')->middleware('throttle:30,1');
+            Route::get('/{itemType}', 'show')->whereNumber('itemType')->name('show');
+            Route::get('/{itemType}/versionen/neu', 'create')->whereNumber('itemType')->name('versions.create');
+            Route::post('/{itemType}/versionen/vorschau', 'preview')->whereNumber('itemType')->name('versions.preview');
+            Route::post('/{itemType}/versionen', 'store')->whereNumber('itemType')->name('versions.store');
+            Route::patch('/{itemType}/freigabe', 'configure')->whereNumber('itemType')->name('configure');
         });
 
     Route::prefix('rpg')->controller(RpgInventoryController::class)->group(function () {

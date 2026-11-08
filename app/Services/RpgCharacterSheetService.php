@@ -6,6 +6,7 @@ use App\Support\RpgCharEditorEquipment;
 use App\Support\RpgCharEditorRuleCatalog;
 use App\Support\RpgCharEditorSpecialRules;
 use App\Support\RpgCharEditorTraining;
+use App\Support\RpgEquipmentCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -14,6 +15,8 @@ use Spatie\LaravelPdf\Facades\Pdf;
 
 class RpgCharacterSheetService
 {
+    public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+
     private const ATTRIBUTE_CREATION_POINTS = 2;
 
     private const ATTRIBUTE_BASE_MIN = -1;
@@ -391,8 +394,21 @@ class RpgCharacterSheetService
         ];
     }
 
+    public function editorRuleConfig(): array
+    {
+        return array_replace(self::specialRuleConfig(), ['equipmentRules' => $this->catalog->ruleConfig()]);
+    }
+
     public function validatedPdfPayload(Request $request): array
     {
+        $customSelected = is_string($request->input('clothing')) && str_starts_with($request->input('clothing'), 'custom-');
+        foreach (is_array($request->input('equipment_items')) ? $request->input('equipment_items') : [] as $row) {
+            $customSelected = $customSelected || (is_array($row) && is_string($row['id'] ?? null) && str_starts_with($row['id'], 'custom-'));
+        }
+        if ($customSelected) {
+            abort_unless($request->user() && app(RpgAccess::class)->isMember($request->user()->id), 403);
+            RpgInventoryAdapter::ensure($request->input('equipment_catalog_version') === $this->catalog->version(), 'Die Ausrüstungsfreigabe wurde geändert. Bitte neu laden.');
+        }
         $validCreationLevels = RpgCharEditorSpecialRules::validCreationLevels();
         $maximumSkillPoints = max(array_column(RpgCharEditorSpecialRules::CREATION_LEVELS, 'skillPoints'));
 
@@ -612,7 +628,7 @@ class RpgCharacterSheetService
         }
         $character = is_array($data['character'] ?? null) ? $data['character'] : [];
         $name = Str::slug((string) ($character['character_name'] ?? 'charakter')) ?: 'charakter';
-        $combat = (new RpgCharacterCombatCalculator)->calculate($data);
+        $combat = (new RpgCharacterCombatCalculator($this->catalog))->calculate($data);
         $data['combat'] = $combat;
         $data['sheet'] = (new RpgCharacterSheetPresenter)->present($data, $combat); // @pest-ignore-profanity -- Structured character-sheet payload key.
         $data['sheet'] = (new RpgCharacterSheetLayoutService)->prepare($data['sheet']); // @pest-ignore-profanity -- Structured character-sheet payload key.
@@ -2166,8 +2182,8 @@ class RpgCharacterSheetService
 
     private function validateEquipmentRules(string $clothing, array $equipmentItems, array $advantages, string $activeArmorId = '', string $activeShieldId = '', bool $creationV2 = false): void
     {
-        $clothingMap = RpgCharEditorEquipment::clothingMap();
-        $itemMap = RpgCharEditorEquipment::itemMap();
+        $clothingMap = $this->catalog->clothingMap('creation');
+        $itemMap = $this->catalog->itemMap('creation');
 
         if (! array_key_exists($clothing, $clothingMap)) {
             throw ValidationException::withMessages([
@@ -2176,8 +2192,11 @@ class RpgCharacterSheetService
         }
 
         $total = 0;
-        $highTechTotal = 0;
+        $highTechTotal = RpgCharEditorEquipment::requiresHighTechAdvantage($clothingMap[$clothing]) ? 1 : 0;
         $hasHighTechAdvantage = in_array(RpgCharEditorEquipment::HIGH_TECH_ADVANTAGE, $advantages, true);
+        if ($highTechTotal > 0 && ! $hasHighTechAdvantage) {
+            throw ValidationException::withMessages(['clothing' => 'High-Tech-Kleidung benötigt den Vorteil High-Tech-Ausrüstung.']);
+        }
 
         foreach ($equipmentItems as $equipmentItem) {
             $id = (string) ($equipmentItem['id'] ?? '');
@@ -2292,8 +2311,8 @@ class RpgCharacterSheetService
 
     private function equipmentExportPayload(string $clothing, array $equipmentItems, string $notes, string $activeArmorId = '', string $activeShieldId = ''): array
     {
-        $clothingMap = RpgCharEditorEquipment::clothingMap();
-        $itemMap = RpgCharEditorEquipment::itemMap();
+        $clothingMap = $this->catalog->clothingMap('creation');
+        $itemMap = $this->catalog->itemMap('creation');
         $categories = RpgCharEditorEquipment::categories();
         $exportItems = [];
 
@@ -2330,7 +2349,7 @@ class RpgCharacterSheetService
 
     public function equipmentAmmunitionPayload(array $equipmentItems): array
     {
-        $itemMap = RpgCharEditorEquipment::itemMap();
+        $itemMap = $this->catalog->itemMap('creation');
         $payload = [];
 
         foreach ($equipmentItems as $equipmentItem) {
@@ -2341,7 +2360,7 @@ class RpgCharacterSheetService
             }
 
             $item = $itemMap[$id];
-            $ammunition = $item['ammunition'] ?? null;
+            $ammunition = isset($item['ammunitionProfile']) ? ['amount' => $item['ammunitionProfile']['starting'], 'unit' => $this->catalog->ammunition()[$item['ammunitionProfile']['id']]['unit']] : ($item['ammunition'] ?? null);
 
             if (! is_array($ammunition)) {
                 continue;

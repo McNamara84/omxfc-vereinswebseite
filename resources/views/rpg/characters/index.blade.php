@@ -7,6 +7,8 @@
             data-testid="rpg-characters-header"
         >
             <x-slot:actions>
+                @can('manage-rpg-items')<a href="{{ route('rpg.items.index') }}" class="btn btn-outline">Gegenstände verwalten</a>@endcan
+
                 @can('manage-rpg-npcs')<a href="{{ route('rpg.npcs.create') }}" class="btn btn-outline">NSC aus Regelwerk erstellen</a>@endcan
                 @can('access-rpg-checks')
                     @can('access-rpg-combats')<a href="{{ route('rpg.combats.index') }}" class="btn btn-outline">Übungskämpfe</a>@endcan

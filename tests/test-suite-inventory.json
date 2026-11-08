@@ -49,18 +49,6 @@
     "seeders": []
   },
   {
-    "file": "tests/Feature/RpgInventoryControllerTest.php",
-    "runner": "php-feature",
-    "laravel": true,
-    "database": true,
-    "methods": [
-      "test_inventory_index_displays_the_actual_owner_name",
-      "test_inventory_counterparties_display_the_actual_owner_name",
-      "test_inventory_search_uses_existing_owner_fields_and_keeps_the_team_scope"
-    ],
-    "seeders": []
-  },
-  {
     "file": "tests/e2e/accessibility-homepage.spec.js",
     "runner": "playwright",
     "laravel": false,
@@ -91,6 +79,18 @@
       "loads with collapsed filter and shows sections in requested order",
       "admin can filter and accept challenges",
       "member can focus on own challenges and release one"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/bildersuche.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "AG members search combinations, filter series and preview covers accessibly",
+      "members purchase once and keep access after a reload",
+      "locked members can find the menu entry but cannot retrieve cover images"
     ],
     "seeders": []
   },
@@ -202,7 +202,8 @@
     "database": false,
     "methods": [
       "admin sees dashboard insights, applicants and verification task",
-      "member sees dashboard without applicant management"
+      "member sees dashboard without applicant management",
+      "mobile task cards keep their text and badges inside the dashboard panel"
     ],
     "seeders": []
   },
@@ -222,6 +223,10 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "public form ${path} keeps visible labels in accessible names",
+      "meeting rhythm help is keyboard accessible and preserves the selected week",
+      "search loading indicator remains visible in forced colors",
+      "mary tabs keep badges and independent table sorting through updates",
       "profile hints work with keyboard and click, have unique IDs and survive navigation",
       "dashboard renders its accessible placeholder before the deferred feed request completes"
     ],
@@ -249,7 +254,7 @@
       "Teaser-Seite zeigt Hinweis für Gäste",
       "Gast kann Teaser erweitern (LocalStorage)",
       "Vorstand-Menü enthält Fanfiction-Unterpunkt",
-      "Community-Menü enthält Fanfiction-Unterpunkt",
+      "Lesen & Entdecken enthält Fanfiction-Unterpunkt",
       "Vorstand kann Fanfiction-Verwaltung aufrufen",
       "Vorstand sieht Liste der Fanfictions mit Status",
       "Vorstand kann neue Fanfiction erstellen",
@@ -298,6 +303,29 @@
       "Neuer VIP-Autor kann angelegt werden",
       "Validierung verhindert leeren Namen",
       "Abbrechen-Button schließt das Formular"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/feature-lifecycle.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "ordinary pages and locked feature pages exclude heavy modules",
+      "maps, charts and RPG survive Livewire navigation and browser history",
+      "navigation cancels a delayed RPG import and the next visit initializes once",
+      "failed feature imports offer a working retry"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/feature-performance.benchmark.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "measures five cold contexts and warm feature navigation with production assets"
     ],
     "seeders": []
   },
@@ -418,11 +446,29 @@
     "seeders": []
   },
   {
+    "file": "tests/e2e/maddraxikon-streak.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "Unverknüpftes Mitglied findet den Einstieg auf allen drei Seiten",
+      "Bestätigte Serie ist mobil und am Desktop bedienbar und verständlich",
+      "Erkannte Aktivität bleibt bis zur Prüfung als vorläufig markiert",
+      "Korrekturen zeigen Tagesanspruch und tatsächlichen Baxx-Abzug",
+      "Dark Mode und reduzierte Bewegung behalten lesbare Zustände"
+    ],
+    "seeders": [
+      "MaddraxikonStreakPlaywrightSeeder"
+    ]
+  },
+  {
     "file": "tests/e2e/member-navigation.spec.js",
     "runner": "playwright",
     "laravel": false,
     "database": false,
     "methods": [
+      "unconfirmed ${role} retains desktop navigation after reload and Livewire navigation",
+      "unconfirmed member can use and reopen the mobile drawer after navigation",
       "member shell exposes a collapsible desktop sidebar with one active link",
       "mobile member drawer opens, closes with escape and closes after navigation",
       "member navigation transitions only the content region and respects reduced motion",
@@ -430,6 +476,18 @@
       "authenticated users retain the public navbar on public routes"
     ],
     "seeders": []
+  },
+  {
+    "file": "tests/e2e/membership-context.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "team switch preserves the distinction between active-team and club permissions"
+    ],
+    "seeders": [
+      "MembershipContextPlaywrightSeeder"
+    ]
   },
   {
     "file": "tests/e2e/meta-description.spec.js",
@@ -538,6 +596,24 @@
     "seeders": []
   },
   {
+    "file": "tests/e2e/navigation-search.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "unconfirmed member searches authorized targets and switches between public and member areas",
+      "guest search, encoded input, no results, keyboard selection and focus return",
+      "search reports network failures separately and can retry",
+      "member can search from public pages and switch between both site areas",
+      "public mobile menu closes with Escape and focus returns to its toggle",
+      "search opened with ${shortcut} from a mobile drawer link returns focus to the search button",
+      "search dialog is accessible in ${theme} and keeps one focus surface on mobile",
+      "skip link reaches actual content and fanfiction preview has the public shell",
+      "public navigation stays within its viewport for guests and members"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/e2e/navigation.spec.js",
     "runner": "playwright",
     "laravel": false,
@@ -545,6 +621,29 @@
     "methods": [
       "navbar link navigates to Mitglied werden page",
       "mobile navigation groups quick links and sections"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/profile-tour-layout.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "profile tour leaves centered controls clickable and keeps invitations centered"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/profile-tour.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "profile tour guides real saved input and rewards once (${mobile ? 'mobile' : 'desktop'})",
+      "incomplete tour remains open and Later can be resumed",
+      "an already complete profile with old tour completion earns the new bonus",
+      "completion recovers after the final progress request fails"
     ],
     "seeders": []
   },
@@ -641,6 +740,16 @@
       "leader manages persistent ammunition and trade while owner reads the updated PDF",
       "reversal shows authoritative differences and mobile forms remain accessible",
       "catalogue search and character barter show both sides before booking"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/rpg-items.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "leader designs, releases and versions equipment while existing stock keeps its values"
     ],
     "seeders": []
   },
@@ -744,6 +853,43 @@
     ]
   },
   {
+    "file": "tests/e2e/ux-pages.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "navigation and quick-action labels remain readable across responsive boundaries",
+      "public pages retain a usable layout at narrow widths",
+      "all menu destinations render for ${role}"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/ux-roles.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "UX role ${role}: desktop, mobile, permissions and public return",
+      "UX guests: direct destinations, manual gallery, membership and search",
+      "UX member: breadcrumbs, dark mode and keyboard search"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/e2e/ux-workflows.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "membership validation preserves values and focuses linked server errors",
+      "review editing protects unsaved text and saves without an extra leave prompt",
+      "governance can reach pending challenges and confirm a completion",
+      "mobile dashboard quick actions precede statistics and anchor opens governance details"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/e2e/veranstaltungs-baxx.spec.js",
     "runner": "playwright",
     "laravel": false,
@@ -763,6 +909,19 @@
     "methods": [
       "member can submit anonymous feedback and the affordance then disappears",
       "closing the dialog keeps the button and returns keyboard focus"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/AccessibleFormErrorFieldTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_error_fields_use_explicit_names_bindings_and_html_names_without_null",
+      "test_unnamed_controls_do_not_read_unrelated_validation_errors",
+      "test_html_name_associates_validation_feedback_with_the_actual_input",
+      "test_console_textarea_does_not_read_unrelated_validation_errors"
     ],
     "seeders": []
   },
@@ -872,6 +1031,8 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_command_starting_creates_fresh_console_and_scheduler_execution_context",
+      "test_guest_layout_component_preserves_page_metadata_and_content",
       "test_password_reset_does_not_change_existing_verified_timestamp",
       "test_social_image_defaults_to_logo_when_no_image_provided",
       "test_social_image_uses_asset_for_relative_path",
@@ -1039,6 +1200,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_invalid_username_types_are_validated_without_php_deprecations",
       "test_login_screen_can_be_rendered",
       "test_users_can_authenticate_using_the_login_screen",
       "test_users_can_not_authenticate_with_invalid_password",
@@ -1070,6 +1232,21 @@
       "test_command_backfills_publication_dates_from_metadata",
       "test_command_updates_timestamp_when_backfilling_publication_date",
       "test_command_does_not_overwrite_existing_publication_dates"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/BaxxMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_parallel_acceptance_has_one_owner_and_one_activity",
+      "test_parallel_verification_books_once",
+      "test_verification_racing_deletion_leaves_no_orphan_booking",
+      "test_parallel_reviews_cross_the_tenth_review_only_once",
+      "test_parallel_mission_completion_books_once",
+      "test_parallel_publication_and_special_offer_activation_are_single_use"
     ],
     "seeders": []
   },
@@ -1136,6 +1313,9 @@
       "test_belohnungen_shows_help_text",
       "test_belohnungen_shows_available_baxx",
       "test_belohnungen_shows_rewards_grouped_by_category",
+      "test_bildersuche_category_obeys_the_same_visibility_as_its_reward",
+      "test_category_remains_available_when_it_contains_another_visible_reward",
+      "test_category_selection_does_not_remove_other_visible_categories",
       "test_purchase_reward_deducts_baxx",
       "test_belohnungen_uses_members_team_wallet_when_current_team_differs",
       "test_belohnungen_shows_wallet_warning_for_ambiguous_legacy_purchase",
@@ -1149,6 +1329,103 @@
     "seeders": [
       "RewardSeeder"
     ]
+  },
+  {
+    "file": "tests/Feature/BildersucheAccessTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_member_without_purchase_sees_only_unlock_and_cannot_search_or_open_images",
+      "test_ag_member_can_search_preview_and_follow_a_safe_source_link_without_purchase",
+      "test_ag_access_matches_the_applications_email_verification_requirement",
+      "test_member_without_email_confirmation_can_purchase_bildersuche_access",
+      "test_purchase_unlocks_immediately_and_does_not_allow_a_second_charge",
+      "test_general_rewards_purchase_also_unlocks_the_search",
+      "test_ag_members_cannot_be_charged_through_either_purchase_path",
+      "test_insufficient_baxx_and_disabled_rewards_do_not_create_purchases",
+      "test_same_name_and_personal_teams_do_not_grant_free_access",
+      "test_trusted_ag_identity_survives_rename_but_not_membership_removal",
+      "test_missing_or_invalid_ag_identity_never_falls_back_to_the_name",
+      "test_existing_kompendium_purchase_does_not_unlock_bildersuche",
+      "test_purchase_rechecks_reward_state_after_acquiring_the_wallet_lock",
+      "test_inactive_reward_preserves_existing_access_but_refund_revokes_it",
+      "test_revocation_is_checked_again_on_livewire_requests_and_conditional_images",
+      "test_images_validate_variant_file_and_source_mapping",
+      "test_url_queries_validation_and_pagination_are_preserved",
+      "test_empty_inventory_and_unavailable_preview_are_handled",
+      "test_each_search_request_fetches_the_paginator_and_relationships_only_once",
+      "test_preview_id_cannot_be_injected",
+      "test_ag_team_switch_preserves_member_access_and_excludes_applicants_and_outsiders",
+      "test_menu_is_available_for_eligible_members_and_feature_switch_is_respected",
+      "test_reward_migration_reapplication_restores_availability_and_keeps_customizations_and_purchases",
+      "test_reward_migration_preserves_an_existing_admin_deactivation",
+      "test_admin_saving_inactive_status_after_rollback_prevents_reactivation"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/BildersucheMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_parallel_first_purchases_cannot_duplicate_or_overdraw_the_wallet"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/BildersucheSearchTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_search_matches_all_terms_in_cover_keywords",
+      "test_special_characters_and_accents_are_literal",
+      "test_excludes_untagged_unready_unmapped_and_title_only_matches",
+      "test_filters_all_supported_series_and_paginates_without_duplicates",
+      "test_invalid_requests_are_rejected"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/BookCoverKeywordSyncTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_updates_removals_deduplicates_and_recognizes_unchanged_keywords",
+      "test_failure_preserves_keywords_and_last_successful_time",
+      "test_dry_run_and_source_race_never_overwrite_persisted_keywords",
+      "test_database_error_rolls_back_the_whole_keyword_replacement",
+      "test_keywords_belong_to_the_cover_and_are_deleted_with_it",
+      "test_new_source_stays_unsearchable_until_its_own_keywords_are_synced",
+      "test_runner_updates_keywords_for_unchanged_images_and_preserves_actual_source_on_change",
+      "test_failed_image_lookup_still_updates_existing_keyword_sources",
+      "test_runner_loads_keyword_covers_once_per_batch_instead_of_per_book",
+      "test_runner_reads_new_and_replaced_covers_after_image_synchronization",
+      "test_disabled_keyword_sync_does_not_load_covers_or_fetch_keywords",
+      "test_runner_dry_run_checks_new_sources_without_creating_rows",
+      "test_dry_run_keeps_the_rated_cover_source_when_a_change_is_refused",
+      "test_overlapping_manual_and_queue_runs_are_rejected",
+      "test_command_fails_when_only_keywords_failed",
+      "test_queue_reports_keyword_failures_as_failed_jobs",
+      "test_runner_releases_shared_lock_after_an_exception"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/BookCoverSyncDeadlineTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_expired_budget_releases_the_lock_and_allows_another_run",
+      "test_timeout_in_each_phase_releases_the_lock_and_preserves_keywords",
+      "test_deadline_after_the_last_image_is_not_reported_as_success",
+      "test_download_timeout_preserves_cover_state_and_does_not_process_images"
+    ],
+    "seeders": []
   },
   {
     "file": "tests/Feature/BookCoverSynchronizationTest.php",
@@ -1457,7 +1734,7 @@
     "methods": [
       "test_guest_still_sees_public_homepage",
       "test_verified_member_is_redirected_from_homepage_to_dashboard",
-      "test_unverified_member_still_sees_public_homepage",
+      "test_member_without_email_confirmation_can_enter_dashboard_and_explicitly_visit_public_homepage",
       "test_applicant_is_not_redirected_into_protected_dashboard",
       "test_user_without_current_team_is_not_redirected",
       "test_verified_member_without_current_team_cannot_open_dashboard_directly",
@@ -1499,7 +1776,7 @@
     "laravel": true,
     "database": true,
     "methods": [
-      "test_dashboard_renders_three_compact_metric_groups_with_four_metrics_each",
+      "test_dashboard_prioritizes_quick_actions_and_keeps_all_twelve_metrics",
       "test_dashboard_shows_applicants_for_privileged_roles",
       "test_dashboard_hides_applicants_for_regular_members",
       "test_dashboard_shows_pending_verification_task",
@@ -2078,7 +2355,10 @@
     "laravel": true,
     "database": true,
     "methods": [
-      "test_old_reviews_are_imported_from_csv"
+      "test_old_reviews_are_imported_from_csv",
+      "test_legacy_csv_import_preserves_quotes_backslashes_and_multiline_content",
+      "test_fresh_import_preserves_reviews_and_unrelated_baxx_when_provenance_is_unknown",
+      "test_fresh_import_without_bookings_only_resets_members_team_reviews"
     ],
     "seeders": []
   },
@@ -3007,6 +3287,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_calculator_orders_equal_instants_by_revision_id_before_selecting_boundary_sizes",
       "test_calculator_sums_supplied_revision_deltas_and_uses_highest_matching_tier",
       "test_calculator_never_rewards_negative_growth_or_a_value_below_first_tier",
       "test_calculator_fails_closed_when_any_contribution_size_is_missing",
@@ -3086,6 +3367,129 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/MaddraxikonStreakActivationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_config_defaults_to_enabled_and_still_honors_explicit_false",
+      "test_deployment_activates_panel_and_persists_an_immutable_start_without_env_date",
+      "test_existing_series_and_recovery_progress_are_preserved",
+      "test_explicitly_disabled_rollout_creates_no_activation_or_import_state",
+      "test_explicit_start_survives_removing_the_optional_env_override",
+      "test_first_scheduled_import_covers_launch_but_never_awards_prelaunch_activity",
+      "test_changed_configuration_preserves_rollout_imports_and_display",
+      "test_disabled_deployment_can_activate_later_without_rerunning_migrations",
+      "test_runtime_activation_preserves_existing_import_and_recovery_boundaries",
+      "test_runtime_activation_recovers_missing_sync_state_without_moving_a_pinned_start",
+      "test_explicit_start_outside_recent_changes_retention_requires_recovery_instead_of_skipping_history",
+      "test_preview_and_status_do_not_initialize_a_later_activation",
+      "test_activation_preserves_an_existing_initial_boundary_or_open_recovery_without_a_watermark",
+      "test_invalid_activation_configuration_rolls_back_all_bootstrap_writes"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MaddraxikonStreakEpochBackfillTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_backfill_preserves_the_existing_legacy_timezone_interpretation",
+      "test_backfill_processes_multiple_batches_without_rewriting_known_epochs_or_other_fields"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MaddraxikonStreakMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_competing_evaluators_and_rechecks_book_each_difference_once",
+      "test_disconnecting_while_workers_wait_for_api_prevents_new_payouts",
+      "test_competing_first_activations_persist_one_rollout_and_matching_import_boundary"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MaddraxikonStreakServiceTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_epoch_backfill_allows_legacy_discovery_without_bypassing_rollout_or_verification_delay",
+      "test_backfilled_legacy_sources_block_incomplete_reconciliation_and_remain_visible_in_summary",
+      "test_five_days_restart_and_duplicate_runs",
+      "test_multiple_small_edits_and_article_pay_only_one_daily_bonus_outside_regular_cap",
+      "test_thirty_days_have_no_bonus_cap",
+      "test_reverted_middle_day_recalculates_followers_and_restoration_is_idempotent",
+      "test_other_valid_source_preserves_day_after_deletion",
+      "test_late_import_bridges_series_and_pays_only_differences",
+      "test_twenty_four_hours_are_independent_of_session_deadline",
+      "test_midnight_edits_in_one_session_count_as_two_days",
+      "test_pending_predecessor_prevents_premature_smaller_bonus",
+      "test_recovery_unknown_bot_can_be_resolved_without_touching_regular_rewards",
+      "test_disabled_feature_never_pays",
+      "test_prelaunch_activity_does_not_count",
+      "test_recovery_or_missing_initial_coverage_prevents_invented_gaps",
+      "test_api_failure_keeps_confirmed_points_and_can_retry",
+      "test_bounded_batches_resume_and_unknown_days_do_not_starve_later_days",
+      "test_reconciliation_uses_constant_contribution_queries_per_batch",
+      "test_grouped_sources_stay_scoped_to_the_member_wiki_and_day",
+      "test_reconciliation_with_no_days_clears_the_dirty_cursor_without_awards",
+      "test_read_only_preview_makes_no_changes",
+      "test_start_cannot_be_changed_after_tracking",
+      "test_disconnected_and_ineligible_members_receive_no_new_bonus",
+      "test_historical_rechecks_correct_paid_days_after_eligibility_ends",
+      "test_positive_corrections_require_current_identity_evidence_for_each_day",
+      "test_rollback_and_redeployment_preserve_the_complete_streak_journal_and_source_snapshots",
+      "test_unchanged_rechecks_refresh_evidence_without_rewriting_settled_days",
+      "test_unchanged_historical_check_does_not_rewind_an_ongoing_correction",
+      "test_unchanged_pending_evidence_preserves_forward_progress_and_pending_cursor",
+      "test_transaction_rolls_back_when_booking_fails",
+      "test_invalid_sources_never_secure_a_day",
+      "test_incomplete_identity_keeps_existing_bonus",
+      "test_local_days_across_clock_and_year_changes",
+      "test_repeated_autumn_hour_counts_only_once",
+      "test_spent_points_and_later_inactivity_do_not_prevent_owed_reversal",
+      "test_only_an_admin_can_attest_recovery_evidence",
+      "test_preview_command_and_invalid_date_arguments",
+      "test_reconsent_preserves_import_boundary_but_reconnection_excludes_the_gap",
+      "test_exact_launch_and_verification_boundaries_and_maintenance_import",
+      "test_api_response_without_explicit_missing_markers_preserves_existing_points",
+      "test_jobs_and_command_process_and_recheck_real_bonuses",
+      "test_recently_successful_but_backlogged_import_does_not_reset_displayed_series",
+      "test_scoped_recheck_is_explicitly_rejected_except_for_local_preview",
+      "test_recent_watermark_before_local_midnight_preserves_last_confirmed_series",
+      "test_valid_source_waiting_for_its_reconciliation_batch_is_not_a_known_gap",
+      "test_confirmed_gap_resets_display_even_when_another_old_day_is_pending",
+      "test_long_correction_resumes_after_failure_without_losing_or_duplicating_points",
+      "test_catch_up_waits_for_untracked_sources_and_preserves_the_complete_sequence",
+      "test_manual_recalculation_respects_pause_and_coverage_and_uses_frozen_start",
+      "test_incomplete_check_results_never_reverse_existing_points",
+      "test_recovery_attestation_requires_reason_and_a_matching_recovery_source"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MaddraxikonStreakUiTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_unlinked_member_sees_call_to_action_in_all_three_entry_points",
+      "test_disabled_and_ineligible_states_hide_the_panel",
+      "test_linked_panel_shows_record_next_bonus_and_only_own_data",
+      "test_stale_sync_does_not_claim_a_broken_series",
+      "test_fresh_import_before_midnight_displays_delayed_instead_of_a_new_series",
+      "test_valid_evidence_awaiting_reconciliation_displays_pending_activity",
+      "test_guest_cannot_read_component",
+      "test_admin_controls_require_role_and_audited_recovery_reason"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/MaddraxiversumControllerTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -3133,7 +3537,11 @@
     "database": true,
     "methods": [
       "test_real_mary_controls_have_the_visible_label_as_accessible_name",
-      "test_explicit_accessible_names_are_preserved_and_popover_ids_are_unique"
+      "test_explicit_accessible_names_are_preserved_and_popover_ids_are_unique",
+      "test_server_rendered_select_keeps_its_name_selection_and_disabled_options",
+      "test_server_rendered_select_preserves_help_references_and_links_its_feedback",
+      "test_existing_help_is_only_extended_by_present_errors_and_hints",
+      "test_view_and_closure_templates_are_preserved_by_the_field_adapter"
     ],
     "seeders": []
   },
@@ -3149,6 +3557,7 @@
       "test_admin_page_redirects_unauthenticated",
       "test_admin_can_create_meeting",
       "test_admin_page_hides_form_until_opened",
+      "test_rhythm_help_preserves_visible_instructions_and_selected_week",
       "test_vorstand_can_update_meeting",
       "test_validation_depends_on_rhythm_type",
       "test_calculable_rhythm_requires_start_time",
@@ -3209,6 +3618,44 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/MembershipContextLifecycleTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_two_http_requests_and_user_switches_use_new_data",
+      "test_unsafe_http_requests_always_read_fresh_membership",
+      "test_exception_resets_http_context_and_restores_memoization",
+      "test_livewire_followup_request_observes_revoked_privilege",
+      "test_job_boundaries_discard_context_on_success_and_failure",
+      "test_commands_reset_context_before_and_after_execution"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MembershipContextMutationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_pivot_mutations_invalidate_roles_and_all_observed_relations",
+      "test_switching_team_updates_observed_instances_without_changing_members_role",
+      "test_renaming_and_replacing_members_team_invalidates_named_checks",
+      "test_owner_change_updates_observed_team_and_ownership_checks",
+      "test_team_creation_invalidates_a_previously_missing_ownership_lookup",
+      "test_explicit_members_team_reset_also_discards_request_role_data",
+      "test_transactions_discard_cached_reads_and_never_publish_rolled_back_data",
+      "test_transaction_commit_invalidates_even_without_an_intermediate_context_read",
+      "test_transaction_retry_does_not_reuse_failed_attempt_data",
+      "test_rollback_of_new_team_does_not_restore_a_nonexistent_row",
+      "test_locked_decision_ignores_previously_cached_role",
+      "test_rolled_back_team_switch_and_owner_change_restore_observed_models",
+      "test_nested_fresh_scope_restores_read_caching_after_exception",
+      "test_poll_legacy_fallback_keeps_its_existing_team_scope"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/MembershipMailTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -3226,6 +3673,8 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_cached_role_cannot_override_demotion_committed_by_an_independent_process",
+      "test_raw_role_adapter_preserves_mariadb_collation",
       "test_pending_demotion_serializes_against_maddraxikon_reward_decision"
     ],
     "seeders": []
@@ -3266,6 +3715,7 @@
     "methods": [
       "test_export_csv_requires_proper_role",
       "test_export_csv_returns_csv_for_kassenwart",
+      "test_csv_export_roundtrips_quotes_backslashes_multiline_text_and_empty_fields",
       "test_get_all_emails_returns_only_for_privileged_roles",
       "test_index_renders_copy_email_button_only_for_privileged_roles",
       "test_higher_rank_user_can_change_member_role",
@@ -3403,6 +3853,16 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/NavigationContextTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_navigation_and_dashboard_agree_on_email_verification"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/NavigationMenuTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -3410,6 +3870,7 @@
     "methods": [
       "test_guest_navigation_uses_public_sections_and_featured_actions",
       "test_navigation_component_renders_member_sidebar_variant",
+      "test_member_pages_render_role_based_sidebar_with_or_without_email_confirmation",
       "test_navigation_component_renders_member_profile_variant",
       "test_navigation_view_renders_guest_profile_placeholder",
       "test_navigation_component_falls_back_to_public_variant_for_unknown_input",
@@ -3419,7 +3880,7 @@
       "test_member_navigation_shows_reorganized_sections_without_governance_links",
       "test_admin_navigation_shows_governance_sections",
       "test_management_user_with_other_active_team_still_sees_event_management_link_in_navigation",
-      "test_navigation_builder_loads_team_visibility_state_only_once_per_build",
+      "test_navigation_builder_has_bounded_queries_with_fresh_transactional_role_reads",
       "test_member_sidebar_entries_have_explicit_icons",
       "test_ag_rollenspiel_member_sees_character_editor_in_teams_section",
       "test_global_admin_with_different_current_team_sees_character_editor_in_teams_section_only",
@@ -3432,6 +3893,7 @@
       "test_guests_see_termine_link_in_navigation",
       "test_mobile_menu_button_has_static_accessibility_text_before_alpine_initialization",
       "test_authenticated_profile_menu_uses_an_accessible_mary_dropdown_trigger",
+      "test_member_profile_menu_includes_its_visible_name_in_the_accessible_name",
       "test_admin_users_see_admin_menu_with_statistik_link",
       "test_newsletter_link_is_listed_under_vorstand_for_admin_and_vorstand_only",
       "test_non_admin_users_do_not_see_admin_menu",
@@ -3444,13 +3906,41 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/NavigationSearchTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_navigation_builder_rejects_unknown_scopes_and_denies_member_tree_to_guests",
+      "test_dynamic_labels_empty_sections_and_nested_visibility_cannot_expose_hidden_targets",
+      "test_members_find_existing_and_new_names",
+      "test_empty_short_or_unknown_queries_have_no_results",
+      "test_invalid_search_input_is_rejected",
+      "test_overlong_query_is_rejected_without_redirect",
+      "test_direct_guest_requests_cannot_select_members_or_admin_scope",
+      "test_member_cannot_find_admin_or_rpg_targets",
+      "test_applicants_only_search_public_targets",
+      "test_members_without_email_confirmation_find_member_targets",
+      "test_missing_current_team_membership_or_gate_denial_prevents_member_search",
+      "test_admin_search_uses_existing_role_rules",
+      "test_search_rechecks_role_after_a_change_and_has_private_cache_headers",
+      "test_audio_umlauts_rpg_and_duplicate_compendium_follow_ag_memberships",
+      "test_search_obeys_feature_flags_and_limits_and_ranks_results",
+      "test_internal_poll_stays_out_of_public_menu_and_guest_search_and_labels_are_escaped",
+      "test_public_and_member_shells_have_one_search_and_correct_context_switches",
+      "test_subpage_has_only_its_own_active_location"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/NavigationTourMarkupTest.php",
     "runner": "php-feature",
     "laravel": true,
     "database": true,
     "methods": [
       "test_member_navigation_renders_tour_runner_and_navigation_anchors",
-      "test_main_navigation_tour_uses_version_six_and_shared_sidebar_selectors",
+      "test_main_navigation_tour_uses_version_eight_and_shared_sidebar_selectors",
+      "test_bildersuche_tour_step_matches_its_navigation_anchor_and_feature_flag",
       "test_character_tour_anchor_matches_visible_navigation_and_reveal_targets"
     ],
     "seeders": []
@@ -3577,6 +4067,18 @@
     "methods": [
       "test_termine_page_contains_calendar_links",
       "test_changelog_page_contains_release_notes_container"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/PageNavigationPollTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_public_poll_page_uses_the_dynamic_menu_label_for_its_breadcrumb",
+      "test_member_page_navigation_uses_the_active_poll_label",
+      "test_public_page_navigation_hides_polls_outside_its_visibility_and_voting_window"
     ],
     "seeders": []
   },
@@ -3717,6 +4219,51 @@
     "database": true,
     "methods": [
       "test_profile_settings_page_uses_modernized_shell_sections"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/ProfileTourCompletionTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_first_completion_books_five_points_in_members_team_and_retry_is_stable",
+      "test_reward_status_reads_grants_without_schema_lookups",
+      "test_missing_reward_grants_migration_is_not_reported_as_unrewarded",
+      "test_completion_results_keep_assignments_persistable_without_response_attributes",
+      "test_every_missing_saved_field_prevents_completion",
+      "test_incomplete_tour_can_be_resumed_and_rewarded_later",
+      "test_unstarted_tour_or_missing_completion_step_cannot_claim_reward",
+      "test_previous_completion_does_not_exclude_reward_but_stale_request_is_rejected",
+      "test_restarts_and_later_versions_never_pay_again",
+      "test_foreign_or_no_longer_active_member_cannot_claim",
+      "test_grant_failure_rolls_back_booking_and_completion_and_allows_retry",
+      "test_deleted_booking_or_assignment_does_not_remove_once_only_proof",
+      "test_invitation_does_not_start_tour_and_resume_removes_suppression",
+      "test_old_open_assignment_does_not_reset_current_completed_assignment"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/ProfileTourMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_completion_is_atomic_against_concurrent_action"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/ProfileTourRolloutMigrationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_rollout_assigns_all_active_roles_once_and_preserves_current_progress",
+      "test_fresh_install_without_members_team_is_safe",
+      "test_new_members_still_receive_current_profile_tour"
     ],
     "seeders": []
   },
@@ -4023,6 +4570,7 @@
       "test_complete_swap_marks_entries_completed",
       "test_create_offer_page_is_accessible",
       "test_create_offer_page_displays_consistent_reward_rule_copy",
+      "test_offer_form_refresh_reads_reward_rule_changes",
       "test_store_offer_creates_entry",
       "test_store_offer_creates_entry_for_mission_mars",
       "test_store_offer_creates_entry_for_2012_mini_series",
@@ -4068,6 +4616,75 @@
       "test_store_offer_uses_fallback_name_when_slug_empty",
       "test_store_offer_handles_photo_upload_failure",
       "test_update_offer_allows_replacing_removed_photos_until_limit"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RomantauschMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_parallel_creations_cross_a_threshold_only_once",
+      "test_parallel_matchers_create_one_reciprocal_pair_and_two_notifications",
+      "test_parallel_confirmations_award_each_participant_once",
+      "test_confirmation_against_manual_completion_is_idempotent",
+      "test_matching_against_source_mutation_remains_consistent",
+      "test_bundle_change_against_matching_rechecks_current_state",
+      "test_bundle_change_against_deletion_never_recreates_deleted_sources"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RomantauschReviewRegressionTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_bundle_form_displays_and_can_remove_the_entire_photo_union",
+      "test_condition_only_bundle_edit_preserves_different_photos_within_the_limit",
+      "test_confirmation_returns_not_found_when_a_source_disappears_before_eager_loading",
+      "test_photo_cleanup_checks_exact_references_without_loading_the_offer_history",
+      "test_deleting_a_matched_source_displays_a_cancellation_in_the_dashboard"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RomantauschWorkflowTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_opening_a_blocked_form_redirects_with_an_error",
+      "test_lazy_components_show_a_skeleton_until_loaded",
+      "test_guest_has_no_personal_offers_or_requests",
+      "test_advertised_series_are_selectable_and_accepted_by_the_http_adapter",
+      "test_form_rechecks_state_when_saving",
+      "test_manual_completion_requires_club_management",
+      "test_management_role_in_other_team_does_not_grant_manual_completion",
+      "test_club_manager_can_complete_with_another_current_team",
+      "test_outsider_cannot_confirm_through_either_adapter",
+      "test_completion_is_idempotent_across_both_adapters_and_confirmation",
+      "test_existing_match_is_completed_instead_of_duplicated",
+      "test_wrong_pair_and_already_assigned_source_are_rejected",
+      "test_disabled_rule_never_promises_a_fixed_reward",
+      "test_update_failure_preserves_old_photos_and_removes_new_upload",
+      "test_failed_bundle_activity_rolls_back_offers_points_and_uploads",
+      "test_matching_failure_keeps_committed_source_and_photos",
+      "test_outer_rollback_removes_uploaded_files_and_never_runs_matching",
+      "test_shared_photo_survives_until_its_last_source_is_deleted",
+      "test_all_legacy_write_routes_remain_functional",
+      "test_bundle_rechecks_state_and_retains_its_saved_series",
+      "test_single_deletion_of_completed_source_keeps_historical_points",
+      "test_bundle_rejects_reversed_condition_range_without_writing",
+      "test_completed_unassigned_source_cannot_be_completed_again",
+      "test_existing_photos_count_towards_the_limit_for_http_and_livewire",
+      "test_matching_failure_is_also_displayed_after_livewire_save",
+      "test_bundle_candidate_failure_preserves_all_committed_sources",
+      "test_duplicate_match_attempt_and_mail_failure_do_not_duplicate_swaps",
+      "test_deleted_source_is_ignored_by_a_later_matching_attempt",
+      "test_reward_panel_uses_current_rules_and_disabled_rule_text",
+      "test_many_requests_from_one_owner_do_not_repeat_inventory_queries"
     ],
     "seeders": []
   },
@@ -4188,6 +4805,7 @@
       "test_pdf_export_limits_high_tech_equipment_to_four_with_advantage",
       "test_pdf_export_get_route_can_be_opened_repeatedly_by_pdf_viewers",
       "test_real_pdf_exports_use_a_writable_private_font_cache_for_repeated_rendering",
+      "test_editor_pdf_fits_the_description_without_shortening_the_cached_source",
       "test_pdf_export_replaces_previous_cached_payload_when_new_export_is_created",
       "test_pdf_export_get_route_is_scoped_to_exporting_user",
       "test_pdf_export_get_route_rejects_unknown_tokens",
@@ -4472,6 +5090,18 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/RpgInventoryControllerTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_inventory_index_displays_the_actual_owner_name",
+      "test_inventory_counterparties_display_the_actual_owner_name",
+      "test_inventory_search_uses_existing_owner_fields_and_keeps_the_team_scope"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/RpgInventoryIntegrityTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -4549,6 +5179,54 @@
       "test_overlapping_swaps_remain_valid_when_both_characters_own_the_outgoing_goods",
       "test_insufficient_counterparty_stock_rolls_back_both_sides",
       "test_invalid_trade_has_no_partial_money_or_goods_changes"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgItemManagementTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_only_active_leader_can_manage_and_http_roundtrip_is_idempotent",
+      "test_forged_values_stale_previews_and_foreign_type_fail",
+      "test_preview_and_save_use_one_transaction_each_and_version_retries_remain_idempotent",
+      "test_versions_freeze_values_and_explicit_switch_is_reversible",
+      "test_start_release_archive_and_old_inventory_have_distinct_contexts",
+      "test_persisted_versions_reject_mutation",
+      "test_armor_switch_updates_active_version_without_rewriting_earlier_entries",
+      "test_own_clothing_can_be_equipped_and_switched",
+      "test_new_ammunition_is_stable_across_versions_and_never_refilled_by_a_switch",
+      "test_archived_old_version_can_still_be_transferred_and_rendered_as_pdf",
+      "test_creation_and_direct_export_require_current_start_release",
+      "test_catalog_resolver_without_an_rpg_team_preserves_the_base_catalog"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgItemMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_simultaneous_retries_create_exactly_one_type_and_version",
+      "test_competing_new_versions_cannot_overwrite_or_reuse_a_number",
+      "test_publish_against_grant_preserves_the_explicit_version",
+      "test_competing_switches_cannot_duplicate_or_lose_items",
+      "test_release_change_invalidates_a_pending_version_preview",
+      "test_withdrawing_start_release_against_character_creation_is_atomic"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgItemMigrationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_rollback_accepts_missing_or_empty_tables",
+      "test_rollback_preserves_all_tables_when_any_existing_table_has_data",
+      "test_an_empty_schema_can_be_recreated_after_rollback"
     ],
     "seeders": []
   },
@@ -4735,6 +5413,22 @@
       "test_it_does_not_send_when_no_admin_recipient_exists",
       "test_failed_delivery_is_logged_without_starting_another_report",
       "test_it_exposes_operational_queue_tags"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/SeriesProfileTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_series_form_copy_uses_the_computed_completion_total",
+      "test_catalog_options_exclude_missing_values_and_normalize_concrete_choices",
+      "test_catalog_with_only_missing_metadata_produces_empty_option_lists",
+      "test_optional_partial_save_preserves_other_fields_and_never_awards_baxx",
+      "test_historical_choice_is_displayed_and_can_be_saved_without_catalog",
+      "test_changed_unknown_dropdown_value_is_rejected_and_not_saved",
+      "test_mutation_validation_and_whitespace_normalization"
     ],
     "seeders": []
   },
@@ -5057,9 +5751,13 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_assign_if_missing_recovers_when_another_request_inserts_after_the_lookup",
+      "test_profile_overview_exposes_the_central_reward_and_required_field_count",
+      "test_unrewarded_completion_and_retry_return_persistable_assignments",
       "test_current_promptable_assignment_upgrades_outdated_assignment_to_current_version",
-      "test_current_promptable_assignment_uses_creation_order_as_tiebreaker",
-      "test_reassign_resets_existing_assignment_state"
+      "test_profile_campaign_invitation_takes_priority_over_older_navigation_tour",
+      "test_reassign_resets_existing_assignment_state",
+      "test_ineligible_profile_tours_are_excluded_before_selection_and_upgrade"
     ],
     "seeders": []
   },
@@ -5070,14 +5768,20 @@
     "database": true,
     "methods": [
       "test_current_returns_open_tour_payload_for_authenticated_member",
+      "test_former_members_do_not_receive_profile_invitations_and_cannot_mutate_them",
       "test_current_conditionally_includes_cover_ratings_navigation_step",
       "test_current_upgrades_outdated_assignment_before_returning_payload",
+      "test_bildersuche_step_is_available_only_when_enabled_after_upgrading_the_previous_tour",
       "test_progress_starts_tour_and_updates_current_step",
       "test_previous_navigation_tour_upgrades_and_accepts_character_step_progress",
       "test_progress_rejects_step_key_outside_tour_definition",
       "test_dismiss_suppresses_tour_for_current_session",
       "test_complete_marks_tour_completed_and_hides_it_from_current_payload",
       "test_member_can_restart_own_tour_from_selfservice",
+      "test_resume_rejects_other_tours_without_mutating_assignments_or_session",
+      "test_resume_rejects_another_members_profile_tour",
+      "test_ineligible_users_cannot_create_or_reset_profile_tours",
+      "test_eligible_member_roles_can_restart_the_profile_tour",
       "test_restart_rejects_unknown_tour_key",
       "test_restart_rejects_non_self_service_tour_key",
       "test_member_cannot_control_foreign_assignment",
@@ -5093,6 +5797,9 @@
     "methods": [
       "test_profile_page_shows_tour_selfservice_panel",
       "test_profile_page_renders_without_tour_assignments_table",
+      "test_completion_note_requires_an_eligible_members_team_role",
+      "test_profile_reward_copy_uses_overview_amount_and_field_count",
+      "test_profile_tour_actions_require_an_eligible_members_team_role",
       "test_vorstand_can_view_tour_admin_page",
       "test_vorstand_can_reassign_tour_for_member",
       "test_vorstand_can_assign_profile_tour_for_member",
@@ -5195,7 +5902,8 @@
     "laravel": true,
     "database": true,
     "methods": [
-      "test_mount_populates_initial_state_and_lists",
+      "test_mount_populates_initial_state_and_renders_catalog_options",
+      "test_only_profile_state_is_serialized_on_mount_validation_and_save",
       "test_seriendaten_can_be_updated"
     ],
     "seeders": []
@@ -5239,6 +5947,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_milestone_callback_tolerates_a_user_deleted_before_locking",
       "test_user_point_can_be_created",
       "test_user_point_relations_return_models",
       "test_total_points_for_team_returns_sum",
@@ -5252,6 +5961,29 @@
       "test_existing_history_does_not_create_retroactive_baxx_milestones_when_feature_starts_late"
     ],
     "seeders": []
+  },
+  {
+    "file": "tests/Feature/UxNavigationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_public_single_destinations_are_direct_and_searchable",
+      "test_quick_actions_follow_existing_permissions",
+      "test_missing_email_confirmation_does_not_change_role_based_shortcuts",
+      "test_applicants_and_revoked_gate_get_no_shortcuts",
+      "test_other_current_team_does_not_gain_governance_shortcuts",
+      "test_public_context_has_fixed_return_link_only_for_eligible_members",
+      "test_breadcrumbs_use_authorized_parents_and_plain_group_labels",
+      "test_dashboard_breadcrumb_is_empty_and_titles_do_not_expose_route_code",
+      "test_preview_admin_accounts_cannot_be_seeded_outside_testing",
+      "test_disabled_database_maintenance_is_hidden_from_admin_navigation_and_search",
+      "test_pending_challenge_with_missing_completion_date_remains_reviewable",
+      "test_real_mary_fields_keep_explicit_ids_and_announce_errors"
+    ],
+    "seeders": [
+      "UxPreviewSeeder"
+    ]
   },
   {
     "file": "tests/Feature/VeranstaltungAnmeldungTest.php",
@@ -5468,6 +6200,50 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/BaxxBoundaryTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_rule_adapters_return_current_models_and_expired_offers_disappear",
+      "test_review_without_a_wallet_does_not_book_but_explicit_team_still_works",
+      "test_empty_romantausch_batches_do_not_create_progress_or_points",
+      "test_disabled_cover_reward_advances_progress_without_backpay_after_activation",
+      "test_missing_members_team_rolls_back_cover_progress_instead_of_using_another_wallet",
+      "test_missing_members_team_prevents_maddraxikon_awards",
+      "test_todo_form_redirects_foreign_team_challenges_without_loading_their_fields",
+      "test_review_form_requires_an_existing_book_or_review",
+      "test_user_wallet_helpers_follow_purchase_and_refund",
+      "test_retained_controller_uses_the_same_publication_contract",
+      "test_retained_controller_rolls_back_story_creation_when_publication_fails",
+      "test_publication_invalidates_the_count_only_after_commit",
+      "test_unfinished_missions_never_book_points",
+      "test_special_offer_service_rejects_nonpositive_rewards_without_ui_validation"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/BaxxWorkflowTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_rule_resolution_sees_edits_and_expiry_in_the_same_service_instance",
+      "test_progress_never_moves_backwards_or_resets_on_repeated_lock",
+      "test_booking_preserves_signed_amount_team_and_historical_time",
+      "test_verification_rolls_back_status_and_activity_when_booking_fails",
+      "test_verification_is_single_use_and_deletion_removes_its_booking",
+      "test_other_team_admin_cannot_verify_members_team_challenges",
+      "test_review_and_activity_roll_back_with_failed_award",
+      "test_live_review_repetition_is_rejected_but_historical_counts_keep_their_time",
+      "test_mission_completion_books_once_even_when_retried",
+      "test_mission_completion_rolls_back_when_booking_fails",
+      "test_livewire_publication_uses_the_configured_rule",
+      "test_special_offer_manager_rejects_overlap_and_expired_activation"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/BrowserStatsServiceTest.php",
     "runner": "php-integration",
     "laravel": true,
@@ -5510,6 +6286,19 @@
       "test_processor_preserves_transparency_in_each_independent_variant",
       "test_processor_applies_exif_orientation_before_scaling_each_variant",
       "test_processor_rejects_undecodable_content_without_leaving_files"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/CoverSyncHttpDeadlineTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_expired_budget_prevents_any_http_request",
+      "test_all_http_requests_are_capped_to_the_remaining_budget",
+      "test_expiry_during_http_stops_continuations_and_connection_retries",
+      "test_retry_backoff_that_exceeds_the_budget_aborts_without_another_attempt"
     ],
     "seeders": []
   },
@@ -5975,7 +6764,24 @@
       "test_resolves_query_only_followup_against_the_current_category",
       "test_detects_pagination_loop",
       "test_missing_followup_page_aborts_after_retries",
-      "test_followup_link_on_a_different_port_is_rejected_without_fetching_it"
+      "test_followup_link_on_a_different_port_is_rejected_without_fetching_it",
+      "test_nul_query_parameters_are_rejected_before_php_query_parsing"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/MaddraxikonCoverKeywordsTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_fetches_structured_keywords_and_preserves_explicit_empty_lists",
+      "test_follows_smw_continuation",
+      "test_invalid_or_partial_responses_never_become_empty_keywords",
+      "test_repeated_pages_in_a_continuation_invalidate_the_whole_batch",
+      "test_aliases_share_one_result_and_invalid_keywords_do_not_discard_other_files",
+      "test_unsafe_titles_are_not_sent_and_empty_input_has_no_network_calls",
+      "test_batches_and_deduplicates_titles_and_reports_http_failures"
     ],
     "seeders": []
   },
@@ -6066,6 +6872,23 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/MaddraxikonStreakApiTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_omitted_revision_is_a_technical_error_not_a_reversal",
+      "test_explicitly_missing_revision_is_authoritative_even_without_pages",
+      "test_mixed_batches_preserve_visible_and_explicitly_missing_revisions",
+      "test_explicit_missing_entries_do_not_hide_an_omitted_revision_in_a_mixed_batch",
+      "test_visible_revision_and_explicitly_deleted_page_are_normalized",
+      "test_omitted_page_does_not_mean_deleted_page",
+      "test_empty_id_batches_make_no_requests",
+      "test_missing_tags_cannot_make_a_reverted_revision_eligible"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/MaddraxiversumBaxxServiceTest.php",
     "runner": "php-integration",
     "laravel": true,
@@ -6083,6 +6906,16 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/MarkdownEncodingTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_unicode_and_entities_survive_sanitizing_without_reviving_unsafe_html"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/MeetingScheduleServiceTest.php",
     "runner": "php-integration",
     "laravel": true,
@@ -6094,6 +6927,29 @@
       "test_it_keeps_local_wall_clock_time_across_dst_for_weekly_meetings",
       "test_it_returns_null_for_calculable_meeting_without_start_time",
       "test_it_returns_null_for_note_only_meetings"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/MembershipContextTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_all_adapters_share_one_lookup_across_model_instances",
+      "test_invalid_roles_are_distinct_from_missing_membership",
+      "test_raw_strings_preserve_sql_comparison_and_cache_negative_results",
+      "test_missing_membership_is_memoized_and_does_not_grant_owner_role",
+      "test_active_team_and_members_team_and_other_users_are_separate",
+      "test_navigation_keeps_first_matching_members_team_when_legacy_names_are_duplicated",
+      "test_navigation_build_reuses_team_data_in_a_cacheable_read_scope",
+      "test_connections_with_identical_ids_are_separate",
+      "test_native_token_permissions_are_preserved",
+      "test_raw_role_check_rejects_an_orphaned_pivot_while_typed_adapter_keeps_its_contract",
+      "test_user_without_active_or_members_team_has_no_role",
+      "test_explicit_fresh_read_discards_an_earlier_snapshot",
+      "test_fresh_read_prevents_navigation_from_restoring_revoked_roles",
+      "test_fresh_scope_keeps_raw_sql_and_named_membership_checks_current"
     ],
     "seeders": []
   },
@@ -6155,6 +7011,29 @@
     "methods": [
       "test_protokolle_view_contains_expected_structure",
       "test_download_protokoll_streams_file_from_private_disk"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/Php86IntegrityTest.php",
+    "runner": "php-integration",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_integrity_checks_preserve_the_manifest_and_detect_lockfile_tampering"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/PhpDeprecationGuardTest.php",
+    "runner": "php-integration",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_the_test_bootstrap_rejects_native_and_laravel_deprecations",
+      "test_a_clean_bootstrap_succeeds",
+      "test_missing_native_evidence_is_not_a_successful_check",
+      "test_a_successful_http_response_cannot_hide_laravel_deprecations"
     ],
     "seeders": []
   },
@@ -6235,6 +7114,7 @@
       "test_purchase_after_refund_allows_repurchase",
       "test_refund_purchase_sets_refunded_fields",
       "test_refund_already_refunded_throws_exception",
+      "test_stale_purchase_cannot_overwrite_an_existing_refund",
       "test_get_available_baxx_subtracts_spent",
       "test_get_available_baxx_refund_restores_balance",
       "test_get_available_baxx_uses_members_team_when_current_team_differs",
@@ -6284,7 +7164,41 @@
     "methods": [
       "test_returns_translations_for_configured_locale",
       "test_falls_back_to_configured_fallback_locale",
-      "test_uses_application_fallback_when_configuration_missing"
+      "test_uses_application_fallback_when_configuration_missing",
+      "test_returns_empty_info_when_both_locales_are_missing"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/RomantauschPhotoCommitTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_bundle_photo_replacement_waits_for_the_root_commit",
+      "test_reference_queries_and_photo_deletion_wait_for_the_root_commit",
+      "test_shared_photo_survives_until_the_last_reference_deletion_is_committed"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/RomantauschRetryTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_retryable_database_failure_does_not_repeat_the_upload"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/ScheduledTaskFailureLoggingTest.php",
+    "runner": "php-integration",
+    "laravel": true,
+    "database": false,
+    "methods": [
+      "test_failure_diagnostic_records_context_without_exposing_arguments_or_exception_messages",
+      "test_failure_without_timing_does_not_invent_a_zero_runtime"
     ],
     "seeders": []
   },
@@ -6388,6 +7302,8 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "test_second_upload_failure_cleans_up_the_first_file",
+      "test_missing_and_corrupted_image_files_are_not_stored",
       "test_upload_photos_stores_files",
       "test_upload_photos_rejects_invalid_extensions",
       "test_upload_photos_accepts_valid_extensions",
@@ -6412,6 +7328,7 @@
       "test_parse_ignores_invalid_ranges",
       "test_parse_ignores_too_large_ranges",
       "test_parse_ignores_non_numeric",
+      "test_parse_ignores_ranges_with_non_numeric_endpoints",
       "test_parse_returns_empty_for_invalid_input",
       "test_format_single_number",
       "test_format_consecutive_range",
@@ -6421,6 +7338,7 @@
       "test_invalid_condition_range_reversed",
       "test_condition_range_without_max",
       "test_unknown_condition_value",
+      "test_unknown_upper_condition_reports_the_invalid_value_and_allowed_values",
       "test_no_missing_numbers",
       "test_some_missing_numbers",
       "test_truncates_long_missing_list",
@@ -6559,7 +7477,8 @@
     "laravel": true,
     "database": true,
     "methods": [
-      "test_has_role_and_has_any_role"
+      "test_has_role_and_has_any_role",
+      "test_profile_tour_eligibility_depends_on_the_members_team_role"
     ],
     "seeders": []
   },
@@ -6655,6 +7574,57 @@
     "seeders": []
   },
   {
+    "file": "tests/Node/feature-bundles.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "initial graph follows shared static dependencies once and excludes dynamic features",
+      "an incomplete build manifest cannot silently pass the graph check",
+      "source maps detect heavy modules merged into an innocently named entry"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/php-coverage-badge.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the badge displays measured line coverage and an accessible label",
+      "empty coverage is unavailable and invalid snapshots cannot produce a success badge"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/php86-compatibility.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "scheduled and manual compatibility checks cannot cancel required push checks",
+      "the actual CI preparation retains export-ignored test inputs and excludes private untracked files",
+      "a failure in ${stageNames[failingIndex]} prevents every dependent stage from executing",
+      "only successful execution of every stage reports compatibility",
+      "unknown exceptions and interrupted commands are not compatibility diagnoses",
+      "successful stages cannot hide missing or damaged lockfile integrity evidence",
+      "actual PHP dependency and test errors are distinguished from download failures",
+      "completed Playwright assertion timeouts are test failures rather than provisioning failures",
+      "Composer post-autoload PHP runtime failures are compatibility diagnoses",
+      "concrete infrastructure failures and interrupted processes still override runtime and test diagnostics",
+      "the real stage definitions defer MariaDB and browser provisioning until their stage",
+      "PHP workers receive the in-memory database and later browser stages regain their file database",
+      "each real MariaDB stage invocation exports its own database to independent PHP workers",
+      "summary escapes diagnostics and distinguishes technical compatibility from production approval",
+      "the executable probe fails closed on PHP provisioning and skips all expensive commands",
+      "native and PHPUnit deprecation diagnostics are failures while ordinary prose is not",
+      "Laravel and native log evidence is required and both kinds of deprecation block",
+      "an exit-zero command cannot hide an early deprecation behind large later output",
+      "the final GitHub job uses a stable name and rejects every incomplete result"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Node/public-sync.test.mjs",
     "runner": "node",
     "laravel": false,
@@ -6672,6 +7642,7 @@
     "database": false,
     "methods": [
       "release waits for every required workflow, including missing or running checks",
+      "PHP 8.6 must complete successfully before deployment",
       "failed, cancelled, skipped and timed out release checks cannot deploy",
       "latest attempt is authoritative and managed CodeQL failures block deployment"
     ],
@@ -6701,6 +7672,8 @@
       "the fast scope selects only isolated PHP Unit and retains all JS tests",
       "the complete scope includes all three MariaDB suites and regular browsers",
       "explicit PHP filters are forwarded as arguments and unknown scopes fail",
+      "each browser project gets a separate setup invocation and a fresh server",
+      "the CI browser selection matches the Playwright configuration",
       "a failed command stops the sequence and propagates its exit code",
       "the complete Node command discovers every matching fixture without shell expansion",
       "a failure discovered through the literal Node glob propagates to the complete runner"
@@ -6756,6 +7729,32 @@
       "test_main_conditions_have_no_title",
       "test_full_extends_standard",
       "test_with_same_option_contains_all_full_options"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Unit/CoverKeywordsTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_normalizes_unicode_whitespace_and_duplicates_without_losing_display_names",
+      "test_rejects_invalid_lists",
+      "test_canonicalizes_namespace_and_first_letter_only",
+      "test_rejects_unsafe_titles"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Unit/CoverSyncDeadlineTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_cli_budget_leaves_time_before_the_two_hour_lock_expires",
+      "test_expired_budgets_fail_instead_of_disabling_http_timeouts",
+      "test_http_timeout_is_capped_and_never_zero",
+      "test_backoff_must_fit_in_the_remaining_budget"
     ],
     "seeders": []
   },
@@ -6928,6 +7927,29 @@
     "seeders": []
   },
   {
+    "file": "tests/Unit/MaddraxikonStreakCalculatorTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_calendar_state_transition"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Unit/MaddraxikonStreakSettingsTest.php",
+    "runner": "php-unit",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "test_invalid_or_ambiguous_rollout_time_is_rejected",
+      "test_rollout_offset_is_converted_to_utc",
+      "test_persisted_start_is_authoritative_regardless_of_later_configuration",
+      "test_stored_start_is_scoped_to_the_current_wiki_and_read_after_activation"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Unit/MemberLayoutMigrationTest.php",
     "runner": "php-unit",
     "laravel": false,
@@ -6937,6 +7959,17 @@
       "test_protected_full_page_livewire_components_use_member_layout",
       "test_public_and_auth_pages_keep_the_public_layout",
       "test_obsolete_admin_layout_was_removed"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Unit/PhpCompatibilityAuditTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_it_detects_obsolete_php_usage_without_running_it",
+      "test_it_preserves_valid_contexts_and_modern_replacements"
     ],
     "seeders": []
   },
@@ -6958,6 +7991,7 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "test_it_rejects_a_missing_custom_item_version_instead_of_dropping_its_effects",
       "test_it_calculates_defense_initiative_movement_and_weapon_values",
       "test_it_exposes_alternate_throwing_and_natural_weapon_modes",
       "test_it_ignores_unselected_active_protection_and_adds_situational_notes",
@@ -6996,6 +8030,30 @@
     "seeders": []
   },
   {
+    "file": "tests/Unit/RpgCharacterSheetLayoutServiceTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_a_description_longer_than_230_characters_can_remain_complete",
+      "test_it_selects_a_smaller_font_before_shortening_text",
+      "test_overflow_uses_a_visible_ellipsis_at_the_minimum_font_size",
+      "test_it_keeps_an_intermediate_font_when_that_already_fits",
+      "test_exact_fit_and_one_character_overflow_at_the_minimum_size",
+      "test_unicode_and_very_long_unbroken_text_are_safely_wrapped",
+      "test_font_measurement_accounts_for_different_glyph_widths",
+      "test_whitespace_and_empty_descriptions_are_handled",
+      "test_removing_the_portrait_releases_the_entire_image_area_for_text",
+      "test_description_lines_leave_room_for_padding_and_border",
+      "test_the_portrait_separator_can_reduce_description_capacity_by_one_line",
+      "test_long_traits_can_use_empty_writing_rows_without_further_shortening",
+      "test_trait_values_are_fitted_after_full_presentation",
+      "test_extreme_traits_are_visibly_shortened_when_no_empty_rows_are_available",
+      "test_unusable_areas_are_rejected"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Unit/RpgCharacterSheetPresenterTest.php",
     "runner": "php-unit",
     "laravel": false,
@@ -7003,6 +8061,7 @@
     "methods": [
       "test_it_maps_character_data_into_the_fixed_sheet_structure",
       "test_it_uses_adventurer_for_an_empty_training_selection_and_limits_long_text",
+      "test_description_is_normalized_without_discarding_text_for_pdf_layout",
       "test_it_formats_structured_advantage_instances_and_languages"
     ],
     "seeders": []
@@ -7161,12 +8220,41 @@
     "seeders": []
   },
   {
+    "file": "tests/Unit/RpgItemCreationRulesTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_melee_size_and_masterwork",
+      "test_ranged_rules_and_magazine_rounding",
+      "test_armor_signed_penalty_then_technology_then_utility",
+      "test_shield_never_gets_an_invented_material_bonus",
+      "test_combined_weapon_has_separate_damage_and_one_weapon_factor",
+      "test_transport_values_and_ordinary_items_have_no_invented_combat_profile",
+      "test_invalid_ranged_values_fail",
+      "test_invalid_or_forged_inputs_fail"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Unit/TiaWorkflowCommandTest.php",
     "runner": "php-unit",
     "laravel": false,
     "database": false,
     "methods": [
       "test_tia_baseline_workflow_records_a_fresh_graph_with_the_canonical_composer_script"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Unit/TourDefinitionTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "test_start_mode_defaults_to_automatic_when_omitted",
+      "test_supported_start_modes_are_preserved",
+      "test_invalid_start_modes_are_rejected"
     ],
     "seeders": []
   },
@@ -7211,6 +8299,16 @@
       "test_public_first_name_prefers_vorname",
       "test_public_first_name_falls_back_to_first_name_token",
       "test_public_first_name_returns_null_when_no_name_is_available"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/alpine-gated-registration.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "leaves gated RPG roots untouched until their feature mount"
     ],
     "seeders": []
   },
@@ -7270,6 +8368,9 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "restores explicit light theme and ignores unrelated storage changes",
+      "falls back to system preference on malformed storage and events without matches",
+      "bridges object and array Livewire toast payloads to maryUI",
       "applies dark class based on preference",
       "adds dark class when preference changes to dark",
       "syncs theme toggle pressed state on initial load",
@@ -7279,7 +8380,7 @@
       "syncs newly rendered theme toggles after livewire navigation",
       "syncs the visible trigger when maryUI announces a theme change",
       "does not register a second click writer beside maryUI",
-      "exposes Leaflet globally",
+      "does not load Leaflet on ordinary pages",
       "registers all Alpine plugins required by the layout",
       "does not re-register Alpine plugins when Livewire Alpine already exists"
     ],
@@ -7507,7 +8608,8 @@
       "builds a readable summary for top users",
       "keeps formatted point strings stable when hydrating from payload data",
       "enhances the top user list with aria attributes and summary text",
-      "ignores containers with invalid data without throwing"
+      "ignores containers with invalid data without throwing",
+      "keeps native links inside ordered list items in the current ranking"
     ],
     "seeders": []
   },
@@ -7533,6 +8635,34 @@
     "methods": [
       "grenzt den Port-Cleanup auf den eigenen Compose-Runner ein",
       "nutzt sichere Standardwerte fuer Projekt und Service"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/feature-lifecycle.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "does not import absent features and shares one import across independent roots",
+      "cancels pending imports on navigation and mounts only the new connected root",
+      "cleans up a mount that finishes after navigation",
+      "reports import errors without retry loops and retries on explicit user action",
+      "retries mount failures using the successful cached import",
+      "ignores rejected imports and detached roots after cancellation",
+      "unregisters navigation, mutation, and retry listeners on destruction",
+      "guards real Alpine expressions until registration and preserves input during scans",
+      "can retry an Alpine feature when the runtime is not available yet"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/feature-registry.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "discovers and mounts only the %s feature, then cleans up on navigation"
     ],
     "seeders": []
   },
@@ -7566,6 +8696,7 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "preserves explicit headers and omits null and undefined values",
       "sendet Standard-Header und parsed JSON-Antworten",
       "serialisiert JSON-POST-Bodies und sendet den CSRF-Header",
       "sendet den CSRF-Header nicht an fremde Origins",
@@ -7581,13 +8712,29 @@
     "laravel": false,
     "database": false,
     "methods": [
-      "calculateBearing returns correct bearings",
-      "calculateBearing handles identical points and dateline crossings",
-      "openMissionModal populates and shows modal",
-      "animateGlider moves marker along path and cleans up",
-      "adds city markers and mission link opens modal",
-      "start mission button posts data and animates",
-      "loadMissionStatus animates ongoing mission"
+      "rejects an incomplete dialog before allocating map resources",
+      "silently ignores a status response after disposal and cleans up only once",
+      "calculates bearings including dateline crossings and identical coordinates",
+      "loads scoped tiles and cities and opens mission popups through one delegated listener",
+      "starts once, flies both legs, completes, and removes transient styles",
+      "resumes a %s mission and sends completion",
+      "aborts requests, animation, timers and listeners before a map is removed",
+      "cancels the mission waiting period and ignores a late cities response",
+      "reports start failures and re-enables the button",
+      "reports unexpected completion statuses and request failures",
+      "handles failed cities and status requests without unhandled rejections"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/member-map-lifecycle.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "creates role markers, accessible legend, and releases Leaflet on removal",
+      "escapes fallback popup content and rejects unsafe links",
+      "does not initialize absent or invalid configuration"
     ],
     "seeders": []
   },
@@ -7622,6 +8769,48 @@
       "renders default legend items as an accessible list",
       "escapes custom legend labels",
       "exposes escapeHtml for other helpers"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/navigation-search-registration.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "registers once before Alpine startup and lets Alpine initialize the roots",
+      "initializes existing spotlight roots after registering and leaves unrelated roots alone",
+      "repairs a failed or incomplete spotlight root: %j",
+      "preserves functional spotlight state and pending work during repeated registration",
+      "still registers when Alpine lacks the %s hydration API",
+      "ignores an init event without a registration API: %j",
+      "repairs a real Alpine root after late loading and preserves its active search on registration"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/navigation-search.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "opens from a shortcut, focuses input and closes other navigation surfaces",
+      "leaves other keyboard commands alone: %j",
+      "debounces queries, encodes special characters and clears results for short input",
+      "discards an old response that arrives after a newer one",
+      "reports failures separately from no matches and clears loading",
+      "announces an empty successful search without an error",
+      "clears pending requests and results on close and ignores an aborted response",
+      "moves through result links in both directions",
+      "restores focus to an available search trigger and starts every opening empty",
+      "settles input focus after a drawer releases its focus trap",
+      "keeps a single open dialog and does not refocus a dialog closed externally",
+      "restores a connected visible opener rather than the fallback trigger",
+      "falls back when the opener has rectangles but visibility is %s",
+      "falls back when the visible opener becomes disabled and cannot receive focus",
+      "falls back when the opener was removed while search was open",
+      "ignores a direct short query and arrow navigation without results",
+      "moves backwards from the input to the final result"
     ],
     "seeders": []
   },
@@ -7670,6 +8859,18 @@
     "seeders": []
   },
   {
+    "file": "tests/Vitest/playwright-global-setup.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "discards PHP-test views after console seeding and before publishing browser readiness",
+      "does not publish readiness when stale views cannot be removed",
+      "does not clear views or publish readiness after a failed schema load"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Vitest/playwright-node-utils.test.js",
     "runner": "vitest",
     "laravel": false,
@@ -7696,6 +8897,8 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "reads current DOM data on mount and after a Livewire morph, and ignores invalid configuration",
+      "supports theme color %s and missing color markers",
       "sollte bei null-Daten nicht crashen",
       "sollte bei leerem Objekt nicht crashen",
       "sollte bei fehlendem options-Objekt nicht crashen",
@@ -7703,6 +8906,40 @@
       "sollte bei labels als nicht-Array nicht crashen",
       "sollte bei gültigen Labels aber 0 Stimmen keinen Doughnut-Chart erstellen",
       "sollte bei fehlenden Canvas-Elementen bestehende Charts zerstören"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/profile-tour.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "announces all reward conditions and handles already rewarded repeats",
+      "renders validation errors as safe, focusable field links",
+      "uses the payload amount of %i Baxx and field counts in both reward states",
+      "requires saving dirty form inputs and tolerates absent markup",
+      "waits for explicit start and navigates from dashboard to the profile",
+      "only reports a reward after the completion server confirms it",
+      "uses authoritative amounts after completion with reward status %s",
+      "keeps an incomplete tour open, links to missing field and allows retry",
+      "blocks unsaved changes and refreshes authoritative completion after saving",
+      "handles already awarded repeats and network errors without false rewards",
+      "supports later and Escape without completing or awarding",
+      "ignores Escape when the panel is hidden by %s",
+      "leaves an already handled Escape event to its original handler",
+      "ignores Escape while a resumed tour is syncing progress",
+      "locks Escape dismissal while pending and permits a retry after failure",
+      "disables navigation while progress is saving and accepts the next click afterwards",
+      "does not skip a missing required field into successful completion",
+      "keeps the tour open when a successful HTTP response does not confirm completion",
+      "ignores a stale %s response after navigating to another tour",
+      "ignores a stale %s failure without replacing errors or stealing focus",
+      "ignores a superseded fetch failure after navigation",
+      "clears a background fetch error on reset before showing the next invitation",
+      "shows a current fetch failure during %s despite the fetch incrementing its generation",
+      "retries failed final progress before completion and waits for the successful sync",
+      "does not complete a superseded assignment after its progress retry succeeds"
     ],
     "seeders": []
   },
@@ -7831,6 +9068,29 @@
     "seeders": []
   },
   {
+    "file": "tests/Vitest/rpg-items.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "sends only category fields and preserves entered values on category changes",
+      "normalizes type-specific education and throwing profiles",
+      "never submits a technology factor on a low-tech object",
+      "reopens a saved low-tech version without an invalid hidden technology control",
+      "normalizes a saved technology factor %s to %s",
+      "invalidates a checked preview after an edit",
+      "ignores a preview that arrives after the form changed",
+      "retains inputs and focuses the server error",
+      "requires a current preview before saving and blocks duplicate clicks",
+      "sends the preview hash and retains the form after a save conflict",
+      "accepts a current preview and navigates to the saved object",
+      "reports network and non-validation server failures",
+      "registers only when Alpine exists",
+      "submits explicit version changes without money or extra stock movements"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Vitest/rpg-progression.test.js",
     "runner": "vitest",
     "laravel": false,
@@ -7858,17 +9118,18 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "mount cleanup destroys its own chart and ignores stale window data",
       "drawAuthorChart renders bar chart with given labels and data",
       "drawCycleChart renders line chart with given labels and average line",
       "drawCycleChart ignores null values when calculating average",
       "drawCycleChart normalizes NaN, Infinity and string values to null",
       "drawAuthorChart does nothing when canvas missing",
-      "DOMContentLoaded draws hardcover chart",
-      "DOMContentLoaded draws Mission Mars chart when data available",
-      "DOMContentLoaded draws Mission Mars author chart",
-      "DOMContentLoaded draws Das Volk der Tiefe chart when data available",
-      "DOMContentLoaded draws Das Volk der Tiefe author chart",
-      "DOMContentLoaded draws hardcover author chart"
+      "mount draws hardcover chart",
+      "mount draws Mission Mars chart when data available",
+      "mount draws Mission Mars author chart",
+      "mount draws Das Volk der Tiefe chart when data available",
+      "mount draws Das Volk der Tiefe author chart",
+      "mount draws hardcover author chart"
     ],
     "seeders": []
   },
@@ -7908,6 +9169,18 @@
       "migrates the former theme key and preserves the explicit choice",
       "continues following system changes for an automatically persisted value",
       "refreshes an automatically persisted $storedTheme theme from the current system preference"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/three-d-viewer-lifecycle.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "disposes a model arriving after navigation and makes cleanup idempotent",
+      "renders, resizes, reports loading errors and cleans a mounted viewer",
+      "disposes object materials and textures, and rejects unknown formats before creating resources"
     ],
     "seeders": []
   },
@@ -7952,6 +9225,35 @@
       "oeffnet im mobilen Member-Shell zuerst Drawer und Sidebar-Bereich",
       "verwendet bei gemeinsamen Public-Tour-Keys die sichtbaren mobilen Reveal- und Ziel-Elemente",
       "oeffnet den Desktop-Dropdown beim Wechsel zum naechsten Unterpunkt erneut, wenn click.outside ihn schliesst"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Vitest/ux.test.js",
+    "runner": "vitest",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "opens all ancestor details and focuses an anchor target",
+      "ignores absent or malformed targets: %s",
+      "reveals an anchor when the location hash changes",
+      "reveals a deep link after Livewire navigation renders its target",
+      "allows clean navigation without asking",
+      "keeps changed inputs when navigation is cancelled",
+      "allows confirmed navigation",
+      "detects checkbox changes and ignores hidden CSRF tokens",
+      "does not warn when a changed value is restored",
+      "warns before unloading a dirty page",
+      "permits the redirect after submitting and re-enables the guard after an error",
+      "installs lifecycle listeners only once",
+      "does not reset an in-flight review when an unrelated component morphs",
+      "restores the leave warning after validation morphs the enclosing component",
+      "does not register duplicate Livewire hooks when initialization fires late",
+      "uses new form baselines after navigation without warning",
+      "focuses a summary only after a submission, once per submission",
+      "does not move focus after a successful form without errors",
+      "waits for the submit response when an earlier field update morphs the form",
+      "ignores unrelated method responses and focuses a nested review form after save"
     ],
     "seeders": []
   }
