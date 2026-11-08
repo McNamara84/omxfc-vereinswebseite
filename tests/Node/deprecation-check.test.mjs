@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { findDeprecations, runChecked } from '../../tools/testing/check-deprecations.mjs';
 
@@ -28,6 +29,68 @@ async function check(args, options = {}) {
     });
     return { code, stdout, stderr };
 }
+
+function checkInstallStep(t, { warningPhase = '', failPhase = '' } = {}) {
+    const workflow = readFileSync(new URL('../../.github/workflows/vitest.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const step = workflow.match(/- name: Install NPM dependencies\n {8}shell: bash\n {8}run: \|\n((?: {10}[^\n]*\n)+)/);
+    assert.ok(step, 'The actual CI installation step must be executable by this regression');
+    const script = step[1].split('\n').map(line => line.slice(10)).join('\n');
+    const root = fixture(t);
+    const bin = path.join(root, 'bin');
+    const runnerTemp = path.join(root, 'runner temp');
+    for (const directory of [bin, runnerTemp, path.join(root, 'tools/testing'), path.join(root, 'docker')]) mkdirSync(directory, { recursive: true });
+    writeFileSync(path.join(root, 'package.json'), '{"type":"module"}\n');
+    copyFileSync(new URL('fixtures/npm-install.mjs', import.meta.url), path.join(bin, 'npm'));
+    chmodSync(path.join(bin, 'npm'), 0o755);
+    copyFileSync(new URL('../../tools/testing/check-deprecations.mjs', import.meta.url), path.join(root, 'tools/testing/check-deprecations.mjs'));
+    writeFileSync(path.join(root, 'docker/patch-npm-security.sh'), '#!/bin/sh\nset -eu\nprintf "security patch\\n" >> "$NPM_FIXTURE_CALLS"\nnpm ci --prefix fixture-security --ignore-scripts --no-audit --no-fund\n');
+    const npmVersion = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).engines.npm;
+    const callsFile = path.join(root, 'npm-calls.log');
+    const env = {
+        ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, RUNNER_TEMP: runnerTemp,
+        NPM_FIXTURE_VERSION: npmVersion, NPM_FIXTURE_CALLS: callsFile,
+        NPM_FIXTURE_WARNING_PHASE: warningPhase, NPM_FIXTURE_FAIL_PHASE: failPhase,
+    };
+    delete env.NODE_TEST_CONTEXT;
+    const result = spawnSync('bash', ['--noprofile', '--norc', '-e', '-o', 'pipefail', '-c', script], {
+        cwd: root, env, encoding: 'utf8', windowsHide: true, timeout: 15_000,
+    });
+    const calls = readFileSync(callsFile, 'utf8').trim().split('\n');
+    const expectedCalls = [
+        `install --global npm@${npmVersion} --ignore-scripts`, '--version', 'security patch',
+        'ci --prefix fixture-security --ignore-scripts --no-audit --no-fund', 'ci',
+    ];
+    const callCount = { global: 1, security: 4, project: 5 };
+    return { ...result, calls, expectedCalls, callCount, runnerTemp };
+}
+
+test('the actual CI install step rejects deprecations from global, security and project installations', { skip: process.platform === 'win32' }, t => {
+    for (const phase of ['global', 'security', 'project']) {
+        const result = checkInstallStep(t, { warningPhase: phase });
+        assert.equal(result.status, 1, `${phase}: ${result.stdout}${result.stderr}`);
+        assert.match(result.stderr, /Deprecation check failed/);
+        assert.deepEqual(result.calls, result.expectedCalls.slice(0, result.callCount[phase]));
+    }
+});
+
+test('the actual CI install step permits ordinary warnings and captures both output streams', { skip: process.platform === 'win32' }, t => {
+    const result = checkInstallStep(t, { warningPhase: 'ordinary' });
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.deepEqual(result.calls, result.expectedCalls);
+    for (const [phase, filename] of [['global', 'vitest-global-install.log'], ['security', 'vitest-npm-security.log'], ['project', 'vitest-install.log']]) {
+        const log = readFileSync(path.join(result.runnerTemp, filename), 'utf8');
+        assert.match(log, new RegExp(`fixture ${phase} installation`));
+        assert.match(log, new RegExp(`npm warn optional ordinary ${phase} warning`));
+    }
+});
+
+test('the actual CI install step preserves installer failures through tee and stops dependent work', { skip: process.platform === 'win32' }, t => {
+    for (const phase of ['global', 'security', 'project']) {
+        const result = checkInstallStep(t, { failPhase: phase });
+        assert.equal(result.status, 7, `${phase}: ${result.stdout}${result.stderr}`);
+        assert.deepEqual(result.calls, result.expectedCalls.slice(0, result.callCount[phase]));
+    }
+});
 
 test('recognizes npm, Node, Vite and browser deprecation warning formats with ANSI and CRLF', () => {
     for (const warning of examples.warnings) {

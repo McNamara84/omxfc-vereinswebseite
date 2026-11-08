@@ -41,9 +41,11 @@ jobs:
       - name: Install NPM dependencies
         shell: bash
         run: |
-          npm install --global npm@12.2.1 --ignore-scripts
+          npm install --global npm@12.2.1 --ignore-scripts 2>&1 | tee "$RUNNER_TEMP/vitest-global-install.log"
+          node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-global-install.log"
           test "$(npm --version)" = "12.2.1"
-          sh docker/patch-npm-security.sh
+          sh docker/patch-npm-security.sh 2>&1 | tee "$RUNNER_TEMP/vitest-npm-security.log"
+          node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-npm-security.log"
           npm ci 2>&1 | tee "$RUNNER_TEMP/vitest-install.log"
           node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-install.log"
 

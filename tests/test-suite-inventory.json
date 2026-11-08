@@ -7579,6 +7579,9 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "the actual CI install step rejects deprecations from global, security and project installations",
+      "the actual CI install step permits ordinary warnings and captures both output streams",
+      "the actual CI install step preserves installer failures through tee and stops dependent work",
       "recognizes npm, Node, Vite and browser deprecation warning formats with ANSI and CRLF",
       "permits ordinary warnings and test titles or data mentioning deprecated APIs",
       "checked processes forward both streams, preserve Node options and allow normal warnings",
