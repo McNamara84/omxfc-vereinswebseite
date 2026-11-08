@@ -17,12 +17,6 @@ export default defineConfig({
             ignored: ['**/vendor/**', '**/storage/**', '**/.tmp/**', '**/.vitest/**', '**/coverage/**', '**/test-results/**', '**/public/build/**'],
         },
     },
-    server: {
-        watch: {
-            // PHP dependencies and generated reports are not inputs to these JS tests.
-            ignored: ['**/vendor/**', '**/storage/**', '**/.tmp/**', '**/.vitest/**', '**/coverage/**', '**/test-results/**', '**/public/build/**'],
-        },
-    },
     resolve: {
         alias: {
             '@': path.resolve(currentDir, 'resources/js'),
@@ -37,6 +31,8 @@ export default defineConfig({
             },
         },
         globals: true,
+        // Clear hoisted mock histories before each test while retaining their implementations.
+        clearMocks: true,
         fakeTimers: { fakeNodeBuiltins: true },
         setupFiles: ['tests/Vitest/setup.js'],
         dir: 'tests/Vitest',
