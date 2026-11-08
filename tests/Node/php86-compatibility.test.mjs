@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
-import { classifyFailure, createStages, ProbeFailure, runStages, summarize, verifyResult } from '../../tools/ci/php86-compatibility.mjs';
+import { assertNoDeprecations, classifyFailure, commandRunner, createStages, hasPhpDeprecation, ProbeFailure, requiredStages, runStages, summarize, verifyResult } from '../../tools/ci/php86-compatibility.mjs';
 
 const stageNames = ['runtime', 'dependencies', 'application', 'php', 'mariadb', 'pest_browser', 'chromium', 'firefox'];
 
@@ -17,6 +17,23 @@ function temporaryDirectory(t) {
     });
     return directory;
 }
+
+test('scheduled and manual compatibility checks cannot cancel required push checks', () => {
+    const workflow = readFileSync(new URL('../../.github/workflows/php86-compatibility.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const concurrency = workflow.match(/^concurrency:\n {2}group: (.+)\n {2}cancel-in-progress: (.+)$/m);
+    assert.ok(concurrency, 'The workflow must declare its cancellation policy');
+    assert.equal(concurrency[2], 'true');
+    const groupFor = (eventName, ref) => concurrency[1].replace(/\$\{\{\s*github\.(event_name|ref)\s*\}\}/g, (_, property) => (
+        property === 'event_name' ? eventName : ref
+    ));
+    const push = groupFor('push', 'refs/heads/main');
+    assert.doesNotMatch(push, /\$\{\{/);
+    for (const eventName of ['schedule', 'workflow_dispatch']) {
+        assert.notEqual(push, groupFor(eventName, 'refs/heads/main'), eventName);
+    }
+    assert.equal(push, groupFor('push', 'refs/heads/main'), 'New pushes still supersede earlier pushes on the same branch');
+    assert.notEqual(groupFor('workflow_dispatch', 'refs/heads/main'), groupFor('workflow_dispatch', 'refs/heads/review'));
+});
 
 test('the actual CI preparation retains export-ignored test inputs and excludes private untracked files', { skip: process.platform === 'win32' }, t => {
     // Execute the workflow's Bash step on the same platform as the GitHub runner.
@@ -90,11 +107,14 @@ test('unknown exceptions and interrupted commands are not compatibility diagnose
 });
 
 test('successful stages cannot hide missing or damaged lockfile integrity evidence', () => {
-    const result = { status: 'compatible', stages: [] };
-    const metadata = { packagesUnchanged: true, packageCount: 201, php: '8.6.0RC4', originalLockSha256: 'a'.repeat(64), packagesSha256: 'b'.repeat(64), originalConstraint: '~8.5.0', probeConstraint: '~8.5.0 || ~8.6.0' };
+    const result = { status: 'compatible', stages: requiredStages.map(id => ({ id, outcome: 'success' })) };
+    const metadata = { packagesUnchanged: true, manifestUnchanged: true, packageCount: 201, php: '8.6.0RC4', originalManifestSha256: 'c'.repeat(64), originalLockSha256: 'a'.repeat(64), packagesSha256: 'b'.repeat(64), phpConstraint: '~8.5.0 || ~8.6.0' };
     assert.equal(verifyResult(result, metadata).status, 'compatible');
     for (const candidate of [undefined, {}, { ...metadata, packagesUnchanged: false }, { ...metadata, php: '8.5.12' }, { ...metadata, packagesSha256: '' }]) {
         assert.equal(verifyResult(result, candidate).status, 'unavailable');
+    }
+    for (const stages of [[], result.stages.slice(1), result.stages.toReversed(), result.stages.map(stage => ({ ...stage, outcome: 'skipped' }))]) {
+        assert.equal(verifyResult({ ...result, stages }, metadata).status, 'unavailable');
     }
 });
 
@@ -187,7 +207,7 @@ test('summary escapes diagnostics and distinguishes technical compatibility from
     assert.match(summary, /PHP &#124; Tests/);
 });
 
-test('the executable probe reports failed PHP provisioning with exit zero and skips all expensive commands', async t => {
+test('the executable probe fails closed on PHP provisioning and skips all expensive commands', async t => {
     const directory = temporaryDirectory(t);
     const checkout = path.join(directory, 'checkout');
     const reports = path.join(directory, 'reports');
@@ -206,7 +226,7 @@ test('the executable probe reports failed PHP provisioning with exit zero and sk
         child.once('error', reject);
         child.once('exit', resolve);
     });
-    assert.equal(code, 0, diagnostic);
+    assert.equal(code, 1, diagnostic);
     const result = JSON.parse(readFileSync(path.join(reports, 'result.json'), 'utf8'));
     assert.equal(result.status, 'unavailable');
     assert.equal(result.stages[0].outcome, 'failure');
@@ -215,4 +235,50 @@ test('the executable probe reports failed PHP provisioning with exit zero and sk
     assert.match(readFileSync(summary, 'utf8'), /PHP 8.6: nicht prüfbar/);
     assert.ok(!diagnostic.includes('> docker'));
     assert.ok(!diagnostic.includes('> npm'));
+});
+
+test('native and PHPUnit deprecation diagnostics are failures while ordinary prose is not', () => {
+    for (const output of ['PHP Deprecated: native fixture', '[07-Nov-2026 12:00:00 UTC] PHP Deprecated: fixture', 'Deprecated: compile-time fixture', 'PHP deprecations detected; see the Laravel log', 'Tests: 10 passed. Deprecations: 1', '1 deprecation']) {
+        assert.equal(hasPhpDeprecation(output), true, output);
+        assert.equal(classifyFailure('test', { code: 1, output }), 'incompatible');
+        assert.throws(() => assertNoDeprecations({}, output), error => error.status === 'incompatible');
+    }
+    assert.equal(hasPhpDeprecation('The documentation describes a deprecated API. Deprecations: 0'), false);
+});
+
+test('Laravel and native log evidence is required and both kinds of deprecation block', t => {
+    const directory = temporaryDirectory(t);
+    const log = path.join(directory, 'deprecations.log');
+    const env = { PHP_DEPRECATIONS_LOG: log };
+    assert.throws(() => assertNoDeprecations(env), error => error.status === 'unavailable');
+    writeFileSync(log, '');
+    writeFileSync(log + '.php.log', '');
+    assert.doesNotThrow(() => assertNoDeprecations(env));
+    writeFileSync(log, '[testing.WARNING] fixture deprecation handled by Laravel\n');
+    assert.throws(() => assertNoDeprecations(env), error => error.status === 'incompatible');
+    writeFileSync(log, '');
+    writeFileSync(log + '.php.log', '[07-Nov-2026] PHP Deprecated: native fixture\n');
+    assert.throws(() => assertNoDeprecations(env), error => error.status === 'incompatible');
+});
+
+test('an exit-zero command cannot hide an early deprecation behind large later output', async t => {
+    const directory = temporaryDirectory(t);
+    const execute = commandRunner(directory, directory, { ...process.env }, { write() {} });
+    for (const code of [0, 1]) {
+        await assert.rejects(execute(process.execPath, ['-e', `process.stdout.write("PHP Deprecated: fixture\\n"); setTimeout(() => { process.stdout.write("x".repeat(110000)); process.exitCode = ${code}; }, 50);`]), error => error.status === 'incompatible');
+    }
+});
+
+test('the final GitHub job uses a stable name and rejects every incomplete result', { skip: process.platform === 'win32' }, t => {
+    const directory = temporaryDirectory(t);
+    const workflow = readFileSync(new URL('../../.github/workflows/php86-compatibility.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const report = workflow.slice(workflow.indexOf('\n  report:'));
+    assert.match(report, /name: PHP 8\.6 erforderlich/);
+    assert.match(report, /always\(\)/);
+    const body = report.match(/ {8}run: \|\n((?: {10}[^\n]*(?:\n|$))+)/)[1].split('\n').map(line => line.slice(10)).join('\n');
+    const env = { ...process.env, GITHUB_STEP_SUMMARY: path.join(directory, 'summary'), PROBE_SUMMARY: 'fixture' };
+    for (const [result, status] of [['failure', 'compatible'], ['cancelled', 'compatible'], ['skipped', 'compatible'], ['success', 'incompatible'], ['success', 'unavailable'], ['success', '']]) {
+        assert.throws(() => execFileSync('bash', ['-e', '-o', 'pipefail', '-c', body], { env: { ...env, PROBE_RESULT: result, PROBE_STATUS: status }, stdio: 'pipe' }));
+    }
+    execFileSync('bash', ['-e', '-o', 'pipefail', '-c', body], { env: { ...env, PROBE_RESULT: 'success', PROBE_STATUS: 'compatible' }, stdio: 'pipe' });
 });

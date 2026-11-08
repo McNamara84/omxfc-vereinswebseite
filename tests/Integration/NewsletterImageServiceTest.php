@@ -133,7 +133,6 @@ class NewsletterImageServiceTest extends TestCase
         $rgba = imagecolorsforindex($resource, imagecolorat($resource, 0, 0));
         $this->assertSame(127, $rgba['alpha']);
 
-        imagedestroy($resource);
     }
 
     public function test_exif_orientation_is_applied_before_storage(): void
@@ -266,7 +265,6 @@ class NewsletterImageServiceTest extends TestCase
         ob_start();
         imagepng($image);
         $contents = (string) ob_get_clean();
-        imagedestroy($image);
 
         return $contents;
     }
@@ -280,7 +278,6 @@ class NewsletterImageServiceTest extends TestCase
         ob_start();
         imagejpeg($image, null, 90);
         $jpeg = (string) ob_get_clean();
-        imagedestroy($image);
 
         $tiff = 'II'
             .pack('v', 42)

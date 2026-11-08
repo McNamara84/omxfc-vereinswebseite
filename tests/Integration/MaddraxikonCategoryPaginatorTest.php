@@ -148,6 +148,16 @@ class MaddraxikonCategoryPaginatorTest extends TestCase
         }
     }
 
+    public function test_nul_query_parameters_are_rejected_before_php_query_parsing(): void
+    {
+        $paginator = app(MaddraxikonCategoryPaginator::class);
+        $resolve = new \ReflectionMethod($paginator, 'resolve');
+
+        $this->assertNull($resolve->invoke($paginator, self::CATEGORY, "?pagefrom=MX\0_1"));
+        $this->assertNull($resolve->invoke($paginator, self::CATEGORY."\0", '?pagefrom=MX_1'));
+        Http::assertNothingSent();
+    }
+
     /** @param array<string, string> $links */
     private function categoryHtml(array $links): string
     {

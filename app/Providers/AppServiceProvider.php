@@ -281,7 +281,9 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('mary-spotlight', NavigationSpotlight::class);
         Blade::component('mary-popover', AccessiblePopover::class);
         foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
-            if (! $useTestingComponents) {
+            // The console registry has no textarea stub, so its alias must
+            // retain the same validation handling as the HTTP component.
+            if (! $useTestingComponents || $alias === 'textarea') {
                 Blade::component($alias, $component);
             }
             Blade::component('mary-'.$alias, $component);

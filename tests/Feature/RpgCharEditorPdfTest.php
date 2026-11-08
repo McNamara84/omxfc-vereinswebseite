@@ -2653,10 +2653,6 @@ class RpgCharEditorPdfTest extends TestCase
         $sheetService = app(RpgCharacterSheetService::class);
         $method = new \ReflectionMethod($sheetService, 'portraitDataUrlPayload');
 
-        if (PHP_VERSION_ID < 80100) {
-            $method->setAccessible(true);
-        }
-
         $this->assertNull($method->invoke($sheetService, ['manipuliert']));
         $this->assertNull($method->invoke($sheetService, (object) ['manipuliert' => true]));
     }

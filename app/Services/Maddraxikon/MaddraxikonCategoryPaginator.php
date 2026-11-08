@@ -138,6 +138,10 @@ class MaddraxikonCategoryPaginator
 
     private function resolve(string $currentUrl, string $href): ?string
     {
+        if (str_contains($currentUrl, "\0") || str_contains($href, "\0")) {
+            return null;
+        }
+
         $baseUrl = rtrim((string) config(
             'maddraxikon.base_url',
             'https://de.maddraxikon.com'

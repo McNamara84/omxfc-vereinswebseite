@@ -648,7 +648,7 @@ class FantreffenAdminDashboardTest extends TestCase
     public function test_admin_csv_export_escapes_quotes_and_sanitizes_formula_values(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
-        $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial", 12.00);
+        $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial\\", 12.00);
 
         $anmeldung = FantreffenAnmeldung::create([
             'veranstaltung_id' => $this->veranstaltung->id,
@@ -686,6 +686,17 @@ class FantreffenAdminDashboardTest extends TestCase
         $this->assertStringContainsString("'@paypal", $csv);
         $this->assertStringContainsString('Beutel ""Deluxe""', $csv);
         $this->assertStringContainsString('Spezial', $csv);
+        $stream = fopen('php://temp', 'w+');
+        fwrite($stream, substr($csv, 3));
+        rewind($stream);
+        $headers = fgetcsv($stream, escape: '');
+        $row = array_combine($headers, fgetcsv($stream, escape: ''));
+        $this->assertSame("Beutel \"Deluxe\"\nSpezial\\", $row['Merchandise']);
+        $this->assertSame("'=SUM(1+1) Evil", $row['Name']);
+        $this->assertSame("'+4912345", $row['Mobil']);
+        $this->assertSame("'@paypal", $row['PayPal ID']);
+        $this->assertFalse(fgetcsv($stream, escape: ''));
+        fclose($stream);
     }
 
     #[Test]

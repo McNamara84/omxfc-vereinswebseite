@@ -48,7 +48,6 @@ class IndexRomaneCommandTest extends TestCase
         $command = new IndexRomane;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('metaFromPath');
-        $method->setAccessible(true);
 
         $result = $method->invoke($command, 'romane/Z2/123 - Titel.txt');
 
@@ -62,7 +61,6 @@ class IndexRomaneCommandTest extends TestCase
         $command = new IndexRomane;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('metaFromPath');
-        $method->setAccessible(true);
 
         $result = $method->invoke($command, 'romane/maddrax/Glossar.txt');
 

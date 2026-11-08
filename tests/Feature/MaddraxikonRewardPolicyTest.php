@@ -19,6 +19,22 @@ class MaddraxikonRewardPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_calculator_orders_equal_instants_by_revision_id_before_selecting_boundary_sizes(): void
+    {
+        $contributions = collect([
+            new MaddraxikonContribution(['occurred_at_epoch' => 101, 'revision_id' => 9, 'old_size' => 70, 'new_size' => 100]),
+            new MaddraxikonContribution(['occurred_at_epoch' => 100, 'revision_id' => 2, 'old_size' => 20, 'new_size' => 70]),
+            new MaddraxikonContribution(['occurred_at_epoch' => 100, 'revision_id' => 1, 'old_size' => 10, 'new_size' => 20]),
+        ]);
+        $policy = new MaddraxikonRewardPolicy(['edit_sessions_enabled' => false]);
+
+        $result = app(MaddraxikonEditSessionRewardCalculator::class)->calculate($contributions, $policy);
+
+        $this->assertSame(10, $result->startSize);
+        $this->assertSame(100, $result->endSize);
+        $this->assertSame(90, $result->addedBytes);
+    }
+
     public function test_calculator_sums_supplied_revision_deltas_and_uses_highest_matching_tier(): void
     {
         $policy = MaddraxikonRewardPolicy::factory()->create();

@@ -86,12 +86,12 @@ class ImportOldReviews extends Command
         }
 
         // Read header
-        fgetcsv($handle, 0, ';');
+        fgetcsv($handle, 0, ';', escape: '\\');
 
         $bar = $this->output->createProgressBar();
         $bar->start();
 
-        while (($row = fgetcsv($handle, 0, ';', '"')) !== false) {
+        while (($row = fgetcsv($handle, 0, ';', '"', escape: '\\')) !== false) {
             [$topic, $authorEmail, $timestampRaw, $content] = array_pad($row, 4, null);
 
             // Match user

@@ -22,10 +22,10 @@ final class MaddraxikonEditSessionRewardCalculator
         }
 
         $ordered = $contributions
-            ->sortBy([
-                ['occurred_at_epoch', 'asc'],
-                ['revision_id', 'asc'],
-            ])
+            ->sort(static fn (MaddraxikonContribution $a, MaddraxikonContribution $b): int => (
+                ($a->occurred_at_epoch <=> $b->occurred_at_epoch)
+                ?: ($a->revision_id <=> $b->revision_id)
+            ))
             ->values();
         $first = $ordered->first();
         $last = $ordered->last();

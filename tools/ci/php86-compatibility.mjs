@@ -6,6 +6,26 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export const labels = { compatible: 'kompatibel', incompatible: 'nicht kompatibel', unavailable: 'nicht prüfbar' };
+export const requiredStages = ['runtime', 'dependencies', 'application', 'php', 'mariadb', 'pest_browser', 'chromium', 'firefox'];
+
+export function hasPhpDeprecation(output) {
+    return /^PHP deprecations detected;/mi.test(output)
+        || /^(?:\[[^\r\n]*\]\s*)?(?:PHP\s+)?(?:Deprecated|User Deprecated):/mi.test(output)
+        || /\b(?:Deprecations?:\s*[1-9]\d*|[1-9]\d*\s+deprecations?)\b/i.test(output);
+}
+
+export function assertNoDeprecations(env, output = '') {
+    if (hasPhpDeprecation(output)) throw new ProbeFailure('incompatible', 'PHP deprecation detected.\n' + output.slice(-2500));
+    if (!env.PHP_DEPRECATIONS_LOG) return;
+    try {
+        const laravel = readFileSync(env.PHP_DEPRECATIONS_LOG, 'utf8');
+        const native = readFileSync(env.PHP_DEPRECATIONS_LOG + '.php.log', 'utf8');
+        if (laravel.trim() || hasPhpDeprecation(native)) throw new ProbeFailure('incompatible', 'PHP deprecations detected; inspect the dedicated Laravel and PHP logs.');
+    } catch (error) {
+        if (error instanceof ProbeFailure) throw error;
+        throw new ProbeFailure('unavailable', 'PHP deprecation evidence is missing or unreadable: ' + error.message);
+    }
+}
 
 export class ProbeFailure extends Error {
     constructor(status, message) { super(message); this.status = status; }
@@ -15,6 +35,7 @@ export function classifyFailure(kind, result) {
     if (result.signal || result.code === 124 || result.code === null) return 'unavailable';
     // Network and provisioning errors must never masquerade as PHP incompatibility.
     if (/ENOTFOUND|ECONNRESET|ETIMEDOUT|EAI_AGAIN|curl error|Could not resolve|rate limit|Too Many Requests|certificate|Could not open input file|No such file|command not found|Cannot connect to the Docker daemon/i.test(result.output)) return 'unavailable';
+    if (hasPhpDeprecation(result.output)) return 'incompatible';
     // A completed test report can include an assertion timeout; it is still a test failure.
     if (kind === 'test' && /[1-9]\d*\s+failed\b/i.test(result.output)) return 'incompatible';
     if (/timed? out/i.test(result.output)) return 'unavailable';
@@ -47,21 +68,26 @@ export async function runStages(stages) {
 
 export function verifyResult(result, metadata) {
     if (result.status !== 'compatible') return result;
-    const valid = metadata?.packagesUnchanged === true
+    const valid = result.stages?.length === requiredStages.length
+        && result.stages.every((stage, index) => stage.id === requiredStages[index] && stage.outcome === 'success')
+        && !result.blocker
+        && metadata?.packagesUnchanged === true && metadata.manifestUnchanged === true
         && Number.isSafeInteger(metadata.packageCount) && metadata.packageCount > 0
         && /^8\.6\./.test(metadata.php ?? '')
         && /^[a-f0-9]{64}$/.test(metadata.originalLockSha256 ?? '')
         && /^[a-f0-9]{64}$/.test(metadata.packagesSha256 ?? '')
-        && typeof metadata.originalConstraint === 'string' && typeof metadata.probeConstraint === 'string';
+        && /^[a-f0-9]{64}$/.test(metadata.originalManifestSha256 ?? '')
+        && typeof metadata.phpConstraint === 'string' && metadata.phpConstraint.includes('8.5') && metadata.phpConstraint.includes('8.6');
     return valid ? result : { ...result, status: 'unavailable', blocker: { id: 'integrity', name: 'Paketintegrität', message: 'Vollständige und gültige Nachweise zum unveränderten Paketstand fehlen.' } };
 }
 
-export function commandRunner(directory, reports, env) {
+export function commandRunner(directory, reports, env, outputStream = process.stdout) {
     let counter = 0;
     return async (bin, args, { kind = 'setup', timeout = 10 * 60_000, input } = {}) => {
         const log = path.join(reports, `${String(++counter).padStart(2, '0')}-${path.basename(bin)}.log`);
         const descriptor = openSync(log, 'w');
         let output = '';
+        let deprecationSeen = false;
         console.log(`\n> ${bin} ${args.join(' ')}`);
         try {
             const result = await new Promise(resolve => {
@@ -74,7 +100,8 @@ export function commandRunner(directory, reports, env) {
                     appendFileSync(descriptor, chunk);
                     // Retain enough diagnostics for classification without unbounded memory usage.
                     output = (output + chunk.toString()).slice(-100_000);
-                    process.stdout.write(chunk);
+                    deprecationSeen ||= hasPhpDeprecation(output);
+                    outputStream.write(chunk);
                 };
                 child.stdout.on('data', capture);
                 child.stderr.on('data', capture);
@@ -83,7 +110,9 @@ export function commandRunner(directory, reports, env) {
                 child.stdin.on('error', () => {});
                 child.stdin.end(input);
             });
-            if (result.code !== 0) throw new ProbeFailure(classifyFailure(kind, result), `${bin}: Exit ${result.code ?? result.signal ?? 'unbekannt'}\n${result.output.slice(-2500)}`);
+            if (result.code !== 0) throw new ProbeFailure(classifyFailure(kind, { ...result, output: (deprecationSeen ? 'PHP Deprecated: captured earlier in this command.\n' : '') + result.output }), `${bin}: Exit ${result.code ?? result.signal ?? 'unbekannt'}\n${result.output.slice(-2500)}`);
+            if (deprecationSeen) throw new ProbeFailure('incompatible', `${bin}: PHP deprecation detected; inspect ${log}.`);
+            assertNoDeprecations(env);
             return result.output;
         } finally { closeSync(descriptor); }
     };
@@ -103,6 +132,7 @@ export function createStages(directory, reports, execute, env, container) {
             await execute('composer', ['install', '--no-interaction', '--prefer-dist', '--no-progress'], { kind: 'composer', timeout: 15 * 60_000 });
             await execute('composer', ['check-platform-reqs'], { kind: 'composer' });
             await execute('php', ['tools/ci/prepare-php86.php', process.env.COMPOSER_BINARY ?? '', path.join(reports, 'metadata.json'), '--verify']);
+            await execute('php', ['tools/ci/php-compatibility.php'], { kind: 'test', timeout: 15 * 60_000 });
         } },
         { id: 'application', name: 'Anwendungsstart und Assets', run: async () => {
             for (const folder of ['storage/framework/cache/data', 'storage/framework/sessions', 'storage/framework/views', 'storage/framework/testing', 'bootstrap/cache']) mkdirSync(path.join(directory, folder), { recursive: true });
@@ -115,6 +145,9 @@ export function createStages(directory, reports, execute, env, container) {
             }
             await execute('php', ['artisan', 'about', '--only=environment'], { kind: 'application' });
             await execute('php', ['artisan', 'migrate:fresh', '--force'], { kind: 'application' });
+            await execute('php', ['artisan', 'view:cache'], { kind: 'application' });
+            await execute('php', ['tools/ci/php-compatibility.php', '--compiled-views'], { kind: 'test', timeout: 10 * 60_000 });
+            await execute('php', ['artisan', 'view:clear'], { kind: 'application' });
             await execute('npm', ['install', '--global', 'npm@12.2.1', '--ignore-scripts']);
             await execute('sh', ['docker/patch-npm-security.sh']);
             await execute('npm', ['ci']);
@@ -179,12 +212,12 @@ export function summarize(result, metadata = {}) {
         `## PHP 8.6: ${labels[result.status] ?? labels.unavailable}`, '',
         `Commit: ${safe(process.env.GITHUB_SHA ?? 'lokal')} · Ereignis: ${safe(process.env.GITHUB_EVENT_NAME ?? 'lokal')} · Prüfung: ${safe(result.checkedAt)}`, '',
         `PHP: ${safe(metadata.php ?? 'nicht verfügbar')} · Composer: ${safe(metadata.composer ?? 'nicht verfügbar')}`, '',
-        `Produktive PHP-Vorgabe: ${safe(metadata.originalConstraint ?? '~8.5.0')} · Isolierte Probe: ${safe(metadata.probeConstraint ?? 'nicht vorbereitet')}`, '',
+        `Composer-PHP-Vorgabe: ${safe(metadata.phpConstraint ?? 'nicht geprüft')} · Produktive Laufzeit: PHP 8.5`, '',
         `Original-Lockfile SHA-256: ${safe(metadata.originalLockSha256 ?? 'nicht erfasst')}`, '',
         `Unveränderte Paketmetadaten: ${metadata.packagesUnchanged === true ? `bestätigt (${metadata.packageCount} Pakete)` : 'nicht bestätigt'}`, '',
         '| Stufe | Ergebnis |', '| --- | --- |',
         ...result.stages.map(stage => `| ${safe(stage.name)} | ${stage.outcome === 'success' ? 'erfolgreich' : stage.outcome === 'failure' ? 'fehlgeschlagen' : `übersprungen: ${safe(stage.reason)}`} |`), '',
-        '„Kompatibel“ bezeichnet ausschließlich den technischen Probelauf mit den gesperrten Paketversionen und isoliert erweiterter Root-PHP-Vorgabe. Die produktive PHP-8.5-Freigabe bleibt bestehen.', '',
+        '„Kompatibel“ erfordert alle Pflichtstufen ohne erkannte PHP-Deprecations bei unverändertem Manifest und Lockfile. Die produktive PHP-8.5-Freigabe bleibt bestehen.', '',
     ];
     if (result.blocker) lines.push(`### Erster Blocker: ${safe(result.blocker.name)}`, '', `<pre>${safe(result.blocker.message)}</pre>`, '');
     if (process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID) lines.push(`[Logs und Diagnoseartefakte](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})`, '');
@@ -200,7 +233,13 @@ async function main() {
     if (directory === sourceRoot) throw new Error('An isolated working copy is required.');
     mkdirSync(reports, { recursive: true });
     const container = `omxfc-php86-${randomBytes(8).toString('hex')}`;
-    const env = { ...process.env, CI: 'true', APP_ENV: 'testing', APP_DEBUG: 'false', APP_KEY: `base64:${randomBytes(32).toString('base64')}`, DB_CONNECTION: 'sqlite', DB_DATABASE: path.join(directory, 'database/php86.sqlite'), CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync', SCOUT_DRIVER: 'null', MADDRAXIKON_IDENTITY_HMAC_PEPPERS: 'test-v1:0123456789abcdef0123456789abcdef', PLAYWRIGHT_USE_DOCKER: '0', PLAYWRIGHT_REUSE_EXISTING_SERVER: '0', PLAYWRIGHT_WORKERS: '1' };
+    const iniDirectory = path.join(reports, 'php-ini');
+    mkdirSync(iniDirectory);
+    const deprecationLog = path.join(reports, 'laravel-deprecations.log');
+    writeFileSync(deprecationLog, '');
+    writeFileSync(deprecationLog + '.php.log', '');
+    writeFileSync(path.join(iniDirectory, 'deprecations.ini'), `error_reporting=-1\nlog_errors=1\ndisplay_errors=stderr\nerror_log=${JSON.stringify(deprecationLog + '.php.log')}\n`);
+    const env = { ...process.env, PHP_INI_SCAN_DIR: (process.env.PHP_INI_SCAN_DIR ?? '') + path.delimiter + iniDirectory, PHP_DEPRECATIONS_LOG: deprecationLog, LOG_DEPRECATIONS_CHANNEL: 'php_deprecations', LOG_DEPRECATIONS_WHILE_TESTING: 'true', LOG_DEPRECATIONS_TRACE: 'true', CI: 'true', APP_LOCALE: 'de', APP_FALLBACK_LOCALE: 'de', APP_ENV: 'testing', APP_DEBUG: 'false', APP_KEY: `base64:${randomBytes(32).toString('base64')}`, DB_CONNECTION: 'sqlite', DB_DATABASE: path.join(directory, 'database/php86.sqlite'), CACHE_STORE: 'array', SESSION_DRIVER: 'array', QUEUE_CONNECTION: 'sync', SCOUT_DRIVER: 'null', MADDRAXIKON_IDENTITY_HMAC_PEPPERS: 'test-v1:0123456789abcdef0123456789abcdef', PLAYWRIGHT_USE_DOCKER: '0', PLAYWRIGHT_REUSE_EXISTING_SERVER: '0', PLAYWRIGHT_WORKERS: '1' };
     const execute = commandRunner(directory, reports, env);
     let result = await runStages(createStages(directory, reports, execute, env, container));
     result.checkedAt = new Date().toISOString();
@@ -220,7 +259,7 @@ async function main() {
         appendFileSync(process.env.GITHUB_OUTPUT, `status=${result.status}\nlabel=${labels[result.status]}\nsummary<<${delimiter}\n${summary}\n${delimiter}\n`);
     }
     console.log(`PHP 8.6: ${labels[result.status]}`);
-    // Reporting an incompatibility is a successful execution of this advisory check.
+    process.exitCode = result.status === 'compatible' ? 0 : 1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

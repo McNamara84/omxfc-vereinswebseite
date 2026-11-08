@@ -7,8 +7,9 @@ const sha = process.env.GITHUB_SHA;
 const required = [
     'phpunit.yml', 'vitest.yml', 'playwright.yml',
     'dependency-review.yml', 'mutation.yml', 'service-image-scan.yml',
+    'php86-compatibility.yml',
 ];
-const deadline = Date.now() + 90 * 60_000;
+const deadline = Date.now() + 200 * 60_000;
 const api = async path => {
     const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
         headers: {
@@ -64,7 +65,7 @@ export async function waitForReleaseChecks() {
         await delay(30_000);
     }
 
-    throw new Error('Release checks did not finish within 90 minutes.');
+    throw new Error('Release checks did not finish within 200 minutes.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await waitForReleaseChecks();

@@ -39,7 +39,7 @@
 
 @php
     $errorFieldName = $errorField ?? $attributes->get('name');
-    $hasError = $errors->has($errorFieldName);
+    $hasError = is_string($errorFieldName) && $errorFieldName !== '' && $errors->has($errorFieldName);
     $feedbackId = ($attributes->get('id') ?? 'select-'.\Illuminate\Support\Str::slug($errorFieldName ?? 'field')).'-feedback';
     $descriptionIds = trim(($attributes->get('aria-describedby') ?? '').' '.$feedbackId);
     $selectAttributes = $attributes->whereDoesntStartWith('class')->except('aria-describedby');
@@ -93,9 +93,11 @@
 
         {{-- ERROR --}}
         <div id="{{ $feedbackId }}">
+        @if($hasError)
         @foreach($errors->get($errorFieldName) as $message)
             <div class="text-error">{{ $message }}</div>
         @endforeach
+        @endif
         </div>
 
         {{-- HINT --}}

@@ -40,7 +40,6 @@ class DatabaseDumpServiceTest extends TestCase
 
         $service = app(DatabaseDumpService::class);
         $method = new \ReflectionMethod($service, 'writeGzip');
-        $method->setAccessible(true);
 
         try {
             $this->expectException(DatabaseMaintenanceException::class);

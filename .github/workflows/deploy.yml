@@ -135,7 +135,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 125
+    timeout-minutes: 240
     permissions:
       contents: read
       actions: read

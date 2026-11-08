@@ -225,7 +225,7 @@ class MitgliederController extends Controller
                 $headers[] = 'Bezahlt bis';
             }
 
-            fputcsv($handle, $headers);
+            fputcsv($handle, $headers, escape: '');
 
             // Daten schreiben
             foreach ($members as $member) {
@@ -250,7 +250,7 @@ class MitgliederController extends Controller
                     $row[] = $member->bezahlt_bis ? $member->bezahlt_bis->format('d.m.Y') : '';
                 }
 
-                fputcsv($handle, $row);
+                fputcsv($handle, $row, escape: '');
             }
 
             fclose($handle);

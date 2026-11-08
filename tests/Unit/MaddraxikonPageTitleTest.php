@@ -53,6 +53,10 @@ class MaddraxikonPageTitleTest extends TestCase
         yield 'empty path title' => ['https://de.maddraxikon.com/wiki/'];
         yield 'unrelated route' => ['https://de.maddraxikon.com/api.php?action=query'];
         yield 'control character' => ['https://de.maddraxikon.com/index.php?title=MX%0A1'];
+        yield 'leading form feed' => ['https://de.maddraxikon.com/index.php?title=%0CMX_1'];
+        yield 'trailing form feed' => ['https://de.maddraxikon.com/wiki/MX_1%0C'];
+        yield 'encoded NUL' => ['https://de.maddraxikon.com/index.php?title=MX%001'];
+        yield 'raw NUL query' => ["https://de.maddraxikon.com/index.php?title=MX\0_1"];
     }
 
     public function test_database_and_display_titles_are_normalized_without_fuzzy_matching(): void

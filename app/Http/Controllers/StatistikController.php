@@ -94,7 +94,7 @@ class StatistikController extends Controller
         ];
 
         // ── Card 1 – Grundstatistiken ──────────────────────────────────────────────
-        $averageRating = round($romane->avg('bewertung'), 2);
+        $averageRating = round($romane->avg('bewertung') ?? 0, 2);
         $totalVotes = $romane->sum('stimmen');
         $averageVotes = round($totalVotes / max($romane->count(), 1), 2);
 
@@ -488,7 +488,7 @@ class StatistikController extends Controller
                 Review::where('team_id', $teamId)
                     ->withCount('comments')
                     ->get()
-                    ->avg('comments_count'),
+                    ->avg('comments_count') ?? 0,
                 2
             );
 

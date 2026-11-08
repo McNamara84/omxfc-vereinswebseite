@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
   workflow_dispatch:
   schedule:
     - cron: '17 5 * * *'
@@ -13,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: php86-compatibility-${{ github.ref }}
+  group: php86-compatibility-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -81,18 +82,24 @@ jobs:
             ${{ runner.temp }}/php86-probe/tests/Browser/Screenshots/
 
   report:
-    name: 'PHP 8.6: ${{ needs.probe.outputs.label || ''nicht prüfbar'' }}'
+    name: PHP 8.6 erforderlich
     needs: [probe]
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Kompatibilitätsstatus zusammenfassen
         env:
           PROBE_SUMMARY: ${{ needs.probe.outputs.summary }}
+          PROBE_STATUS: ${{ needs.probe.outputs.status }}
+          PROBE_RESULT: ${{ needs.probe.result }}
         run: |
           if [ -n "$PROBE_SUMMARY" ]; then
             printf '%s\n' "$PROBE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
           else
             printf '%s\n' '## PHP 8.6: nicht prüfbar' '' 'Die Probe konnte keine vollständigen Ergebnisdaten bereitstellen. Bitte die Logs des Probe-Jobs prüfen.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "$PROBE_RESULT" != 'success' ] || [ "$PROBE_STATUS" != 'compatible' ]; then
+            printf '%s\n' 'PHP 8.6 ist erforderlich: Inkompatibilität oder unvollständiger Prüfnachweis.' >&2
+            exit 1
           fi

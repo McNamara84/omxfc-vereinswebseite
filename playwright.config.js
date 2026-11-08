@@ -25,6 +25,8 @@ const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorke
     : undefined;
 const phpEnvironment = {
   APP_ENV: 'testing',
+  APP_LOCALE: 'de',
+  APP_FALLBACK_LOCALE: 'de',
   APP_DEBUG: 'false',
   APP_KEY: playwrightApplicationKey,
   APP_CONFIG_CACHE: 'bootstrap/cache/config-playwright.php',

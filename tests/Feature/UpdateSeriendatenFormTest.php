@@ -32,7 +32,6 @@ class UpdateSeriendatenFormTest extends TestCase
         // Reset cached data in the service
         $ref = new \ReflectionClass(MaddraxDataService::class);
         $property = $ref->getProperty('data');
-        $property->setAccessible(true);
         $property->setValue(null, null);
 
         // Minimal Maddrax data for the component

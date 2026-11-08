@@ -42,7 +42,9 @@ final class MaddraxikonPageTitle
             return null;
         }
 
-        $title = trim(str_replace('_', ' ', $title));
+        // Keep control-character validation consistent: PHP 8.6 also trims
+        // form feed by default, which would otherwise silently accept it.
+        $title = trim(str_replace('_', ' ', $title), " \n\r\t\v\0");
 
         if (
             $title === ''
