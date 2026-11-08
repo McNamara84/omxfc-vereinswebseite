@@ -9,7 +9,7 @@ describe('temporal utils', () => {
 
   it('nutzt die gefälschte aktuelle Zeit auch über das Ende der Sommerzeit', () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-10-24T08:30:00Z'));
+    vi.setSystemTime(Temporal.Instant.from('2026-10-24T08:30:00Z'));
 
     expect(createDatetimeLocalRange({ timeZone: 'Europe/Berlin', durationDays: 2 })).toEqual({
       start: '2026-10-24T10:30',
@@ -18,6 +18,22 @@ describe('temporal utils', () => {
 
     vi.advanceTimersByTime(60_000);
     expect(createDatetimeLocalRange({ durationDays: 0 }).start).toBe('2026-10-24T08:31');
+  });
+
+  it('übernimmt einen ZonedDateTime als Instant ohne die Prozesszeitzone zu ändern', () => {
+    const originalTimeZone = Temporal.Now.timeZoneId();
+    vi.useFakeTimers();
+    vi.setSystemTime(Temporal.ZonedDateTime.from('2026-10-25T02:30:00+02:00[Europe/Berlin]'));
+
+    expect(Temporal.Now.timeZoneId()).toBe(originalTimeZone);
+    expect(Temporal.Now.instant().toString()).toBe('2026-10-25T00:30:00Z');
+    expect(createDatetimeLocalRange({ timeZone: 'Europe/Berlin', durationDays: 1 })).toEqual({
+      start: '2026-10-25T02:30',
+      end: '2026-10-26T02:30',
+    });
+    vi.advanceTimersByTime(3_600_000);
+    expect(Temporal.Now.instant().toString()).toBe('2026-10-25T01:30:00Z');
+    expect(formatDatetimeLocalFromInstant(Temporal.Now.instant(), { timeZone: 'Europe/Berlin' })).toBe('2026-10-25T02:30');
   });
 
   it('formatiert Epoch-Millis als ISO-Instant mit Millisekunden', () => {

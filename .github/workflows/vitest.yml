@@ -39,14 +39,16 @@ jobs:
           cache: 'npm'
 
       - name: Install NPM dependencies
+        shell: bash
         run: |
           npm install --global npm@12.2.1 --ignore-scripts
           test "$(npm --version)" = "12.2.1"
           sh docker/patch-npm-security.sh
-          npm ci
+          npm ci 2>&1 | tee "$RUNNER_TEMP/vitest-install.log"
+          node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-install.log"
 
       - name: Run Vitest tests once with coverage
-        run: npm run test:coverage
+        run: node tools/testing/check-deprecations.mjs --run node_modules/vitest/vitest.mjs run --config vitest.config.js --coverage
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
       - name: Fetch protected PR baseline
@@ -67,9 +69,20 @@ jobs:
           path: coverage/
           if-no-files-found: error
       - name: Verify release gate and deployment preparation
-        run: npm run test:deployment
+        run: node tools/testing/check-deprecations.mjs --run --test tests/Node/*.test.mjs
+      - name: Install Chromium for the native dialog pilot
+        run: node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js install --with-deps chromium
+      - name: Test native dialog and focus with Chromium
+        run: node tools/testing/check-deprecations.mjs --run node_modules/vitest/vitest.mjs run --config vitest.browser.config.js
+      - name: Upload browser report and failure diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vitest-browser-report
+          path: test-results/vitest-browser/
+          if-no-files-found: ignore
       - name: Check asynchronous resource leaks
         if: github.event_name != 'pull_request'
-        run: npm run test:leaks
+        run: node tools/testing/check-deprecations.mjs --run node_modules/vitest/vitest.mjs run --config vitest.config.js --detectAsyncLeaks
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1

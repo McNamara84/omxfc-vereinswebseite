@@ -8,18 +8,21 @@
 let repeaterFactory;
 
 beforeEach(async () => {
-    window.Alpine = {
+    vi.stubGlobal('fetch', vi.fn());
+    vi.stubGlobal('Alpine', {
         data: vi.fn((name, factory) => {
             if (name === 'hoerbuchRoleRepeater') {
                 repeaterFactory = factory;
             }
         }),
-    };
+    });
 
     vi.resetModules();
     await import('@/alpine/hoerbuch-role-repeater.js');
     document.dispatchEvent(new CustomEvent('alpine:init'));
 });
+
+afterEach(() => vi.unstubAllGlobals());
 
 function createRepeater(overrides = {}) {
     const defaults = { initialRoles: [], members: [], previousSpeakerUrl: '' };
@@ -129,7 +132,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
     });
 
     it('setzt previousSpeaker bei erfolgreicher Abfrage', async () => {
-        global.fetch = vi.fn().mockResolvedValue({
+        fetch.mockResolvedValue({
             ok: true,
             status: 200,
             json: () => Promise.resolve({ speaker: 'Max Mustermann' }),
@@ -142,7 +145,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
     });
 
     it('leert previousSpeaker wenn kein bisheriger Sprecher', async () => {
-        global.fetch = vi.fn().mockResolvedValue({
+        fetch.mockResolvedValue({
             ok: true,
             status: 200,
             json: () => Promise.resolve({ speaker: null }),
@@ -155,7 +158,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
     });
 
     it('zeigt Fehlermeldung bei 401', async () => {
-        global.fetch = vi.fn().mockResolvedValue({
+        fetch.mockResolvedValue({
             ok: false,
             status: 401,
         });
@@ -167,7 +170,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
     });
 
     it('zeigt Fehlermeldung bei Netzwerkfehler', async () => {
-        global.fetch = vi.fn().mockRejectedValue(new TypeError('Network error'));
+        fetch.mockRejectedValue(new TypeError('Network error'));
 
         const r = createRepeater({ previousSpeakerUrl: '/api/speaker' });
         const role = { name: 'Erzähler', previousSpeaker: '' };
@@ -177,7 +180,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
 
     it('ignoriert AbortError ohne Fehlermeldung', async () => {
         const abortError = new DOMException('Aborted', 'AbortError');
-        global.fetch = vi.fn().mockRejectedValue(abortError);
+        fetch.mockRejectedValue(abortError);
 
         const r = createRepeater({ previousSpeakerUrl: '/api/speaker' });
         const role = { name: 'Erzähler', previousSpeaker: 'vorher' };
@@ -190,7 +193,7 @@ describe('hoerbuchRoleRepeater – fetchPreviousSpeaker', () => {
         const abortFn = vi.fn();
         let callCount = 0;
 
-        global.fetch = vi.fn().mockImplementation((url, opts) => {
+        fetch.mockImplementation((url, opts) => {
             callCount++;
             // Erster Aufruf wird aborted, zweiter succeeds
             if (callCount === 1) {

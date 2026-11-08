@@ -11,6 +11,18 @@ if (!Number.isInteger(configuredWorkers) || configuredWorkers < 1) {
 }
 
 export default defineConfig({
+    server: {
+        watch: {
+            // PHP dependencies and generated reports are not inputs to these JS tests.
+            ignored: ['**/vendor/**', '**/storage/**', '**/.tmp/**', '**/.vitest/**', '**/coverage/**', '**/test-results/**', '**/public/build/**'],
+        },
+    },
+    server: {
+        watch: {
+            // PHP dependencies and generated reports are not inputs to these JS tests.
+            ignored: ['**/vendor/**', '**/storage/**', '**/.tmp/**', '**/.vitest/**', '**/coverage/**', '**/test-results/**', '**/public/build/**'],
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(currentDir, 'resources/js'),
@@ -25,15 +37,16 @@ export default defineConfig({
             },
         },
         globals: true,
+        fakeTimers: { fakeNodeBuiltins: true },
         setupFiles: ['tests/Vitest/setup.js'],
         dir: 'tests/Vitest',
         projects: [
             { test: { name: 'node', environment: 'node', include: nodeTestFiles } },
-            { test: { name: 'dom', environment: 'jsdom', include: ['**/*.test.js'], exclude: nodeTestFiles } },
+            { test: { name: 'dom', environment: 'jsdom', include: ['**/*.test.js'], exclude: [...nodeTestFiles, '**/browser/**'] } },
         ],
         coverage: {
             provider: 'v8',
-            reporter: ['json', 'json-summary'],
+            reporter: ['json', 'json-summary', 'html'],
             reportsDirectory: 'coverage',
         },
     },

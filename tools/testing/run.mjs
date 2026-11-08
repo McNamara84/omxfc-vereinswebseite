@@ -23,7 +23,7 @@ export function commandsFor(scope, { runtime = 'docker', args = [], node = proce
         commands.push({ command: node, args: ['node_modules/vitest/vitest.mjs', 'run', '--config', 'vitest.config.js'] });
         // Node 26 expands --test glob patterns itself, including when shell is false.
         commands.push(scope === 'fast'
-            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/coverage-script.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs', 'tests/Node/php86-compatibility.test.mjs'] }
+            ? { command: node, args: ['--test', 'tests/Node/coverage.test.mjs', 'tests/Node/coverage-baseline.test.mjs', 'tests/Node/coverage-script.test.mjs', 'tests/Node/test-runner.test.mjs', 'tests/Node/test-inventory.test.mjs', 'tests/Node/release-checks.test.mjs', 'tests/Node/php86-compatibility.test.mjs', 'tests/Node/deprecation-check.test.mjs'] }
             : runtime === 'docker'
             ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'node', 'node', '--test', 'tests/Node/*.test.mjs'] }
             : { command: node, args: ['--test', 'tests/Node/*.test.mjs'] });
@@ -38,6 +38,10 @@ export function commandsFor(scope, { runtime = 'docker', args = [], node = proce
     }
     if (scope === 'all') {
         commands.push(php(['vendor/bin/pest', 'tests/Arch.php', '--compact']));
+        const pilotArgs = ['node_modules/vitest/vitest.mjs', 'run', '--config', 'vitest.browser.config.js'];
+        commands.push(runtime === 'docker'
+            ? { command: 'docker', args: [...compose, 'run', '--rm', '-T', '--no-deps', 'browser', 'node', ...pilotArgs] }
+            : { command: node, args: pilotArgs });
         // Each invocation reruns global setup, so browsers cannot inherit another
         // project's published stories, accepted tasks or accounting entries.
         for (const project of ci ? ['chromium', 'firefox'] : ['chromium', 'firefox', 'webkit']) {

@@ -1,9 +1,7 @@
-async function flushAsyncWork() {
-    await Promise.resolve();
-    await Promise.resolve();
-    await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
-    await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
-    await new Promise((resolve) => setTimeout(resolve, 0));
+async function expectTourTitle(title) {
+    await vi.waitFor(() => expect(document.getElementById('tour-runner-title')?.textContent).toBe(title), {
+        message: `Die Tour zeigt den Schritt „${title}“ nach der Navigation`,
+    });
 }
 
 function renderRunnerDom() {
@@ -293,9 +291,7 @@ describe('tour runner', () => {
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
 
         document.getElementById('tour-runner-next')?.click();
-        await flushAsyncWork();
-
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Sichtbarer Folgeschritt');
+        await expectTourTitle('Sichtbarer Folgeschritt');
         expect(document.getElementById('tour-runner-counter')?.textContent).toBe('2 / 2');
         expect(window.omxfcHttp.post).toHaveBeenLastCalledWith('/tour/7/progress', {
             step_key: 'visible-follow-up',
@@ -309,13 +305,10 @@ describe('tour runner', () => {
         await bootRunner();
 
         document.getElementById('tour-runner-next')?.click();
-        await flushAsyncWork();
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Sichtbarer Folgeschritt');
+        await expectTourTitle('Sichtbarer Folgeschritt');
 
         document.getElementById('tour-runner-back')?.click();
-        await flushAsyncWork();
-
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
+        await expectTourTitle('Dashboard');
         expect(document.getElementById('tour-runner-counter')?.textContent).toBe('1 / 2');
         expect(http.post).toHaveBeenLastCalledWith('/tour/7/progress', {
             step_key: 'dashboard',
@@ -337,17 +330,15 @@ describe('tour runner', () => {
         });
 
         document.getElementById('tour-runner-next')?.click();
-        await flushAsyncWork();
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Sichtbarer Folgeschritt');
+        await expectTourTitle('Sichtbarer Folgeschritt');
 
         document.getElementById('tour-runner-back')?.click();
-        await flushAsyncWork();
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
+        await expectTourTitle('Dashboard');
 
         document.getElementById('tour-runner-skip')?.click();
-        await flushAsyncWork();
-
-        expect(document.getElementById('tour-runner-panel')?.classList.contains('hidden')).toBe(true);
+        await vi.waitFor(() => expect(document.getElementById('tour-runner-panel')?.classList.contains('hidden')).toBe(true), {
+            message: 'Nach „Spaeter“ ist die Tour geschlossen',
+        });
         expect(http.post).toHaveBeenLastCalledWith('/tour/7/dismiss');
     });
 
@@ -536,12 +527,10 @@ describe('tour runner', () => {
         await bootRunner();
 
         document.getElementById('tour-runner-next')?.click();
-        await flushAsyncWork();
-        await flushAsyncWork();
-        await flushAsyncWork();
-
-        expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
-        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Rezensionen');
+        await vi.waitFor(() => {
+            expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
+            expect(document.getElementById('tour-runner-title')?.textContent).toBe('Rezensionen');
+        }, { message: 'Die Tour öffnet das nachträglich geschlossene Dropdown wieder für Rezensionen' });
         expect(window.omxfcHttp.post).toHaveBeenLastCalledWith('/tour/10/progress', {
             step_key: 'community-reviews',
         });

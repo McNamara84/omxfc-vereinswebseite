@@ -9,7 +9,6 @@ vi.mock('leaflet', () => ({ default: mocks.leaflet }));
 import { mountMemberMap } from '../../resources/js/mitglieder/karte';
 const utils = window.omxfcMemberMap;
 beforeEach(() => {
-    vi.clearAllMocks();
     document.body.innerHTML = '<div id="map" data-member-map></div><div id="member-map-config"></div>';
     window.omxfcMemberMap = utils;
 });

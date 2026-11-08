@@ -280,11 +280,10 @@ describe('cover rating fullscreen session', () => {
         setFullscreenElement(null);
 
         document.dispatchEvent(new Event('fullscreenchange'));
-        await Promise.resolve();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        expect(controller.active).toBe(false);
-        expect(document.activeElement).toBe(startButton);
+        await vi.waitFor(() => {
+            expect(controller.active).toBe(false);
+            expect(document.activeElement).toBe(startButton);
+        }, { message: 'Nach dem Verlassen des Vollbilds endet die Sitzung und der Fokus kehrt zurück' });
         controller.destroy();
     });
 
@@ -518,13 +517,15 @@ describe('cover rating fullscreen session', () => {
         try {
             await import('../../resources/js/cover-ratings/session.js');
 
-            await new Promise((resolve) => setTimeout(resolve, 0));
-            expect(stateOutput.getAttribute('data-session-active')).toBe('no');
+            await vi.waitFor(() => expect(stateOutput.getAttribute('data-session-active')).toBe('no'), {
+                message: 'Alpine bindet die nachträglich registrierte Sitzung',
+            });
             alpineErrors.length = 0;
 
             startButton.click();
-            await new Promise((resolve) => setTimeout(resolve, 0));
-            await alpine.nextTick();
+            await vi.waitFor(() => expect(stateOutput.getAttribute('data-session-active')).toBe('yes'), {
+                message: 'Der Start-Klick aktiviert die Sitzung auch im reaktiven DOM',
+            });
 
             expect(alpineErrors.map(({ message }) => message)).toEqual([]);
             expect(alpine.$data(root).active).toBe(true);
