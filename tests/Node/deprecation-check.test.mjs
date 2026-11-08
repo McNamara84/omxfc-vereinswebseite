@@ -30,12 +30,19 @@ async function check(args, options = {}) {
 }
 
 test('recognizes npm, Node, Vite and browser deprecation warning formats with ANSI and CRLF', () => {
-    for (const warning of examples.warnings) assert.equal(findDeprecations(`\u001b[33m${warning}\u001b[0m\r\n at stack:1\r\n`).length, 1, warning);
+    for (const warning of examples.warnings) {
+        for (const prefix of ['', '# ', '    # ']) {
+            assert.deepEqual(findDeprecations(`\u001b[33m${prefix}${warning}\u001b[0m\r\n${prefix} at stack:1\r\n`), [warning.trim()]);
+        }
+    }
     assert.deepEqual(findDeprecations('DEPRECATED old option\nDEPRECATED old option'), ['DEPRECATED old option']);
+    assert.deepEqual(findDeprecations('DEPRECATED old option\n# DEPRECATED old option'), ['DEPRECATED old option']);
 });
 
 test('permits ordinary warnings and test titles or data mentioning deprecated APIs', () => {
-    assert.deepEqual(findDeprecations(examples.normal.join('\n')), []);
+    for (const prefix of ['', '# ', '    # ']) {
+        assert.deepEqual(findDeprecations(examples.normal.map(line => `${prefix}${line}`).join('\n')), []);
+    }
 });
 
 test('checked processes forward both streams, preserve Node options and allow normal warnings', async t => {
@@ -57,6 +64,25 @@ test('runtime deprecations in the main process fail with their source', async t 
     assert.equal(result.code, 1);
     assert.match(result.stderr, /DeprecationWarning: fixture runtime/);
     assert.match(result.stderr, /runtime\.mjs/);
+});
+
+test('checked TAP runs reject console deprecations but permit ordinary diagnostics', async t => {
+    const root = fixture(t);
+    const filename = path.join(root, 'tap.test.mjs');
+    writeFileSync(filename, examples.tapWarning);
+    const warning = await check(['--test', '--test-reporter=tap', filename]);
+    assert.match(warning.stdout, /# \[vite\] DEPRECATED old plugin option/);
+    assert.match(warning.stdout, /# pass 1/);
+    assert.match(warning.stdout, /# fail 0/);
+    assert.equal(warning.code, 1);
+    assert.match(warning.stderr, /Deprecation check failed:\n\[vite\] DEPRECATED old plugin option/);
+
+    writeFileSync(filename, examples.tapOrdinary);
+    const ordinary = await check(['--test', '--test-reporter=tap', filename]);
+    assert.equal(ordinary.code, 0, ordinary.stderr);
+    assert.match(ordinary.stdout, /# ordinary warning/);
+    assert.match(ordinary.stdout, /# pass 1/);
+    assert.doesNotMatch(ordinary.stderr, /Deprecation check failed/);
 });
 
 test('a split warning without a final newline fails even when the child exits successfully', async t => {

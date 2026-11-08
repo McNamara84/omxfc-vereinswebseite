@@ -15,10 +15,15 @@
     "(node:123) ExperimentalWarning: optional local experiment",
     "✓ restores deprecated data correctly",
     "data: { \"message\": \"deprecated\" }",
-    "stderr | test > handles deprecated responses"
+    "stderr | test > handles deprecated responses",
+    "Subtest: DEPRECATED old plugin option",
+    "ok 1 - DEPRECATED old plugin option",
+    "payload contains # [vite] DEPRECATED old plugin option"
   ],
   "ordinary": "console.log('ordinary stdout', process.env.NODE_OPTIONS); console.warn('ordinary warning'); if (!process.env.NODE_OPTIONS.includes('--throw-deprecation')) process.exitCode = 8;",
   "runtime": "process.emitWarning('fixture runtime', { type: 'DeprecationWarning', code: 'DEP_FIXTURE' });",
+  "tapWarning": "import { test } from 'node:test'; test('console warning fixture', () => { console.warn('[vite] DEPRECATED old plugin option'); });",
+  "tapOrdinary": "import { test } from 'node:test'; test('DEPRECATED old plugin option', () => { console.warn('ordinary warning'); console.log('data: { \"message\": \"deprecated\" }'); });",
   "split": "process.stdout.write('DEPRE'); setTimeout(() => process.stdout.write('CATED split warning'), 10);",
   "worker": "import { test } from 'vitest'; test('worker probe', () => { process.emitWarning('fixture worker', { type: 'DeprecationWarning', code: 'DEP_FIXTURE' }); });",
   "config": "process.emitWarning('fixture config', { type: 'DeprecationWarning', code: 'DEP_FIXTURE' }); export default {};"

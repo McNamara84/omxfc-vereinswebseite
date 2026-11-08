@@ -7583,6 +7583,7 @@
       "permits ordinary warnings and test titles or data mentioning deprecated APIs",
       "checked processes forward both streams, preserve Node options and allow normal warnings",
       "runtime deprecations in the main process fail with their source",
+      "checked TAP runs reject console deprecations but permit ordinary diagnostics",
       "a split warning without a final newline fails even when the child exits successfully",
       "ordinary child failures keep their exit code and missing scripts fail",
       "deprecations during Vitest configuration and inside a worker reach the check"

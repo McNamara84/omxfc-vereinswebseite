@@ -14,6 +14,8 @@ const warningFormats = [
 
 export function findDeprecations(output) {
     return [...new Set(stripVTControlCharacters(output).split(/\r?\n/)
+        // Node's TAP reporter prefixes console output with an optionally indented "# ".
+        .map(line => line.replace(/^\s*# /, ''))
         .filter(line => warningFormats.some(pattern => pattern.test(line)))
         .map(line => line.trim()))];
 }
