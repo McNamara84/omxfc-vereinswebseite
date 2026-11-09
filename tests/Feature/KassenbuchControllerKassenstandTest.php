@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -10,141 +12,98 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class KassenbuchControllerKassenstandTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(CreatesUserWithRole::class, RefreshDatabase::class);
 
-    public function test_mitglied_kann_kassenstand_sehen(): void
-    {
-        $this->actingMember();
+test('mitglied kann kassenstand sehen', function (): void {
+    $this->actingMember();
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertViewIs('kassenbuch.kassenstand');
+});
 
-        $response = $this->get('/kassenstand');
+test('kassenstand zeigt mitgliedsbeitrag', function (): void {
+    $this->actingMember(attributes: ['mitgliedsbeitrag' => 36.0]);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertSee('Dein Mitgliedsbeitrag');
+    $response->assertSee('36,00');
+});
 
-        $response->assertOk();
-        $response->assertViewIs('kassenbuch.kassenstand');
-    }
+test('kassenstand zeigt aktuellen kassenstand', function (): void {
+    $user = $this->actingMember();
+    $team = $user->currentTeam;
+    Kassenstand::create(['team_id' => $team->id, 'betrag' => 1234.56, 'letzte_aktualisierung' => now()]);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertSee('Aktueller Kassenstand');
+    $response->assertSee('1.234,56');
+});
 
-    public function test_kassenstand_zeigt_mitgliedsbeitrag(): void
-    {
-        $this->actingMember(attributes: ['mitgliedsbeitrag' => 36.00]);
+test('kassenstand zeigt keine verwaltung', function (): void {
+    $this->actingMember();
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertDontSee('Eintrag hinzufügen');
+    $response->assertDontSee('Zahlung aktualisieren');
+});
 
-        $response = $this->get('/kassenstand');
+test('vorstand sieht kassenstand wie mitglied', function (): void {
+    $this->actingVorstand();
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertViewIs('kassenbuch.kassenstand');
+    $response->assertSee('Dein Mitgliedsbeitrag');
+    $response->assertSee('Aktueller Kassenstand');
+});
 
-        $response->assertOk();
-        $response->assertSee('Dein Mitgliedsbeitrag');
-        $response->assertSee('36,00');
-    }
+test('gast wird zum login weitergeleitet', function (): void {
+    $response = $this->get('/kassenstand');
+    $response->assertRedirect('/login');
+});
 
-    public function test_kassenstand_zeigt_aktuellen_kassenstand(): void
-    {
-        $user = $this->actingMember();
+test('kassenstand erstellt initialen eintrag', function (): void {
+    $user = $this->actingMember();
+    $this->assertDatabaseMissing('kassenstand', ['team_id' => $user->currentTeam->id]);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.0]);
+    $response->assertViewHas('renewalWarning', false);
+});
 
-        $team = $user->currentTeam;
-        Kassenstand::create([
-            'team_id' => $team->id,
-            'betrag' => 1234.56,
-            'letzte_aktualisierung' => now(),
-        ]);
+test('kassenstand zeigt erneuerungswarnung bei ablaufender mitgliedschaft', function (): void {
+    $user = $this->actingMember();
+    $user->update(['bezahlt_bis' => now()->addDays(10)]);
+    $this->actingAs($user);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertViewHas('renewalWarning', true);
+});
 
-        $response = $this->get('/kassenstand');
+test('kassenstand zeigt keine warnung bei langer mitgliedschaft', function (): void {
+    $user = $this->actingMember();
+    $user->update(['bezahlt_bis' => now()->addDays(45)]);
+    $this->actingAs($user);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertViewHas('renewalWarning', false);
+});
 
-        $response->assertOk();
-        $response->assertSee('Aktueller Kassenstand');
-        $response->assertSee('1.234,56');
-    }
+test('kassenstand markiert abgelaufene mitgliedschaft ohne warnung', function (): void {
+    $user = $this->actingMember();
+    $user->update(['bezahlt_bis' => now()->subDays(5)]);
+    $this->actingAs($user);
+    $response = $this->get('/kassenstand');
+    $response->assertOk();
+    $response->assertViewHas('renewalWarning', false);
+    $response->assertSee('Deine Mitgliedschaft ist abgelaufen!', false);
+});
 
-    public function test_kassenstand_zeigt_keine_verwaltung(): void
-    {
-        $this->actingMember();
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertDontSee('Eintrag hinzufügen');
-        $response->assertDontSee('Zahlung aktualisieren');
-    }
-
-    public function test_vorstand_sieht_kassenstand_wie_mitglied(): void
-    {
-        $this->actingVorstand();
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewIs('kassenbuch.kassenstand');
-        $response->assertSee('Dein Mitgliedsbeitrag');
-        $response->assertSee('Aktueller Kassenstand');
-    }
-
-    public function test_gast_wird_zum_login_weitergeleitet(): void
-    {
-        $response = $this->get('/kassenstand');
-
-        $response->assertRedirect('/login');
-    }
-
-    public function test_kassenstand_erstellt_initialen_eintrag(): void
-    {
-        $user = $this->actingMember();
-
-        $this->assertDatabaseMissing('kassenstand', ['team_id' => $user->currentTeam->id]);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
-        $response->assertViewHas('renewalWarning', false);
-    }
-
-    public function test_kassenstand_zeigt_erneuerungswarnung_bei_ablaufender_mitgliedschaft(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->addDays(10)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', true);
-    }
-
-    public function test_kassenstand_zeigt_keine_warnung_bei_langer_mitgliedschaft(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->addDays(45)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', false);
-    }
-
-    public function test_kassenstand_markiert_abgelaufene_mitgliedschaft_ohne_warnung(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->subDays(5)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', false);
-        $response->assertSee('Deine Mitgliedschaft ist abgelaufen!', false);
-    }
-
-    public function test_kassenstand_uses_members_team_provider(): void
-    {
-        $team = Team::membersTeam();
-
-        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
-            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
-        });
-
-        $user = $this->createUserWithRole(Role::Mitglied);
-        $this->actingAs($user);
-
-        $this->get('/kassenstand')->assertOk();
-    }
-}
+test('kassenstand uses members team provider', function (): void {
+    $team = Team::membersTeam();
+    $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+        $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+    });
+    $user = $this->createUserWithRole(Role::Mitglied);
+    $this->actingAs($user);
+    $this->get('/kassenstand')->assertOk();
+});

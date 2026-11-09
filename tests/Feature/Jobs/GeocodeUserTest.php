@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Jobs;
 
 use App\Jobs\GeocodeUser;
@@ -9,57 +11,35 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Attributes\Backoff;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
 use Tests\TestCase;
 
-#[CoversClass(GeocodeUser::class)]
-class GeocodeUserTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    #[Test]
-    public function job_geokodiert_benutzer_und_speichert_koordinaten(): void
-    {
-        $team = Team::membersTeam();
+covers(GeocodeUser::class);
 
-        $user = User::factory()->create([
-            'current_team_id' => $team?->id,
-            'plz' => '12345',
-            'land' => 'Deutschland',
-            'lat' => null,
-            'lon' => null,
-        ]);
+test('job geokodiert benutzer und speichert koordinaten', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team?->id, 'plz' => '12345', 'land' => 'Deutschland', 'lat' => null, 'lon' => null]);
+    $job = new GeocodeUser($user);
+    $job->handle();
+    $user->refresh();
+    expect((float) $user->lat)->toBe((float) self::DEFAULT_LAT)
+        ->and((float) $user->lon)->toBe((float) self::DEFAULT_LON);
+});
 
-        $job = new GeocodeUser($user);
-        $job->handle();
-
-        $user->refresh();
-
-        $this->assertSame((float) self::DEFAULT_LAT, (float) $user->lat);
-        $this->assertSame((float) self::DEFAULT_LON, (float) $user->lon);
-    }
-
-    #[Test]
-    public function job_verwendet_laravel_13_queue_attribute_fuer_retry_timeout_und_backoff(): void
-    {
-        $reflection = new ReflectionClass(GeocodeUser::class);
-
-        $triesAttributes = $reflection->getAttributes(Tries::class);
-        $timeoutAttributes = $reflection->getAttributes(Timeout::class);
-        $backoffAttributes = $reflection->getAttributes(Backoff::class);
-
-        $this->assertCount(1, $triesAttributes);
-        $this->assertCount(1, $timeoutAttributes);
-        $this->assertCount(1, $backoffAttributes);
-
-        $tries = $triesAttributes[0]->newInstance();
-        $timeout = $timeoutAttributes[0]->newInstance();
-        $backoff = $backoffAttributes[0]->newInstance();
-
-        $this->assertSame(3, $tries->tries);
-        $this->assertSame(30, $timeout->timeout);
-        $this->assertSame(300, $backoff->backoff);
-    }
-}
+test('job verwendet laravel 13 queue attribute fuer retry timeout und backoff', function (): void {
+    $reflection = new ReflectionClass(GeocodeUser::class);
+    $triesAttributes = $reflection->getAttributes(Tries::class);
+    $timeoutAttributes = $reflection->getAttributes(Timeout::class);
+    $backoffAttributes = $reflection->getAttributes(Backoff::class);
+    expect($triesAttributes)->toHaveCount(1)
+        ->and($timeoutAttributes)->toHaveCount(1)
+        ->and($backoffAttributes)->toHaveCount(1);
+    $tries = $triesAttributes[0]->newInstance();
+    $timeout = $timeoutAttributes[0]->newInstance();
+    $backoff = $backoffAttributes[0]->newInstance();
+    expect($tries->tries)->toBe(3)
+        ->and($timeout->timeout)->toBe(30)
+        ->and($backoff->backoff)->toBe(300);
+});

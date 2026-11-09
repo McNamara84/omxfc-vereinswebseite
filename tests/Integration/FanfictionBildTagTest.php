@@ -1,366 +1,181 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
-use App\Models\Fanfiction;
 use Tests\TestCase;
 
-class FanfictionBildTagTest extends TestCase
-{
-    private function createFanfiction(string $content, array $photos = []): Fanfiction
-    {
-        $fanfiction = new Fanfiction([
-            'content' => $content,
-            'title' => 'Testgeschichte',
-        ]);
-
-        // Set photos directly (model is not persisted, so no DB needed)
-        $fanfiction->photos = $photos;
-
-        return $fanfiction;
-    }
-
-    // ── Tag-Ersetzung ──────────────────────────────────────────
-
-    public function test_bild_tag_is_replaced_with_figure_element(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text davor [bild:1] Text danach',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('<figure', $html);
-        $this->assertStringContainsString('fanfiction-bild', $html);
-        $this->assertStringContainsString('photo1.jpg', $html);
-    }
-
-    public function test_bild_tag_with_position_links(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1:links] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--links', $html);
-    }
-
-    public function test_bild_tag_with_position_rechts(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1:rechts] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--rechts', $html);
-    }
-
-    public function test_bild_tag_with_position_zentriert(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1:zentriert] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--zentriert', $html);
-    }
-
-    public function test_bild_tag_default_position_is_zentriert(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--zentriert', $html);
-    }
-
-    public function test_links_are_sanitized_with_php_8_5_uri_support_rules(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            '[Safe](https://example.com) [Broken](http:///example.com) [Protocol](//example.com/path) [Anchor](#anchor) [Relative](docs/page?section=1) [Bad](javascript:alert(1))'
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('<a href="https://example.com" rel="noopener noreferrer">Safe</a>', $html);
-        $this->assertStringContainsString('<a rel="noopener noreferrer">Broken</a>', $html);
-        $this->assertStringContainsString('<a rel="noopener noreferrer">Protocol</a>', $html);
-        $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">Anchor</a>', $html);
-        $this->assertStringContainsString('<a href="docs/page?section=1" rel="noopener noreferrer">Relative</a>', $html);
-        $this->assertStringContainsString('<a rel="noopener noreferrer">Bad</a>', $html);
-    }
-
-    public function test_bild_tag_with_caption(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1:zentriert:Szene in Dorado] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('<figcaption>Szene in Dorado</figcaption>', $html);
-        $this->assertStringContainsString('alt="Szene in Dorado"', $html);
-    }
-
-    public function test_bild_tag_with_links_and_caption(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            '[bild:2:links:Illustration zum Kapitel]',
-            ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--links', $html);
-        $this->assertStringContainsString('<figcaption>Illustration zum Kapitel</figcaption>', $html);
-        $this->assertStringContainsString('photo2.jpg', $html);
-    }
-
-    public function test_bild_tag_without_caption_has_no_figcaption(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringNotContainsString('<figcaption>', $html);
-    }
-
-    // ── Ungültige Indizes ──────────────────────────────────────
-
-    public function test_bild_tag_with_invalid_index_is_removed(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:99] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringNotContainsString('[bild:', $html);
-        $this->assertStringNotContainsString('<figure', $html);
-    }
-
-    public function test_bild_tag_with_zero_index_is_removed(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:0] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringNotContainsString('[bild:', $html);
-        $this->assertStringNotContainsString('<figure', $html);
-    }
-
-    // ── Kein Tag / Keine Bilder ────────────────────────────────
-
-    public function test_no_bild_tags_leaves_html_unchanged(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Normaler **Markdown** Text.',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('<strong>Markdown</strong>', $html);
-        $this->assertStringNotContainsString('<figure', $html);
-    }
-
-    public function test_bild_tags_removed_when_no_photos_exist(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] weiter',
-            []
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, []);
-
-        $this->assertStringNotContainsString('[bild:', $html);
-        $this->assertStringNotContainsString('<figure', $html);
-    }
-
-    // ── Mehrere Tags ───────────────────────────────────────────
-
-    public function test_multiple_bild_tags_all_replaced(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Anfang [bild:1:links:Erstes Bild] Mitte [bild:2:rechts:Zweites Bild] Ende',
-            ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--links', $html);
-        $this->assertStringContainsString('fanfiction-bild--rechts', $html);
-        $this->assertStringContainsString('photo1.jpg', $html);
-        $this->assertStringContainsString('photo2.jpg', $html);
-        $this->assertStringContainsString('Erstes Bild', $html);
-        $this->assertStringContainsString('Zweites Bild', $html);
-    }
-
-    // ── XSS-Schutz ────────────────────────────────────────────
-
-    public function test_xss_in_caption_is_escaped(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1:zentriert:<script>alert("xss")</script>] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        // Captions are escaped via e() in buildFigureHtml(), so <script> cannot appear as raw HTML
-        $this->assertStringNotContainsString('<script>', $html);
-        $this->assertStringNotContainsString('</script>', $html);
-        // The remaining text is still rendered (sanitized via htmlspecialchars)
-        $this->assertStringContainsString('alert(', $html);
-    }
-
-    // ── Case-Insensitivität ────────────────────────────────────
-
-    public function test_bild_tag_is_case_insensitive(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [Bild:1:Links:Test] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('fanfiction-bild--links', $html);
-        $this->assertStringContainsString('<figure', $html);
-    }
-
-    // ── getReferencedPhotoIndices ──────────────────────────────
-
-    public function test_get_referenced_photo_indices_returns_correct_indices(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] und [bild:3]',
-            ['fanfiction/a.jpg', 'fanfiction/b.jpg', 'fanfiction/c.jpg']
-        );
-
-        $indices = $fanfiction->getReferencedPhotoIndices();
-
-        $this->assertContains(0, $indices);
-        $this->assertContains(2, $indices);
-        $this->assertNotContains(1, $indices);
-    }
-
-    public function test_get_referenced_photo_indices_ignores_invalid(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:99]',
-            ['fanfiction/a.jpg']
-        );
-
-        $indices = $fanfiction->getReferencedPhotoIndices();
-
-        $this->assertEmpty($indices);
-    }
-
-    public function test_get_referenced_photo_indices_returns_empty_for_no_tags(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Normaler Text ohne Tags',
-            ['fanfiction/a.jpg']
-        );
-
-        $indices = $fanfiction->getReferencedPhotoIndices();
-
-        $this->assertEmpty($indices);
-    }
-
-    // ── getUnreferencedPhotos ──────────────────────────────────
-
-    public function test_get_unreferenced_photos_excludes_referenced(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] und [bild:3]',
-            ['fanfiction/a.jpg', 'fanfiction/b.jpg', 'fanfiction/c.jpg']
-        );
-
-        $unreferenced = $fanfiction->getUnreferencedPhotos();
-
-        $this->assertCount(1, $unreferenced);
-        $this->assertContains('fanfiction/b.jpg', $unreferenced);
-    }
-
-    public function test_get_unreferenced_photos_returns_all_when_no_tags(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Kein Tag hier',
-            ['fanfiction/a.jpg', 'fanfiction/b.jpg']
-        );
-
-        $unreferenced = $fanfiction->getUnreferencedPhotos();
-
-        $this->assertCount(2, $unreferenced);
-    }
-
-    public function test_get_unreferenced_photos_returns_empty_when_all_referenced(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            '[bild:1] [bild:2]',
-            ['fanfiction/a.jpg', 'fanfiction/b.jpg']
-        );
-
-        $unreferenced = $fanfiction->getUnreferencedPhotos();
-
-        $this->assertEmpty($unreferenced);
-    }
-
-    // ── img-Attribute ──────────────────────────────────────────
-
-    public function test_img_has_loading_lazy_attribute(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            'Text [bild:1] weiter',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('loading="lazy"', $html);
-    }
-
-    public function test_img_alt_text_uses_caption_when_provided(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            '[bild:1:zentriert:Mein Alt-Text]',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('alt="Mein Alt-Text"', $html);
-    }
-
-    public function test_img_alt_text_uses_title_when_no_caption(): void
-    {
-        $fanfiction = $this->createFanfiction(
-            '[bild:1]',
-            ['fanfiction/photo1.jpg']
-        );
-
-        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
-
-        $this->assertStringContainsString('alt="Testgeschichte"', $html);
-    }
-}
+pest()->extend(TestCase::class)->use(FanfictionBildTagTestFixtures::class);
+
+test('bild tag is replaced with figure element', function (): void {
+    $fanfiction = $this->createFanfiction('Text davor [bild:1] Text danach', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('<figure')
+        ->toContain('fanfiction-bild')
+        ->toContain('photo1.jpg');
+});
+
+test('bild tag with position links', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1:links] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--links');
+});
+
+test('bild tag with position rechts', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1:rechts] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--rechts');
+});
+
+test('bild tag with position zentriert', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1:zentriert] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--zentriert');
+});
+
+test('bild tag default position is zentriert', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--zentriert');
+});
+
+test('links are sanitized with php 8 5 uri support rules', function (): void {
+    $fanfiction = $this->createFanfiction('[Safe](https://example.com) [Broken](http:///example.com) [Protocol](//example.com/path) [Anchor](#anchor) [Relative](docs/page?section=1) [Bad](javascript:alert(1))');
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('<a href="https://example.com" rel="noopener noreferrer">Safe</a>')
+        ->toContain('<a rel="noopener noreferrer">Broken</a>')
+        ->toContain('<a rel="noopener noreferrer">Protocol</a>')
+        ->toContain('<a href="#anchor" rel="noopener noreferrer">Anchor</a>')
+        ->toContain('<a href="docs/page?section=1" rel="noopener noreferrer">Relative</a>')
+        ->toContain('<a rel="noopener noreferrer">Bad</a>');
+});
+
+test('bild tag with caption', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1:zentriert:Szene in Dorado] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('<figcaption>Szene in Dorado</figcaption>')
+        ->toContain('alt="Szene in Dorado"');
+});
+
+test('bild tag with links and caption', function (): void {
+    $fanfiction = $this->createFanfiction('[bild:2:links:Illustration zum Kapitel]', ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--links')
+        ->toContain('<figcaption>Illustration zum Kapitel</figcaption>')
+        ->toContain('photo2.jpg');
+});
+
+test('bild tag without caption has no figcaption', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->not->toContain('<figcaption>');
+});
+
+test('bild tag with invalid index is removed', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:99] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->not->toContain('[bild:')->not->toContain('<figure');
+});
+
+test('bild tag with zero index is removed', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:0] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->not->toContain('[bild:')->not->toContain('<figure');
+});
+
+test('no bild tags leaves html unchanged', function (): void {
+    $fanfiction = $this->createFanfiction('Normaler **Markdown** Text.', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('<strong>Markdown</strong>')->not->toContain('<figure');
+});
+
+test('bild tags removed when no photos exist', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] weiter', []);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, []);
+    expect($html)->not->toContain('[bild:')->not->toContain('<figure');
+});
+
+test('multiple bild tags all replaced', function (): void {
+    $fanfiction = $this->createFanfiction('Anfang [bild:1:links:Erstes Bild] Mitte [bild:2:rechts:Zweites Bild] Ende', ['fanfiction/photo1.jpg', 'fanfiction/photo2.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--links')
+        ->toContain('fanfiction-bild--rechts')
+        ->toContain('photo1.jpg')
+        ->toContain('photo2.jpg')
+        ->toContain('Erstes Bild')
+        ->toContain('Zweites Bild');
+});
+
+test('xss in caption is escaped', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1:zentriert:<script>alert("xss")</script>] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    // Captions are escaped via e() in buildFigureHtml(), so <script> cannot appear as raw HTML
+    expect($html)->not->toContain('<script>');
+    expect($html)->not->toContain('</script>');
+    // The remaining text is still rendered (sanitized via htmlspecialchars)
+    expect($html)->toContain('alert(');
+});
+
+test('bild tag is case insensitive', function (): void {
+    $fanfiction = $this->createFanfiction('Text [Bild:1:Links:Test] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('fanfiction-bild--links')
+        ->toContain('<figure');
+});
+
+test('get referenced photo indices returns correct indices', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] und [bild:3]', ['fanfiction/a.jpg', 'fanfiction/b.jpg', 'fanfiction/c.jpg']);
+    $indices = $fanfiction->getReferencedPhotoIndices();
+    expect($indices)->toContain(0)
+        ->toContain(2)->not->toContain(1);
+});
+
+test('get referenced photo indices ignores invalid', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:99]', ['fanfiction/a.jpg']);
+    $indices = $fanfiction->getReferencedPhotoIndices();
+    expect($indices)->toBeEmpty();
+});
+
+test('get referenced photo indices returns empty for no tags', function (): void {
+    $fanfiction = $this->createFanfiction('Normaler Text ohne Tags', ['fanfiction/a.jpg']);
+    $indices = $fanfiction->getReferencedPhotoIndices();
+    expect($indices)->toBeEmpty();
+});
+
+test('get unreferenced photos excludes referenced', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] und [bild:3]', ['fanfiction/a.jpg', 'fanfiction/b.jpg', 'fanfiction/c.jpg']);
+    $unreferenced = $fanfiction->getUnreferencedPhotos();
+    expect($unreferenced)->toHaveCount(1)
+        ->toContain('fanfiction/b.jpg');
+});
+
+test('get unreferenced photos returns all when no tags', function (): void {
+    $fanfiction = $this->createFanfiction('Kein Tag hier', ['fanfiction/a.jpg', 'fanfiction/b.jpg']);
+    $unreferenced = $fanfiction->getUnreferencedPhotos();
+    expect($unreferenced)->toHaveCount(2);
+});
+
+test('get unreferenced photos returns empty when all referenced', function (): void {
+    $fanfiction = $this->createFanfiction('[bild:1] [bild:2]', ['fanfiction/a.jpg', 'fanfiction/b.jpg']);
+    $unreferenced = $fanfiction->getUnreferencedPhotos();
+    expect($unreferenced)->toBeEmpty();
+});
+
+test('img has loading lazy attribute', function (): void {
+    $fanfiction = $this->createFanfiction('Text [bild:1] weiter', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('loading="lazy"');
+});
+
+test('img alt text uses caption when provided', function (): void {
+    $fanfiction = $this->createFanfiction('[bild:1:zentriert:Mein Alt-Text]', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('alt="Mein Alt-Text"');
+});
+
+test('img alt text uses title when no caption', function (): void {
+    $fanfiction = $this->createFanfiction('[bild:1]', ['fanfiction/photo1.jpg']);
+    $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+    expect($html)->toContain('alt="Testgeschichte"');
+});

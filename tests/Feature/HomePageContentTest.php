@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -12,188 +14,84 @@ use Illuminate\Support\Facades\Cache;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class HomePageContentTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_home_page_displays_all_sections_and_projects(): void
-    {
-        $response = $this->get('/');
+test('home page displays all sections and projects', function (): void {
+    $response = $this->get('/');
+    $response->assertOk()->assertSee('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!')->assertSee('<title>Startseite – Offizieller MADDRAX Fanclub e. V.</title>', false)->assertSee('0 Community-Rezensionen zu MADDRAX-Romanen')->assertSee('Wer wir sind')->assertSee('Wir Maddrax-Fans sind eine muntere Gruppe')->assertSee('Was wir machen')->assertSee('Wir treffen uns in unterschiedlichen Konstellationen mal online')->assertSee('Aktuelle Projekte')->assertSee('Maddraxikon')->assertSee('EARDRAX')->assertSee('MAPDRAX')->assertSee('Fantreffen 2026')->assertSee('Aktuelle Veranstaltung')->assertSee('Vorteile einer Mitgliedschaft')->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')->assertSee('Letzte Rezensionen')->assertSeeLivewire('home-reviews')->assertSee('Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.', false)->assertSee('aktive Mitglieder');
+});
 
-        $response->assertOk()
-            ->assertSee('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!')
-            ->assertSee('<title>Startseite – Offizieller MADDRAX Fanclub e. V.</title>', false)
-            ->assertSee('0 Community-Rezensionen zu MADDRAX-Romanen')
-            ->assertSee('Wer wir sind')
-            ->assertSee('Wir Maddrax-Fans sind eine muntere Gruppe')
-            ->assertSee('Was wir machen')
-            ->assertSee('Wir treffen uns in unterschiedlichen Konstellationen mal online')
-            ->assertSee('Aktuelle Projekte')
-            ->assertSee('Maddraxikon')
-            ->assertSee('EARDRAX')
-            ->assertSee('MAPDRAX')
-            ->assertSee('Fantreffen 2026')
-            ->assertSee('Aktuelle Veranstaltung')
-            ->assertSee('Vorteile einer Mitgliedschaft')
-            ->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')
-            ->assertSee('Letzte Rezensionen')
-            ->assertSeeLivewire('home-reviews')
-            ->assertSee('Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.', false)
-            ->assertSee('aktive Mitglieder');
-    }
+test('home page displays member and review metrics', function (): void {
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    $members = User::factory()->count(3)->create();
+    $team->users()->attach($members->pluck('id'), ['role' => Role::Mitglied->value]);
+    $book = Book::factory()->create();
+    Review::factory()->count(4)->create(['team_id' => $team->id, 'user_id' => $members->first()->id, 'book_id' => $book->id]);
+    Team::clearMembersTeamCache();
+    Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+    $response = $this->get('/');
+    $response->assertOk()->assertSeeTextInOrder(['Aktive Mitglieder', '3', 'aktive Mitglieder'])->assertSeeTextInOrder(['Rezensionen', '4', 'Rezensionen'])->assertSee('aria-describedby="stat-members-description"', false)->assertSee('id="stat-members-description"', false)->assertSee('aria-describedby="stat-reviews-description"', false)->assertSee('id="stat-reviews-description"', false);
+});
 
-    public function test_home_page_displays_member_and_review_metrics(): void
-    {
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $members = User::factory()->count(3)->create();
+test('home page structured data exposes review count for maddrax books', function (): void {
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    $members = User::factory()->count(2)->create();
+    $team->users()->attach($members->pluck('id'), ['role' => Role::Mitglied->value]);
+    $book = Book::factory()->create();
+    Review::factory()->count(5)->create(['team_id' => $team->id, 'user_id' => $members->first()->id, 'book_id' => $book->id]);
+    Team::clearMembersTeamCache();
+    Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+    $response = $this->get('/');
+    $response->assertOk();
+    preg_match('/<script type="application\/ld\+json">(.*?)<\/script>/s', $response->getContent(), $matches);
+    expect($matches[1])->not->toBeEmpty();
+    $structuredData = json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
+    $seriesEntry = collect($structuredData['@graph'])->firstWhere('@type', 'CreativeWorkSeries');
+    expect($seriesEntry)->not->toBeNull()
+        ->and($seriesEntry['reviewCount'])->toBe(5)
+        ->and($seriesEntry['name'])->toContain('MADDRAX')
+        ->and(strtolower($seriesEntry['about']))->toContain('rezensionen');
+});
 
-        $team->users()->attach(
-            $members->pluck('id'),
-            ['role' => Role::Mitglied->value]
-        );
+test('home page excludes soft deleted reviews from metrics', function (): void {
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    $members = User::factory()->count(2)->create();
+    $team->users()->attach($members->pluck('id'), ['role' => Role::Mitglied->value]);
+    $book = Book::factory()->create();
+    Review::factory()->count(2)->create(['team_id' => $team->id, 'user_id' => $members->first()->id, 'book_id' => $book->id]);
+    $trashedReview = Review::factory()->create(['team_id' => $team->id, 'user_id' => $members->first()->id, 'book_id' => $book->id]);
+    $trashedReview->delete();
+    Team::clearMembersTeamCache();
+    Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+    $response = $this->get('/');
+    $response->assertOk()->assertSeeTextInOrder(['Rezensionen', '2', 'Rezensionen'])->assertDontSee('3 Rezensionen');
+});
 
-        $book = Book::factory()->create();
+test('home page contains structured data', function (): void {
+    $response = $this->get('/');
+    $response->assertOk()->assertSee('@context', false)->assertSee('SearchAction', false);
+});
 
-        Review::factory()->count(4)->create([
-            'team_id' => $team->id,
-            'user_id' => $members->first()->id,
-            'book_id' => $book->id,
-        ]);
+test('latest reviews link points to membership for guests', function (): void {
+    $response = $this->get('/');
+    $response->assertOk()->assertSee('href="'.route('mitglied.werden').'"', false)->assertDontSee('href="'.route('reviews.index').'"', false);
+});
 
-        Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+test('latest reviews link points to reviews for authenticated members', function (): void {
+    $user = User::factory()->create();
+    $response = $this->actingAs($user)->get('/');
+    $response->assertOk();
+    $card = (new Crawler($response->getContent()))->filter('#latest-reviews-card');
+    expect($card->filter('a[href="'.route('reviews.index').'"]'))->toHaveCount(1)
+        ->and($card->filter('a[href="'.route('mitglied.werden').'"]'))->toHaveCount(0);
+});
 
-        $response = $this->get('/');
+test('latest reviews rendered by livewire component', function (): void {
+    $response = $this->get('/');
+    $response->assertOk()->assertSeeLivewire('home-reviews');
+});
 
-        $response->assertOk()
-            ->assertSeeTextInOrder(['Aktive Mitglieder', '3', 'aktive Mitglieder'])
-            ->assertSeeTextInOrder(['Rezensionen', '4', 'Rezensionen'])
-            ->assertSee('aria-describedby="stat-members-description"', false)
-            ->assertSee('id="stat-members-description"', false)
-            ->assertSee('aria-describedby="stat-reviews-description"', false)
-            ->assertSee('id="stat-reviews-description"', false);
-    }
-
-    public function test_home_page_structured_data_exposes_review_count_for_maddrax_books(): void
-    {
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $members = User::factory()->count(2)->create();
-
-        $team->users()->attach(
-            $members->pluck('id'),
-            ['role' => Role::Mitglied->value]
-        );
-
-        $book = Book::factory()->create();
-
-        Review::factory()->count(5)->create([
-            'team_id' => $team->id,
-            'user_id' => $members->first()->id,
-            'book_id' => $book->id,
-        ]);
-
-        Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
-
-        $response = $this->get('/');
-
-        $response->assertOk();
-
-        preg_match('/<script type="application\/ld\+json">(.*?)<\/script>/s', $response->getContent(), $matches);
-
-        $this->assertNotEmpty($matches[1], 'Structured data block should be present');
-
-        $structuredData = json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
-
-        $seriesEntry = collect($structuredData['@graph'])
-            ->firstWhere('@type', 'CreativeWorkSeries');
-
-        $this->assertNotNull($seriesEntry);
-        $this->assertSame(5, $seriesEntry['reviewCount']);
-        $this->assertStringContainsString('MADDRAX', $seriesEntry['name']);
-        $this->assertStringContainsString('rezensionen', strtolower($seriesEntry['about']));
-    }
-
-    public function test_home_page_excludes_soft_deleted_reviews_from_metrics(): void
-    {
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $members = User::factory()->count(2)->create();
-
-        $team->users()->attach(
-            $members->pluck('id'),
-            ['role' => Role::Mitglied->value]
-        );
-
-        $book = Book::factory()->create();
-
-        Review::factory()->count(2)->create([
-            'team_id' => $team->id,
-            'user_id' => $members->first()->id,
-            'book_id' => $book->id,
-        ]);
-
-        $trashedReview = Review::factory()->create([
-            'team_id' => $team->id,
-            'user_id' => $members->first()->id,
-            'book_id' => $book->id,
-        ]);
-
-        $trashedReview->delete();
-
-        Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
-
-        $response = $this->get('/');
-
-        $response->assertOk()
-            ->assertSeeTextInOrder(['Rezensionen', '2', 'Rezensionen'])
-            ->assertDontSee('3 Rezensionen');
-    }
-
-    public function test_home_page_contains_structured_data(): void
-    {
-        $response = $this->get('/');
-
-        $response->assertOk()
-            ->assertSee('@context', false)
-            ->assertSee('SearchAction', false);
-    }
-
-    public function test_latest_reviews_link_points_to_membership_for_guests(): void
-    {
-        $response = $this->get('/');
-
-        $response->assertOk()
-            ->assertSee('href="'.route('mitglied.werden').'"', false)
-            ->assertDontSee('href="'.route('reviews.index').'"', false);
-    }
-
-    public function test_latest_reviews_link_points_to_reviews_for_authenticated_members(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get('/');
-
-        $response->assertOk();
-        $card = (new Crawler($response->getContent()))->filter('#latest-reviews-card');
-        $this->assertCount(1, $card->filter('a[href="'.route('reviews.index').'"]'));
-        $this->assertCount(0, $card->filter('a[href="'.route('mitglied.werden').'"]'));
-    }
-
-    public function test_latest_reviews_rendered_by_livewire_component(): void
-    {
-        $response = $this->get('/');
-
-        $response->assertOk()
-            ->assertSeeLivewire('home-reviews');
-    }
-
-    public function test_latest_reviews_empty_state_is_announced_accessibly(): void
-    {
-        $response = $this->get('/');
-
-        $response->assertOk()
-            ->assertSee('role="status"', false)
-            ->assertSee('aria-live="polite"', false);
-    }
-}
+test('latest reviews empty state is announced accessibly', function (): void {
+    $response = $this->get('/');
+    $response->assertOk()->assertSee('role="status"', false)->assertSee('aria-live="polite"', false);
+});

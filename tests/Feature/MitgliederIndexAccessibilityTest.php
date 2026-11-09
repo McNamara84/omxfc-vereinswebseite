@@ -1,119 +1,70 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class MitgliederIndexAccessibilityTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(MitgliederIndexAccessibilityTestFixtures::class);
 
-    private function createMember(Role $role): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create([
-            'current_team_id' => $team->id,
-        ]);
+test('members table summary reflects sort and filters', function (): void {
+    $admin = $this->createMember(Role::Admin);
+    $team = Team::membersTeam();
+    $onlineMember = User::factory()->create(['current_team_id' => $team->id, 'name' => 'Online Mitglied']);
+    $team->users()->attach($onlineMember, ['role' => Role::Mitglied->value]);
+    DB::table('sessions')->insert(['id' => Str::random(40), 'user_id' => $onlineMember->id, 'ip_address' => '127.0.0.1', 'user_agent' => 'test', 'payload' => '', 'last_activity' => now()->timestamp]);
+    $this->actingAs($admin);
+    $response = $this->get('/mitglieder?sort=role&dir=desc&nurOnline=1');
+    $response->assertOk();
+    $html = $response->getContent();
+    expect($html)->toContain('Mitgliederliste, sortiert nach Rolle in absteigender Reihenfolge.')
+        ->toContain('Es werden nur Mitglieder angezeigt, die aktuell online sind.')
+        ->toMatch('/Insgesamt sind \d+ Mitglied(?:er)? sichtbar\./');
+});
 
-        $team->users()->attach($user, ['role' => $role->value]);
+test('members heading exposes data attribute for ui tests', function (): void {
+    $admin = $this->createMember(Role::Admin);
+    $this->actingAs($admin);
+    $response = $this->get('/mitglieder');
+    $response->assertOk();
+    $crawler = new Crawler($response->getContent());
+    $heading = $crawler->filter('[data-members-heading]')->first();
+    expect(trim($heading->text()))->toBe('Mitgliederliste')
+        ->and(strtoupper($heading->nodeName()))->toBe('H2');
+});
 
-        return $user;
-    }
+test('table headers expose aria sort attributes', function (): void {
+    $admin = $this->createMember(Role::Admin);
+    $this->actingAs($admin);
+    $response = $this->get('/mitglieder?sort=mitglied_seit&dir=desc');
+    $response->assertOk();
+    $crawler = new Crawler($response->getContent());
+    $mitgliedSeitHeader = $crawler->filter('[data-members-sort-column="mitglied_seit"]')->first();
+    expect($mitgliedSeitHeader->attr('aria-sort'))->toBe('descending')
+        ->and($mitgliedSeitHeader->attr('scope'))->toBe('col');
+    $nameHeader = $crawler->filter('[data-members-sort-column="name"]')->first();
+    expect($nameHeader->attr('aria-sort'))->toBe('none');
+});
 
-    public function test_members_table_summary_reflects_sort_and_filters(): void
-    {
-        $admin = $this->createMember(Role::Admin);
-        $team = Team::membersTeam();
-
-        $onlineMember = User::factory()->create([
-            'current_team_id' => $team->id,
-            'name' => 'Online Mitglied',
-        ]);
-        $team->users()->attach($onlineMember, ['role' => Role::Mitglied->value]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::random(40),
-            'user_id' => $onlineMember->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'test',
-            'payload' => '',
-            'last_activity' => now()->timestamp,
-        ]);
-
-        $this->actingAs($admin);
-
-        $response = $this->get('/mitglieder?sort=role&dir=desc&nurOnline=1');
-        $response->assertOk();
-
-        $html = $response->getContent();
-
-        $this->assertStringContainsString('Mitgliederliste, sortiert nach Rolle in absteigender Reihenfolge.', $html);
-        $this->assertStringContainsString('Es werden nur Mitglieder angezeigt, die aktuell online sind.', $html);
-        $this->assertMatchesRegularExpression('/Insgesamt sind \d+ Mitglied(?:er)? sichtbar\./', $html);
-    }
-
-    public function test_members_heading_exposes_data_attribute_for_ui_tests(): void
-    {
-        $admin = $this->createMember(Role::Admin);
-        $this->actingAs($admin);
-
-        $response = $this->get('/mitglieder');
-        $response->assertOk();
-
-        $crawler = new Crawler($response->getContent());
-        $heading = $crawler->filter('[data-members-heading]')->first();
-
-        $this->assertSame('Mitgliederliste', trim($heading->text()));
-        $this->assertSame('H2', strtoupper($heading->nodeName()));
-    }
-
-    public function test_table_headers_expose_aria_sort_attributes(): void
-    {
-        $admin = $this->createMember(Role::Admin);
-        $this->actingAs($admin);
-
-        $response = $this->get('/mitglieder?sort=mitglied_seit&dir=desc');
-        $response->assertOk();
-
-        $crawler = new Crawler($response->getContent());
-
-        $mitgliedSeitHeader = $crawler->filter('[data-members-sort-column="mitglied_seit"]')->first();
-        $this->assertSame('descending', $mitgliedSeitHeader->attr('aria-sort'));
-        $this->assertSame('col', $mitgliedSeitHeader->attr('scope'));
-
-        $nameHeader = $crawler->filter('[data-members-sort-column="name"]')->first();
-        $this->assertSame('none', $nameHeader->attr('aria-sort'));
-    }
-
-    public function test_members_table_includes_dataset_metadata(): void
-    {
-        $admin = $this->createMember(Role::Admin);
-        $team = Team::membersTeam();
-
-        $team->users()->attach(User::factory()->create(['current_team_id' => $team->id]), ['role' => Role::Mitglied->value]);
-        $team->users()->attach(User::factory()->create(['current_team_id' => $team->id]), ['role' => Role::Mitglied->value]);
-
-        $this->actingAs($admin);
-
-        $response = $this->get('/mitglieder');
-        $response->assertOk();
-
-        $crawler = new Crawler($response->getContent());
-        $table = $crawler->filter('[data-members-table]')->first();
-
-        $this->assertSame('name', $table->attr('data-members-sort'));
-        $this->assertSame('asc', $table->attr('data-members-dir'));
-        $this->assertSame(
-            (string) $team->activeUsers()->count(),
-            $table->attr('data-members-total')
-        );
-        $this->assertSame('members-table-summary', $table->attr('data-members-summary-id'));
-    }
-}
+test('members table includes dataset metadata', function (): void {
+    $admin = $this->createMember(Role::Admin);
+    $team = Team::membersTeam();
+    $team->users()->attach(User::factory()->create(['current_team_id' => $team->id]), ['role' => Role::Mitglied->value]);
+    $team->users()->attach(User::factory()->create(['current_team_id' => $team->id]), ['role' => Role::Mitglied->value]);
+    $this->actingAs($admin);
+    $response = $this->get('/mitglieder');
+    $response->assertOk();
+    $crawler = new Crawler($response->getContent());
+    $table = $crawler->filter('[data-members-table]')->first();
+    expect($table->attr('data-members-sort'))->toBe('name')
+        ->and($table->attr('data-members-dir'))->toBe('asc')
+        ->and($table->attr('data-members-total'))->toBe((string) $team->activeUsers()->count())
+        ->and($table->attr('data-members-summary-id'))->toBe('members-table-summary');
+});

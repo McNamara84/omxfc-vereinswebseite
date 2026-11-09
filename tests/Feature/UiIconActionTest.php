@@ -1,94 +1,65 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use Illuminate\Console\Application as ArtisanApplication;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\View\ViewException;
 use Symfony\Component\DomCrawler\Crawler;
 
-class UiIconActionTest extends BaseTestCase
-{
-    public function createApplication()
-    {
-        ArtisanApplication::forgetBootstrappers();
+pest()->extend(BaseTestCase::class)->use(UiIconActionTestFixtures::class);
 
-        $app = require __DIR__.'/../../bootstrap/app.php';
+beforeEach(function (): void {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+});
 
-        $app->make(Kernel::class)->bootstrap();
+test('it renders an accessible icon button with default tooltip alignment', function (): void {
+    $html = Blade::render(<<<'BLADE'
+        <x-ui.icon-action
+            icon="o-trash"
+            tooltip="Eintrag löschen"
+            class="btn-error"
+            wire:click="remove"
+            data-testid="remove-action"
+        />
+    BLADE);
+    $crawler = new Crawler($html);
+    $tooltip = $crawler->filter('span.tooltip.tooltip-top.tooltip-center[data-tip="Eintrag löschen"]');
+    $button = $tooltip->filter('button[data-testid="remove-action"]');
+    expect($tooltip)->toHaveCount(1)
+        ->and($button)->toHaveCount(1)
+        ->and($button->attr('aria-label'))->toBe('Eintrag löschen')
+        ->and($button->attr('wire:click'))->toBe('remove')
+        ->and($button->attr('class') ?? '')->toContain('btn-error');
+});
 
-        return $app;
-    }
+test('it supports edge alignment and wrapper sizing', function (): void {
+    $html = Blade::render(<<<'BLADE'
+        <x-ui.icon-action
+            icon="o-information-circle"
+            tooltip="Weitere Informationen"
+            tooltip-position="bottom"
+            tooltip-align="end"
+            wrapper-class="w-full"
+        />
+    BLADE);
+    $crawler = new Crawler($html);
+    $tooltip = $crawler->filter('span.tooltip.tooltip-bottom.tooltip-end.w-full');
+    expect($tooltip)->toHaveCount(1)
+        ->and($tooltip->attr('data-tip'))->toBe('Weitere Informationen')
+        ->and($tooltip->filter('button')->attr('aria-label'))->toBe('Weitere Informationen');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+test('it rejects unknown tooltip positions', function (): void {
+    expect(fn () => Blade::render(<<<'BLADE'
+        <x-ui.icon-action icon="o-x-mark" tooltip="Schließen" tooltip-position="diagonal" />
+    BLADE))->toThrow(ViewException::class, 'Unsupported tooltip position: diagonal');
+});
 
-        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
-    }
-
-    public function test_it_renders_an_accessible_icon_button_with_default_tooltip_alignment(): void
-    {
-        $html = Blade::render(<<<'BLADE'
-            <x-ui.icon-action
-                icon="o-trash"
-                tooltip="Eintrag löschen"
-                class="btn-error"
-                wire:click="remove"
-                data-testid="remove-action"
-            />
-        BLADE);
-
-        $crawler = new Crawler($html);
-        $tooltip = $crawler->filter('span.tooltip.tooltip-top.tooltip-center[data-tip="Eintrag löschen"]');
-        $button = $tooltip->filter('button[data-testid="remove-action"]');
-
-        $this->assertCount(1, $tooltip);
-        $this->assertCount(1, $button);
-        $this->assertSame('Eintrag löschen', $button->attr('aria-label'));
-        $this->assertSame('remove', $button->attr('wire:click'));
-        $this->assertStringContainsString('btn-error', $button->attr('class') ?? '');
-    }
-
-    public function test_it_supports_edge_alignment_and_wrapper_sizing(): void
-    {
-        $html = Blade::render(<<<'BLADE'
-            <x-ui.icon-action
-                icon="o-information-circle"
-                tooltip="Weitere Informationen"
-                tooltip-position="bottom"
-                tooltip-align="end"
-                wrapper-class="w-full"
-            />
-        BLADE);
-
-        $crawler = new Crawler($html);
-        $tooltip = $crawler->filter('span.tooltip.tooltip-bottom.tooltip-end.w-full');
-
-        $this->assertCount(1, $tooltip);
-        $this->assertSame('Weitere Informationen', $tooltip->attr('data-tip'));
-        $this->assertSame('Weitere Informationen', $tooltip->filter('button')->attr('aria-label'));
-    }
-
-    public function test_it_rejects_unknown_tooltip_positions(): void
-    {
-        $this->expectException(ViewException::class);
-        $this->expectExceptionMessage('Unsupported tooltip position: diagonal');
-
-        Blade::render(<<<'BLADE'
-            <x-ui.icon-action icon="o-x-mark" tooltip="Schließen" tooltip-position="diagonal" />
-        BLADE);
-    }
-
-    public function test_it_rejects_unknown_tooltip_alignments(): void
-    {
-        $this->expectException(ViewException::class);
-        $this->expectExceptionMessage('Unsupported tooltip alignment: outside');
-
-        Blade::render(<<<'BLADE'
-            <x-ui.icon-action icon="o-x-mark" tooltip="Schließen" tooltip-align="outside" />
-        BLADE);
-    }
-}
+test('it rejects unknown tooltip alignments', function (): void {
+    expect(fn () => Blade::render(<<<'BLADE'
+        <x-ui.icon-action icon="o-x-mark" tooltip="Schließen" tooltip-align="outside" />
+    BLADE))->toThrow(ViewException::class, 'Unsupported tooltip alignment: outside');
+});

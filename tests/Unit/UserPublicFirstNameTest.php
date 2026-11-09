@@ -1,41 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Models\User;
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-#[CoversClass(User::class)]
-class UserPublicFirstNameTest extends TestCase
-{
-    public function test_public_first_name_prefers_vorname(): void
-    {
-        $user = new User([
-            'name' => 'Martin Gobrecht',
-            'vorname' => 'Martin',
-        ]);
+pest()->extend(TestCase::class);
 
-        $this->assertSame('Martin', $user->publicFirstName());
-    }
+covers(User::class);
 
-    public function test_public_first_name_falls_back_to_first_name_token(): void
-    {
-        $user = new User([
-            'name' => 'Leitung Test',
-            'vorname' => null,
-        ]);
+test('public first name prefers vorname', function (): void {
+    $user = new User(['name' => 'Martin Gobrecht', 'vorname' => 'Martin']);
+    expect($user->publicFirstName())->toBe('Martin');
+});
 
-        $this->assertSame('Leitung', $user->publicFirstName());
-    }
+test('public first name falls back to first name token', function (): void {
+    $user = new User(['name' => 'Leitung Test', 'vorname' => null]);
+    expect($user->publicFirstName())->toBe('Leitung');
+});
 
-    public function test_public_first_name_returns_null_when_no_name_is_available(): void
-    {
-        $user = new User([
-            'name' => '   ',
-            'vorname' => null,
-        ]);
-
-        $this->assertNull($user->publicFirstName());
-    }
-}
+test('public first name returns null when no name is available', function (): void {
+    $user = new User(['name' => '   ', 'vorname' => null]);
+    expect($user->publicFirstName())->toBeNull();
+});

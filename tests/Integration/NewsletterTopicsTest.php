@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Models\NewsletterAusgabe;
@@ -8,114 +10,62 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
-class NewsletterTopicsTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_normalize_adds_legacy_keys_and_image_defaults(): void
-    {
-        $topics = NewsletterTopics::normalize([
-            [
-                'title' => ' Erstes Thema ',
-                'content' => 'Text',
-            ],
-            [
-                'title' => 'Zweites Thema',
-                'content' => 'Mehr Text',
-                'images' => [' newsletter-images/a.jpg ', '', null],
-            ],
-        ]);
+test('normalize adds legacy keys and image defaults', function (): void {
+    $topics = NewsletterTopics::normalize([['title' => ' Erstes Thema ', 'content' => 'Text'], ['title' => 'Zweites Thema', 'content' => 'Mehr Text', 'images' => [' newsletter-images/a.jpg ', '', null]]]);
+    expect($topics[0]['key'])->toBe('legacy-topic-0')
+        ->and($topics[0]['title'])->toBe('Erstes Thema')
+        ->and($topics[0]['images'])->toBe([])
+        ->and($topics[1]['key'])->toBe('legacy-topic-1')
+        ->and($topics[1]['images'])->toBe(['newsletter-images/a.jpg']);
+});
 
-        $this->assertSame('legacy-topic-0', $topics[0]['key']);
-        $this->assertSame('Erstes Thema', $topics[0]['title']);
-        $this->assertSame([], $topics[0]['images']);
+test('normalize preserves existing key', function (): void {
+    $topics = NewsletterTopics::normalize([['key' => 'topic-123', 'title' => 'Mit Key', 'content' => 'Inhalt', 'images' => ['newsletter-images/test.webp']]]);
+    expect($topics[0]['key'])->toBe('topic-123')
+        ->and($topics[0]['images'])->toBe(['newsletter-images/test.webp']);
+});
 
-        $this->assertSame('legacy-topic-1', $topics[1]['key']);
-        $this->assertSame(['newsletter-images/a.jpg'], $topics[1]['images']);
-    }
+test('render html renders markdown and strips unsafe html', function (): void {
+    $html = NewsletterTopics::renderHtml("**Stark**\n\n<script>alert('x')</script>");
+    expect($html)->toContain('<strong>Stark</strong>')->not->toContain('<script>');
+});
 
-    public function test_normalize_preserves_existing_key(): void
-    {
-        $topics = NewsletterTopics::normalize([
-            [
-                'key' => 'topic-123',
-                'title' => 'Mit Key',
-                'content' => 'Inhalt',
-                'images' => ['newsletter-images/test.webp'],
-            ],
-        ]);
+test('excerpt returns plain text from rendered markdown', function (): void {
+    $excerpt = NewsletterTopics::excerpt("## Titel\n\n**Fetter** Text mit [Link](https://example.com)", 50);
+    expect($excerpt)->toContain('Titel')
+        ->toContain('Fetter Text mit Link')->not->toContain('**')->not->toContain('[');
+});
 
-        $this->assertSame('topic-123', $topics[0]['key']);
-        $this->assertSame(['newsletter-images/test.webp'], $topics[0]['images']);
-    }
+test('render html normalizes windows line endings', function (): void {
+    $html = NewsletterTopics::renderHtml("Erste Zeile\r\nZweite Zeile\r\n\r\nDritte Zeile");
+    expect($html)->toContain('Erste Zeile')
+        ->toContain('Zweite Zeile')
+        ->toContain('Dritte Zeile')->not->toContain("\r");
+});
 
-    public function test_render_html_renders_markdown_and_strips_unsafe_html(): void
-    {
-        $html = NewsletterTopics::renderHtml("**Stark**\n\n<script>alert('x')</script>");
+test('ensure distinct persistent keys replaces legacy and duplicate keys', function (): void {
+    $topics = NewsletterTopics::ensureDistinctPersistentKeys([['key' => 'legacy-topic-0', 'title' => 'A', 'content' => 'B', 'images' => []], ['key' => 'duplicate-key', 'title' => 'C', 'content' => 'D', 'images' => []], ['key' => 'duplicate-key', 'title' => 'E', 'content' => 'F', 'images' => []]]);
+    $keys = array_column($topics, 'key');
+    expect(array_unique($keys))->toHaveCount(3)
+        ->and($keys)->sequence(fn ($e) => $e->not->toBe('legacy-topic-0'), fn ($e) => $e->toBe('duplicate-key'), fn ($e) => $e->not->toBe('duplicate-key'));
+});
 
-        $this->assertStringContainsString('<strong>Stark</strong>', $html);
-        $this->assertStringNotContainsString('<script>', $html);
-    }
+test('excerpt uses model cache when model is available', function (): void {
+    Cache::flush();
+    $ausgabe = NewsletterAusgabe::factory()->create();
+    $first = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe, 'topic-a');
+    $ausgabe->forceFill(['updated_at' => $ausgabe->updated_at->copy()->addSecond()])->saveQuietly();
+    $second = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe->fresh(), 'topic-a');
+    expect($first)->toBe('Cache Text')
+        ->and($second)->toBe('Cache Text');
+});
 
-    public function test_excerpt_returns_plain_text_from_rendered_markdown(): void
-    {
-        $excerpt = NewsletterTopics::excerpt("## Titel\n\n**Fetter** Text mit [Link](https://example.com)", 50);
-
-        $this->assertStringContainsString('Titel', $excerpt);
-        $this->assertStringContainsString('Fetter Text mit Link', $excerpt);
-        $this->assertStringNotContainsString('**', $excerpt);
-        $this->assertStringNotContainsString('[', $excerpt);
-    }
-
-    public function test_render_html_normalizes_windows_line_endings(): void
-    {
-        $html = NewsletterTopics::renderHtml("Erste Zeile\r\nZweite Zeile\r\n\r\nDritte Zeile");
-
-        $this->assertStringContainsString('Erste Zeile', $html);
-        $this->assertStringContainsString('Zweite Zeile', $html);
-        $this->assertStringContainsString('Dritte Zeile', $html);
-        $this->assertStringNotContainsString("\r", $html);
-    }
-
-    public function test_ensure_distinct_persistent_keys_replaces_legacy_and_duplicate_keys(): void
-    {
-        $topics = NewsletterTopics::ensureDistinctPersistentKeys([
-            ['key' => 'legacy-topic-0', 'title' => 'A', 'content' => 'B', 'images' => []],
-            ['key' => 'duplicate-key', 'title' => 'C', 'content' => 'D', 'images' => []],
-            ['key' => 'duplicate-key', 'title' => 'E', 'content' => 'F', 'images' => []],
-        ]);
-
-        $keys = array_column($topics, 'key');
-
-        $this->assertCount(3, array_unique($keys));
-        $this->assertNotSame('legacy-topic-0', $keys[0]);
-        $this->assertSame('duplicate-key', $keys[1]);
-        $this->assertNotSame('duplicate-key', $keys[2]);
-    }
-
-    public function test_excerpt_uses_model_cache_when_model_is_available(): void
-    {
-        Cache::flush();
-
-        $ausgabe = NewsletterAusgabe::factory()->create();
-
-        $first = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe, 'topic-a');
-
-        $ausgabe->forceFill(['updated_at' => $ausgabe->updated_at->copy()->addSecond()])->saveQuietly();
-
-        $second = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe->fresh(), 'topic-a');
-
-        $this->assertSame('Cache Text', $first);
-        $this->assertSame('Cache Text', $second);
-    }
-
-    public function test_initial_topic_uses_persistent_key(): void
-    {
-        $topic = NewsletterTopics::initialTopic();
-
-        $this->assertMatchesRegularExpression('/^[0-9a-f-]{36}$/', $topic['key']);
-        $this->assertSame('', $topic['title']);
-        $this->assertSame('', $topic['content']);
-        $this->assertSame([], $topic['images']);
-    }
-}
+test('initial topic uses persistent key', function (): void {
+    $topic = NewsletterTopics::initialTopic();
+    expect($topic['key'])->toMatch('/^[0-9a-f-]{36}$/')
+        ->and($topic['title'])->toBe('')
+        ->and($topic['content'])->toBe('')
+        ->and($topic['images'])->toBe([]);
+});

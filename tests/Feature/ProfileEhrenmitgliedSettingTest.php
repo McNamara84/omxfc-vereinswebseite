@@ -1,60 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ProfileEhrenmitgliedSettingTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(ProfileEhrenmitgliedSettingTestFixtures::class);
 
-    private function createEhrenmitglied(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Ehrenmitglied->value]);
+test('ehrenmitglied sees review notification setting', function (): void {
+    $user = $this->createEhrenmitglied();
+    $this->actingAs($user);
+    $response = $this->get('/user/profile');
+    $response->assertOk();
+    $user = $user->fresh();
+    expect($user->hasRole(Role::Ehrenmitglied))->toBeTrue();
+    $this->assertDatabaseHas('team_user', ['user_id' => $user->id, 'role' => Role::Ehrenmitglied->value]);
+    $response->assertSee('E-Mail bei neuer Rezension erhalten');
+});
 
-        return $user;
-    }
-
-    private function createMitglied(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        return $user;
-    }
-
-    public function test_ehrenmitglied_sees_review_notification_setting(): void
-    {
-        $user = $this->createEhrenmitglied();
-        $this->actingAs($user);
-
-        $response = $this->get('/user/profile');
-
-        $response->assertOk();
-        $user = $user->fresh();
-        $this->assertTrue($user->hasRole(Role::Ehrenmitglied));
-        $this->assertDatabaseHas('team_user', [
-            'user_id' => $user->id,
-            'role' => Role::Ehrenmitglied->value,
-        ]);
-        $response->assertSee('E-Mail bei neuer Rezension erhalten');
-    }
-
-    public function test_regular_member_does_not_see_review_notification_setting(): void
-    {
-        $user = $this->createMitglied();
-        $this->actingAs($user);
-
-        $response = $this->get('/user/profile');
-
-        $response->assertOk();
-        $response->assertDontSee('E-Mail bei neuer Rezension erhalten');
-    }
-}
+test('regular member does not see review notification setting', function (): void {
+    $user = $this->createMitglied();
+    $this->actingAs($user);
+    $response = $this->get('/user/profile');
+    $response->assertOk();
+    $response->assertDontSee('E-Mail bei neuer Rezension erhalten');
+});

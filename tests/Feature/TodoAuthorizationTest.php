@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -11,32 +13,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class TodoAuthorizationTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_member_cannot_access_create_page(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+test('member cannot access create page', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+    Livewire::actingAs($user)->test(TodoForm::class)->assertForbidden();
+});
 
-        Livewire::actingAs($user)
-            ->test(TodoForm::class)
-            ->assertForbidden();
-    }
-
-    public function test_admin_can_access_create_page(): void
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Admin->value]);
-
-        TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
-
-        Livewire::actingAs($user)
-            ->test(TodoForm::class)
-            ->assertSeeText('Neue Challenge erstellen')
-            ->assertOk();
-    }
-}
+test('admin can access create page', function (): void {
+    $team = Team::membersTeam();
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($user, ['role' => Role::Admin->value]);
+    TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+    Livewire::actingAs($user)->test(TodoForm::class)->assertSeeText('Neue Challenge erstellen')->assertOk();
+});

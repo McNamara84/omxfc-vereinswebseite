@@ -1,148 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Models\Team;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
-#[CoversClass(Team::class)]
-class TeamMembersTeamTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(TeamMembersTeamTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+covers(Team::class);
 
-        Team::clearMembersTeamCache();
-    }
+beforeEach(function (): void {
+    Team::clearMembersTeamCache();
+});
 
-    public function test_members_team_returns_correct_team(): void
-    {
-        $team = Team::membersTeam();
+test('members team returns correct team', function (): void {
+    $team = Team::membersTeam();
+    expect($team)->not->toBeNull()
+        ->and($team->name)->toBe('Mitglieder');
+});
 
-        $this->assertNotNull($team);
-        $this->assertSame('Mitglieder', $team->name);
-    }
+test('members team is cached after first call', function (): void {
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    Team::membersTeam();
+    Team::membersTeam();
+    $this->assertTeamsQueryCount(1);
+});
 
-    public function test_members_team_is_cached_after_first_call(): void
-    {
-        DB::flushQueryLog();
-        DB::enableQueryLog();
+test('clear members team cache resets cache', function (): void {
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    Team::membersTeam();
+    Team::clearMembersTeamCache();
+    Team::membersTeam();
+    $this->assertTeamsQueryCount(2);
+});
 
-        Team::membersTeam();
-        Team::membersTeam();
+test('members team cache not cleared when description updated', function (): void {
+    $team = Team::membersTeam();
+    $team->update(['description' => 'updated']);
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $cachedTeam = Team::membersTeam();
+    $this->assertTeamsQueryCount(0);
+    expect($cachedTeam->description)->toBe('updated');
+});
 
-        $this->assertTeamsQueryCount(1);
-    }
+test('members team cache cleared when name changes', function (): void {
+    $team = Team::membersTeam();
+    $team->update(['name' => 'Mitglieder-renamed']);
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $renamedTeam = Team::membersTeam();
+    $this->assertTeamsQueryCount(1);
+    expect($renamedTeam)->toBeNull();
+});
 
-    public function test_clear_members_team_cache_resets_cache(): void
-    {
-        DB::flushQueryLog();
-        DB::enableQueryLog();
+test('members team ignores stale cached team id', function (): void {
+    $team = Team::membersTeam();
+    Team::clearMembersTeamCache();
+    cache()->forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+    $team->update(['name' => 'Archiviertes Team']);
+    $replacement = Team::factory()->create(['name' => 'Mitglieder']);
+    $resolvedTeam = Team::membersTeam();
+    expect($resolvedTeam)->not->toBeNull()
+        ->and($resolvedTeam->is($replacement))->toBeTrue();
+});
 
-        Team::membersTeam();
-        Team::clearMembersTeamCache();
-        Team::membersTeam();
+test('members team rejects case variant names even with ci collation', function (): void {
+    Team::membersTeam()?->delete();
+    Team::factory()->create(['name' => 'mitglieder', 'personal_team' => false]);
+    Team::clearMembersTeamCache();
+    expect(Team::membersTeam())->toBeNull();
+});
 
-        $this->assertTeamsQueryCount(2);
-    }
+test('members team returns null when not found', function (): void {
+    $team = Team::membersTeam();
+    $team->delete();
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $firstCall = Team::membersTeam();
+    $secondCall = Team::membersTeam();
+    $thirdCall = Team::membersTeam();
+    expect($firstCall)->toBeNull()
+        ->and($secondCall)->toBeNull()
+        ->and($thirdCall)->toBeNull();
+    $this->assertTeamsQueryCount(3);
+});
 
-    public function test_members_team_cache_not_cleared_when_description_updated(): void
-    {
-        $team = Team::membersTeam();
-        $team->update(['description' => 'updated']);
-
-        DB::flushQueryLog();
-        DB::enableQueryLog();
-        $cachedTeam = Team::membersTeam();
-
-        $this->assertTeamsQueryCount(0);
-        $this->assertSame('updated', $cachedTeam->description);
-    }
-
-    public function test_members_team_cache_cleared_when_name_changes(): void
-    {
-        $team = Team::membersTeam();
-        $team->update(['name' => 'Mitglieder-renamed']);
-
-        DB::flushQueryLog();
-        DB::enableQueryLog();
-        $renamedTeam = Team::membersTeam();
-
-        $this->assertTeamsQueryCount(1);
-        $this->assertNull($renamedTeam);
-    }
-
-    public function test_members_team_ignores_stale_cached_team_id(): void
-    {
-        $team = Team::membersTeam();
-
-        Team::clearMembersTeamCache();
-        cache()->forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
-
-        $team->update(['name' => 'Archiviertes Team']);
-        $replacement = Team::factory()->create(['name' => 'Mitglieder']);
-
-        $resolvedTeam = Team::membersTeam();
-
-        $this->assertNotNull($resolvedTeam);
-        $this->assertTrue($resolvedTeam->is($replacement));
-    }
-
-    public function test_members_team_rejects_case_variant_names_even_with_ci_collation(): void
-    {
-        Team::membersTeam()?->delete();
-        Team::factory()->create([
-            'name' => 'mitglieder',
-            'personal_team' => false,
-        ]);
-        Team::clearMembersTeamCache();
-
-        $this->assertNull(Team::membersTeam());
-    }
-
-    public function test_members_team_returns_null_when_not_found(): void
-    {
-        $team = Team::membersTeam();
-        $team->delete();
-
-        DB::flushQueryLog();
-        DB::enableQueryLog();
-        $firstCall = Team::membersTeam();
-        $secondCall = Team::membersTeam();
-        $thirdCall = Team::membersTeam();
-
-        $this->assertNull($firstCall);
-        $this->assertNull($secondCall);
-        $this->assertNull($thirdCall);
-        $this->assertTeamsQueryCount(3);
-    }
-
-    public function test_members_team_cache_cleared_on_team_delete(): void
-    {
-        $team = Team::membersTeam();
-        $team->delete();
-        Team::factory()->create(['name' => 'Mitglieder']);
-
-        DB::flushQueryLog();
-        DB::enableQueryLog();
-        $newTeam = Team::membersTeam();
-
-        $this->assertTeamsQueryCount(1);
-        $this->assertNotSame($team->id, $newTeam->id);
-    }
-
-    private function assertTeamsQueryCount(int $expectedCount): void
-    {
-        $teamsQueries = array_filter(
-            DB::getQueryLog(),
-            static fn (array $entry): bool => preg_match('/\bfrom\s+["`]?teams["`]?\b/i', $entry['query']) === 1
-        );
-
-        $this->assertCount($expectedCount, $teamsQueries);
-    }
-}
+test('members team cache cleared on team delete', function (): void {
+    $team = Team::membersTeam();
+    $team->delete();
+    Team::factory()->create(['name' => 'Mitglieder']);
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $newTeam = Team::membersTeam();
+    $this->assertTeamsQueryCount(1);
+    expect($newTeam->id)->not->toBe($team->id);
+});

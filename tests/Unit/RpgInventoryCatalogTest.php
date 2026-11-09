@@ -1,39 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Support\RpgInventoryCatalog;
 use PHPUnit\Framework\TestCase;
 
-class RpgInventoryCatalogTest extends TestCase
-{
-    public function test_prices_are_exact_numbers_and_ambiguous_values_are_not_free(): void
-    {
-        $catalog = RpgInventoryCatalog::positions();
-        $this->assertSame(1000, $catalog['item:gewehr-bolzer']['price']);
-        $this->assertSame(1200, $catalog['item:automatikgewehr']['trade_value']);
-        $this->assertSame(2000000, $catalog['item:ewat']['price']);
-        $this->assertNull($catalog['item:transportqualle']['price']);
-        $this->assertNull($catalog['item:msc']['trade_value']);
-        $this->assertSame(10, $catalog['clothing:kleidung-einfach']['price']);
-        $this->assertNull($catalog['ammo:revolver']['price']);
-        $this->assertArrayNotHasKey('item:faustschlag-tritt', $catalog);
-        foreach ($catalog as $id => $row) {
-            $this->assertNotEmpty($id);
-            $this->assertNotEmpty($row['name']);
-            $this->assertGreaterThan(0, $row['limit']);
-        }
-    }
+pest()->extend(TestCase::class);
 
-    public function test_starting_ammunition_obeys_projectile_and_magazine_units(): void
-    {
-        $ammo = RpgInventoryCatalog::startingAmmunition([
-            ['id' => 'bogen', 'quantity' => 2], ['id' => 'armbrust', 'quantity' => 1], ['id' => 'revolver', 'quantity' => 2],
-            ['id' => 'schleuder', 'quantity' => 1], ['id' => 'zwille', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1],
-        ]);
-        $this->assertSame(['ammo:pfeile' => 60, 'ammo:bolzen' => 30, 'ammo:revolver' => 48, 'ammo:steine' => 60], $ammo);
-        $this->assertNull(RpgInventoryCatalog::ammunitionId('seil'));
-        $this->assertSame(0, RpgInventoryCatalog::capacity('seil'));
-        $this->assertSame(100, RpgInventoryCatalog::capacity('energiegewehr'));
+test('prices are exact numbers and ambiguous values are not free', function (): void {
+    $catalog = RpgInventoryCatalog::positions();
+    expect($catalog['item:gewehr-bolzer']['price'])->toBe(1000)
+        ->and($catalog['item:automatikgewehr']['trade_value'])->toBe(1200)
+        ->and($catalog['item:ewat']['price'])->toBe(2000000)
+        ->and($catalog['item:transportqualle']['price'])->toBeNull()
+        ->and($catalog['item:msc']['trade_value'])->toBeNull()
+        ->and($catalog['clothing:kleidung-einfach']['price'])->toBe(10)
+        ->and($catalog['ammo:revolver']['price'])->toBeNull()
+        ->and($catalog)->not->toHaveKey('item:faustschlag-tritt');
+    foreach ($catalog as $id => $row) {
+        expect($id)->not->toBeEmpty()
+            ->and($row['name'])->not->toBeEmpty()
+            ->and($row['limit'])->toBeGreaterThan(0);
     }
-}
+});
+
+test('starting ammunition obeys projectile and magazine units', function (): void {
+    $ammo = RpgInventoryCatalog::startingAmmunition([['id' => 'bogen', 'quantity' => 2], ['id' => 'armbrust', 'quantity' => 1], ['id' => 'revolver', 'quantity' => 2], ['id' => 'schleuder', 'quantity' => 1], ['id' => 'zwille', 'quantity' => 1], ['id' => 'seil', 'quantity' => 1]]);
+    expect($ammo)->toBe(['ammo:pfeile' => 60, 'ammo:bolzen' => 30, 'ammo:revolver' => 48, 'ammo:steine' => 60])
+        ->and(RpgInventoryCatalog::ammunitionId('seil'))->toBeNull()
+        ->and(RpgInventoryCatalog::capacity('seil'))->toBe(0)
+        ->and(RpgInventoryCatalog::capacity('energiegewehr'))->toBe(100);
+});

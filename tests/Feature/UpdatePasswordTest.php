@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\User;
@@ -9,63 +11,27 @@ use Laravel\Jetstream\Http\Livewire\UpdatePasswordForm;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class UpdatePasswordTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_password_can_be_updated(): void
-    {
-        $this->actingAs($user = User::factory()->create());
+test('password can be updated', function (): void {
+    $this->actingAs($user = User::factory()->create());
+    Livewire::test(UpdatePasswordForm::class)->set('state', ['current_password' => 'password', 'password' => 'new-password', 'password_confirmation' => 'new-password'])->call('updatePassword');
+    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
+});
 
-        Livewire::test(UpdatePasswordForm::class)
-            ->set('state', [
-                'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
-            ])
-            ->call('updatePassword');
+test('password form uses mary password help', function (): void {
+    $this->actingAs($user = User::factory()->create());
+    Livewire::test(UpdatePasswordForm::class)->assertSee('Mindestens 8 Zeichen.')->assertSee('Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort.');
+});
 
-        $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
-    }
+test('current password must be correct', function (): void {
+    $this->actingAs($user = User::factory()->create());
+    Livewire::test(UpdatePasswordForm::class)->set('state', ['current_password' => 'wrong-password', 'password' => 'new-password', 'password_confirmation' => 'new-password'])->call('updatePassword')->assertHasErrors(['current_password']);
+    expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
+});
 
-    public function test_password_form_uses_mary_password_help(): void
-    {
-        $this->actingAs($user = User::factory()->create());
-
-        Livewire::test(UpdatePasswordForm::class)
-            ->assertSee('Mindestens 8 Zeichen.')
-            ->assertSee('Verwende mindestens 8 Zeichen und ein nur hier genutztes Passwort.');
-    }
-
-    public function test_current_password_must_be_correct(): void
-    {
-        $this->actingAs($user = User::factory()->create());
-
-        Livewire::test(UpdatePasswordForm::class)
-            ->set('state', [
-                'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
-            ])
-            ->call('updatePassword')
-            ->assertHasErrors(['current_password']);
-
-        $this->assertTrue(Hash::check('password', $user->fresh()->password));
-    }
-
-    public function test_new_passwords_must_match(): void
-    {
-        $this->actingAs($user = User::factory()->create());
-
-        Livewire::test(UpdatePasswordForm::class)
-            ->set('state', [
-                'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'wrong-password',
-            ])
-            ->call('updatePassword')
-            ->assertHasErrors(['password']);
-
-        $this->assertTrue(Hash::check('password', $user->fresh()->password));
-    }
-}
+test('new passwords must match', function (): void {
+    $this->actingAs($user = User::factory()->create());
+    Livewire::test(UpdatePasswordForm::class)->set('state', ['current_password' => 'password', 'password' => 'new-password', 'password_confirmation' => 'wrong-password'])->call('updatePassword')->assertHasErrors(['password']);
+    expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
+});

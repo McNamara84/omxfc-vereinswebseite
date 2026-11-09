@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Actions\Jetstream\AddTeamMember;
@@ -13,71 +15,46 @@ use Laravel\Jetstream\Events\AddingTeamMember;
 use Laravel\Jetstream\Events\TeamMemberAdded;
 use Tests\TestCase;
 
-class AddTeamMemberTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_team_members_can_be_added_to_team(): void
-    {
-        Event::fake([AddingTeamMember::class, TeamMemberAdded::class]);
+test('team members can be added to team', function (): void {
+    Event::fake([AddingTeamMember::class, TeamMemberAdded::class]);
+    $user = User::factory()->withPersonalTeam()->create();
+    $this->actingAs($user);
+    $otherUser = User::factory()->create();
+    app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'Admin');
+    expect($user->currentTeam->fresh()->hasUser($otherUser))->toBeTrue()
+        ->and($otherUser->fresh()->hasTeamRole($user->currentTeam->fresh(), 'Admin'))->toBeTrue();
+    Event::assertDispatched(AddingTeamMember::class);
+    Event::assertDispatched(TeamMemberAdded::class);
+});
 
-        $user = User::factory()->withPersonalTeam()->create();
-        $this->actingAs($user);
-        $otherUser = User::factory()->create();
+test('only team owner can add team members', function (): void {
+    $owner = User::factory()->withPersonalTeam()->create();
+    $otherUser = User::factory()->create();
+    $nonOwner = User::factory()->create();
+    $this->actingAs($nonOwner);
+    expect(fn () => app(AddTeamMember::class)->add($nonOwner, $owner->currentTeam, $otherUser->email, 'Admin'))->toThrow(AuthorizationException::class);
+});
 
-        app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'Admin');
+test('email must exist when adding team member', function (): void {
+    $user = User::factory()->withPersonalTeam()->create();
+    $this->actingAs($user);
+    expect(fn () => app(AddTeamMember::class)->add($user, $user->currentTeam, 'missing@example.com', 'Admin'))->toThrow(ValidationException::class);
+});
 
-        $this->assertTrue($user->currentTeam->fresh()->hasUser($otherUser));
-        $this->assertTrue($otherUser->fresh()->hasTeamRole($user->currentTeam->fresh(), 'Admin'));
+test('user must not already be on team', function (): void {
+    $user = User::factory()->withPersonalTeam()->create();
+    $this->actingAs($user);
+    $otherUser = User::factory()->create();
+    // Add the user once
+    $user->currentTeam->users()->attach($otherUser, ['role' => Role::Admin->value]);
+    expect(fn () => app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'Admin'))->toThrow(ValidationException::class);
+});
 
-        Event::assertDispatched(AddingTeamMember::class);
-        Event::assertDispatched(TeamMemberAdded::class);
-    }
-
-    public function test_only_team_owner_can_add_team_members(): void
-    {
-        $owner = User::factory()->withPersonalTeam()->create();
-        $otherUser = User::factory()->create();
-        $nonOwner = User::factory()->create();
-        $this->actingAs($nonOwner);
-
-        $this->expectException(AuthorizationException::class);
-
-        app(AddTeamMember::class)->add($nonOwner, $owner->currentTeam, $otherUser->email, 'Admin');
-    }
-
-    public function test_email_must_exist_when_adding_team_member(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
-        $this->actingAs($user);
-
-        $this->expectException(ValidationException::class);
-
-        app(AddTeamMember::class)->add($user, $user->currentTeam, 'missing@example.com', 'Admin');
-    }
-
-    public function test_user_must_not_already_be_on_team(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
-        $this->actingAs($user);
-        $otherUser = User::factory()->create();
-
-        // Add the user once
-        $user->currentTeam->users()->attach($otherUser, ['role' => Role::Admin->value]);
-
-        $this->expectException(ValidationException::class);
-
-        app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'Admin');
-    }
-
-    public function test_role_must_be_valid_when_adding_team_member(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
-        $this->actingAs($user);
-        $otherUser = User::factory()->create();
-
-        $this->expectException(ValidationException::class);
-
-        app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'invalid-role');
-    }
-}
+test('role must be valid when adding team member', function (): void {
+    $user = User::factory()->withPersonalTeam()->create();
+    $this->actingAs($user);
+    $otherUser = User::factory()->create();
+    expect(fn () => app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'invalid-role'))->toThrow(ValidationException::class);
+});

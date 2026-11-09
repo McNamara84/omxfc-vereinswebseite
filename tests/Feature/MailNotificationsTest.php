@@ -1,93 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use App\Enums\Role;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Mail\NewReviewNotification;
 use App\Mail\ReviewCommentNotification;
-use App\Models\Book;
 use App\Models\Review;
 use App\Models\ReviewComment;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class MailNotificationsTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(MailNotificationsTestFixtures::class);
 
-    private function createMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+test('new review notification contains expected information', function (): void {
+    $user = $this->createMember();
+    $book = $this->createBook();
+    $review = Review::create(['team_id' => $user->currentTeam->id, 'user_id' => $user->id, 'book_id' => $book->id, 'title' => 'Review', 'content' => str_repeat('A', 140)]);
+    $mail = new NewReviewNotification($review, $user);
+    expect($mail->envelope()->subject)->toBe('Neue Rezension zu deinem Roman')
+        ->and($mail->envelope()->from->address)->toBe('vorstand@maddrax-fanclub.de')
+        ->and($mail->content()->markdown)->toBe('emails.reviews.new-review-notification')
+        ->and($mail->content()->with['review']->id)->toBe($review->id);
+});
 
-        return $user;
-    }
+test('review comment notification contains expected information', function (): void {
+    $user = $this->createMember();
+    $book = $this->createBook();
+    $review = Review::create(['team_id' => $user->currentTeam->id, 'user_id' => $user->id, 'book_id' => $book->id, 'title' => 'Review', 'content' => str_repeat('A', 140)]);
+    $comment = ReviewComment::create(['review_id' => $review->id, 'user_id' => $user->id, 'content' => 'Nice']);
+    $mail = new ReviewCommentNotification($review, $comment);
+    expect($mail->envelope()->subject)->toBe('Deine Rezension wurde kommentiert')
+        ->and($mail->envelope()->from->address)->toBe('vorstand@maddrax-fanclub.de')
+        ->and($mail->content()->markdown)->toBe('emails.reviews.comment-notification')
+        ->and($mail->content()->with['comment']->id)->toBe($comment->id);
+});
 
-    private function createBook(): Book
-    {
-        return Book::create([
-            'roman_number' => 1,
-            'title' => 'Roman',
-            'author' => 'Author',
-        ]);
-    }
-
-    public function test_new_review_notification_contains_expected_information(): void
-    {
-        $user = $this->createMember();
-        $book = $this->createBook();
-        $review = Review::create([
-            'team_id' => $user->currentTeam->id,
-            'user_id' => $user->id,
-            'book_id' => $book->id,
-            'title' => 'Review',
-            'content' => str_repeat('A', 140),
-        ]);
-
-        $mail = new NewReviewNotification($review, $user);
-
-        $this->assertSame('Neue Rezension zu deinem Roman', $mail->envelope()->subject);
-        $this->assertSame('vorstand@maddrax-fanclub.de', $mail->envelope()->from->address);
-        $this->assertSame('emails.reviews.new-review-notification', $mail->content()->markdown);
-        $this->assertSame($review->id, $mail->content()->with['review']->id);
-    }
-
-    public function test_review_comment_notification_contains_expected_information(): void
-    {
-        $user = $this->createMember();
-        $book = $this->createBook();
-        $review = Review::create([
-            'team_id' => $user->currentTeam->id,
-            'user_id' => $user->id,
-            'book_id' => $book->id,
-            'title' => 'Review',
-            'content' => str_repeat('A', 140),
-        ]);
-        $comment = ReviewComment::create([
-            'review_id' => $review->id,
-            'user_id' => $user->id,
-            'content' => 'Nice',
-        ]);
-
-        $mail = new ReviewCommentNotification($review, $comment);
-
-        $this->assertSame('Deine Rezension wurde kommentiert', $mail->envelope()->subject);
-        $this->assertSame('vorstand@maddrax-fanclub.de', $mail->envelope()->from->address);
-        $this->assertSame('emails.reviews.comment-notification', $mail->content()->markdown);
-        $this->assertSame($comment->id, $mail->content()->with['comment']->id);
-    }
-
-    public function test_mitglied_genehmigt_mail_contains_expected_information(): void
-    {
-        $user = $this->createMember();
-        $mail = new MitgliedGenehmigtMail($user);
-
-        $this->assertSame('Mitgliedsantrag genehmigt', $mail->envelope()->subject);
-        $this->assertSame('emails.mitglied.antrag-genehmigt', $mail->content()->markdown);
-        $this->assertSame($user->id, $mail->content()->with['user']->id);
-    }
-}
+test('mitglied genehmigt mail contains expected information', function (): void {
+    $user = $this->createMember();
+    $mail = new MitgliedGenehmigtMail($user);
+    expect($mail->envelope()->subject)->toBe('Mitgliedsantrag genehmigt')
+        ->and($mail->content()->markdown)->toBe('emails.mitglied.antrag-genehmigt')
+        ->and($mail->content()->with['user']->id)->toBe($user->id);
+});

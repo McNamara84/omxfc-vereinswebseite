@@ -1,18 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use App\Enums\Role;
 use App\Models\RewardPurchase;
 use App\Models\RpgCharacter;
-use App\Models\Team;
-use App\Models\User;
 use App\Services\RpgCharacterCombatCalculator;
 use App\Services\RpgCharacterSheetPresenter;
 use App\Services\RpgCharacterSlotService;
 use App\Services\RpgInventoryAdapter;
 use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -20,603 +18,229 @@ use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
 use Tests\TestCase;
 
-class RpgCharacterStorageTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RpgCharacterStorageTestFixtures::class);
 
-    private function validCharacterPayload(array $overrides = []): array
-    {
-        $payload = array_replace_recursive([
-            'figurenstaerke' => 3,
-            'player_name' => 'Spieler Eins',
-            'character_name' => 'Foo Bar',
-            'gender' => 'maennlich',
-            'race' => 'Barbar',
-            'culture' => 'Landbewohner',
-            'description' => 'Ein erfahrener Charakter aus Wudan.',
-            'attributes' => [
-                'st' => 2,
-                'ge' => 1,
-            ],
-            'barbar_attribute_bonus' => 'st',
-            'skills' => [
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Ueberleben', 'value' => 1],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Intuition', 'value' => 1],
-                ['name' => 'Beruf: Viehzuechter', 'value' => 2],
-                ['name' => 'Kunde: Wetter', 'value' => 1],
-                ['name' => 'Fernkampf', 'value' => 4],
-                ['name' => 'Handeln', 'value' => 4],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Feuerwaffen', 'value' => 4],
-            ],
-            'advantages' => ['Zaeh'],
-            'disadvantages' => ['Auffaellig'],
-            'advantage_effects' => [],
-            'languages' => [],
-            'clothing' => 'kleidung-einfach',
-            'equipment_items' => [
-                ['id' => 'messer-dolch', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-                ['id' => 'wasserschlauch', 'quantity' => 1],
-                ['id' => 'wochenration', 'quantity' => 1],
-                ['id' => 'bogen', 'quantity' => 1],
-            ],
-            'equipment' => 'Messer, Seil, Feldflasche',
-        ], $overrides);
+test('ag rollenspiel member can store first character for free', function (): void {
+    Storage::fake('private');
+    $member = $this->actingAgMember();
+    $response = $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['portrait' => UploadedFile::fake()->image('avatar.png', 10, 10)]));
+    $response->assertRedirect(route('rpg.characters.index'))->assertSessionHas('success');
+    $character = RpgCharacter::query()->firstOrFail();
+    expect($character->user_id)->toBe($member->id)
+        ->and($character->character_name)->toBe('Foo Bar')
+        ->and($character->payload['character']['race'])->toBe('Barbar')
+        ->and($character->portrait_path)->not->toBeNull();
+    Storage::disk('private')->assertExists($character->portrait_path);
+    expect(RewardPurchase::query()->count())->toBe(0);
+});
 
-        foreach (['attributes', 'skills', 'advantages', 'disadvantages', 'advantage_effects', 'languages', 'equipment_items'] as $listKey) {
-            if (array_key_exists($listKey, $overrides)) {
-                $payload[$listKey] = $overrides[$listKey];
-            }
+test('saving preserves the selected unarmed attack and its pdf values', function (): void {
+    $this->actingAgMember();
+    $input = $this->validCharacterPayload();
+    $input['equipment_items'][] = ['id' => 'faustschlag-tritt', 'quantity' => 1];
+    $this->post(route('rpg.characters.store'), $input)->assertSessionHasNoErrors()->assertRedirect(route('rpg.characters.index'));
+    $character = RpgCharacter::firstOrFail();
+    $unarmed = collect($character->initial_payload['equipment']['items'])->firstWhere('id', 'faustschlag-tritt');
+    expect($unarmed)->not->toBeNull()
+        ->and($character->payload['equipment']['items'])->toContain($unarmed)
+        ->and(app(RpgInventoryAdapter::class)->state($character->payload)['stocks'])->not->toHaveKey('item:faustschlag-tritt');
+    $combat = app(RpgCharacterCombatCalculator::class)->calculate($character->payload);
+    $weapon = collect($combat['weapons'])->firstWhere('id', 'faustschlag-tritt');
+    expect($weapon)->not->toBeNull()
+        ->and($weapon['attack'])->toBe(3)
+        ->and($weapon['damage_modifier'])->toBe(1);
+    $sheet = app(RpgCharacterSheetPresenter::class)->present($character->payload, $combat);
+    $html = view('rpg.char-sheet', ['sheet' => $sheet, 'combat' => $combat])->render();
+    expect($html)->toContain('Faustschlag / Tritt')
+        ->toContain('1W6+1+VM');
+});
+
+test('ag rollenspiel member can store techno with full fp budget', function (): void {
+    $member = $this->actingAgMember();
+    $response = $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Techno Vollbudget', 'race' => 'Techno', 'culture' => 'Bunkermensch', 'attributes' => ['st' => -1, 'ro' => -1, 'in' => 1, 'ge' => 1, 'wa' => 1], 'skills' => [['name' => 'Bildung', 'value' => 3], ['name' => 'Nahkampf', 'value' => 1], ['name' => 'Fahren', 'value' => 4], ['name' => 'Feuerwaffen', 'value' => 2], ['name' => 'Pilot', 'value' => 3], ['name' => 'Techniker', 'value' => 2], ['name' => 'Wissenschaftler', 'value' => 2], ['name' => 'Athletik', 'value' => 4], ['name' => 'Diebeskunst', 'value' => 4], ['name' => 'Fernkampf', 'value' => 4], ['name' => 'Handeln', 'value' => 4], ['name' => 'Reiten', 'value' => 4]], 'techno_skill_points' => ['Fahren' => 4, 'Feuerwaffen' => 2, 'Heiler' => 0, 'Pilot' => 2, 'Techniker' => 2, 'Wissenschaftler' => 2], 'bunkermensch_bonus_skill' => 'Pilot', 'advantages' => ['Zaeh', 'High-Tech-Ausruestung'], 'disadvantages' => ['Toedliche Immunschwaeche']]));
+    $response->assertRedirect(route('rpg.characters.index'))->assertSessionHas('success');
+    $character = RpgCharacter::query()->firstOrFail();
+    expect($character->user_id)->toBe($member->id)
+        ->and($character->character_name)->toBe('Techno Vollbudget')
+        ->and($character->payload['character']['race'])->toBe('Techno');
+});
+
+test('store rejects unspent level dependent ap and fp budgets', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['figurenstaerke' => 4]))->assertSessionHasErrors('attributes');
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['figurenstaerke' => 4, 'attributes' => ['st' => 2, 'ge' => 1, 'ro' => 1]]))->assertSessionHasErrors('skills');
+    expect(RpgCharacter::query()->count())->toBe(0);
+});
+
+test('non editor member cannot use character storage routes', function (): void {
+    $owner = $this->actingAgMember();
+    $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
+    $member = $this->createMember();
+    $this->actingAs($member)->get(route('rpg.characters.index'))->assertForbidden();
+    $this->actingAs($member)->post(route('rpg.characters.store'), $this->validCharacterPayload())->assertForbidden();
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($member)->get(route('rpg.characters.pdf', $character))->assertForbidden();
+    $this->actingAs($member)->delete(route('rpg.characters.destroy', $character))->assertForbidden();
+});
+
+test('character list only shows current users characters', function (): void {
+    $member = $this->actingAgMember();
+    $otherMember = $this->addAgRollenspielMembership($this->createMember());
+    RpgCharacter::factory()->create(['user_id' => $member->id, 'character_name' => 'Eigener Held']);
+    RpgCharacter::factory()->create(['user_id' => $otherMember->id, 'character_name' => 'Fremder Held']);
+    $this->get(route('rpg.characters.index'))->assertOk()->assertSee('Eigener Held')->assertDontSee('Fremder Held')->assertSee('target="_blank"', false)->assertSee('rel="noopener noreferrer"', false);
+});
+
+test('empty character name fallback is persisted to payload', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => '   ']))->assertRedirect(route('rpg.characters.index'));
+    $character = RpgCharacter::query()->firstOrFail();
+    expect($character->character_name)->toBe('Charakter')
+        ->and($character->payload['character']['character_name'])->toBe('Charakter');
+});
+
+test('zero character name is persisted without fallback', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => '0']))->assertRedirect(route('rpg.characters.index'));
+    $character = RpgCharacter::query()->firstOrFail();
+    expect($character->character_name)->toBe('0')
+        ->and($character->payload['character']['character_name'])->toBe('0');
+});
+
+test('character name above database column length is rejected', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => str_repeat('A', 256)]))->assertSessionHasErrors('character_name');
+    expect(RpgCharacter::query()->count())->toBe(0);
+});
+
+test('second character without free slot is rejected', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Erster Held']))->assertRedirect(route('rpg.characters.index'));
+    config(['rewards.rpg_character_slot_cost_baxx' => 7]);
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Zweiter Held']))->assertSessionHasErrors('slot');
+    $slotError = session('errors')->first('slot');
+    expect($slotError)->toContain('7 Baxx')->not->toContain('5 Baxx')
+        ->and(RpgCharacter::query()->count())->toBe(1);
+});
+
+test('rejected store without free slot does not write portrait', function (): void {
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Erster Held']))->assertRedirect(route('rpg.characters.index'));
+    $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+    $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+    Storage::shouldReceive('disk')->never();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Zweiter Held', 'portrait_data_url' => $dataUrl]))->assertSessionHasErrors('slot');
+    expect(RpgCharacter::query()->count())->toBe(1);
+});
+
+test('slot purchase costs five baxx and is repeatable', function (): void {
+    $member = $this->actingAgMember(15);
+    $this->post(route('rpg.characters.slots.purchase'))->assertRedirect(route('rpg.characters.index'))->assertSessionHas('success');
+    $this->post(route('rpg.characters.slots.purchase'))->assertRedirect(route('rpg.characters.index'))->assertSessionHas('success');
+    expect(RewardPurchase::query()->count())->toBe(2)
+        ->and((int) RewardPurchase::query()->sum('cost_baxx'))->toBe(10)
+        ->and(app(RpgCharacterSlotService::class)->totalSlots($member))->toBe(3)
+        ->and($member->fresh()->getAvailableBaxx())->toBe(5);
+});
+
+test('slot purchase with insufficient baxx is rejected', function (): void {
+    $this->actingAgMember(4);
+    $this->post(route('rpg.characters.slots.purchase'))->assertRedirect(route('rpg.characters.index'))->assertSessionHasErrors('slot');
+    expect(RewardPurchase::query()->count())->toBe(0);
+});
+
+test('store can confirm slot purchase when storage is full', function (): void {
+    $member = $this->actingAgMember(5);
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Erster Held']))->assertRedirect(route('rpg.characters.index'));
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Zweiter Held', 'purchase_slot_if_needed' => '1']))->assertRedirect(route('rpg.characters.index'));
+    expect(RpgCharacter::query()->count())->toBe(2)
+        ->and(RewardPurchase::query()->count())->toBe(1)
+        ->and($member->fresh()->getAvailableBaxx())->toBe(0);
+});
+
+test('failed store redirect keeps editor input for recovery', function (): void {
+    $this->actingAgMember();
+    $response = $this->from(route('rpg.char-editor'))->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'Kept Store Character', 'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image')]));
+    $response->assertRedirect(route('rpg.char-editor'))->assertSessionHasErrors('portrait_data_url')->assertSessionHasInput('character_name', 'Kept Store Character')->assertSessionHasInput('race', 'Barbar')->assertSessionHasInput('clothing', 'kleidung-einfach');
+    expect(RpgCharacter::query()->count())->toBe(0);
+});
+
+test('failed portrait validation does not expose old portrait payload to editor', function (): void {
+    $this->actingAgMember();
+    foreach (['portrait_data_url', 'portrait'] as $errorField) {
+        $payloadMarker = 'OVERSIZEDPORTRAITPAYLOAD'.strtoupper($errorField);
+        $overrides = ['character_name' => 'Kept Portrait Character', 'portrait_data_url' => 'data:image/png;base64,'.$payloadMarker];
+        if ($errorField === 'portrait') {
+            $overrides['portrait'] = UploadedFile::fake()->create('avatar.txt', 1, 'text/plain');
         }
+        $response = $this->followingRedirects()->from(route('rpg.char-editor'))->post(route('rpg.characters.store'), $this->validCharacterPayload($overrides));
+        $response->assertOk()->assertSee('Kept Portrait Character')->assertDontSee($payloadMarker);
+    }
+});
 
-        $modifiers = match ($payload['race'] ?? '') {
-            'Techno' => ['st' => -1, 'ro' => -1, 'in' => 1],
-            'Barbar' => [($payload['barbar_attribute_bonus'] ?? 'st') => 1],
-            default => [],
-        };
-        $payload['attribute_adjustments'] = [];
-        foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
-            $payload['attribute_adjustments'][$attribute] = (int) ($payload['attributes'][$attribute] ?? 0)
-                - (int) ($modifiers[$attribute] ?? 0);
+test('failed portrait storage rejects character without persisting path', function (): void {
+    $this->actingAgMember();
+    $image = UploadedFile::fake()->image('avatar.png', 1, 1);
+    $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
+    $disk = \Mockery::mock(FilesystemAdapter::class);
+    $disk->shouldReceive('put')->once()->with(\Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')), \Mockery::type('string'))->andReturn(false);
+    Storage::shouldReceive('disk')->with('private')->once()->andReturn($disk);
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['portrait_data_url' => $dataUrl]))->assertSessionHasErrors('portrait_data_url');
+    expect(RpgCharacter::query()->count())->toBe(0);
+});
+
+test('failed uploaded portrait storage attaches error to upload field', function (): void {
+    $this->actingAgMember();
+    $disk = \Mockery::mock(FilesystemAdapter::class);
+    $disk->shouldReceive('put')->once()->with(\Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')), \Mockery::type('string'))->andReturn(false);
+    Storage::shouldReceive('disk')->with('private')->once()->andReturn($disk);
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['portrait' => UploadedFile::fake()->image('avatar.png', 1, 1)]))->assertSessionHasErrors('portrait');
+    expect(session('errors')->has('portrait_data_url'))->toBeFalse()
+        ->and(RpgCharacter::query()->count())->toBe(0);
+});
+
+test('deleting character frees slot and removes portrait file', function (): void {
+    Storage::fake('private');
+    $this->actingAgMember();
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['portrait' => UploadedFile::fake()->image('avatar.png', 10, 10)]))->assertRedirect(route('rpg.characters.index'));
+    $character = RpgCharacter::query()->firstOrFail();
+    $path = $character->portrait_path;
+    Storage::disk('private')->assertExists($path);
+    $this->delete(route('rpg.characters.destroy', $character))->assertRedirect(route('rpg.characters.index'))->assertSessionHas('success');
+    expect(RpgCharacter::query()->count())->toBe(0);
+    Storage::disk('private')->assertMissing($path);
+});
+
+test('saved character can be rendered as pdf with stored portrait', function (): void {
+    Storage::fake('private');
+    $this->actingAgMember();
+    $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
+    $this->post(route('rpg.characters.store'), $this->validCharacterPayload(['character_name' => 'PDF Held', 'description' => $description, 'portrait' => UploadedFile::fake()->image('avatar.png', 10, 10)]))->assertRedirect(route('rpg.characters.index'));
+    $character = RpgCharacter::query()->firstOrFail();
+    $storedPayload = $character->payload;
+    Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['character_name'] === 'PDF Held' && str_starts_with($data['portrait'] ?? '', 'data:image/png;base64,') && $data['character']['description'] === $description && $data['sheet']['description'] === $description && $data['sheet']['layout']['description']['truncated'] && $data['sheet']['layout']['description']['font_size'] === 6.5))->andReturn(new class extends PdfBuilder
+    {
+        public function toResponse($request): Response
+        {
+            return response('PDF', 200, $this->responseHeaders);
         }
-
-        if (! array_key_exists('equipment_items', $overrides)
-            && in_array($payload['race'], ['Techno', 'Präkristofluu'], true)) {
-            $payload['equipment_items'] = [
-                ['id' => 'fernglas', 'quantity' => 1],
-                ['id' => 'funkgeraet', 'quantity' => 1],
-                ['id' => 'gasmaske', 'quantity' => 1],
-                ['id' => 'atemgeraet', 'quantity' => 1],
-                ['id' => 'seil', 'quantity' => 1],
-                ['id' => 'rucksack', 'quantity' => 1],
-            ];
-        }
-
-        return $payload;
-    }
-
-    private function createMember(Role|string $role = Role::Mitglied): User
-    {
-        $team = Team::membersTeam() ?? Team::factory()->create([
-            'name' => 'Mitglieder',
-            'personal_team' => false,
-        ]);
-
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role instanceof Role ? $role->value : $role]);
-
-        return $user->refresh();
-    }
-
-    private function addAgRollenspielMembership(User $user): User
-    {
-        $owner = User::factory()->create();
-        $team = Team::factory()->create([
-            'user_id' => $owner->id,
-            'name' => 'AG Rollenspiel',
-            'personal_team' => false,
-        ]);
-
-        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-
-        return $user->refresh();
-    }
-
-    private function actingAgMember(int $points = 0): User
-    {
-        $user = $this->addAgRollenspielMembership($this->createMember());
-
-        if ($points > 0) {
-            $user->incrementTeamPoints($points);
-        }
-
-        $this->actingAs($user->refresh());
-
-        return $user->refresh();
-    }
-
-    public function test_ag_rollenspiel_member_can_store_first_character_for_free(): void
-    {
-        Storage::fake('private');
-        $member = $this->actingAgMember();
-
-        $response = $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'portrait' => UploadedFile::fake()->image('avatar.png', 10, 10),
-        ]));
-
-        $response
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHas('success');
-
-        $character = RpgCharacter::query()->firstOrFail();
-
-        $this->assertSame($member->id, $character->user_id);
-        $this->assertSame('Foo Bar', $character->character_name);
-        $this->assertSame('Barbar', $character->payload['character']['race']);
-        $this->assertNotNull($character->portrait_path);
-        Storage::disk('private')->assertExists($character->portrait_path);
-        $this->assertSame(0, RewardPurchase::query()->count());
-    }
-
-    public function test_saving_preserves_the_selected_unarmed_attack_and_its_pdf_values(): void
-    {
-        $this->actingAgMember();
-        $input = $this->validCharacterPayload();
-        $input['equipment_items'][] = ['id' => 'faustschlag-tritt', 'quantity' => 1];
-
-        $this->post(route('rpg.characters.store'), $input)->assertSessionHasNoErrors()->assertRedirect(route('rpg.characters.index'));
-
-        $character = RpgCharacter::firstOrFail();
-        $unarmed = collect($character->initial_payload['equipment']['items'])->firstWhere('id', 'faustschlag-tritt');
-        $this->assertNotNull($unarmed);
-        $this->assertContains($unarmed, $character->payload['equipment']['items']);
-        $this->assertArrayNotHasKey('item:faustschlag-tritt', app(RpgInventoryAdapter::class)->state($character->payload)['stocks']);
-
-        $combat = app(RpgCharacterCombatCalculator::class)->calculate($character->payload);
-        $weapon = collect($combat['weapons'])->firstWhere('id', 'faustschlag-tritt');
-        $this->assertNotNull($weapon);
-        $this->assertSame(3, $weapon['attack']);
-        $this->assertSame(1, $weapon['damage_modifier']);
-        $sheet = app(RpgCharacterSheetPresenter::class)->present($character->payload, $combat);
-        $html = view('rpg.char-sheet', ['sheet' => $sheet, 'combat' => $combat])->render();
-        $this->assertStringContainsString('Faustschlag / Tritt', $html);
-        $this->assertStringContainsString('1W6+1+VM', $html);
-    }
-
-    public function test_ag_rollenspiel_member_can_store_techno_with_full_fp_budget(): void
-    {
-        $member = $this->actingAgMember();
-
-        $response = $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Techno Vollbudget',
-            'race' => 'Techno',
-            'culture' => 'Bunkermensch',
-            'attributes' => [
-                'st' => -1,
-                'ro' => -1,
-                'in' => 1,
-                'ge' => 1,
-                'wa' => 1,
-            ],
-            'skills' => [
-                ['name' => 'Bildung', 'value' => 3],
-                ['name' => 'Nahkampf', 'value' => 1],
-                ['name' => 'Fahren', 'value' => 4],
-                ['name' => 'Feuerwaffen', 'value' => 2],
-                ['name' => 'Pilot', 'value' => 3],
-                ['name' => 'Techniker', 'value' => 2],
-                ['name' => 'Wissenschaftler', 'value' => 2],
-                ['name' => 'Athletik', 'value' => 4],
-                ['name' => 'Diebeskunst', 'value' => 4],
-                ['name' => 'Fernkampf', 'value' => 4],
-                ['name' => 'Handeln', 'value' => 4],
-                ['name' => 'Reiten', 'value' => 4],
-            ],
-            'techno_skill_points' => [
-                'Fahren' => 4,
-                'Feuerwaffen' => 2,
-                'Heiler' => 0,
-                'Pilot' => 2,
-                'Techniker' => 2,
-                'Wissenschaftler' => 2,
-            ],
-            'bunkermensch_bonus_skill' => 'Pilot',
-            'advantages' => ['Zaeh', 'High-Tech-Ausruestung'],
-            'disadvantages' => ['Toedliche Immunschwaeche'],
-        ]));
-
-        $response
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHas('success');
-
-        $character = RpgCharacter::query()->firstOrFail();
-
-        $this->assertSame($member->id, $character->user_id);
-        $this->assertSame('Techno Vollbudget', $character->character_name);
-        $this->assertSame('Techno', $character->payload['character']['race']);
-    }
-
-    public function test_store_rejects_unspent_level_dependent_ap_and_fp_budgets(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'figurenstaerke' => 4,
-        ]))->assertSessionHasErrors('attributes');
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'figurenstaerke' => 4,
-            'attributes' => [
-                'st' => 2,
-                'ge' => 1,
-                'ro' => 1,
-            ],
-        ]))->assertSessionHasErrors('skills');
-
-        $this->assertSame(0, RpgCharacter::query()->count());
-    }
-
-    public function test_non_editor_member_cannot_use_character_storage_routes(): void
-    {
-        $owner = $this->actingAgMember();
-        $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
-        $member = $this->createMember();
-
-        $this->actingAs($member)
-            ->get(route('rpg.characters.index'))
-            ->assertForbidden();
-
-        $this->actingAs($member)
-            ->post(route('rpg.characters.store'), $this->validCharacterPayload())
-            ->assertForbidden();
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($member)
-            ->get(route('rpg.characters.pdf', $character))
-            ->assertForbidden();
-
-        $this->actingAs($member)
-            ->delete(route('rpg.characters.destroy', $character))
-            ->assertForbidden();
-    }
-
-    public function test_character_list_only_shows_current_users_characters(): void
-    {
-        $member = $this->actingAgMember();
-        $otherMember = $this->addAgRollenspielMembership($this->createMember());
-
-        RpgCharacter::factory()->create([
-            'user_id' => $member->id,
-            'character_name' => 'Eigener Held',
-        ]);
-        RpgCharacter::factory()->create([
-            'user_id' => $otherMember->id,
-            'character_name' => 'Fremder Held',
-        ]);
-
-        $this->get(route('rpg.characters.index'))
-            ->assertOk()
-            ->assertSee('Eigener Held')
-            ->assertDontSee('Fremder Held')
-            ->assertSee('target="_blank"', false)
-            ->assertSee('rel="noopener noreferrer"', false);
-    }
-
-    public function test_empty_character_name_fallback_is_persisted_to_payload(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => '   ',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $character = RpgCharacter::query()->firstOrFail();
-
-        $this->assertSame('Charakter', $character->character_name);
-        $this->assertSame('Charakter', $character->payload['character']['character_name']);
-    }
-
-    public function test_zero_character_name_is_persisted_without_fallback(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => '0',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $character = RpgCharacter::query()->firstOrFail();
-
-        $this->assertSame('0', $character->character_name);
-        $this->assertSame('0', $character->payload['character']['character_name']);
-    }
-
-    public function test_character_name_above_database_column_length_is_rejected(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => str_repeat('A', 256),
-        ]))->assertSessionHasErrors('character_name');
-
-        $this->assertSame(0, RpgCharacter::query()->count());
-    }
-
-    public function test_second_character_without_free_slot_is_rejected(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Erster Held',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        config(['rewards.rpg_character_slot_cost_baxx' => 7]);
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Zweiter Held',
-        ]))->assertSessionHasErrors('slot');
-
-        $slotError = session('errors')->first('slot');
-
-        $this->assertStringContainsString('7 Baxx', $slotError);
-        $this->assertStringNotContainsString('5 Baxx', $slotError);
-        $this->assertSame(1, RpgCharacter::query()->count());
-    }
-
-    public function test_rejected_store_without_free_slot_does_not_write_portrait(): void
-    {
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Erster Held',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
-        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
-
-        Storage::shouldReceive('disk')->never();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Zweiter Held',
-            'portrait_data_url' => $dataUrl,
-        ]))->assertSessionHasErrors('slot');
-
-        $this->assertSame(1, RpgCharacter::query()->count());
-    }
-
-    public function test_slot_purchase_costs_five_baxx_and_is_repeatable(): void
-    {
-        $member = $this->actingAgMember(15);
-
-        $this->post(route('rpg.characters.slots.purchase'))
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHas('success');
-
-        $this->post(route('rpg.characters.slots.purchase'))
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHas('success');
-
-        $this->assertSame(2, RewardPurchase::query()->count());
-        $this->assertSame(10, (int) RewardPurchase::query()->sum('cost_baxx'));
-        $this->assertSame(3, app(RpgCharacterSlotService::class)->totalSlots($member));
-        $this->assertSame(5, $member->fresh()->getAvailableBaxx());
-    }
-
-    public function test_slot_purchase_with_insufficient_baxx_is_rejected(): void
-    {
-        $this->actingAgMember(4);
-
-        $this->post(route('rpg.characters.slots.purchase'))
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHasErrors('slot');
-
-        $this->assertSame(0, RewardPurchase::query()->count());
-    }
-
-    public function test_store_can_confirm_slot_purchase_when_storage_is_full(): void
-    {
-        $member = $this->actingAgMember(5);
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Erster Held',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'Zweiter Held',
-            'purchase_slot_if_needed' => '1',
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $this->assertSame(2, RpgCharacter::query()->count());
-        $this->assertSame(1, RewardPurchase::query()->count());
-        $this->assertSame(0, $member->fresh()->getAvailableBaxx());
-    }
-
-    public function test_failed_store_redirect_keeps_editor_input_for_recovery(): void
-    {
-        $this->actingAgMember();
-
-        $response = $this
-            ->from(route('rpg.char-editor'))
-            ->post(route('rpg.characters.store'), $this->validCharacterPayload([
-                'character_name' => 'Kept Store Character',
-                'portrait_data_url' => 'data:image/png;base64,'.base64_encode('not an image'),
-            ]));
-
-        $response
-            ->assertRedirect(route('rpg.char-editor'))
-            ->assertSessionHasErrors('portrait_data_url')
-            ->assertSessionHasInput('character_name', 'Kept Store Character')
-            ->assertSessionHasInput('race', 'Barbar')
-            ->assertSessionHasInput('clothing', 'kleidung-einfach');
-
-        $this->assertSame(0, RpgCharacter::query()->count());
-    }
-
-    public function test_failed_portrait_validation_does_not_expose_old_portrait_payload_to_editor(): void
-    {
-        $this->actingAgMember();
-
-        foreach (['portrait_data_url', 'portrait'] as $errorField) {
-            $payloadMarker = 'OVERSIZEDPORTRAITPAYLOAD'.strtoupper($errorField);
-            $overrides = [
-                'character_name' => 'Kept Portrait Character',
-                'portrait_data_url' => 'data:image/png;base64,'.$payloadMarker,
-            ];
-
-            if ($errorField === 'portrait') {
-                $overrides['portrait'] = UploadedFile::fake()->create('avatar.txt', 1, 'text/plain');
-            }
-
-            $response = $this
-                ->followingRedirects()
-                ->from(route('rpg.char-editor'))
-                ->post(route('rpg.characters.store'), $this->validCharacterPayload($overrides));
-
-            $response
-                ->assertOk()
-                ->assertSee('Kept Portrait Character')
-                ->assertDontSee($payloadMarker);
-        }
-    }
-
-    public function test_failed_portrait_storage_rejects_character_without_persisting_path(): void
-    {
-        $this->actingAgMember();
-        $image = UploadedFile::fake()->image('avatar.png', 1, 1);
-        $dataUrl = 'data:image/png;base64,'.base64_encode($image->get());
-
-        $disk = \Mockery::mock(FilesystemAdapter::class);
-        $disk->shouldReceive('put')
-            ->once()
-            ->with(
-                \Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')),
-                \Mockery::type('string'),
-            )
-            ->andReturn(false);
-
-        Storage::shouldReceive('disk')
-            ->with('private')
-            ->once()
-            ->andReturn($disk);
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'portrait_data_url' => $dataUrl,
-        ]))->assertSessionHasErrors('portrait_data_url');
-
-        $this->assertSame(0, RpgCharacter::query()->count());
-    }
-
-    public function test_failed_uploaded_portrait_storage_attaches_error_to_upload_field(): void
-    {
-        $this->actingAgMember();
-
-        $disk = \Mockery::mock(FilesystemAdapter::class);
-        $disk->shouldReceive('put')
-            ->once()
-            ->with(
-                \Mockery::on(static fn (string $path): bool => str_starts_with($path, 'rpg-characters/') && str_ends_with($path, '.png')),
-                \Mockery::type('string'),
-            )
-            ->andReturn(false);
-
-        Storage::shouldReceive('disk')
-            ->with('private')
-            ->once()
-            ->andReturn($disk);
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'portrait' => UploadedFile::fake()->image('avatar.png', 1, 1),
-        ]))->assertSessionHasErrors('portrait');
-
-        $this->assertFalse(session('errors')->has('portrait_data_url'));
-        $this->assertSame(0, RpgCharacter::query()->count());
-    }
-
-    public function test_deleting_character_frees_slot_and_removes_portrait_file(): void
-    {
-        Storage::fake('private');
-        $this->actingAgMember();
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'portrait' => UploadedFile::fake()->image('avatar.png', 10, 10),
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $character = RpgCharacter::query()->firstOrFail();
-        $path = $character->portrait_path;
-
-        Storage::disk('private')->assertExists($path);
-
-        $this->delete(route('rpg.characters.destroy', $character))
-            ->assertRedirect(route('rpg.characters.index'))
-            ->assertSessionHas('success');
-
-        $this->assertSame(0, RpgCharacter::query()->count());
-        Storage::disk('private')->assertMissing($path);
-    }
-
-    public function test_saved_character_can_be_rendered_as_pdf_with_stored_portrait(): void
-    {
-        Storage::fake('private');
-        $this->actingAgMember();
-        $description = str_repeat('Eine ausführlich beschriebene Figur. ', 400).'ENDE';
-
-        $this->post(route('rpg.characters.store'), $this->validCharacterPayload([
-            'character_name' => 'PDF Held',
-            'description' => $description,
-            'portrait' => UploadedFile::fake()->image('avatar.png', 10, 10),
-        ]))->assertRedirect(route('rpg.characters.index'));
-
-        $character = RpgCharacter::query()->firstOrFail();
-        $storedPayload = $character->payload;
-
-        Pdf::shouldReceive('view')
-            ->once()
-            ->with('rpg.char-sheet', \Mockery::on(fn (array $data): bool => $data['character']['character_name'] === 'PDF Held'
-                && str_starts_with($data['portrait'] ?? '', 'data:image/png;base64,')
-                && $data['character']['description'] === $description
-                && $data['sheet']['description'] === $description
-                && $data['sheet']['layout']['description']['truncated']
-                && $data['sheet']['layout']['description']['font_size'] === 6.5))
-            ->andReturn(new class extends PdfBuilder
-            {
-                public function toResponse($request): Response
-                {
-                    return response('PDF', 200, $this->responseHeaders);
-                }
-            });
-
-        $this->get(route('rpg.characters.pdf', $character))
-            ->assertOk();
-        $this->assertSame($storedPayload, $character->fresh()->payload);
-    }
-
-    public function test_saved_character_pdf_is_owner_scoped(): void
-    {
-        $owner = $this->actingAgMember();
-        $otherMember = $this->addAgRollenspielMembership($this->createMember());
-        $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
-
-        Pdf::shouldReceive('view')->never();
-
-        $this->actingAs($otherMember)
-            ->get(route('rpg.characters.pdf', $character))
-            ->assertForbidden();
-    }
-
-    public function test_saved_character_delete_is_owner_scoped(): void
-    {
-        $owner = $this->actingAgMember();
-        $otherMember = $this->addAgRollenspielMembership($this->createMember());
-        $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
-
-        $this->actingAs($otherMember)
-            ->delete(route('rpg.characters.destroy', $character))
-            ->assertForbidden();
-
-        $this->assertModelExists($character);
-    }
-}
+    });
+    $this->get(route('rpg.characters.pdf', $character))->assertOk();
+    expect($character->fresh()->payload)->toBe($storedPayload);
+});
+
+test('saved character pdf is owner scoped', function (): void {
+    $owner = $this->actingAgMember();
+    $otherMember = $this->addAgRollenspielMembership($this->createMember());
+    $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
+    Pdf::shouldReceive('view')->never();
+    $this->actingAs($otherMember)->get(route('rpg.characters.pdf', $character))->assertForbidden();
+});
+
+test('saved character delete is owner scoped', function (): void {
+    $owner = $this->actingAgMember();
+    $otherMember = $this->addAgRollenspielMembership($this->createMember());
+    $character = RpgCharacter::factory()->create(['user_id' => $owner->id]);
+    $this->actingAs($otherMember)->delete(route('rpg.characters.destroy', $character))->assertForbidden();
+    $this->assertModelExists($character);
+});

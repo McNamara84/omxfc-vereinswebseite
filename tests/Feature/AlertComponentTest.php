@@ -1,61 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
-use Illuminate\Console\Application as ArtisanApplication;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
 
-class AlertComponentTest extends BaseTestCase
-{
-    public function createApplication()
-    {
-        ArtisanApplication::forgetBootstrappers();
+pest()->extend(BaseTestCase::class)->use(AlertComponentTestFixtures::class);
 
-        $app = require __DIR__.'/../../bootstrap/app.php';
+beforeEach(function (): void {
+    config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+});
 
-        $app->make(Kernel::class)->bootstrap();
+test('alert renders title slot and icon without description', function (): void {
+    $html = Blade::render('<x-alert title="Karte noch nicht verfügbar" icon="o-lock-closed">Freischaltung erst nach der ersten erledigten Aufgabe.</x-alert>');
+    expect($html)->toContain('Karte noch nicht verfügbar')
+        ->toContain('Freischaltung erst nach der ersten erledigten Aufgabe.')
+        ->toContain('font-bold')
+        ->and(str_contains($html, 'data-icon-name="o-lock-closed"') || str_contains($html, 'data-slot="icon"'))->toBeTrue()
+        ->and($html)->not->toContain('•');
+});
 
-        return $app;
-    }
+test('alert renders description and slot together', function (): void {
+    $html = Blade::render('<x-alert title="Hinweis" description="Kurzbeschreibung">Zusätzlicher Hinweistext.</x-alert>');
+    expect($html)->toContain('Hinweis')
+        ->toContain('Kurzbeschreibung')
+        ->toContain('Zusätzlicher Hinweistext.');
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
-    }
-
-    public function test_alert_renders_title_slot_and_icon_without_description(): void
-    {
-        $html = Blade::render('<x-alert title="Karte noch nicht verfügbar" icon="o-lock-closed">Freischaltung erst nach der ersten erledigten Aufgabe.</x-alert>');
-
-        $this->assertStringContainsString('Karte noch nicht verfügbar', $html);
-        $this->assertStringContainsString('Freischaltung erst nach der ersten erledigten Aufgabe.', $html);
-        $this->assertStringContainsString('font-bold', $html);
-        $this->assertTrue(
-            str_contains($html, 'data-icon-name="o-lock-closed"')
-                || str_contains($html, 'data-slot="icon"'),
-            'Expected the alert to render icon markup.',
-        );
-        $this->assertStringNotContainsString('•', $html);
-    }
-
-    public function test_alert_renders_description_and_slot_together(): void
-    {
-        $html = Blade::render('<x-alert title="Hinweis" description="Kurzbeschreibung">Zusätzlicher Hinweistext.</x-alert>');
-
-        $this->assertStringContainsString('Hinweis', $html);
-        $this->assertStringContainsString('Kurzbeschreibung', $html);
-        $this->assertStringContainsString('Zusätzlicher Hinweistext.', $html);
-    }
-
-    public function test_alert_does_not_duplicate_passed_attributes(): void
-    {
-        $html = Blade::render('<x-alert id="warnung" data-testid="alert-komponente">Testinhalt</x-alert>');
-
-        $this->assertSame(1, substr_count($html, 'id="warnung"'));
-        $this->assertSame(1, substr_count($html, 'data-testid="alert-komponente"'));
-    }
-}
+test('alert does not duplicate passed attributes', function (): void {
+    $html = Blade::render('<x-alert id="warnung" data-testid="alert-komponente">Testinhalt</x-alert>');
+    expect(substr_count($html, 'id="warnung"'))->toBe(1)
+        ->and(substr_count($html, 'data-testid="alert-komponente"'))->toBe(1);
+});

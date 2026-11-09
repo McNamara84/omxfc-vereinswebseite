@@ -1,44 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class RedirectIfAnwaerterTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RedirectIfAnwaerterTestFixtures::class);
 
-    private function createUser(Role $role): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role->value]);
+test('anwaerter is redirected to login', function (): void {
+    $user = $this->createUser(Role::Anwaerter);
+    $this->actingAs($user);
+    $response = $this->get('/dashboard');
+    $response->assertRedirect('/login');
+    $this->assertGuest();
+});
 
-        return $user;
-    }
-
-    public function test_anwaerter_is_redirected_to_login(): void
-    {
-        $user = $this->createUser(Role::Anwaerter);
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard');
-
-        $response->assertRedirect('/login');
-        $this->assertGuest();
-    }
-
-    public function test_regular_member_can_access_route(): void
-    {
-        $user = $this->createUser(Role::Mitglied);
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard');
-
-        $response->assertOk();
-    }
-}
+test('regular member can access route', function (): void {
+    $user = $this->createUser(Role::Mitglied);
+    $this->actingAs($user);
+    $response = $this->get('/dashboard');
+    $response->assertOk();
+});

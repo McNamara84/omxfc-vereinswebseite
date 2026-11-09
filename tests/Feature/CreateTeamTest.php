@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,29 +10,15 @@ use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class CreateTeamTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(CreatesUserWithRole::class, RefreshDatabase::class);
 
-    public function test_teams_can_be_created(): void
-    {
-        $user = $this->actingAdmin();
+test('teams can be created', function (): void {
+    $user = $this->actingAdmin();
+    Livewire::test(CreateTeamForm::class)->set(['state' => ['name' => 'Test Team']])->call('createTeam');
+    expect($user->fresh()->ownedTeams()->where('name', 'Test Team')->exists())->toBeTrue();
+});
 
-        Livewire::test(CreateTeamForm::class)
-            ->set(['state' => ['name' => 'Test Team']])
-            ->call('createTeam');
-
-        $this->assertTrue($user->fresh()->ownedTeams()->where('name', 'Test Team')->exists());
-    }
-
-    public function test_non_admin_cannot_create_teams(): void
-    {
-        $user = $this->actingSimpleMember();
-
-        Livewire::test(CreateTeamForm::class)
-            ->set(['state' => ['name' => 'Mein Team']])
-            ->call('createTeam')
-            ->assertForbidden();
-    }
-}
+test('non admin cannot create teams', function (): void {
+    $user = $this->actingSimpleMember();
+    Livewire::test(CreateTeamForm::class)->set(['state' => ['name' => 'Mein Team']])->call('createTeam')->assertForbidden();
+});

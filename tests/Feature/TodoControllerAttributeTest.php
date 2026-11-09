@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Http\Controllers\TodoController;
@@ -7,45 +9,27 @@ use App\Models\Todo;
 use Illuminate\Auth\Middleware\Authorize as AuthorizeMiddleware;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Attributes\Controllers\Authorize as AuthorizeAttribute;
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use ReflectionMethod;
 use Tests\TestCase;
 
-#[CoversClass(TodoController::class)]
-class TodoControllerAttributeTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    #[Test]
-    public function create_und_store_verwenden_laravel_13_authorize_attribute_fuer_create(): void
-    {
-        $createAttributes = (new ReflectionMethod(TodoController::class, 'create'))
-            ->getAttributes(AuthorizeAttribute::class);
+covers(TodoController::class);
 
-        $storeAttributes = (new ReflectionMethod(TodoController::class, 'store'))
-            ->getAttributes(AuthorizeAttribute::class);
+test('create und store verwenden laravel 13 authorize attribute fuer create', function (): void {
+    $createAttributes = (new ReflectionMethod(TodoController::class, 'create'))->getAttributes(AuthorizeAttribute::class);
+    $storeAttributes = (new ReflectionMethod(TodoController::class, 'store'))->getAttributes(AuthorizeAttribute::class);
+    expect($createAttributes)->toHaveCount(1)
+        ->and($storeAttributes)->toHaveCount(1);
+    $create = $createAttributes[0]->newInstance();
+    $store = $storeAttributes[0]->newInstance();
+    expect($create->middleware)->toBe(AuthorizeMiddleware::using('create', Todo::class))
+        ->and($store->middleware)->toBe(AuthorizeMiddleware::using('create', Todo::class));
+});
 
-        $this->assertCount(1, $createAttributes);
-        $this->assertCount(1, $storeAttributes);
-
-        $create = $createAttributes[0]->newInstance();
-        $store = $storeAttributes[0]->newInstance();
-
-        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $create->middleware);
-        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $store->middleware);
-    }
-
-    #[Test]
-    public function verify_verwendet_laravel_13_authorize_attribute_fuer_verify(): void
-    {
-        $verifyAttributes = (new ReflectionMethod(TodoController::class, 'verify'))
-            ->getAttributes(AuthorizeAttribute::class);
-
-        $this->assertCount(1, $verifyAttributes);
-
-        $verify = $verifyAttributes[0]->newInstance();
-
-        $this->assertSame(AuthorizeMiddleware::using('verify', Todo::class), $verify->middleware);
-    }
-}
+test('verify verwendet laravel 13 authorize attribute fuer verify', function (): void {
+    $verifyAttributes = (new ReflectionMethod(TodoController::class, 'verify'))->getAttributes(AuthorizeAttribute::class);
+    expect($verifyAttributes)->toHaveCount(1);
+    $verify = $verifyAttributes[0]->newInstance();
+    expect($verify->middleware)->toBe(AuthorizeMiddleware::using('verify', Todo::class));
+});

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -14,129 +16,80 @@ use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class SkeletonLoadingStatesTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(CreatesUserWithRole::class, RefreshDatabase::class);
 
-    // ── MitgliederIndex ─────────────────────────────────────────
+test('mitglieder index renders skeleton for loading state', function (): void {
+    $this->actingAs($this->actingMember());
+    Livewire::test(MitgliederIndex::class)->assertSee('skeleton', false)->assertSee('wire:loading.delay', false);
+});
 
-    public function test_mitglieder_index_renders_skeleton_for_loading_state(): void
-    {
-        $this->actingAs($this->actingMember());
+test('mitglieder index skeleton targets sort and filter', function (): void {
+    $this->actingAs($this->actingMember());
+    $html = Livewire::test(MitgliederIndex::class)->html();
+    // Prüfe einzelne Targets statt exakten String (robust bei Formatierungsänderungen)
+    expect($html)->toMatch('/wire:target="[^"]*\bsort\b[^"]*"/');
+    expect($html)->toMatch('/wire:target="[^"]*\bnurOnline\b[^"]*"/');
+});
 
-        Livewire::test(MitgliederIndex::class)
-            ->assertSee('skeleton', false)
-            ->assertSee('wire:loading.delay', false);
-    }
+test('mitglieder index table has loading remove', function (): void {
+    $this->actingAs($this->actingMember());
+    $html = Livewire::test(MitgliederIndex::class)->html();
+    expect($html)->toContain('wire:loading.remove');
+});
 
-    public function test_mitglieder_index_skeleton_targets_sort_and_filter(): void
-    {
-        $this->actingAs($this->actingMember());
+test('kassenbuch index renders skeleton for loading state', function (): void {
+    $this->actingAs($this->actingMember(Role::Kassenwart));
+    Livewire::test(KassenbuchIndex::class)->assertSee('skeleton', false);
+});
 
-        $html = Livewire::test(MitgliederIndex::class)->html();
+test('kassenbuch index has skeleton for payment table', function (): void {
+    $this->actingAs($this->actingMember(Role::Kassenwart));
+    $html = Livewire::test(KassenbuchIndex::class)->html();
+    // Skeleton ohne wire:target — greift bei jedem Livewire-Request
+    expect($html)->toContain('wire:loading.delay');
+    expect($html)->toContain('wire:loading.remove');
+});
 
-        // Prüfe einzelne Targets statt exakten String (robust bei Formatierungsänderungen)
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bsort\b[^"]*"/', $html);
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bnurOnline\b[^"]*"/', $html);
-    }
+test('kassenbuch index has skeleton for entries table', function (): void {
+    $this->actingAs($this->actingMember(Role::Kassenwart));
+    $html = Livewire::test(KassenbuchIndex::class)->html();
+    // Beide Skeleton-Wrapper (Zahlungsstatus + Kassenbuch) ohne spezifisches Target
+    expect(substr_count($html, 'wire:loading.delay'))->toBeGreaterThanOrEqual(2);
+    expect(substr_count($html, 'wire:loading.remove'))->toBeGreaterThanOrEqual(2);
+});
 
-    public function test_mitglieder_index_table_has_loading_remove(): void
-    {
-        $this->actingAs($this->actingMember());
+test('fantreffen admin dashboard renders skeleton for loading state', function (): void {
+    $team = Team::membersTeam();
+    $admin = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($admin, ['role' => Role::Admin->value]);
+    $this->actingAs($admin);
+    Livewire::test(FantreffenAdminDashboard::class)->assertSee('skeleton', false)->assertSee('wire:loading.delay', false);
+});
 
-        $html = Livewire::test(MitgliederIndex::class)->html();
+test('fantreffen admin dashboard skeleton targets filter actions', function (): void {
+    $team = Team::membersTeam();
+    $admin = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($admin, ['role' => Role::Admin->value]);
+    $this->actingAs($admin);
+    $html = Livewire::test(FantreffenAdminDashboard::class)->html();
+    expect($html)->toContain('filterMemberStatus')
+        ->toContain('filterZahlungseingang');
+});
 
-        $this->assertStringContainsString('wire:loading.remove', $html);
-    }
+test('kompendium admin dashboard renders skeleton for loading state', function (): void {
+    $team = Team::membersTeam();
+    $admin = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($admin, ['role' => Role::Admin->value]);
+    $this->actingAs($admin);
+    Livewire::test(KompendiumAdminDashboard::class)->assertSee('skeleton', false)->assertSee('wire:loading.delay', false);
+});
 
-    // ── KassenbuchIndex ─────────────────────────────────────────
-
-    public function test_kassenbuch_index_renders_skeleton_for_loading_state(): void
-    {
-        $this->actingAs($this->actingMember(Role::Kassenwart));
-
-        Livewire::test(KassenbuchIndex::class)
-            ->assertSee('skeleton', false);
-    }
-
-    public function test_kassenbuch_index_has_skeleton_for_payment_table(): void
-    {
-        $this->actingAs($this->actingMember(Role::Kassenwart));
-
-        $html = Livewire::test(KassenbuchIndex::class)->html();
-
-        // Skeleton ohne wire:target — greift bei jedem Livewire-Request
-        $this->assertStringContainsString('wire:loading.delay', $html);
-        $this->assertStringContainsString('wire:loading.remove', $html);
-    }
-
-    public function test_kassenbuch_index_has_skeleton_for_entries_table(): void
-    {
-        $this->actingAs($this->actingMember(Role::Kassenwart));
-
-        $html = Livewire::test(KassenbuchIndex::class)->html();
-
-        // Beide Skeleton-Wrapper (Zahlungsstatus + Kassenbuch) ohne spezifisches Target
-        $this->assertGreaterThanOrEqual(2, substr_count($html, 'wire:loading.delay'));
-        $this->assertGreaterThanOrEqual(2, substr_count($html, 'wire:loading.remove'));
-    }
-
-    // ── FantreffenAdminDashboard ────────────────────────────────
-
-    public function test_fantreffen_admin_dashboard_renders_skeleton_for_loading_state(): void
-    {
-        $team = Team::membersTeam();
-        $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => Role::Admin->value]);
-
-        $this->actingAs($admin);
-
-        Livewire::test(FantreffenAdminDashboard::class)
-            ->assertSee('skeleton', false)
-            ->assertSee('wire:loading.delay', false);
-    }
-
-    public function test_fantreffen_admin_dashboard_skeleton_targets_filter_actions(): void
-    {
-        $team = Team::membersTeam();
-        $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => Role::Admin->value]);
-
-        $this->actingAs($admin);
-
-        $html = Livewire::test(FantreffenAdminDashboard::class)->html();
-
-        $this->assertStringContainsString('filterMemberStatus', $html);
-        $this->assertStringContainsString('filterZahlungseingang', $html);
-    }
-
-    // ── KompendiumAdminDashboard ────────────────────────────────
-
-    public function test_kompendium_admin_dashboard_renders_skeleton_for_loading_state(): void
-    {
-        $team = Team::membersTeam();
-        $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => Role::Admin->value]);
-
-        $this->actingAs($admin);
-
-        Livewire::test(KompendiumAdminDashboard::class)
-            ->assertSee('skeleton', false)
-            ->assertSee('wire:loading.delay', false);
-    }
-
-    public function test_kompendium_admin_dashboard_skeleton_targets_crud_actions(): void
-    {
-        $team = Team::membersTeam();
-        $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => Role::Admin->value]);
-
-        $this->actingAs($admin);
-
-        $html = Livewire::test(KompendiumAdminDashboard::class)->html();
-
-        $this->assertStringContainsString('indexieren', $html);
-        $this->assertStringContainsString('suchbegriff', $html);
-    }
-}
+test('kompendium admin dashboard skeleton targets crud actions', function (): void {
+    $team = Team::membersTeam();
+    $admin = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($admin, ['role' => Role::Admin->value]);
+    $this->actingAs($admin);
+    $html = Livewire::test(KompendiumAdminDashboard::class)->html();
+    expect($html)->toContain('indexieren')
+        ->toContain('suchbegriff');
+});

@@ -28,12 +28,19 @@ test('PHP inventory recognizes named tests and adjacent short and qualified Test
 test('inventory retains Pest and browser cases, manual classifications and seeder metadata', t => {
     const root = fixture(t, examples.classifications);
     const entries = Object.fromEntries(inventory(root).map(entry => [entry.file, entry]));
+    assert.equal(entries['tests/Fixtures/PestDiagnostics/DiagnosticsTest.php'].runner, 'pest-diagnostic-fixture');
     assert.equal(entries['tests/Feature/ExampleTest.php'].laravel, true);
     assert.equal(entries['tests/Feature/ExampleTest.php'].database, true);
     assert.deepEqual(entries['tests/Feature/ExampleTest.php'].seeders, ['ExampleSeeder']);
     assert.deepEqual(entries['tests/e2e/example.spec.js'].methods, ['a browser case']);
     assert.equal(entries['tests/e2e/homepage-performance.benchmark.js'].runner, 'benchmark');
     assert.equal(entries['tests/Integration/ExampleMariaDbTest.php'].runner, 'mariadb');
+    assert.equal(entries['tests/Integration/PlainPestTest.php'].laravel, false);
+    assert.equal(entries['tests/Integration/PlainPestTest.php'].database, false);
+    assert.equal(entries['tests/Feature/ScopedTest.php'].laravel, true);
+    assert.equal(entries['tests/Feature/ScopedTest.php'].database, true);
+    assert.deepEqual(entries['tests/Feature/ScopedTest.php'].seeders, ['SharedSeeder']);
+    assert.equal(entries['tests/Feature/ScopedTestFixtures.php'], undefined);
 });
 
 test('inventory includes test.each and it.each title templates with nested datasets', t => {

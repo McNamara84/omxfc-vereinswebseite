@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Models\FantreffenAnmeldung;
@@ -8,189 +10,101 @@ use App\Services\FantreffenRegistrationService;
 use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
 
-/**
- * Unit-Tests für den FantreffenRegistrationService.
- *
- * Testet die isolierte Business-Logik ohne Datenbankzugriff.
- *
- * HINWEIS: Dieser Test erweitert absichtlich PHPUnit\Framework\TestCase statt Tests\TestCase,
- * da er ein echter Unit-Test ist, der keine Datenbank- oder HTTP-Infrastruktur benötigt.
- * Alle Abhängigkeiten werden per Stub/Test Double bereitgestellt. Dies entspricht dem Unit-Test-Pattern
- * und vermeidet unnötigen Overhead durch das Laravel-Test-Setup.
- */
-class FantreffenRegistrationServiceTest extends TestCase
-{
-    private FantreffenRegistrationService $service;
+pest()->extend(TestCase::class)->use(FantreffenRegistrationServiceTestFixtures::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function (): void {
+    $deadlineService = $this->createStub(FantreffenDeadlineService::class);
+    $deadlineService->method('isPassed')->willReturn(false);
+    $this->service = new FantreffenRegistrationService($deadlineService);
+});
 
-        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
-        $deadlineService->method('isPassed')->willReturn(false);
+test('member without tshirt pays nothing', function (): void {
+    $amount = $this->service->calculatePaymentAmount(merchSelection: false, isAuthenticated: true);
+    expect($amount)->toBe(0.0);
+});
 
-        $this->service = new FantreffenRegistrationService($deadlineService);
-    }
+test('member with tshirt pays tshirt price', function (): void {
+    $amount = $this->service->calculatePaymentAmount(merchSelection: true, isAuthenticated: true);
+    expect($amount)->toBe(FantreffenAnmeldung::TSHIRT_PRICE);
+});
 
-    // ============================================
-    // calculatePaymentAmount() Tests
-    // ============================================
+test('guest without tshirt pays guest fee', function (): void {
+    $amount = $this->service->calculatePaymentAmount(merchSelection: false, isAuthenticated: false);
+    expect($amount)->toBe(FantreffenAnmeldung::GUEST_FEE);
+});
 
-    public function test_member_without_tshirt_pays_nothing(): void
-    {
-        $amount = $this->service->calculatePaymentAmount(
-            merchSelection: false,
-            isAuthenticated: true
-        );
+test('guest with tshirt pays guest fee plus tshirt', function (): void {
+    $amount = $this->service->calculatePaymentAmount(merchSelection: true, isAuthenticated: false);
+    $expected = FantreffenAnmeldung::GUEST_FEE + FantreffenAnmeldung::TSHIRT_PRICE;
+    expect($amount)->toBe($expected);
+});
 
-        $this->assertSame(0.0, $amount);
-    }
+test('calculate payment amount returns float', function (): void {
+    $amount = $this->service->calculatePaymentAmount(false, true);
+    expect($amount)->toBeFloat();
+});
 
-    public function test_member_with_tshirt_pays_tshirt_price(): void
-    {
-        $amount = $this->service->calculatePaymentAmount(
-            merchSelection: true,
-            isAuthenticated: true
-        );
+test('guest with multiple merch items pays guest fee plus all item prices', function (): void {
+    $amount = $this->service->calculatePaymentAmount([['price' => 12.0], ['price' => 25.0]], false);
+    expect($amount)->toBe(42.0);
+});
 
-        $this->assertSame(FantreffenAnmeldung::TSHIRT_PRICE, $amount);
-    }
+test('validation rules for authenticated user', function (): void {
+    $rules = $this->service->validationRules(isAuthenticated: true);
+    // Authentifizierte User brauchen keine Pflichtfelder für Name/Email
+    expect($rules)->not->toHaveKey('vorname');
+    expect($rules)->not->toHaveKey('nachname')->not->toHaveKey('email');
+    // Diese Felder sollten vorhanden sein
+    expect($rules)->toHaveKey('mobile');
+    expect($rules)->toHaveKeys(['merch', 'merch.*.variant_id', 'tshirt_bestellt', 'tshirt_groesse'])
+        ->and($rules['merch.*.variant_id'])->toContain('integer');
+});
 
-    public function test_guest_without_tshirt_pays_guest_fee(): void
-    {
-        $amount = $this->service->calculatePaymentAmount(
-            merchSelection: false,
-            isAuthenticated: false
-        );
+test('validation rules for guest', function (): void {
+    $rules = $this->service->validationRules(isAuthenticated: false);
+    // Gäste müssen Name und Email angeben
+    expect($rules)->toHaveKey('vorname');
+    expect($rules)->toHaveKeys(['nachname', 'email']);
+    // Prüfe dass diese required sind
+    expect($rules['vorname'])->toContain('required');
+    expect($rules['nachname'])->toContain('required')
+        ->and($rules['email'])->toContain('required');
+});
 
-        $this->assertSame(FantreffenAnmeldung::GUEST_FEE, $amount);
-    }
+test('tshirt size required when tshirt ordered', function (): void {
+    $rules = $this->service->validationRules(isAuthenticated: true);
+    // Prüfe dass tshirt_groesse bei bestelltem T-Shirt required ist
+    // Regex erlaubt Whitespace-Variationen im required_if-Format
+    expect($rules['tshirt_groesse'])->toMatch('/required_if\s*:\s*tshirt_bestellt\s*,\s*true/');
+});
 
-    public function test_guest_with_tshirt_pays_guest_fee_plus_tshirt(): void
-    {
-        $amount = $this->service->calculatePaymentAmount(
-            merchSelection: true,
-            isAuthenticated: false
-        );
+test('validation messages are in german', function (): void {
+    $messages = $this->service->validationMessages();
+    // Prüfe dass deutsche Fehlermeldungen vorhanden sind
+    expect($messages)->toHaveKey('vorname.required');
+    expect($messages['vorname.required'])->toContain('Vorname')
+        ->and($messages)->toHaveKey('email.email')
+        ->and($messages['email.email'])->toContain('gültige');
+});
 
-        $expected = FantreffenAnmeldung::GUEST_FEE + FantreffenAnmeldung::TSHIRT_PRICE;
-        $this->assertSame($expected, $amount);
-    }
+test('can order tshirt before deadline', function (): void {
+    $deadlineService = $this->createStub(FantreffenDeadlineService::class);
+    $deadlineService->method('isPassed')->willReturn(false);
+    $service = new FantreffenRegistrationService($deadlineService);
+    expect($service->canOrderTshirt())->toBeTrue();
+});
 
-    public function test_calculate_payment_amount_returns_float(): void
-    {
-        $amount = $this->service->calculatePaymentAmount(false, true);
+test('cannot order tshirt after deadline', function (): void {
+    $deadlineService = $this->createStub(FantreffenDeadlineService::class);
+    $deadlineService->method('isPassed')->willReturn(true);
+    $service = new FantreffenRegistrationService($deadlineService);
+    expect($service->canOrderTshirt())->toBeFalse();
+});
 
-        $this->assertIsFloat($amount);
-    }
+test('can order merch with preloaded collection before deadline', function (): void {
+    expect($this->service->canOrderMerch(orderableArtikel: new Collection([['id' => 1]])))->toBeTrue();
+});
 
-    public function test_guest_with_multiple_merch_items_pays_guest_fee_plus_all_item_prices(): void
-    {
-        $amount = $this->service->calculatePaymentAmount([
-            ['price' => 12.0],
-            ['price' => 25.0],
-        ], false);
-
-        $this->assertSame(42.0, $amount);
-    }
-
-    // ============================================
-    // validationRules() Tests
-    // ============================================
-
-    public function test_validation_rules_for_authenticated_user(): void
-    {
-        $rules = $this->service->validationRules(isAuthenticated: true);
-
-        // Authentifizierte User brauchen keine Pflichtfelder für Name/Email
-        $this->assertArrayNotHasKey('vorname', $rules);
-        $this->assertArrayNotHasKey('nachname', $rules);
-        $this->assertArrayNotHasKey('email', $rules);
-
-        // Diese Felder sollten vorhanden sein
-        $this->assertArrayHasKey('mobile', $rules);
-        $this->assertArrayHasKey('merch', $rules);
-        $this->assertArrayHasKey('merch.*.variant_id', $rules);
-        $this->assertArrayHasKey('tshirt_bestellt', $rules);
-        $this->assertArrayHasKey('tshirt_groesse', $rules);
-        $this->assertStringContainsString('integer', $rules['merch.*.variant_id']);
-    }
-
-    public function test_validation_rules_for_guest(): void
-    {
-        $rules = $this->service->validationRules(isAuthenticated: false);
-
-        // Gäste müssen Name und Email angeben
-        $this->assertArrayHasKey('vorname', $rules);
-        $this->assertArrayHasKey('nachname', $rules);
-        $this->assertArrayHasKey('email', $rules);
-
-        // Prüfe dass diese required sind
-        $this->assertStringContainsString('required', $rules['vorname']);
-        $this->assertStringContainsString('required', $rules['nachname']);
-        $this->assertContains('required', $rules['email']);
-    }
-
-    public function test_tshirt_size_required_when_tshirt_ordered(): void
-    {
-        $rules = $this->service->validationRules(isAuthenticated: true);
-
-        // Prüfe dass tshirt_groesse bei bestelltem T-Shirt required ist
-        // Regex erlaubt Whitespace-Variationen im required_if-Format
-        $this->assertMatchesRegularExpression(
-            '/required_if\s*:\s*tshirt_bestellt\s*,\s*true/',
-            $rules['tshirt_groesse'],
-            'tshirt_groesse sollte required_if:tshirt_bestellt,true enthalten'
-        );
-    }
-
-    // ============================================
-    // validationMessages() Tests
-    // ============================================
-
-    public function test_validation_messages_are_in_german(): void
-    {
-        $messages = $this->service->validationMessages();
-
-        // Prüfe dass deutsche Fehlermeldungen vorhanden sind
-        $this->assertArrayHasKey('vorname.required', $messages);
-        $this->assertStringContainsString('Vorname', $messages['vorname.required']);
-
-        $this->assertArrayHasKey('email.email', $messages);
-        $this->assertStringContainsString('gültige', $messages['email.email']);
-    }
-
-    // ============================================
-    // canOrderTshirt() Tests
-    // ============================================
-
-    public function test_can_order_tshirt_before_deadline(): void
-    {
-        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
-        $deadlineService->method('isPassed')->willReturn(false);
-
-        $service = new FantreffenRegistrationService($deadlineService);
-
-        $this->assertTrue($service->canOrderTshirt());
-    }
-
-    public function test_cannot_order_tshirt_after_deadline(): void
-    {
-        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
-        $deadlineService->method('isPassed')->willReturn(true);
-
-        $service = new FantreffenRegistrationService($deadlineService);
-
-        $this->assertFalse($service->canOrderTshirt());
-    }
-
-    public function test_can_order_merch_with_preloaded_collection_before_deadline(): void
-    {
-        $this->assertTrue($this->service->canOrderMerch(orderableArtikel: new Collection([['id' => 1]])));
-    }
-
-    public function test_cannot_order_merch_with_empty_preloaded_collection(): void
-    {
-        $this->assertFalse($this->service->canOrderMerch(orderableArtikel: new Collection));
-    }
-}
+test('cannot order merch with empty preloaded collection', function (): void {
+    expect($this->service->canOrderMerch(orderableArtikel: new Collection))->toBeFalse();
+});

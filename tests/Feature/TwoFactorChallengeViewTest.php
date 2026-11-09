@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -7,40 +9,30 @@ use Illuminate\Support\ViewErrorBag;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
-class TwoFactorChallengeViewTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_authenticator_code_field_uses_daisyui_otp_component(): void
-    {
-        $this->withoutVite();
-
-        $html = view('auth.two-factor-challenge', ['errors' => new ViewErrorBag])->render();
-        $crawler = new Crawler($html);
-        $otp = $crawler->filter('[data-testid="two-factor-code-otp"]');
-
-        $this->assertCount(1, $otp);
-        $this->assertStringContainsString('otp', $otp->attr('class') ?? '');
-        $this->assertStringContainsString('otp-joined', $otp->attr('class') ?? '');
-        $this->assertStringContainsString('otp-primary', $otp->attr('class') ?? '');
-        $this->assertNull($otp->attr('aria-label'));
-        $this->assertCount(6, $otp->filter('span[aria-hidden="true"]'));
-
-        $codeLabel = $crawler->filter('#two-factor-code-label');
-        $this->assertCount(1, $codeLabel);
-        $this->assertStringContainsString('Code', $codeLabel->text());
-        $this->assertSame('- Sechsstelligen Authentifizierungscode eingeben', $codeLabel->filter('.sr-only')->text());
-
-        $codeInput = $otp->filter('input#code[name="code"][data-testid="two-factor-code"]');
-
-        $this->assertCount(1, $codeInput);
-        $this->assertSame('numeric', $codeInput->attr('inputmode'));
-        $this->assertSame('[0-9]*', $codeInput->attr('pattern'));
-        $this->assertSame('6', $codeInput->attr('minlength'));
-        $this->assertSame('6', $codeInput->attr('maxlength'));
-        $this->assertSame('one-time-code', $codeInput->attr('autocomplete'));
-        $this->assertSame('two-factor-code-label', $codeInput->attr('aria-labelledby'));
-
-        $this->assertCount(1, $crawler->filter('input#recovery_code[name="recovery_code"][data-testid="two-factor-recovery-code"]'));
-    }
-}
+test('authenticator code field uses daisyui otp component', function (): void {
+    $this->withoutVite();
+    $html = view('auth.two-factor-challenge', ['errors' => new ViewErrorBag])->render();
+    $crawler = new Crawler($html);
+    $otp = $crawler->filter('[data-testid="two-factor-code-otp"]');
+    expect($otp)->toHaveCount(1)
+        ->and($otp->attr('class') ?? '')->toContain('otp')
+        ->and($otp->attr('class') ?? '')->toContain('otp-joined')
+        ->and($otp->attr('class') ?? '')->toContain('otp-primary')
+        ->and($otp->attr('aria-label'))->toBeNull()
+        ->and($otp->filter('span[aria-hidden="true"]'))->toHaveCount(6);
+    $codeLabel = $crawler->filter('#two-factor-code-label');
+    expect($codeLabel)->toHaveCount(1)
+        ->and($codeLabel->text())->toContain('Code')
+        ->and($codeLabel->filter('.sr-only')->text())->toBe('- Sechsstelligen Authentifizierungscode eingeben');
+    $codeInput = $otp->filter('input#code[name="code"][data-testid="two-factor-code"]');
+    expect($codeInput)->toHaveCount(1)
+        ->and($codeInput->attr('inputmode'))->toBe('numeric')
+        ->and($codeInput->attr('pattern'))->toBe('[0-9]*')
+        ->and($codeInput->attr('minlength'))->toBe('6')
+        ->and($codeInput->attr('maxlength'))->toBe('6')
+        ->and($codeInput->attr('autocomplete'))->toBe('one-time-code')
+        ->and($codeInput->attr('aria-labelledby'))->toBe('two-factor-code-label')
+        ->and($crawler->filter('input#recovery_code[name="recovery_code"][data-testid="two-factor-recovery-code"]'))->toHaveCount(1);
+});

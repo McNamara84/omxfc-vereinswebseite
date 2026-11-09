@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -9,42 +11,30 @@ use App\Policies\TeamPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class TeamPolicyTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_permissions_depend_on_team_ownership(): void
-    {
-        $owner = User::factory()->withPersonalTeam()->create();
-        $team = $owner->ownedTeams()->first();
-        $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => 'Member']);
-        $outsider = User::factory()->create();
-
-        $adminTeam = Team::membersTeam();
-        $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
-        $adminTeam->users()->attach($admin, ['role' => Role::Admin->value]);
-
-        $policy = new TeamPolicy;
-
-        $this->assertTrue($policy->viewAny($member));
-        $this->assertTrue($policy->view($member, $team));
-        $this->assertFalse($policy->view($outsider, $team));
-
-        $this->assertTrue($policy->update($owner, $team));
-        $this->assertFalse($policy->update($member, $team));
-
-        $this->assertTrue($policy->addTeamMember($owner, $team));
-        $this->assertFalse($policy->addTeamMember($member, $team));
-        $this->assertTrue($policy->addTeamMember($admin, $team));
-
-        $this->assertTrue($policy->updateTeamMember($owner, $team));
-        $this->assertFalse($policy->updateTeamMember($member, $team));
-
-        $this->assertTrue($policy->removeTeamMember($owner, $team));
-        $this->assertFalse($policy->removeTeamMember($member, $team));
-
-        $this->assertTrue($policy->delete($owner, $team));
-        $this->assertFalse($policy->delete($member, $team));
-    }
-}
+test('permissions depend on team ownership', function (): void {
+    $owner = User::factory()->withPersonalTeam()->create();
+    $team = $owner->ownedTeams()->first();
+    $member = User::factory()->create(['current_team_id' => $team->id]);
+    $team->users()->attach($member, ['role' => 'Member']);
+    $outsider = User::factory()->create();
+    $adminTeam = Team::membersTeam();
+    $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
+    $adminTeam->users()->attach($admin, ['role' => Role::Admin->value]);
+    $policy = new TeamPolicy;
+    expect($policy->viewAny($member))->toBeTrue()
+        ->and($policy->view($member, $team))->toBeTrue()
+        ->and($policy->view($outsider, $team))->toBeFalse()
+        ->and($policy->update($owner, $team))->toBeTrue()
+        ->and($policy->update($member, $team))->toBeFalse()
+        ->and($policy->addTeamMember($owner, $team))->toBeTrue()
+        ->and($policy->addTeamMember($member, $team))->toBeFalse()
+        ->and($policy->addTeamMember($admin, $team))->toBeTrue()
+        ->and($policy->updateTeamMember($owner, $team))->toBeTrue()
+        ->and($policy->updateTeamMember($member, $team))->toBeFalse()
+        ->and($policy->removeTeamMember($owner, $team))->toBeTrue()
+        ->and($policy->removeTeamMember($member, $team))->toBeFalse()
+        ->and($policy->delete($owner, $team))->toBeTrue()
+        ->and($policy->delete($member, $team))->toBeFalse();
+});

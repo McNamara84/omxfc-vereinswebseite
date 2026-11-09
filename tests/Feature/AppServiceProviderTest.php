@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\User;
@@ -17,11 +19,9 @@ use App\View\Components\NavigationMenuSub;
 use App\View\Components\NavigationThemeToggle;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Console\Events\CommandStarting;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Context;
-use Illuminate\Support\Facades\Vite;
 use Mary\View\Components\Button as MaryButton;
 use Mary\View\Components\Dropdown;
 use Mary\View\Components\Icon;
@@ -36,359 +36,204 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Tests\TestCase;
 
-class AppServiceProviderTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(AppServiceProviderTestFixtures::class);
 
-    private const TEST_VITE_BUILD_DIRECTORY = 'build-app-service-provider-test';
-
-    private const TEST_VITE_ASSET = 'assets/app-service-provider-test.css';
-
-    private const TEST_VITE_SCRIPT_ASSET = 'assets/app-service-provider-test.js';
-
-    public function test_command_starting_creates_fresh_console_and_scheduler_execution_context(): void
-    {
-        $previousExecutionId = null;
-
-        foreach (['schedule:run' => 'scheduler', 'queue:work' => 'console'] as $command => $type) {
-            event(new CommandStarting($command, new ArrayInput([]), new NullOutput));
-
-            $executionId = Context::get('execution_id');
-            $this->assertNotEmpty($executionId);
-            $this->assertNotSame($previousExecutionId, $executionId);
-            $this->assertSame($executionId, Context::get('correlation_id'));
-            $this->assertSame($type, Context::get('execution_type'));
-            $this->assertSame($command, Context::get('execution_name'));
-            $previousExecutionId = $executionId;
-        }
+test('command starting creates fresh console and scheduler execution context', function (): void {
+    $previousExecutionId = null;
+    foreach (['schedule:run' => 'scheduler', 'queue:work' => 'console'] as $command => $type) {
+        event(new CommandStarting($command, new ArrayInput([]), new NullOutput));
+        $executionId = Context::get('execution_id');
+        expect($executionId)->not->toBeEmpty()->not->toBe($previousExecutionId)
+            ->and(Context::get('correlation_id'))->toBe($executionId)
+            ->and(Context::get('execution_type'))->toBe($type)
+            ->and(Context::get('execution_name'))->toBe($command);
+        $previousExecutionId = $executionId;
     }
+});
 
-    public function test_guest_layout_component_preserves_page_metadata_and_content(): void
-    {
-        $this->withoutVite();
+test('guest layout component preserves page metadata and content', function (): void {
+    $this->withoutVite();
+    $html = Blade::render('<x-guest-layout title="Gastseite" description="Beschreibung der Gastseite">Öffentlicher Inhalt</x-guest-layout>');
+    expect($html)->toContain('<title>Gastseite</title>')
+        ->toContain('content="Beschreibung der Gastseite"')
+        ->toContain('Öffentlicher Inhalt')
+        ->toContain('property="og:image"');
+});
 
-        $html = Blade::render('<x-guest-layout title="Gastseite" description="Beschreibung der Gastseite">Öffentlicher Inhalt</x-guest-layout>');
+test('password reset does not change existing verified timestamp', function (): void {
+    // Create a verified user with a specific timestamp
+    $timestamp = now()->subDay();
+    $user = User::factory()->create(['email_verified_at' => $timestamp]);
+    // Dispatching a password reset should not change the timestamp
+    event(new PasswordReset($user));
+    $user->refresh();
+    expect($user->hasVerifiedEmail())->toBeTrue()
+        ->and($user->email_verified_at->getTimestamp())->toEqual($timestamp->getTimestamp());
+});
 
-        $this->assertStringContainsString('<title>Gastseite</title>', $html);
-        $this->assertStringContainsString('content="Beschreibung der Gastseite"', $html);
-        $this->assertStringContainsString('Öffentlicher Inhalt', $html);
-        $this->assertStringContainsString('property="og:image"', $html);
-    }
+test('social image defaults to logo when no image provided', function (): void {
+    $this->withoutVite();
+    $view = view('layouts.guest', ['slot' => '']);
+    $view->render();
+    $socialImage = $view->getData()['socialImage'];
+    expect($socialImage)->toContain('omxfc-logo')
+        ->toEndWith('.png');
+});
 
-    public function test_password_reset_does_not_change_existing_verified_timestamp(): void
-    {
-        // Create a verified user with a specific timestamp
-        $timestamp = now()->subDay();
-        $user = User::factory()->create([
-            'email_verified_at' => $timestamp,
-        ]);
+test('social image uses asset for relative path', function (): void {
+    $this->withoutVite();
+    $view = view('layouts.guest', ['slot' => '', 'image' => 'images/custom.png']);
+    $view->render();
+    expect($view->getData()['socialImage'])->toBe(asset('images/custom.png'));
+});
 
-        // Dispatching a password reset should not change the timestamp
-        event(new PasswordReset($user));
+test('social image uses provided absolute url', function (): void {
+    $this->withoutVite();
+    $url = 'https://example.com/social.png';
+    $view = view('layouts.guest', ['slot' => '', 'image' => $url]);
+    $view->render();
+    expect($view->getData()['socialImage'])->toBe($url);
+});
 
-        $user->refresh();
-        $this->assertTrue($user->hasVerifiedEmail());
-        $this->assertEquals($timestamp->getTimestamp(), $user->email_verified_at->getTimestamp());
-    }
+test('app layout skips vite assets for minimal test layout', function (): void {
+    Config::set('app.testing_minimal_layout', true);
+    expect(config('app.testing_skip_vite_assets'))->toBeTrue();
+    $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
+    expect($html)->toContain('Testinhalt')->not->toContain('resources/css/app.css')->not->toContain('resources/js/app.js');
+});
 
-    public function test_social_image_defaults_to_logo_when_no_image_provided(): void
-    {
-        $this->withoutVite();
-
-        $view = view('layouts.guest', ['slot' => '']);
-        $view->render();
-
-        $socialImage = $view->getData()['socialImage'];
-
-        $this->assertStringContainsString('omxfc-logo', $socialImage);
-        $this->assertStringEndsWith('.png', $socialImage);
-    }
-
-    public function test_social_image_uses_asset_for_relative_path(): void
-    {
-        $this->withoutVite();
-
-        $view = view('layouts.guest', ['slot' => '', 'image' => 'images/custom.png']);
-        $view->render();
-
-        $this->assertSame(asset('images/custom.png'), $view->getData()['socialImage']);
-    }
-
-    public function test_social_image_uses_provided_absolute_url(): void
-    {
-        $this->withoutVite();
-
-        $url = 'https://example.com/social.png';
-        $view = view('layouts.guest', ['slot' => '', 'image' => $url]);
-        $view->render();
-
-        $this->assertSame($url, $view->getData()['socialImage']);
-    }
-
-    public function test_app_layout_skips_vite_assets_for_minimal_test_layout(): void
-    {
-        Config::set('app.testing_minimal_layout', true);
-
-        $this->assertTrue(config('app.testing_skip_vite_assets'));
-
+test('app layout keeps vite assets without minimal test layout', function (): void {
+    $this->withTemporaryViteManifest(function (): void {
         $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
+        expect($html)->toContain('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET)
+            ->toContain('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_SCRIPT_ASSET);
+    });
+});
 
-        $this->assertStringContainsString('Testinhalt', $html);
-        $this->assertStringNotContainsString('resources/css/app.css', $html);
-        $this->assertStringNotContainsString('resources/js/app.js', $html);
+test('member layout skips vite assets for minimal test layout', function (): void {
+    Config::set('app.testing_minimal_layout', true);
+    $html = view('layouts.member', ['slot' => 'Interner Testinhalt'])->render();
+    expect($html)->toContain('Interner Testinhalt')
+        ->toContain('noindex, nofollow')->not->toContain('resources/css/app.css')->not->toContain('resources/js/app.js');
+});
+
+test('navigation shell uses explicit maryui component aliases', function (): void {
+    $aliases = app('blade.compiler')->getClassComponentAliases();
+    expect($aliases['mary-button'] ?? null)->toBe(MaryButton::class)
+        ->and($aliases['mary-dropdown'] ?? null)->toBe(NavigationDropdown::class)
+        ->and($aliases['mary-icon'] ?? null)->toBe(Icon::class)
+        ->and($aliases['mary-list-item'] ?? null)->toBe(ListItem::class)
+        ->and($aliases['mary-main'] ?? null)->toBe(NavigationMain::class)
+        ->and($aliases['mary-menu'] ?? null)->toBe(MaryMenu::class)
+        ->and($aliases['mary-menu-item'] ?? null)->toBe(MenuItem::class)
+        ->and($aliases['mary-menu-separator'] ?? null)->toBe(NavigationMenuSeparator::class)
+        ->and($aliases['mary-menu-sub'] ?? null)->toBe(NavigationMenuSub::class)
+        ->and($aliases['mary-nav'] ?? null)->toBe(MaryNav::class)
+        ->and($aliases['mary-theme-toggle'] ?? null)->toBe(NavigationThemeToggle::class)
+        ->and(is_subclass_of(NavigationDropdown::class, Dropdown::class))->toBeTrue()
+        ->and(is_subclass_of(NavigationMain::class, MaryMain::class))->toBeTrue()
+        ->and(is_subclass_of(NavigationMenuSeparator::class, MenuSeparator::class))->toBeTrue()
+        ->and(is_subclass_of(NavigationThemeToggle::class, ThemeToggle::class))->toBeTrue()
+        ->and(view()->exists('layouts.admin'))->toBeFalse();
+});
+
+test('rebooting the provider preserves console field doubles and real prefixed components', function (): void {
+    expect($this->app->runningInConsole())->toBeTrue()
+        ->and($this->app->runningUnitTests())->toBeTrue();
+    (new AppServiceProvider($this->app))->boot();
+    $aliases = app('blade.compiler')->getClassComponentAliases();
+    foreach (['input', 'password', 'select', 'file'] as $alias) {
+        expect($aliases[$alias] ?? null)->toBe('testing.components.'.$alias);
     }
-
-    public function test_app_layout_keeps_vite_assets_without_minimal_test_layout(): void
-    {
-        $this->withTemporaryViteManifest(function (): void {
-            $html = view('layouts.app', ['slot' => 'Testinhalt'])->render();
-
-            $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET, $html);
-            $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_SCRIPT_ASSET, $html);
-        });
+    foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
+        expect($aliases['mary-'.$alias] ?? null)->toBe($component);
     }
+});
 
-    public function test_member_layout_skips_vite_assets_for_minimal_test_layout(): void
-    {
-        Config::set('app.testing_minimal_layout', true);
+test('navigation main removes the invalid drawer overlay aria label', function (): void {
+    $template = (new NavigationMain)->render();
+    expect($template)->toBeString()
+        ->toContain('class="drawer-overlay"')
+        ->toContain('aria-label="Seitennavigation öffnen oder schließen"')->not->toContain('aria-label="close sidebar"');
+});
 
-        $html = view('layouts.member', ['slot' => 'Interner Testinhalt'])->render();
+test('navigation menu sub does not rely on the global str alias', function (): void {
+    $template = (new NavigationMenuSub)->render();
+    expect($template)->toBeString()
+        ->toContain('\Illuminate\Support\Str::contains')->not->toContain('$submenuActive = Str::contains');
+});
 
-        $this->assertStringContainsString('Interner Testinhalt', $html);
-        $this->assertStringContainsString('noindex, nofollow', $html);
-        $this->assertStringNotContainsString('resources/css/app.css', $html);
-        $this->assertStringNotContainsString('resources/js/app.js', $html);
-    }
+test('navigation theme toggle guards its inline storage bootstrap', function (): void {
+    $template = (new NavigationThemeToggle)->render();
+    expect($template)->toBeString()
+        ->toContain('try {')
+        ->toContain('if (root && storedTheme !== null)')
+        ->toContain('if (root && storedClass !== null)')
+        ->toContain('} catch {}')
+        ->toContain('aria-label="Farbschema umschalten"')->not->toContain('setAttribute("data-theme", localStorage.getItem');
+});
 
-    public function test_navigation_shell_uses_explicit_maryui_component_aliases(): void
-    {
-        $aliases = app('blade.compiler')->getClassComponentAliases();
+test('navigation adapters keep valid list and status semantics', function (): void {
+    $dropdown = (new NavigationDropdown)->render();
+    $separator = (new NavigationMenuSeparator)->render();
+    $alert = (new Alert(dismissible: true))->render();
+    expect($dropdown)->toBeString()
+        ->toContain('{{ $slot }}')->not->toContain('<div wire:key="dropdown-slot-')
+        ->and($separator)->toBeString()
+        ->toContain('<li role="separator"')
+        ->and($alert)->toBeString()
+        ->toContain("'role' => 'status'")
+        ->toContain('aria-label="Schließen"');
+});
 
-        $this->assertSame(MaryButton::class, $aliases['mary-button'] ?? null);
-        $this->assertSame(NavigationDropdown::class, $aliases['mary-dropdown'] ?? null);
-        $this->assertSame(Icon::class, $aliases['mary-icon'] ?? null);
-        $this->assertSame(ListItem::class, $aliases['mary-list-item'] ?? null);
-        $this->assertSame(NavigationMain::class, $aliases['mary-main'] ?? null);
-        $this->assertSame(MaryMenu::class, $aliases['mary-menu'] ?? null);
-        $this->assertSame(MenuItem::class, $aliases['mary-menu-item'] ?? null);
-        $this->assertSame(NavigationMenuSeparator::class, $aliases['mary-menu-separator'] ?? null);
-        $this->assertSame(NavigationMenuSub::class, $aliases['mary-menu-sub'] ?? null);
-        $this->assertSame(MaryNav::class, $aliases['mary-nav'] ?? null);
-        $this->assertSame(NavigationThemeToggle::class, $aliases['mary-theme-toggle'] ?? null);
-        $this->assertTrue(is_subclass_of(NavigationDropdown::class, Dropdown::class));
-        $this->assertTrue(is_subclass_of(NavigationMain::class, MaryMain::class));
-        $this->assertTrue(is_subclass_of(NavigationMenuSeparator::class, MenuSeparator::class));
-        $this->assertTrue(is_subclass_of(NavigationThemeToggle::class, ThemeToggle::class));
-        $this->assertFalse(view()->exists('layouts.admin'));
-    }
-
-    public function test_rebooting_the_provider_preserves_console_field_doubles_and_real_prefixed_components(): void
-    {
-        $this->assertTrue($this->app->runningInConsole());
-        $this->assertTrue($this->app->runningUnitTests());
-
-        (new AppServiceProvider($this->app))->boot();
-        $aliases = app('blade.compiler')->getClassComponentAliases();
-
-        foreach (['input', 'password', 'select', 'file'] as $alias) {
-            $this->assertSame('testing.components.'.$alias, $aliases[$alias] ?? null, $alias);
-        }
-
-        foreach (['input' => AccessibleInput::class, 'password' => AccessiblePassword::class, 'select' => AccessibleSelect::class, 'textarea' => AccessibleTextarea::class, 'file' => AccessibleFile::class] as $alias => $component) {
-            $this->assertSame($component, $aliases['mary-'.$alias] ?? null, 'mary-'.$alias);
-        }
-    }
-
-    public function test_navigation_main_removes_the_invalid_drawer_overlay_aria_label(): void
-    {
-        $template = (new NavigationMain)->render();
-
-        $this->assertIsString($template);
-        $this->assertStringContainsString('class="drawer-overlay"', $template);
-        $this->assertStringContainsString('aria-label="Seitennavigation öffnen oder schließen"', $template);
-        $this->assertStringNotContainsString('aria-label="close sidebar"', $template);
-    }
-
-    public function test_navigation_menu_sub_does_not_rely_on_the_global_str_alias(): void
-    {
-        $template = (new NavigationMenuSub)->render();
-
-        $this->assertIsString($template);
-        $this->assertStringContainsString('\Illuminate\Support\Str::contains', $template);
-        $this->assertStringNotContainsString('$submenuActive = Str::contains', $template);
-    }
-
-    public function test_navigation_theme_toggle_guards_its_inline_storage_bootstrap(): void
-    {
-        $template = (new NavigationThemeToggle)->render();
-
-        $this->assertIsString($template);
-        $this->assertStringContainsString('try {', $template);
-        $this->assertStringContainsString('if (root && storedTheme !== null)', $template);
-        $this->assertStringContainsString('if (root && storedClass !== null)', $template);
-        $this->assertStringContainsString('} catch {}', $template);
-        $this->assertStringContainsString('aria-label="Farbschema umschalten"', $template);
-        $this->assertStringNotContainsString('setAttribute("data-theme", localStorage.getItem', $template);
-    }
-
-    public function test_navigation_adapters_keep_valid_list_and_status_semantics(): void
-    {
-        $dropdown = (new NavigationDropdown)->render();
-        $separator = (new NavigationMenuSeparator)->render();
-        $alert = (new Alert(dismissible: true))->render();
-
-        $this->assertIsString($dropdown);
-        $this->assertStringContainsString('{{ $slot }}', $dropdown);
-        $this->assertStringNotContainsString('<div wire:key="dropdown-slot-', $dropdown);
-        $this->assertIsString($separator);
-        $this->assertStringContainsString('<li role="separator"', $separator);
-        $this->assertIsString($alert);
-        $this->assertStringContainsString("'role' => 'status'", $alert);
-        $this->assertStringContainsString('aria-label="Schließen"', $alert);
-    }
-
-    public function test_testing_environment_ignores_standard_vite_hot_file(): void
-    {
-        $hotPath = public_path('hot');
-        $originalHotExists = is_file($hotPath);
-        $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
-
-        $this->withTemporaryViteManifest(function () use ($hotPath, $originalHotExists, $originalHotContents): void {
-            file_put_contents($hotPath, 'http://127.0.0.1:5999');
-
-            try {
-                $html = Blade::render("@vite(['resources/css/app.css'])");
-
-                $this->assertStringNotContainsString('http://127.0.0.1:5999', $html);
-                $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET, $html);
-            } finally {
-                if ($originalHotExists) {
-                    file_put_contents($hotPath, $originalHotContents ?: '');
-                } elseif (is_file($hotPath)) {
-                    unlink($hotPath);
-                }
-            }
-        });
-    }
-
-    public function test_playwright_docker_environment_uses_dedicated_vite_hot_file(): void
-    {
-        $hotPath = public_path('playwright.hot');
-        $originalHotExists = is_file($hotPath);
-        $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
-        $originalPlaywrightUseDocker = getenv('PLAYWRIGHT_USE_DOCKER');
-
-        file_put_contents($hotPath, 'http://127.0.0.1:5173');
-        putenv('PLAYWRIGHT_USE_DOCKER=1');
-        $_ENV['PLAYWRIGHT_USE_DOCKER'] = '1';
-        $_SERVER['PLAYWRIGHT_USE_DOCKER'] = '1';
-
+test('testing environment ignores standard vite hot file', function (): void {
+    $hotPath = public_path('hot');
+    $originalHotExists = is_file($hotPath);
+    $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
+    $this->withTemporaryViteManifest(function () use ($hotPath, $originalHotExists, $originalHotContents): void {
+        file_put_contents($hotPath, 'http://127.0.0.1:5999');
         try {
-            $this->refreshApplication();
-
             $html = Blade::render("@vite(['resources/css/app.css'])");
-
-            $this->assertStringContainsString('http://127.0.0.1:5173', $html);
-            $this->assertStringContainsString('resources/css/app.css', $html);
+            expect($html)->not->toContain('http://127.0.0.1:5999')
+                ->toContain('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET);
         } finally {
-            if ($originalPlaywrightUseDocker === false) {
-                putenv('PLAYWRIGHT_USE_DOCKER');
-                unset($_ENV['PLAYWRIGHT_USE_DOCKER'], $_SERVER['PLAYWRIGHT_USE_DOCKER']);
-            } else {
-                putenv("PLAYWRIGHT_USE_DOCKER={$originalPlaywrightUseDocker}");
-                $_ENV['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
-                $_SERVER['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
-            }
-
             if ($originalHotExists) {
                 file_put_contents($hotPath, $originalHotContents ?: '');
             } elseif (is_file($hotPath)) {
                 unlink($hotPath);
             }
-
-            $this->refreshApplication();
         }
+    });
+});
+
+test('playwright docker environment uses dedicated vite hot file', function (): void {
+    $hotPath = public_path('playwright.hot');
+    $originalHotExists = is_file($hotPath);
+    $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
+    $originalPlaywrightUseDocker = getenv('PLAYWRIGHT_USE_DOCKER');
+    file_put_contents($hotPath, 'http://127.0.0.1:5173');
+    putenv('PLAYWRIGHT_USE_DOCKER=1');
+    $_ENV['PLAYWRIGHT_USE_DOCKER'] = '1';
+    $_SERVER['PLAYWRIGHT_USE_DOCKER'] = '1';
+    try {
+        $this->refreshApplication();
+        $html = Blade::render("@vite(['resources/css/app.css'])");
+        expect($html)->toContain('http://127.0.0.1:5173')
+            ->toContain('resources/css/app.css');
+    } finally {
+        if ($originalPlaywrightUseDocker === false) {
+            putenv('PLAYWRIGHT_USE_DOCKER');
+            unset($_ENV['PLAYWRIGHT_USE_DOCKER'], $_SERVER['PLAYWRIGHT_USE_DOCKER']);
+        } else {
+            putenv("PLAYWRIGHT_USE_DOCKER={$originalPlaywrightUseDocker}");
+            $_ENV['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
+            $_SERVER['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
+        }
+        if ($originalHotExists) {
+            file_put_contents($hotPath, $originalHotContents ?: '');
+        } elseif (is_file($hotPath)) {
+            unlink($hotPath);
+        }
+        $this->refreshApplication();
     }
-
-    private function withTemporaryViteManifest(callable $callback): void
-    {
-        $buildDirectory = public_path(self::TEST_VITE_BUILD_DIRECTORY);
-        $assetsDirectory = $buildDirectory.'/assets';
-        $manifestPath = $buildDirectory.'/manifest.json';
-        $assetPath = $buildDirectory.'/'.self::TEST_VITE_ASSET;
-        $scriptAssetPath = $buildDirectory.'/'.self::TEST_VITE_SCRIPT_ASSET;
-
-        $buildDirectoryCreated = ! is_dir($buildDirectory);
-        $assetsDirectoryCreated = ! is_dir($assetsDirectory);
-        $originalManifestExists = is_file($manifestPath);
-        $originalManifestContents = $originalManifestExists ? file_get_contents($manifestPath) : null;
-        $originalAssetExists = is_file($assetPath);
-        $originalAssetContents = $originalAssetExists ? file_get_contents($assetPath) : null;
-        $originalScriptAssetExists = is_file($scriptAssetPath);
-        $originalScriptAssetContents = $originalScriptAssetExists ? file_get_contents($scriptAssetPath) : null;
-
-        if ($buildDirectoryCreated) {
-            mkdir($buildDirectory, 0777, true);
-        }
-
-        if ($assetsDirectoryCreated) {
-            mkdir($assetsDirectory, 0777, true);
-        }
-
-        file_put_contents($manifestPath, json_encode([
-            'resources/css/app.css' => [
-                'file' => self::TEST_VITE_ASSET,
-                'src' => 'resources/css/app.css',
-                'isEntry' => true,
-            ],
-            'resources/js/app.js' => [
-                'file' => self::TEST_VITE_SCRIPT_ASSET,
-                'src' => 'resources/js/app.js',
-                'isEntry' => true,
-            ],
-        ], JSON_THROW_ON_ERROR));
-        file_put_contents($assetPath, 'body { display: block; }');
-        file_put_contents($scriptAssetPath, 'console.log("app-service-provider-test");');
-
-        clearstatcache(true, $manifestPath);
-        clearstatcache(true, $assetPath);
-        clearstatcache(true, $scriptAssetPath);
-        Vite::useBuildDirectory(self::TEST_VITE_BUILD_DIRECTORY);
-
-        try {
-            $callback();
-        } finally {
-            Vite::useBuildDirectory('build');
-
-            if ($originalManifestExists) {
-                file_put_contents($manifestPath, $originalManifestContents ?: '');
-            } elseif (is_file($manifestPath)) {
-                unlink($manifestPath);
-            }
-
-            if ($originalAssetExists) {
-                file_put_contents($assetPath, $originalAssetContents ?: '');
-            } elseif (is_file($assetPath)) {
-                unlink($assetPath);
-            }
-
-            if ($originalScriptAssetExists) {
-                file_put_contents($scriptAssetPath, $originalScriptAssetContents ?: '');
-            } elseif (is_file($scriptAssetPath)) {
-                unlink($scriptAssetPath);
-            }
-
-            if ($assetsDirectoryCreated) {
-                @rmdir($assetsDirectory);
-            }
-
-            if ($buildDirectoryCreated) {
-                @rmdir($buildDirectory);
-            }
-
-            clearstatcache(true, $manifestPath);
-            clearstatcache(true, $assetPath);
-            clearstatcache(true, $scriptAssetPath);
-        }
-    }
-}
+});

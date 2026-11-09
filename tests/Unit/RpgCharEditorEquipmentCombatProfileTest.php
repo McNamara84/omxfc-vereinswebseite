@@ -1,65 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit;
 
 use App\Support\RpgCharEditorEquipment;
 use PHPUnit\Framework\TestCase;
 
-class RpgCharEditorEquipmentCombatProfileTest extends TestCase
-{
-    public function test_every_weapon_armor_and_shield_has_structured_combat_data(): void
-    {
-        foreach (RpgCharEditorEquipment::items() as $item) {
-            $category = $item['category'];
+pest()->extend(TestCase::class);
 
-            if (in_array($category, ['melee_weapons', 'ranged_weapons'], true)) {
-                $this->assertSame('weapon', $item['combat']['kind'] ?? null, $item['name']);
-                $this->assertNotEmpty($item['combat']['modes'] ?? [], $item['name']);
-
-                foreach ($item['combat']['modes'] as $mode) {
-                    $this->assertContains($mode['kind'], ['melee', 'ranged']);
-                    $this->assertContains($mode['skill'], ['Nahkampf', 'Fernkampf', 'Feuerwaffen']);
-                    $this->assertIsInt($mode['precision']);
-                    $this->assertIsInt($mode['damage']);
-                }
-            }
-
-            if ($category === 'armor') {
-                $this->assertSame('armor', $item['combat']['kind'] ?? null, $item['name']);
-                $this->assertIsInt($item['combat']['protection']);
-                $this->assertIsInt($item['combat']['movementModifier']);
-            }
-
-            if ($category === 'shields') {
-                $this->assertSame('shield', $item['combat']['kind'] ?? null, $item['name']);
-                $this->assertSame(1, $item['combat']['defenseBonus'] ?? null, $item['name']);
+test('every weapon armor and shield has structured combat data', function (): void {
+    foreach (RpgCharEditorEquipment::items() as $item) {
+        $category = $item['category'];
+        if (in_array($category, ['melee_weapons', 'ranged_weapons'], true)) {
+            expect($item['combat']['kind'] ?? null)->toBe('weapon')
+                ->and($item['combat']['modes'] ?? [])->not->toBeEmpty();
+            foreach ($item['combat']['modes'] as $mode) {
+                expect(['melee', 'ranged'])->toContain($mode['kind'])
+                    ->and(['Nahkampf', 'Fernkampf', 'Feuerwaffen'])->toContain($mode['skill'])
+                    ->and($mode['precision'])->toBeInt()
+                    ->and($mode['damage'])->toBeInt();
             }
         }
-    }
-
-    public function test_thrown_melee_weapons_have_their_second_ranged_mode(): void
-    {
-        $profiles = RpgCharEditorEquipment::combatProfiles();
-
-        foreach (['messer-dolch', 'axt', 'keule', 'harpoon-speer'] as $id) {
-            $this->assertCount(2, $profiles[$id]['modes']);
-            $this->assertSame('melee', $profiles[$id]['modes'][0]['kind']);
-            $this->assertSame('ranged', $profiles[$id]['modes'][1]['kind']);
-            $this->assertSame('Fernkampf', $profiles[$id]['modes'][1]['skill']);
+        if ($category === 'armor') {
+            expect($item['combat']['kind'] ?? null)->toBe('armor')
+                ->and($item['combat']['protection'])->toBeInt()
+                ->and($item['combat']['movementModifier'])->toBeInt();
+        }
+        if ($category === 'shields') {
+            expect($item['combat']['kind'] ?? null)->toBe('shield')
+                ->and($item['combat']['defenseBonus'] ?? null)->toBe(1);
         }
     }
+});
 
-    public function test_item_map_keeps_combat_profiles_and_rule_config_exposes_them(): void
-    {
-        $itemMap = RpgCharEditorEquipment::itemMap();
-        $configMap = array_column(RpgCharEditorEquipment::ruleConfig()['items'], null, 'id');
-
-        $this->assertSame($itemMap['bogen']['combat'], $configMap['bogen']['combat']);
-        $this->assertSame('ranged', $itemMap['bogen']['combat']['modes'][0]['kind']);
-        $this->assertSame(['wa'], $itemMap['bogen']['combat']['modes'][0]['attributes']);
-        $this->assertSame(-1, $itemMap['bogen']['combat']['modes'][0]['precision']);
-        $this->assertSame(1, $itemMap['bogen']['combat']['modes'][0]['damage']);
-        $this->assertSame(3, $itemMap['kampfpanzer']['combat']['protection']);
-        $this->assertSame(-1, $itemMap['kampfpanzer']['combat']['movementModifier']);
+test('thrown melee weapons have their second ranged mode', function (): void {
+    $profiles = RpgCharEditorEquipment::combatProfiles();
+    foreach (['messer-dolch', 'axt', 'keule', 'harpoon-speer'] as $id) {
+        expect($profiles[$id]['modes'])->toHaveCount(2)
+            ->and($profiles[$id]['modes'][0]['kind'])->toBe('melee')
+            ->and($profiles[$id]['modes'][1]['kind'])->toBe('ranged')
+            ->and($profiles[$id]['modes'][1]['skill'])->toBe('Fernkampf');
     }
-}
+});
+
+test('item map keeps combat profiles and rule config exposes them', function (): void {
+    $itemMap = RpgCharEditorEquipment::itemMap();
+    $configMap = array_column(RpgCharEditorEquipment::ruleConfig()['items'], null, 'id');
+    expect($configMap['bogen']['combat'])->toBe($itemMap['bogen']['combat'])
+        ->and($itemMap['bogen']['combat']['modes'][0]['kind'])->toBe('ranged')
+        ->and($itemMap['bogen']['combat']['modes'][0]['attributes'])->toBe(['wa'])
+        ->and($itemMap['bogen']['combat']['modes'][0]['precision'])->toBe(-1)
+        ->and($itemMap['bogen']['combat']['modes'][0]['damage'])->toBe(1)
+        ->and($itemMap['kampfpanzer']['combat']['protection'])->toBe(3)
+        ->and($itemMap['kampfpanzer']['combat']['movementModifier'])->toBe(-1);
+});

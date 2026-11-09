@@ -1,39 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Models\RomanExcerpt;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class RomanExcerptSearchIndexTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_query_mode_does_not_change_the_active_index_variant(): void
-    {
-        config([
-            'scout.prefix' => 'test_',
-            'kompendium.search.mode' => 'lexical',
-            'kompendium.search.index_variant' => 'lexical',
-            'kompendium.search.index_version' => 3,
-        ]);
-
-        $this->assertSame('test_roman_excerpts_lexical_v3', (new RomanExcerpt)->searchableAs());
-
-        config(['kompendium.search.mode' => 'hybrid']);
-
-        $this->assertSame('test_roman_excerpts_lexical_v3', (new RomanExcerpt)->searchableAs());
-
-        config([
-            'kompendium.search.mode' => 'lexical',
-            'kompendium.search.index_variant' => 'hybrid',
-        ]);
-
-        $this->assertSame('test_roman_excerpts_hybrid_v3', (new RomanExcerpt)->searchableAs());
-
-        config(['kompendium.search.mode' => 'hybrid']);
-
-        $this->assertSame('test_roman_excerpts_hybrid_v3', (new RomanExcerpt)->searchableAs());
-    }
-}
+test('query mode does not change the active index variant', function (): void {
+    config(['scout.prefix' => 'test_', 'kompendium.search.mode' => 'lexical', 'kompendium.search.index_variant' => 'lexical', 'kompendium.search.index_version' => 3]);
+    expect((new RomanExcerpt)->searchableAs())->toBe('test_roman_excerpts_lexical_v3');
+    config(['kompendium.search.mode' => 'hybrid']);
+    expect((new RomanExcerpt)->searchableAs())->toBe('test_roman_excerpts_lexical_v3');
+    config(['kompendium.search.mode' => 'lexical', 'kompendium.search.index_variant' => 'hybrid']);
+    expect((new RomanExcerpt)->searchableAs())->toBe('test_roman_excerpts_hybrid_v3');
+    config(['kompendium.search.mode' => 'hybrid']);
+    expect((new RomanExcerpt)->searchableAs())->toBe('test_roman_excerpts_hybrid_v3');
+});

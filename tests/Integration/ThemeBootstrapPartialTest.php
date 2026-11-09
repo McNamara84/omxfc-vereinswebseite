@@ -1,24 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use PHPUnit\Framework\Attributes\CoversNothing;
+use Tests\Support\PhpunitMetadata;
 use Tests\TestCase;
 
-#[CoversNothing]
-class ThemeBootstrapPartialTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_theme_bootstrap_partial_includes_shared_script(): void
-    {
-        $rendered = Blade::render("@include('layouts.partials.theme-bootstrap')");
-        $inlineScript = trim(file_get_contents(resource_path('js/theme/bootstrap-inline.js')));
+test('theme bootstrap partial includes shared script', function (): void {
+    $rendered = Blade::render("@include('layouts.partials.theme-bootstrap')");
+    $inlineScript = trim(file_get_contents(resource_path('js/theme/bootstrap-inline.js')));
+    expect($rendered)->toContain('<script>')
+        ->toContain('</script>')
+        ->toContain($inlineScript);
+});
 
-        $this->assertStringContainsString('<script>', $rendered);
-        $this->assertStringContainsString('</script>', $rendered);
-        $this->assertStringContainsString($inlineScript, $rendered);
-    }
-}
+PhpunitMetadata::onFile(__FILE__, CoversNothing::class);

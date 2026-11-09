@@ -1,249 +1,155 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\RpgCharacter;
-use App\Models\RpgCombat;
 use App\Models\RpgCombatDelivery;
-use App\Models\RpgNpc;
 use App\Services\RpgCombat\CombatService;
-use App\Services\RpgNpcService;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Tests\Support\RpgCombatFixtures;
 use Tests\TestCase;
 
-class RpgCombatMariaDbConcurrencyTest extends TestCase
-{
-    use RefreshDatabase,RpgCombatFixtures;
+pest()->extend(TestCase::class)->use(RpgCombatMariaDbConcurrencyTestFixtures::class);
 
-    private bool $committed = false;
+beforeEach(function (): void {
+    if (getenv('DB_CONNECTION') !== 'mysql') {
+        $this->markTestSkipped('Separate MariaDB test configuration required.');
+    }
+    if (getenv('DB_DATABASE') !== 'omxfc_rpg_test') {
+        throw new \RuntimeException('Only isolated omxfc_rpg_test is permitted.');
+    }
+    $this->combatFixtures();
+});
 
-    protected function setUp(): void
-    {
-        if (getenv('DB_CONNECTION') !== 'mysql') {
-            $this->markTestSkipped('Separate MariaDB test configuration required.');
+afterEach(function (): void {
+    try {
+        if ($this->committed) {
+            $this->artisan('migrate:fresh')->assertExitCode(0);
         }
-        if (getenv('DB_DATABASE') !== 'omxfc_rpg_test') {
-            throw new \RuntimeException('Only isolated omxfc_rpg_test is permitted.');
-        }
-        parent::setUp();
-        $this->combatFixtures();
+    } finally {
     }
+});
 
-    public function test_duplicate_actions_spend_and_roll_once(): void
-    {
-        $combat = $this->activeCombat();
-        $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
-        $request = ['action' => 'decide', 'actor' => $this->player->id, 'combat' => $combat->id, 'decision' => $decision->id, 'input' => ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1']];
-        $results = $this->parallel($request, $request);
-        $this->assertTrue($results[0]['ok']);
-        $this->assertTrue($results[1]['ok']);
-        $this->assertSame(3, $combat->events()->where('kind', 'roll')->count());
-        $this->assertSame(1, $combat->decisions()->where('status', 'pending')->count());
-        $this->assertSame('defense', $combat->decisions()->where('status', 'pending')->first()->type);
+test('duplicate actions spend and roll once', function (): void {
+    $combat = $this->activeCombat();
+    $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
+    $request = ['action' => 'decide', 'actor' => $this->player->id, 'combat' => $combat->id, 'decision' => $decision->id, 'input' => ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1']];
+    $results = $this->parallel($request, $request);
+    expect($results[0]['ok'])->toBeTrue()
+        ->and($results[1]['ok'])->toBeTrue()
+        ->and($combat->events()->where('kind', 'roll')->count())->toBe(3)
+        ->and($combat->decisions()->where('status', 'pending')->count())->toBe(1)
+        ->and($combat->decisions()->where('status', 'pending')->first()->type)->toBe('defense');
+});
+
+test('competing acceptances reserve character once', function (): void {
+    $first = $this->combat(false);
+    $own = RpgCharacter::factory()->create(['user_id' => $this->player->id, 'payload' => $this->progressionPayload()])->refresh();
+    $second = app(CombatService::class)->challenge($this->player, $this->combatInput(['character_id' => $own->id]));
+    $common = ['action' => 'command', 'actor' => $this->opponent->id, 'command' => 'accept'];
+    $results = $this->parallel($common + ['combat' => $first->id, 'key' => (string) Str::uuid()], $common + ['combat' => $second->id, 'key' => (string) Str::uuid()]);
+    expect(array_filter($results, fn ($r) => $r['ok']))->toHaveCount(1);
+    $this->assertDatabaseCount('rpg_combat_character_locks', 2);
+});
+
+test('timeout and late player cannot duplicate a roll', function (): void {
+    $combat = $this->activeCombat();
+    $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
+    $decision->update(['due_at' => now()->subHour()]);
+    $common = ['action' => 'decide', 'combat' => $combat->id, 'decision' => $decision->id];
+    $results = $this->parallel($common, $common + ['actor' => $this->player->id, 'input' => ['kind' => 'wait']]);
+    expect($results[0]['ok'])->toBeTrue()
+        ->and($results[1]['ok'])->toBeTrue()
+        ->and($decision->fresh()->automatic)->toBeTrue()
+        ->and($combat->events()->where('kind', 'roll')->count())->toBe(3);
+});
+
+test('deletion and action leave no open orphan', function (): void {
+    $combat = $this->activeCombat();
+    $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
+    $results = $this->parallel(['action' => 'delete', 'character' => $this->character->id], ['action' => 'decide', 'actor' => $this->player->id, 'combat' => $combat->id, 'decision' => $decision->id, 'input' => ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1']]);
+    expect($results[0]['ok'])->toBeTrue()
+        ->and($combat->fresh()->status)->toBe('completed');
+    $this->assertDatabaseCount('rpg_combat_character_locks', 0);
+    expect($combat->decisions()->whereIn('status', ['pending', 'paused'])->count())->toBe(0);
+});
+
+test('competing acceptances reserve npc once', function (): void {
+    $first = $this->npcInvitation($this->character->id);
+    $second = $this->npcInvitation($this->otherCharacter->id);
+    $results = $this->parallel(['action' => 'command', 'actor' => $this->player->id, 'combat' => $first->id, 'command' => 'accept', 'key' => (string) Str::uuid()], ['action' => 'command', 'actor' => $this->opponent->id, 'combat' => $second->id, 'command' => 'accept', 'key' => (string) Str::uuid()]);
+    expect(array_filter($results, fn ($r) => $r['ok']))->toHaveCount(1);
+    $this->assertDatabaseCount('rpg_combat_npc_locks', 1);
+    $this->assertDatabaseCount('rpg_combat_character_locks', 1);
+});
+
+test('player and npc invitations cannot reserve same player', function (): void {
+    $first = $this->combat(false);
+    $second = $this->npcInvitation($this->otherCharacter->id);
+    $base = ['action' => 'command', 'actor' => $this->opponent->id, 'command' => 'accept'];
+    $results = $this->parallel($base + ['combat' => $first->id, 'key' => (string) Str::uuid()], $base + ['combat' => $second->id, 'key' => (string) Str::uuid()]);
+    expect(array_filter($results, fn ($r) => $r['ok']))->toHaveCount(1)
+        ->and(DB::table('rpg_combat_character_locks')->where('rpg_character_id', $this->otherCharacter->id)->count())->toBe(1);
+});
+
+test('simultaneous special creations enforce uniqueness', function (): void {
+    $base = ['action' => 'npc-create', 'actor' => $this->leader->id];
+    $results = $this->parallel($base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]], $base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]]);
+    expect(array_filter($results, fn ($r) => $r['ok']))->toHaveCount(1);
+    $this->assertDatabaseCount('rpg_npcs', 1);
+});
+
+test('duplicate reminders create one delivery without resolving decision', function (): void {
+    $combat = app(CombatService::class)->command($this->player, $this->npcInvitation($this->character->id)->id, 'accept', (string) Str::uuid());
+    $decision = $combat->decisions()->where('side', 1)->sole();
+    $decision->update(['reminder_at' => now('UTC')->subMinute()]);
+    $request = ['action' => 'remind', 'combat' => $combat->id, 'decision' => $decision->id];
+    $results = $this->parallel($request, $request);
+    expect($results[0]['ok'])->toBeTrue()
+        ->and($results[1]['ok'])->toBeTrue()
+        ->and(RpgCombatDelivery::where('kind', 'reminder')->count())->toBe(1)
+        ->and($decision->fresh()->status)->toBe('pending');
+});
+
+test('identity triggers reject invalid inserts and updates', function (): void {
+    expect((int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled)->toBe(1);
+    $combat = $this->npcInvitation($this->character->id);
+    $participants = $combat->participants->keyBy('participant_kind');
+    foreach ([['npc', ['rpg_character_id' => $this->character->id]], ['npc', ['owner_id' => $this->leader->id]], ['player', ['rpg_npc_id' => $participants['npc']->rpg_npc_id]], ['player', ['participant_kind' => 'unknown']]] as [$kind, $changes]) {
+        $participant = $participants[$kind];
+        $row = (array) DB::table('rpg_combat_participants')->find($participant->id);
+        unset($row['id']);
+        $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->insert(array_replace($row, ['side' => 3], $changes)));
+        $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->where('id', $participant->id)->update($changes));
     }
+    $this->assertDatabaseCount('rpg_combat_participants', 2);
+});
 
-    public function test_competing_acceptances_reserve_character_once(): void
-    {
-        $first = $this->combat(false);
-        $own = RpgCharacter::factory()->create(['user_id' => $this->player->id, 'payload' => $this->progressionPayload()])->refresh();
-        $second = app(CombatService::class)->challenge($this->player, $this->combatInput(['character_id' => $own->id]));
-        $common = ['action' => 'command', 'actor' => $this->opponent->id, 'command' => 'accept'];
-        $results = $this->parallel($common + ['combat' => $first->id, 'key' => (string) Str::uuid()], $common + ['combat' => $second->id, 'key' => (string) Str::uuid()]);
-        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
-        $this->assertDatabaseCount('rpg_combat_character_locks', 2);
-    }
-
-    public function test_timeout_and_late_player_cannot_duplicate_a_roll(): void
-    {
-        $combat = $this->activeCombat();
-        $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
-        $decision->update(['due_at' => now()->subHour()]);
-        $common = ['action' => 'decide', 'combat' => $combat->id, 'decision' => $decision->id];
-        $results = $this->parallel($common, $common + ['actor' => $this->player->id, 'input' => ['kind' => 'wait']]);
-        $this->assertTrue($results[0]['ok']);
-        $this->assertTrue($results[1]['ok']);
-        $this->assertTrue($decision->fresh()->automatic);
-        $this->assertSame(3, $combat->events()->where('kind', 'roll')->count());
-    }
-
-    public function test_deletion_and_action_leave_no_open_orphan(): void
-    {
-        $combat = $this->activeCombat();
-        $decision = $combat->decisions()->where('status', 'pending')->firstOrFail();
-        $results = $this->parallel(['action' => 'delete', 'character' => $this->character->id],
-            ['action' => 'decide', 'actor' => $this->player->id, 'combat' => $combat->id, 'decision' => $decision->id, 'input' => ['kind' => 'attack', 'weapon' => 'faustschlag-tritt:1']]);
-        $this->assertTrue($results[0]['ok']);
-        $this->assertSame('completed', $combat->fresh()->status);
-        $this->assertDatabaseCount('rpg_combat_character_locks', 0);
-        $this->assertSame(0, $combat->decisions()->whereIn('status', ['pending', 'paused'])->count());
-    }
-
-    private function npcInvitation(int $opponent): RpgCombat
-    {
-        $npc = RpgNpc::first() ?? app(RpgNpcService::class)->create($this->leader, ['template_key' => 'androne', 'submission_key' => (string) Str::uuid()]);
-        $character = RpgCharacter::findOrFail($opponent);
-
-        return app(CombatService::class)->challenge($this->leader, ['kind' => 'npc_vs_player', 'submission_key' => (string) Str::uuid(),
-            'npc_id' => $npc->id, 'npc_revision' => $npc->revision, 'opponent_id' => $character->id, 'opponent_revision' => $character->revision, 'distance' => 1]);
-    }
-
-    public function test_competing_acceptances_reserve_npc_once(): void
-    {
-        $first = $this->npcInvitation($this->character->id);
-        $second = $this->npcInvitation($this->otherCharacter->id);
-        $results = $this->parallel(['action' => 'command', 'actor' => $this->player->id, 'combat' => $first->id, 'command' => 'accept', 'key' => (string) Str::uuid()],
-            ['action' => 'command', 'actor' => $this->opponent->id, 'combat' => $second->id, 'command' => 'accept', 'key' => (string) Str::uuid()]);
-        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
-        $this->assertDatabaseCount('rpg_combat_npc_locks', 1);
-        $this->assertDatabaseCount('rpg_combat_character_locks', 1);
-    }
-
-    public function test_player_and_npc_invitations_cannot_reserve_same_player(): void
-    {
-        $first = $this->combat(false);
-        $second = $this->npcInvitation($this->otherCharacter->id);
-        $base = ['action' => 'command', 'actor' => $this->opponent->id, 'command' => 'accept'];
-        $results = $this->parallel($base + ['combat' => $first->id, 'key' => (string) Str::uuid()], $base + ['combat' => $second->id, 'key' => (string) Str::uuid()]);
-        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
-        $this->assertSame(1, DB::table('rpg_combat_character_locks')->where('rpg_character_id', $this->otherCharacter->id)->count());
-    }
-
-    public function test_simultaneous_special_creations_enforce_uniqueness(): void
-    {
-        $base = ['action' => 'npc-create', 'actor' => $this->leader->id];
-        $results = $this->parallel($base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]],
-            $base + ['input' => ['template_key' => 'maddrax', 'submission_key' => (string) Str::uuid()]]);
-        $this->assertSame(1, count(array_filter($results, fn ($r) => $r['ok'])));
-        $this->assertDatabaseCount('rpg_npcs', 1);
-    }
-
-    public function test_duplicate_reminders_create_one_delivery_without_resolving_decision(): void
-    {
-        $combat = app(CombatService::class)->command($this->player, $this->npcInvitation($this->character->id)->id, 'accept', (string) Str::uuid());
-        $decision = $combat->decisions()->where('side', 1)->sole();
-        $decision->update(['reminder_at' => now('UTC')->subMinute()]);
-        $request = ['action' => 'remind', 'combat' => $combat->id, 'decision' => $decision->id];
-        $results = $this->parallel($request, $request);
-        $this->assertTrue($results[0]['ok']);
-        $this->assertTrue($results[1]['ok']);
-        $this->assertSame(1, RpgCombatDelivery::where('kind', 'reminder')->count());
-        $this->assertSame('pending', $decision->fresh()->status);
-    }
-
-    public function test_identity_triggers_reject_invalid_inserts_and_updates(): void
-    {
-        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
-        $combat = $this->npcInvitation($this->character->id);
-        $participants = $combat->participants->keyBy('participant_kind');
-        foreach ([
-            ['npc', ['rpg_character_id' => $this->character->id]],
-            ['npc', ['owner_id' => $this->leader->id]],
-            ['player', ['rpg_npc_id' => $participants['npc']->rpg_npc_id]],
-            ['player', ['participant_kind' => 'unknown']],
-        ] as [$kind, $changes]) {
-            $participant = $participants[$kind];
-            $row = (array) DB::table('rpg_combat_participants')->find($participant->id);
-            unset($row['id']);
-            $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->insert(array_replace($row, ['side' => 3], $changes)));
-            $this->assertInvalidIdentity(fn () => DB::table('rpg_combat_participants')->where('id', $participant->id)->update($changes));
-        }
-        $this->assertDatabaseCount('rpg_combat_participants', 2);
-    }
-
-    public function test_npc_migration_round_trip_preserves_pvp_and_foreign_key_deletions(): void
-    {
-        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
-        $combat = $this->combat(false);
-        // MariaDB DDL commits implicitly; leave RefreshDatabase's transaction first.
-        DB::connection()->commit();
-        $this->committed = true;
-        $migration = require database_path('migrations/2026_10_10_180000_add_rpg_npcs.php');
-        $migration->down();
-        $this->assertFalse(Schema::hasTable('rpg_npcs'));
-        $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id]);
-        $this->assertSame(0, DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count());
-        $migration->up();
-        $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id, 'kind' => 'player_vs_player']);
-        $this->assertSame(['player', 'player'], $combat->fresh()->participants->pluck('participant_kind')->all());
-        $this->assertSame(2, DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count());
-
-        $npcCombat = $this->npcInvitation($this->otherCharacter->id);
-        $npcParticipant = $npcCombat->participants->where('participant_kind', 'npc')->sole();
-        DB::table('rpg_npcs')->where('id', $npcParticipant->rpg_npc_id)->delete();
-        $this->assertNull($npcParticipant->fresh()->rpg_npc_id);
-        $this->assertSame($npcParticipant->snapshot, $npcParticipant->fresh()->snapshot);
-        DB::table('rpg_characters')->where('id', $this->character->id)->delete();
-        $this->assertNull($combat->participants->where('side', 1)->sole()->fresh()->rpg_character_id);
-        $this->assertSame(1, (int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled);
-    }
-
-    private function assertInvalidIdentity(callable $write): void
-    {
-        try {
-            $write();
-            $this->fail('Invalid participant identity was accepted.');
-        } catch (QueryException $exception) {
-            $this->assertSame('45000', $exception->errorInfo[0]);
-            $this->assertStringContainsString('Invalid RPG participant identity', $exception->getMessage());
-        }
-    }
-
-    private function parallel(array $first, array $second): array
-    {
-        $this->assertSame(1, DB::transactionLevel());
-        DB::connection()->commit();
-        $this->committed = true;
-        $workers = [];
-        try {
-            foreach ([$first, $second] as $input) {
-                $process = proc_open([PHP_BINARY, base_path('tests/Support/MariaDbRpgCombatWorker.php')], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, base_path());
-                if (! is_resource($process)) {
-                    throw new \RuntimeException('Worker could not start.');
-                }
-                stream_set_timeout($pipes[1], 60);
-                $workers[] = compact('process', 'pipes', 'input');
-            }
-            foreach ($workers as $worker) {
-                $this->assertSame("ready\n", fgets($worker['pipes'][1]));
-            }
-            foreach ($workers as $worker) {
-                fwrite($worker['pipes'][0], json_encode($worker['input'], JSON_THROW_ON_ERROR)."\n");
-                fflush($worker['pipes'][0]);
-            }
-            $results = [];
-            foreach ($workers as $worker) {
-                $line = fgets($worker['pipes'][1]);
-                $this->assertNotFalse($line, stream_get_contents($worker['pipes'][2]));
-                $results[] = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
-            }
-
-            return $results;
-        } finally {
-            foreach ($workers as $worker) {
-                foreach ($worker['pipes'] as $pipe) {
-                    fclose($pipe);
-                }
-                if (proc_get_status($worker['process'])['running']) {
-                    proc_terminate($worker['process']);
-                }
-                proc_close($worker['process']);
-            }
-        }
-    }
-
-    protected function tearDown(): void
-    {
-        try {
-            if ($this->committed) {
-                $this->artisan('migrate:fresh')->assertExitCode(0);
-            }
-        } finally {
-            parent::tearDown();
-        }
-    }
-}
+test('npc migration round trip preserves pvp and foreign key deletions', function (): void {
+    expect((int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled)->toBe(1);
+    $combat = $this->combat(false);
+    // MariaDB DDL commits implicitly; leave RefreshDatabase's transaction first.
+    DB::connection()->commit();
+    $this->committed = true;
+    $migration = require database_path('migrations/2026_10_10_180000_add_rpg_npcs.php');
+    $migration->down();
+    expect(Schema::hasTable('rpg_npcs'))->toBeFalse();
+    $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id]);
+    expect(DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count())->toBe(0);
+    $migration->up();
+    $this->assertDatabaseHas('rpg_combats', ['id' => $combat->id, 'kind' => 'player_vs_player']);
+    expect($combat->fresh()->participants->pluck('participant_kind')->all())->toBe(['player', 'player'])
+        ->and(DB::table('information_schema.TRIGGERS')->where('TRIGGER_SCHEMA', DB::getDatabaseName())->where('TRIGGER_NAME', 'like', 'rpg_participant_identity_%')->count())->toBe(2);
+    $npcCombat = $this->npcInvitation($this->otherCharacter->id);
+    $npcParticipant = $npcCombat->participants->where('participant_kind', 'npc')->sole();
+    DB::table('rpg_npcs')->where('id', $npcParticipant->rpg_npc_id)->delete();
+    expect($npcParticipant->fresh()->rpg_npc_id)->toBeNull()
+        ->and($npcParticipant->fresh()->snapshot)->toBe($npcParticipant->snapshot);
+    DB::table('rpg_characters')->where('id', $this->character->id)->delete();
+    expect($combat->participants->where('side', 1)->sole()->fresh()->rpg_character_id)->toBeNull()
+        ->and((int) DB::selectOne('SELECT @@FOREIGN_KEY_CHECKS AS enabled')->enabled)->toBe(1);
+});

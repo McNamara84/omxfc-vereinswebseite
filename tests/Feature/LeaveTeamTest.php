@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\Role;
@@ -9,34 +11,18 @@ use Laravel\Jetstream\Http\Livewire\TeamMemberManager;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-class LeaveTeamTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_users_can_leave_teams(): void
-    {
-        $user = User::factory()->withPersonalTeam()->create();
+test('users can leave teams', function (): void {
+    $user = User::factory()->withPersonalTeam()->create();
+    $user->currentTeam->users()->attach($otherUser = User::factory()->create(), ['role' => Role::Admin->value]);
+    $this->actingAs($otherUser);
+    Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])->call('leaveTeam');
+    expect($user->currentTeam->fresh()->users)->toHaveCount(0);
+});
 
-        $user->currentTeam->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => Role::Admin->value]
-        );
-
-        $this->actingAs($otherUser);
-
-        Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
-            ->call('leaveTeam');
-
-        $this->assertCount(0, $user->currentTeam->fresh()->users);
-    }
-
-    public function test_team_owners_cant_leave_their_own_team(): void
-    {
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
-
-        Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
-            ->call('leaveTeam')
-            ->assertHasErrors(['team']);
-
-        $this->assertNotNull($user->currentTeam->fresh());
-    }
-}
+test('team owners cant leave their own team', function (): void {
+    $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+    Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])->call('leaveTeam')->assertHasErrors(['team']);
+    expect($user->currentTeam->fresh())->not->toBeNull();
+});

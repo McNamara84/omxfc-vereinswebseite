@@ -15,6 +15,10 @@ final class RpgCheckCalculator
         };
     }
 
+    /**
+     * @param  list<mixed>  $dice
+     * @return array{die_one: int, die_two: int, raw_total: int, total: int}
+     */
     public function roll(int $base, array $dice): array
     {
         if (count($dice) !== 2 || array_filter($dice, fn ($die) => ! is_int($die) || $die < 1 || $die > 6)) {

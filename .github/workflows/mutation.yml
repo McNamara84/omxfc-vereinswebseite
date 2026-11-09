@@ -3,6 +3,8 @@ name: Mutation tests
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '35 3 * * 0'
@@ -34,5 +36,9 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist
 
+      - name: Verify monetary and progression assertions
+        run: composer test:mutate:core
+
       - name: Run covered mutation tests
+        if: github.event_name != 'pull_request'
         run: composer test:mutate

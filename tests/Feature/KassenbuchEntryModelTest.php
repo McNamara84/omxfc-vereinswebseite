@@ -1,124 +1,52 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\KassenbuchEntryType;
 use App\Models\KassenbuchEntry;
 use App\Models\Team;
-use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class KassenbuchEntryModelTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(KassenbuchEntryModelTestFixtures::class);
 
-    private function createMember(string $role = 'Kassenwart'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
+test('kassenbuch entry can be created', function (): void {
+    $user = $this->createMember();
+    $team = Team::membersTeam();
+    $entry = KassenbuchEntry::create(['team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => '2025-05-01', 'betrag' => 10.5, 'beschreibung' => 'Mitgliedsbeitrag', 'typ' => KassenbuchEntryType::Einnahme->value]);
+    $this->assertDatabaseHas('kassenbuch_entries', ['id' => $entry->id, 'team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => '2025-05-01 00:00:00', 'betrag' => 10.5, 'beschreibung' => 'Mitgliedsbeitrag', 'typ' => KassenbuchEntryType::Einnahme->value]);
+});
 
-        return $user;
-    }
+test('mass assignment sets attributes', function (): void {
+    $user = $this->createMember();
+    $team = Team::membersTeam();
+    $entry = KassenbuchEntry::create(['team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => '2025-05-02', 'betrag' => 5, 'beschreibung' => 'Einkauf', 'typ' => KassenbuchEntryType::Ausgabe->value, 'id' => 999]);
+    $entry->refresh();
+    expect($entry->id)->not->toEqual(999)
+        ->and($entry->typ)->toBe(KassenbuchEntryType::Ausgabe)
+        ->and($entry->beschreibung)->toEqual('Einkauf');
+});
 
-    public function test_kassenbuch_entry_can_be_created(): void
-    {
-        $user = $this->createMember();
-        $team = Team::membersTeam();
+test('kassenbuch entry belongs to team', function (): void {
+    $user = $this->createMember();
+    $team = Team::membersTeam();
+    $entry = KassenbuchEntry::create(['team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => now(), 'betrag' => 12, 'beschreibung' => 'Test', 'typ' => KassenbuchEntryType::Einnahme->value]);
+    expect($entry->team->is($team))->toBeTrue();
+});
 
-        $entry = KassenbuchEntry::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => '2025-05-01',
-            'betrag' => 10.50,
-            'beschreibung' => 'Mitgliedsbeitrag',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
+test('kassenbuch entry belongs to creator', function (): void {
+    $user = $this->createMember();
+    $team = Team::membersTeam();
+    $entry = KassenbuchEntry::create(['team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => now(), 'betrag' => 8, 'beschreibung' => 'Test', 'typ' => KassenbuchEntryType::Einnahme->value]);
+    expect($entry->creator->is($user))->toBeTrue();
+});
 
-        $this->assertDatabaseHas('kassenbuch_entries', [
-            'id' => $entry->id,
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => '2025-05-01 00:00:00',
-            'betrag' => 10.50,
-            'beschreibung' => 'Mitgliedsbeitrag',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
-    }
-
-    public function test_mass_assignment_sets_attributes(): void
-    {
-        $user = $this->createMember();
-        $team = Team::membersTeam();
-
-        $entry = KassenbuchEntry::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => '2025-05-02',
-            'betrag' => 5,
-            'beschreibung' => 'Einkauf',
-            'typ' => KassenbuchEntryType::Ausgabe->value,
-            'id' => 999,
-        ]);
-
-        $entry->refresh();
-
-        $this->assertNotEquals(999, $entry->id);
-        $this->assertSame(KassenbuchEntryType::Ausgabe, $entry->typ);
-        $this->assertEquals('Einkauf', $entry->beschreibung);
-    }
-
-    public function test_kassenbuch_entry_belongs_to_team(): void
-    {
-        $user = $this->createMember();
-        $team = Team::membersTeam();
-
-        $entry = KassenbuchEntry::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => now(),
-            'betrag' => 12,
-            'beschreibung' => 'Test',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
-
-        $this->assertTrue($entry->team->is($team));
-    }
-
-    public function test_kassenbuch_entry_belongs_to_creator(): void
-    {
-        $user = $this->createMember();
-        $team = Team::membersTeam();
-
-        $entry = KassenbuchEntry::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => now(),
-            'betrag' => 8,
-            'beschreibung' => 'Test',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
-
-        $this->assertTrue($entry->creator->is($user));
-    }
-
-    public function test_casts_transform_attributes(): void
-    {
-        $user = $this->createMember();
-        $team = Team::membersTeam();
-
-        $entry = KassenbuchEntry::create([
-            'team_id' => $team->id,
-            'created_by' => $user->id,
-            'buchungsdatum' => '2025-06-01',
-            'betrag' => '123.45',
-            'beschreibung' => 'Cast Test',
-            'typ' => KassenbuchEntryType::Einnahme->value,
-        ]);
-
-        $this->assertInstanceOf(Carbon::class, $entry->buchungsdatum);
-        $this->assertSame('123.45', $entry->betrag);
-    }
-}
+test('casts transform attributes', function (): void {
+    $user = $this->createMember();
+    $team = Team::membersTeam();
+    $entry = KassenbuchEntry::create(['team_id' => $team->id, 'created_by' => $user->id, 'buchungsdatum' => '2025-06-01', 'betrag' => '123.45', 'beschreibung' => 'Cast Test', 'typ' => KassenbuchEntryType::Einnahme->value]);
+    expect($entry->buchungsdatum)->toBeInstanceOf(Carbon::class)
+        ->and($entry->betrag)->toBe('123.45');
+});

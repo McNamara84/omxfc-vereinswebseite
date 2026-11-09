@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Actions\Fortify\CreateNewUser;
@@ -12,86 +14,40 @@ use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Features;
 use Tests\TestCase;
 
-class CreateNewUserActionTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    protected function setUp(): void
-    {
-        parent::setUp();
-        Schema::disableForeignKeyConstraints();
-        Schema::dropIfExists('users');
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->timestamps();
-        });
-        Schema::enableForeignKeyConstraints();
-    }
+beforeEach(function (): void {
+    Schema::disableForeignKeyConstraints();
+    Schema::dropIfExists('users');
+    Schema::create('users', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('email')->unique();
+        $table->string('password');
+        $table->timestamps();
+    });
+    Schema::enableForeignKeyConstraints();
+});
 
-    public function test_user_is_created_with_personal_team_when_terms_feature_disabled(): void
-    {
-        $action = new CreateNewUser;
+test('user is created with personal team when terms feature disabled', function (): void {
+    $action = new CreateNewUser;
+    /** @var User $user */
+    $user = $action->create(['name' => 'Alice Example', 'email' => 'alice@example.com', 'password' => 'secret123', 'password_confirmation' => 'secret123']);
+    $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => 'alice@example.com']);
+    expect(Hash::check('secret123', $user->password))->toBeTrue();
+    $this->assertDatabaseHas('teams', ['user_id' => $user->id, 'personal_team' => true, 'name' => "Alice's Team"]);
+});
 
-        /** @var User $user */
-        $user = $action->create([
-            'name' => 'Alice Example',
-            'email' => 'alice@example.com',
-            'password' => 'secret123',
-            'password_confirmation' => 'secret123',
-        ]);
+test('user is created when terms feature enabled and accepted', function (): void {
+    config(['jetstream.features' => array_merge(config('jetstream.features', []), [Features::termsAndPrivacyPolicy()])]);
+    $action = new CreateNewUser;
+    /** @var User $user */
+    $user = $action->create(['name' => 'Bob Example', 'email' => 'bob@example.com', 'password' => 'secret123', 'password_confirmation' => 'secret123', 'terms' => true]);
+    $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => 'bob@example.com']);
+    $this->assertDatabaseHas('teams', ['user_id' => $user->id, 'personal_team' => true, 'name' => "Bob's Team"]);
+});
 
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'email' => 'alice@example.com',
-        ]);
-        $this->assertTrue(Hash::check('secret123', $user->password));
-        $this->assertDatabaseHas('teams', [
-            'user_id' => $user->id,
-            'personal_team' => true,
-            'name' => "Alice's Team",
-        ]);
-    }
-
-    public function test_user_is_created_when_terms_feature_enabled_and_accepted(): void
-    {
-        config(['jetstream.features' => array_merge(config('jetstream.features', []), [Features::termsAndPrivacyPolicy()])]);
-
-        $action = new CreateNewUser;
-
-        /** @var User $user */
-        $user = $action->create([
-            'name' => 'Bob Example',
-            'email' => 'bob@example.com',
-            'password' => 'secret123',
-            'password_confirmation' => 'secret123',
-            'terms' => true,
-        ]);
-
-        $this->assertDatabaseHas('users', [
-            'id' => $user->id,
-            'email' => 'bob@example.com',
-        ]);
-        $this->assertDatabaseHas('teams', [
-            'user_id' => $user->id,
-            'personal_team' => true,
-            'name' => "Bob's Team",
-        ]);
-    }
-
-    public function test_terms_are_required_when_feature_is_enabled(): void
-    {
-        config(['jetstream.features' => array_merge(config('jetstream.features', []), [Features::termsAndPrivacyPolicy()])]);
-
-        $this->expectException(ValidationException::class);
-
-        (new CreateNewUser)->create([
-            'name' => 'Carol Example',
-            'email' => 'carol@example.com',
-            'password' => 'secret123',
-            'password_confirmation' => 'secret123',
-        ]);
-    }
-}
+test('terms are required when feature is enabled', function (): void {
+    config(['jetstream.features' => array_merge(config('jetstream.features', []), [Features::termsAndPrivacyPolicy()])]);
+    expect(fn () => (new CreateNewUser)->create(['name' => 'Carol Example', 'email' => 'carol@example.com', 'password' => 'secret123', 'password_confirmation' => 'secret123']))->toThrow(ValidationException::class);
+});

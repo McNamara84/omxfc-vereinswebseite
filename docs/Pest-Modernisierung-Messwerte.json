@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "baseCommit": "30a9addfbaf0ad300f298ebca7b0956ed1b699c6",
+  "packages": {
+    "php": "8.6.0RC5",
+    "composer": "2.11.1",
+    "phpConstraint": "~8.5.0 || ~8.6.0",
+    "originalManifestSha256": "ee31dad7179aec83ed1501accfd60ef2064442c4885b86e375ce8af8e560a160",
+    "originalLockSha256": "bf44a7150bf05b7ad04b117a2d2172851cf5e021d3673446889e9af0058c2152",
+    "packagesSha256": "005102419d15dd0f30647dcd4c5fa910e1653cee984b5d1c769d732fcff97bff",
+    "packageCount": 201,
+    "packagesUnchanged": true,
+    "manifestUnchanged": true,
+    "integrityScope": "Final PHP 8.6 verification; original hashes refer to the beginning of this verification, after the dependency update."
+  },
+  "migration": {
+    "files": 402,
+    "methodsMapped": 3533,
+    "fixtureTraits": 195,
+    "abstractFixtureBases": 5,
+    "caseCountChanges": [
+      {
+        "class": "Tests\\Unit\\EuroTest",
+        "before": 5,
+        "after": 31
+      },
+      {
+        "class": "Tests\\Unit\\RpgExperienceRulesTest",
+        "before": 9,
+        "after": 11
+      },
+      {
+        "class": "Tests\\Unit\\PestMetadataTest",
+        "before": 0,
+        "after": 2
+      },
+      {
+        "class": "Tests\\Unit\\FanfictionAuthorDisplayNameTest",
+        "before": 0,
+        "after": 4
+      },
+      {
+        "class": "Tests\\Unit\\PestDiagnosticsTest",
+        "before": 0,
+        "after": 5
+      }
+    ],
+    "lostCases": []
+  },
+  "regular": {
+    "php85": {
+      "tests": 4778,
+      "assertions": 24217,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 74,
+      "seconds": 383.681817
+    },
+    "php86": {
+      "tests": 4778,
+      "assertions": 24224,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 74,
+      "seconds": 383.988707
+    }
+  },
+  "coverage": {
+    "profile": "phpunit-xdebug-unit-integration-feature",
+    "runtime": {
+      "name": "PHP",
+      "version": "8.5.12",
+      "vendorUrl": "https://www.php.net/"
+    },
+    "driver": {
+      "name": "Xdebug",
+      "version": "3.5.3"
+    },
+    "before": {
+      "lines": {
+        "total": 31049,
+        "covered": 27582
+      },
+      "functions": {
+        "total": 3205,
+        "covered": 2364
+      }
+    },
+    "after": {
+      "lines": {
+        "total": 31050,
+        "covered": 27584
+      },
+      "functions": {
+        "total": 3205,
+        "covered": 2365
+      }
+    },
+    "standardFloorPassed": true,
+    "freshFloorPassed": true,
+    "unchangedCoveredLocationsPreserved": true,
+    "commentOnlySourceLocationsPreserved": true,
+    "caseUnion": 4778,
+    "peakBytes": [
+      435986432,
+      518692864
+    ]
+  },
+  "quality": {
+    "phpstanLevel": 10,
+    "phpstanTestFiles": 18,
+    "phpstanApplicationFiles": 13,
+    "architectureCases": 8,
+    "nodeCases": 123,
+    "mutations": [
+      {
+        "area": "URI/HMAC",
+        "tested": 130,
+        "score": 100
+      },
+      {
+        "area": "Euro",
+        "tested": 39,
+        "score": 100
+      },
+      {
+        "area": "RPG",
+        "tested": 28,
+        "score": 100
+      }
+    ],
+    "pintFiles": 661
+  },
+  "browser": {
+    "pest": {
+      "passed": 5,
+      "assertions": 132
+    },
+    "chromium": {
+      "passed": 287,
+      "skipped": 2
+    },
+    "firefox": {
+      "passed": 287,
+      "skipped": 2
+    },
+    "chromiumScreenshotExport": {
+      "passed": 1
+    }
+  },
+  "artifacts": {
+    "before.json": "9b6435d0d15b9afa7949de026b124c3dff5430fcd2a6e64e29c2db8bc14b0941",
+    "after.json": "995c272abf7d433b0029520dad8e618f63a28d10927bfc1d612f4e5aedc65269",
+    "before-1.php": "c5952a0754d7b67ff77fa7d341c88c7bc70f513eed03d48da315c58ba4a11f1f",
+    "before-2.php": "78fca7b698f56bdee4b39b8bb3cfa9b891437105573a2f9d980fa0d8b895fce1",
+    "after-1.php": "20d224b087ba4620e622099a83e04b72d44e4c9f01a53c59c6d6d3a06de42103",
+    "after-2.php": "48804ba6dbad4d86096de02e0ab85bc68be535d31b8630b1af8bc203b1112f72",
+    "after-fanfiction.php": "8355818b998f24c28116a92aa4f56272cb695e957e65538ee37bb31c5ca362a7",
+    "tia-graph.json": "d3860bcc8fdec385f1a198cd2fdd6af6420546331555b1206eef5127b1f9fd82"
+  },
+  "packageUpgrade": {
+    "pestphp/pest": {
+      "before": "5.3.4",
+      "after": "5.3.5"
+    },
+    "pestphp/pest-plugin-phpstan": {
+      "before": "5.3.0",
+      "after": "5.3.1"
+    },
+    "phpunit/phpunit": {
+      "before": "13.4.5",
+      "after": "13.4.5"
+    }
+  },
+  "mariaDb": {
+    "php85": {
+      "maddraxikon": {
+        "tests": 562,
+        "assertions": 3319,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 221.733122
+      },
+      "rpg": {
+        "tests": 47,
+        "assertions": 356,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 131.10077
+      },
+      "veranstaltungen": {
+        "tests": 8,
+        "assertions": 88,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 30.544127
+      }
+    },
+    "php86": {
+      "maddraxikon": {
+        "tests": 562,
+        "assertions": 3319,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 218.23574
+      },
+      "rpg": {
+        "tests": 47,
+        "assertions": 356,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 121.59945
+      },
+      "veranstaltungen": {
+        "tests": 8,
+        "assertions": 88,
+        "errors": 0,
+        "failures": 0,
+        "skipped": 0,
+        "seconds": 29.903733
+      }
+    }
+  },
+  "typesense": {
+    "version": "30.2",
+    "passed": 1,
+    "assertions": 5
+  },
+  "php86": {
+    "version": "8.6.0RC5",
+    "sourceFiles": 1767,
+    "compiledBladeFiles": 333,
+    "issues": 0,
+    "deprecations": 0
+  },
+  "tia": {
+    "driver": {
+      "name": "PCOV",
+      "version": "1.0.12"
+    },
+    "passed": 4704,
+    "assertions": 24217,
+    "seconds": 732.92,
+    "randomOrderSeed": 1794176379,
+    "graphValid": true,
+    "unmodifiedReplayNoAffected": true,
+    "selectionProbes": {
+      "php": {
+        "file": "app/Support/Euro.php",
+        "exit": 0,
+        "listed": 81,
+        "bytes": 10013
+      },
+      "blade": {
+        "file": "resources/views/dashboard.blade.php",
+        "exit": 0,
+        "listed": 435,
+        "bytes": 53965
+      },
+      "fixture": {
+        "file": "tests/Concerns/CreatesUserWithRole.php",
+        "exit": 0,
+        "listed": 1382,
+        "bytes": 159223
+      },
+      "config": {
+        "file": "config/app.php",
+        "exit": 0,
+        "listed": 4206,
+        "bytes": 500982
+      }
+    },
+    "executedPhpProbe": {
+      "passed": 81,
+      "seconds": 6.61
+    }
+  }
+}

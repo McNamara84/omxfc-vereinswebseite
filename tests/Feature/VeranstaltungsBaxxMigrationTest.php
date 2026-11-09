@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Team;
@@ -10,67 +12,42 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class VeranstaltungsBaxxMigrationTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_migration_backfills_only_existing_archives_and_can_be_rolled_back(): void
-    {
-        $migration = require database_path('migrations/2026_09_27_120000_add_veranstaltungs_baxx.php');
-        $migration->down();
-        $this->assertFalse(Schema::hasColumn('user_points', 'veranstaltung_id'));
-        $this->assertFalse(Schema::hasColumn('veranstaltungen', 'baxx_status'));
-        $this->assertFalse(Schema::hasColumn('fantreffen_anmeldungen', 'teilgenommen'));
-
-        $draftId = DB::table('veranstaltungen')->insertGetId(['titel' => 'Entwurf', 'slug' => 'migration-entwurf', 'status' => 'entwurf']);
-        $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
-        $registrationId = DB::table('fantreffen_anmeldungen')->insertGetId([
-            'veranstaltung_id' => $eventId, 'email' => 'migration@example.com', 'ist_mitglied' => true,
-        ]);
-        $user = User::factory()->create();
-        $pointId = DB::table('user_points')->insertGetId(['user_id' => $user->id, 'team_id' => Team::membersTeam()->id, 'points' => 7]);
-        $count = DB::table('user_points')->count();
-
-        $migration->up();
-
-        $this->assertDatabaseHas('veranstaltungen', [
-            'slug' => 'maddrax-fantreffen-2026', 'baxx_status' => 'bestand_ausgeschlossen',
-            'teilnahme_baxx' => 10, 'baxx_abgeschlossen_am' => null, 'baxx_abgeschlossen_von' => null,
-        ]);
-        foreach ([$eventId, $draftId] as $id) {
-            $this->assertDatabaseHas('veranstaltungen', ['id' => $id, 'teilnahme_baxx' => 10, 'baxx_status' => 'offen']);
-        }
-        $this->assertDatabaseHas('fantreffen_anmeldungen', [
-            'id' => $registrationId, 'teilgenommen' => false, 'teilnahme_bestaetigt_am' => null, 'teilnahme_bestaetigt_von' => null,
-        ]);
-        $this->assertDatabaseHas('user_points', ['id' => $pointId, 'points' => 7, 'veranstaltung_id' => null]);
-        $this->assertSame($count, DB::table('user_points')->count());
+test('migration backfills only existing archives and can be rolled back', function (): void {
+    $migration = require database_path('migrations/2026_09_27_120000_add_veranstaltungs_baxx.php');
+    $migration->down();
+    expect(Schema::hasColumn('user_points', 'veranstaltung_id'))->toBeFalse()
+        ->and(Schema::hasColumn('veranstaltungen', 'baxx_status'))->toBeFalse()
+        ->and(Schema::hasColumn('fantreffen_anmeldungen', 'teilgenommen'))->toBeFalse();
+    $draftId = DB::table('veranstaltungen')->insertGetId(['titel' => 'Entwurf', 'slug' => 'migration-entwurf', 'status' => 'entwurf']);
+    $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
+    $registrationId = DB::table('fantreffen_anmeldungen')->insertGetId(['veranstaltung_id' => $eventId, 'email' => 'migration@example.com', 'ist_mitglied' => true]);
+    $user = User::factory()->create();
+    $pointId = DB::table('user_points')->insertGetId(['user_id' => $user->id, 'team_id' => Team::membersTeam()->id, 'points' => 7]);
+    $count = DB::table('user_points')->count();
+    $migration->up();
+    $this->assertDatabaseHas('veranstaltungen', ['slug' => 'maddrax-fantreffen-2026', 'baxx_status' => 'bestand_ausgeschlossen', 'teilnahme_baxx' => 10, 'baxx_abgeschlossen_am' => null, 'baxx_abgeschlossen_von' => null]);
+    foreach ([$eventId, $draftId] as $id) {
+        $this->assertDatabaseHas('veranstaltungen', ['id' => $id, 'teilnahme_baxx' => 10, 'baxx_status' => 'offen']);
     }
+    $this->assertDatabaseHas('fantreffen_anmeldungen', ['id' => $registrationId, 'teilgenommen' => false, 'teilnahme_bestaetigt_am' => null, 'teilnahme_bestaetigt_von' => null]);
+    $this->assertDatabaseHas('user_points', ['id' => $pointId, 'points' => 7, 'veranstaltung_id' => null]);
+    expect(DB::table('user_points')->count())->toBe($count);
+});
 
-    public function test_event_with_credits_cannot_be_deleted(): void
-    {
-        $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
-        DB::table('user_points')->insert([
-            'user_id' => User::factory()->create()->id, 'team_id' => Team::membersTeam()->id,
-            'points' => 10, 'veranstaltung_id' => $eventId,
-        ]);
-        $this->expectException(QueryException::class);
-        DB::table('veranstaltungen')->where('id', $eventId)->delete();
-    }
+test('event with credits cannot be deleted', function (): void {
+    $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
+    DB::table('user_points')->insert(['user_id' => User::factory()->create()->id, 'team_id' => Team::membersTeam()->id, 'points' => 10, 'veranstaltung_id' => $eventId]);
+    expect(fn () => DB::table('veranstaltungen')->where('id', $eventId)->delete())->toThrow(QueryException::class);
+});
 
-    public function test_deleting_the_actor_keeps_attendance_and_completion(): void
-    {
-        $actorId = User::factory()->create()->id;
-        $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
-        DB::table('veranstaltungen')->where('id', $eventId)->update([
-            'baxx_status' => 'abgeschlossen', 'baxx_abgeschlossen_von' => $actorId, 'baxx_abgeschlossen_am' => now(),
-        ]);
-        $registrationId = DB::table('fantreffen_anmeldungen')->insertGetId([
-            'veranstaltung_id' => $eventId, 'email' => 'audit@example.com', 'teilgenommen' => true,
-            'teilnahme_bestaetigt_am' => now(), 'teilnahme_bestaetigt_von' => $actorId,
-        ]);
-        DB::table('users')->where('id', $actorId)->delete();
-        $this->assertDatabaseHas('veranstaltungen', ['id' => $eventId, 'baxx_status' => 'abgeschlossen', 'baxx_abgeschlossen_von' => null]);
-        $this->assertDatabaseHas('fantreffen_anmeldungen', ['id' => $registrationId, 'teilgenommen' => true, 'teilnahme_bestaetigt_von' => null]);
-    }
-}
+test('deleting the actor keeps attendance and completion', function (): void {
+    $actorId = User::factory()->create()->id;
+    $eventId = DB::table('veranstaltungen')->where('slug', 'jubilaeumsfeier-band-700')->value('id');
+    DB::table('veranstaltungen')->where('id', $eventId)->update(['baxx_status' => 'abgeschlossen', 'baxx_abgeschlossen_von' => $actorId, 'baxx_abgeschlossen_am' => now()]);
+    $registrationId = DB::table('fantreffen_anmeldungen')->insertGetId(['veranstaltung_id' => $eventId, 'email' => 'audit@example.com', 'teilgenommen' => true, 'teilnahme_bestaetigt_am' => now(), 'teilnahme_bestaetigt_von' => $actorId]);
+    DB::table('users')->where('id', $actorId)->delete();
+    $this->assertDatabaseHas('veranstaltungen', ['id' => $eventId, 'baxx_status' => 'abgeschlossen', 'baxx_abgeschlossen_von' => null]);
+    $this->assertDatabaseHas('fantreffen_anmeldungen', ['id' => $registrationId, 'teilgenommen' => true, 'teilnahme_bestaetigt_von' => null]);
+});

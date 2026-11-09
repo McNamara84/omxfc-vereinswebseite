@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Enums\Role;
@@ -14,119 +16,80 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use Tests\TestCase;
 
-class ErrorIncidentContextCollectorTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_it_collects_sanitized_http_user_role_and_browser_context(): void
-    {
-        $membersTeam = Team::membersTeam();
-        $activeTeam = Team::factory()->create(['name' => 'Arbeitsgruppe']);
-        $user = User::factory()->create(['current_team_id' => $activeTeam->id]);
-        $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
-        $activeTeam->users()->attach($user, ['role' => Role::Vorstand->value]);
+test('it collects sanitized http user role and browser context', function (): void {
+    $membersTeam = Team::membersTeam();
+    $activeTeam = Team::factory()->create(['name' => 'Arbeitsgruppe']);
+    $user = User::factory()->create(['current_team_id' => $activeTeam->id]);
+    $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+    $activeTeam->users()->attach($user, ['role' => Role::Vorstand->value]);
+    $request = Request::create('https://maddrax-fanclub.de/dashboard?token=secret', 'POST', server: ['HTTP_USER_AGENT' => 'Mozilla/5.0 Chrome/126.0.6478.57 Safari/537.36']);
+    $route = (new Route('POST', '/dashboard', fn () => null))->name('dashboard');
+    app()->instance('request', $request);
+    $request->setRouteResolver(fn () => $route);
+    $request->setUserResolver(fn () => $user->refresh());
+    Context::add(['correlation_id' => 'request-correlation-id', 'execution_type' => 'http']);
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler mit token=top-secret'));
+    expect($incident->correlationId)->toBe('request-correlation-id')
+        ->and($incident->url)->toBe('https://maddrax-fanclub.de/dashboard')
+        ->and($incident->route)->toBe('dashboard')
+        ->and($incident->method)->toBe('POST')
+        ->and($incident->userId)->toBe($user->id)
+        ->and($incident->userEmail)->toBe($user->email)
+        ->and($incident->activeTeamName)->toBe('Arbeitsgruppe')
+        ->and($incident->activeTeamRole)->toBe(Role::Vorstand->value)
+        ->and($incident->membersTeamRole)->toBe(Role::Mitglied->value)
+        ->and($incident->browser)->toBe('Google Chrome')
+        ->and($incident->browserVersion)->toBe('126.0.6478.57')
+        ->and($incident->exceptionMessage)->not->toContain('top-secret')
+        ->and(Context::get('incident_id'))->toBe($incident->id);
+});
 
-        $request = Request::create(
-            'https://maddrax-fanclub.de/dashboard?token=secret',
-            'POST',
-            server: ['HTTP_USER_AGENT' => 'Mozilla/5.0 Chrome/126.0.6478.57 Safari/537.36'],
-        );
-        $route = (new Route('POST', '/dashboard', fn () => null))->name('dashboard');
-        app()->instance('request', $request);
-        $request->setRouteResolver(fn () => $route);
-        $request->setUserResolver(fn () => $user->refresh());
-        Context::add([
-            'correlation_id' => 'request-correlation-id',
-            'execution_type' => 'http',
-        ]);
+test('it uses explicit fallbacks outside an http request', function (): void {
+    Context::add(['correlation_id' => 'job-correlation-id', 'execution_type' => 'queue', 'execution_name' => 'App\Jobs\BrokenJob']);
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Queue kaputt'));
+    expect($incident->executionType)->toBe('queue')
+        ->and($incident->executionName)->toBe('App\Jobs\BrokenJob')
+        ->and($incident->url)->toBeNull()
+        ->and($incident->userId)->toBeNull()
+        ->and($incident->activeTeamRole)->toBe('Gast')
+        ->and($incident->membersTeamRole)->toBe('Gast')
+        ->and($incident->browser)->toBe('Unbekannt')
+        ->and($incident->browserVersion)->toBe('Unbekannt');
+});
 
-        $incident = app(ErrorIncidentContextCollector::class)->collect(
-            new RuntimeException('Fehler mit token=top-secret'),
-        );
+test('it uses the request attribute when no context id exists', function (): void {
+    Context::flush();
+    $request = Request::create('/command-context');
+    $request->attributes->set('log_correlation_id', 'request-attribute-id');
+    app()->instance('request', $request);
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
+    expect($incident->correlationId)->toBe('request-attribute-id')
+        ->and($incident->executionType)->toBe('console');
+});
 
-        $this->assertSame('request-correlation-id', $incident->correlationId);
-        $this->assertSame('https://maddrax-fanclub.de/dashboard', $incident->url);
-        $this->assertSame('dashboard', $incident->route);
-        $this->assertSame('POST', $incident->method);
-        $this->assertSame($user->id, $incident->userId);
-        $this->assertSame($user->email, $incident->userEmail);
-        $this->assertSame('Arbeitsgruppe', $incident->activeTeamName);
-        $this->assertSame(Role::Vorstand->value, $incident->activeTeamRole);
-        $this->assertSame(Role::Mitglied->value, $incident->membersTeamRole);
-        $this->assertSame('Google Chrome', $incident->browser);
-        $this->assertSame('126.0.6478.57', $incident->browserVersion);
-        $this->assertStringNotContainsString('top-secret', $incident->exceptionMessage);
-        $this->assertSame($incident->id, Context::get('incident_id'));
-    }
+test('it generates a correlation id when no id is available', function (): void {
+    Context::flush();
+    app()->instance('request', Request::create('/command-context'));
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
+    expect(Str::isUuid($incident->correlationId))->toBeTrue();
+});
 
-    public function test_it_uses_explicit_fallbacks_outside_an_http_request(): void
-    {
-        Context::add([
-            'correlation_id' => 'job-correlation-id',
-            'execution_type' => 'queue',
-            'execution_name' => 'App\\Jobs\\BrokenJob',
-        ]);
+test('it tolerates broken route and user resolvers', function (): void {
+    $request = Request::create('/broken-context');
+    $request->setRouteResolver(fn () => throw new RuntimeException('Route defekt'));
+    $request->setUserResolver(fn () => throw new RuntimeException('Auth defekt'));
+    app()->instance('request', $request);
+    Context::add(['correlation_id' => 'broken-context-id', 'execution_type' => 'http']);
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
+    expect($incident->route)->toBeNull()
+        ->and($incident->userId)->toBeNull()
+        ->and($incident->activeTeamRole)->toBe('Gast');
+});
 
-        $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Queue kaputt'));
-
-        $this->assertSame('queue', $incident->executionType);
-        $this->assertSame('App\\Jobs\\BrokenJob', $incident->executionName);
-        $this->assertNull($incident->url);
-        $this->assertNull($incident->userId);
-        $this->assertSame('Gast', $incident->activeTeamRole);
-        $this->assertSame('Gast', $incident->membersTeamRole);
-        $this->assertSame('Unbekannt', $incident->browser);
-        $this->assertSame('Unbekannt', $incident->browserVersion);
-    }
-
-    public function test_it_uses_the_request_attribute_when_no_context_id_exists(): void
-    {
-        Context::flush();
-        $request = Request::create('/command-context');
-        $request->attributes->set('log_correlation_id', 'request-attribute-id');
-        app()->instance('request', $request);
-
-        $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
-
-        $this->assertSame('request-attribute-id', $incident->correlationId);
-        $this->assertSame('console', $incident->executionType);
-    }
-
-    public function test_it_generates_a_correlation_id_when_no_id_is_available(): void
-    {
-        Context::flush();
-        app()->instance('request', Request::create('/command-context'));
-
-        $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
-
-        $this->assertTrue(Str::isUuid($incident->correlationId));
-    }
-
-    public function test_it_tolerates_broken_route_and_user_resolvers(): void
-    {
-        $request = Request::create('/broken-context');
-        $request->setRouteResolver(fn () => throw new RuntimeException('Route defekt'));
-        $request->setUserResolver(fn () => throw new RuntimeException('Auth defekt'));
-        app()->instance('request', $request);
-        Context::add([
-            'correlation_id' => 'broken-context-id',
-            'execution_type' => 'http',
-        ]);
-
-        $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException('Fehler'));
-
-        $this->assertNull($incident->route);
-        $this->assertNull($incident->userId);
-        $this->assertSame('Gast', $incident->activeTeamRole);
-    }
-
-    public function test_it_limits_large_exception_snapshots(): void
-    {
-        $incident = app(ErrorIncidentContextCollector::class)->collect(
-            new RuntimeException(str_repeat('x', 12000)),
-        );
-
-        $this->assertLessThanOrEqual(10000, strlen($incident->exceptionMessage));
-        $this->assertStringEndsWith('[Snapshot wegen Größenlimit gekürzt]', $incident->exceptionMessage);
-    }
-}
+test('it limits large exception snapshots', function (): void {
+    $incident = app(ErrorIncidentContextCollector::class)->collect(new RuntimeException(str_repeat('x', 12000)));
+    expect(strlen($incident->exceptionMessage))->toBeLessThanOrEqual(10000)
+        ->and($incident->exceptionMessage)->toEndWith('[Snapshot wegen Größenlimit gekürzt]');
+});

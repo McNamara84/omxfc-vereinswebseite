@@ -1,51 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use App\Services\ErrorReporting\ErrorReportSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ErrorReportSanitizerTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_it_redacts_sensitive_key_values_and_credentials(): void
-    {
-        $input = <<<'TEXT'
-password=super-secret
-"token":"abc.def.ghi"
-Authorization: Bearer secret-token
-Cookie=session=private-cookie
-DB mysql://user:db-secret@localhost/database
-Basic dXNlcjpwYXNzd29yZA==
-TEXT;
+test('it redacts sensitive key values and credentials', function (): void {
+    $input = <<<'TEXT'
+    password=super-secret
+    "token":"abc.def.ghi"
+    Authorization: Bearer secret-token
+    Cookie=session=private-cookie
+    DB mysql://user:db-secret@localhost/database
+    Basic dXNlcjpwYXNzd29yZA==
+    TEXT;
+    $sanitized = app(ErrorReportSanitizer::class)->sanitize($input);
+    expect($sanitized)->not->toContain('super-secret')->not->toContain('abc.def.ghi')->not->toContain('secret-token')->not->toContain('private-cookie')->not->toContain('db-secret')->not->toContain('dXNlcjpwYXNzd29yZA==')
+        ->and(substr_count($sanitized, '[REDACTED]'))->toBeGreaterThanOrEqual(6);
+});
 
-        $sanitized = app(ErrorReportSanitizer::class)->sanitize($input);
+test('it removes url query values but keeps the path', function (): void {
+    $sanitized = app(ErrorReportSanitizer::class)->sanitize('GET https://example.test/profile?token=secret&email=user@example.test failed');
+    expect($sanitized)->toContain('https://example.test/profile?[REDACTED]')->not->toContain('user@example.test');
+});
 
-        $this->assertStringNotContainsString('super-secret', $sanitized);
-        $this->assertStringNotContainsString('abc.def.ghi', $sanitized);
-        $this->assertStringNotContainsString('secret-token', $sanitized);
-        $this->assertStringNotContainsString('private-cookie', $sanitized);
-        $this->assertStringNotContainsString('db-secret', $sanitized);
-        $this->assertStringNotContainsString('dXNlcjpwYXNzd29yZA==', $sanitized);
-        $this->assertGreaterThanOrEqual(6, substr_count($sanitized, '[REDACTED]'));
-    }
-
-    public function test_it_removes_url_query_values_but_keeps_the_path(): void
-    {
-        $sanitized = app(ErrorReportSanitizer::class)->sanitize(
-            'GET https://example.test/profile?token=secret&email=user@example.test failed',
-        );
-
-        $this->assertStringContainsString('https://example.test/profile?[REDACTED]', $sanitized);
-        $this->assertStringNotContainsString('user@example.test', $sanitized);
-    }
-
-    public function test_it_leaves_normal_log_content_intact(): void
-    {
-        $input = '[2026-08-02 14:30:00] production.ERROR: Datei nicht gefunden';
-
-        $this->assertSame($input, app(ErrorReportSanitizer::class)->sanitize($input));
-    }
-}
+test('it leaves normal log content intact', function (): void {
+    $input = '[2026-08-02 14:30:00] production.ERROR: Datei nicht gefunden';
+    expect(app(ErrorReportSanitizer::class)->sanitize($input))->toBe($input);
+});

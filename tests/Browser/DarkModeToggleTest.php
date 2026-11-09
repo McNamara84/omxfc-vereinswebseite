@@ -1,6 +1,8 @@
 <?php
 
-it('zeigt die startseite im light mode', function () {
+declare(strict_types=1);
+
+test('zeigt die startseite im light mode', function (): void {
     visit('/', ['waitUntil' => 'domcontentloaded'])
         ->inLightMode()
         ->assertPathIs('/')
@@ -12,7 +14,7 @@ it('zeigt die startseite im light mode', function () {
         ->assertNoJavaScriptErrors();
 });
 
-it('schaltet die startseite ueber den header-toggle in den dark mode', function () {
+test('schaltet die startseite ueber den header-toggle in den dark mode', function (): void {
     $page = visit('/', ['waitUntil' => 'domcontentloaded'])
         ->inLightMode()
         ->assertPathIs('/')
@@ -29,7 +31,7 @@ it('schaltet die startseite ueber den header-toggle in den dark mode', function 
         ->assertNoJavaScriptErrors();
 
     $page->script('window.location.reload()');
-    $page->waitForText('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!');
+    $page->assertSee('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!');
 
     $page->assertScript('document.documentElement.dataset.theme', 'coffee')
         ->assertScript('document.documentElement.classList.contains("dark")', true)

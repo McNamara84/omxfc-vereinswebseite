@@ -540,9 +540,9 @@ kann trotz stabiler Message-ID zu einer erneuten Zustellung führen; Kampfaktion
 und Dashboard-Meilensteine bleiben davon unabhängig einmalig.
 
 ```bash
-php vendor/bin/phpunit -c phpunit.rpg-combat.xml
+php vendor/bin/pest -c phpunit.rpg-combat.xml
 # Optional mit installierter PCOV-Erweiterung:
-php -d pcov.enabled=1 vendor/bin/phpunit -c phpunit.rpg-combat.xml --coverage-text
+php -d pcov.enabled=1 vendor/bin/pest -c phpunit.rpg-combat.xml --coverage-text
 npm run test:vitest -- tests/Vitest/rpg-combats.test.js tests/Vitest/rpg-checks.test.js
 npm run test:e2e:docker -- tests/e2e/rpg-combats.spec.js --project=chromium
 ```
@@ -1545,7 +1545,7 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | Frische TIA-Basis aufzeichnen | `composer test:tia:fresh` |
 | Nur betroffene Tests mit TIA | `composer test:tia` |
 | Abgedeckte Mutationen prüfen | `composer test:mutate` |
-| Pest-PHPStan (migrierte Tests) | `composer test:types` |
+| Pest-PHPStan (geprüfte Testbereiche) | `composer test:types` |
 | Pest-Rector-Migration prüfen | `composer test:rector` |
 | Architektur- und Security-Regeln | `composer test:arch` |
 | Profanity-Scan               | `composer test:profanity` |
@@ -1556,12 +1556,12 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
 | Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
 | Deploymenthelfer und Releasechecks prüfen | `npm run test:deployment` |
-| Interner Typesense-Snapshot (isolierter Server) | `php vendor/bin/phpunit tests/Integration/TypesenseInternalSnapshotTest.php --do-not-record-test-run-history` |
+| Interner Typesense-Snapshot (isolierter Server) | `php vendor/bin/pest tests/Integration/TypesenseInternalSnapshotTest.php --do-not-record-test-run-history` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5.1 trennt sechs reine Node-Testdateien von 37 DOM-Testdateien; der Chromium-Pilot läuft separat. Die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA und Mutation Testing benötigen Xdebug im Coverage-Modus; die Composer-Skripte aktivieren ihn automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
-Die PHPUnit-13.4-Diagnosen `test:stability:repeat` und `test:stability:retry` sind manuelle Zusatzprüfungen. Retry ersetzt keinen regulär erfolgreichen Testlauf.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5.1 trennt sechs reine Node-Testdateien von 37 DOM-Testdateien; der Chromium-Pilot läuft separat. Die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA benötigt PCOV oder Xdebug; der Baseline-Workflow verwendet PCOV. Mutation Testing verwendet Xdebug im Coverage-Modus. Die Composer-Skripte aktivieren den Coverage-Modus bei installiertem Xdebug automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
+Die Pest-Diagnosen `test:stability:repeat` und `test:stability:retry` verwenden getrennte Prozesse: Repeat führt den gewählten Umfang zweimal aus, Retry wiederholt ausschließlich fehlgeschlagene Fälle. Frühere Fehler bleiben im Protokoll sichtbar; diese Zusatzprüfungen ersetzen keinen regulär erfolgreichen Testlauf.
 Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
@@ -1570,7 +1570,9 @@ Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.
 Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
 und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
-Der Test-Stack verwendet Pest 5.3 und PHPUnit 13.4 mit den aktuellen kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Pest-5-Implementierungsplan](PEST_5_IMPLEMENTIERUNGSPLAN.md).
+Der Test-Stack verwendet Pest 5.3.5, PHPUnit 13.4.5 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md).
+
+Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebundene Datasets und nach Bedarf lokale Fixture-Traits. Fünf abstrakte Fixture-Basen erhalten die gesonderten Transaktions-Lifecycles. Konventionen und die Zuordnung der bisherigen Prüffälle stehen in [tests/README.md](tests/README.md) und [tests/pest-migration-map.json](tests/pest-migration-map.json). `composer test:mutate:core` ergänzt das bisherige 100-%-Mutation-Gate um Geld- und RPG-Kostenregeln und läuft auch bei Pull Requests. TIA umfasst Unit-, Feature- und reguläre Integrationstests; MariaDB-Parallelzugriffe, Browsertests und der manuelle Typesense-Test behalten eigene Läufe.
 
 ## Deployment
 

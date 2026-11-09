@@ -1,179 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Livewire\Profile\UpdateSeriendatenForm;
 use App\Models\Book;
 use App\Services\MaddraxDataService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
-use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class UpdateSeriendatenFormTest extends TestCase
-{
-    use CreatesUserWithRole;
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(UpdateSeriendatenFormTestFixtures::class);
 
-    private string $testStoragePath;
+beforeEach(function (): void {
+    // Configure a separate storage path with test data
+    $this->testStoragePath = base_path('storage/testing');
+    $this->app->useStoragePath($this->testStoragePath);
+    File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+    config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
+    // Reset cached data in the service
+    $ref = new \ReflectionClass(MaddraxDataService::class);
+    $property = $ref->getProperty('data');
+    $property->setValue(null, null);
+    // Minimal Maddrax data for the component
+    $data = [['nummer' => 1, 'zyklus' => 'Z1', 'titel' => 'Roman1', 'text' => ['Author1', 'Author2'], 'personen' => ['Figur1'], 'orte' => ['Ort1'], 'schlagworte' => ['Thema1']], ['nummer' => 2, 'zyklus' => 'Z2', 'titel' => 'Roman2', 'text' => ['Author1'], 'personen' => ['Figur2'], 'orte' => ['Ort2'], 'schlagworte' => ['Thema2']]];
+    File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
+    // Create some hardcover books
+    Book::create(['roman_number' => 1, 'title' => 'Hardcover1', 'author' => 'Author1', 'type' => BookType::MaddraxHardcover]);
+    Book::create(['roman_number' => 2, 'title' => 'Hardcover2', 'author' => 'Author2', 'type' => BookType::MaddraxHardcover]);
+});
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+afterEach(function (): void {
+    File::deleteDirectory($this->testStoragePath);
+});
 
-        // Configure a separate storage path with test data
-        $this->testStoragePath = base_path('storage/testing');
-        $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
-        config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
-
-        // Reset cached data in the service
-        $ref = new \ReflectionClass(MaddraxDataService::class);
-        $property = $ref->getProperty('data');
-        $property->setValue(null, null);
-
-        // Minimal Maddrax data for the component
-        $data = [
-            [
-                'nummer' => 1,
-                'zyklus' => 'Z1',
-                'titel' => 'Roman1',
-                'text' => ['Author1', 'Author2'],
-                'personen' => ['Figur1'],
-                'orte' => ['Ort1'],
-                'schlagworte' => ['Thema1'],
-            ],
-            [
-                'nummer' => 2,
-                'zyklus' => 'Z2',
-                'titel' => 'Roman2',
-                'text' => ['Author1'],
-                'personen' => ['Figur2'],
-                'orte' => ['Ort2'],
-                'schlagworte' => ['Thema2'],
-            ],
-        ];
-        File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
-
-        // Create some hardcover books
-        Book::create(['roman_number' => 1, 'title' => 'Hardcover1', 'author' => 'Author1', 'type' => BookType::MaddraxHardcover]);
-        Book::create(['roman_number' => 2, 'title' => 'Hardcover2', 'author' => 'Author2', 'type' => BookType::MaddraxHardcover]);
-    }
-
-    protected function tearDown(): void
-    {
-        File::deleteDirectory($this->testStoragePath);
-        parent::tearDown();
-    }
-
-    public function test_mount_populates_initial_state_and_renders_catalog_options(): void
-    {
-        $user = $this->actingMember();
-        $user->forceFill([
-            'einstiegsroman' => '1 - Roman1',
-            'lesestand' => '1 - Roman1',
-            'lieblingsroman' => '2 - Roman2',
-            'lieblingsfigur' => 'Figur1',
-            'lieblingsmutation' => 'Mutation1',
-            'lieblingsschauplatz' => 'Ort1',
-            'lieblingsautor' => 'Author1',
-            'lieblingszyklus' => 'Z1',
-            'lieblingsthema' => 'Thema1',
-            'lieblingshardcover' => '1 - Hardcover1',
-            'lieblingscover' => 'MX 1 Roman1',
-        ])->save();
-
-        $this->actingAs($user);
-
-        $component = Livewire::test(UpdateSeriendatenForm::class)
-            ->assertSee('Einstiegsroman (optional)');
-
-        $component
-            ->assertSet('state.einstiegsroman', '1 - Roman1')
-            ->assertSet('state.lesestand', '1 - Roman1')
-            ->assertSet('state.lieblingsroman', '2 - Roman2')
-            ->assertSet('state.lieblingsfigur', 'Figur1')
-            ->assertSet('state.lieblingsmutation', 'Mutation1')
-            ->assertSet('state.lieblingsschauplatz', 'Ort1')
-            ->assertSet('state.lieblingsautor', 'Author1')
-            ->assertSet('state.lieblingszyklus', 'Z1')
-            ->assertSet('state.lieblingsthema', 'Thema1')
-            ->assertSet('state.lieblingshardcover', '1 - Hardcover1')
-            ->assertSet('state.lieblingscover', 'MX 1 Roman1');
-
-        $options = $component->viewData('fieldOptions');
-        foreach ([
-            'einstiegsroman' => ['1 - Roman1', '2 - Roman2'],
-            'lesestand' => ['1 - Roman1', '2 - Roman2'],
-            'lieblingsroman' => ['1 - Roman1', '2 - Roman2'],
-            'lieblingsautor' => ['Author1', 'Author2'],
-            'lieblingszyklus' => ['Z1', 'Z2'],
-            'lieblingsfigur' => ['Figur1', 'Figur2'],
-            'lieblingsschauplatz' => ['Ort1', 'Ort2'],
-            'lieblingsthema' => ['Thema1', 'Thema2'],
-            'lieblingshardcover' => ['1 - Hardcover1', '2 - Hardcover2'],
-            'lieblingscover' => ['MX 1 Roman1', 'MX 2 Roman2', 'HC 1 Hardcover1', 'HC 2 Hardcover2'],
-        ] as $field => $values) {
-            $this->assertSame($values, $options[$field], $field);
-            foreach ($values as $value) {
-                $component->assertSeeHtml('value="'.$value.'"');
-            }
+test('mount populates initial state and renders catalog options', function (): void {
+    $user = $this->actingMember();
+    $user->forceFill(['einstiegsroman' => '1 - Roman1', 'lesestand' => '1 - Roman1', 'lieblingsroman' => '2 - Roman2', 'lieblingsfigur' => 'Figur1', 'lieblingsmutation' => 'Mutation1', 'lieblingsschauplatz' => 'Ort1', 'lieblingsautor' => 'Author1', 'lieblingszyklus' => 'Z1', 'lieblingsthema' => 'Thema1', 'lieblingshardcover' => '1 - Hardcover1', 'lieblingscover' => 'MX 1 Roman1'])->save();
+    $this->actingAs($user);
+    $component = Livewire::test(UpdateSeriendatenForm::class)->assertSee('Einstiegsroman (optional)');
+    $component->assertSet('state.einstiegsroman', '1 - Roman1')->assertSet('state.lesestand', '1 - Roman1')->assertSet('state.lieblingsroman', '2 - Roman2')->assertSet('state.lieblingsfigur', 'Figur1')->assertSet('state.lieblingsmutation', 'Mutation1')->assertSet('state.lieblingsschauplatz', 'Ort1')->assertSet('state.lieblingsautor', 'Author1')->assertSet('state.lieblingszyklus', 'Z1')->assertSet('state.lieblingsthema', 'Thema1')->assertSet('state.lieblingshardcover', '1 - Hardcover1')->assertSet('state.lieblingscover', 'MX 1 Roman1');
+    $options = $component->viewData('fieldOptions');
+    foreach (['einstiegsroman' => ['1 - Roman1', '2 - Roman2'], 'lesestand' => ['1 - Roman1', '2 - Roman2'], 'lieblingsroman' => ['1 - Roman1', '2 - Roman2'], 'lieblingsautor' => ['Author1', 'Author2'], 'lieblingszyklus' => ['Z1', 'Z2'], 'lieblingsfigur' => ['Figur1', 'Figur2'], 'lieblingsschauplatz' => ['Ort1', 'Ort2'], 'lieblingsthema' => ['Thema1', 'Thema2'], 'lieblingshardcover' => ['1 - Hardcover1', '2 - Hardcover2'], 'lieblingscover' => ['MX 1 Roman1', 'MX 2 Roman2', 'HC 1 Hardcover1', 'HC 2 Hardcover2']] as $field => $values) {
+        expect($options[$field])->toBe($values);
+        foreach ($values as $value) {
+            $component->assertSeeHtml('value="'.$value.'"');
         }
     }
+});
 
-    public function test_only_profile_state_is_serialized_on_mount_validation_and_save(): void
-    {
-        $user = $this->actingMember();
-        $component = Livewire::test(UpdateSeriendatenForm::class)->assertSee('2 - Roman2');
-        $this->assertSame(['state'], array_keys($component->snapshot['data']));
+test('only profile state is serialized on mount validation and save', function (): void {
+    $user = $this->actingMember();
+    $component = Livewire::test(UpdateSeriendatenForm::class)->assertSee('2 - Roman2');
+    expect(array_keys($component->snapshot['data']))->toBe(['state']);
+    $component->set('state.einstiegsroman', 'Unbekannter Roman')->call('updateSeriendaten')->assertHasErrors('einstiegsroman')->assertSee('2 - Roman2');
+    expect(array_keys($component->snapshot['data']))->toBe(['state']);
+    $component->set('state.einstiegsroman', '1 - Roman1')->call('updateSeriendaten')->assertHasNoErrors()->assertDispatched('profile-series-saved')->assertSet('state.einstiegsroman', '1 - Roman1')->assertSee('2 - Roman2');
+    expect(array_keys($component->snapshot['data']))->toBe(['state'])
+        ->and($user->fresh()->einstiegsroman)->toBe('1 - Roman1');
+});
 
-        $component->set('state.einstiegsroman', 'Unbekannter Roman')
-            ->call('updateSeriendaten')->assertHasErrors('einstiegsroman')->assertSee('2 - Roman2');
-        $this->assertSame(['state'], array_keys($component->snapshot['data']));
-
-        $component->set('state.einstiegsroman', '1 - Roman1')
-            ->call('updateSeriendaten')->assertHasNoErrors()->assertDispatched('profile-series-saved')
-            ->assertSet('state.einstiegsroman', '1 - Roman1')->assertSee('2 - Roman2');
-        $this->assertSame(['state'], array_keys($component->snapshot['data']));
-        $this->assertSame('1 - Roman1', $user->fresh()->einstiegsroman);
-    }
-
-    public function test_seriendaten_can_be_updated(): void
-    {
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        Livewire::test(UpdateSeriendatenForm::class)
-            ->set('state', [
-                'einstiegsroman' => '1 - Roman1',
-                'lesestand' => '2 - Roman2',
-                'lieblingsroman' => '2 - Roman2',
-                'lieblingsfigur' => 'Figur2',
-                'lieblingsmutation' => 'Mutation1',
-                'lieblingsschauplatz' => 'Ort2',
-                'lieblingsautor' => 'Author2',
-                'lieblingszyklus' => 'Z2',
-                'lieblingsthema' => 'Thema2',
-                'lieblingshardcover' => '2 - Hardcover2',
-                'lieblingscover' => 'HC 2 Hardcover2',
-            ])
-            ->call('updateSeriendaten')
-            ->assertHasNoErrors();
-
-        $user->refresh();
-
-        $this->assertSame('1 - Roman1', $user->einstiegsroman);
-        $this->assertSame('2 - Roman2', $user->lesestand);
-        $this->assertSame('2 - Roman2', $user->lieblingsroman);
-        $this->assertSame('Figur2', $user->lieblingsfigur);
-        $this->assertSame('Mutation1', $user->lieblingsmutation);
-        $this->assertSame('Ort2', $user->lieblingsschauplatz);
-        $this->assertSame('Author2', $user->lieblingsautor);
-        $this->assertSame('Z2', $user->lieblingszyklus);
-        $this->assertSame('Thema2', $user->lieblingsthema);
-        $this->assertSame('2 - Hardcover2', $user->lieblingshardcover);
-        $this->assertSame('HC 2 Hardcover2', $user->lieblingscover);
-    }
-}
+test('seriendaten can be updated', function (): void {
+    $user = $this->actingMember();
+    $this->actingAs($user);
+    Livewire::test(UpdateSeriendatenForm::class)->set('state', ['einstiegsroman' => '1 - Roman1', 'lesestand' => '2 - Roman2', 'lieblingsroman' => '2 - Roman2', 'lieblingsfigur' => 'Figur2', 'lieblingsmutation' => 'Mutation1', 'lieblingsschauplatz' => 'Ort2', 'lieblingsautor' => 'Author2', 'lieblingszyklus' => 'Z2', 'lieblingsthema' => 'Thema2', 'lieblingshardcover' => '2 - Hardcover2', 'lieblingscover' => 'HC 2 Hardcover2'])->call('updateSeriendaten')->assertHasNoErrors();
+    $user->refresh();
+    expect($user->einstiegsroman)->toBe('1 - Roman1')
+        ->and($user->lesestand)->toBe('2 - Roman2')
+        ->and($user->lieblingsroman)->toBe('2 - Roman2')
+        ->and($user->lieblingsfigur)->toBe('Figur2')
+        ->and($user->lieblingsmutation)->toBe('Mutation1')
+        ->and($user->lieblingsschauplatz)->toBe('Ort2')
+        ->and($user->lieblingsautor)->toBe('Author2')
+        ->and($user->lieblingszyklus)->toBe('Z2')
+        ->and($user->lieblingsthema)->toBe('Thema2')
+        ->and($user->lieblingshardcover)->toBe('2 - Hardcover2')
+        ->and($user->lieblingscover)->toBe('HC 2 Hardcover2');
+});

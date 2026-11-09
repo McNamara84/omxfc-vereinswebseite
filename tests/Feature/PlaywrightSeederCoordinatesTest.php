@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Models\Team;
@@ -8,31 +10,24 @@ use Database\Seeders\TodoPlaywrightSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class PlaywrightSeederCoordinatesTest extends TestCase
-{
-    use RefreshDatabase;
+pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
-    public function test_playwright_seeder_populates_coordinates_for_map(): void
-    {
-        $this->seed(TodoPlaywrightSeeder::class);
-
-        $admin = User::firstWhere('email', 'info@maddraxikon.com');
-        $member = User::firstWhere('email', 'playwright-member@example.com');
-        $mapMember = User::firstWhere('email', 'playwright-map-locked@example.com');
-        $team = Team::membersTeam();
-
-        $this->assertNotNull($admin);
-        $this->assertNotNull($member);
-        $this->assertNotNull($mapMember);
-        $this->assertNotNull($team);
-
-        $this->assertEqualsWithDelta(48.137154, (float) $admin->lat, 0.000001);
-        $this->assertEqualsWithDelta(11.576124, (float) $admin->lon, 0.000001);
-        $this->assertEqualsWithDelta(50.9767, (float) $member->lat, 0.0001);
-        $this->assertEqualsWithDelta(6.8868, (float) $member->lon, 0.0001);
-        $this->assertEqualsWithDelta(50.9787, (float) $mapMember->lat, 0.0001);
-        $this->assertEqualsWithDelta(11.0328, (float) $mapMember->lon, 0.0001);
-        $this->assertDatabaseMissing('user_points', ['user_id' => $mapMember->id]);
-        $this->assertDatabaseMissing('reward_purchases', ['user_id' => $mapMember->id]);
-    }
-}
+test('playwright seeder populates coordinates for map', function (): void {
+    $this->seed(TodoPlaywrightSeeder::class);
+    $admin = User::firstWhere('email', 'info@maddraxikon.com');
+    $member = User::firstWhere('email', 'playwright-member@example.com');
+    $mapMember = User::firstWhere('email', 'playwright-map-locked@example.com');
+    $team = Team::membersTeam();
+    expect($admin)->not->toBeNull()
+        ->and($member)->not->toBeNull()
+        ->and($mapMember)->not->toBeNull()
+        ->and($team)->not->toBeNull()
+        ->and((float) $admin->lat)->toEqualWithDelta(48.137154, 1.0E-6)
+        ->and((float) $admin->lon)->toEqualWithDelta(11.576124, 1.0E-6)
+        ->and((float) $member->lat)->toEqualWithDelta(50.9767, 0.0001)
+        ->and((float) $member->lon)->toEqualWithDelta(6.8868, 0.0001)
+        ->and((float) $mapMember->lat)->toEqualWithDelta(50.9787, 0.0001)
+        ->and((float) $mapMember->lon)->toEqualWithDelta(11.0328, 0.0001);
+    $this->assertDatabaseMissing('user_points', ['user_id' => $mapMember->id]);
+    $this->assertDatabaseMissing('reward_purchases', ['user_id' => $mapMember->id]);
+});

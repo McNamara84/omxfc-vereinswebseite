@@ -6,6 +6,24 @@ parameters:
     paths:
         - tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
         - tests/Unit/UriSupportTest.php
+        - tests/Unit/EuroTest.php
+        - tests/Unit/UserNicknameOrNameTest.php
+        - tests/Unit/UserPublicFirstNameTest.php
+        - tests/Unit/TourDefinitionTest.php
+        - tests/Unit/MaddraxikonPageTitleTest.php
+        - tests/Unit/MaddraxikonCrawlExceptionTest.php
+        - tests/Unit/MaddraxikonAtomicFileWriterTest.php
+        - tests/Unit/BuiltInServerStaticPathResolverTest.php
+        - tests/Unit/CoverSyncDeadlineTest.php
+        - tests/Unit/CoverSyncIntervalTest.php
+        - tests/Unit/CoverKeywordsTest.php
+        - tests/Unit/KompendiumRomanFileValidatorTest.php
+        - tests/Unit/MaddraxikonStreakCalculatorTest.php
+        - tests/Unit/RpgCheckRulesTest.php
+        - tests/Unit/PestMetadataTest.php
+        - tests/Unit/FanfictionAuthorDisplayNameTest.php
+        - app/Support/Euro.php
+        - app/Support/RpgExperienceRules.php
         - app/Support/UriSupport.php
         - app/Support/MaddraxikonIdentityHmacPeppers.php
         - app/Support/ScheduleInventory.php
