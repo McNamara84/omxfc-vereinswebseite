@@ -23,7 +23,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: intl, zip, sockets
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -63,7 +63,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: gd, exif, zip, sockets
           coverage: xdebug
           ini-values: xdebug.mode=coverage
@@ -123,7 +123,7 @@ jobs:
     name: PHP 8.5 Maddraxikon (MariaDB 13.0)
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:f4054da26e3a9dd6c8b5cc97363e544408b15c0fb369d7359c25dc04826eb6e1
+        image: mariadb:13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
         env:
           MARIADB_DATABASE: omxfc_maddraxikon_test
           MARIADB_USER: omxfc_test
@@ -150,7 +150,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, zip, sockets
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -181,7 +181,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:f4054da26e3a9dd6c8b5cc97363e544408b15c0fb369d7359c25dc04826eb6e1
+        image: mariadb:13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
         env:
           MARIADB_DATABASE: omxfc_rpg_test
           MARIADB_USER: omxfc_test
@@ -210,7 +210,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
       - name: Generate ephemeral application key
@@ -240,7 +240,7 @@ jobs:
     timeout-minutes: 15
     services:
       mariadb:
-        image: mariadb:13.0.2@sha256:f4054da26e3a9dd6c8b5cc97363e544408b15c0fb369d7359c25dc04826eb6e1
+        image: mariadb:13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
         env:
           MARIADB_DATABASE: omxfc_veranstaltungen_test
           MARIADB_USER: omxfc_test
@@ -269,7 +269,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
       - name: Generate ephemeral application key
@@ -302,7 +302,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
@@ -363,7 +363,7 @@ jobs:
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
           coverage: none
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -436,8 +436,8 @@ jobs:
           cache: npm
       - name: Install Node dependencies
         run: |
-          npm install --global npm@12.2.1 --ignore-scripts
-          test "$(npm --version)" = "12.2.1"
+          npm install --global npm@12.2.2 --ignore-scripts
+          test "$(npm --version)" = "12.2.2"
           sh docker/patch-npm-security.sh
           npm ci
       - name: Run Vitest tests with coverage

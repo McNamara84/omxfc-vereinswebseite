@@ -148,7 +148,7 @@ export function createStages(directory, reports, execute, env, container) {
             await execute('php', ['artisan', 'view:cache'], { kind: 'application' });
             await execute('php', ['tools/ci/php-compatibility.php', '--compiled-views'], { kind: 'test', timeout: 10 * 60_000 });
             await execute('php', ['artisan', 'view:clear'], { kind: 'application' });
-            await execute('npm', ['install', '--global', 'npm@12.2.1', '--ignore-scripts']);
+            await execute('npm', ['install', '--global', 'npm@12.2.2', '--ignore-scripts']);
             await execute('sh', ['docker/patch-npm-security.sh']);
             await execute('npm', ['ci']);
             await execute('npm', ['run', 'build'], { kind: 'build' });

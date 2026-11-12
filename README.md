@@ -169,8 +169,8 @@ Remove-Item Env:UX_CAPTURE_SCREENSHOTS
 |------------------|---------------------------------------------------------|
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
 | PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
-| Composer         | 2.10.x, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.1 (`packageManager`), nur für klassische Host-Entwicklung nötig |
+| Composer         | 2.11.2, nur für klassische Host-Entwicklung nötig        |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.2 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -1018,17 +1018,18 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **1. November 2026**. PHP 8.5.12 basiert auf Debian
-Trixie; Node 26.13.0 verwendet Alpine 3.24 und npm 12.2.1. Composer 2.11.1 ist
+Stand der Aktualisierung: **12. November 2026**. PHP 8.5.12 basiert auf Debian
+Trixie; Node 26.13.1 verwendet Alpine 3.24 und npm 12.2.2. Composer 2.11.2 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
 MariaDB 13.0.2, nginx 1.31.8 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
 nginx 1.31.8 enthält die [aktuellen Sicherheitskorrekturen](https://nginx.org/en/CHANGES).
 Livewire 4.4.8 behebt [GHSA-mhf7-xp6r-6qrc](https://github.com/livewire/livewire/security/advisories/GHSA-mhf7-xp6r-6qrc).
-Composer-Image-Digest und Prüfsumme der Composer-2.11.1-PHAR sind unabhängig
+Composer-Image-Digest und Prüfsumme der Composer-2.11.2-PHAR sind unabhängig
 voneinander geprüft und gepinnt. PHP verwendet die Image-Neubauten vom
-31. Oktober. Der MariaDB-Digest wurde auf den Neubau vom 28. Oktober aktualisiert und ist in
+6. November, nginx den Neubau vom 10. November. Der MariaDB-Digest wurde auf den
+Neubau vom 12. November aktualisiert und ist in
 Dockerfile, Test-Stack und CI einheitlich gepinnt.
 Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
 Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
@@ -1053,27 +1054,52 @@ verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselb
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.4 und PHPUnit 13.4.5 sind gemeinsam aktualisiert,
-ebenso Pest Browser 5.2.0, PHPStan 2.3.4 und Rector 2.8.3. maryUI 2.9.11 benötigt
+aktualisiert. Pest 5.3.5 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.5;
+das neuere PHPUnit 13.4.6 bleibt deshalb ausgeschlossen. Pest Browser bleibt auf
+5.2.0; PHPStan und Rector stehen auf 2.3.5 beziehungsweise 2.8.4. maryUI 2.9.11 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
+Fortify benötigt weiterhin `laravel/passkeys` 0.2.x; dessen Version 0.3.0 bleibt
+deshalb ebenfalls ausgeschlossen.
 
-Die vollständige Auflösung vom 1. November aktualisiert 46 Composer-Pakete,
-darunter Laravel 13.39.0, Intervention Image 4.4.1, Guzzle 8.3.1, CommonMark
-2.10.7, Carbon 3.15.1, League URI 7.9.1, Symfony 8.1.10 und ParaTest 7.27.5.
+Die Auflösung vom 12. November aktualisiert unter anderem Laravel auf 13.42.0,
+Sanctum auf 4.4.0, Scout auf 11.10.0, Tinker auf 3.1.0 und Pail auf 1.3.0.
+Auch die kompatiblen transitiven Pakete, einschließlich PHP-Coverage 14.5.2,
+League URI Components 7.10.0 und der Symfony-8.1-Komponenten, sind aktualisiert.
 Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
 transitiven Updates. Der gezielte npm-Sicherheitspatch für `ip-address` steht auf
-10.7.5; der kompatible Undici-6-Zweig bleibt für npm erhalten.
-Der benötigte Selector-Parser-Override ist auf 7.1.7 aktualisiert.
-Livewire 4.4.8, Alpine samt Plugins 3.17.5, Chart.js 4.6.1 und Vite 8.3.5 sind aktuell.
-Vitest/Coverage/Browser-Provider 5.1.0, Playwright 1.64.1 mit passenden Browsern,
-axe 4.14.0, daisyUI 5.7.50, jsdom 30.1.3 und Zod 4.6.7 sind gemeinsam geprüft.
-Alle 15 bisherigen externen GitHub-Action-Pins wurden gegen die veröffentlichten
-Tags am 1. November verifiziert. Die PHP-Coverage-Badge-Action verwendete trotz
-aktuellem Release weiterhin PHP 7.4 und einen unfixierten Composer-Download;
-sie ist durch `tools/testing/php-coverage-badge.mjs` ersetzt. Die verbleibenden
-14 Action-Pins sind aktuell, ebenso `docker/login-action` 4.7.0 und Grype 0.121.0.
-Nextcloud ist von dieser Aktualisierung ausgenommen.
+10.7.6; Undici 6.29.1 ist bereits in npm 12.2.2 enthalten.
+Rolldown 1.2.19 referenziert für seinen optionalen WASM-Fallback die
+`@emnapi/core`- und `@emnapi/runtime`-Version 2.0.0-beta.2. Die verwendeten
+Linux-Images installieren die nativen Bindings; diese Upstream-Vorgaben werden
+nicht durch Overrides verändert.
+Der benötigte Selector-Parser-Override ist auf 7.2.0 aktualisiert.
+Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
+Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
+Vitest/Coverage/Browser-Provider bleiben auf 5.1.0, Playwright steht auf 1.65.0.
+axe 4.14.0, daisyUI 5.7.50 und Zod 4.6.7 bleiben erhalten. jsdom 30.1.3 bleibt
+innerhalb der bestehenden Hauptversion; jsdom 31 ist nicht Teil dieses Updates.
+Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
+`docker/login-action` ist auf 4.8.0 mit dem zugehörigen Commit-Pin aktualisiert,
+die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
+auf 0.121.3. Die PHP-Coverage-Badge wird weiterhin lokal durch
+`tools/testing/php-coverage-badge.mjs` erzeugt.
+
+Die lokalen Grype-Scans vom 12. November bestehen für Composer, PHP-FPM, Node,
+nginx und MariaDB die unveränderte CI-Grenze `--only-fixed --fail-on high`.
+Im npm-Bundle verbleiben mittlere Befunde für
+[`glob`](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) und
+[`minimatch`](https://github.com/advisories/GHSA-g3hv-75wg-m249). Die veröffentlichten
+Korrekturen liegen in 14.0.2 beziehungsweise 11.0.1; auch die neuesten kompatiblen
+13.x-/10.x-Patches bleiben betroffen. Diese npm-internen Hauptversionen werden
+nicht erzwungen ausgetauscht.
+MariaDB meldet zusätzlich einen mittleren Befund für das in gosu gebündelte
+`github.com/moby/sys/user` 0.1.0. Zwei weitere Meldungen betreffen das
+`coreutils`-Metapaket mit der Versionskennung 9.5: Das eigentliche
+`gnu-coreutils` ist bereits auf 9.7-3ubuntu2.1 aktualisiert, und die aktiven
+Standardwerkzeuge stammen aus `rust-coreutils` 0.10.0. Scanner-Ausnahmen oder
+abgesenkte Grenzwerte wurden nicht eingeführt. Die vollständige Image-Matrix
+bleibt Aufgabe der CI; die lokalen Scans umfassen diese fünf gebauten Images.
 
 Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
 der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
@@ -1173,14 +1199,14 @@ werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
 wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
 Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 
-Auch npm 12.2.1 selbst erhält über `docker/patch-npm-security.sh` überprüfte
+Auch npm 12.2.2 selbst erhält über `docker/patch-npm-security.sh` überprüfte
 Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
 unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
-Der undici-Patch verwendet nun [6.29.1](https://github.com/nodejs/undici/releases/tag/v6.29.1),
-die aktuelle Version des von npm verwendeten 6.x-Zweigs. Zusätzlich wird
-`ip-address` 10.7.4 ersetzt. Die bisherigen Korrekturen für `brace-expansion`,
-`postcss-selector-parser` und `http-cache-semantics` liefert npm 12.2.1 bereits
-selbst mit; diese zusätzlichen Ersetzungen wurden entfernt.
+Das gebündelte `ip-address` 10.7.5 wird durch 10.7.6 ersetzt. Undici
+[6.29.1](https://github.com/nodejs/undici/releases/tag/v6.29.1) liefert npm 12.2.2
+bereits selbst mit; die zusätzliche Ersetzung wurde entfernt. Die früheren
+Ersetzungen für `brace-expansion`, `postcss-selector-parser` und
+`http-cache-semantics` bleiben ebenfalls entfernt.
 Alle Ersetzungen bleiben innerhalb der bisherigen Major-Versionen und verwenden
 exakte Versionen samt Lockfile-Integrität. Der Patch prüft die installierten
 Versionen direkt gegen dieses Manifest, damit auch künftige Dependabot-Updates
@@ -1578,7 +1604,7 @@ Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebunde
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.13.0 und gepatchtem npm 12.2.1 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.13.1 und gepatchtem npm 12.2.2 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

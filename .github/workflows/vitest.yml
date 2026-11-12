@@ -28,7 +28,7 @@ jobs:
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         with:
           php-version: '8.5'
-          tools: composer:2.11.1@sha256:6f1b891e1d4927d62740276c540fb490e47689e19e102c49e8da849794882f8c
+          tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: uri, zip, sockets
           coverage: none
 
@@ -41,9 +41,9 @@ jobs:
       - name: Install NPM dependencies
         shell: bash
         run: |
-          npm install --global npm@12.2.1 --ignore-scripts 2>&1 | tee "$RUNNER_TEMP/vitest-global-install.log"
+          npm install --global npm@12.2.2 --ignore-scripts 2>&1 | tee "$RUNNER_TEMP/vitest-global-install.log"
           node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-global-install.log"
-          test "$(npm --version)" = "12.2.1"
+          test "$(npm --version)" = "12.2.2"
           sh docker/patch-npm-security.sh 2>&1 | tee "$RUNNER_TEMP/vitest-npm-security.log"
           node tools/testing/check-deprecations.mjs "$RUNNER_TEMP/vitest-npm-security.log"
           npm ci 2>&1 | tee "$RUNNER_TEMP/vitest-install.log"

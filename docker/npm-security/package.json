@@ -2,9 +2,8 @@
   "name": "omxfc-npm-security-patches",
   "private": true,
   "version": "1.0.0",
-  "description": "Reviewed same-major security replacements for npm 12.2.1 bundled dependencies; remove after upstream fixes.",
+  "description": "Reviewed same-major security replacements for npm 12.2.2 bundled dependencies; remove after upstream fixes.",
   "dependencies": {
-    "ip-address": "10.7.6",
-    "undici": "6.29.1"
+    "ip-address": "10.7.6"
   }
 }
