@@ -40,10 +40,6 @@ jobs:
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
-      - name: Create Database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
       - name: Resolve TIA baseline directory
@@ -52,7 +48,8 @@ jobs:
       - name: Record fresh Pest dependency graph
         env:
           DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
+          # Match phpunit.tia.xml; inherited variables also populate $_SERVER.
+          DB_DATABASE: ':memory:'
         # This workflow publishes the baseline. Re-record it without fetching
         # a previous artifact through gh, even on a runner with an empty cache.
         # Full-suite acceptance remains in phpunit.yml.
