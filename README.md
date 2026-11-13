@@ -1064,6 +1064,11 @@ deshalb ebenfalls ausgeschlossen.
 
 Die Auflösung vom 12. November aktualisiert unter anderem Laravel auf 13.42.0,
 Sanctum auf 4.4.0, Scout auf 11.10.0, Tinker auf 3.1.0 und Pail auf 1.3.0.
+Am 13. November folgen Guzzle 8.5.0 und PSR-7 3.4.0. ParaTest 7.28.0 ist
+wegen einer inkompatiblen `SuiteLoader::tests`-Struktur mit Pest 5.3.5 explizit
+ausgeschlossen: Der parallele Lauf bricht in `WrapperRunner::getTestFiles()` ab.
+Die getestete Version 7.27.5 bleibt erhalten; bei einem kompatiblen Pest-Update
+ist dieser Konflikt erneut zu prüfen.
 Auch die kompatiblen transitiven Pakete, einschließlich PHP-Coverage 14.5.2,
 League URI Components 7.10.0 und der Symfony-8.1-Komponenten, sind aktualisiert.
 Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
@@ -1076,8 +1081,17 @@ nicht durch Overrides verändert.
 Der benötigte Selector-Parser-Override ist auf 7.2.0 aktualisiert.
 Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
 Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
-Vitest/Coverage/Browser-Provider bleiben auf 5.1.0, Playwright steht auf 1.65.0.
-axe 4.14.0, daisyUI 5.7.50 und Zod 4.6.7 bleiben erhalten. jsdom 30.1.3 bleibt
+Vitest/Coverage/Browser-Provider bleiben auf 5.1.0. Playwright ist vorübergehend
+exakt auf 1.64.1 gepinnt: 1.65.0 löst beim gemeinsamen Einsatz von Rollen-Locators
+und axe einen nativen Firefox-Absturz beim Lesen von `ariaLabelledByElements` aus
+([Playwright #43967](https://github.com/microsoft/playwright/issues/43967),
+[Mozilla #2090055](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055)).
+Der E2E-Regressionstest prüft beide Lesereihenfolgen; Firefox und sämtliche
+Barrierefreiheitsregeln bleiben aktiv. Den Pin erst mit einer stabilen Version
+mit behobenem Firefox-Build und erfolgreichem Regressionstest anheben.
+Die npm-Overrides binden auch `playwright` und `playwright-core` aus Vitest und
+axe an diesen Pin, damit nur eine einheitliche Playwright-Version installiert wird.
+axe 4.14.0 und Zod 4.6.7 bleiben erhalten; daisyUI steht auf 5.8.0. jsdom 30.1.3 bleibt
 innerhalb der bestehenden Hauptversion; jsdom 31 ist nicht Teil dieses Updates.
 Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
 `docker/login-action` ist auf 4.8.0 mit dem zugehörigen Commit-Pin aktualisiert,
