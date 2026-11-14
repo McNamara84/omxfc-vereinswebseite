@@ -30,6 +30,8 @@ return [
 
     'rpg_character_slot_cost_baxx' => env('RPG_CHARACTER_SLOT_COST_BAXX', 5),
 
+    'rpg_character_rename_cost_baxx' => 25,
+
     /** @deprecated Nur als Referenz für RewardSeeder – nicht zur Laufzeit verwenden. */
     'legacy' => [
         [

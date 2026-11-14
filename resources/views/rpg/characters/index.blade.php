@@ -35,6 +35,10 @@
             </div>
         @endif
 
+        @if(session('info'))
+            <div class="alert alert-info mt-6" role="status"><span>{{ session('info') }}</span></div>
+        @endif
+
         @if($errors->any())
             <div class="alert alert-error mt-6" data-testid="rpg-character-errors">
                 <ul class="list-disc pl-5">
@@ -111,6 +115,13 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    @can('rename', $character)
+                                        <tr>
+                                            <td colspan="6" class="pt-0">
+                                                @include('rpg.characters.partials.rename')
+                                            </td>
+                                        </tr>
+                                    @endcan
                                 @endforeach
                             </tbody>
                         </table>

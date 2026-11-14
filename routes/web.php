@@ -491,6 +491,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
             Route::post('/slots', 'purchaseSlot')->name('slots.purchase');
+            Route::patch('/{rpgCharacter}/name', 'rename')->whereNumber('rpgCharacter')->name('rename');
             Route::get('/{rpgCharacter}/pdf', 'pdf')->name('pdf');
             Route::delete('/{rpgCharacter}', 'destroy')->name('destroy');
         });

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\RpgCharacter;
+use App\Models\RpgCombatParticipant;
 use App\Models\RpgNpc;
 use App\Models\User;
 use App\Services\RpgAccess;
+use App\Services\RpgCharacterRenameService;
 use App\Services\RpgCharacterSheetService;
 use App\Services\RpgCharacterSlotService;
 use App\Services\RpgInventoryAdapter;
@@ -42,9 +44,33 @@ class RpgCharacterController extends Controller
                 ->latest()
                 ->get(),
             'slotSummary' => $this->slotService->summary($user),
+            'renameCost' => app(RpgCharacterRenameService::class)->costBaxx(),
+            'charactersWithInvitations' => RpgCombatParticipant::query()
+                ->where('owner_id', $user->id)
+                ->whereHas('combat', fn ($query) => $query->where('status', 'challenged'))
+                ->pluck('rpg_character_id')->all(),
             'npcs' => app(RpgAccess::class)->isLeader($user)
                 ? RpgNpc::where('team_id', app(RpgAccess::class)->team()->id)->orderBy('id')->get() : collect(),
         ]);
+    }
+
+    public function rename(Request $request, RpgCharacter $rpgCharacter, RpgCharacterRenameService $service): RedirectResponse
+    {
+        $this->authorize('rename', $rpgCharacter);
+        try {
+            $rename = $service->rename($request->user(), $rpgCharacter->id, $request->except('_token', '_method'));
+        } catch (ValidationException $exception) {
+            return redirect()->route('rpg.characters.index')
+                ->withErrors($exception->errors(), 'rename')
+                ->withInput($request->only('character_name') + ['rename_character_id' => $rpgCharacter->id]);
+        }
+
+        return redirect()->route('rpg.characters.index')->with(
+            $rename ? 'success' : 'info',
+            $rename
+                ? "Die Umbenennung von „{$rename->old_name}“ in „{$rename->new_name}“ wurde für {$rename->purchase->cost_baxx} Baxx gebucht."
+                : 'Der Name ist unverändert. Es wurden keine Baxx berechnet.',
+        );
     }
 
     public function store(Request $request): RedirectResponse

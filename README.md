@@ -300,6 +300,46 @@ Bei langen Angaben werden zuerst leere Schreibzeilen der Waffen- und
 Rüstungstabellen für zusätzlichen Platz genutzt. Ist das Seitenbudget auch bei
 der Mindestschrift ausgeschöpft, werden überlange Angaben ebenfalls sichtbar gekürzt.
 
+### Gespeicherte Charaktere umbenennen
+
+Unter **Meine Charaktere → Umbenennen** können Mitglieder mit bestehendem
+Editorzugang eigene Charaktere beliebig oft für jeweils **25 Baxx** umbenennen.
+Das Formular zeigt den bisherigen Namen, Preis und verfügbares Guthaben; erst
+**Für 25 Baxx umbenennen** bestätigt den Kauf. Gleiche Namen verschiedener
+Charaktere sind erlaubt, der neue Name muss ausgefüllt sein und darf maximal
+255 Zeichen enthalten. Unveränderte Namen und fehlgeschlagene Versuche kosten
+keine Baxx. Ein offener Verbesserungsantrag muss zuerst abgeschlossen oder
+zurückgezogen werden.
+
+Name, Baxx-Kauf und Namensverlauf werden gemeinsam gespeichert. Wiederholtes
+Absenden desselben Vorgangs bucht nur einmal. Die Ausgabe erfolgt aus dem
+Mitglieder-Wallet, unabhängig vom ausgewählten Team. Der neue Name erscheint
+auch in neu erzeugten PDF-Bögen. Unter **Verlauf → Namensänderungen** sehen
+Besitzer und berechtigte AG-Leitung alte und neue Namen, Zeitpunkt und Kosten.
+Eine bestehende administrative Erstattung wird dort angezeigt; sie ändert den
+Charakternamen nicht. Charakterlöschung erstattet keine Baxx.
+
+Offene Kampfeinladungen müssen nach der Umbenennung neu erstellt werden;
+das Formular weist bei betroffenen Figuren darauf hin. Laufende Kämpfe und
+vorhandene Proben behalten ihre gespeicherten Spielstände. Ältere
+Bearbeitungsformulare müssen wegen der geänderten Revision neu geladen werden.
+
+Die Migration `2026_11_14_120000_create_rpg_character_renames_table.php` legt
+Namensverlauf und die interne System-Belohnung an. Ihr Rückbau ist bei
+vorhandenen Umbenennungen oder Käufen gesperrt, damit Ausgaben und Nachweise
+erhalten bleiben. Beim Deployment wie üblich Migrationen und Asset-Build
+ausführen. Gezielt prüfen:
+
+```bash
+php artisan test --filter 'RpgCharacterRename|RpgCharacterStorage|RpgCharacterAdvancement|RpgProgressionPdf|RewardService'
+php vendor/bin/pest --configuration phpunit.rpg-mariadb.xml --fail-on-skipped --compact
+npm run test:e2e -- tests/e2e/rpg-character-rename.spec.js --project=chromium
+```
+
+Die MariaDB-Suite verwendet ausschließlich die weiter unten beschriebene
+Testdatenbank `omxfc_rpg_test` und prüft auch konkurrierende Umbenennungen,
+Slot-/Belohnungskäufe, Verbesserungsanträge, Inventarbuchungen und Löschungen.
+
 ### Inventar, Munition und Handel
 
 Unter **Meine Charaktere → Ausrüstung verwalten** (`/rpg/inventare`) verwaltet

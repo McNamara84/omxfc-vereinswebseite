@@ -72,6 +72,11 @@ class RpgCharacter extends Model
         return $this->hasMany(RpgAdvancementRequest::class);
     }
 
+    public function renames(): HasMany
+    {
+        return $this->hasMany(RpgCharacterRename::class);
+    }
+
     public function experienceBalance(): int
     {
         return (int) $this->experienceEntries()->sum('amount');

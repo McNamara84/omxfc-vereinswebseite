@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Models\RpgCharacter;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\RpgCharacterAdvancementService;
 use App\Services\RpgEquipmentCatalogResolver;
 use App\Services\RpgExperienceAwardService;
 use App\Services\RpgInventoryService;
@@ -42,7 +43,7 @@ $character = RpgCharacter::factory()->create([
         'equipment' => ['items' => []],
     ],
 ]);
-if (($argv[1] ?? '') === 'funded') {
+if (in_array($argv[1] ?? '', ['funded', 'rename-pending'], true)) {
     app(RpgExperienceAwardService::class)->award($leader, [
         'submission_key' => (string) Str::uuid(), 'title' => 'Testabenteuer',
         'completed_on' => now()->toDateString(), 'minutes' => 360, 'cycle_bonus' => 0,
@@ -52,6 +53,15 @@ if (($argv[1] ?? '') === 'funded') {
             'points' => 60, 'reason' => 'Vorbereitung der Browserprüfung',
         ]],
     ]);
+}
+if (str_starts_with($argv[1] ?? '', 'rename')) {
+    $player->incrementTeamPoints(($argv[1] ?? '') === 'rename-poor' ? 24 : 50);
+    if (($argv[1] ?? '') === 'rename-pending') {
+        app(RpgCharacterAdvancementService::class)->submit($player, $character->id, [
+            'submission_key' => (string) Str::uuid(), 'revision' => $character->fresh()->revision,
+            'operations' => [['type' => 'skill', 'name' => 'Nahkampf', 'steps' => 1, 'reason' => 'Im Testabenteuer trainiert.']],
+        ]);
+    }
 }
 $other = null;
 if (($argv[1] ?? '') === 'inventory-trade') {

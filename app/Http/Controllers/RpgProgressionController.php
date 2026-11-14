@@ -119,7 +119,8 @@ class RpgProgressionController extends Controller
 
         return view('rpg.progression.history', [
             'character' => $rpgCharacter, 'history' => $this->history->forCharacter($rpgCharacter),
-            'requests' => $rpgCharacter->advancements()->latest('id')->paginate(20),
+            'requests' => $rpgCharacter->advancements()->latest('id')->paginate(20)->withQueryString(),
+            'renames' => $rpgCharacter->renames()->with('purchase')->latest('id')->paginate(20, ['*'], 'renames_page')->withQueryString(),
             'payload' => (new RpgCharacterProgressionAdapter)->normalize($rpgCharacter->payload),
         ]);
     }
