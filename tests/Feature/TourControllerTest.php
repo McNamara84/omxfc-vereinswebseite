@@ -12,6 +12,8 @@ use App\Models\TourAssignment;
 use App\Services\TourAssignmentService;
 use App\Services\TourRegistry;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\MessageBag;
+use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(TourControllerTestFixtures::class);
@@ -20,6 +22,27 @@ test('current returns open tour payload for authenticated member', function (): 
     $member = $this->createMember();
     $assignment = $this->createPendingAssignment($member);
     $this->actingAs($member)->getJson(route('touren.current'))->assertOk()->assertJsonPath('tour.assignment_id', $assignment->id)->assertJsonPath('tour.key', 'hauptmenue')->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value)->assertJsonCount(count(app(TourRegistry::class)->definition('hauptmenue')->steps), 'tour.steps');
+});
+
+test('background tour polling preserves form feedback for the redirected page', function (): void {
+    $member = $this->createMember();
+    $this->actingAs($member)->withSession([
+        'success' => 'Umbenennung gespeichert.',
+        '_old_input' => ['character_name' => 'Birka'],
+        'errors' => (new ViewErrorBag)->put('rename', new MessageBag(['character_name' => 'Ungültiger Name.'])),
+        '_flash' => ['old' => [], 'new' => ['success', '_old_input', 'errors']],
+    ]);
+    // Keep the same persisted JSON session across the simulated browser requests.
+    $this->withCookie(config('session.cookie'), session()->getId());
+    session()->save();
+    foreach (range(1, 2) as $poll) {
+        $this->get(route('touren.current'), ['Accept' => 'application/json'])->assertOk()
+            ->assertSessionHas('success', 'Umbenennung gespeichert.')
+            ->assertSessionHasInput('character_name', 'Birka')
+            ->assertSessionHasErrors(['character_name'], errorBag: 'rename');
+    }
+    // Only a rendered page consumes the feedback.
+    $this->get(route('dashboard'))->assertOk()->assertSessionMissing('success')->assertSessionMissing('_old_input');
 });
 
 test('former members do not receive profile invitations and cannot mutate them', function (): void {

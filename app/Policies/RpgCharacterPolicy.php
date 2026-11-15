@@ -5,9 +5,15 @@ namespace App\Policies;
 use App\Models\RpgCharacter;
 use App\Models\User;
 use App\Services\RpgAccess;
+use Illuminate\Support\Facades\Gate;
 
 class RpgCharacterPolicy
 {
+    public function rename(User $user, RpgCharacter $rpgCharacter): bool
+    {
+        return $this->view($user, $rpgCharacter) && Gate::forUser($user)->allows('access-rpg-char-editor');
+    }
+
     public function viewInventory(User $user, RpgCharacter $rpgCharacter): bool
     {
         return $this->view($user, $rpgCharacter) || $this->manageInventory($user, $rpgCharacter);

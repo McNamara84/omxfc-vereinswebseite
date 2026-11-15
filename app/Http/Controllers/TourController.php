@@ -21,6 +21,10 @@ class TourController extends Controller
 
     public function current(Request $request): JsonResponse
     {
+        // This background request may run between a form submission and its redirect.
+        // Leave validation errors, old input and messages for the next rendered page.
+        $request->session()->reflash();
+
         $payload = $this->tourAssignmentService->currentPromptablePayloadForUser(
             $request->user(), $this->suppressedAssignmentIds($request),
         );

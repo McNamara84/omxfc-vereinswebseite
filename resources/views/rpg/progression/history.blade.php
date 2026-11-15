@@ -31,6 +31,24 @@
         <h2 class="font-semibold text-xl my-4">Verbesserungsanträge</h2>
         <ul class="space-y-3">@forelse($requests as $advancement)<li><a class="link" href="{{ route('rpg.advancements.show', $advancement) }}">{{ $advancement->created_at->format('d.m.Y H:i') }} · {{ $advancement->statusLabel() }} · {{ $advancement->cost }} EP</a></li>@empty<li>Noch keine Anträge.</li>@endforelse</ul>
         {{ $requests->links() }}
+        <section class="my-6" aria-labelledby="rename-history-heading" data-testid="rpg-character-rename-history">
+            <h2 id="rename-history-heading" class="font-semibold text-xl mb-4">Namensänderungen</h2>
+            <ul class="space-y-3">
+                @forelse($renames as $rename)
+                    <li class="rounded-lg border border-base-300 p-3 break-words">
+                        <p><strong>{{ $rename->old_name }}</strong> → <strong>{{ $rename->new_name }}</strong></p>
+                        <p class="text-sm">{{ $rename->created_at->timezone('Europe/Berlin')->format('d.m.Y H:i') }} · {{ $rename->purchase->cost_baxx }} Baxx
+                            @if($rename->purchase->isRefunded())
+                                · Erstattet am {{ $rename->purchase->refunded_at->timezone('Europe/Berlin')->format('d.m.Y H:i') }}
+                            @endif
+                        </p>
+                    </li>
+                @empty
+                    <li>Noch keine Namensänderungen.</li>
+                @endforelse
+            </ul>
+            {{ $renames->links() }}
+        </section>
         @foreach($payload['progression']['metadata_history'] ?? [] as $entry)<p class="my-3 text-sm">Herkunft ergänzt: {{ $entry['date'] }} · {{ $entry['actor'] }} · {{ $entry['reason'] }}</p>@endforeach
     </x-member-page>
 </x-member-layout>

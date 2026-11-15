@@ -1,11 +1,16 @@
 <?php
 
 use App\Http\Controllers\RpgCharacterController;
+use App\Models\Reward;
 use App\Models\RpgCharacter;
 use App\Models\RpgItemType;
 use App\Models\User;
+use App\Services\RewardService;
 use App\Services\RpgAccess;
 use App\Services\RpgCharacterAdvancementService;
+use App\Services\RpgCharacterRenameService;
+use App\Services\RpgCharacterSlotService;
+use App\Services\RpgCombat\CombatService;
 use App\Services\RpgExperienceAwardService;
 use App\Services\RpgInventoryService;
 use App\Services\RpgItemService;
@@ -29,6 +34,10 @@ $data = json_decode(fgets(STDIN), true, flags: JSON_THROW_ON_ERROR);
 try {
     $actor = User::findOrFail($data['actor']);
     $result = match ($data['action']) {
+        'rename' => app(RpgCharacterRenameService::class)->rename($actor, $data['character'], $data['input']),
+        'slot_purchase' => app(RpgCharacterSlotService::class)->purchaseSlot($actor),
+        'reward_purchase' => app(RewardService::class)->purchaseReward($actor, Reward::findOrFail($data['reward'])),
+        'combat_command' => app(CombatService::class)->command($actor, $data['combat'], $data['command'], $data['key']),
         'item_configure' => (function () use ($actor, $data) {
             app(RpgItemService::class)->configure($actor, $data['type'], $data['input']);
 
@@ -56,7 +65,7 @@ try {
         }),
         default => app(RpgCharacterAdvancementService::class)->decide($actor, $data['request'], $data['action']),
     };
-    fwrite(STDOUT, json_encode(['ok' => true, 'id' => $result->id], JSON_THROW_ON_ERROR)."\n");
+    fwrite(STDOUT, json_encode(['ok' => true, 'id' => $result?->id], JSON_THROW_ON_ERROR)."\n");
 } catch (ValidationException $exception) {
     fwrite(STDOUT, json_encode(['ok' => false, 'validation' => $exception->errors()], JSON_THROW_ON_ERROR)."\n");
 } catch (AuthorizationException) {
