@@ -16,6 +16,7 @@
             <exclude>tests/Feature/MembersTeamMembershipMariaDbConcurrencyTest.php</exclude>
             <exclude>tests/Feature/ProfileTourMariaDbConcurrencyTest.php</exclude>
             <exclude>tests/Feature/RomantauschMariaDbConcurrencyTest.php</exclude>
+            <exclude>tests/Feature/RpgCharacterRenameMariaDbConcurrencyTest.php</exclude>
             <exclude>tests/Feature/RpgCheckMariaDbConcurrencyTest.php</exclude>
             <exclude>tests/Feature/RpgCombatMariaDbConcurrencyTest.php</exclude>
             <exclude>tests/Feature/RpgInventoryMariaDbConcurrencyTest.php</exclude>

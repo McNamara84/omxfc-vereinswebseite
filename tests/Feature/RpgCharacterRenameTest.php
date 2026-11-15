@@ -159,8 +159,9 @@ test('insufficient or unavailable wallet refuses all writes', function (string $
         'legacy' => RewardPurchase::factory()->create(['user_id' => $this->player->id, 'wallet_team_id' => null]),
     };
     $before = RewardPurchase::count();
-    expect(fn () => $this->renameCharacter())->toThrow(ValidationException::class);
-    expect($this->character->fresh()->revision)->toBe(0)->and(RewardPurchase::count())->toBe($before);
+    expect(fn () => $this->renameCharacter())->toThrow(ValidationException::class)
+        ->and($this->character->fresh()->revision)->toBe(0)
+        ->and(RewardPurchase::count())->toBe($before);
     $this->assertDatabaseCount('rpg_character_renames', 0);
 })->with(['balance', 'missing team', 'legacy']);
 
@@ -184,8 +185,8 @@ test('pending advancement blocks rename and preserves the request', function ():
     $this->credit();
     $request = app(RpgCharacterAdvancementService::class)->submit($this->player, $this->character->id, $this->advancementInput());
     $original = $request->fresh()->getAttributes();
-    expect(fn () => $this->renameCharacter())->toThrow(ValidationException::class);
-    expect($request->fresh()->getAttributes())->toBe($original);
+    expect(fn () => $this->renameCharacter())->toThrow(ValidationException::class)
+        ->and($request->fresh()->getAttributes())->toBe($original);
     $this->assertDatabaseCount('reward_purchases', 0);
     $this->actingAs($this->player)->get(route('rpg.characters.index'))->assertSee('offener Verbesserungsantrag');
 });
@@ -203,8 +204,8 @@ test('decided advancement no longer blocks rename', function (string $decision):
 test('stale form cannot overwrite a newer name', function (): void {
     $input = $this->renameInput('Veraltet');
     $this->renameCharacter();
-    expect(fn () => app(RpgCharacterRenameService::class)->rename($this->player, $this->character->id, $input))->toThrow(ValidationException::class);
-    expect($this->character->fresh()->character_name)->toBe('Birka');
+    expect(fn () => app(RpgCharacterRenameService::class)->rename($this->player, $this->character->id, $input))->toThrow(ValidationException::class)
+        ->and($this->character->fresh()->character_name)->toBe('Birka');
     $this->assertDatabaseCount('reward_purchases', 1);
 });
 
@@ -241,8 +242,8 @@ test('any persistence failure rolls back payment name revision and history', fun
     $original = $this->character->getAttributes();
     $model::saving(fn () => throw new \RuntimeException('Simulated write failure'));
     try {
-        expect(fn () => $this->renameCharacter())->toThrow(\RuntimeException::class, 'Simulated write failure');
-        expect($this->character->fresh()->getAttributes())->toBe($original)
+        expect(fn () => $this->renameCharacter())->toThrow(\RuntimeException::class, 'Simulated write failure')
+            ->and($this->character->fresh()->getAttributes())->toBe($original)
             ->and(app(RewardService::class)->getAvailableBaxx($this->player))->toBe(25);
         $this->assertDatabaseCount('reward_purchases', 0);
         $this->assertDatabaseCount('rpg_character_renames', 0);

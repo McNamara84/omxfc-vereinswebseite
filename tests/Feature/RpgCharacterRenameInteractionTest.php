@@ -54,8 +54,8 @@ test('open invitations are explained before purchase and become stale after rena
     $snapshots = $combat->participants()->get()->map->getAttributes()->all();
     $this->actingAs($this->player)->get(route('rpg.characters.index'))->assertOk()->assertSee('offene Kampfeinladungen');
     $this->renameCharacter();
-    expect(fn () => app(CombatService::class)->command($this->opponent, $combat->id, 'accept', (string) Str::uuid()))->toThrow(ValidationException::class);
-    expect($combat->fresh()->status)->toBe('challenged')
+    expect(fn () => app(CombatService::class)->command($this->opponent, $combat->id, 'accept', (string) Str::uuid()))->toThrow(ValidationException::class)
+        ->and($combat->fresh()->status)->toBe('challenged')
         ->and($combat->participants()->get()->map->getAttributes()->all())->toBe($snapshots);
     $this->assertDatabaseCount('rpg_combat_character_locks', 0);
 });
