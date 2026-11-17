@@ -118,6 +118,7 @@ test('verwirft eine verspätete Suchantwort nach Escape auch beim erneuten Öffn
     await expect.element(dialog()).not.toBeVisible();
     await expect.element(trigger()).toHaveFocus();
 
+    vi.useRealTimers();
     await openSearch();
     await expect.element(input()).toHaveValue('');
     await expect.element(page.getByRole('link', { name: 'Veraltet' })).not.toBeInTheDocument();
