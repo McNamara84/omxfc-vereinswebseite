@@ -83,6 +83,27 @@ test('index marks missing cycle as data error instead of unknown cycle', functio
     Livewire::actingAs($user)->test(RezensionIndex::class)->assertSee('Datenfehler-Zyklus')->assertDontSee('Unbekannt-Zyklus');
 });
 
+test('new cycles appear first by book number and missing cycles appear last', function (): void {
+    Storage::fake('private');
+    Storage::disk('private')->put('maddrax.json', '[]');
+    foreach ([
+        [700, 'Blackout Auftakt', 'Blackout'],
+        [699, 'Weltrat Ende', 'Weltrat'],
+        [751, 'Weiterer Zyklus', 'Neuer Zyklus'],
+        [749, 'Blackout Ende', 'Blackout'],
+        [900, 'Fehlende Zuordnung', null],
+    ] as [$number, $title, $cycle]) {
+        Book::create(['roman_number' => $number, 'title' => $title, 'author' => 'Autor', 'cycle' => $cycle]);
+    }
+
+    $user = $this->actingMember();
+    $this->actingAs($user)->get('/rezensionen')->assertOk()
+        ->assertSeeInOrder(['Neuer Zyklus-Zyklus', 'Blackout-Zyklus', 'Blackout Ende', 'Blackout Auftakt', 'Weltrat-Zyklus', 'Datenfehler-Zyklus']);
+
+    Livewire::actingAs($user)->test(RezensionIndex::class)
+        ->set('roman_number', 700)->assertSee('Blackout-Zyklus')->assertSee('Blackout Auftakt')->assertDontSee('Weltrat-Zyklus');
+});
+
 test('index shows dynamic review reward text', function (): void {
     $user = $this->actingMember();
     Livewire::actingAs($user)->test(RezensionIndex::class)->assertSee('1 Baxx pro 10 Rezensionen');
@@ -360,9 +381,9 @@ test('2012 is rendered between ursprung and streiter cycles', function (): void 
     $path = storage_path('app/private/maddrax.json');
     $original = file_get_contents($path);
     try {
-        file_put_contents($path, json_encode([['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'], ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Streiter']]));
-        Book::create(['roman_number' => 1, 'title' => 'Ursprung Alpha', 'author' => 'A']);
-        Book::create(['roman_number' => 2, 'title' => 'Streiter Beta', 'author' => 'B']);
+        file_put_contents($path, json_encode([['nummer' => 300, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'], ['nummer' => 250, 'titel' => 'Roman2', 'zyklus' => 'Streiter']]));
+        Book::create(['roman_number' => 300, 'title' => 'Ursprung Alpha', 'author' => 'A']);
+        Book::create(['roman_number' => 250, 'title' => 'Streiter Beta', 'author' => 'B']);
         Book::create(['roman_number' => 10, 'title' => '2012 Roman', 'author' => 'C', 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse]);
         $user = $this->actingMember();
         $this->actingAs($user)->get('/rezensionen')->assertOk()->assertSeeInOrder(['Ursprung-Zyklus', 'Mini-Serie 2012', 'Streiter-Zyklus'], false);
@@ -375,9 +396,9 @@ test('abenteurer is rendered between ursprung and 2012', function (): void {
     $path = storage_path('app/private/maddrax.json');
     $original = file_get_contents($path);
     try {
-        file_put_contents($path, json_encode([['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'], ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Streiter']]));
-        Book::create(['roman_number' => 1, 'title' => 'Ursprung Alpha', 'author' => 'A']);
-        Book::create(['roman_number' => 2, 'title' => 'Streiter Beta', 'author' => 'B']);
+        file_put_contents($path, json_encode([['nummer' => 300, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'], ['nummer' => 250, 'titel' => 'Roman2', 'zyklus' => 'Streiter']]));
+        Book::create(['roman_number' => 300, 'title' => 'Ursprung Alpha', 'author' => 'A']);
+        Book::create(['roman_number' => 250, 'title' => 'Streiter Beta', 'author' => 'B']);
         Book::create(['roman_number' => 10, 'title' => 'Abenteurer Roman', 'author' => 'C', 'type' => BookType::DieAbenteurer]);
         Book::create(['roman_number' => 11, 'title' => '2012 Roman', 'author' => 'D', 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse]);
         $user = $this->actingMember();

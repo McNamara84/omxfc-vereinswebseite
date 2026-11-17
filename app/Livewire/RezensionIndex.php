@@ -147,33 +147,11 @@ class RezensionIndex extends Component
             ]);
         }
 
-        $existingCycles = $books->pluck('cycle')->unique();
-
-        $preferredCycleOrder = collect([
-            'Weltrat', 'Amraka', 'Weltenriss', 'Parallelwelt', 'Fremdwelt',
-            'Zeitsprung', 'Archivar', 'Ursprung', 'Streiter', 'Schatten',
-            'Antarktis', 'Afra', 'Ausala', 'Mars', 'Wandler',
-            "Daa'muren", 'Kratersee', 'Expedition', 'Meeraka', 'Euree',
-        ]);
-
-        $unlistedCycles = $existingCycles
-            ->reject(fn ($cycle) => $preferredCycleOrder->contains($cycle))
-            ->sort();
-
-        $cycleOrder = $preferredCycleOrder
-            ->filter(fn ($cycle) => $existingCycles->contains($cycle))
-            ->concat($unlistedCycles);
-
-        $booksByCycle = $cycleOrder
-            ->mapWithKeys(function ($cycle) use ($books) {
-                $cycleBooks = $books->where('cycle', $cycle)->sortByDesc('roman_number');
-
-                if ($cycleBooks->isEmpty()) {
-                    return [];
-                }
-
-                return [$cycle => $cycleBooks];
-            });
+        $booksByCycle = $books->groupBy('cycle')
+            ->sortByDesc(fn (Collection $cycleBooks, string $cycle): int => $cycle === 'Datenfehler'
+                ? -1
+                : (int) $cycleBooks->max('roman_number'))
+            ->map(fn (Collection $cycleBooks): Collection => $cycleBooks->sortByDesc('roman_number'));
 
         return view('livewire.rezension-index', [
             'booksByCycle' => $booksByCycle,
