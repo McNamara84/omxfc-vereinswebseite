@@ -14,12 +14,12 @@ trait MaddraxikonRefreshTestFixtures
 
     private string $testStoragePath;
 
-    private function articleHtml(int $number, string $cycle): string
+    private function articleHtml(int $number, string $cycle, ?string $title = null, string $releasedAt = '2026-09-01'): string
     {
-        return '<html><body><b>'.$number.'</b><table>
-            <tr><td>Erstmals&nbsp;erschienen:</td><td>2026-09-01</td></tr>
+        return '<html><head><meta charset="UTF-8"></head><body><b>'.$number.'</b><table>
+            <tr><td>Erstmals&nbsp;erschienen:</td><td>'.$releasedAt.'</td></tr>
             <tr><td>Zyklus:</td><td>'.$cycle.' (1)</td></tr>
-            <tr><td>Titel:</td><th>Roman '.$number.'</th></tr>
+            <tr><td>Titel:</td><th>'.($title ?? 'Roman '.$number).'</th></tr>
             <tr><td>Text:</td><td>Autor</td></tr>
         </table></body></html>';
     }

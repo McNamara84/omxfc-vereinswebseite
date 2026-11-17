@@ -25,6 +25,25 @@ test('parses main series without rating', function (): void {
         ->and($book->authors)->toBe(['Autor A', 'Autor B'])
         ->and($book->pageTitle)->toBe('Trans-Meeraka-Express');
 });
+
+test('parses the blackout infobox and ignores links to missing following books', function (): void {
+    $html = '<html><head><meta charset="UTF-8"></head><body>
+        <div class="nav-zahlen"><a href="/index.php?title=Quelle:MX699">699</a>|<b>700</b>|<a class="new" href="/index.php?title=Quelle:MX701&amp;action=edit&amp;redlink=1">701</a></div>
+        <table><tr><td>Zyklus:</td><td><a href="/index.php?title=Blackout_(Zyklus)">Blackout (Zyklus)</a></td></tr>
+        <tr><td>Titel:</td><th><b>Blackout</b></th></tr>
+        <tr><td>Text:</td><td>Oliver Müller</td></tr>
+        <tr><td>Erstmals erschienen:</td><td>14.11.2026</td></tr></table></body></html>';
+    $book = app(MaddraxikonArticleParser::class)->parse($html, 'https://de.maddraxikon.com/index.php?title=Blackout', BookType::MaddraxDieDunkleZukunftDerErde);
+
+    expect($book->number)->toBe(700)
+        ->and($book->title)->toBe('Blackout')
+        ->and($book->cycle)->toBe('Blackout')
+        ->and($book->authors)->toBe(['Oliver Müller'])
+        ->and($book->releasedAt)->toBe('14.11.2026')
+        ->and($book->pageTitle)->toBe('Blackout')
+        ->and($book->rating)->toBeNull()
+        ->and($book->votes)->toBe(0);
+});
 test('parses series specific numbers', function (BookType $type, string $navigation, string $titleCell): void {
     $book = app(MaddraxikonArticleParser::class)->parse($this->articleHtml($navigation, $titleCell), 'https://de.maddraxikon.com/wiki/Testroman', $type);
     expect($book->number)->toBe(26)

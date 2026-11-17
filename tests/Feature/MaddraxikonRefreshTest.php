@@ -7,11 +7,13 @@ namespace Tests\Feature;
 use App\Enums\BookType;
 use App\Exceptions\MaddraxikonCrawlException;
 use App\Models\Book;
+use App\Services\KompendiumService;
 use App\Services\MaddraxDataService;
 use App\Services\Maddraxikon\MaddraxikonBookImporter;
 use App\Services\Maddraxikon\MaddraxikonCandidateStore;
 use App\Services\Maddraxikon\MaddraxikonRefreshCoordinator;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +34,7 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
+    CarbonImmutable::setTestNow();
     File::deleteDirectory($this->testStoragePath);
     Mockery::close();
 });
@@ -308,4 +311,80 @@ test('failed followup page keeps last valid snapshot byte identical', function (
     $this->artisan('books:refresh', ['--series' => 'maddrax'])->assertFailed();
     expect(Storage::disk('private')->get('maddrax.json'))->toBe($oldJson);
     $this->assertDatabaseHas('books', ['roman_number' => 1, 'title' => 'Alt', 'cycle' => 'Euree']);
+});
+
+test('refresh imports published new cycles into books snapshots and kompendium metadata', function (int $number, string $cycle, string $title): void {
+    CarbonImmutable::setTestNow('2026-11-17 12:00:00 Europe/Berlin');
+    $type = BookType::MaddraxDieDunkleZukunftDerErde;
+    $this->activateSnapshot('11111111-1111-4111-8111-111111111111', ['maddrax' => [$this->row(699, 'Weltrat', 'Weltrat Ende')]]);
+    $existingBook = Book::create(['roman_number' => 699, 'title' => 'Weltrat Ende', 'author' => 'Autor', 'cycle' => 'Weltrat']);
+    $data = app(MaddraxDataService::class);
+    expect($data->getMaddraxRomane()->pluck('nummer')->all())->toBe([699])
+        ->and(array_column(MaddraxDataService::loadData(), 'nummer'))->toBe([699]);
+
+    $category = 'https://de.maddraxikon.com/index.php?title=Kategorie:Maddrax-Heftromane';
+    $page2 = $category.'&pagefrom=Weltrat#mw-pages';
+    $article = 'https://de.maddraxikon.com/index.php?title='.rawurlencode($title);
+    $newArticleHtml = str_replace(
+        '</body>',
+        '<a class="new" href="/index.php?title=Quelle:MX748&amp;action=edit&amp;redlink=1">748</a></body>',
+        $this->articleHtml($number, $cycle, $title, '14.11.2026'),
+    );
+    Http::fake([
+        $category => Http::response('<meta charset="UTF-8"><div id="mw-pages"><a href="'.htmlspecialchars($article).'">'.$title.'</a><a href="'.htmlspecialchars($page2).'">nächste Seite</a></div>'),
+        $page2 => Http::response('<div id="mw-pages"><a href="/index.php?title=Weltrat_Ende">Weltrat Ende</a></div>'),
+        $article => Http::response($newArticleHtml),
+        'https://de.maddraxikon.com/index.php?title=Weltrat_Ende' => Http::response($this->articleHtml(699, 'Weltrat', 'Weltrat Ende')),
+        '*' => Http::response('', 404),
+    ]);
+
+    for ($run = 0; $run < 2; $run++) {
+        $this->artisan('books:refresh', ['--series' => 'maddrax'])->assertSuccessful();
+        $this->assertDatabaseHas('books', ['roman_number' => $number, 'title' => $title, 'cycle' => $cycle, 'type' => $type->value]);
+        expect($data->getMaddraxRomane()->pluck('nummer')->all())->toBe([699, $number])
+            ->and(array_column(MaddraxDataService::loadData(), 'nummer'))->toBe([699, $number])
+            ->and($existingBook->fresh()->id)->toBe($existingBook->id)
+            ->and(Book::query()->where('type', $type)->count())->toBe(2);
+    }
+
+    $metadata = app(KompendiumService::class)->findeMetadaten($number, $title);
+    expect($metadata['serie'])->toBe('maddrax')
+        ->and($metadata['zyklus'])->toBe($cycle)
+        ->and($metadata['erstveroeffentlicht_am']?->toDateString())->toBe('2026-11-14')
+        ->and($metadata['roman']['bewertung'])->toBeNull()
+        ->and($metadata['roman']['stimmen'])->toBe(0);
+    Http::assertSentCount(8);
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'Quelle:MX748'));
+})->with([
+    'Blackout start' => [700, 'Blackout', 'Blackout'],
+    'Blackout end' => [749, 'Blackout', 'Weiterer Blackout-Roman'],
+    'following cycle' => [750, 'Neuer Zyklus', 'Neuer Roman'],
+]);
+
+test('nightly refresh discovers later articles and publishes them on their berlin release date', function (): void {
+    $category = 'https://de.maddraxikon.com/index.php?title=Kategorie:Maddrax-Heftromane';
+    $firstPage = '<div id="mw-pages"><a href="/wiki/Blackout">Blackout</a></div>';
+    $laterPage = '<div id="mw-pages"><a href="/wiki/Blackout">Blackout</a><a href="/wiki/Naechster_Roman">Nächster Roman</a></div>';
+    Http::fake([
+        $category => Http::sequence()->push($firstPage)->push($laterPage)->push($laterPage),
+        'https://de.maddraxikon.com/wiki/Blackout' => Http::response($this->articleHtml(700, 'Blackout', 'Blackout', '14.11.2026')),
+        'https://de.maddraxikon.com/wiki/Naechster_Roman' => Http::response($this->articleHtml(701, 'Blackout', 'Nächster Roman', '28.11.2026')),
+        '*' => Http::response('', 404),
+    ]);
+    $data = app(MaddraxDataService::class);
+
+    CarbonImmutable::setTestNow('2026-11-17 12:00:00 Europe/Berlin');
+    $this->artisan('books:refresh', ['--series' => 'maddrax'])->assertSuccessful();
+    expect($data->getMaddraxRomane()->pluck('nummer')->all())->toBe([700]);
+
+    CarbonImmutable::setTestNow('2026-11-27 22:59:00 UTC');
+    $this->artisan('books:refresh', ['--series' => 'maddrax'])->assertSuccessful();
+    expect($data->getMaddraxRomane()->pluck('nummer')->all())->toBe([700]);
+    $this->assertDatabaseMissing('books', ['roman_number' => 701]);
+
+    CarbonImmutable::setTestNow('2026-11-27 23:00:00 UTC');
+    $this->artisan('books:refresh', ['--series' => 'maddrax'])->assertSuccessful();
+    expect($data->getMaddraxRomane()->pluck('nummer')->all())->toBe([700, 701]);
+    $this->assertDatabaseHas('books', ['roman_number' => 701, 'cycle' => 'Blackout']);
+    Http::assertSentCount(8);
 });

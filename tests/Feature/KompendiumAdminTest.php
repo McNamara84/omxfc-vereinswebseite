@@ -11,7 +11,9 @@ use App\Livewire\KompendiumAdminDashboard;
 use App\Models\KompendiumRoman;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
@@ -63,6 +65,27 @@ test('upload uebernimmt erstveroeffentlichungsdatum aus metadaten', function ():
     $roman = KompendiumRoman::query()->firstWhere('dateipfad', 'romane/maddrax/001 - Der Gott aus dem Eis.txt');
     expect($roman)->not->toBeNull()
         ->and($roman->erstveroeffentlicht_am?->toDateString())->toBe('1999-02-16');
+});
+
+test('blackout upload uses the active wiki snapshot and appears in the indexed overview', function (): void {
+    DB::transaction(fn () => app(MaddraxikonSnapshotRepository::class)->storeAndActivate(
+        '77777777-7777-4777-8777-777777777777',
+        ['maddrax' => json_encode([['nummer' => 700, 'titel' => 'Blackout', 'zyklus' => 'Blackout', 'evt' => '14.11.2026']], JSON_THROW_ON_ERROR)],
+    ));
+    $file = UploadedFile::fake()->create('700 - Blackout.txt', 100, 'text/plain');
+
+    Livewire::actingAs($this->admin)->test(KompendiumAdminDashboard::class)
+        ->set('uploads', [$file])->set('ausgewaehlteSerie', 'hardcovers')->call('hochladen')->assertHasNoErrors();
+
+    $roman = KompendiumRoman::query()->where('serie', 'maddrax')->where('roman_nr', 700)->sole();
+    expect($roman->titel)->toBe('Blackout')
+        ->and($roman->zyklus)->toBe('Blackout')
+        ->and($roman->erstveroeffentlicht_am?->toDateString())->toBe('2026-11-14')
+        ->and($roman->status)->toBe('hochgeladen');
+    Storage::disk('private')->assertExists('romane/maddrax/700 - Blackout.txt');
+
+    $roman->update(['status' => 'indexiert', 'indexiert_am' => now()]);
+    $this->actingAs($this->admin)->get('/kompendium')->assertOk()->assertSee('Blackout-Zyklus');
 });
 
 test('upload mit ungueltigem dateinamen schlaegt fehl', function (): void {

@@ -1703,7 +1703,9 @@ und Storage-Volumes werden durch diese Bereinigung nicht entfernt.
 | Application-Cache leeren | `php artisan cache:clear` |
 | Romane indexieren | `php artisan romane:index` |
 | Romane neu indexieren | `php artisan romane:index --fresh` |
-| Romane, Hardcover, Mission Mars, Das Volk der Tiefe, 2012 & Die Abenteurer importieren | `php artisan books:import` |
+| Romandaten aller Serien aus dem Maddraxikon abrufen und atomar übernehmen | `php artisan books:refresh` |
+| Abruf der Hauptserie als prüfbaren Kandidaten vorbereiten | `php artisan books:refresh --series=maddrax --dry-run` |
+| Vorhandene Romandaten aller Serien aus Snapshots oder bisherigen JSON-Dateien importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
 | Alle Serien crawlen (Maddrax, Hardcover, Mission Mars, 2012, Das Volk der Tiefe, Die Abenteurer) | `php artisan crawlnovels` |
 | "Mission Mars"-Romane crawlen | `php artisan crawlmissionmars` |
@@ -1717,6 +1719,45 @@ und Storage-Volumes werden durch diese Bereinigung nicht entfernt.
 | Globale Queue-Pause aufheben | `php artisan queue:resume --all` |
 
 Weitere Befehle stehen über `php artisan list` zur Verfügung.
+
+### Romandaten aus dem Maddraxikon aktualisieren
+
+Für den nächtlichen Abruf stehen `php artisan books:refresh` und der
+kompatible Einstieg `php artisan crawlnovels` zur Verfügung. Beide aktualisieren alle Serien.
+`php artisan books:refresh --series=maddrax` beschränkt den Abruf auf die
+Hauptserie. `books:import` übernimmt bereits vorhandene Daten und ruft das Wiki
+nicht ab.
+
+Die Artikelliste stammt aus den Kategorien des Maddraxikons einschließlich ihrer
+Folgeseiten. Neue Zyklen wie Blackout ab Band 700 benötigen keine zusätzliche
+Bandgrenze oder Namensliste. Noch nicht angelegte Artikel werden nicht angefragt;
+angekündigte neue Romane mit künftigem Erscheinungsdatum werden ab ihrem
+Erscheinungstag in `Europe/Berlin` übernommen. Bewertungen sind dafür nicht
+erforderlich. Die Rezensionen ordnen Zyklen nach ihren Bandnummern, neueste zuerst.
+
+Zur Diagnose kann ein Kandidat ohne Änderung des aktiven Datenstands erzeugt
+werden:
+
+```bash
+php artisan books:refresh --series=maddrax --dry-run
+```
+
+Die Ausgabe nennt die Kandidaten-ID. Unter
+`storage/app/private/maddrax-candidates/KANDIDATEN-ID/` enthalten `manifest.json`
+die Anzahl und höchste Bandnummer sowie `maddrax.json` die geprüften Metadaten.
+Bei fehlgeschlagenen Abrufen oder Validierungen nennt das Anwendungslog den Fehler;
+der bisherige aktive Stand bleibt erhalten. Ein geprüfter Kandidat kann innerhalb
+seiner Gültigkeit freigegeben werden:
+
+```bash
+php artisan books:refresh --promote="KANDIDATEN-ID"
+```
+
+Die Freigabe aktualisiert den Datenbank-Snapshot und die Buchdaten gemeinsam und
+invalidiert anschließend die Datencaches. Sobald ein Snapshot aktiv ist, dient
+er als Quelle für Rezensionen und Kompendium-Metadaten; alte JSON-Dateien sind
+dann kein Nachweis des aktuellen Datenstands. Für die Kompendium-Suche werden
+Romanvolltexte weiterhin separat hochgeladen und indexiert.
 
 ### Sitemap erzeugen
 
