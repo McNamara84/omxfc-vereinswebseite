@@ -1116,7 +1116,13 @@ nicht durch Overrides verändert.
 Der benötigte Selector-Parser-Override ist auf 7.2.0 aktualisiert.
 Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
 Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
-Vitest/Coverage/Browser-Provider bleiben auf 5.1.0. Playwright ist vorübergehend
+Vitest, V8-Coverage, Browser-Provider und UI stehen auf 5.1.0. Der angekündigte
+[Release 5.1.1](https://github.com/vitest-dev/vitest/releases/tag/v5.1.1) wurde am
+17. November im [npm-Publish-Lauf](https://github.com/vitest-dev/vitest/actions/runs/44130784795)
+zunächst nur gestaged. Alle vier benötigten Pakete lieferten bei der Prüfung
+über die öffentliche npm-Registry für 5.1.1 noch HTTP 404. Das gemeinsame Update
+von Manifest und Lockfile wartet auf ihre öffentliche Freigabe.
+Playwright ist vorübergehend
 exakt auf 1.64.1 gepinnt: Auch 1.65.1 löst beim gemeinsamen Einsatz von Rollen-Locators
 und axe einen nativen Firefox-Absturz beim Lesen von `ariaLabelledByElements` aus
 ([Playwright #43967](https://github.com/microsoft/playwright/issues/43967),
@@ -1137,7 +1143,14 @@ auf 0.122.0. Die PHP-Coverage-Badge wird weiterhin lokal durch
 `tools/testing/php-coverage-badge.mjs` erzeugt.
 
 Die Nachprüfung vom 17. November bestätigt erhaltene PHP-/JavaScript-Coverage
-und erfolgreiche npm-/Composer-Audits. Die vollständige Chromium-/Firefox-Matrix
+und einen erfolgreichen Composer-Audit. Der npm-Lockfile-Audit scheitert seit
+der Aktualisierung von [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf)
+an einer ReDoS-Schwachstelle in `picomatch`. Alle veröffentlichten Versionen bis
+einschließlich 4.0.7 sind betroffen; eine korrigierte Version ist noch nicht
+veröffentlicht. Die elf High-Meldungen umfassen dieses Paket und seine abhängigen
+Vite-/Vitest-Pakete. Derselbe Befund blockiert im Workflow `Dependency Review`
+den Schritt `Audit npm lockfile`.
+Die vollständige Chromium-/Firefox-Matrix
 besteht mit 586 erfolgreichen Fällen und vier bisherigen Skips, ohne Retries.
 Die nativen Grype-Scans bestehen für PHP
 und Node; das Browser-Testimage überschreitet wegen des älteren Firefox die
