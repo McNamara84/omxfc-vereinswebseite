@@ -56,14 +56,14 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          npx playwright install-deps chromium
-          npx playwright install chromium
+          node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js install-deps chromium
+          node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js install chromium
 
       - name: Run homepage performance benchmark
         id: run_homepage_benchmark
         env:
           PERFORMANCE_RESULTS_DIR: playwright-performance
-        run: npx playwright test --config=playwright.benchmark.config.js --project=chromium --reporter=line
+        run: node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js test --config=playwright.benchmark.config.js --project=chromium --reporter=line
 
       - name: Publish homepage performance metrics
         if: always()

@@ -1,0 +1,1133 @@
+{
+  "schema": 1,
+  "date": "2026-11-17",
+  "baseCommit": "b3c173ced1095cd65b8e838f944a0ba67daf8e2f",
+  "versions": {
+    "vitest": "5.1.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "@vitest/browser-playwright": "5.1.0",
+    "@vitest/ui": "5.1.0",
+    "jsdom": "31.0.1",
+    "vite": "8.3.8",
+    "@playwright/test": "1.64.1",
+    "playwright": "1.64.1",
+    "playwright-core": "1.64.1",
+    "@axe-core/playwright": "4.14.0",
+    "axe-core": "4.14.0",
+    "pestphp/pest": "v5.3.7",
+    "phpunit/phpunit": "13.4.7",
+    "brianium/paratest": "v7.29.0",
+    "phpstan/phpstan": "2.3.6",
+    "rector/rector": "2.8.5",
+    "webmozart/assert": "2.5.1"
+  },
+  "playwrightUpgrade": {
+    "target": "1.65.1",
+    "adopted": false,
+    "reason": "Native Firefox ARIA/axe crashes reproduced on Windows and Linux; uniform compatible pin retained."
+  },
+  "coverage": {
+    "javascript": {
+      "before": {
+        "lines": {
+          "total": 4386,
+          "covered": 3911
+        },
+        "statements": {
+          "total": 5001,
+          "covered": 4412
+        },
+        "functions": {
+          "total": 1197,
+          "covered": 1063
+        },
+        "branches": {
+          "total": 3452,
+          "covered": 2667
+        }
+      },
+      "after": {
+        "lines": {
+          "total": 4387,
+          "covered": 3912
+        },
+        "statements": {
+          "total": 5002,
+          "covered": 4413
+        },
+        "functions": {
+          "total": 1197,
+          "covered": 1063
+        },
+        "branches": {
+          "total": 3452,
+          "covered": 2667
+        }
+      },
+      "sourceFiles": 50,
+      "freshRegressions": [],
+      "protectedRegressions": [],
+      "protectedBaselineUnchanged": true,
+      "beforeSha256": "dfcdf747b11001b36c70bcf3f951be90bb6d392db3df24bf4a40a6042394b460",
+      "afterSha256": "b58331a770e295606cf5dc71712f20e172c15f735b2573c9c05e46fa86e6e096",
+      "protectedSha256": "0e02f9fb12a19b867d09b1a83678eabdfa8b40e8356a4a7b1ac4cc88d554700e",
+      "metadata": {}
+    },
+    "php": {
+      "before": {
+        "lines": {
+          "total": 31122,
+          "covered": 27659
+        },
+        "functions": {
+          "total": 3217,
+          "covered": 2378
+        }
+      },
+      "after": {
+        "lines": {
+          "total": 31122,
+          "covered": 27659
+        },
+        "functions": {
+          "total": 3217,
+          "covered": 2378
+        }
+      },
+      "sourceFiles": 611,
+      "freshRegressions": [],
+      "protectedRegressions": [],
+      "protectedBaselineUnchanged": true,
+      "beforeSha256": "95fbd4e67c111279db61ae79b38746bad78ff88e6c6385a7d2b2414ea13088b0",
+      "afterSha256": "5fe7397ebd2a25702605646281a1e75f326e6a4f7f09e0b80984beb61dbe541e",
+      "protectedSha256": "901a9f681d126b9d3e14c28eaf72de8fb5db6cfe862968e41559159e35f1d443",
+      "metadata": {
+        "runtime": {
+          "name": "PHP",
+          "version": "8.5.12",
+          "vendorUrl": "https://www.php.net/"
+        },
+        "driver": {
+          "name": "Xdebug",
+          "version": "3.5.3"
+        }
+      }
+    },
+    "additionalPhpReference": {
+      "file": "tests/coverage-baselines/php-pest-modernization-before.json",
+      "regressions": [],
+      "unchanged": true,
+      "sha256": "9b6435d0d15b9afa7949de026b124c3dff5430fcd2a6e64e29c2db8bc14b0941"
+    },
+    "linuxJavascript": {
+      "before": {
+        "lines": {
+          "total": 4386,
+          "covered": 3911
+        },
+        "statements": {
+          "total": 5001,
+          "covered": 4412
+        },
+        "functions": {
+          "total": 1197,
+          "covered": 1063
+        },
+        "branches": {
+          "total": 3452,
+          "covered": 2667
+        }
+      },
+      "after": {
+        "lines": {
+          "total": 4387,
+          "covered": 3912
+        },
+        "statements": {
+          "total": 5002,
+          "covered": 4413
+        },
+        "functions": {
+          "total": 1197,
+          "covered": 1063
+        },
+        "branches": {
+          "total": 3452,
+          "covered": 2667
+        }
+      },
+      "sourceFiles": 50,
+      "freshRegressions": [],
+      "protectedRegressions": [],
+      "protectedBaselineUnchanged": true,
+      "beforeSha256": "dfcdf747b11001b36c70bcf3f951be90bb6d392db3df24bf4a40a6042394b460",
+      "afterSha256": "b58331a770e295606cf5dc71712f20e172c15f735b2573c9c05e46fa86e6e096",
+      "protectedSha256": "0e02f9fb12a19b867d09b1a83678eabdfa8b40e8356a4a7b1ac4cc88d554700e",
+      "metadata": {}
+    }
+  },
+  "php": {
+    "before": {
+      "total": 4850,
+      "passed": 4766,
+      "skipped": 84,
+      "failed": 0,
+      "classCount": 409
+    },
+    "afterCoverage": {
+      "total": 4850,
+      "passed": 4766,
+      "skipped": 84,
+      "failed": 0,
+      "classCount": 409
+    },
+    "final": {
+      "total": 4851,
+      "passed": 4767,
+      "skipped": 84,
+      "failed": 0,
+      "classCount": 410
+    },
+    "classRegressions": [],
+    "addedClasses": [
+      "Tests.Unit.TiaNativeStreamSyncTest"
+    ],
+    "baselineRunnerWarnings": "Both before shards completed all cases but exited 1 for seed syntax/stale shard metadata. PHPUnit coverage serialization contains only success/skipped results. Final shards exit 0.",
+    "php86Databases": {
+      "phpunit.mariadb.xml": {
+        "total": 566,
+        "passed": 566,
+        "skipped": 0,
+        "failed": 0,
+        "classCount": 39,
+        "status": 0,
+        "artifactSha256": "88263c9a060c20e2e1e6c1b893cdb44034786fb9e9bba09dd23ab0915bc370fe"
+      },
+      "phpunit.rpg-mariadb.xml": {
+        "total": 57,
+        "passed": 57,
+        "skipped": 0,
+        "failed": 0,
+        "classCount": 7,
+        "status": 0,
+        "artifactSha256": "782703a525ef6a1a2efb0b8a27b4a3851f5e988bcd42fb1791e5d05fa1439762"
+      },
+      "phpunit.veranstaltungs-baxx-mariadb.xml": {
+        "total": 8,
+        "passed": 8,
+        "skipped": 0,
+        "failed": 0,
+        "classCount": 1,
+        "status": 0,
+        "artifactSha256": "093a6107c6c33f8c8e91a7eb71f5cc223a2160980ca538f148874942880d1503"
+      }
+    }
+  },
+  "tia": {
+    "full": {
+      "total": 4767,
+      "passed": 4767,
+      "skipped": 0,
+      "failed": 0,
+      "classCount": 393
+    },
+    "driver": "PCOV 1.0.12",
+    "memoryLimit": "1G",
+    "selection": {
+      "unchanged": {
+        "code": 0,
+        "signal": null
+      },
+      "affected": {
+        "code": 0,
+        "signal": null
+      },
+      "restoredSha256": "736b771a27c231ce7785174247674d53a2584513b257bf55f41ceac37ad1659a",
+      "originalSha256": "736b771a27c231ce7785174247674d53a2584513b257bf55f41ceac37ad1659a",
+      "restored": {
+        "code": 0,
+        "signal": null
+      },
+      "unchanged-final": {
+        "code": 0,
+        "signal": null
+      }
+    },
+    "xdebug": {
+      "driver": "Xdebug 3.5.3",
+      "full": {
+        "total": 4767,
+        "passed": 4767,
+        "skipped": 0,
+        "failed": 0,
+        "classCount": 393
+      },
+      "source": {
+        "hashes": {
+          "tests/tia-bootstrap.php": "674bc0b9fb9e02c6a8b1243a6b14f2bde3adc9652ccede0d2bb7819982dcdc44",
+          "tests/Support/TiaNativeStreamSync.php": "cdaf1d5dc87b27ae2d2e27499adb2e72c98d2456eec15c87d6f3eca88ffb03e8",
+          "tests/Unit/TiaNativeStreamSyncTest.php": "c71456daa85d520e1189b8cdaf8fe7f467204d172ac651d43ab95f9e1322c1f0",
+          "tests/Fixtures/Tia/native-stream-sync.php": "6347648f10f5255a489fbdac54de49818c3e589c256394f314fb677024a84de0",
+          "phpunit.tia.xml": "ff4a054fb4e3dd5ffcad27e473abd6819fc0b2fd4693e272fcc8a7b5fb172c96",
+          "composer.lock": "e9e1619991c73e56229f24148c5f1391486408b576143641872a2ed56e76b861"
+        },
+        "versions": [
+          {
+            "name": "brianium/paratest",
+            "version": "v7.29.0"
+          },
+          {
+            "name": "pestphp/pest",
+            "version": "v5.3.7"
+          },
+          {
+            "name": "phpunit/phpunit",
+            "version": "13.4.7"
+          }
+        ]
+      },
+      "selection": {
+        "unchanged": {
+          "code": 0,
+          "signal": null
+        },
+        "affected": {
+          "code": 0,
+          "signal": null
+        },
+        "restoredSha256": "736b771a27c231ce7785174247674d53a2584513b257bf55f41ceac37ad1659a",
+        "originalSha256": "736b771a27c231ce7785174247674d53a2584513b257bf55f41ceac37ad1659a",
+        "restored": {
+          "code": 0,
+          "signal": null
+        },
+        "unchanged-final": {
+          "code": 0,
+          "signal": null
+        }
+      },
+      "artifactSha256": "fdf53723e46341d1152d27a909fb83801b7c60c56ec5e3cad19ae6508911ca7a"
+    }
+  },
+  "vitest": {
+    "nodeAndDomBefore": 627,
+    "nodeAndDomAfter": 628,
+    "browserBefore": 3,
+    "browserAfter": 5,
+    "asyncLeaks": 0
+  },
+  "node": {
+    "passed": 124,
+    "skipped": 0
+  },
+  "security": {
+    "php": {
+      "scanner": "0.122.0",
+      "database": {
+        "schemaVersion": "v6.1.10",
+        "from": "https://grype.anchore.io/databases/v6/vulnerability-db_v6.1.10_2026-11-15T16:11:12Z_1794810654.tar.zst?checksum=sha256%3Add51add686f29657dd7d71af8dc61d33cbb3e99772e263d2949b7adec4ce4102",
+        "built": "2026-11-16T06:30:54Z",
+        "path": "/root/.cache/grype/db/6/vulnerability.db",
+        "valid": true
+      },
+      "policy": "--only-fixed --fail-on high",
+      "passed": true,
+      "matches": 0,
+      "highOrCritical": 0,
+      "packages": [],
+      "artifactSha256": "bf91a195e8c8f7c9ed4f3077557053348c869e5ae764dcad3950fe658cf92c45"
+    },
+    "node": {
+      "scanner": "0.122.0",
+      "database": {
+        "schemaVersion": "v6.1.10",
+        "from": "https://grype.anchore.io/databases/v6/vulnerability-db_v6.1.10_2026-11-15T16:11:12Z_1794810654.tar.zst?checksum=sha256%3Add51add686f29657dd7d71af8dc61d33cbb3e99772e263d2949b7adec4ce4102",
+        "built": "2026-11-16T06:30:54Z",
+        "path": "/root/.cache/grype/db/6/vulnerability.db",
+        "valid": true
+      },
+      "policy": "--only-fixed --fail-on high",
+      "passed": true,
+      "matches": 2,
+      "highOrCritical": 0,
+      "packages": [
+        "glob",
+        "minimatch"
+      ],
+      "artifactSha256": "0236873cdbcccb352eca5e0b221ddd8c284ecdc19e15b15e9ebbc799435df7dd"
+    },
+    "browser": {
+      "scanner": "0.122.0",
+      "database": {
+        "schemaVersion": "v6.1.10",
+        "from": "https://grype.anchore.io/databases/v6/vulnerability-db_v6.1.10_2026-11-15T16:11:12Z_1794810654.tar.zst?checksum=sha256%3Add51add686f29657dd7d71af8dc61d33cbb3e99772e263d2949b7adec4ce4102",
+        "built": "2026-11-16T06:30:54Z",
+        "path": "/root/.cache/grype/db/6/vulnerability.db",
+        "valid": true
+      },
+      "policy": "--only-fixed --fail-on high",
+      "passed": false,
+      "matches": 251,
+      "highOrCritical": 165,
+      "packages": [
+        "firefox",
+        "glob",
+        "minimatch"
+      ],
+      "artifactSha256": "de7cc54698c6c5fe4f03390350c8f72011776faf0069b9bea8fd68eb7ab1a15d"
+    },
+    "packageAudits": {
+      "npm": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "composer": {
+        "advisories": [],
+        "abandoned": []
+      },
+      "npmArtifactSha256": "6053085e8bb9c986f43d44ffde21e26c2326a31f60033f1dd29930d3a3ba3a2a",
+      "composerArtifactSha256": "0046e84f375c11ed2bdc90e758acd0530b66a6905121613e20e9fac2525684f2"
+    }
+  },
+  "e2e": {
+    "finalPhp85": {
+      "chromium": {
+        "shards": [
+          {
+            "startTime": "2026-11-17T06:08:10.364Z",
+            "duration": 687296.968,
+            "expected": 149,
+            "skipped": 1,
+            "unexpected": 0,
+            "flaky": 0,
+            "failures": [],
+            "artifactSha256": "8751532a31a1372c0e3f61d4abc1eac6d9c036ae2e3486152344ffe3e383374e",
+            "status": 0
+          },
+          {
+            "startTime": "2026-11-17T06:08:01.175Z",
+            "duration": 1230644.856,
+            "expected": 144,
+            "skipped": 1,
+            "unexpected": 0,
+            "flaky": 0,
+            "failures": [],
+            "artifactSha256": "30b8239dbe1c052e314e9a5b9f7132799eeba33332de4b22b2bacd80c69fbe29",
+            "status": 0
+          }
+        ],
+        "retainedCases": 295,
+        "removedCases": [],
+        "addedCases": [],
+        "skipsUnchanged": true
+      },
+      "firefox": {
+        "shards": [
+          {
+            "startTime": "2026-11-17T06:08:11.457Z",
+            "duration": 885698.536,
+            "expected": 149,
+            "skipped": 1,
+            "unexpected": 0,
+            "flaky": 0,
+            "failures": [],
+            "artifactSha256": "dc06252373f633786d0ea0b4bc0ad38c002855a56207fe5dcbc6890a5f367fdc",
+            "status": 0
+          },
+          {
+            "startTime": "2026-11-17T06:08:01.174Z",
+            "duration": 1422191.1630000002,
+            "expected": 144,
+            "skipped": 1,
+            "unexpected": 0,
+            "flaky": 0,
+            "failures": [],
+            "artifactSha256": "2bb78f4a71ba0fedfd719dff816a37fa883fefb8fbab8e6910f85d2934deec55",
+            "status": 0
+          }
+        ],
+        "retainedCases": 295,
+        "removedCases": [],
+        "addedCases": [],
+        "skipsUnchanged": true
+      }
+    },
+    "initialPhp85": {
+      "chromium": {
+        "startTime": "2026-11-17T03:24:31.459Z",
+        "duration": 1967878.987,
+        "expected": 290,
+        "skipped": 2,
+        "unexpected": 3,
+        "flaky": 0,
+        "failures": [
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for admin",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for vorstand",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for kassenwart",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          }
+        ],
+        "artifactSha256": "a14f2cc7c735cb1f7fd7322284cf347032cce0409bbf15f254b96b94b171da04"
+      },
+      "firefox": {
+        "startTime": "2026-11-17T03:40:27.003Z",
+        "duration": 3048297.5749999997,
+        "expected": 289,
+        "skipped": 2,
+        "unexpected": 4,
+        "flaky": 0,
+        "failures": [
+          {
+            "file": "char-editor.spec.js",
+            "title": "zeigt Regelhilfe für alle Vorteile ohne die Auswahl zu verändern",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for admin",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for vorstand",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for kassenwart",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          }
+        ],
+        "artifactSha256": "7ce381267798224cf1ca584cd55f6f6e1f1c770f2563cc9fab044d31b6761372"
+      },
+      "webkit": {
+        "startTime": "2026-11-17T03:40:26.643Z",
+        "duration": 5588026.391,
+        "expected": 259,
+        "skipped": 2,
+        "unexpected": 34,
+        "flaky": 0,
+        "failures": [
+          {
+            "file": "char-editor.spec.js",
+            "title": "Erweiterung: gewählte Ausbildung verhindert das Abschalten und wird nach Abwahl ausgeblendet",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "sperrt High-Tech-Ausruestung im Editor ohne passenden Vorteil",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "speichert einen fertig ausgefuellten Charakter ohne Datenverlust",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 10\n+ Received  +  1\n\n- Array [\n-   Object {\n-     \"name\": \"Fahren\",\n-     \"value\": \"4\",\n-   },\n-   Object {\n-     \"name\": \"Handeln\",\n-     \"value\": \"4\",\n-   },\n- ]\n+ Array []\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate"
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "PDF-Popup zeigt keinen leeren Editor und der Ursprungstab bleibt danach speicherbar",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 10\n+ Received  +  1\n\n- Array [\n-   Object {\n-     \"name\": \"Fahren\",\n-     \"value\": \"4\",\n-   },\n-   Object {\n-     \"name\": \"Handeln\",\n-     \"value\": \"4\",\n-   },\n- ]\n+ Array []\n\nCall Log:\n- Timeout 5000ms exceeded while waiting on the predicate"
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "zeigt Speicher-Validierungsfehler ohne Eingabeverlust",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "PDF-Validierungsfehler zeigen im Popup den ausgefuellten Editor",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.waitForEvent: Timeout 5000ms exceeded while waiting for event \"popup\"\n=========================== logs ===========================\nwaiting for event \"popup\"\n============================================================"
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "zeigt Regelhilfe für alle Vorteile ohne die Auswahl zu verändern",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "zeigt Regelhilfe für Nachteile auch bei gesperrten Einträgen",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "zeigt Besonderheiten als Checkbox-Listen und die Niveau-3-Bilanz",
+            "status": "unexpected",
+            "errors": [
+              "Error: locator.call: Clicking the checkbox did not change its state\nCall log:\n  - waiting for locator('input[type=\"checkbox\"][name=\"advantages[]\"][value=\"Schnell\"]')\n    - locator resolved to <input type=\"checkbox\" value=\"Schnell\" id=\"advantage-16\" name=\"advantages[]\" x-model=\"selectedAdvantages\" aria-describedby=\"advantage-description-16\" x-bind:disabled=\"isAdvantageDisabled('Schnell')\" class=\"checkbox checkbox-primary checkbox-sm mt-0.5 shrink-0\"/>\n  - attempting click action\n    - scrolling into view if needed\n    - done scrolling\n    - forcing action\n    - performing click action\n    - cli"
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "verrechnet Gestaltwandler, zwei Nachteile und den zusätzlichen AP getrennt",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "char-editor.spec.js",
+            "title": "setzt Techno- und Bunkermensch-Regeln inklusive Pool im Formularpayload um",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "cover-ratings.spec.js",
+            "title": "member rates, skips and reviews private cover ratings accessibly",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "cover-ratings.spec.js",
+            "title": "desktop keyboard flow, upscaling and all target viewports pass",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeVisible() failed\n\nLocator:  getByTestId('current-cover-image')\nExpected: visible\nReceived: hidden\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeVisible\" getByTestId('current-cover-image') with timeout 5000ms\n  - waiting for getByTestId('current-cover-image')\n    12 × locator resolved to <img draggable=\"false\" fetchpriority=\"high\" data-testid=\"current-cover-image\" class=\"cover-rating-session__image\" src=\"http://127.0.0.1:8001/cover-bewertungen/cover/4/large\" alt=\"Cover von Das Volk der Tiefe Nummer 4: Das Volk der Tiefe Testcover\"/>\n       - unexpected value \"hidden\"\n"
+            ]
+          },
+          {
+            "file": "maddraxikon-streak.spec.js",
+            "title": "Bestätigte Serie ist mobil und am Desktop bedienbar und verständlich",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "membership-context.spec.js",
+            "title": "team switch preserves the distinction between active-team and club permissions",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeVisible() failed\n\nLocator: getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Verwaltungsstatistik', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Verwaltungsstatistik', exact: true }) with timeout 5000ms\n  - waiting for getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Verwaltungsstatistik', exact: true })\n"
+            ]
+          },
+          {
+            "file": "mitglieder.spec.js",
+            "title": "admin can copy a single member email address",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeVisible() failed\n\nLocator:  locator('[data-members-table] tbody tr').first().locator('div.absolute').first()\nExpected: visible\nReceived: hidden\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeVisible\" locator('[data-members-table] tbody tr').first().locator('div.absolute').first() with timeout 5000ms\n  - waiting for locator('[data-members-table] tbody tr').first().locator('div.absolute').first()\n    2 × locator resolved to <div x-show=\"showDetails\" @click.away=\"showDetails = false\" class=\"absolute left-0 mt-2 w-64 bg-base-100 rounded-md shadow-lg z-10 p-4\">…</div>\n      "
+            ]
+          },
+          {
+            "file": "modal-preview.spec.js",
+            "title": "alle Vorschau-Modals nutzen einen deckenden Hintergrund",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 90000ms exceeded."
+            ]
+          },
+          {
+            "file": "navigation-search.spec.js",
+            "title": "search opened with Control+k from a mobile drawer link returns focus to the search button",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeChecked() failed\n\nLocator:  locator('#member-drawer')\nExpected: checked\nReceived: unchecked\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeChecked\" locator('#member-drawer') with timeout 5000ms\n  - waiting for locator('#member-drawer')\n    13 × locator resolved to <input type=\"checkbox\" id=\"member-drawer\" class=\"drawer-toggle\" aria-label=\"Seitennavigation öffnen oder schließen\"/>\n       - unexpected value \"unchecked\"\n"
+            ]
+          },
+          {
+            "file": "navigation-search.spec.js",
+            "title": "search opened with Meta+k from a mobile drawer link returns focus to the search button",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeHidden() failed\n\nLocator:  getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Dashboard', exact: true, includeHidden: true })\nExpected: hidden\nReceived: visible\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeHidden\" getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Dashboard', exact: true, includeHidden: true }) with timeout 5000ms\n  - waiting for getByTestId('member-sidebar-navigation').getByRole('link', { name: 'Dashboard', exact: true, includeHidden: true })\n    12 × locator resolved to <a data-current=\"\" wire:navigate=\"\" aria-curre"
+            ]
+          },
+          {
+            "file": "navigation-search.spec.js",
+            "title": "search dialog is accessible in caramellatte and keeps one focus surface on mobile",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeFocused() failed\n\nLocator:  getByRole('dialog').getByRole('searchbox')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" getByRole('dialog').getByRole('searchbox') with timeout 5000ms\n  - waiting for getByRole('dialog').getByRole('searchbox')\n    7 × locator resolved to <input autofocus=\"\" x-ref=\"input\" type=\"search\" x-model=\"value\" maxlength=\"100\" aria-busy=\"false\" autocomplete=\"off\" x-on:input=\"schedule()\" id=\"navigation-search-input\" class=\"input input-bordered w-full\" x-bind:aria-busy=\"loading.toString()\" aria-describedby=\""
+            ]
+          },
+          {
+            "file": "navigation-search.spec.js",
+            "title": "search dialog is accessible in coffee and keeps one focus surface on mobile",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toBeFocused() failed\n\nLocator:  getByRole('dialog').getByRole('searchbox')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" getByRole('dialog').getByRole('searchbox') with timeout 5000ms\n  - waiting for getByRole('dialog').getByRole('searchbox')\n    13 × locator resolved to <input autofocus=\"\" x-ref=\"input\" type=\"search\" x-model=\"value\" maxlength=\"100\" aria-busy=\"false\" autocomplete=\"off\" x-on:input=\"schedule()\" id=\"navigation-search-input\" class=\"input input-bordered w-full\" x-bind:aria-busy=\"loading.toString()\" aria-describedby="
+            ]
+          },
+          {
+            "file": "profile-tour.spec.js",
+            "title": "profile tour guides real saved input and rewards once (desktop)",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 240000ms exceeded."
+            ]
+          },
+          {
+            "file": "profile-tour.spec.js",
+            "title": "profile tour guides real saved input and rewards once (mobile)",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 240000ms exceeded."
+            ]
+          },
+          {
+            "file": "profile-tour.spec.js",
+            "title": "incomplete tour remains open and Later can be resumed",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 120000ms exceeded."
+            ]
+          },
+          {
+            "file": "profile-tour.spec.js",
+            "title": "an already complete profile with old tour completion earns the new bonus",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 90000ms exceeded."
+            ]
+          },
+          {
+            "file": "profile-tour.spec.js",
+            "title": "completion recovers after the final progress request fails",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 90000ms exceeded."
+            ]
+          },
+          {
+            "file": "romantausch-bundle.spec.js",
+            "title": "Stapel-Bearbeiten Formular erfüllt WCAG AA Richtlinien",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: true\nReceived: false\n\nCall Log:\n- Test timeout of 30000ms exceeded"
+            ]
+          },
+          {
+            "file": "rpg-checks.spec.js",
+            "title": "two owners roll an opposed check and only see their own numeric results",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toContain(expected) // indexOf\n\nExpected value: \"pending\"\nReceived array: [\"completed\", \"awaiting_decision\"]"
+            ]
+          },
+          {
+            "file": "rpg-combats.spec.js",
+            "title": "two members challenge, accept, roll, react, and publish milestones",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 3\n\n- Array []\n+ Array [\n+   \"/127.0.0.1:8001/rpg/uebungskaempfe/1 due to access control checks.\",\n+ ]"
+            ]
+          },
+          {
+            "file": "rpg-npcs.spec.js",
+            "title": "leader creates NPC; member declines, accepts and reacts; practice leaves originals intact",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 3\n\n- Array []\n+ Array [\n+   \"/127.0.0.1:8001/rpg/uebungskaempfe/6 due to access control checks.\",\n+ ]"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for admin",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/dashboard$/\nReceived string:  \"http://127.0.0.1:8001/login\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toHaveURL\" with timeout 5000ms\n    14 × locator resolved to <html class=\"\" lang=\"de\" data-theme=\"caramellatte\" data-review-markdown-editor-lifecycle-registered=\"true\">…</html>\n       - unexpected value \"http://127.0.0.1:8001/login\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for vorstand",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for kassenwart",
+            "status": "unexpected",
+            "errors": [
+              "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for mitglied",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toHaveCount(expected) failed\n\nLocator: getByRole('heading', { name: '500', exact: true })\nExpected: 0\nError: Target page, context or browser has been closed\n\nCall log:\n  - Expect \"toHaveCount\" getByRole('heading', { name: '500', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: '500', exact: true })\n"
+            ]
+          }
+        ],
+        "artifactSha256": "a7c8a4ab6186f778b6bc9f27021abd4382af0324fe11cf11ad68288dfae3fc38"
+      }
+    },
+    "php86": {
+      "chromium": [
+        {
+          "startTime": "2026-11-17T04:25:39.411Z",
+          "duration": 1136427.683,
+          "expected": 149,
+          "skipped": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "failures": [],
+          "artifactSha256": "5526c9877f25148fb84e89d208f56cd24f235c7c337699de5e963e70b7f2337a"
+        },
+        {
+          "startTime": "2026-11-17T04:25:39.163Z",
+          "duration": 1840208.378,
+          "expected": 141,
+          "skipped": 1,
+          "unexpected": 3,
+          "flaky": 0,
+          "failures": [
+            {
+              "file": "mitglieder.spec.js",
+              "title": "admin can copy a single member email address",
+              "status": "unexpected",
+              "errors": [
+                "Test timeout of 30000ms exceeded."
+              ]
+            },
+            {
+              "file": "ux-pages.spec.js",
+              "title": "all menu destinations render for admin",
+              "status": "unexpected",
+              "errors": [
+                "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+              ]
+            },
+            {
+              "file": "ux-pages.spec.js",
+              "title": "all menu destinations render for vorstand",
+              "status": "unexpected",
+              "errors": [
+                "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+              ]
+            }
+          ],
+          "artifactSha256": "a82ca804335e98d925eb1538c8d5b61d97de4c91f9717ea34a30d138ea9f6e86"
+        }
+      ],
+      "firefox": [
+        {
+          "startTime": "2026-11-17T04:25:55.072Z",
+          "duration": 1368715.6679999998,
+          "expected": 149,
+          "skipped": 1,
+          "unexpected": 0,
+          "flaky": 0,
+          "failures": [],
+          "artifactSha256": "e8b0412a7af6ec1a06f4e39776656859d5a0ff7f4c31dfb4914c4dc59b95c4af"
+        },
+        {
+          "startTime": "2026-11-17T04:25:49.099Z",
+          "duration": 2098210.821,
+          "expected": 142,
+          "skipped": 1,
+          "unexpected": 2,
+          "flaky": 0,
+          "failures": [
+            {
+              "file": "mitglieder.spec.js",
+              "title": "admin sees export controls and accessible table interactions",
+              "status": "unexpected",
+              "errors": [
+                "Test timeout of 30000ms exceeded."
+              ]
+            },
+            {
+              "file": "ux-pages.spec.js",
+              "title": "all menu destinations render for vorstand",
+              "status": "unexpected",
+              "errors": [
+                "TimeoutError: page.goto: Timeout 8000ms exceeded.\nCall log:\n  - navigating to \"http://127.0.0.1:8001/mitglieder\", waiting until \"domcontentloaded\"\n"
+              ]
+            }
+          ],
+          "artifactSha256": "8b00e4a7ed87fd043cb657e49184623dc6f2fc00ad3062a79b4639dc208d8262"
+        }
+      ]
+    },
+    "finalPdfAndForms": {
+      "chromium": {
+        "startTime": "2026-11-17T04:31:17.240Z",
+        "duration": 151206.642,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "72c2109ffb49517816f6251c166e77f96ecc51fa59bb3dbe9c75fde9e0e0a7a6"
+      },
+      "firefox": {
+        "startTime": "2026-11-17T04:33:50.624Z",
+        "duration": 147903.12399999998,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "3d323b14f1771bc234e58d3e24b9e812daebb5a32b0fd98389de3ae4bd865309"
+      },
+      "webkit": {
+        "startTime": "2026-11-17T04:36:19.699Z",
+        "duration": 180646.869,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "6c60b70c39bc0390e50812159891516e6b1bc71eee7a6312cd26c34e4c32fb93"
+      }
+    },
+    "preservedState": {
+      "chromium": {
+        "startTime": "2026-11-17T05:19:34.146Z",
+        "duration": 142585.22199999998,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "619b05b1d74d893b400d678d538f70eb713e8b43190c1ca112e09b2fc9608874"
+      },
+      "firefox": {
+        "startTime": "2026-11-17T05:21:57.786Z",
+        "duration": 181046.842,
+        "expected": 5,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "1d92cf2e2028dd0f54d955ff8d3b86d6c4b2771c82ec05bf00333e422ae0e209"
+      },
+      "webkit": {
+        "startTime": "2026-11-17T05:24:59.609Z",
+        "duration": 417841.504,
+        "expected": 0,
+        "skipped": 0,
+        "unexpected": 5,
+        "flaky": 0,
+        "failures": [
+          {
+            "file": "mitglieder.spec.js",
+            "title": "admin can copy a single member email address",
+            "status": "unexpected",
+            "errors": [
+              "Test timeout of 30000ms exceeded."
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for admin",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toHaveCount(expected) failed\n\nLocator: getByRole('heading', { name: '500', exact: true })\nExpected: 0\nError: Target page, context or browser has been closed\n\nCall log:\n  - Expect \"toHaveCount\" getByRole('heading', { name: '500', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: '500', exact: true })\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for vorstand",
+            "status": "unexpected",
+            "errors": [
+              "Error: expect(locator).toHaveCount(expected) failed\n\nLocator: getByRole('heading', { name: '500', exact: true })\nExpected: 0\nError: Target page, context or browser has been closed\n\nCall log:\n  - Expect \"toHaveCount\" getByRole('heading', { name: '500', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: '500', exact: true })\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for kassenwart",
+            "status": "unexpected",
+            "errors": [
+              "Error: frame.goto: Page crashed\nCall log:\n  - navigating to \"http://127.0.0.1:8001/treffen\", waiting until \"domcontentloaded\"\n"
+            ]
+          },
+          {
+            "file": "ux-pages.spec.js",
+            "title": "all menu destinations render for mitglied",
+            "status": "unexpected",
+            "errors": [
+              "Error: frame.goto: Page crashed\nCall log:\n  - navigating to \"http://127.0.0.1:8001/impressum\", waiting until \"domcontentloaded\"\n"
+            ]
+          }
+        ],
+        "artifactSha256": "8f4dfeee9f94d84b8ea613f9d188e1a0cc9b15b3ff09c108e76ce7e6be57530b"
+      }
+    },
+    "members": {
+      "chromium": {
+        "startTime": "2026-11-17T05:42:53.882Z",
+        "duration": 50208.021,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "52458bcaf87925259665d88e966d816839f807210bba03c84620b0d325b75205"
+      },
+      "firefox": {
+        "startTime": "2026-11-17T05:43:45.070Z",
+        "duration": 52584.168000000005,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0,
+        "failures": [],
+        "artifactSha256": "e13e521b8eba2facaaf7133f70ac2217684008c808cb6522147ad021b622ac3b"
+      }
+    },
+    "nativeWebkitDiagnostic": {
+      "startTime": "2026-11-17T05:24:48.150Z",
+      "duration": 1471285.751,
+      "expected": 24,
+      "skipped": 0,
+      "unexpected": 10,
+      "flaky": 0,
+      "failures": [
+        {
+          "file": "char-editor.spec.js",
+          "title": "zeigt Regelhilfe für alle Vorteile ohne die Auswahl zu verändern",
+          "status": "unexpected",
+          "errors": [
+            "Test timeout of 30000ms exceeded."
+          ]
+        },
+        {
+          "file": "char-editor.spec.js",
+          "title": "zeigt Regelhilfe für Nachteile auch bei gesperrten Einträgen",
+          "status": "unexpected",
+          "errors": [
+            "Test timeout of 30000ms exceeded."
+          ]
+        },
+        {
+          "file": "maddraxikon-streak.spec.js",
+          "title": "Bestätigte Serie ist mobil und am Desktop bedienbar und verständlich",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(locator).toBeFocused() failed\n\nLocator:  locator('#maddraxikon-serie')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" locator('#maddraxikon-serie') with timeout 5000ms\n  - waiting for locator('#maddraxikon-serie')\n"
+          ]
+        },
+        {
+          "file": "modal-preview.spec.js",
+          "title": "alle Vorschau-Modals nutzen einen deckenden Hintergrund",
+          "status": "unexpected",
+          "errors": [
+            "Test timeout of 90000ms exceeded."
+          ]
+        },
+        {
+          "file": "navigation-search.spec.js",
+          "title": "search dialog is accessible in caramellatte and keeps one focus surface on mobile",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(locator).toBeFocused() failed\n\nLocator:  getByRole('dialog').getByRole('searchbox')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" getByRole('dialog').getByRole('searchbox') with timeout 5000ms\n  - waiting for getByRole('dialog').getByRole('searchbox')\n    14 × locator resolved to <input autofocus=\"\" x-ref=\"input\" type=\"search\" x-model=\"value\" maxlength=\"100\" aria-busy=\"false\" autocomplete=\"off\" x-on:input=\"schedule()\" id=\"navigation-search-input\" class=\"input input-bordered w-full\" x-bind:aria-busy=\"loading.toString()\" aria-describedby="
+          ]
+        },
+        {
+          "file": "navigation-search.spec.js",
+          "title": "search dialog is accessible in coffee and keeps one focus surface on mobile",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(locator).toBeFocused() failed\n\nLocator:  getByRole('dialog').getByRole('searchbox')\nExpected: focused\nReceived: inactive\nTimeout:  5000ms\n\nCall log:\n  - Expect \"toBeFocused\" getByRole('dialog').getByRole('searchbox') with timeout 5000ms\n  - waiting for getByRole('dialog').getByRole('searchbox')\n    8 × locator resolved to <input autofocus=\"\" x-ref=\"input\" type=\"search\" x-model=\"value\" maxlength=\"100\" aria-busy=\"false\" autocomplete=\"off\" x-on:input=\"schedule()\" id=\"navigation-search-input\" class=\"input input-bordered w-full\" x-bind:aria-busy=\"loading.toString()\" aria-describedby=\""
+          ]
+        },
+        {
+          "file": "rpg-npcs.spec.js",
+          "title": "leader creates NPC; member declines, accepts and reacts; practice leaves originals intact",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  - 1\n+ Received  + 3\n\n- Array []\n+ Array [\n+   \"/127.0.0.1:8001/rpg/uebungskaempfe/2 due to access control checks.\",\n+ ]"
+          ]
+        },
+        {
+          "file": "ux-pages.spec.js",
+          "title": "all menu destinations render for admin",
+          "status": "unexpected",
+          "errors": [
+            "Error: frame.goto: Page crashed\nCall log:\n  - navigating to \"http://127.0.0.1:8001/kassenstand\", waiting until \"domcontentloaded\"\n"
+          ]
+        },
+        {
+          "file": "ux-pages.spec.js",
+          "title": "all menu destinations render for vorstand",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/dashboard$/\nReceived string:  \"http://127.0.0.1:8001/login\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toHaveURL\" with timeout 5000ms\n    13 × locator resolved to <html class=\"\" lang=\"de\" data-theme=\"caramellatte\" data-review-markdown-editor-lifecycle-registered=\"true\">…</html>\n       - unexpected value \"http://127.0.0.1:8001/login\"\n"
+          ]
+        },
+        {
+          "file": "ux-pages.spec.js",
+          "title": "all menu destinations render for kassenwart",
+          "status": "unexpected",
+          "errors": [
+            "Error: expect(locator).toHaveCount(expected) failed\n\nLocator: getByRole('heading', { name: '500', exact: true })\nExpected: 0\nError: Target page, context or browser has been closed\n\nCall log:\n  - Expect \"toHaveCount\" getByRole('heading', { name: '500', exact: true }) with timeout 5000ms\n  - waiting for getByRole('heading', { name: '500', exact: true })\n"
+          ]
+        }
+      ],
+      "artifactSha256": "6ed734d0f5a0990330195f9bc91a66922ba1e3680cfff5825a2bed426008c888"
+    }
+  },
+  "lockSha256": {
+    "npm": "7048627b8743cc5e34eb291ceb6e9c2d6693879559ead529cc8c820ec38ac52d",
+    "composer": "e9e1619991c73e56229f24148c5f1391486408b576143641872a2ed56e76b861"
+  }
+}

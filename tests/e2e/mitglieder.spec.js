@@ -2,12 +2,11 @@ import { test, expect } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle' }),
-        page.click('button[type="submit"]'),
-    ]);
+    await page.getByTestId('login-email').fill(email);
+    await page.getByTestId('login-password').fill(password);
+    await page.getByTestId('login-submit').click();
+    await page.waitForURL(/\/dashboard$/);
+    await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached({ timeout: 30_000 });
 };
 
 test.describe('Mitgliederliste', () => {

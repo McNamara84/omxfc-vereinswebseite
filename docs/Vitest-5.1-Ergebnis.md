@@ -89,3 +89,26 @@ Sowohl die bestehende versionierte Referenz als auch der unmittelbar vor dem Upg
 Die Linux-Prüfungen liefen in einer isolierten Quellkopie im vorhandenen lokalen Docker-Image `omxfc-full-modernize:local`, mit nativen Linux-Abhängigkeiten. Das Image enthält PHP 8.6.0RC5 für die vorhandenen PHP-Prozess-Fixtures der Node-Suite. Der GitHub-Workflow behält PHP 8.5 bei und wurde lokal angepasst, aber nicht auf GitHub gestartet. Der vollständige Deploymenthelfer-Lauf unter Windows scheitert an den vorhandenen Bash-/POSIX-Voraussetzungen; sein vollständiger Nachweis stammt deshalb aus Linux.
 
 Der Browserstart meldet weiterhin einen Vite-Hinweis zu einem dynamischen Import im generierten Vitest-Modulrunner. Der Produktionsbuild meldet weiterhin große Chunks; der Windows-Build außerdem Plugin-Laufzeiten. Diese Meldungen sind keine Deprecations und werden sichtbar gelassen. Änderungen an Anwendungscode, PHP-Suiten, Datenbanken oder den bestehenden vollständigen Playwright-E2E-Abläufen waren für diese Testmodernisierung nicht erforderlich; diese vollständigen Anwendungssuiten wurden nicht erneut ausgeführt.
+
+## Folgearbeiten vom 17. November 2026
+
+Die weitere Modernisierung erweitert die Prüfung auf den gesamten Test-Stack.
+Vitest und seine direkt verwendeten Plugins bleiben auf dem aktuellen Stand 5.1.0;
+jsdom ist auf 31.0.1 migriert. Lifecycle-, Chart- und Tour-Tests verwenden gezielt
+zustandsbezogene Wartebedingungen und stellen ihre Globals beziehungsweise
+Prototyp-Änderungen wieder her. Ein zusätzlicher Lifecycle-Fall und zwei weitere
+native Dialog-/Fokusfälle erhöhen den Umfang auf 628 Node-/DOM- und fünf Browserfälle.
+
+Die endgültigen Windows- und Linux-Messungen erhalten die bisherige Abdeckung.
+Eine zusätzliche vollständig geprüfte Konstante im Docker-Playwright-Helfer erhöht
+Zeilen auf 3.912 / 4.387 und Statements auf 4.413 / 5.002; Funktionen und Zweige
+bleiben bei den obigen Zählern. Die Vergleiche gegen die frisch gemessene Ausgangslage
+und die geschützte Referenz bestehen insgesamt, je Datei und an unveränderten
+Quellstellen. Unter Linux besteht auch die Ressourcenleckprüfung.
+
+Der gemeinsame Runner, reguläre Playwright-Befehle und Benchmark-Workflow verwenden
+jetzt den vorhandenen Deprecation-Check. Eine isolierte ARIA-/axe-Konfiguration
+ermöglicht die Browser-Vorabprüfung ohne Anwendung oder Datenbank. Die genaue
+Paketmatrix, PHP-/Datenbank-/E2E-Nachweise und der unter Windows und Linux
+reproduzierte Firefox-Blocker von Playwright 1.65.1 stehen im
+[Folgebericht zur Test-Stack-Modernisierung](Test-Stack-Modernisierung-Ergebnis.md).

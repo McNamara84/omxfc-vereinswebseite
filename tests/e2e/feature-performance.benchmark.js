@@ -40,7 +40,7 @@ test('measures five cold contexts and warm feature navigation with production as
     for (const scenario of scenarios) {
         for (const mode of scenario.public ? ['cold'] : ['cold', 'warm']) {
             const runs = [];
-            for (let iteration = 0; iteration < 5; iteration++) {
+            for (let iteration = 0; iteration < 5; iteration++) await test.step(`${scenario.name}: ${mode}, run ${iteration + 1}/5`, async () => {
                 const context = await browser.newContext({ baseURL, ...(scenario.public ? {} : { storageState }) });
                 try {
                     await context.route(/tile\.openstreetmap\.org|mapdraxv2\.maddraxikon\.com/, route => route.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=', 'base64') }));
@@ -86,7 +86,7 @@ test('measures five cold contexts and warm feature navigation with production as
                     runs.push({ readyMs, scriptMs, fcpMs: mode === 'cold' ? raw.fcpMs : null, lcpMs: mode === 'cold' ? raw.lcpMs : null,
                         transferBytes: raw.resources.reduce((total, resource) => total + resource.transferBytes, 0), gzipBytes, assets });
                 } finally { await context.close(); }
-            }
+            });
             output.push({ scenario: scenario.name, mode, readyMs: summary(runs.map(run => run.readyMs)), scriptMs: summary(runs.map(run => run.scriptMs)),
                 gzipBytes: summary(runs.map(run => run.gzipBytes)), runs });
         }

@@ -10,9 +10,9 @@ import { mountMemberMap } from '../../resources/js/mitglieder/karte';
 const utils = window.omxfcMemberMap;
 beforeEach(() => {
     document.body.innerHTML = '<div id="map" data-member-map></div><div id="member-map-config"></div>';
-    window.omxfcMemberMap = utils;
+    vi.stubGlobal('omxfcMemberMap', utils);
 });
-afterEach(() => { vi.restoreAllMocks(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 it('creates role markers, accessible legend, and releases Leaflet on removal', () => {
     const config = document.getElementById('member-map-config');
     config.dataset.members = JSON.stringify([{ name: 'Test', city: 'Berlin', role: 'Mitglied', lat: 1, lon: 2, profile_url: '/profil' }]);

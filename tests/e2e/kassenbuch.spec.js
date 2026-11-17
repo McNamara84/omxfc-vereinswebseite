@@ -61,8 +61,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         // Click the button to open modal
         await addButton.click();
         
-        // DEBUG: Wait a moment and check DOM state
-        await page.waitForTimeout(500);
+        // Inspect the current state; the dialog's visibility is awaited below.
         const modalState = await page.evaluate(() => {
             const dialogs = document.querySelectorAll('[role="dialog"]');
             const xShowElements = document.querySelectorAll('[x-show]');
@@ -154,8 +153,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         
         await editButton.click();
         
-        // DEBUG: Wait and check modal state
-        await page.waitForTimeout(500);
+        // Inspect the current state; the dialog's visibility is awaited below.
         const modalState = await page.evaluate(() => {
             const dialogs = document.querySelectorAll('[role="dialog"]');
             return {

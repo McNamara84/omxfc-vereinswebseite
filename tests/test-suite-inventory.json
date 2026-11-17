@@ -71,6 +71,16 @@
     "seeders": []
   },
   {
+    "file": "tests/e2e/aria-reflection.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "ARIA label references survive ${axeFirst ? 'axe before locators' : 'locators before axe'}"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/e2e/aufgaben.spec.js",
     "runner": "playwright",
     "laravel": false,
@@ -703,6 +713,18 @@
     "seeders": [
       "BookPlaywrightSeeder"
     ]
+  },
+  {
+    "file": "tests/e2e/rpg-character-rename.spec.js",
+    "runner": "playwright",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "rename confirms price, cancellation is free and history records the purchase",
+      "rename explains blocked purchase: ${scenario}",
+      "server validation preserves the name, focuses the field and supports a small viewport"
+    ],
+    "seeders": []
   },
   {
     "file": "tests/e2e/rpg-checks.spec.js",
@@ -2583,6 +2605,7 @@
       "gast wird zur login seite weitergeleitet",
       "admin kann txt datei hochladen",
       "upload uebernimmt erstveroeffentlichungsdatum aus metadaten",
+      "blackout upload uses the active wiki snapshot and appears in the indexed overview",
       "upload mit ungueltigem dateinamen schlaegt fehl",
       "upload von duplikat wird abgelehnt",
       "indexieren dispatched job",
@@ -3264,7 +3287,9 @@
       "legacy file coverage error names the actual baseline source",
       "promotion reports snapshot and book updates without claiming a json update",
       "tampered candidate is rejected",
-      "failed followup page keeps last valid snapshot byte identical"
+      "failed followup page keeps last valid snapshot byte identical",
+      "refresh imports published new cycles into books snapshots and kompendium metadata",
+      "nightly refresh discovers later articles and publishes them on their berlin release date"
     ],
     "seeders": []
   },
@@ -4474,6 +4499,7 @@
       "index displays total review count per cycle",
       "index prefers persisted cycle over stale json mapping",
       "index marks missing cycle as data error instead of unknown cycle",
+      "new cycles appear first by book number and missing cycles appear last",
       "index shows dynamic review reward text",
       "index shows prominent special offer banner",
       "index shows hardcover books",
@@ -4726,6 +4752,73 @@
       "v2 derives repeat counts and attribute bonuses from effect instances",
       "v2 negates racial disadvantage and never counts remaining racial one as compensation",
       "v2 rejects legacy language specializations and requires madness trigger"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgCharacterRenameInteractionTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "old inventory preview cannot overwrite rename and fresh inventory preserves it",
+      "old improvement preview is rejected and a fresh approved improvement keeps renamed character",
+      "open invitations are explained before purchase and become stale after rename",
+      "running combat continues with unchanged historic names and state after rename",
+      "existing checks remain executable from their snapshot after rename"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgCharacterRenameMariaDbConcurrencyTest.php",
+    "runner": "mariadb",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "parallel retries book one rename and one purchase",
+      "competing names for one revision cannot both charge",
+      "different characters share one spendable wallet",
+      "rename competes with existing wallet purchases without overspending",
+      "rename and new advancement submission cannot leave a stale pending request",
+      "pending approval cannot be invalidated by a racing rename",
+      "inventory and rename preserve the winner without partially applying the loser",
+      "deletion racing rename never leaves a partial charge or dangling character reference",
+      "invitation acceptance and rename never mix character snapshots"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/RpgCharacterRenameTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "rename atomically spends exactly 25 baxx and preserves the character",
+      "multiple deliberate changes including duplicates are separately charged",
+      "unchanged trimmed name is free even without remaining balance",
+      "valid names preserve casing unicode and inner spacing",
+      "invalid requests neither charge nor rename",
+      "guests outsiders and foreign owners cannot rename through http or service",
+      "admin can rename own character without an rpg membership or rpg team",
+      "access revoked after rendering is rechecked with fresh membership data",
+      "selected ag does not change the members wallet used for payment",
+      "insufficient or unavailable wallet refuses all writes",
+      "missing system reward fails before charging",
+      "configured price is shared by the form and recorded purchase",
+      "pending advancement blocks rename and preserves the request",
+      "decided advancement no longer blocks rename",
+      "stale form cannot overwrite a newer name",
+      "replaying a successful request after another rename never charges or restores its name",
+      "submission keys cannot be reused for changed content or another character",
+      "any persistence failure rolls back payment name revision and history",
+      "errors reopen only the submitted character form and escape its preserved value",
+      "malformed array name still renders the validation page safely",
+      "history is private escaped immutable and reflects refunds",
+      "name history paginates independently of advancement requests",
+      "new pdf uses the renamed character and new download filename",
+      "character deletion keeps purchase and audit while account deletion follows existing cascades",
+      "migration rollback preserves even refunded purchases and detached character histories",
+      "empty migration can be rolled back and reapplied without changing existing characters"
     ],
     "seeders": []
   },
@@ -5768,6 +5861,7 @@
     "database": true,
     "methods": [
       "current returns open tour payload for authenticated member",
+      "background tour polling preserves form feedback for the redirected page",
       "former members do not receive profile invitations and cannot mutate them",
       "current conditionally includes cover ratings navigation step",
       "current upgrades outdated assignment before returning payload",
@@ -6758,6 +6852,7 @@
     "database": true,
     "methods": [
       "parses main series without rating",
+      "parses the blackout infobox and ignores links to missing following books",
       "parses series specific numbers",
       "2012 series uses navigation number instead of series year",
       "rejects article without number or title",
@@ -7706,6 +7801,7 @@
       "explicit PHP filters are forwarded as arguments and unknown scopes fail",
       "each browser project gets a separate setup invocation and a fresh server",
       "the CI browser selection matches the Playwright configuration",
+      "all Vitest and Playwright invocations reject deprecations in host and Docker scopes",
       "the native dialog pilot belongs to the complete host and Docker scopes, not the fast scope",
       "a failed command stops the sequence and propagates its exit code",
       "the complete Node command discovers every matching fixture without shell expansion",
@@ -8303,6 +8399,16 @@
     "seeders": []
   },
   {
+    "file": "tests/Unit/TiaNativeStreamSyncTest.php",
+    "runner": "php-unit",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "TIA synchronizes real files and preserves unsupported stream failures"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Unit/TiaWorkflowCommandTest.php",
     "runner": "php-unit",
     "laravel": false,
@@ -8466,7 +8572,9 @@
     "methods": [
       "öffnet einen nativen modalen Dialog per Tastatur und fokussiert die Suche",
       "sucht nach Eingabe und navigiert mit Pfeiltasten durch echte Links",
-      "schließt mit Escape, gibt den Fokus zurück und öffnet ohne alten Suchzustand"
+      "schließt mit Escape, gibt den Fokus zurück und öffnet ohne alten Suchzustand",
+      "schließt vor dem verzögerten Fokusnachlauf und lässt den Fokus am Auslöser",
+      "verwirft eine verspätete Suchantwort nach Escape auch beim erneuten Öffnen"
     ],
     "seeders": []
   },
@@ -8725,6 +8833,7 @@
       "retries mount failures using the successful cached import",
       "ignores rejected imports and detached roots after cancellation",
       "unregisters navigation, mutation, and retry listeners on destruction",
+      "releases a mounted root when it no longer matches the feature selector",
       "guards real Alpine expressions until registration and preserves input during scans",
       "can retry an Alpine feature when the runtime is not available yet"
     ],

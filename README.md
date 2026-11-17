@@ -1093,10 +1093,9 @@ geschriebener Daten nach einem Neustart. Der Deploy-Workflow veröffentlicht
 verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselbe
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
-Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.5 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.5;
-das neuere PHPUnit 13.4.6 bleibt deshalb ausgeschlossen. Pest Browser bleibt auf
-5.2.0; PHPStan und Rector stehen auf 2.3.5 beziehungsweise 2.8.4. maryUI 2.9.11 benötigt
+Der Test-Stack verwendet seit dem 17. November Pest 5.3.7 mit PHPUnit 13.4.7.
+Pest Browser bleibt auf dem aktuellen Stand 5.2.0; PHPStan und Rector stehen auf
+2.3.6 beziehungsweise 2.8.5. maryUI 2.9.11 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
 Fortify benötigt weiterhin `laravel/passkeys` 0.2.x; dessen Version 0.3.0 bleibt
@@ -1104,11 +1103,10 @@ deshalb ebenfalls ausgeschlossen.
 
 Die Auflösung vom 12. November aktualisiert unter anderem Laravel auf 13.42.0,
 Sanctum auf 4.4.0, Scout auf 11.10.0, Tinker auf 3.1.0 und Pail auf 1.3.0.
-Am 13. November folgen Guzzle 8.5.0 und PSR-7 3.4.0. ParaTest 7.28.0 ist
-wegen einer inkompatiblen `SuiteLoader::tests`-Struktur mit Pest 5.3.5 explizit
-ausgeschlossen: Der parallele Lauf bricht in `WrapperRunner::getTestFiles()` ab.
-Die getestete Version 7.27.5 bleibt erhalten; bei einem kompatiblen Pest-Update
-ist dieser Konflikt erneut zu prüfen.
+Am 13. November folgen Guzzle 8.5.0 und PSR-7 3.4.0. Das gemeinsame Update auf
+Pest 5.3.7 und ParaTest 7.29.0 beseitigt den bisherigen Parallelisierungs-Konflikt;
+der frühere Ausschluss von ParaTest 7.28.0 ist entfernt. Der parallele Unit-Lauf
+besteht mit dem neuen Verbund.
 Auch die kompatiblen transitiven Pakete, einschließlich PHP-Coverage 14.5.2,
 League URI Components 7.10.0 und der Symfony-8.1-Komponenten, sind aktualisiert.
 Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
@@ -1122,22 +1120,34 @@ Der benötigte Selector-Parser-Override ist auf 7.2.0 aktualisiert.
 Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
 Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
 Vitest/Coverage/Browser-Provider bleiben auf 5.1.0. Playwright ist vorübergehend
-exakt auf 1.64.1 gepinnt: 1.65.0 löst beim gemeinsamen Einsatz von Rollen-Locators
+exakt auf 1.64.1 gepinnt: Auch 1.65.1 löst beim gemeinsamen Einsatz von Rollen-Locators
 und axe einen nativen Firefox-Absturz beim Lesen von `ariaLabelledByElements` aus
 ([Playwright #43967](https://github.com/microsoft/playwright/issues/43967),
 [Mozilla #2090055](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055)).
-Der E2E-Regressionstest prüft beide Lesereihenfolgen; Firefox und sämtliche
-Barrierefreiheitsregeln bleiben aktiv. Den Pin erst mit einer stabilen Version
+Die Probe mit den vorgesehenen Firefox-Binaries von 1.65.1 scheitert unter Windows
+und Linux. `npm run test:e2e:aria` prüft beide Lesereihenfolgen ohne Laravel oder
+Datenbank; die CI führt sie vor der vollständigen Browser-Suite aus. Firefox und
+sämtliche Barrierefreiheitsregeln bleiben aktiv. Den Pin erst mit einer stabilen Version
 mit behobenem Firefox-Build und erfolgreichem Regressionstest anheben.
 Die npm-Overrides binden auch `playwright` und `playwright-core` aus Vitest und
 axe an diesen Pin, damit nur eine einheitliche Playwright-Version installiert wird.
-axe 4.14.0 und Zod 4.6.7 bleiben erhalten; daisyUI steht auf 5.8.0. jsdom 30.1.3 bleibt
-innerhalb der bestehenden Hauptversion; jsdom 31 ist nicht Teil dieses Updates.
+axe 4.14.0 und Zod 4.6.7 bleiben erhalten; daisyUI steht auf 5.8.0. Die vollständige
+Vitest-Suite ist auf jsdom 31.0.1 migriert. Änderungen und Prüfnachweise stehen im
+[Ergebnisbericht zur Test-Stack-Modernisierung](docs/Test-Stack-Modernisierung-Ergebnis.md).
 Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
 `docker/login-action` ist auf 4.8.0 mit dem zugehörigen Commit-Pin aktualisiert,
 die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
-auf 0.121.3. Die PHP-Coverage-Badge wird weiterhin lokal durch
+auf 0.122.0. Die PHP-Coverage-Badge wird weiterhin lokal durch
 `tools/testing/php-coverage-badge.mjs` erzeugt.
+
+Die Nachprüfung vom 17. November bestätigt erhaltene PHP-/JavaScript-Coverage
+und erfolgreiche npm-/Composer-Audits. Die vollständige Chromium-/Firefox-Matrix
+besteht mit 586 erfolgreichen Fällen und vier bisherigen Skips, ohne Retries.
+Die nativen Grype-Scans bestehen für PHP
+und Node; das Browser-Testimage überschreitet wegen des älteren Firefox die
+bestehende Sicherheitsgrenze. Auch die vollständige WebKit-Abnahme bleibt offen.
+Die Testergebnisse und verbleibenden Blocker sind im
+[aktuellen Ergebnisbericht](docs/Test-Stack-Modernisierung-Ergebnis.md) ausgewiesen.
 
 Die lokalen Grype-Scans vom 12. November bestehen für Composer, PHP-FPM, Node,
 nginx und MariaDB die unveränderte CI-Grenze `--only-fixed --fail-on high`.
@@ -1633,6 +1643,7 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
 | Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
+| Isolierte ARIA-/axe-Probe vor Browser-Upgrades | `npm run test:e2e:aria` |
 | Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
 | Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
 | Deploymenthelfer und Releasechecks prüfen | `npm run test:deployment` |
@@ -1650,7 +1661,7 @@ Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.
 Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
 und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
-Der Test-Stack verwendet Pest 5.3.5, PHPUnit 13.4.5 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md).
+Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7, ParaTest 7.29.0 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md) und im [aktuellen Folgebericht](docs/Test-Stack-Modernisierung-Ergebnis.md).
 
 Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebundene Datasets und nach Bedarf lokale Fixture-Traits. Fünf abstrakte Fixture-Basen erhalten die gesonderten Transaktions-Lifecycles. Konventionen und die Zuordnung der bisherigen Prüffälle stehen in [tests/README.md](tests/README.md) und [tests/pest-migration-map.json](tests/pest-migration-map.json). `composer test:mutate:core` ergänzt das bisherige 100-%-Mutation-Gate um Geld- und RPG-Kostenregeln und läuft auch bei Pull Requests. TIA umfasst Unit-, Feature- und reguläre Integrationstests; MariaDB-Parallelzugriffe, Browsertests und der manuelle Typesense-Test behalten eigene Läufe.
 

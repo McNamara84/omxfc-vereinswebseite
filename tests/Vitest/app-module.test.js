@@ -1,14 +1,8 @@
 import { vi } from 'vitest';
 
 
-const originalMatchMedia = window.matchMedia;
-const originalL = window.L;
-const originalAlpine = window.Alpine;
-
 afterEach(() => {
-  window.matchMedia = originalMatchMedia;
-  window.L = originalL;
-  window.Alpine = originalAlpine;
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
@@ -18,21 +12,22 @@ async function loadApp(matches, { existingAlpine, bodyHtml = '' } = {}) {
   document.body.innerHTML = bodyHtml;
   document.documentElement.className = '';
   document.documentElement.dataset.theme = '';
-  delete window.L;
-  delete window.Alpine;
-  delete window.__omxfcPrefersDark;
-  delete window.__omxfcApplyStoredTheme;
+  // Preserve the original descriptors even when bootstrap creates these globals.
+  for (const name of ['L', 'Alpine', '__omxfcPrefersDark', '__omxfcApplyStoredTheme']) {
+    vi.stubGlobal(name, undefined);
+    delete window[name];
+  }
 
   document.documentElement.classList.toggle('dark', matches);
   document.documentElement.dataset.theme = matches ? 'coffee' : 'caramellatte';
 
   let handler;
-  window.matchMedia = vi.fn().mockReturnValue({
+  vi.stubGlobal('matchMedia', vi.fn().mockReturnValue({
     matches,
     addEventListener: (event, cb) => {
       if (event === 'change') handler = cb;
     },
-  });
+  }));
   vi.doMock('../../resources/js/bootstrap.js', () => ({}));
   vi.doMock('../../resources/js/features/index.js', () => ({}));
   vi.doMock('../../resources/js/alpine/char-editor.js', () => ({}));
@@ -101,8 +96,8 @@ describe('app module', () => {
   test('bridges object and array Livewire toast payloads to maryUI', async () => {
     await loadApp(false);
     const callbacks = [];
-    window.Livewire = { hook: vi.fn(), on: vi.fn((name, callback) => callbacks.push(callback)) };
-    window.toast = vi.fn();
+    vi.stubGlobal('Livewire', { hook: vi.fn(), on: vi.fn((name, callback) => callbacks.push(callback)) });
+    vi.stubGlobal('toast', vi.fn());
     document.dispatchEvent(new Event('livewire:init'));
     const toast = callbacks.at(-1);
     toast({ type: 'success', title: 'Gespeichert', description: 'Fertig', timeout: 42, position: 'toast-top' });

@@ -81,3 +81,45 @@ test('schließt mit Escape, gibt den Fokus zurück und öffnet ohne alten Suchzu
     await expect.element(dialog()).not.toBeVisible();
     await expect.element(trigger()).toHaveFocus();
 });
+
+test('schließt vor dem verzögerten Fokusnachlauf und lässt den Fokus am Auslöser', async () => {
+    await trigger().click();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const component = Alpine.$data(document.querySelector('[x-data]'));
+    component.show();
+    expect(document.querySelector('dialog').matches(':modal')).toBe(true);
+    expect(component.focusTimer).not.toBeNull();
+
+    await page.getByRole('button', { name: 'Suche schließen' }).click();
+    expect(component.focusTimer).toBeNull();
+    await vi.advanceTimersByTimeAsync(100);
+
+    await expect.element(dialog()).not.toBeVisible();
+    await expect.element(trigger()).toHaveFocus();
+    expect(fetch).not.toHaveBeenCalled();
+});
+
+test('verwirft eine verspätete Suchantwort nach Escape auch beim erneuten Öffnen', async () => {
+    await openSearch();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const pending = Promise.withResolvers();
+    fetch.mockReturnValueOnce(pending.promise);
+    await input().fill('Chronik');
+    await vi.advanceTimersByTimeAsync(250);
+    expect(fetch).toHaveBeenCalledOnce();
+    const signal = fetch.mock.calls[0][1].signal;
+
+    await userEvent.keyboard('{Escape}');
+    expect(signal.aborted).toBe(true);
+    pending.resolve(new Response(JSON.stringify([{ name: 'Veraltet', link: '/alt' }]), {
+        headers: { 'Content-Type': 'application/json' },
+    }));
+    await vi.advanceTimersByTimeAsync(0);
+    await expect.element(dialog()).not.toBeVisible();
+    await expect.element(trigger()).toHaveFocus();
+
+    await openSearch();
+    await expect.element(input()).toHaveValue('');
+    await expect.element(page.getByRole('link', { name: 'Veraltet' })).not.toBeInTheDocument();
+    expect(fetch).toHaveBeenCalledOnce();
+});

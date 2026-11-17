@@ -5,6 +5,8 @@ afterEach(() => {
     for (const root of document.querySelectorAll('[x-data]')) Alpine.destroyTree(root);
     Alpine.stopObservingMutations();
     document.body.replaceChildren();
+    if (vi.isFakeTimers()) vi.clearAllTimers();
+    vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
 });

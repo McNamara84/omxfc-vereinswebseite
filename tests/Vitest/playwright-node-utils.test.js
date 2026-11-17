@@ -114,13 +114,25 @@ describe('playwright docker harness', () => {
         expect(exitCode).toBe(0);
         expect(spawnFn).toHaveBeenCalledTimes(3);
         expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/tools[\\/]testing[\\/]check-deprecations\.mjs$/),
+            '--run',
             expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
             'install',
             'webkit',
         ]);
         expect(spawnFn.mock.calls[1][1]).toEqual([
+            expect.stringMatching(/tools[\\/]testing[\\/]check-deprecations\.mjs$/),
+            '--run',
             expect.stringMatching(/node_modules[\\/]vite[\\/]bin[\\/]vite\.js$/),
             'build',
+        ]);
+        expect(spawnFn.mock.calls[2][1]).toEqual([
+            expect.stringMatching(/tools[\\/]testing[\\/]check-deprecations\.mjs$/),
+            '--run',
+            expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
+            'test',
+            'tests/e2e/spenden.spec.js',
+            '--project=webkit',
         ]);
         expect(spawnFn.mock.calls[2][2].env).toMatchObject({
             PLAYWRIGHT_USE_DOCKER: '1',
@@ -163,11 +175,15 @@ describe('playwright docker harness', () => {
         expect(exitCode).toBe(0);
         expect(spawnFn).toHaveBeenCalledTimes(2);
         expect(spawnFn.mock.calls[0][1]).toEqual([
+            expect.stringMatching(/tools[\\/]testing[\\/]check-deprecations\.mjs$/),
+            '--run',
             expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
             'install',
             'webkit',
         ]);
         expect(spawnFn.mock.calls[1][1]).toEqual([
+            expect.stringMatching(/tools[\\/]testing[\\/]check-deprecations\.mjs$/),
+            '--run',
             expect.stringMatching(/node_modules[\\/]playwright[\\/]cli\.js$/),
             'test',
             'tests/e2e/spenden.spec.js',

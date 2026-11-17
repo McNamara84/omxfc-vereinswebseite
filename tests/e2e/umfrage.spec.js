@@ -69,7 +69,6 @@ test.describe('Umfragen', () => {
     console.log('[DEBUG] Livewire response received:', response ? 'yes' : 'no');
     
     // DEBUG: Wait and check page state
-    await page.waitForTimeout(1000);
     const pageState = await page.evaluate(() => {
         const statusEl = document.querySelector('#poll-status-message, [role="status"]');
         return {
@@ -151,7 +150,6 @@ test.describe('Umfragen', () => {
     console.log('[DEBUG] Member vote - Livewire response received:', response ? 'yes' : 'no');
     
     // DEBUG: Check page state after submit
-    await page.waitForTimeout(1000);
     const pageState = await page.evaluate(() => {
         return {
             statusText: document.querySelector('#poll-status-message')?.textContent?.trim(),

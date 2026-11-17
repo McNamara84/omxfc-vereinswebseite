@@ -48,7 +48,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-typesense.outputs.digest }}
-          grype-version: v0.121.3
+          grype-version: v0.122.0
           fail-build: true
           severity-cutoff: high
           output-format: table
@@ -70,7 +70,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-nginx.outputs.digest }}
-          grype-version: v0.121.3
+          grype-version: v0.122.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -93,7 +93,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-database.outputs.digest }}
-          grype-version: v0.121.3
+          grype-version: v0.122.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true
@@ -124,7 +124,7 @@ jobs:
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}
-          grype-version: v0.121.3
+          grype-version: v0.122.0
           fail-build: true
           severity-cutoff: high
           only-fixed: true

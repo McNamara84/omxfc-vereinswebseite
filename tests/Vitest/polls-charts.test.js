@@ -4,18 +4,17 @@
  */
 import { vi } from 'vitest';
 
+const chartMocks = vi.hoisted(() => ({ created: [], destroy: vi.fn() }));
+
 vi.mock('chart.js', () => {
-    // Klasse wird hier innerhalb der Factory definiert
     class MockChart {
         constructor(ctx, config) {
-            // Verwende globale Variable statt Klasseneigenschaft
-            globalThis.__chartMockCalls = globalThis.__chartMockCalls || [];
-            globalThis.__chartMockCalls.push([ctx, config]);
+            chartMocks.created.push([ctx, config]);
             this.type = config?.type;
         }
 
         destroy() {
-            globalThis.__destroyCallCount = (globalThis.__destroyCallCount || 0) + 1;
+            chartMocks.destroy();
         }
     }
     MockChart.register = vi.fn();
@@ -38,7 +37,6 @@ vi.mock('chart.js', () => {
 });
 
 describe('polls/charts.js - updateCharts Guards', () => {
-    let originalGetContext;
     let mount, cleanup;
 
     // Modul nur einmal importieren, um Event-Listener-Akkumulation zu vermeiden
@@ -47,21 +45,17 @@ describe('polls/charts.js - updateCharts Guards', () => {
     });
 
     beforeEach(() => {
-        originalGetContext = HTMLCanvasElement.prototype.getContext;
         // Reset DOM
         document.body.innerHTML = '';
-        // Reset Mock-Aufrufe über globalThis
-        globalThis.__chartMockCalls = [];
-        globalThis.__destroyCallCount = 0;
+        chartMocks.created.length = 0;
 
         // Mock getContext für Canvas-Elemente
-        HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({});
         cleanup = mount(document.body);
     });
 
     afterEach(() => {
         cleanup();
-        HTMLCanvasElement.prototype.getContext = originalGetContext;
         vi.restoreAllMocks();
     });
 
@@ -99,29 +93,32 @@ describe('polls/charts.js - updateCharts Guards', () => {
         const data = document.createElement('div');
         data.setAttribute('data-omxfc-poll-chart-data', '');
         document.body.appendChild(data);
-        const flush = async () => { for (let i = 0; i < 5; i++) await Promise.resolve(); };
-        await flush();
+        // Deliver the observer callback before asserting that invalid data creates no charts.
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(chartMocks.created).toHaveLength(0);
         data.setAttribute('data-omxfc-poll-chart-data', '{bad');
-        await flush();
-        expect(globalThis.__chartMockCalls).toHaveLength(0);
+        await new Promise(resolve => setTimeout(resolve, 0));
+        expect(chartMocks.created).toHaveLength(0);
         const payload = { options: { labels: ['A'], members: [2], guests: [1] }, totals: { members: 2, guests: 1 }, timeline: [] };
         data.setAttribute('data-omxfc-poll-chart-data', JSON.stringify(payload));
-        await flush();
-        expect(globalThis.__chartMockCalls).toHaveLength(3);
+        await vi.waitFor(() => expect(chartMocks.created).toHaveLength(3), {
+            message: 'Valid Livewire chart data creates all three charts',
+        });
         data.setAttribute('data-omxfc-poll-chart-data', JSON.stringify({ ...payload, options: { ...payload.options, labels: ['B'] } }));
-        await flush();
-        expect(globalThis.__chartMockCalls.at(-3)[1].data.labels).toEqual(['B']);
-        expect(globalThis.__destroyCallCount).toBeGreaterThanOrEqual(3);
+        await vi.waitFor(() => expect(chartMocks.created.at(-3)[1].data.labels).toEqual(['B']), {
+            message: 'A Livewire morph replaces the charts with their current labels',
+        });
+        expect(chartMocks.destroy).toHaveBeenCalledTimes(3);
     });
 
     it.each(['rgba(12, 34, 56, 0.4)', 'oklch(0.5 0.1 20)', ''])('supports theme color %s and missing color markers', color => {
         setupChartDOM();
         vi.spyOn(window, 'getComputedStyle').mockReturnValue({ color });
         window.dispatchEvent(new CustomEvent('poll-results-updated', { detail: { options: { labels: ['A'] } } }));
-        expect(globalThis.__chartMockCalls).toHaveLength(2);
+        expect(chartMocks.created).toHaveLength(2);
         document.querySelectorAll('[data-omxfc-poll-color]').forEach(el => el.remove());
         window.dispatchEvent(new CustomEvent('poll-results-updated', { detail: { options: { labels: ['A'] } } }));
-        expect(globalThis.__chartMockCalls).toHaveLength(4);
+        expect(chartMocks.created).toHaveLength(4);
     });
 
     it('sollte bei null-Daten nicht crashen', () => {
@@ -138,7 +135,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
         }).not.toThrow();
 
         // Chart sollte nicht erstellt worden sein
-        expect(globalThis.__chartMockCalls.length).toBe(0);
+        expect(chartMocks.created.length).toBe(0);
     });
 
     it('sollte bei leerem Objekt nicht crashen', () => {
@@ -152,7 +149,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
             window.dispatchEvent(event);
         }).not.toThrow();
 
-        expect(globalThis.__chartMockCalls.length).toBe(0);
+        expect(chartMocks.created.length).toBe(0);
     });
 
     it('sollte bei fehlendem options-Objekt nicht crashen', () => {
@@ -171,7 +168,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
             window.dispatchEvent(event);
         }).not.toThrow();
 
-        expect(globalThis.__chartMockCalls.length).toBe(0);
+        expect(chartMocks.created.length).toBe(0);
     });
 
     it('sollte bei leerem labels-Array nicht crashen', () => {
@@ -196,7 +193,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
             window.dispatchEvent(event);
         }).not.toThrow();
 
-        expect(globalThis.__chartMockCalls.length).toBe(0);
+        expect(chartMocks.created.length).toBe(0);
     });
 
     it('sollte bei labels als nicht-Array nicht crashen', () => {
@@ -218,14 +215,14 @@ describe('polls/charts.js - updateCharts Guards', () => {
             window.dispatchEvent(event);
         }).not.toThrow();
 
-        expect(globalThis.__chartMockCalls.length).toBe(0);
+        expect(chartMocks.created.length).toBe(0);
     });
 
     it('sollte bei gültigen Labels aber 0 Stimmen keinen Doughnut-Chart erstellen', () => {
         setupChartDOM();
 
         // Merke den aktuellen Stand VOR dem Event
-        const callCountBefore = globalThis.__chartMockCalls.length;
+        const callCountBefore = chartMocks.created.length;
 
         const event = new CustomEvent('poll-results-updated', {
             detail: {
@@ -247,7 +244,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
         }).not.toThrow();
 
         // Hole nur die neuen Aufrufe seit dem Event
-        const newCalls = globalThis.__chartMockCalls.slice(callCountBefore);
+        const newCalls = chartMocks.created.slice(callCountBefore);
 
         // Es sollten neue Charts erstellt worden sein
         expect(newCalls.length).toBeGreaterThan(0);
@@ -287,7 +284,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
         document.getElementById('poll-timeline-chart')?.remove();
         document.getElementById('poll-segment-chart')?.remove();
 
-        const destroyCountBeforeSecondEvent = globalThis.__destroyCallCount;
+        const destroyCountBeforeSecondEvent = chartMocks.destroy.mock.calls.length;
 
         // Zweites Update - sollte bestehende Charts zerstören
         const secondEvent = new CustomEvent('poll-results-updated', {
@@ -310,7 +307,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
         }).not.toThrow();
 
         // destroy sollte aufgerufen worden sein (mindestens 3x für die 3 Charts)
-        const destroyCalls = globalThis.__destroyCallCount - destroyCountBeforeSecondEvent;
+        const destroyCalls = chartMocks.destroy.mock.calls.length - destroyCountBeforeSecondEvent;
         expect(destroyCalls).toBeGreaterThanOrEqual(3);
     });
 });

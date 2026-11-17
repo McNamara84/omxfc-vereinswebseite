@@ -6,6 +6,7 @@ import { resolvePlaywrightRunToken } from './utils/playwright-run-token.js';
 
 const playwrightCli = path.resolve('node_modules/playwright/cli.js');
 const viteCli = path.resolve('node_modules/vite/bin/vite.js');
+const deprecationCheck = path.resolve('tools/testing/check-deprecations.mjs');
 const shouldHideWindowsShell = process.platform === 'win32';
 const installableBrowserProjects = new Set(['chromium', 'firefox', 'webkit']);
 const defaultBrowserCachePath = path.resolve('.playwright-browsers');
@@ -82,7 +83,7 @@ const runPlaywrightInstall = (projects, baseEnv, { spawnFn = spawn } = {}) => ne
         return;
     }
 
-    const child = spawnFn(process.execPath, [playwrightCli, 'install', ...projects], {
+    const child = spawnFn(process.execPath, [deprecationCheck, '--run', playwrightCli, 'install', ...projects], {
         stdio: 'inherit',
         windowsHide: shouldHideWindowsShell,
         env: baseEnv,
@@ -98,7 +99,7 @@ const runPlaywrightInstall = (projects, baseEnv, { spawnFn = spawn } = {}) => ne
 });
 
 const runPlaywright = (args, baseEnv, envOverrides = {}, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
-    const child = spawnFn(process.execPath, [playwrightCli, 'test', ...args], {
+    const child = spawnFn(process.execPath, [deprecationCheck, '--run', playwrightCli, 'test', ...args], {
         stdio: 'inherit',
         windowsHide: shouldHideWindowsShell,
         env: {
@@ -117,7 +118,7 @@ const runPlaywright = (args, baseEnv, envOverrides = {}, { spawnFn = spawn } = {
 });
 
 const runViteBuild = (baseEnv, { spawnFn = spawn } = {}) => new Promise((resolve, reject) => {
-    const child = spawnFn(process.execPath, [viteCli, 'build'], {
+    const child = spawnFn(process.execPath, [deprecationCheck, '--run', viteCli, 'build'], {
         stdio: 'inherit',
         windowsHide: shouldHideWindowsShell,
         env: baseEnv,

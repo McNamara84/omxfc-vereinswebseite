@@ -1,6 +1,8 @@
 import { clearTourError, profileFormIsDirty, renderInvitation, renderProfileReward, renderTourError, requireSavedProfile } from '@/tours/profile';
 
 const frame = () => new Promise(resolve => requestAnimationFrame(resolve));
+// Reveal retries can span two pairs of frames. Pending/stale-request tests
+// deliberately cross that rendering boundary without waiting for their request.
 async function flush() {
     for (let i = 0; i < 5; i++) await frame();
 }
@@ -99,6 +101,7 @@ describe('profile tour workflow', () => {
     let tour;
     let completeResult;
     let completeError;
+    let originalScrollIntoView;
     beforeAll(async () => {
         document.body.replaceChildren();
         await import('@/tours/runner');
@@ -108,10 +111,13 @@ describe('profile tour workflow', () => {
         tour = payload();
         completeResult = { completed: true, reward: { status: 'awarded', points_awarded: 5 } };
         completeError = null;
-        HTMLElement.prototype.scrollIntoView = vi.fn();
-        window.toast = vi.fn();
-        window.Livewire = { navigate: vi.fn() };
-        window.omxfcHttp = {
+        vi.stubGlobal('toast', vi.fn());
+        vi.stubGlobal('Livewire', { navigate: vi.fn() });
+        originalScrollIntoView = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'scrollIntoView');
+        Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+            configurable: true, writable: true, value: vi.fn(),
+        });
+        vi.stubGlobal('omxfcHttp', {
             get: vi.fn(async () => ({ data: { tour: structuredClone(tour) } })),
             post: vi.fn(async (url, data) => {
                 if (url.endsWith('/complete')) {
@@ -122,16 +128,32 @@ describe('profile tour workflow', () => {
                 if (url.endsWith('/progress')) tour.current_step_key = data.step_key;
                 return { data: { tour: structuredClone(tour) } };
             }),
-        };
+        });
         document.dispatchEvent(new CustomEvent('livewire:navigated'));
-        await flush();
+        await vi.waitFor(() => expect(document.getElementById('tour-runner-panel').dataset.invitation).toBe('true'), {
+            message: 'Die Profil-Tour zeigt die vom Server geladene Einladung',
+        });
     });
     afterEach(() => {
         document.body.replaceChildren();
+        vi.unstubAllGlobals();
+        if (originalScrollIntoView) Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', originalScrollIntoView);
+        else delete HTMLElement.prototype.scrollIntoView;
     });
 
     const click = async id => { document.getElementById(id).click(); await flush(); };
-    const startAndFinish = async () => { await click('tour-runner-start'); await click('tour-runner-next'); };
+    const startAndFinish = async () => {
+        document.getElementById('tour-runner-start').click();
+        await vi.waitFor(() => {
+            expect(document.getElementById('tour-runner-title').textContent).toBe('Lieblingsmutation');
+            expect(document.getElementById('tour-runner-next').disabled).toBe(false);
+        }, { message: 'Die gestartete Profil-Tour hat ihren ersten Schritt gespeichert' });
+        document.getElementById('tour-runner-next').click();
+        await vi.waitFor(() => {
+            expect(document.getElementById('tour-runner-title').textContent).toBe('Abschluss');
+            expect(document.getElementById('tour-runner-complete').disabled).toBe(false);
+        }, { message: 'Der Abschlussschritt ist gespeichert und kann bestätigt werden' });
+    };
 
     it('waits for explicit start and navigates from dashboard to the profile', async () => {
         expect(window.omxfcHttp.post).not.toHaveBeenCalled();
@@ -191,7 +213,9 @@ describe('profile tour workflow', () => {
         expect(document.getElementById('tour-runner-error').textContent).toContain('nicht gespeichert');
         tour.profile = { filled: 11, total: 11, missing: [] };
         window.dispatchEvent(new CustomEvent('profile-series-saved'));
-        await flush();
+        await vi.waitFor(() => expect(document.getElementById('tour-runner-reward').textContent).toContain('11 von 11'), {
+            message: 'Die Tour übernimmt die nach dem Speichern aktualisierte Profilvollständigkeit',
+        });
         expect(document.getElementById('tour-runner-reward').textContent).toContain('11 von 11');
         await click('tour-runner-complete');
         expect(window.toast).toHaveBeenCalled();
@@ -410,7 +434,9 @@ describe('profile tour workflow', () => {
     it('clears a background fetch error on reset before showing the next invitation', async () => {
         window.omxfcHttp.get.mockRejectedValueOnce(new Error('Alte Einladung nicht erreichbar'));
         document.dispatchEvent(new CustomEvent('livewire:navigated'));
-        await flush();
+        await vi.waitFor(() => expect(document.getElementById('tour-runner-error').textContent).toBe('Alte Einladung nicht erreichbar'), {
+            message: 'Der fehlgeschlagene Abruf zeigt seinen aktuellen Fehler',
+        });
         const error = document.getElementById('tour-runner-error');
         const panel = document.getElementById('tour-runner-panel');
         expect(panel.classList.contains('hidden')).toBe(true);
@@ -441,8 +467,9 @@ describe('profile tour workflow', () => {
         window.omxfcHttp.get.mockRejectedValueOnce(new Error('Einladung nicht erreichbar'));
         if (source === 'navigation') document.dispatchEvent(new CustomEvent('livewire:navigated'));
         else window.dispatchEvent(new CustomEvent('profile-series-saved'));
-        await flush();
-        expect(document.getElementById('tour-runner-error').textContent).toBe('Einladung nicht erreichbar');
+        await vi.waitFor(() => expect(document.getElementById('tour-runner-error').textContent).toBe('Einladung nicht erreichbar'), {
+            message: 'Der aktuelle Abruf meldet seinen Fehler auch nach dem Generationswechsel',
+        });
         expect(document.activeElement.id).toBe('tour-runner-error');
     });
 

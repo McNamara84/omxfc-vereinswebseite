@@ -223,3 +223,23 @@ dieser Umsetzung ausgeschlossen.
 Die [maschinenlesbaren Messwerte](Pest-Modernisierung-Messwerte.json) enthalten
 Fallzahlen, Änderungen je bisheriger Testklasse und die SHA-256-Werte der
 verwendeten Coverage-Artefakte.
+
+## Folgearbeiten vom 17. November 2026
+
+Der Testverbund ist gemeinsam auf Pest 5.3.7, PHPUnit 13.4.7 und ParaTest 7.29.0
+aktualisiert. PHPStan 2.3.6 und Rector 2.8.5 sind geprüft; der bisherige
+ParaTest-Ausschluss entfällt. Die frischen PHP-Coverage-Messungen erhalten alle
+409 bisherigen Testklassen und sämtliche Coverage-Zähler. Ein zusätzlicher
+TIA-Prozessregressionsfall erhöht den regulären Umfang auf 4.767 erfolgreiche
+Fälle und 84 bestehende Skips in 410 Klassen.
+
+Die vollständige TIA-Aufzeichnung besteht einschließlich anschließender
+Auswahlprobe. Ein ausschließlich im TIA-Bootstrap geladener Kompatibilitätspfad
+erhält echte Dateisynchronisation unter Pests neuem Dateilese-Wrapper. Nur dieses
+TIA-Profil benötigt nun 1 GiB Speicher; reguläre Tests und Coverage behalten
+512 MiB. Der Parallelbetrieb besteht mit 706 Unit-Fällen und 3.886 Assertions.
+
+Die vollständigen PHP-8.5-/PHP-8.6-, MariaDB-, Browser- und Sicherheitsnachweise
+sowie die weiterhin offenen Playwright-/WebKit-Grenzen stehen im
+[Folgebericht zur Test-Stack-Modernisierung](Test-Stack-Modernisierung-Ergebnis.md).
+Die obigen historischen Messungen bleiben unverändert erhalten.

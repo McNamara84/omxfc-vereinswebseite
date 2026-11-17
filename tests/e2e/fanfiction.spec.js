@@ -166,10 +166,7 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
             const publishButton = storyRow.getByRole('button', { name: /Veröffentlichen/i });
             await expect(publishButton).toBeVisible();
 
-            await Promise.all([
-                page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-                publishButton.click(),
-            ]);
+            await publishButton.click();
         }
 
         const updatedRow = page.getByRole('row', { name: /Die dunkle Prophezeiung/i });
