@@ -98,8 +98,7 @@ Mit Pest 5.3.7 lädt ausschließlich `tia-bootstrap.php` zusätzlich
 Die Aufzeichnung und das native Fehlerverhalten bleiben erhalten; ein isolierter
 Prozesstest sichert diesen vorübergehenden Kompatibilitätspfad ab. Das vollständige
 TIA-Profil verwendet wegen seines Abhängigkeitsgraphen 1 GiB Speicher. Reguläre
-Tests und Coverage behalten 512 MiB. Prüfnachweise und Grenzen stehen im
-[aktuellen Ergebnisbericht](../docs/Test-Stack-Modernisierung-Ergebnis.md).
+Tests und Coverage behalten 512 MiB.
 
 `composer test:stability:repeat` startet den gewählten Umfang zweimal in getrennten
 Prozessen und erhält den Fehlerstatus eines früheren Durchgangs.
@@ -116,6 +115,3 @@ zu. Dataset-Zusammenführungen behalten die Namen ihrer bisherigen Verträge.
 `test-suite-inventory.json` beschreibt Runner, Bootstrapping, Datenbankbedarf und
 Seeder; mit `npm run test:inventory` wird es neu erzeugt. Die tatsächlich
 ausgeführten Dataset-Fälle und ihre Ergebnisse werden über JUnit geprüft.
-
-Prüfergebnisse, Laufzeiten, Coverage-Vergleiche und die PHP-8.6-Abnahme stehen im
-[Ergebnisbericht](../docs/Pest-Modernisierung-Ergebnis.md).

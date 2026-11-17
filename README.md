@@ -66,16 +66,14 @@ Die Baxx-Quellen teilen Regelauswahl, Darstellung, Fortschritt und Buchungen üb
 `app/Services/Baxx`. Challenge-Einstiege verwenden `TodoWorkflow`; Rezensionen,
 Missionsabschlüsse und Fanfiction-Veröffentlichungen besitzen gemeinsame atomare
 Aktionen. Quellspezifische Zählweisen, Wallets und Auditdaten bleiben in ihren
-jeweiligen Services. Verträge, Sperrreihenfolgen, Fehlerkorrekturen und Messwerte
-stehen im [Refactoring-Ergebnisbericht](docs/Refactoring-Baxx-JavaScript-Ergebnis.md).
+jeweiligen Services.
 
 Die Romantauschbörse verwendet für Einzelangebote, Gesuche, Stapel und
 Tauschabschlüsse gemeinsame Workflows unter `app/Actions/Romantausch`.
 Livewire und die bisherigen HTTP-Routen teilen Validierung, Zustandsprüfungen,
 Transaktionen und Foto-Cleanup. Manuelle Abschlüsse sind Admin/Vorstand im
 Mitglieder-Team vorbehalten; wiederholte Abschlüsse vergeben keine zusätzlichen
-Baxx. Architektur, Regressionstests und Messwerte stehen im
-[Romantausch-Ergebnisbericht](docs/Refactoring-Romantausch-Ergebnis.md).
+Baxx.
 
 Rollen und Mitgliedschaften werden über `app/Services/Memberships` aufgelöst.
 Lesende Requests verwenden bereits gelesene Mitgliedschaftsdaten erneut;
@@ -83,8 +81,7 @@ Schreibrequests, Livewire-Updates und Transaktionen lesen frisch. Die bisherigen
 Methoden in `User`, `Team` und `UserRoleService` bleiben erhalten. Pivot- und
 Modellereignisse verwerfen betroffene Lesedaten und geladene Teamrelationen.
 Direkte SQL-Änderungen außerhalb dieser Ereignisse müssen den Kontext ausdrücklich
-invalidieren. Verträge, Ausnahmen, Tests und Messwerte stehen im
-[Ergebnisbericht zur Rollenauflösung](docs/Refactoring-Rollen-Mitgliedschaften-Ergebnis.md).
+invalidieren.
 
 Karten, Charts, RPG und 3D laden über `resources/js/features/index.js` erst bei
 passendem DOM-Bedarf. Neue Features registrieren dort `selector`, `load` und
@@ -1132,8 +1129,7 @@ mit behobenem Firefox-Build und erfolgreichem Regressionstest anheben.
 Die npm-Overrides binden auch `playwright` und `playwright-core` aus Vitest und
 axe an diesen Pin, damit nur eine einheitliche Playwright-Version installiert wird.
 axe 4.14.0 und Zod 4.6.7 bleiben erhalten; daisyUI steht auf 5.8.0. Die vollständige
-Vitest-Suite ist auf jsdom 31.0.1 migriert. Änderungen und Prüfnachweise stehen im
-[Ergebnisbericht zur Test-Stack-Modernisierung](docs/Test-Stack-Modernisierung-Ergebnis.md).
+Vitest-Suite ist auf jsdom 31.0.1 migriert.
 Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
 `docker/login-action` ist auf 4.8.0 mit dem zugehörigen Commit-Pin aktualisiert,
 die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
@@ -1146,8 +1142,6 @@ besteht mit 586 erfolgreichen Fällen und vier bisherigen Skips, ohne Retries.
 Die nativen Grype-Scans bestehen für PHP
 und Node; das Browser-Testimage überschreitet wegen des älteren Firefox die
 bestehende Sicherheitsgrenze. Auch die vollständige WebKit-Abnahme bleibt offen.
-Die Testergebnisse und verbleibenden Blocker sind im
-[aktuellen Ergebnisbericht](docs/Test-Stack-Modernisierung-Ergebnis.md) ausgewiesen.
 
 Die lokalen Grype-Scans vom 12. November bestehen für Composer, PHP-FPM, Node,
 nginx und MariaDB die unveränderte CI-Grenze `--only-fixed --fail-on high`.
@@ -1394,11 +1388,6 @@ PHP-8.6-Pipeline prüft außerdem die kompilierten Blade-Views. PHPUnit und Lara
 erfassen PHP-Deprecations auch während Tests und in Unterprozessen; die
 Browserphasen werten zusätzlich die PHP- und Laravel-Diagnoselogs aus.
 
-Änderungen und aktuelle Prüfnachweise stehen im
-[Modernisierungsbericht](docs/PHP-8.6-Modernisierung-Ergebnis.md). Der
-[frühere Abhängigkeitsbericht](docs/Abhaengigkeiten-PHP-8.6-Ergebnis.md)
-dokumentiert den vorherigen unverbindlichen Check.
-
 ## Tests & Qualitätssicherung
 
 Für Windows und Docker gibt es einen eigenen Test-Stack. Er kopiert die aktuellen
@@ -1518,9 +1507,6 @@ Prüfung direkt vor einen Node-Aufruf gesetzt werden:
 ```sh
 node tools/testing/check-deprecations.mjs --run node_modules/vitest/vitest.mjs run --config vitest.config.js
 ```
-
-Die Modernisierungen und Prüfnachweise stehen im
-[Vitest-5.1-Ergebnisbericht](docs/Vitest-5.1-Ergebnis.md).
 
 Der nachweislich doppelte PayPal-Sichtbarkeitstest ist in `spenden.spec.js`
 abgedeckt. Der Homepage-Zeitmessungslauf wird separat über
@@ -1661,7 +1647,7 @@ Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.
 Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
 und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
-Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7, ParaTest 7.29.0 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md) und im [aktuellen Folgebericht](docs/Test-Stack-Modernisierung-Ergebnis.md).
+Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7, ParaTest 7.29.0 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert.
 
 Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebundene Datasets und nach Bedarf lokale Fixture-Traits. Fünf abstrakte Fixture-Basen erhalten die gesonderten Transaktions-Lifecycles. Konventionen und die Zuordnung der bisherigen Prüffälle stehen in [tests/README.md](tests/README.md) und [tests/pest-migration-map.json](tests/pest-migration-map.json). `composer test:mutate:core` ergänzt das bisherige 100-%-Mutation-Gate um Geld- und RPG-Kostenregeln und läuft auch bei Pull Requests. TIA umfasst Unit-, Feature- und reguläre Integrationstests; MariaDB-Parallelzugriffe, Browsertests und der manuelle Typesense-Test behalten eigene Läufe.
 
