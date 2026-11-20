@@ -19,11 +19,15 @@ jobs:
         with:
           fetch-depth: 0
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
           php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: gd, exif, zip, sockets
           coverage: pcov
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env

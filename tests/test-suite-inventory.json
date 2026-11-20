@@ -7026,6 +7026,17 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/Php85SecurityGateTest.php",
+    "runner": "php-integration",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the PHP 8.5 security gate enforces the patched version boundary",
+      "the standalone security gate uses the actual interpreter despite version arguments and environment variables"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/Php86IntegrityTest.php",
     "runner": "php-integration",
     "laravel": false,
