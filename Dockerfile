@@ -4,7 +4,7 @@ FROM composer:2.11.2@sha256:8c47c745534c6717c94a307e6f7b73e5b93f37c7679fe9faf50f
 RUN apk upgrade --no-cache
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.13-fpm-trixie@sha256:52ba6f178d0a08f348578b03595661b7ff13defafacf4c823d045f2ecba8db8f AS php-base
+FROM php:8.6.0RC5-fpm-trixie@sha256:553329af7cef79979dd162eda43fd498095c7c6b1e48d166a08475e3cc52ee58 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
