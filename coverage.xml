@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1794881541">
-  <project timestamp="1794881541">
+<coverage generated="1795150150">
+  <project timestamp="1795150150">
     <package name="App\Actions\Fanfiction">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fanfiction/PublishFanfiction.php">
         <class name="App\Actions\Fanfiction\PublishFanfiction" namespace="App\Actions\Fanfiction">
@@ -22,7 +22,7 @@
         <line num="34" type="stmt" count="11"/>
         <line num="35" type="stmt" count="11"/>
         <line num="36" type="stmt" count="11"/>
-        <line num="37" type="stmt" count="7"/>
+        <line num="37" type="stmt" count="8"/>
         <line num="39" type="stmt" count="10"/>
         <line num="41" type="stmt" count="10"/>
         <line num="42" type="stmt" count="12"/>
@@ -2130,8 +2130,8 @@
         <class name="App\Console\Commands\RefreshMemberMap" namespace="App\Console\Commands">
           <metrics complexity="3" methods="2" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="6" coveredstatements="1" elements="8" coveredelements="2"/>
         </class>
-        <line num="21" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="162"/>
-        <line num="23" type="stmt" count="162"/>
+        <line num="21" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="164"/>
+        <line num="23" type="stmt" count="164"/>
         <line num="26" type="method" name="handle" visibility="public" complexity="2" crap="6" count="0"/>
         <line num="28" type="stmt" count="0"/>
         <line num="30" type="stmt" count="0"/>
@@ -5908,15 +5908,15 @@
         <line num="161" type="stmt" count="18"/>
         <line num="162" type="stmt" count="18"/>
         <line num="164" type="stmt" count="18"/>
-        <line num="165" type="stmt" count="4"/>
-        <line num="166" type="stmt" count="4"/>
-        <line num="167" type="stmt" count="4"/>
-        <line num="168" type="stmt" count="4"/>
-        <line num="169" type="stmt" count="4"/>
-        <line num="170" type="stmt" count="4"/>
-        <line num="171" type="stmt" count="4"/>
-        <line num="172" type="stmt" count="4"/>
-        <line num="174" type="stmt" count="4"/>
+        <line num="165" type="stmt" count="13"/>
+        <line num="166" type="stmt" count="13"/>
+        <line num="167" type="stmt" count="13"/>
+        <line num="168" type="stmt" count="13"/>
+        <line num="169" type="stmt" count="13"/>
+        <line num="170" type="stmt" count="13"/>
+        <line num="171" type="stmt" count="13"/>
+        <line num="172" type="stmt" count="13"/>
+        <line num="174" type="stmt" count="13"/>
         <line num="175" type="stmt" count="1"/>
         <line num="176" type="stmt" count="1"/>
         <line num="177" type="stmt" count="1"/>
@@ -5927,15 +5927,15 @@
         <line num="186" type="stmt" count="18"/>
         <line num="187" type="stmt" count="18"/>
         <line num="189" type="stmt" count="18"/>
-        <line num="190" type="stmt" count="8"/>
-        <line num="191" type="stmt" count="8"/>
-        <line num="192" type="stmt" count="8"/>
-        <line num="193" type="stmt" count="8"/>
-        <line num="194" type="stmt" count="8"/>
-        <line num="195" type="stmt" count="8"/>
-        <line num="196" type="stmt" count="8"/>
-        <line num="197" type="stmt" count="8"/>
-        <line num="199" type="stmt" count="8"/>
+        <line num="190" type="stmt" count="11"/>
+        <line num="191" type="stmt" count="11"/>
+        <line num="192" type="stmt" count="11"/>
+        <line num="193" type="stmt" count="11"/>
+        <line num="194" type="stmt" count="11"/>
+        <line num="195" type="stmt" count="11"/>
+        <line num="196" type="stmt" count="11"/>
+        <line num="197" type="stmt" count="11"/>
+        <line num="199" type="stmt" count="11"/>
         <line num="200" type="stmt" count="1"/>
         <line num="201" type="stmt" count="1"/>
         <line num="202" type="stmt" count="1"/>
@@ -7282,8 +7282,8 @@
         <line num="220" type="method" name="getMimeType" visibility="private" complexity="5" crap="5" count="2"/>
         <line num="222" type="stmt" count="2"/>
         <line num="223" type="stmt" count="1"/>
-        <line num="224" type="stmt" count="2"/>
-        <line num="225" type="stmt" count="1"/>
+        <line num="224" type="stmt" count="1"/>
+        <line num="225" type="stmt" count="2"/>
         <line num="226" type="stmt" count="2"/>
         <metrics loc="230" ncloc="194" classes="1" methods="12" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="97" coveredstatements="26" elements="109" coveredelements="30"/>
       </file>
@@ -8785,35 +8785,35 @@
         <class name="App\Jobs\GeocodeUser" namespace="App\Jobs">
           <metrics complexity="8" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="26" elements="30" coveredelements="28"/>
         </class>
-        <line num="21" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2624"/>
-        <line num="24" type="stmt" count="2624"/>
-        <line num="26" type="method" name="handle" visibility="public" complexity="3" crap="3" count="2623"/>
-        <line num="28" type="stmt" count="2623"/>
+        <line num="21" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2626"/>
+        <line num="24" type="stmt" count="2626"/>
+        <line num="26" type="method" name="handle" visibility="public" complexity="3" crap="3" count="2625"/>
+        <line num="28" type="stmt" count="2625"/>
         <line num="29" type="stmt" count="2"/>
-        <line num="32" type="stmt" count="2621"/>
-        <line num="34" type="stmt" count="2621"/>
-        <line num="35" type="stmt" count="2621"/>
-        <line num="36" type="stmt" count="2621"/>
-        <line num="37" type="stmt" count="2621"/>
-        <line num="41" type="method" name="getCoordinatesForPostalCode" visibility="private" complexity="4" crap="4.00" count="2621"/>
-        <line num="43" type="stmt" count="2621"/>
-        <line num="45" type="stmt" count="2621"/>
-        <line num="46" type="stmt" count="267"/>
-        <line num="49" type="stmt" count="2621"/>
-        <line num="50" type="stmt" count="2621"/>
-        <line num="51" type="stmt" count="2621"/>
-        <line num="52" type="stmt" count="2621"/>
-        <line num="53" type="stmt" count="2621"/>
-        <line num="54" type="stmt" count="2621"/>
-        <line num="55" type="stmt" count="2621"/>
-        <line num="57" type="stmt" count="2621"/>
-        <line num="58" type="stmt" count="2621"/>
-        <line num="59" type="stmt" count="2621"/>
-        <line num="60" type="stmt" count="2621"/>
-        <line num="61" type="stmt" count="2621"/>
-        <line num="62" type="stmt" count="2621"/>
-        <line num="64" type="stmt" count="2621"/>
-        <line num="66" type="stmt" count="2621"/>
+        <line num="32" type="stmt" count="2623"/>
+        <line num="34" type="stmt" count="2623"/>
+        <line num="35" type="stmt" count="2623"/>
+        <line num="36" type="stmt" count="2623"/>
+        <line num="37" type="stmt" count="2623"/>
+        <line num="41" type="method" name="getCoordinatesForPostalCode" visibility="private" complexity="4" crap="4.00" count="2623"/>
+        <line num="43" type="stmt" count="2623"/>
+        <line num="45" type="stmt" count="2623"/>
+        <line num="46" type="stmt" count="269"/>
+        <line num="49" type="stmt" count="2623"/>
+        <line num="50" type="stmt" count="2623"/>
+        <line num="51" type="stmt" count="2623"/>
+        <line num="52" type="stmt" count="2623"/>
+        <line num="53" type="stmt" count="2623"/>
+        <line num="54" type="stmt" count="2623"/>
+        <line num="55" type="stmt" count="2623"/>
+        <line num="57" type="stmt" count="2623"/>
+        <line num="58" type="stmt" count="2623"/>
+        <line num="59" type="stmt" count="2623"/>
+        <line num="60" type="stmt" count="2623"/>
+        <line num="61" type="stmt" count="2623"/>
+        <line num="62" type="stmt" count="2623"/>
+        <line num="64" type="stmt" count="2623"/>
+        <line num="66" type="stmt" count="2623"/>
         <line num="69" type="stmt" count="0"/>
         <metrics loc="72" ncloc="71" classes="1" methods="3" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="26" elements="30" coveredelements="28"/>
       </file>
@@ -9958,16 +9958,16 @@
         <line num="59" type="stmt" count="7"/>
         <line num="63" type="method" name="fanfiction" visibility="public" complexity="1" crap="1" count="7"/>
         <line num="65" type="stmt" count="7"/>
-        <line num="69" type="method" name="members" visibility="public" complexity="1" crap="1" count="6"/>
-        <line num="71" type="stmt" count="6"/>
-        <line num="73" type="stmt" count="6"/>
-        <line num="74" type="stmt" count="6"/>
-        <line num="75" type="stmt" count="6"/>
-        <line num="79" type="method" name="memberOptions" visibility="public" complexity="1" crap="1" count="6"/>
-        <line num="81" type="stmt" count="6"/>
-        <line num="82" type="stmt" count="6"/>
-        <line num="83" type="stmt" count="6"/>
-        <line num="84" type="stmt" count="6"/>
+        <line num="69" type="method" name="members" visibility="public" complexity="1" crap="1" count="5"/>
+        <line num="71" type="stmt" count="5"/>
+        <line num="73" type="stmt" count="5"/>
+        <line num="74" type="stmt" count="5"/>
+        <line num="75" type="stmt" count="5"/>
+        <line num="79" type="method" name="memberOptions" visibility="public" complexity="1" crap="1" count="5"/>
+        <line num="81" type="stmt" count="5"/>
+        <line num="82" type="stmt" count="5"/>
+        <line num="83" type="stmt" count="5"/>
+        <line num="84" type="stmt" count="5"/>
         <line num="87" type="method" name="updatedUserId" visibility="public" complexity="4" crap="20" count="0"/>
         <line num="89" type="stmt" count="0"/>
         <line num="90" type="stmt" count="0"/>
@@ -14998,12 +14998,12 @@
         <class name="App\Models\BaxxEarningRule" namespace="App\Models">
           <metrics complexity="13" methods="10" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="38" coveredstatements="33" elements="48" coveredelements="41"/>
         </class>
-        <line num="26" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="481"/>
-        <line num="28" type="stmt" count="481"/>
-        <line num="29" type="stmt" count="481"/>
-        <line num="30" type="stmt" count="481"/>
-        <line num="31" type="stmt" count="481"/>
-        <line num="32" type="stmt" count="481"/>
+        <line num="26" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="483"/>
+        <line num="28" type="stmt" count="483"/>
+        <line num="29" type="stmt" count="483"/>
+        <line num="30" type="stmt" count="483"/>
+        <line num="31" type="stmt" count="483"/>
+        <line num="32" type="stmt" count="483"/>
         <line num="35" type="method" name="getActiveRuleFor" visibility="public" complexity="2" crap="2" count="16"/>
         <line num="37" type="stmt" count="16"/>
         <line num="38" type="stmt" count="16"/>
@@ -15025,27 +15025,27 @@
         <line num="72" type="stmt" count="15"/>
         <line num="75" type="method" name="getEveryCountFor" visibility="public" complexity="1" crap="1" count="3"/>
         <line num="77" type="stmt" count="3"/>
-        <line num="83" type="method" name="clearCache" visibility="public" complexity="3" crap="4.68" count="97"/>
-        <line num="85" type="stmt" count="97"/>
-        <line num="86" type="stmt" count="97"/>
-        <line num="87" type="stmt" count="97"/>
+        <line num="83" type="method" name="clearCache" visibility="public" complexity="3" crap="4.68" count="99"/>
+        <line num="85" type="stmt" count="99"/>
+        <line num="86" type="stmt" count="99"/>
+        <line num="87" type="stmt" count="99"/>
         <line num="89" type="stmt" count="0"/>
         <line num="90" type="stmt" count="0"/>
         <line num="91" type="stmt" count="0"/>
         <line num="92" type="stmt" count="0"/>
-        <line num="97" type="method" name="cacheKey" visibility="private" complexity="1" crap="1" count="112"/>
-        <line num="99" type="stmt" count="112"/>
-        <line num="102" type="method" name="legacyCacheKey" visibility="private" complexity="1" crap="1" count="112"/>
-        <line num="104" type="stmt" count="112"/>
+        <line num="97" type="method" name="cacheKey" visibility="private" complexity="1" crap="1" count="114"/>
+        <line num="99" type="stmt" count="114"/>
+        <line num="102" type="method" name="legacyCacheKey" visibility="private" complexity="1" crap="1" count="114"/>
+        <line num="104" type="stmt" count="114"/>
         <line num="107" type="method" name="maddraxikonRewardEvents" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="109" type="stmt" count="1"/>
-        <line num="112" type="method" name="booted" visibility="protected" complexity="1" crap="1.00" count="481"/>
-        <line num="114" type="stmt" count="481"/>
-        <line num="115" type="stmt" count="97"/>
-        <line num="116" type="stmt" count="481"/>
-        <line num="118" type="stmt" count="481"/>
+        <line num="112" type="method" name="booted" visibility="protected" complexity="1" crap="1.00" count="483"/>
+        <line num="114" type="stmt" count="483"/>
+        <line num="115" type="stmt" count="99"/>
+        <line num="116" type="stmt" count="483"/>
+        <line num="118" type="stmt" count="483"/>
         <line num="119" type="stmt" count="0"/>
-        <line num="120" type="stmt" count="481"/>
+        <line num="120" type="stmt" count="483"/>
         <metrics loc="123" ncloc="112" classes="1" methods="10" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="38" coveredstatements="33" elements="48" coveredelements="41"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Models/Book.php">
@@ -15179,15 +15179,15 @@
         <class name="App\Models\Download" namespace="App\Models">
           <metrics complexity="13" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="27" elements="34" coveredelements="34"/>
         </class>
-        <line num="28" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="139"/>
-        <line num="30" type="stmt" count="139"/>
-        <line num="31" type="stmt" count="139"/>
-        <line num="32" type="stmt" count="139"/>
-        <line num="33" type="stmt" count="139"/>
-        <line num="34" type="stmt" count="139"/>
-        <line num="37" type="method" name="booted" visibility="protected" complexity="4" crap="4" count="139"/>
-        <line num="39" type="stmt" count="139"/>
-        <line num="40" type="stmt" count="103"/>
+        <line num="28" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="140"/>
+        <line num="30" type="stmt" count="140"/>
+        <line num="31" type="stmt" count="140"/>
+        <line num="32" type="stmt" count="140"/>
+        <line num="33" type="stmt" count="140"/>
+        <line num="34" type="stmt" count="140"/>
+        <line num="37" type="method" name="booted" visibility="protected" complexity="4" crap="4" count="140"/>
+        <line num="39" type="stmt" count="140"/>
+        <line num="40" type="stmt" count="104"/>
         <line num="41" type="stmt" count="6"/>
         <line num="42" type="stmt" count="6"/>
         <line num="43" type="stmt" count="6"/>
@@ -15195,7 +15195,7 @@
         <line num="46" type="stmt" count="2"/>
         <line num="47" type="stmt" count="2"/>
         <line num="50" type="stmt" count="6"/>
-        <line num="52" type="stmt" count="139"/>
+        <line num="52" type="stmt" count="140"/>
         <line num="58" type="method" name="getRouteKeyName" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="60" type="stmt" count="1"/>
         <line num="66" type="method" name="reward" visibility="public" complexity="1" crap="1" count="27"/>
@@ -15211,7 +15211,7 @@
         <line num="98" type="stmt" count="14"/>
         <line num="99" type="stmt" count="1"/>
         <line num="102" type="stmt" count="13"/>
-        <line num="103" type="stmt" count="4"/>
+        <line num="103" type="stmt" count="1"/>
         <line num="106" type="stmt" count="12"/>
         <metrics loc="109" ncloc="94" classes="1" methods="7" coveredmethods="7" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="27" elements="34" coveredelements="34"/>
       </file>
@@ -16460,10 +16460,10 @@
         <class name="App\Models\Membership" namespace="App\Models">
           <metrics complexity="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="3" coveredstatements="3" elements="4" coveredelements="4"/>
         </class>
-        <line num="25" type="method" name="booted" visibility="protected" complexity="1" crap="1" count="2506"/>
-        <line num="27" type="stmt" count="2506"/>
-        <line num="28" type="stmt" count="2506"/>
-        <line num="29" type="stmt" count="2506"/>
+        <line num="25" type="method" name="booted" visibility="protected" complexity="1" crap="1" count="2508"/>
+        <line num="27" type="stmt" count="2508"/>
+        <line num="28" type="stmt" count="2508"/>
+        <line num="29" type="stmt" count="2508"/>
         <metrics loc="32" ncloc="20" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="3" coveredstatements="3" elements="4" coveredelements="4"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Models/Mission.php">
@@ -16707,8 +16707,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="25" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="47" coveredstatements="41" elements="53" coveredelements="46"/>
         </class>
-        <line num="45" type="method" name="book" visibility="public" complexity="1" crap="1" count="56"/>
-        <line num="47" type="stmt" count="56"/>
+        <line num="45" type="method" name="book" visibility="public" complexity="1" crap="1" count="62"/>
+        <line num="47" type="stmt" count="62"/>
         <line num="53" type="method" name="user" visibility="public" complexity="1" crap="1" count="26"/>
         <line num="55" type="stmt" count="26"/>
         <line num="61" type="method" name="comments" visibility="public" complexity="1" crap="1" count="76"/>
@@ -16796,22 +16796,22 @@
         <class name="App\Models\Reward" namespace="App\Models">
           <metrics complexity="13" methods="10" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="26" elements="38" coveredelements="35"/>
         </class>
-        <line num="29" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="627"/>
-        <line num="31" type="stmt" count="627"/>
-        <line num="32" type="stmt" count="627"/>
-        <line num="33" type="stmt" count="627"/>
-        <line num="34" type="stmt" count="627"/>
-        <line num="35" type="stmt" count="627"/>
-        <line num="38" type="method" name="isActive" visibility="protected" complexity="2" crap="2" count="205"/>
-        <line num="40" type="stmt" count="205"/>
-        <line num="41" type="stmt" count="205"/>
-        <line num="44" type="stmt" count="205"/>
+        <line num="29" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="628"/>
+        <line num="31" type="stmt" count="628"/>
+        <line num="32" type="stmt" count="628"/>
+        <line num="33" type="stmt" count="628"/>
+        <line num="34" type="stmt" count="628"/>
+        <line num="35" type="stmt" count="628"/>
+        <line num="38" type="method" name="isActive" visibility="protected" complexity="2" crap="2" count="207"/>
+        <line num="40" type="stmt" count="207"/>
+        <line num="41" type="stmt" count="207"/>
+        <line num="44" type="stmt" count="207"/>
         <line num="45" type="stmt" count="14"/>
-        <line num="48" type="stmt" count="205"/>
-        <line num="49" type="stmt" count="205"/>
-        <line num="52" type="method" name="booted" visibility="protected" complexity="3" crap="3.07" count="627"/>
-        <line num="54" type="stmt" count="627"/>
-        <line num="55" type="stmt" count="194"/>
+        <line num="48" type="stmt" count="207"/>
+        <line num="49" type="stmt" count="207"/>
+        <line num="52" type="method" name="booted" visibility="protected" complexity="3" crap="3.07" count="628"/>
+        <line num="54" type="stmt" count="628"/>
+        <line num="55" type="stmt" count="196"/>
         <line num="56" type="stmt" count="3"/>
         <line num="57" type="stmt" count="3"/>
         <line num="58" type="stmt" count="3"/>
@@ -16819,7 +16819,7 @@
         <line num="61" type="stmt" count="0"/>
         <line num="62" type="stmt" count="0"/>
         <line num="65" type="stmt" count="3"/>
-        <line num="67" type="stmt" count="627"/>
+        <line num="67" type="stmt" count="628"/>
         <line num="73" type="method" name="download" visibility="public" complexity="1" crap="1" count="42"/>
         <line num="75" type="stmt" count="42"/>
         <line num="81" type="method" name="threeDModel" visibility="public" complexity="1" crap="1" count="40"/>
@@ -17335,10 +17335,10 @@
         <class name="App\Models\Team" namespace="App\Models">
           <metrics complexity="24" methods="8" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="59" coveredstatements="52" elements="67" coveredelements="57"/>
         </class>
-        <line num="74" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="2698"/>
-        <line num="76" type="stmt" count="2698"/>
-        <line num="77" type="stmt" count="2698"/>
-        <line num="78" type="stmt" count="2698"/>
+        <line num="74" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="2700"/>
+        <line num="76" type="stmt" count="2700"/>
+        <line num="77" type="stmt" count="2700"/>
+        <line num="78" type="stmt" count="2700"/>
         <line num="84" type="method" name="hasUserWithRole" visibility="public" complexity="1" crap="1" count="1208"/>
         <line num="86" type="stmt" count="1208"/>
         <line num="92" type="method" name="todos" visibility="public" complexity="1" crap="2" count="0"/>
@@ -17351,7 +17351,7 @@
         <line num="123" type="stmt" count="2523"/>
         <line num="124" type="stmt" count="2523"/>
         <line num="125" type="stmt" count="2523"/>
-        <line num="127" type="stmt" count="2205"/>
+        <line num="127" type="stmt" count="2204"/>
         <line num="130" type="stmt" count="2523"/>
         <line num="132" type="stmt" count="2523"/>
         <line num="133" type="stmt" count="0"/>
@@ -17381,27 +17381,27 @@
         <line num="175" type="stmt" count="52"/>
         <line num="177" type="stmt" count="52"/>
         <line num="178" type="stmt" count="52"/>
-        <line num="181" type="method" name="booted" visibility="protected" complexity="8" crap="8" count="2698"/>
-        <line num="183" type="stmt" count="2698"/>
-        <line num="184" type="stmt" count="2698"/>
-        <line num="185" type="stmt" count="826"/>
-        <line num="186" type="stmt" count="826"/>
-        <line num="187" type="stmt" count="2698"/>
-        <line num="188" type="stmt" count="2698"/>
-        <line num="189" type="stmt" count="2698"/>
-        <line num="190" type="stmt" count="2698"/>
+        <line num="181" type="method" name="booted" visibility="protected" complexity="8" crap="8" count="2700"/>
+        <line num="183" type="stmt" count="2700"/>
+        <line num="184" type="stmt" count="2700"/>
+        <line num="185" type="stmt" count="827"/>
+        <line num="186" type="stmt" count="827"/>
+        <line num="187" type="stmt" count="2700"/>
+        <line num="188" type="stmt" count="2700"/>
+        <line num="189" type="stmt" count="2700"/>
+        <line num="190" type="stmt" count="2700"/>
         <line num="191" type="stmt" count="35"/>
         <line num="192" type="stmt" count="35"/>
         <line num="193" type="stmt" count="32"/>
         <line num="196" type="stmt" count="35"/>
         <line num="197" type="stmt" count="35"/>
         <line num="199" type="stmt" count="8"/>
-        <line num="201" type="stmt" count="2698"/>
-        <line num="203" type="stmt" count="2698"/>
+        <line num="201" type="stmt" count="2700"/>
+        <line num="203" type="stmt" count="2700"/>
         <line num="204" type="stmt" count="16"/>
         <line num="205" type="stmt" count="16"/>
         <line num="206" type="stmt" count="12"/>
-        <line num="208" type="stmt" count="2698"/>
+        <line num="208" type="stmt" count="2700"/>
         <metrics loc="211" ncloc="165" classes="1" methods="8" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="59" coveredstatements="52" elements="67" coveredelements="57"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Models/TeamInvitation.php">
@@ -17545,41 +17545,41 @@
         <class name="App\Models\User" namespace="App\Models">
           <metrics complexity="81" methods="40" coveredmethods="31" conditionals="0" coveredconditionals="0" statements="172" coveredstatements="162" elements="212" coveredelements="193"/>
         </class>
-        <line num="138" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="2706"/>
-        <line num="140" type="stmt" count="2706"/>
-        <line num="141" type="stmt" count="2706"/>
-        <line num="142" type="stmt" count="2706"/>
-        <line num="143" type="stmt" count="2706"/>
-        <line num="144" type="stmt" count="2706"/>
-        <line num="145" type="stmt" count="2706"/>
-        <line num="146" type="stmt" count="2706"/>
-        <line num="147" type="stmt" count="2706"/>
-        <line num="148" type="stmt" count="2706"/>
-        <line num="149" type="stmt" count="2706"/>
-        <line num="150" type="stmt" count="2706"/>
-        <line num="151" type="stmt" count="2706"/>
-        <line num="152" type="stmt" count="2706"/>
-        <line num="153" type="stmt" count="2706"/>
-        <line num="154" type="stmt" count="2706"/>
-        <line num="155" type="stmt" count="2706"/>
-        <line num="156" type="stmt" count="2706"/>
-        <line num="159" type="method" name="booted" visibility="protected" complexity="10" crap="10.04" count="2699"/>
-        <line num="161" type="stmt" count="2699"/>
-        <line num="162" type="stmt" count="2699"/>
-        <line num="163" type="stmt" count="2667"/>
-        <line num="164" type="stmt" count="2667"/>
-        <line num="165" type="stmt" count="2699"/>
-        <line num="166" type="stmt" count="2699"/>
-        <line num="167" type="stmt" count="2699"/>
-        <line num="168" type="stmt" count="2668"/>
-        <line num="169" type="stmt" count="225"/>
-        <line num="171" type="stmt" count="2668"/>
+        <line num="138" type="method" name="casts" visibility="protected" complexity="1" crap="1" count="2708"/>
+        <line num="140" type="stmt" count="2708"/>
+        <line num="141" type="stmt" count="2708"/>
+        <line num="142" type="stmt" count="2708"/>
+        <line num="143" type="stmt" count="2708"/>
+        <line num="144" type="stmt" count="2708"/>
+        <line num="145" type="stmt" count="2708"/>
+        <line num="146" type="stmt" count="2708"/>
+        <line num="147" type="stmt" count="2708"/>
+        <line num="148" type="stmt" count="2708"/>
+        <line num="149" type="stmt" count="2708"/>
+        <line num="150" type="stmt" count="2708"/>
+        <line num="151" type="stmt" count="2708"/>
+        <line num="152" type="stmt" count="2708"/>
+        <line num="153" type="stmt" count="2708"/>
+        <line num="154" type="stmt" count="2708"/>
+        <line num="155" type="stmt" count="2708"/>
+        <line num="156" type="stmt" count="2708"/>
+        <line num="159" type="method" name="booted" visibility="protected" complexity="10" crap="10.04" count="2702"/>
+        <line num="161" type="stmt" count="2702"/>
+        <line num="162" type="stmt" count="2702"/>
+        <line num="163" type="stmt" count="2669"/>
+        <line num="164" type="stmt" count="2669"/>
+        <line num="165" type="stmt" count="2702"/>
+        <line num="166" type="stmt" count="2702"/>
+        <line num="167" type="stmt" count="2702"/>
+        <line num="168" type="stmt" count="2670"/>
+        <line num="169" type="stmt" count="227"/>
+        <line num="171" type="stmt" count="2670"/>
         <line num="172" type="stmt" count="0"/>
-        <line num="175" type="stmt" count="2668"/>
-        <line num="176" type="stmt" count="2668"/>
-        <line num="177" type="stmt" count="2632"/>
-        <line num="179" type="stmt" count="2699"/>
-        <line num="181" type="stmt" count="2699"/>
+        <line num="175" type="stmt" count="2670"/>
+        <line num="176" type="stmt" count="2670"/>
+        <line num="177" type="stmt" count="2634"/>
+        <line num="179" type="stmt" count="2702"/>
+        <line num="181" type="stmt" count="2702"/>
         <line num="182" type="stmt" count="13"/>
         <line num="183" type="stmt" count="13"/>
         <line num="184" type="stmt" count="13"/>
@@ -17591,16 +17591,16 @@
         <line num="193" type="stmt" count="13"/>
         <line num="195" type="stmt" count="13"/>
         <line num="196" type="stmt" count="2"/>
-        <line num="198" type="stmt" count="2699"/>
-        <line num="201" type="method" name="hasGeocodeColumns" visibility="private" complexity="1" crap="1" count="2668"/>
-        <line num="203" type="stmt" count="2668"/>
-        <line num="204" type="stmt" count="2668"/>
-        <line num="205" type="stmt" count="2668"/>
-        <line num="206" type="stmt" count="2668"/>
-        <line num="207" type="stmt" count="2668"/>
-        <line num="208" type="stmt" count="2668"/>
-        <line num="210" type="stmt" count="2668"/>
-        <line num="211" type="stmt" count="2668"/>
+        <line num="198" type="stmt" count="2702"/>
+        <line num="201" type="method" name="hasGeocodeColumns" visibility="private" complexity="1" crap="1" count="2670"/>
+        <line num="203" type="stmt" count="2670"/>
+        <line num="204" type="stmt" count="2670"/>
+        <line num="205" type="stmt" count="2670"/>
+        <line num="206" type="stmt" count="2670"/>
+        <line num="207" type="stmt" count="2670"/>
+        <line num="208" type="stmt" count="2670"/>
+        <line num="210" type="stmt" count="2670"/>
+        <line num="211" type="stmt" count="2670"/>
         <line num="217" type="method" name="createdTodos" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="219" type="stmt" count="0"/>
         <line num="222" type="method" name="coverRatings" visibility="public" complexity="1" crap="2" count="0"/>
@@ -17763,20 +17763,20 @@
         <class name="App\Models\UserPoint" namespace="App\Models">
           <metrics complexity="8" methods="8" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="20" coveredstatements="20" elements="28" coveredelements="28"/>
         </class>
-        <line num="30" type="method" name="booted" visibility="protected" complexity="1" crap="1" count="779"/>
-        <line num="32" type="stmt" count="779"/>
-        <line num="33" type="stmt" count="469"/>
-        <line num="34" type="stmt" count="469"/>
-        <line num="35" type="stmt" count="779"/>
-        <line num="36" type="stmt" count="779"/>
-        <line num="37" type="stmt" count="779"/>
-        <line num="39" type="stmt" count="779"/>
-        <line num="40" type="stmt" count="469"/>
-        <line num="42" type="stmt" count="469"/>
-        <line num="43" type="stmt" count="466"/>
-        <line num="44" type="stmt" count="466"/>
-        <line num="45" type="stmt" count="469"/>
-        <line num="46" type="stmt" count="779"/>
+        <line num="30" type="method" name="booted" visibility="protected" complexity="1" crap="1" count="780"/>
+        <line num="32" type="stmt" count="780"/>
+        <line num="33" type="stmt" count="470"/>
+        <line num="34" type="stmt" count="470"/>
+        <line num="35" type="stmt" count="780"/>
+        <line num="36" type="stmt" count="780"/>
+        <line num="37" type="stmt" count="780"/>
+        <line num="39" type="stmt" count="780"/>
+        <line num="40" type="stmt" count="470"/>
+        <line num="42" type="stmt" count="470"/>
+        <line num="43" type="stmt" count="467"/>
+        <line num="44" type="stmt" count="467"/>
+        <line num="45" type="stmt" count="470"/>
+        <line num="46" type="stmt" count="780"/>
         <line num="65" type="method" name="user" visibility="public" complexity="1" crap="1" count="1"/>
         <line num="67" type="stmt" count="1"/>
         <line num="73" type="method" name="team" visibility="public" complexity="1" crap="1" count="1"/>
@@ -18253,18 +18253,18 @@
         <line num="112" type="stmt" count="2"/>
         <line num="113" type="stmt" count="3854"/>
         <line num="115" type="stmt" count="3854"/>
-        <line num="116" type="stmt" count="2622"/>
-        <line num="117" type="stmt" count="2622"/>
-        <line num="118" type="stmt" count="2622"/>
-        <line num="119" type="stmt" count="2622"/>
-        <line num="120" type="stmt" count="2622"/>
-        <line num="121" type="stmt" count="2622"/>
-        <line num="122" type="stmt" count="2622"/>
-        <line num="124" type="stmt" count="2622"/>
-        <line num="125" type="stmt" count="2613"/>
-        <line num="128" type="stmt" count="2622"/>
+        <line num="116" type="stmt" count="2624"/>
+        <line num="117" type="stmt" count="2624"/>
+        <line num="118" type="stmt" count="2624"/>
+        <line num="119" type="stmt" count="2624"/>
+        <line num="120" type="stmt" count="2624"/>
+        <line num="121" type="stmt" count="2624"/>
+        <line num="122" type="stmt" count="2624"/>
+        <line num="124" type="stmt" count="2624"/>
+        <line num="125" type="stmt" count="2615"/>
+        <line num="128" type="stmt" count="2624"/>
         <line num="129" type="stmt" count="0"/>
-        <line num="132" type="stmt" count="2622"/>
+        <line num="132" type="stmt" count="2624"/>
         <line num="133" type="stmt" count="3854"/>
         <line num="140" type="stmt" count="3854"/>
         <line num="141" type="stmt" count="0"/>
@@ -18507,18 +18507,18 @@
         <class name="App\Services\Baxx\BaxxBookingWriter" namespace="App\Services\Baxx">
           <metrics complexity="3" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="16" coveredstatements="16" elements="18" coveredelements="18"/>
         </class>
-        <line num="12" type="method" name="record" visibility="public" complexity="2" crap="2" count="434"/>
-        <line num="14" type="stmt" count="434"/>
-        <line num="15" type="stmt" count="434"/>
-        <line num="16" type="stmt" count="434"/>
-        <line num="17" type="stmt" count="434"/>
-        <line num="18" type="stmt" count="434"/>
-        <line num="19" type="stmt" count="434"/>
-        <line num="21" type="stmt" count="434"/>
+        <line num="12" type="method" name="record" visibility="public" complexity="2" crap="2" count="435"/>
+        <line num="14" type="stmt" count="435"/>
+        <line num="15" type="stmt" count="435"/>
+        <line num="16" type="stmt" count="435"/>
+        <line num="17" type="stmt" count="435"/>
+        <line num="18" type="stmt" count="435"/>
+        <line num="19" type="stmt" count="435"/>
+        <line num="21" type="stmt" count="435"/>
         <line num="22" type="stmt" count="3"/>
         <line num="23" type="stmt" count="3"/>
-        <line num="26" type="stmt" count="434"/>
-        <line num="28" type="stmt" count="431"/>
+        <line num="26" type="stmt" count="435"/>
+        <line num="28" type="stmt" count="432"/>
         <line num="31" type="method" name="forTodo" visibility="public" complexity="1" crap="1" count="7"/>
         <line num="33" type="stmt" count="7"/>
         <line num="34" type="stmt" count="7"/>
@@ -18673,13 +18673,13 @@
         <class name="App\Services\BaxxMilestoneActivityService" namespace="App\Services">
           <metrics complexity="18" methods="6" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="85" coveredstatements="84" elements="91" coveredelements="89"/>
         </class>
-        <line num="19" type="method" name="recordForUserPoint" visibility="public" complexity="10" crap="10" count="468"/>
-        <line num="21" type="stmt" count="468"/>
-        <line num="23" type="stmt" count="468"/>
+        <line num="19" type="method" name="recordForUserPoint" visibility="public" complexity="10" crap="10" count="469"/>
+        <line num="21" type="stmt" count="469"/>
+        <line num="23" type="stmt" count="469"/>
         <line num="24" type="stmt" count="1"/>
-        <line num="27" type="stmt" count="468"/>
-        <line num="29" type="stmt" count="468"/>
-        <line num="30" type="stmt" count="7"/>
+        <line num="27" type="stmt" count="469"/>
+        <line num="29" type="stmt" count="469"/>
+        <line num="30" type="stmt" count="8"/>
         <line num="33" type="stmt" count="465"/>
         <line num="37" type="stmt" count="465"/>
         <line num="38" type="stmt" count="1"/>
@@ -32728,9 +32728,9 @@
         <line num="36" type="stmt" count="110"/>
         <line num="39" type="method" name="enabled" visibility="public" complexity="2" crap="2" count="292"/>
         <line num="41" type="stmt" count="292"/>
-        <line num="45" type="method" name="activate" visibility="public" complexity="6" crap="6" count="184"/>
-        <line num="47" type="stmt" count="184"/>
-        <line num="48" type="stmt" count="87"/>
+        <line num="45" type="method" name="activate" visibility="public" complexity="6" crap="6" count="186"/>
+        <line num="47" type="stmt" count="186"/>
+        <line num="48" type="stmt" count="89"/>
         <line num="51" type="stmt" count="104"/>
         <line num="54" type="stmt" count="104"/>
         <line num="55" type="stmt" count="104"/>
@@ -33179,8 +33179,8 @@
         <class name="App\Services\Memberships\MembershipContext" namespace="App\Services\Memberships">
           <metrics complexity="65" methods="17" coveredmethods="17" conditionals="0" coveredconditionals="0" statements="103" coveredstatements="103" elements="120" coveredelements="120"/>
         </class>
-        <line num="30" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2896"/>
-        <line num="32" type="stmt" count="2896"/>
+        <line num="30" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="2898"/>
+        <line num="32" type="stmt" count="2898"/>
         <line num="35" type="method" name="forUserInTeam" visibility="public" complexity="2" crap="2" count="1786"/>
         <line num="37" type="stmt" count="1786"/>
         <line num="38" type="stmt" count="1786"/>
@@ -33242,46 +33242,46 @@
         <line num="142" type="stmt" count="691"/>
         <line num="144" type="stmt" count="691"/>
         <line num="145" type="stmt" count="691"/>
-        <line num="149" type="method" name="invalidateUser" visibility="public" complexity="10" crap="10" count="2658"/>
-        <line num="151" type="stmt" count="2658"/>
-        <line num="152" type="stmt" count="225"/>
-        <line num="156" type="stmt" count="2658"/>
-        <line num="157" type="stmt" count="2658"/>
-        <line num="158" type="stmt" count="2658"/>
-        <line num="159" type="stmt" count="2658"/>
-        <line num="160" type="stmt" count="174"/>
-        <line num="161" type="stmt" count="174"/>
-        <line num="164" type="stmt" count="2658"/>
-        <line num="167" type="method" name="invalidateTeam" visibility="public" complexity="11" crap="11" count="832"/>
-        <line num="169" type="stmt" count="832"/>
+        <line num="149" type="method" name="invalidateUser" visibility="public" complexity="10" crap="10" count="2660"/>
+        <line num="151" type="stmt" count="2660"/>
+        <line num="152" type="stmt" count="227"/>
+        <line num="156" type="stmt" count="2660"/>
+        <line num="157" type="stmt" count="2660"/>
+        <line num="158" type="stmt" count="2660"/>
+        <line num="159" type="stmt" count="2660"/>
+        <line num="160" type="stmt" count="176"/>
+        <line num="161" type="stmt" count="176"/>
+        <line num="164" type="stmt" count="2660"/>
+        <line num="167" type="method" name="invalidateTeam" visibility="public" complexity="11" crap="11" count="833"/>
+        <line num="169" type="stmt" count="833"/>
         <line num="170" type="stmt" count="30"/>
-        <line num="172" type="stmt" count="832"/>
-        <line num="173" type="stmt" count="832"/>
-        <line num="174" type="stmt" count="832"/>
+        <line num="172" type="stmt" count="833"/>
+        <line num="173" type="stmt" count="833"/>
+        <line num="174" type="stmt" count="833"/>
         <line num="175" type="stmt" count="6"/>
         <line num="176" type="stmt" count="6"/>
         <line num="177" type="stmt" count="5"/>
         <line num="178" type="stmt" count="5"/>
-        <line num="183" type="stmt" count="832"/>
-        <line num="186" type="method" name="reset" visibility="public" complexity="4" crap="4" count="2886"/>
-        <line num="188" type="stmt" count="2886"/>
-        <line num="189" type="stmt" count="2886"/>
-        <line num="190" type="stmt" count="2886"/>
-        <line num="191" type="stmt" count="2886"/>
-        <line num="192" type="stmt" count="2690"/>
-        <line num="193" type="stmt" count="2690"/>
-        <line num="198" type="method" name="track" visibility="public" complexity="2" crap="2" count="2700"/>
-        <line num="200" type="stmt" count="2700"/>
-        <line num="201" type="stmt" count="2700"/>
+        <line num="183" type="stmt" count="833"/>
+        <line num="186" type="method" name="reset" visibility="public" complexity="4" crap="4" count="2888"/>
+        <line num="188" type="stmt" count="2888"/>
+        <line num="189" type="stmt" count="2888"/>
+        <line num="190" type="stmt" count="2888"/>
+        <line num="191" type="stmt" count="2888"/>
+        <line num="192" type="stmt" count="2692"/>
+        <line num="193" type="stmt" count="2692"/>
+        <line num="198" type="method" name="track" visibility="public" complexity="2" crap="2" count="2702"/>
+        <line num="200" type="stmt" count="2702"/>
+        <line num="201" type="stmt" count="2702"/>
         <line num="205" type="method" name="key" visibility="private" complexity="1" crap="1" count="334"/>
         <line num="207" type="stmt" count="334"/>
         <line num="210" type="method" name="readsFresh" visibility="private" complexity="3" crap="3" count="1791"/>
         <line num="213" type="stmt" count="1791"/>
         <line num="214" type="stmt" count="1791"/>
-        <line num="218" type="method" name="restoreAfterRollback" visibility="private" complexity="8" crap="8" count="250"/>
-        <line num="220" type="stmt" count="250"/>
-        <line num="221" type="stmt" count="250"/>
-        <line num="222" type="stmt" count="62"/>
+        <line num="218" type="method" name="restoreAfterRollback" visibility="private" complexity="8" crap="8" count="252"/>
+        <line num="220" type="stmt" count="252"/>
+        <line num="221" type="stmt" count="252"/>
+        <line num="222" type="stmt" count="64"/>
         <line num="224" type="stmt" count="190"/>
         <line num="225" type="stmt" count="2"/>
         <line num="226" type="stmt" count="2"/>
@@ -33484,7 +33484,7 @@
         </class>
         <line num="23" type="method" name="normalize" visibility="public" complexity="3" crap="3" count="89"/>
         <line num="25" type="stmt" count="89"/>
-        <line num="26" type="stmt" count="52"/>
+        <line num="26" type="stmt" count="53"/>
         <line num="29" type="stmt" count="88"/>
         <line num="31" type="stmt" count="88"/>
         <line num="35" type="method" name="forUser" visibility="public" complexity="3" crap="3" count="86"/>
@@ -36104,37 +36104,37 @@
         <class name="App\Support\BundledDownloadLocator" namespace="App\Support">
           <metrics complexity="18" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="24" elements="31" coveredelements="25"/>
         </class>
-        <line num="7" type="method" name="normalizeStoragePath" visibility="public" complexity="8" crap="9.30" count="72"/>
-        <line num="9" type="stmt" count="72"/>
-        <line num="11" type="stmt" count="72"/>
+        <line num="7" type="method" name="normalizeStoragePath" visibility="public" complexity="8" crap="9.30" count="74"/>
+        <line num="9" type="stmt" count="74"/>
+        <line num="11" type="stmt" count="74"/>
         <line num="12" type="stmt" count="0"/>
-        <line num="15" type="stmt" count="72"/>
+        <line num="15" type="stmt" count="74"/>
         <line num="16" type="stmt" count="0"/>
-        <line num="19" type="stmt" count="72"/>
+        <line num="19" type="stmt" count="74"/>
         <line num="20" type="stmt" count="0"/>
-        <line num="23" type="stmt" count="72"/>
-        <line num="25" type="stmt" count="72"/>
+        <line num="23" type="stmt" count="74"/>
+        <line num="25" type="stmt" count="74"/>
         <line num="26" type="stmt" count="2"/>
-        <line num="29" type="stmt" count="70"/>
-        <line num="32" type="method" name="sourcePath" visibility="public" complexity="7" crap="7.03" count="69"/>
-        <line num="34" type="stmt" count="69"/>
-        <line num="36" type="stmt" count="69"/>
+        <line num="29" type="stmt" count="72"/>
+        <line num="32" type="method" name="sourcePath" visibility="public" complexity="7" crap="7.03" count="71"/>
+        <line num="34" type="stmt" count="71"/>
+        <line num="36" type="stmt" count="71"/>
         <line num="37" type="stmt" count="1"/>
-        <line num="40" type="stmt" count="68"/>
-        <line num="41" type="stmt" count="68"/>
-        <line num="43" type="stmt" count="68"/>
+        <line num="40" type="stmt" count="70"/>
+        <line num="41" type="stmt" count="70"/>
+        <line num="43" type="stmt" count="70"/>
         <line num="44" type="stmt" count="2"/>
-        <line num="47" type="stmt" count="66"/>
-        <line num="48" type="stmt" count="66"/>
-        <line num="50" type="stmt" count="66"/>
+        <line num="47" type="stmt" count="68"/>
+        <line num="48" type="stmt" count="68"/>
+        <line num="50" type="stmt" count="68"/>
         <line num="51" type="stmt" count="0"/>
-        <line num="54" type="stmt" count="66"/>
-        <line num="57" type="method" name="fileSize" visibility="public" complexity="3" crap="3" count="65"/>
-        <line num="59" type="stmt" count="65"/>
-        <line num="61" type="stmt" count="65"/>
+        <line num="54" type="stmt" count="68"/>
+        <line num="57" type="method" name="fileSize" visibility="public" complexity="3" crap="3" count="67"/>
+        <line num="59" type="stmt" count="67"/>
+        <line num="61" type="stmt" count="67"/>
         <line num="62" type="stmt" count="2"/>
-        <line num="65" type="stmt" count="63"/>
-        <line num="67" type="stmt" count="63"/>
+        <line num="65" type="stmt" count="65"/>
+        <line num="67" type="stmt" count="65"/>
         <metrics loc="70" ncloc="70" classes="1" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="28" coveredstatements="24" elements="31" coveredelements="25"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Support/CombatHash.php">
