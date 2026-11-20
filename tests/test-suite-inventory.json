@@ -7121,6 +7121,17 @@
     "seeders": []
   },
   {
+    "file": "tests/Integration/Php85SecurityGateTest.php",
+    "runner": "php-integration",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the PHP 8.5 security gate enforces the patched version boundary",
+      "the standalone security gate uses the actual interpreter despite version arguments and environment variables"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Integration/Php86IntegrityTest.php",
     "runner": "php-integration",
     "laravel": false,
@@ -7719,6 +7730,16 @@
     "methods": [
       "the badge displays measured line coverage and an accessible label",
       "empty coverage is unavailable and invalid snapshots cannot produce a success badge"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/php-runtime-workflows.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "${filename} updates and verifies every PHP 8.5 runtime before dependent steps"
     ],
     "seeders": []
   },

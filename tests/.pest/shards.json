@@ -336,6 +336,7 @@
         "Tests\\Integration\\NewsletterImageServiceTest": 1.2565,
         "Tests\\Integration\\NewsletterTopicsTest": 0.4879,
         "Tests\\Integration\\PageControllerProtokolleTest": 0.1998,
+        "Tests\\Integration\\Php85SecurityGateTest": 0.2334,
         "Tests\\Integration\\Php86IntegrityTest": 0.0663,
         "Tests\\Integration\\PhpDeprecationGuardTest": 1.7713,
         "Tests\\Integration\\ReviewBaxxServiceTest": 0.3776,
@@ -411,6 +412,6 @@
         "Tests\\Unit\\UserNicknameOrNameTest": 0.0046,
         "Tests\\Unit\\UserPublicFirstNameTest": 0.0084
     },
-    "checksum": "f928d046f2664e138e530e0b92dc4a14",
-    "updated_at": "2026-11-17T05:38:21+01:00"
+    "checksum": "eb237a88dfd3bae825cba64a8f43a9a5",
+    "updated_at": "2026-11-20T06:06:36+01:00"
 }

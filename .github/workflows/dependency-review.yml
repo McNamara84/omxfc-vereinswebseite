@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Reject vulnerable dependency changes
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: always
@@ -38,11 +38,14 @@ jobs:
 
       - name: Setup PHP
         uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
           php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
-
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -53,7 +56,7 @@ jobs:
         run: composer validate --no-check-publish --strict
 
       - name: Pin npm
-        run: npm install --global npm@12.2.2 --ignore-scripts && test "$(npm --version)" = "12.2.2" && sh docker/patch-npm-security.sh
+        run: npm install --global npm@12.2.3 --ignore-scripts && test "$(npm --version)" = "12.2.3" && sh docker/patch-npm-security.sh
 
       - name: Audit Composer lockfile
         run: composer audit --locked --abandoned=fail

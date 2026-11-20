@@ -35,7 +35,7 @@ try {
     }
     $constraint = $manifest->require->php;
     if ($lock->platform->php !== $constraint
-        || ! Semver::satisfies('8.5.0', $constraint)
+        || ! Semver::satisfies('8.5.13', $constraint)
         || ! Semver::satisfies('8.6.0', $constraint)) {
         throw new RuntimeException('Both PHP 8.5 and PHP 8.6 must be supported by the ordinary manifest and lockfile.');
     }
