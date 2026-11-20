@@ -31,7 +31,7 @@ test('integrity checks preserve the manifest and detect lockfile tampering', fun
         $initial->run();
         if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 6) {
             expect($initial->getExitCode())->toBe(1)
-                ->and($initial->getErrorOutput())->toContain('actual PHP 8.6 interpreter');
+                ->and($initial->getErrorOutput())->toContain('actual stable PHP 8.6 interpreter');
             $this->assertFileDoesNotExist($directory.'/metadata.json');
 
             return;
@@ -52,7 +52,7 @@ test('integrity checks preserve the manifest and detect lockfile tampering', fun
         expect($verify->getExitCode())->toBe(1)
             ->and($verify->getErrorOutput())->toContain('changed during the check');
         file_put_contents($directory.'/composer.lock', $lock);
-        file_put_contents($directory.'/composer.json', str_replace('~8.5.13 || ~8.6.0', '~8.5.13', $manifest));
+        file_put_contents($directory.'/composer.json', str_replace('~8.6.0', '~8.5.13', $manifest));
         $verify->run();
         expect($verify->getExitCode())->toBe(1)
             ->and($verify->getErrorOutput())->toContain('does not match its manifest');

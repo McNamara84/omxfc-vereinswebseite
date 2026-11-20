@@ -47,6 +47,9 @@ test('to cents rejects invalid money formats', function (string|int $amount): vo
     'currency suffix' => ['12 €'],
     'currency prefix' => ['€ 12'],
     'letters' => ['twelve'],
+    'leading form feed remains invalid' => ["\f12.34"],
+    'trailing form feed remains invalid' => ["12.34\f"],
+    'form feed alone is not an empty amount' => ["\f"],
 ]);
 
 test('empty amounts report the specific validation error', function (string $amount): void {

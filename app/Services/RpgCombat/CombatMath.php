@@ -7,7 +7,7 @@ use InvalidArgumentException;
 /** Pure calculations. Page numbers refer to the 2007 rulebook. */
 final class CombatMath
 {
-    public const FIRE_MODES = [
+    public const array FIRE_MODES = [
         'E' => ['ammunition' => 1, 'attack' => 0, 'damage' => 0, 'area' => 0],
         'H' => ['ammunition' => 2, 'attack' => -1, 'damage' => 0, 'area' => 1],
         'S' => ['ammunition' => 6, 'attack' => -2, 'damage' => 0, 'area' => 3],

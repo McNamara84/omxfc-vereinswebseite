@@ -1,6 +1,9 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\Euro;
+use App\Support\RpgExperienceRules;
+use Tests\TestCase;
 
 arch('application entry points do not use debugging helpers')
     ->expect('App')
@@ -22,10 +25,10 @@ arch('policies keep the project naming convention')
 
 arch('application code does not depend on test infrastructure')
     ->expect('App')
-    ->not->toUse(['Tests\\TestCase', 'PHPUnit\\Framework\\TestCase']);
+    ->not->toUse([TestCase::class, PHPUnit\Framework\TestCase::class]);
 
 arch('pure monetary and progression rules do not depend on HTTP controllers')
-    ->expect(['App\Support\Euro', 'App\Support\RpgExperienceRules'])
+    ->expect([Euro::class, RpgExperienceRules::class])
     ->not->toUse('App\Http\Controllers');
 
 arch()->preset()->php();

@@ -12,8 +12,9 @@ class BaxxEarningRule extends Model
 {
     use HasFactory;
 
-    private const CACHE_KEY_SUFFIX = '.v2';
+    private const string CACHE_KEY_SUFFIX = '.v2';
 
+    #[\Override]
     protected $fillable = [
         'action_key',
         'label',

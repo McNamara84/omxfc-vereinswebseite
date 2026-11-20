@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class KassenbuchEntryFactory extends Factory
 {
+    #[\Override]
     protected $model = KassenbuchEntry::class;
 
     /**

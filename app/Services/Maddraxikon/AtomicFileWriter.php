@@ -8,7 +8,7 @@ use Throwable;
 
 class AtomicFileWriter
 {
-    private const MAX_ATTEMPTS = 10;
+    private const int MAX_ATTEMPTS = 10;
 
     public function __construct(
         private readonly Filesystem $files,

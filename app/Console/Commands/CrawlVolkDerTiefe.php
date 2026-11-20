@@ -6,8 +6,10 @@ use Illuminate\Console\Command;
 
 class CrawlVolkDerTiefe extends Command
 {
+    #[\Override]
     protected $signature = 'crawlvolkdertiefe';
 
+    #[\Override]
     protected $description = 'Safely refresh Das Volk der Tiefe novel information';
 
     public function handle(): int

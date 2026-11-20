@@ -7,9 +7,9 @@ use App\Support\RpgCharEditorSpecialRules;
 
 final class RpgCharacterCreationEvaluator
 {
-    private const ABSOLUTE_ATTRIBUTE_MIN = -2;
+    private const int ABSOLUTE_ATTRIBUTE_MIN = -2;
 
-    private const ABSOLUTE_ATTRIBUTE_MAX = 2;
+    private const int ABSOLUTE_ATTRIBUTE_MAX = 2;
 
     /**
      * Evaluate normalized creation input without reading request or session state.

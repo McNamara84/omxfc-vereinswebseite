@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RpgItemType extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

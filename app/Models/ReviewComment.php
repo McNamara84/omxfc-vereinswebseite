@@ -28,6 +28,7 @@ class ReviewComment extends Model
 {
     use HasFactory, SoftDeletes;
 
+    #[\Override]
     protected $fillable = [
         'review_id',
         'user_id',

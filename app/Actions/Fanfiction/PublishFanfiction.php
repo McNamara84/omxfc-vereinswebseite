@@ -11,9 +11,9 @@ use App\Services\FanfictionService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-final class PublishFanfiction
+final readonly class PublishFanfiction
 {
-    public function __construct(private readonly FanfictionService $rewards, private readonly BaxxBookingWriter $writer) {}
+    public function __construct(private FanfictionService $rewards, private BaxxBookingWriter $writer) {}
 
     /** Administrative entry points authorize the operation before calling this action. */
     public function execute(Fanfiction $fanfiction): bool

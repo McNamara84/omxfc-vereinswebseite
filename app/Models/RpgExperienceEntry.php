@@ -8,6 +8,7 @@ use LogicException;
 
 class RpgExperienceEntry extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

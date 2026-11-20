@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-final class RpgCharacterRenameService
+final readonly class RpgCharacterRenameService
 {
-    public const REWARD_SLUG = 'rpg-character-rename';
+    public const string REWARD_SLUG = 'rpg-character-rename';
 
     public function __construct(private RpgAccess $access, private RewardService $rewards) {}
 

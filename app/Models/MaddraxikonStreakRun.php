@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MaddraxikonStreakRun extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

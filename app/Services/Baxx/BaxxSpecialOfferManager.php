@@ -12,9 +12,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-final class BaxxSpecialOfferManager
+final readonly class BaxxSpecialOfferManager
 {
-    public function __construct(private readonly BaxxRuleResolver $rules) {}
+    public function __construct(private BaxxRuleResolver $rules) {}
 
     public function save(User $actor, string $actionKey, array $data, ?int $id, string $fieldPrefix): Model
     {

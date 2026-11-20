@@ -28,6 +28,7 @@ class BookOffer extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'bundle_id',

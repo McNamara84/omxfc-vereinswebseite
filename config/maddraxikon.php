@@ -42,7 +42,7 @@ return [
     'streaks' => [
         'enabled' => filter_var(env('MADDRAXIKON_STREAKS_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
         'starts_at' => env('MADDRAXIKON_STREAKS_STARTS_AT'),
-        'batch_size' => max(1, min(500, (int) env('MADDRAXIKON_STREAKS_BATCH_SIZE', 100))),
+        'batch_size' => clamp((int) env('MADDRAXIKON_STREAKS_BATCH_SIZE', 100), 1, 500),
         'recheck_hours' => max(1, (int) env('MADDRAXIKON_STREAKS_RECHECK_HOURS', 24)),
     ],
 
@@ -67,17 +67,8 @@ return [
     'timezone' => 'Europe/Berlin',
 
     'evaluation' => [
-        'source_batch_size' => min(
-            1000,
-            max(
-                1,
-                (int) env('MADDRAXIKON_EVALUATION_SOURCE_BATCH_SIZE', 100)
-            )
-        ),
-        'api_batch_size' => min(
-            50,
-            max(1, (int) env('MADDRAXIKON_EVALUATION_API_BATCH_SIZE', 50))
-        ),
+        'source_batch_size' => clamp((int) env('MADDRAXIKON_EVALUATION_SOURCE_BATCH_SIZE', 100), 1, 1000),
+        'api_batch_size' => clamp((int) env('MADDRAXIKON_EVALUATION_API_BATCH_SIZE', 50), 1, 50),
     ],
 
     'sync' => [
@@ -96,25 +87,16 @@ return [
             1,
             (int) env('MADDRAXIKON_RECOVERY_MAX_WINDOW_DAYS', 90)
         ),
-        'usercontribs_batch_size' => min(
-            50,
-            max(1, (int) env('MADDRAXIKON_USERCONTRIBS_BATCH_SIZE', 50))
-        ),
+        'usercontribs_batch_size' => clamp((int) env('MADDRAXIKON_USERCONTRIBS_BATCH_SIZE', 50), 1, 50),
     ],
 
     'ratings' => [
-        'sync_interval_minutes' => min(
-            59,
-            max(1, (int) env('MADDRAXIKON_RATINGS_SYNC_INTERVAL_MINUTES', 15))
-        ),
+        'sync_interval_minutes' => clamp((int) env('MADDRAXIKON_RATINGS_SYNC_INTERVAL_MINUTES', 15), 1, 59),
         'stale_after_minutes' => max(
             15,
             (int) env('MADDRAXIKON_RATINGS_STALE_AFTER_MINUTES', 60)
         ),
-        'source_batch_size' => min(
-            500,
-            max(1, (int) env('MADDRAXIKON_RATINGS_SOURCE_BATCH_SIZE', 100))
-        ),
+        'source_batch_size' => clamp((int) env('MADDRAXIKON_RATINGS_SOURCE_BATCH_SIZE', 100), 1, 500),
     ],
 
     'monitoring' => [

@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-final class RequestWorkflow
+final readonly class RequestWorkflow
 {
-    public function __construct(private readonly MutationLock $lock, private readonly RomantauschBaxxService $baxx, private readonly CommittedMatching $matching, private readonly SourceDeletion $deletion) {}
+    public function __construct(private MutationLock $lock, private RomantauschBaxxService $baxx, private CommittedMatching $matching, private SourceDeletion $deletion) {}
 
     public function create(User $actor, array $data): MutationResult
     {

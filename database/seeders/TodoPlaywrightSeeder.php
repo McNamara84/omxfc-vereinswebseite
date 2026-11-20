@@ -21,26 +21,24 @@ class TodoPlaywrightSeeder extends Seeder
         $team = Team::membersTeam();
 
         if (! $team) {
-            $admin = User::withoutEvents(function () {
-                return User::create([
-                    'name' => 'Holger Ehrmann',
-                    'email' => 'info@maddraxikon.com',
-                    'email_verified_at' => now(),
-                    'password' => Hash::make('password'),
-                    'vorname' => 'Holger',
-                    'nachname' => 'Ehrmann',
-                    'strasse' => 'Musterstraße',
-                    'hausnummer' => '123',
-                    'plz' => '12345',
-                    'stadt' => 'Musterstadt',
-                    'land' => 'Deutschland',
-                    'lat' => 48.137154,
-                    'lon' => 11.576124,
-                    'telefon' => '0123456789',
-                    'verein_gefunden' => 'Sonstiges',
-                    'mitgliedsbeitrag' => 36.00,
-                ]);
-            });
+            $admin = User::withoutEvents(fn () => User::create([
+                'name' => 'Holger Ehrmann',
+                'email' => 'info@maddraxikon.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'vorname' => 'Holger',
+                'nachname' => 'Ehrmann',
+                'strasse' => 'Musterstraße',
+                'hausnummer' => '123',
+                'plz' => '12345',
+                'stadt' => 'Musterstadt',
+                'land' => 'Deutschland',
+                'lat' => 48.137154,
+                'lon' => 11.576124,
+                'telefon' => '0123456789',
+                'verein_gefunden' => 'Sonstiges',
+                'mitgliedsbeitrag' => 36.00,
+            ]));
 
             $team = Jetstream::newTeamModel()->forceFill([
                 'name' => 'Mitglieder',

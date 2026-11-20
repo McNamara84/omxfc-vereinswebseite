@@ -22,12 +22,12 @@ use Illuminate\Support\Facades\Mail;
 class DashboardController extends Controller
 {
     public function __construct(
-        private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider,
-        private ReviewBaxxService $reviewBaxxService,
-        private DashboardMetricsService $dashboardMetricsService,
-        private TourAssignmentService $tourAssignmentService,
-        private MembersTeamMembershipLock $membershipLock,
+        private readonly UserRoleService $userRoleService,
+        private readonly MembersTeamProvider $membersTeamProvider,
+        private readonly ReviewBaxxService $reviewBaxxService,
+        private readonly DashboardMetricsService $dashboardMetricsService,
+        private readonly TourAssignmentService $tourAssignmentService,
+        private readonly MembersTeamMembershipLock $membershipLock,
     ) {}
 
     public function index()
@@ -61,7 +61,7 @@ class DashboardController extends Controller
             if (is_array($cachedApplicants)) {
                 $anwaerter = User::hydrate(array_values(array_filter(
                     $cachedApplicants,
-                    static fn (mixed $applicant): bool => is_array($applicant),
+                    is_array(...),
                 )));
             }
         }
@@ -108,9 +108,7 @@ class DashboardController extends Controller
             ];
         });
         $summary = $entries->isNotEmpty()
-            ? 'Top '.$entries->count().' Baxx-Sammler: '.$entries->map(function ($user, $index) {
-                return ($index + 1).'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)';
-            })->implode(', ')
+            ? 'Top '.$entries->count().' Baxx-Sammler: '.$entries->map(fn ($user, $index) => ($index + 1).'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)')->implode(', ')
             : null;
         $payload = $entries->map(fn ($user): array => [
             'id' => $user['id'],

@@ -142,7 +142,7 @@ class MeetingScheduleService
             return null;
         }
 
-        [$hour, $minute] = array_map('intval', explode(':', $meeting->time_from));
+        [$hour, $minute] = array_map(intval(...), explode(':', $meeting->time_from));
 
         return $date->setTime($hour, $minute);
     }

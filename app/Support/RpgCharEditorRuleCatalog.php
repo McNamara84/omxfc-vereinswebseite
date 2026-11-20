@@ -4,17 +4,17 @@ namespace App\Support;
 
 final class RpgCharEditorRuleCatalog
 {
-    public const BASE = 'base';
+    public const string BASE = 'base';
 
-    public const EXPANSION = 'expansion-1';
+    public const string EXPANSION = 'expansion-1';
 
-    public const MARTIAN_CULTURE = 'Marsianische Städter';
+    public const string MARTIAN_CULTURE = 'Marsianische Städter';
 
-    public const MARTIAN_BONUS_SKILLS = ['Pilot', 'Wissenschaftler', 'Athletik', 'Unterhalten'];
+    public const array MARTIAN_BONUS_SKILLS = ['Pilot', 'Wissenschaftler', 'Athletik', 'Unterhalten'];
 
-    public const HUMAN_POOL = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
+    public const array HUMAN_POOL = ['Bildung', 'Fahren', 'Feuerwaffen', 'Pilot', 'Techniker', 'Wissenschaftler'];
 
-    public const POOL_POINTS = 12;
+    public const int POOL_POINTS = 12;
 
     public static function sources(): array
     {

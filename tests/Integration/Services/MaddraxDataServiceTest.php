@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Integration\Services;
 
 use App\Enums\BookType;
+use App\Exceptions\MaddraxikonCrawlException;
 use App\Services\MaddraxDataService;
 use App\Services\Maddraxikon\MaddraxikonSnapshotRepository;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,15 @@ use Mockery;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(MaddraxDataServiceTestFixtures::class);
+
+test('an unreadable active snapshot does not silently expose stale legacy data', function (): void {
+    $this->createMaddraxFile();
+    $snapshots = Mockery::mock(MaddraxikonSnapshotRepository::class);
+    $snapshots->shouldReceive('activeId')->once()->with(BookType::fromKey('maddrax'))
+        ->andThrow(new MaddraxikonCrawlException('Snapshot unavailable.'));
+
+    expect((new MaddraxDataService($snapshots))->getMaddraxRomane())->toBeEmpty();
+});
 
 covers(MaddraxDataService::class);
 

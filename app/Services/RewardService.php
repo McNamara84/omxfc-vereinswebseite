@@ -21,13 +21,13 @@ class RewardService
      *
      * @var array<string, array<int, string>>
      */
-    private const REWARD_SLUG_ALIASES = [
+    private const array REWARD_SLUG_ALIASES = [
         'kompendium' => ['kompendium-suche'],
     ];
 
-    private const MITGLIEDERKARTE_SLUG = 'mitgliederkarte';
+    private const string MITGLIEDERKARTE_SLUG = 'mitgliederkarte';
 
-    private const MITGLIEDERKARTE_TITLE = 'Mitgliederkarte';
+    private const string MITGLIEDERKARTE_TITLE = 'Mitgliederkarte';
 
     public function __construct(
         private readonly TeamPointService $teamPointService

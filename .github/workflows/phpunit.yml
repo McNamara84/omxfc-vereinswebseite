@@ -1,16 +1,21 @@
 name: PHP Unit Tests
+run-name: '${{ github.workflow }} @ ${{ github.sha }}'
 
 on:
+  merge_group:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 5 * * *'
 
 permissions:
   contents: read
 
 concurrency:
-  group: phpunit-${{ github.ref }}
+  group: phpunit-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -24,21 +29,22 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
+          coverage: none
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: intl, zip, sockets
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-composer-
+            ${{ runner.os }}-php-8.6-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
@@ -56,7 +62,7 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Tests (shard ${{ matrix.shard }}/2)
+    name: PHP 8.6 Tests (shard ${{ matrix.shard }}/2)
     strategy:
       fail-fast: false
       matrix:
@@ -68,13 +74,18 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: gd, exif, zip, sockets
-          coverage: xdebug
+          coverage: none
           ini-values: xdebug.mode=coverage
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
+      - name: Install pinned PHP 8.6 coverage driver
+        run: |
+          sh tools/ci/install-xdebug.sh "$RUNNER_TEMP/php86-coverage"
+          echo "PHP_INI_SCAN_DIR=:$RUNNER_TEMP/php86-coverage" >> "$GITHUB_ENV"
+          echo "XDEBUG_MODE=coverage" >> "$GITHUB_ENV"
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -83,28 +94,28 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-composer-
+            ${{ runner.os }}-php-8.6-
             ${{ runner.os }}-
       - name: Cache Composer downloads
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.composer/cache
-          key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-cache-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-cache-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-composer-cache-
+            ${{ runner.os }}-php-8.6-
             ${{ runner.os }}-
       - name: Cache PHPUnit result cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-shard-${{ matrix.shard }}-${{ hashFiles('phpunit.xml', 'composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-phpunit-shard-${{ matrix.shard }}-${{ hashFiles('phpunit.xml', 'composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-phpunit-shard-${{ matrix.shard }}-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-phpunit-shard-${{ matrix.shard }}-
+            ${{ runner.os }}-php-8.6-
             ${{ runner.os }}-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -117,7 +128,8 @@ jobs:
           DB_CONNECTION: sqlite
           # Match phpunit.xml; inherited process variables also populate $_SERVER.
           DB_DATABASE: ':memory:'
-        run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact --timeout=1800 --coverage-clover=coverage/php-${{ matrix.shard }}.xml --coverage-php=coverage/php-${{ matrix.shard }}.php --log-junit=coverage/php-${{ matrix.shard }}-tests.xml
+        # The temporary Xdebug alpha needs more time than the former stable driver.
+        run: ./vendor/bin/pest --shard=${{ matrix.shard }}/2 --compact --timeout=3600 --coverage-clover=coverage/php-${{ matrix.shard }}.xml --coverage-php=coverage/php-${{ matrix.shard }}.php --log-junit=coverage/php-${{ matrix.shard }}-tests.xml
       - name: Upload PHP coverage shard
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -128,7 +140,7 @@ jobs:
 
   maddraxikon_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Maddraxikon (MariaDB 13.0)
+    name: PHP 8.6 Maddraxikon (MariaDB 13.0)
     services:
       mariadb:
         image: mariadb:13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
@@ -159,11 +171,12 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
+          coverage: none
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, zip, sockets
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -172,10 +185,10 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-mariadb-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-mariadb-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-mariadb-composer-
-            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.6-mariadb-composer-
+            ${{ runner.os }}-php-8.6-composer-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
@@ -189,7 +202,7 @@ jobs:
 
   rpg_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 RPG Concurrency (MariaDB 13.0)
+    name: PHP 8.6 RPG Concurrency (MariaDB 13.0)
     timeout-minutes: 15
     services:
       mariadb:
@@ -223,12 +236,12 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -237,10 +250,10 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-mariadb-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-mariadb-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-mariadb-composer-
-            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.6-mariadb-composer-
+            ${{ runner.os }}-php-8.6-composer-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
@@ -252,7 +265,7 @@ jobs:
 
   veranstaltungs_baxx_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Veranstaltungs-Baxx Concurrency (MariaDB 13.0)
+    name: PHP 8.6 Veranstaltungs-Baxx Concurrency (MariaDB 13.0)
     timeout-minutes: 15
     services:
       mariadb:
@@ -286,12 +299,12 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -300,10 +313,10 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-mariadb-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-mariadb-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-mariadb-composer-
-            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.6-mariadb-composer-
+            ${{ runner.os }}-php-8.6-composer-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
@@ -315,7 +328,7 @@ jobs:
 
   browser_preview:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Browser Preview Regression
+    name: PHP 8.6 Browser Preview Regression
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -323,11 +336,12 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
+          coverage: none
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -336,19 +350,19 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-composer-
+            ${{ runner.os }}-php-8.6-
             ${{ runner.os }}-
       - name: Cache Composer downloads
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.composer/cache
-          key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-cache-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-composer-cache-
-            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-php-8.6-composer-cache-
+            ${{ runner.os }}-php-8.6-
             ${{ runner.os }}-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
@@ -378,7 +392,7 @@ jobs:
   coverage:
     needs: [tests]
     runs-on: ubuntu-latest
-    name: PHP 8.5 - Coverage
+    name: PHP 8.6 - Coverage
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -388,12 +402,12 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
           coverage: none
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
@@ -401,7 +415,7 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: vendor
-          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-composer-${{ hashFiles('composer.lock') }}
       - run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Download both PHP coverage shards
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
@@ -420,8 +434,9 @@ jobs:
         run: |
           node tools/testing/check-coverage.mjs tests/coverage-baselines/php.json coverage/php-snapshot.json
           node tools/testing/check-coverage.mjs tests/coverage-baselines/php-pest-modernization-before.json coverage/php-snapshot.json
+          node tools/testing/check-coverage.mjs tests/coverage-baselines/php86-modernization-before.json coverage/php-snapshot.json
       - name: Create PHP coverage badge
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: node tools/testing/php-coverage-badge.mjs coverage/php-snapshot.json badge-output/php-coverage.svg
       - name: Upload PHP coverage report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -436,7 +451,7 @@ jobs:
           path: coverage/php-snapshot.json
           if-no-files-found: error
       - name: Upload PHP coverage badge
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: php-coverage-badge
@@ -444,54 +459,52 @@ jobs:
           if-no-files-found: error
 
   js-coverage:
-    # Additional badge preparation runs on main; PR JS coverage is checked in vitest.yml.
+    # Reuse the successful Vitest measurements from this exact main revision.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read
     needs:
       - tests
     runs-on: ubuntu-latest
     name: JS Coverage
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
-          # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - name: Setup Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
-          cache: npm
-      - name: Install Node dependencies
-        run: |
-          npm install --global npm@12.2.3 --ignore-scripts
-          test "$(npm --version)" = "12.2.3"
-          sh docker/patch-npm-security.sh
-          npm ci
-      - name: Run Vitest tests with coverage
-        run: npm run test:coverage
-      - name: Create JS coverage badge
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mkdir -p output
-          if [ -f "coverage/coverage-summary.json" ]; then
-            npm exec --no -- make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-            sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
-          fi
+      - name: Find the successful Vitest push for this revision
+        id: vitest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/find-vitest-coverage.mjs
+      - name: Download existing JavaScript measurements and badge
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: js-coverage-publication
+          run-id: ${{ steps.vitest.outputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: js-publication
       - name: Upload JS coverage summary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: js-coverage-summary
-          path: coverage/coverage-summary.json
+          path: js-publication/coverage-summary.json
+          if-no-files-found: error
       - name: Upload JS coverage badge
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: js-coverage-badge
-          path: output/js-coverage.svg
-          if-no-files-found: ignore
+          path: js-publication/js-coverage.svg
+          if-no-files-found: error
 
   deploy-coverage:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     needs:
@@ -500,72 +513,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Determine deployment target
-        run: |
-          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "Coverage artifacts will be deployed to the image-data branch."
-          else
-            echo "Deployment skipped: coverage artifacts are only published for push events on the main branch."
-          fi
       - name: Download PHP coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: php-coverage-badge
           path: artifacts/php/badge
       - name: Download JS coverage badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: js-coverage-badge
           path: artifacts/js/badge
       - name: Download JS coverage summary
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: js-coverage-summary
           path: artifacts/js/summary
       - name: Download PHP coverage report
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: php-coverage-report
           path: artifacts/php/report
       - name: Prepare deployment directory
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          mkdir -p output
-
-          if [ -d artifacts/js/badge ]; then
-            js_badge=$(find artifacts/js/badge -name 'js-coverage.svg' -print -quit)
-            if [ -n "$js_badge" ]; then
-              cp "$js_badge" output/js-coverage.svg
-            fi
-          fi
-
-          if [ -d artifacts/php/badge ]; then
-            php_badge=$(find artifacts/php/badge -name 'php-coverage.svg' -print -quit)
-            if [ -n "$php_badge" ]; then
-              cp "$php_badge" output/php-coverage.svg
-            fi
-          fi
-
-          if [ -d artifacts/js/summary ]; then
-            js_summary=$(find artifacts/js/summary -name 'coverage-summary.json' -print -quit)
-            if [ -n "$js_summary" ]; then
-              mkdir -p output/coverage
-              cp "$js_summary" output/coverage/coverage-summary.json
-            fi
-          fi
-
-          if [ -d artifacts/php/report ]; then
-            php_report=$(find artifacts/php/report -name 'coverage.xml' -print -quit)
-            if [ -n "$php_report" ]; then
-              cp "$php_report" output/coverage.xml
-            fi
-          fi
+          mkdir -p output/coverage
+          cp artifacts/php/badge/php-coverage.svg output/php-coverage.svg
+          cp artifacts/js/badge/js-coverage.svg output/js-coverage.svg
+          cp artifacts/js/summary/coverage-summary.json output/coverage/coverage-summary.json
+          cp artifacts/php/report/coverage.xml output/coverage.xml
       - name: Deploy coverage artifacts to image-data branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           publish_dir: ./output

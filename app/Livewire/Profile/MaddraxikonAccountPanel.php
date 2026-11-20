@@ -18,7 +18,7 @@ use Livewire\Component;
 final class MaddraxikonAccountPanel extends Component
 {
     /** @var array<string, string> */
-    private const REWARD_REASON_LABELS = [
+    private const array REWARD_REASON_LABELS = [
         'account_link_inactive' => 'Maddraxikon-Verknüpfung nicht aktiv',
         'membership_inactive' => 'Vereinsmitgliedschaft nicht aktiv',
         'source_namespace_not_article' => 'Beitrag stammt nicht aus dem Artikelnamensraum',

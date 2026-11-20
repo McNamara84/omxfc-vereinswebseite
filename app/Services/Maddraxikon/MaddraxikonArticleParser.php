@@ -164,7 +164,7 @@ class MaddraxikonArticleParser
         }
 
         $items = array_values(array_filter(
-            array_map('trim', explode(',', $value)),
+            array_map(trim(...), explode(',', $value)),
             static fn (string $item): bool => $item !== '',
         ));
 

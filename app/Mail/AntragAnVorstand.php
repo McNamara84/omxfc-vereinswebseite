@@ -14,15 +14,10 @@ class AntragAnVorstand extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public User $user;
-
     /**
      * Create a new message instance.
      */
-    public function __construct(User $user)
-    {
-        $this->user = $user;
-    }
+    public function __construct(public User $user) {}
 
     /**
      * Get the message envelope.

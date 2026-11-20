@@ -7,7 +7,7 @@ use Illuminate\Validation\ValidationException;
 /** Immutable, fully resolved catalogue; no database or request dependencies. */
 final class RpgEquipmentCatalog
 {
-    public function __construct(private array $custom = [], private array $ammo = [], private string $revision = '') {}
+    public function __construct(private array $custom = [], private readonly array $ammo = [], private readonly string $revision = '') {}
 
     public function version(): string
     {

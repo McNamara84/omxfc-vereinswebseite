@@ -46,7 +46,7 @@ final class MariaDbMembershipConcurrencyWorker extends MaddraxikonApiClient
     public function revisionDetails(array $revisionIds): array
     {
         return MaddraxikonContribution::query()
-            ->whereIn('revision_id', array_map('intval', $revisionIds))
+            ->whereIn('revision_id', array_map(intval(...), $revisionIds))
             ->get()
             ->mapWithKeys(static fn (
                 MaddraxikonContribution $contribution
@@ -72,7 +72,7 @@ final class MariaDbMembershipConcurrencyWorker extends MaddraxikonApiClient
     public function pageDetails(array $pageIds): array
     {
         return MaddraxikonContribution::query()
-            ->whereIn('page_id', array_map('intval', $pageIds))
+            ->whereIn('page_id', array_map(intval(...), $pageIds))
             ->get()
             ->mapWithKeys(static fn (
                 MaddraxikonContribution $contribution

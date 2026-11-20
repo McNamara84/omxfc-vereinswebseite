@@ -11,11 +11,13 @@ class RefreshMemberMap extends Command
     /**
      * The name and signature of the console command.
      */
+    #[\Override]
     protected $signature = 'member-map:refresh';
 
     /**
      * The console command description.
      */
+    #[\Override]
     protected $description = 'Refresh cached member map data for all teams.';
 
     public function __construct(protected MemberMapCacheService $service)

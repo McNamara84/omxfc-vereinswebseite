@@ -195,7 +195,7 @@ trait RpgCharEditorPdfTestFixtures
         }
         $adjustments = [];
         foreach (['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'] as $attribute) {
-            $adjustments[$attribute] = max(-1, min(1, (int) ($payload['attributes'][$attribute] ?? 0) - (int) ($modifiers[$attribute] ?? 0) - (int) ($bonuses[$attribute] ?? 0)));
+            $adjustments[$attribute] = clamp((int) ($payload['attributes'][$attribute] ?? 0) - (int) ($modifiers[$attribute] ?? 0) - (int) ($bonuses[$attribute] ?? 0), -1, 1);
         }
 
         return $adjustments;

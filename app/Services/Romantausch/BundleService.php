@@ -42,7 +42,7 @@ class BundleService
     public function parseBookNumbers(string $input): array
     {
         $numbers = [];
-        $parts = array_map('trim', explode(',', $input));
+        $parts = array_map(trim(...), explode(',', $input));
         $skippedParts = [];
 
         foreach ($parts as $part) {

@@ -12,9 +12,9 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
-final class MaddraxikonStreakSummary
+final readonly class MaddraxikonStreakSummary
 {
-    public function __construct(private readonly MaddraxikonStreakSettings $settings, private readonly AccountEligibility $eligibility) {}
+    public function __construct(private MaddraxikonStreakSettings $settings, private AccountEligibility $eligibility) {}
 
     public function forUser(User $user): ?array
     {

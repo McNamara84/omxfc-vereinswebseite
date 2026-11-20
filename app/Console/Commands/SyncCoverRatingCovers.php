@@ -10,12 +10,14 @@ use Throwable;
 
 class SyncCoverRatingCovers extends Command
 {
+    #[\Override]
     protected $signature = 'cover-ratings:sync-covers
         {--dry-run : Änderungen prüfen, aber nichts speichern}
         {--book= : Nur eine lokale Buch-ID synchronisieren}
         {--series= : Nur einen stabilen Serien-Key synchronisieren}
         {--force : Geänderte Titelbilder und identische Fingerprints erneut verarbeiten}';
 
+    #[\Override]
     protected $description = 'Synchronisiert Cover und aktivierte Bildersuche-Schlagworte aus dem Maddraxikon.';
 
     public function handle(BookCoverSyncRunner $runner): int

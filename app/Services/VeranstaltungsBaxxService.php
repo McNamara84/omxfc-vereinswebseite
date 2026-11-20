@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class VeranstaltungsBaxxService
 {
-    private const ELIGIBLE_ROLES = [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin];
+    private const array ELIGIBLE_ROLES = [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin];
 
     public function __construct(private readonly MembersTeamMembershipLock $membershipLock) {}
 

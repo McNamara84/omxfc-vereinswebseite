@@ -60,7 +60,7 @@ class LaravelLogExcerptExtractor
             // Der unveränderte Basispfad bleibt als Fallback erhalten.
         }
 
-        return array_values(array_unique(array_filter($paths, 'is_file')));
+        return array_values(array_unique(array_filter($paths, is_file(...))));
     }
 
     /**
@@ -86,7 +86,7 @@ class LaravelLogExcerptExtractor
         }
 
         return array_values(array_filter(
-            array_map('trim', $records),
+            array_map(trim(...), $records),
             fn (string $record): bool => str_contains($record, $incident->id)
                 || str_contains($record, $incident->correlationId),
         ));

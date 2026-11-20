@@ -10,11 +10,13 @@ use Throwable;
 
 class RecoverMaddraxikonCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:recover
         {--from= : Beginn des abgeschlossenen Recovery-Fensters (ISO-8601)}
         {--until= : Ende des abgeschlossenen Recovery-Fensters (ISO-8601)}
         {--yes : Sicherheitsabfrage überspringen}';
 
+    #[\Override]
     protected $description = 'Importiert ein begrenztes Ausfallfenster über MediaWiki list=usercontribs.';
 
     public function handle(MaddraxikonContributionImporter $importer): int

@@ -25,10 +25,7 @@ return [
         (int) env('COVER_RATINGS_RESULTS_MIN_VOTES', 3),
     ),
     'sync' => [
-        'batch_size' => min(
-            50,
-            max(1, (int) env('COVER_RATINGS_SYNC_BATCH_SIZE', 25)),
-        ),
+        'batch_size' => clamp((int) env('COVER_RATINGS_SYNC_BATCH_SIZE', 25), 1, 50),
         'interval_hours' => CoverSyncInterval::normalize(
             (int) env(
                 'COVER_RATINGS_SYNC_INTERVAL_HOURS',
@@ -64,10 +61,7 @@ return [
             360,
             (int) env('COVER_RATINGS_IMAGE_LARGE_WIDTH', 720),
         ),
-        'webp_quality' => min(
-            100,
-            max(1, (int) env('COVER_RATINGS_IMAGE_WEBP_QUALITY', 82)),
-        ),
+        'webp_quality' => clamp((int) env('COVER_RATINGS_IMAGE_WEBP_QUALITY', 82), 1, 100),
         'connect_timeout' => max(
             1,
             (int) env('COVER_RATINGS_IMAGE_CONNECT_TIMEOUT', 5),

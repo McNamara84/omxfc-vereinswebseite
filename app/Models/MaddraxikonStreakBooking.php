@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MaddraxikonStreakBooking extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

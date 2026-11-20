@@ -12,9 +12,9 @@ use Livewire\Component;
 
 class HomeReviews extends Component
 {
-    private const CACHE_KEY_PREFIX = 'home_reviews.latest.v1.team.';
+    private const string CACHE_KEY_PREFIX = 'home_reviews.latest.v1.team.';
 
-    private const CACHE_TTL_SECONDS = 300;
+    private const int CACHE_TTL_SECONDS = 300;
 
     #[Computed]
     public function reviews(): Collection

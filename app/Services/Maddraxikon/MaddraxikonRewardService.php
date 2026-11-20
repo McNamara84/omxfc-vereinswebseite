@@ -447,10 +447,7 @@ class MaddraxikonRewardService
             }
         }
 
-        $batchSize = min(
-            50,
-            max(1, (int) config('maddraxikon.evaluation.api_batch_size', 50))
-        );
+        $batchSize = clamp((int) config('maddraxikon.evaluation.api_batch_size', 50), 1, 50);
         $revisionDetails = [];
 
         foreach (array_chunk(array_keys($revisionOwners), $batchSize) as $ids) {
@@ -881,10 +878,7 @@ class MaddraxikonRewardService
                     ->whereDate('activity_date', $activityDate)
                     ->sum('awarded_points');
                 $dailyCap = max(0, (int) config('maddraxikon.daily_point_cap', 10));
-                $awardedPoints = min(
-                    $candidatePoints,
-                    max(0, $dailyCap - $alreadyAwarded)
-                );
+                $awardedPoints = min($candidatePoints, max(0, $dailyCap - $alreadyAwarded));
                 $cappedPoints = $candidatePoints - $awardedPoints;
                 $statusReason = $policy
                     ? $this->policyAwardStatusReason(

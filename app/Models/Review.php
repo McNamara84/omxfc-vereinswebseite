@@ -31,6 +31,7 @@ class Review extends Model
 {
     use HasFactory, SoftDeletes;
 
+    #[\Override]
     protected $fillable = [
         'team_id',
         'user_id',
@@ -148,9 +149,7 @@ class Review extends Model
         $cacheKey = SanitizedMarkdown::cacheKey($this, 'review', 'formatted', $markdown);
 
         if ($cacheKey !== null) {
-            return Cache::rememberForever($cacheKey, function () use ($markdown) {
-                return SanitizedMarkdown::render($markdown);
-            });
+            return Cache::rememberForever($cacheKey, fn () => SanitizedMarkdown::render($markdown));
         }
 
         return SanitizedMarkdown::render($markdown);

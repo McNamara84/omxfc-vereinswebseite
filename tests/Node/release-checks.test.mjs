@@ -1,11 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { assessReleaseChecks } from '../../.github/scripts/wait-for-release-checks.mjs';
 
 const workflows = ['phpunit.yml', 'vitest.yml', 'playwright.yml', 'dependency-review.yml', 'mutation.yml', 'service-image-scan.yml', 'php86-compatibility.yml'];
 const successfulRuns = () => workflows.map(file => ({
     path: `.github/workflows/${file}`, name: file, status: 'completed', conclusion: 'success',
 }));
+
+test('merge queues retain every release check after removing the duplicate compatibility test run', () => {
+    for (const filename of workflows) {
+        const workflow = readFileSync(new URL(`../../.github/workflows/${filename}`, import.meta.url), 'utf8');
+        assert.match(workflow, /^  merge_group:/m, filename);
+    }
+});
 
 test('release waits for every required workflow, including missing or running checks', () => {
     assert.deepEqual(assessReleaseChecks([]), { ready: false, pending: 7 });
@@ -23,6 +31,13 @@ test('PHP 8.6 must complete successfully before deployment', () => {
         php86.conclusion = conclusion;
         assert.throws(() => assessReleaseChecks(runs), /Deployment blocked by php86/);
     }
+});
+
+test('GitHub API workflow path references retain every required release gate', () => {
+    const runs = successfulRuns().map(run => ({ ...run, path: `${run.path}@main` }));
+    assert.deepEqual(assessReleaseChecks(runs), { ready: true, pending: 0 });
+    runs[0].conclusion = 'failure';
+    assert.throws(() => assessReleaseChecks(runs), /Deployment blocked by phpunit/);
 });
 
 test('failed, cancelled, skipped and timed out release checks cannot deploy', () => {

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MaddraxikonStreakDay extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

@@ -51,6 +51,7 @@ class UserPoint extends Model
      *
      * @var array<int, string>
      */
+    #[\Override]
     protected $fillable = [
         'user_id',
         'team_id',

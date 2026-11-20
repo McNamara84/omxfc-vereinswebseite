@@ -23,6 +23,7 @@ class TeamInvitation extends JetstreamTeamInvitation
      *
      * @var array<int, string>
      */
+    #[\Override]
     protected $fillable = [
         'email',
         'role',

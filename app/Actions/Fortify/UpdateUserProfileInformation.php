@@ -19,7 +19,7 @@ use Throwable;
 
 class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 {
-    private const MEMBER_MAP_CACHE_FIELDS = [
+    private const array MEMBER_MAP_CACHE_FIELDS = [
         'alias',
         'vorname',
         'nachname',

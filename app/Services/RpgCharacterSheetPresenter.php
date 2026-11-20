@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 final class RpgCharacterSheetPresenter
 {
-    private const ATTRIBUTE_LABELS = [
+    private const array ATTRIBUTE_LABELS = [
         'st' => 'Stärke',
         'ge' => 'Geschicklichkeit',
         'ro' => 'Robustheit',
@@ -18,7 +18,7 @@ final class RpgCharacterSheetPresenter
         'au' => 'Auftreten',
     ];
 
-    private const SKILL_COLUMNS = [
+    private const array SKILL_COLUMNS = [
         [
             'Athletik',
             'Beruf',
@@ -144,12 +144,10 @@ final class RpgCharacterSheetPresenter
      */
     private function skillColumns(array $skills): array
     {
-        return array_map(function (array $names) use ($skills): array {
-            return array_map(fn (string $name): array => [
-                'name' => $name,
-                'value' => $this->skillValue($skills, $name),
-            ], $names);
-        }, self::SKILL_COLUMNS);
+        return array_map(fn (array $names): array => array_map(fn (string $name): array => [
+            'name' => $name,
+            'value' => $this->skillValue($skills, $name),
+        ], $names), self::SKILL_COLUMNS);
     }
 
     /**

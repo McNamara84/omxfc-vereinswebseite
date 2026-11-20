@@ -7,7 +7,7 @@ use App\Models\RpgCombatDecision;
 use App\Models\User;
 use App\Services\RpgAccess;
 
-final class CombatAuthority
+final readonly class CombatAuthority
 {
     public function __construct(private RpgAccess $access) {}
 

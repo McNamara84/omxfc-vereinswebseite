@@ -52,7 +52,7 @@ class RezensionController extends Controller
         $review = app(RecordReview::class)->execute($user, $teamId, $book->id, $data);
 
         // Autoren des Romans über neue Rezension informieren
-        $authorNames = array_map('trim', explode(',', $book->author));
+        $authorNames = array_map(trim(...), explode(',', $book->author));
         $authors = User::whereIn('name', $authorNames)->get();
         foreach ($authors as $author) {
             if ($author->notify_new_review) {

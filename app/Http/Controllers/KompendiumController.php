@@ -24,17 +24,17 @@ use Illuminate\View\View;
 class KompendiumController extends Controller
 {
     public function __construct(
-        private KompendiumService $kompendiumService,
-        private KompendiumSearchService $searchService,
-        private RewardService $rewardService,
-        private ?KompendiumSearchLogService $searchLogService = null
+        private readonly KompendiumService $kompendiumService,
+        private readonly KompendiumSearchService $searchService,
+        private readonly RewardService $rewardService,
+        private readonly ?KompendiumSearchLogService $searchLogService = null
     ) {}
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
-    private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
+    private const string PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
     /** Erlaubtes Basis-Verzeichnis für Roman-Dateien */
-    private const ALLOWED_BASE_PATH = 'romane/';
+    private const string ALLOWED_BASE_PATH = 'romane/';
 
     /* --------------------------------------------------------------------- */
     /*  Zugangs-Check: Reward gekauft ODER AG-Maddraxikon-Mitglied */
@@ -190,7 +190,7 @@ class KompendiumController extends Controller
         $ids = array_values($ids);                              // re-indexieren
 
         // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten
-        $ids = array_values(array_filter($ids, fn ($path) => $this->isValidRomanPath($path)));
+        $ids = array_values(array_filter($ids, $this->isValidRomanPath(...)));
 
         /* ------------------------------------------------------------------ */
         /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
@@ -290,13 +290,7 @@ class KompendiumController extends Controller
         // Begriff abgedeckt werden (z.B. "Matthew" wenn "Matthew Drax" schon enthalten ist)
         $deduplicated = [];
         foreach ($snippetSearchTerms as $term) {
-            $isSubstring = false;
-            foreach ($deduplicated as $existing) {
-                if (mb_stripos($existing, $term) !== false) {
-                    $isSubstring = true;
-                    break;
-                }
-            }
+            $isSubstring = array_any($deduplicated, fn ($existing) => mb_stripos($existing, $term) !== false);
             if (! $isSubstring) {
                 $deduplicated[] = $term;
             }

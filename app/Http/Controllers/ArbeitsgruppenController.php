@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class ArbeitsgruppenController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService) {}
+    public function __construct(private readonly UserRoleService $userRoleService) {}
 
     /**
      * Base query for all AG listings.

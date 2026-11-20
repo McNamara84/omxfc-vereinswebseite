@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Gate;
 
 class RpgCheckPresenter
 {
-    public function __construct(private RpgCheckService $service) {}
+    public function __construct(private readonly RpgCheckService $service) {}
 
     public function present(RpgCheck $check, User $viewer, Team $team, ?array $members = null): array
     {

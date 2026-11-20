@@ -5,10 +5,10 @@ namespace App\Services\DatabaseMaintenance;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-final class MariaDbClientOptionsFile
+final readonly class MariaDbClientOptionsFile
 {
     private function __construct(
-        private readonly string $path,
+        private string $path,
     ) {}
 
     /**

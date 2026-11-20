@@ -12,17 +12,17 @@ use App\Services\TourRegistry;
 use App\Support\Tours\TourCompletionResult;
 use Illuminate\Validation\ValidationException;
 
-final class ProfileTourCompletionService
+final readonly class ProfileTourCompletionService
 {
-    public const REWARD_KEY = 'profilpflege_seriendaten';
+    public const string REWARD_KEY = 'profilpflege_seriendaten';
 
-    public const POINTS = 5;
+    public const int POINTS = 5;
 
     public function __construct(
-        private readonly MembersTeamMembershipLock $membershipLock,
-        private readonly SeriesProfileCompletion $completion,
-        private readonly BaxxBookingWriter $writer,
-        private readonly TourRegistry $registry,
+        private MembersTeamMembershipLock $membershipLock,
+        private SeriesProfileCompletion $completion,
+        private BaxxBookingWriter $writer,
+        private TourRegistry $registry,
     ) {}
 
     public function complete(TourAssignment $assignment): TourCompletionResult

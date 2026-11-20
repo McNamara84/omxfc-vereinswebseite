@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ReviewFactory extends Factory
 {
+    #[\Override]
     protected $model = Review::class;
 
     /**

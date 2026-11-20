@@ -10,6 +10,7 @@ class PageVisit extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'path',

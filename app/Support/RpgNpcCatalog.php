@@ -5,9 +5,9 @@ namespace App\Support;
 /** The published blocks on pages 57–61. K values already include their modifiers. */
 final class RpgNpcCatalog
 {
-    public const VERSION = 'maddrax-2007-npcs-v1';
+    public const string VERSION = 'maddrax-2007-npcs-v1';
 
-    public const SKILLS = ['Athletik', 'Beruf', 'Bildung', 'Diebeskunst', 'Fahren', 'Fernkampf', 'Feuerwaffen', 'Handeln', 'Heiler', 'Heimlichkeit', 'Intuition', 'Kunde', 'Nahkampf', 'Pilot', 'Reiten', 'Sprachen', 'Techniker', 'Unterhalten', 'Überleben', 'Wissenschaftler'];
+    public const array SKILLS = ['Athletik', 'Beruf', 'Bildung', 'Diebeskunst', 'Fahren', 'Fernkampf', 'Feuerwaffen', 'Handeln', 'Heiler', 'Heimlichkeit', 'Intuition', 'Kunde', 'Nahkampf', 'Pilot', 'Reiten', 'Sprachen', 'Techniker', 'Unterhalten', 'Überleben', 'Wissenschaftler'];
 
     public static function ranks(): array
     {

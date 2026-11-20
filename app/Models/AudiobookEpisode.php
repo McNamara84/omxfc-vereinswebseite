@@ -19,8 +19,9 @@ class AudiobookEpisode extends Model
      * Scale factor mapping 0–100% progress to a 0–120° hue range,
      * which covers red (0°) to green (120°) on the HSL color wheel.
      */
-    private const PROGRESS_HUE_FACTOR = 1.2;
+    private const float PROGRESS_HUE_FACTOR = 1.2;
 
+    #[\Override]
     protected $fillable = [
         'episode_number',
         'title',
@@ -34,6 +35,7 @@ class AudiobookEpisode extends Model
         'roles_filled',
     ];
 
+    #[\Override]
     protected $casts = [
         'status' => AudiobookEpisodeStatus::class,
     ];
@@ -112,7 +114,7 @@ class AudiobookEpisode extends Model
                 } else {
                     $date = Carbon::createFromFormat($format, $this->planned_release_date);
                 }
-            } catch (InvalidArgumentException|InvalidFormatException $e) {
+            } catch (InvalidArgumentException|InvalidFormatException) {
                 continue;
             }
 

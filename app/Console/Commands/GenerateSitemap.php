@@ -12,11 +12,13 @@ class GenerateSitemap extends Command
     /**
      * The name and signature of the console command.
      */
+    #[\Override]
     protected $signature = 'sitemap:generate';
 
     /**
      * The console command description.
      */
+    #[\Override]
     protected $description = 'Generate the sitemap for publicly accessible pages.';
 
     /**

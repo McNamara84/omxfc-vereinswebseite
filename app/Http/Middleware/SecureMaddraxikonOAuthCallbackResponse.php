@@ -8,10 +8,10 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
-final class SecureMaddraxikonOAuthCallbackResponse
+final readonly class SecureMaddraxikonOAuthCallbackResponse
 {
     public function __construct(
-        private readonly ExceptionHandler $exceptions,
+        private ExceptionHandler $exceptions,
     ) {}
 
     /**

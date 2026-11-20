@@ -36,6 +36,7 @@ class KassenbuchEditRequest extends Model
 
     public const STATUS_REJECTED = 'rejected';
 
+    #[\Override]
     protected $fillable = [
         'kassenbuch_entry_id',
         'requested_by',
@@ -48,6 +49,7 @@ class KassenbuchEditRequest extends Model
         'processed_at',
     ];
 
+    #[\Override]
     protected $casts = [
         'processed_at' => 'datetime',
         'request_type' => KassenbuchEditRequestType::class,

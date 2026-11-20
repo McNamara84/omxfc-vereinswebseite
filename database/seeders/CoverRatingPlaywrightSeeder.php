@@ -12,11 +12,11 @@ use RuntimeException;
 
 class CoverRatingPlaywrightSeeder extends Seeder
 {
-    private const BROWSERS = ['chromium', 'firefox', 'webkit'];
+    private const array BROWSERS = ['chromium', 'firefox', 'webkit'];
 
-    private const FLOWS = ['mobile', 'desktop'];
+    private const array FLOWS = ['mobile', 'desktop'];
 
-    private const RETRIES = [0, 1, 2];
+    private const array RETRIES = [0, 1, 2];
 
     public function run(): void
     {

@@ -4,9 +4,9 @@ namespace App\Support;
 
 final class RpgExperienceRules
 {
-    public const VERSION = '2007-ep-1';
+    public const string VERSION = '2007-ep-1';
 
-    public const ATTRIBUTE_COST = 30;
+    public const int ATTRIBUTE_COST = 30;
 
     public static function skillCost(int $target, bool $psychic = false): int
     {

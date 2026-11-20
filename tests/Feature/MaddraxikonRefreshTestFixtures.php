@@ -14,6 +14,8 @@ trait MaddraxikonRefreshTestFixtures
 
     private string $testStoragePath;
 
+    private int $initialExecutionTimeLimit;
+
     private function articleHtml(int $number, string $cycle, ?string $title = null, string $releasedAt = '2026-09-01'): string
     {
         return '<html><head><meta charset="UTF-8"></head><body><b>'.$number.'</b><table>

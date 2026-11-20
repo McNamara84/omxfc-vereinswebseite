@@ -9,10 +9,12 @@ use Throwable;
 
 class MapMaddraxikonReviewBooksCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:map-review-books
         {--dry-run : Zuordnungen prüfen, aber nicht lokal speichern}
         {--all : Auch Bücher ohne vorhandene Rezension prüfen}';
 
+    #[\Override]
     protected $description = 'Ordnet lokale Rezensionsbücher ihren kanonischen Maddraxikon-Seiten zu.';
 
     public function handle(MaddraxikonBookMapper $mapper): int

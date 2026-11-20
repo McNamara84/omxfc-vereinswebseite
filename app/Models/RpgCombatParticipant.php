@@ -10,10 +10,13 @@ class RpgCombatParticipant extends Model
 {
     use UsesUtcCombatDates;
 
+    #[\Override]
     protected $guarded = [];
 
+    #[\Override]
     protected $attributes = ['participant_kind' => 'player'];
 
+    #[\Override]
     protected $hidden = ['snapshot', 'snapshot_hash'];
 
     protected function casts(): array

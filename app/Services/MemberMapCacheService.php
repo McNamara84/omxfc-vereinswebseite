@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 class MemberMapCacheService
 {
-    private const CACHE_VERSION = 'v2';
+    private const string CACHE_VERSION = 'v2';
 
     public function getMemberMapData(Team $team): array
     {

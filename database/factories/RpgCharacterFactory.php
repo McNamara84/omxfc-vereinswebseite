@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class RpgCharacterFactory extends Factory
 {
+    #[\Override]
     protected $model = RpgCharacter::class;
 
     public function definition(): array

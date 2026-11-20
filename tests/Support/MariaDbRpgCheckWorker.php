@@ -45,7 +45,7 @@ try {
         }, 3),
     };
     fwrite(STDOUT, json_encode(['ok' => true, 'id' => $result->id], JSON_THROW_ON_ERROR)."\n");
-} catch (ValidationException|ModelNotFoundException $exception) {
+} catch (ValidationException|ModelNotFoundException) {
     fwrite(STDOUT, json_encode(['ok' => false], JSON_THROW_ON_ERROR)."\n");
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception::class.': '.$exception->getMessage()."\n");

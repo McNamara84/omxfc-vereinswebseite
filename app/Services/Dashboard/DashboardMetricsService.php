@@ -32,7 +32,7 @@ class DashboardMetricsService
 
     public const RECENT_CONTENT_DAYS = 30;
 
-    private const GOVERNANCE_ROLES = [
+    private const array GOVERNANCE_ROLES = [
         Role::Admin,
         Role::Vorstand,
         Role::Kassenwart,

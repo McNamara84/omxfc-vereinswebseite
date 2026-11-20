@@ -41,12 +41,13 @@ class Fanfiction extends Model
 {
     use HasFactory, SoftDeletes;
 
-    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
+    private const string ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
-    private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::([^:\]]*?))?(?::([^\]]*?))?\]/i';
+    private const string BILD_TAG_PATTERN = '/\[bild:(\d+)(?::([^:\]]*?))?(?::([^\]]*?))?\]/i';
 
-    private const TEASER_LENGTH = 400;
+    private const int TEASER_LENGTH = 400;
 
+    #[\Override]
     protected $fillable = [
         'team_id',
         'user_id',
@@ -60,6 +61,7 @@ class Fanfiction extends Model
         'reward_id',
     ];
 
+    #[\Override]
     protected $casts = [
         'published_at' => 'datetime',
         'status' => FanfictionStatus::class,
@@ -248,9 +250,7 @@ class Fanfiction extends Model
         $cacheKey = $this->formattedContentCacheKey();
 
         if ($cacheKey !== null) {
-            return Cache::rememberForever($cacheKey, function () use ($markdown) {
-                return $this->renderFormattedContent($markdown);
-            });
+            return Cache::rememberForever($cacheKey, fn () => $this->renderFormattedContent($markdown));
         }
 
         return $this->renderFormattedContent($markdown);

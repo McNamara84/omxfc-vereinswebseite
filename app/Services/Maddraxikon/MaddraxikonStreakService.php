@@ -20,16 +20,16 @@ use Illuminate\Support\Facades\DB;
 use LogicException;
 use Throwable;
 
-final class MaddraxikonStreakService
+final readonly class MaddraxikonStreakService
 {
     public function __construct(
-        private readonly MaddraxikonApiClient $api,
-        private readonly MaddraxikonStreakSettings $settings,
-        private readonly MaddraxikonStreakTracker $tracker,
-        private readonly MaddraxikonStreakContributionValidator $validator,
-        private readonly MaddraxikonStreakCalculator $calculator,
-        private readonly MembersTeamMembershipLock $memberships,
-        private readonly BaxxBookingWriter $writer,
+        private MaddraxikonApiClient $api,
+        private MaddraxikonStreakSettings $settings,
+        private MaddraxikonStreakTracker $tracker,
+        private MaddraxikonStreakContributionValidator $validator,
+        private MaddraxikonStreakCalculator $calculator,
+        private MembersTeamMembershipLock $memberships,
+        private BaxxBookingWriter $writer,
     ) {}
 
     public function run(bool $recheck = false): int

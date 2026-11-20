@@ -8,6 +8,14 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(FanfictionBildTagTestFixtures::class);
 
+test('photo metadata excludes non string empty and external paths', function (): void {
+    $fanfiction = $this->createFanfiction('Testgeschichte', [
+        null, 42, [], '   ', 'https://untrusted.example/image.jpg', '/fanfiction/local.jpg',
+    ]);
+
+    expect($fanfiction->photos)->toBe(['fanfiction/local.jpg']);
+});
+
 test('bild tag is replaced with figure element', function (): void {
     $fanfiction = $this->createFanfiction('Text davor [bild:1] Text danach', ['fanfiction/photo1.jpg']);
     $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);

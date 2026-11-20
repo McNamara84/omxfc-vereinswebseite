@@ -8,10 +8,13 @@ use Illuminate\Validation\ValidationException;
 
 class RpgNpc extends Model
 {
+    #[\Override]
     protected $guarded = [];
 
+    #[\Override]
     protected $attributes = ['revision' => 0];
 
+    #[\Override]
     protected $hidden = ['submission_hash'];
 
     protected function casts(): array

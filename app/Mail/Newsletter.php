@@ -10,18 +10,10 @@ class Newsletter extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public string $subjectLine;
-
-    public array $topics;
-
     /**
      * Create a new message instance.
      */
-    public function __construct(string $subjectLine, array $topics)
-    {
-        $this->subjectLine = $subjectLine;
-        $this->topics = $topics;
-    }
+    public function __construct(public string $subjectLine, public array $topics) {}
 
     /**
      * Build the message.

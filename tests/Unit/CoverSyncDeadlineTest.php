@@ -34,3 +34,10 @@ test('http timeout is capped and never zero', function (): void {
 test('backoff must fit in the remaining budget', function (): void {
     expect(fn () => (new CoverSyncDeadline(1))->ensureRemaining(5))->toThrow(CoverSyncTimeoutException::class);
 });
+
+test('a subsecond remaining budget stays below the configured minimum', function (): void {
+    $deadline = new CoverSyncDeadline(1);
+
+    expect($deadline->timeout(0))->toBeGreaterThan(0)
+        ->toBeLessThan(1.0);
+});

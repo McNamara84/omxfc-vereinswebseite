@@ -19,6 +19,7 @@ class PollOption extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'poll_id',
         'label',

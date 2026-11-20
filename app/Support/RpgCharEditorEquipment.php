@@ -4,15 +4,15 @@ namespace App\Support;
 
 final class RpgCharEditorEquipment
 {
-    public const ITEM_LIMIT = 6;
+    public const int ITEM_LIMIT = 6;
 
-    public const HIGH_TECH_ITEM_LIMIT = 4;
+    public const int HIGH_TECH_ITEM_LIMIT = 4;
 
-    public const MAX_ITEMS = 64;
+    public const int MAX_ITEMS = 64;
 
-    public const QUANTITY_MAX = 20;
+    public const int QUANTITY_MAX = 20;
 
-    public const HIGH_TECH_ADVANTAGE = 'High-Tech-Ausrüstung';
+    public const string HIGH_TECH_ADVANTAGE = 'High-Tech-Ausrüstung';
 
     public static function ruleConfig(): array
     {

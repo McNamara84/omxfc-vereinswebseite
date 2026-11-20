@@ -28,6 +28,7 @@ class FanfictionComment extends Model
 {
     use HasFactory, SoftDeletes;
 
+    #[\Override]
     protected $fillable = [
         'fanfiction_id',
         'user_id',

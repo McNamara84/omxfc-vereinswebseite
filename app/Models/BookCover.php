@@ -27,6 +27,7 @@ class BookCover extends Model
     /** @use HasFactory<BookCoverFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'book_id',
         'status',

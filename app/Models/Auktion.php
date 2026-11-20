@@ -17,8 +17,10 @@ class Auktion extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'auktionen';
 
+    #[\Override]
     protected $fillable = [
         'titel',
         'beschreibung_markdown',
@@ -30,6 +32,7 @@ class Auktion extends Model
         'verkauft_at',
     ];
 
+    #[\Override]
     protected $casts = [
         'startbetrag_cent' => 'integer',
         'mindestschritt_cent' => 'integer',

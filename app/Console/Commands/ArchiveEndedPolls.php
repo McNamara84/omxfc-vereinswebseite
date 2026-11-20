@@ -8,8 +8,10 @@ use Illuminate\Console\Command;
 
 class ArchiveEndedPolls extends Command
 {
+    #[\Override]
     protected $signature = 'polls:archive-ended';
 
+    #[\Override]
     protected $description = 'Archiviert beendete aktive Umfragen.';
 
     public function handle(): int

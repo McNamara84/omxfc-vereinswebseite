@@ -8,10 +8,12 @@ use Throwable;
 
 class SyncMaddraxikonReviewRatingsCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:sync-review-ratings
         {--dry-run : Quelldaten prüfen, aber keine lokalen Daten ändern}
         {--force : Synchronisation auch bei deaktiviertem Feature ausführen}';
 
+    #[\Override]
     protected $description = 'Synchronisiert persönliche Maddraxikon-Bewertungen zu Vereinsrezensionen.';
 
     public function handle(MaddraxikonRatingSynchronizer $synchronizer): int

@@ -12,6 +12,7 @@ class TourAssignment extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'tour_key',

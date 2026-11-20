@@ -14,9 +14,9 @@ class KompendiumSearchSorter
 
     public const DIRECTION_DESC = 'desc';
 
-    private const VERY_OLD_DATE = '0000-01-01';
+    private const string VERY_OLD_DATE = '0000-01-01';
 
-    private const METADATA_PATH_CHUNK_SIZE = 500;
+    private const int METADATA_PATH_CHUNK_SIZE = 500;
 
     /**
      * @return list<string>

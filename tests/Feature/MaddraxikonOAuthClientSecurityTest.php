@@ -6,10 +6,24 @@ namespace Tests\Feature;
 
 use App\Services\Maddraxikon\Exceptions\OAuthFlowException;
 use App\Services\Maddraxikon\OAuthClient;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(MaddraxikonOAuthClientSecurityTestFixtures::class);
+
+test('token transport failures expose only the public oauth error', function (): void {
+    Http::fake([self::TOKEN_URL => fn () => throw new ConnectionException('private-token-diagnostics')]);
+
+    try {
+        app(OAuthClient::class)->identityFromAuthorizationCode('private-code', str_repeat('v', 64));
+        $this->fail('A failed token request must not produce an identity.');
+    } catch (OAuthFlowException $exception) {
+        expect($exception->getMessage())->toBe('OAuth token request failed.')
+            ->not->toContain('private-token-diagnostics')
+            ->not->toContain('private-code');
+    }
+});
 
 beforeEach(function (): void {
     config(['app.url' => 'https://maddrax-fanclub.de', 'maddraxikon.base_url' => 'https://de.maddraxikon.com', 'maddraxikon.api_url' => self::API_URL, 'maddraxikon.oauth.authorize_url' => 'https://de.maddraxikon.com/rest.php/oauth2/authorize', 'maddraxikon.oauth.token_url' => self::TOKEN_URL, 'maddraxikon.oauth.profile_url' => self::PROFILE_URL, 'services.maddraxikon.client_id' => 'client-id', 'services.maddraxikon.client_secret' => 'client-secret', 'services.maddraxikon.redirect_uri' => 'https://maddrax-fanclub.de/oauth/maddraxikon/callback', 'services.maddraxikon.scope' => 'mwoauth-authonly']);

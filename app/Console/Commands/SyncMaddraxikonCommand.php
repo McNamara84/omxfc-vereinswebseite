@@ -7,9 +7,11 @@ use Illuminate\Console\Command;
 
 class SyncMaddraxikonCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:sync
         {--force : Synchronisation auch bei deaktiviertem Feature-Schalter ausführen}';
 
+    #[\Override]
     protected $description = 'Importiert neue Beiträge aus den Maddraxikon-Letzten-Änderungen.';
 
     public function handle(MaddraxikonContributionImporter $importer): int

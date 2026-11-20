@@ -9,9 +9,9 @@ use App\Services\ReviewBaxxService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
-final class RecordReview
+final readonly class RecordReview
 {
-    public function __construct(private readonly ReviewBaxxService $baxx) {}
+    public function __construct(private ReviewBaxxService $baxx) {}
 
     /** Live callers authorize the submission; historical imports may contain multiple reviews per book. */
     public function execute(User $user, int $teamId, int $bookId, array $data, ?CarbonInterface $occurredAt = null): Review

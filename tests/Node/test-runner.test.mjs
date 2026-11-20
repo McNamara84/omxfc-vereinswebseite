@@ -42,6 +42,10 @@ test('the fast scope selects only isolated PHP Unit and retains all JS tests', (
     assert.equal(commands[0].env.DB_DATABASE, ':memory:');
     assert.ok(commands.some(command => command.args.includes('node_modules/vitest/vitest.mjs')));
     assert.ok(commands.some(command => command.args.includes('tests/Node/release-checks.test.mjs')));
+    const nodeTests = commands.find(command => command.args[0] === '--test');
+    for (const file of nodeTests.args.slice(1)) {
+        assert.doesNotThrow(() => readFileSync(new URL(`../../${file}`, import.meta.url)), `Selected test must exist: ${file}`);
+    }
 });
 
 test('the complete scope includes all three MariaDB suites and regular browsers', () => {

@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class NavigationSearch
 {
-    public function __construct(private NavigationBuilder $builder, private NavigationContext $context) {}
+    public function __construct(private readonly NavigationBuilder $builder, private readonly NavigationContext $context) {}
 
     /** @return list<array{name: string, description: string, link: string}> */
     public function search(?User $user, string $query, string $scope = 'public'): array
@@ -39,7 +39,7 @@ class NavigationSearch
         foreach ($entries as $entry) {
             $title = $this->normalize($entry['name']);
             $haystack = $this->normalize($entry['name'].' '.$entry['description'].' '.implode(' ', $entry['aliases'] ?? []));
-            if (! collect($words)->every(fn (string $word): bool => str_contains($haystack, $word))) {
+            if (! array_all($words, fn (string $word): bool => str_contains($haystack, $word))) {
                 continue;
             }
             $rank = $title === $query ? 0 : (str_starts_with($title, $query) ? 1 : (str_contains($title, $query) ? 2 : 3));
@@ -82,6 +82,8 @@ class NavigationSearch
 
     private function normalize(string $text): string
     {
-        return preg_replace('/\s+/u', ' ', Str::lower(Str::ascii(trim($text), 'de')));
+        $normalized = Str::ascii(trim($text), 'de') |> Str::lower(...);
+
+        return preg_replace('/\s+/u', ' ', $normalized);
     }
 }

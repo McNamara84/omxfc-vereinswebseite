@@ -13,8 +13,8 @@ try {
         throw new RuntimeException('Usage: prepare-php86.php <composer.phar> <metadata.json> [--verify]');
     }
     [, $composerPath, $metadataPath] = $argv;
-    if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 6) {
-        throw new RuntimeException('The compatibility check requires an actual PHP 8.6 interpreter.');
+    if (PHP_MAJOR_VERSION !== 8 || PHP_MINOR_VERSION !== 6 || ! preg_match('/^8\.6\.\d+$/D', PHP_VERSION)) {
+        throw new RuntimeException('The compatibility check requires an actual stable PHP 8.6 interpreter.');
     }
 
     $composerArchive = $metadataPath.'.composer.phar';
@@ -35,9 +35,9 @@ try {
     }
     $constraint = $manifest->require->php;
     if ($lock->platform->php !== $constraint
-        || ! Semver::satisfies('8.5.13', $constraint)
-        || ! Semver::satisfies('8.6.0', $constraint)) {
-        throw new RuntimeException('Both PHP 8.5 and PHP 8.6 must be supported by the ordinary manifest and lockfile.');
+        || ! preg_match('/^~8\.6\.\d+$/D', $constraint)
+        || ! Semver::satisfies(PHP_VERSION, $constraint)) {
+        throw new RuntimeException('Only the stable PHP 8.6 branch must be supported by the ordinary manifest and lockfile.');
     }
 
     $evidence = [

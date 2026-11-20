@@ -18,9 +18,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class MitgliederController extends Controller
 {
     public function __construct(
-        private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider,
-        private MembersTeamMembershipLock $membershipLock,
+        private readonly UserRoleService $userRoleService,
+        private readonly MembersTeamProvider $membersTeamProvider,
+        private readonly MembersTeamMembershipLock $membershipLock,
     ) {}
 
     public function changeRole(Request $request, User $user)

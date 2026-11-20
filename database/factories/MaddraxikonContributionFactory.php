@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaddraxikonContributionFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonContribution::class;
 
     public function definition(): array

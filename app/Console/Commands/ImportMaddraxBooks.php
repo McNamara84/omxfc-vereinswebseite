@@ -13,6 +13,7 @@ use JsonException;
 
 class ImportMaddraxBooks extends Command
 {
+    #[\Override]
     protected $signature = 'books:import
         {--path=private/maddrax.json : Path to novels JSON file relative to storage/app}
         {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app}
@@ -21,6 +22,7 @@ class ImportMaddraxBooks extends Command
         {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app}
         {--abenteurer-path=private/abenteurer.json : Path to Die Abenteurer novels JSON file relative to storage/app}';
 
+    #[\Override]
     protected $description = 'Validate and transactionally import all active Maddraxikon book datasets';
 
     public function handle(

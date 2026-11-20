@@ -11,12 +11,12 @@ use App\Support\RpgCombatRules;
 use App\Support\RpgEquipmentCatalog;
 use Illuminate\Validation\ValidationException;
 
-final class CombatSnapshotFactory
+final readonly class CombatSnapshotFactory
 {
     public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
 
     /** SL-10: explicit assignments, not guesses based on display names. */
-    public const TWO_HANDED = ['harpoon-speer', 'lanze-hellebarde', 'kampfstab', 'zweihandschwert', 'streitaxt',
+    public const array TWO_HANDED = ['harpoon-speer', 'lanze-hellebarde', 'kampfstab', 'zweihandschwert', 'streitaxt',
         'kettensaege', 'bogen', 'armbrust', 'gewehr-bolzer', 'maschinenpistole', 'automatikgewehr', 'energiegewehr', 'kanone'];
 
     public function make(RpgCharacter $character): array

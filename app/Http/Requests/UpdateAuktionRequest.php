@@ -10,7 +10,7 @@ use InvalidArgumentException;
 
 class UpdateAuktionRequest extends FormRequest
 {
-    private const EURO_FORMAT_MESSAGE = 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.';
+    private const string EURO_FORMAT_MESSAGE = 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.';
 
     public function authorize(): bool
     {

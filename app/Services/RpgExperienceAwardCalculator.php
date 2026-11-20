@@ -21,7 +21,7 @@ final class RpgExperienceAwardCalculator
             'points' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'reason' => ['nullable', 'string', 'max:4000'],
         ])->validate();
-        $criteria = array_map('intval', array_intersect_key($data, array_flip(['survived', 'roleplay', 'humor', 'rescue', 'unwounded'])));
+        $criteria = array_map(intval(...), array_intersect_key($data, array_flip(['survived', 'roleplay', 'humor', 'rescue', 'unwounded'])));
         $calculated = array_sum($criteria) + intdiv($minutes, 360) + $cycleBonus;
         $points = isset($data['points']) ? (int) $data['points'] : $calculated;
         $reason = trim($data['reason'] ?? '');

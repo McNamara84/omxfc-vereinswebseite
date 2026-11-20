@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class NewsletterAusgabeFactory extends Factory
 {
+    #[\Override]
     protected $model = NewsletterAusgabe::class;
 
     public function definition(): array

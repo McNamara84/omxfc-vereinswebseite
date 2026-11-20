@@ -12,31 +12,43 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: php86-compatibility-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  probe:
-    name: PHP 8.6 stufenweise prüfen
+  report:
+    # Preserve the required check name and workflow path used by release gates.
+    name: ${{ contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name) && 'PHP 8.6 erforderlich' || 'PHP 8.6 Laufzeitdiagnose' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 180
-    outputs:
-      status: ${{ steps.probe.outputs.status }}
-      label: ${{ steps.probe.outputs.label }}
-      summary: ${{ steps.probe.outputs.summary }}
+    timeout-minutes: 120
+    env:
+      APP_ENV: testing
+      APP_DEBUG: 'false'
+      APP_LOCALE: de
+      APP_FALLBACK_LOCALE: de
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SCOUT_DRIVER: 'null'
+      MAIL_MAILER: array
+      MADDRAXIKON_IDENTITY_HMAC_PEPPERS: test-v1:0123456789abcdef0123456789abcdef
+      LOG_DEPRECATIONS_CHANNEL: php_deprecations
+      LOG_DEPRECATIONS_WHILE_TESTING: 'true'
+      LOG_DEPRECATIONS_TRACE: 'true'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .node-version
-      - name: PHP 8.6 bereitstellen
-        id: php
-        continue-on-error: true
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+      - name: Prepare runtime diagnostics
+        run: |
+          mkdir -p "$RUNNER_TEMP/php86-reports"
+          echo "PHP_DEPRECATIONS_LOG=$RUNNER_TEMP/php86-reports/laravel-deprecations.log" >> "$GITHUB_ENV"
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
         env:
           update: 'true'
         with:
@@ -44,62 +56,50 @@ jobs:
           coverage: none
           extensions: uri, pdo_sqlite, sqlite3, pdo_mysql, mbstring, intl, zip, gd, exif, sockets, pcntl, bcmath
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
-      - name: Composer-Downloads wiederverwenden
-        if: steps.php.outcome == 'success'
-        continue-on-error: true
+          ini-values: error_reporting=-1, log_errors=On, display_errors=stderr, error_log=${{ runner.temp }}/php86-reports/laravel-deprecations.log.php.log
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
+      - name: Prepare ephemeral application environment
+        run: |
+          php -r "file_exists('.env') || copy('.env.example', '.env');"
+          php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
+          echo "COMPOSER_BINARY=$(command -v composer)" >> "$GITHUB_ENV"
+      - name: Cache Composer downloads
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ${{ runner.temp }}/php86-composer-cache/files
-          key: ${{ runner.os }}-php-8.6-composer-downloads-${{ hashFiles('composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-8.6-composer-downloads-
-      - name: Isolierte Arbeitskopie anlegen
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-php-8.6-contract-${{ hashFiles('composer.lock') }}
+      - name: Record manifest and lockfile integrity
         run: |
-          mkdir -p "$RUNNER_TEMP/php86-probe"
-          # git archive excludes .github via export-ignore; tests need all tracked files.
-          git checkout-index --all --prefix="$RUNNER_TEMP/php86-probe/"
-      - name: Abhängigkeiten, PHP, MariaDB und Browser nacheinander prüfen
-        id: probe
+          composer validate --strict --no-check-publish
+          php tools/ci/prepare-php86.php "$COMPOSER_BINARY" "$RUNNER_TEMP/php86-reports/metadata.json"
+      - name: Install locked dependencies and verify the platform
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          composer check-platform-reqs
+          php tools/ci/prepare-php86.php "$COMPOSER_BINARY" "$RUNNER_TEMP/php86-reports/metadata.json" --verify
+      - name: Verify application caches and compiled Blade syntax
+        run: |
+          for command in about config:cache route:cache view:cache; do
+            php -d auto_prepend_file=tests/bootstrap.php artisan "$command"
+          done
+          php -d auto_prepend_file=tests/bootstrap.php tools/ci/php-compatibility.php --compiled-views
+          php tools/ci/prepare-php86.php "$COMPOSER_BINARY" "$RUNNER_TEMP/php86-reports/metadata.json" --verify
+      - name: Setup Node.js for the shared test result gate
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: '.node-version'
+      - name: Require the regular tests for this exact runtime revision
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
         env:
-          PHP_SETUP_OUTCOME: ${{ steps.php.outcome }}
-          COMPOSER_CACHE_DIR: ${{ runner.temp }}/php86-composer-cache
-        run: |
-          export COMPOSER_BINARY
-          COMPOSER_BINARY="$(command -v composer || true)"
-          node tools/ci/php86-compatibility.mjs "$RUNNER_TEMP/php86-probe" "$RUNNER_TEMP/php86-reports"
-      - name: Diagnoseartefakte sichern
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/wait-for-runtime-tests.mjs
+      - name: Upload runtime and integrity diagnostics
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: php86-compatibility
+          path: ${{ runner.temp }}/php86-reports/
           if-no-files-found: ignore
           retention-days: 14
-          path: |
-            ${{ runner.temp }}/php86-reports/
-            ${{ runner.temp }}/php86-probe/test-results/
-            ${{ runner.temp }}/php86-probe/playwright-report/
-            ${{ runner.temp }}/php86-probe/tests/Browser/Traces/
-            ${{ runner.temp }}/php86-probe/tests/Browser/Screenshots/
-
-  report:
-    name: PHP 8.6 erforderlich
-    needs: [probe]
-    if: ${{ always() }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Kompatibilitätsstatus zusammenfassen
-        env:
-          PROBE_SUMMARY: ${{ needs.probe.outputs.summary }}
-          PROBE_STATUS: ${{ needs.probe.outputs.status }}
-          PROBE_RESULT: ${{ needs.probe.result }}
-        run: |
-          if [ -n "$PROBE_SUMMARY" ]; then
-            printf '%s\n' "$PROBE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
-          else
-            printf '%s\n' '## PHP 8.6: nicht prüfbar' '' 'Die Probe konnte keine vollständigen Ergebnisdaten bereitstellen. Bitte die Logs des Probe-Jobs prüfen.' >> "$GITHUB_STEP_SUMMARY"
-          fi
-          if [ "$PROBE_RESULT" != 'success' ] || [ "$PROBE_STATUS" != 'compatible' ]; then
-            printf '%s\n' 'PHP 8.6 ist erforderlich: Inkompatibilität oder unvollständiger Prüfnachweis.' >&2
-            exit 1
-          fi

@@ -11,8 +11,10 @@ use UnexpectedValueException;
 
 class VerifySchedule extends Command
 {
+    #[\Override]
     protected $signature = 'app:verify-schedule';
 
+    #[\Override]
     protected $description = 'Prüft erforderliche Aufgaben, Zeitzone und Mehrserver-Metadaten des Schedulers';
 
     public function handle(): int

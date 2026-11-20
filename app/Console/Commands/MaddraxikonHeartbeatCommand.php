@@ -8,8 +8,10 @@ use Throwable;
 
 final class MaddraxikonHeartbeatCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:heartbeat';
 
+    #[\Override]
     protected $description = 'Speichert das Lebenszeichen des Laravel-Schedulers.';
 
     public function handle(MaddraxikonMonitoring $monitoring): int

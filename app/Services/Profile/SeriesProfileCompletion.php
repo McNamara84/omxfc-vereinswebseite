@@ -6,7 +6,7 @@ use App\Models\User;
 
 final class SeriesProfileCompletion
 {
-    public const FIELDS = [
+    public const array FIELDS = [
         'einstiegsroman' => 'Einstiegsroman',
         'lesestand' => 'Aktueller Lesestand',
         'lieblingsautor' => 'Lieblingsautor:in',

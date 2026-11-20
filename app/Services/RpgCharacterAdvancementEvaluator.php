@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-final class RpgCharacterAdvancementEvaluator
+final readonly class RpgCharacterAdvancementEvaluator
 {
     public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
 
@@ -58,7 +58,7 @@ final class RpgCharacterAdvancementEvaluator
             if (isset($operation['languages'])) {
                 $this->require(($operation['type'] === 'skill' && $name === 'Sprachen') || ($operation['type'] === 'advantage' && $name === 'Sprachbegabt'), 'Sprachen können nur mit einer zugehörigen Verbesserung ergänzt werden.');
                 $existing = $payload['languages'] ?? [];
-                $languages = array_map('trim', $operation['languages']);
+                $languages = array_map(trim(...), $operation['languages']);
                 $this->require(! in_array('', $languages, true) && count($languages) === count(array_unique($languages)), 'Sprachen müssen eindeutig benannt sein.');
                 $this->require(array_diff($existing, $languages) === [], 'Bereits erlernte Sprachen bleiben erhalten.');
                 $payload['languages'] = $languages;

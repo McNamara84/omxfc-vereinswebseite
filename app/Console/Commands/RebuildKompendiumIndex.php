@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Storage;
 
 class RebuildKompendiumIndex extends Command
 {
-    private const BATCH_SIZE = 25;
+    private const int BATCH_SIZE = 25;
 
+    #[\Override]
     protected $signature = 'kompendium:rebuild-index {--resume : Vorhandenen, unvollständigen Index erneut importieren}';
 
+    #[\Override]
     protected $description = 'Baut den Kompendium-Suchindex aus vorhandenen Romanen neu auf, falls er fehlt';
 
     public function handle(KompendiumSearchService $searchService): int

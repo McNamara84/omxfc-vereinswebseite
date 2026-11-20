@@ -6,15 +6,15 @@ use Dompdf\Dompdf;
 use Dompdf\FontMetrics;
 use InvalidArgumentException;
 
-final class RpgCharacterSheetLayoutService
+final readonly class RpgCharacterSheetLayoutService
 {
-    private const FONT_SIZES = [7.6, 7.2, 6.7, 6.5];
+    private const array FONT_SIZES = [7.6, 7.2, 6.7, 6.5];
 
-    private const TRAITS = ['advantages' => 'Vorteile', 'disadvantages' => 'Nachteile', 'trainings' => 'Ausbildung', 'professions' => 'Beruf'];
+    private const array TRAITS = ['advantages' => 'Vorteile', 'disadvantages' => 'Nachteile', 'trainings' => 'Ausbildung', 'professions' => 'Beruf'];
 
-    private readonly FontMetrics $metrics;
+    private FontMetrics $metrics;
 
-    private readonly string $font;
+    private string $font;
 
     public function __construct()
     {

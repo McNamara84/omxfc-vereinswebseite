@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class BookRequestFactory extends Factory
 {
+    #[\Override]
     protected $model = BookRequest::class;
 
     /**

@@ -8,6 +8,7 @@ use App\Models\RomanExcerpt;
 use App\Services\KompendiumSearchService;
 use Illuminate\Support\Facades\File;
 use Laravel\Scout\EngineManager;
+use Laravel\Scout\Engines\Engine;
 use Laravel\Scout\Engines\TypesenseEngine;
 use Mockery;
 use Tests\TestCase;
@@ -15,6 +16,15 @@ use Typesense\Exceptions\ObjectNotFound;
 use Typesense\Exceptions\TypesenseClientError;
 
 pest()->extend(TestCase::class)->use(KompendiumSearchServiceIndexExistsTestFixtures::class);
+
+test('a misconfigured typesense driver cannot report a different engine as available', function (): void {
+    config(['scout.driver' => 'typesense']);
+    $manager = Mockery::mock(EngineManager::class);
+    $manager->shouldReceive('engine')->once()->andReturn(Mockery::mock(Engine::class));
+    $this->app->instance(EngineManager::class, $manager);
+
+    expect($this->service->indexExists())->toBeFalse();
+});
 
 beforeEach(function (): void {
     $this->testStoragePath = base_path('storage/testing-kompendium-search-service');

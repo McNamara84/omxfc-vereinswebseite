@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RpgCheckBatch extends Model
 {
+    #[\Override]
     protected $guarded = [];
 
+    #[\Override]
     protected $hidden = ['submission_key', 'submission_hash'];
 
     public function team(): BelongsTo

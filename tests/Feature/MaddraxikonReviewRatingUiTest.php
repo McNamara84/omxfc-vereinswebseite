@@ -11,6 +11,14 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(MaddraxikonReviewRatingUiTestFixtures::class);
 
+test('a removed rating is not exposed when its relationship is loaded lazily', function (): void {
+    [$review] = $this->createReviewWithRating(5);
+    $review->maddraxikonRating()->delete();
+    $review->unsetRelation('maddraxikonRating');
+
+    expect($review->visibleMaddraxikonRating())->toBeNull();
+});
+
 beforeEach(function (): void {
     config(['maddraxikon.features.ratings_enabled' => true, 'maddraxikon.ratings.stale_after_minutes' => 60, 'maddraxikon.base_url' => 'https://de.maddraxikon.com', 'maddraxikon.wiki_key' => 'test-wiki', 'maddraxikon.consent_version' => 'ratings-consent-v2']);
 });

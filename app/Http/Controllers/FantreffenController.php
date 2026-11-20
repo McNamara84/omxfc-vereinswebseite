@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class FantreffenController extends Controller
 {
-    private const VIP_AUTHORS_CACHE_KEY = 'fantreffen_vip_authors.v2';
+    private const string VIP_AUTHORS_CACHE_KEY = 'fantreffen_vip_authors.v2';
 
     public function __construct(
         private readonly FantreffenRegistrationService $registrationService
@@ -28,16 +28,14 @@ class FantreffenController extends Controller
         $veranstaltung = $this->legacyVeranstaltung();
 
         // VIP-Autoren laden (cached for 1 hour)
-        $cachedVipAuthors = Cache::remember(self::VIP_AUTHORS_CACHE_KEY, 3600, function () {
-            return FantreffenVipAuthor::active()->ordered()->get()
-                ->map(fn (FantreffenVipAuthor $author) => $author->getAttributes())
-                ->values()
-                ->all();
-        });
+        $cachedVipAuthors = Cache::remember(self::VIP_AUTHORS_CACHE_KEY, 3600, fn () => FantreffenVipAuthor::active()->ordered()->get()
+            ->map(fn (FantreffenVipAuthor $author) => $author->getAttributes())
+            ->values()
+            ->all());
 
         $vipAuthors = FantreffenVipAuthor::hydrate(
             is_array($cachedVipAuthors)
-                ? array_values(array_filter($cachedVipAuthors, static fn (mixed $author): bool => is_array($author)))
+                ? array_values(array_filter($cachedVipAuthors, is_array(...)))
                 : []
         );
 

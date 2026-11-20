@@ -4,9 +4,9 @@ namespace App\Support;
 
 final class RpgInventoryCatalog
 {
-    public const VERSION = 'inventory-2026-11-07';
+    public const string VERSION = 'inventory-2026-11-07';
 
-    public const MONEY_MAX = 1000000000;
+    public const int MONEY_MAX = 1000000000;
 
     public static function positions(): array
     {

@@ -27,12 +27,10 @@ class AdminController extends Controller
                 'total' => (int) $row->total,
             ])
             ->groupBy('path')
-            ->map(function (Collection $rows) {
-                return [
-                    'path' => $rows->first()['path'],
-                    'total' => $rows->sum('total'),
-                ];
-            })
+            ->map(fn (Collection $rows) => [
+                'path' => $rows->first()['path'],
+                'total' => $rows->sum('total'),
+            ])
             ->values();
 
         $homepageEntry = $normalizedVisitData->firstWhere('path', '/');
@@ -114,15 +112,11 @@ class AdminController extends Controller
         }
 
         $activityTimeline = collect(range(0, 6))
-            ->flatMap(function (int $day) use ($activityData) {
-                return collect(range(0, 23))->map(function (int $hour) use ($activityData, $day) {
-                    return [
-                        'weekday' => $day,
-                        'hour' => $hour,
-                        'total' => $activityData[$day][$hour] ?? 0,
-                    ];
-                });
-            })
+            ->flatMap(fn (int $day) => collect(range(0, 23))->map(fn (int $hour) => [
+                'weekday' => $day,
+                'hour' => $hour,
+                'total' => $activityData[$day][$hour] ?? 0,
+            ]))
             ->values();
 
         $dailyActiveUsers = $this->dailyActiveUsers();

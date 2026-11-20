@@ -28,9 +28,9 @@ class MitgliederIndex extends Component
 
     private MembersTeamProvider $membersTeamProvider;
 
-    private const ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
+    private const array ALLOWED_SORT_FIELDS = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
-    private const ROLE_RANKS = [
+    private const array ROLE_RANKS = [
         Role::Mitglied->value => 1,
         Role::Ehrenmitglied->value => 2,
         Role::Kassenwart->value => 3,

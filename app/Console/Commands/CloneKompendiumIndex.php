@@ -10,8 +10,10 @@ use Throwable;
 
 class CloneKompendiumIndex extends Command
 {
+    #[\Override]
     protected $signature = 'kompendium:clone-index {version : Neue, höhere Indexversion}';
 
+    #[\Override]
     protected $description = 'Klont den aktiven Typesense-Index samt Dokumenten; aktiviert ihn erst nach separater Prüfung';
 
     public function handle(EngineManager $engines): int

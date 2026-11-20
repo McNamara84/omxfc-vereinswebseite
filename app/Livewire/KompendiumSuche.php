@@ -42,9 +42,9 @@ class KompendiumSuche extends Component
 
     public int $scannedCandidates = 0;
 
-    private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
+    private const string PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
-    private const ALLOWED_BASE_PATH = 'romane/';
+    private const string ALLOWED_BASE_PATH = 'romane/';
 
     public function mount(): void
     {
@@ -188,7 +188,7 @@ class KompendiumSuche extends Component
             $searchMode = $raw['mode'] ?? 'lexical';
             $searchDurationMs = isset($raw['duration_ms']) ? (int) $raw['duration_ms'] : null;
             $ids = array_values($raw['paths'] ?? $raw['ids'] ?? []);
-            $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
+            $ids = array_values(array_filter($ids, $this->isValidPath(...)));
 
             $textCache = [];
             $requiredMatches = $sorter->needsFullPostFilter($this->sort, $this->direction)
@@ -393,14 +393,7 @@ class KompendiumSuche extends Component
 
         $deduped = [];
         foreach ($terms as $term) {
-            $isSubstring = false;
-            foreach ($deduped as $existing) {
-                if (mb_stripos($existing, $term) !== false) {
-                    $isSubstring = true;
-
-                    break;
-                }
-            }
+            $isSubstring = array_any($deduped, fn ($existing) => mb_stripos($existing, $term) !== false);
             if (! $isSubstring) {
                 $deduped[] = $term;
             }

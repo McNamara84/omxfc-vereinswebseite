@@ -11,8 +11,8 @@ permissions:
 jobs:
   baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    name: PHP 8.5 TIA Baseline
+    timeout-minutes: 60
+    name: PHP 8.6 TIA Baseline
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,12 +22,17 @@ jobs:
         env:
           update: 'true'
         with:
-          php-version: '8.5'
+          php-version: '8.6'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: gd, exif, zip, sockets
-          coverage: pcov
-      - name: Verify PHP 8.5 security minimum
-        run: php tools/ci/verify-php85.php
+          coverage: none
+      - name: Verify PHP 8.6 security minimum
+        run: php tools/ci/verify-php86.php
+      - name: Install pinned PHP 8.6 coverage driver
+        run: |
+          sh tools/ci/install-xdebug.sh "$RUNNER_TEMP/php86-coverage"
+          echo "PHP_INI_SCAN_DIR=:$RUNNER_TEMP/php86-coverage" >> "$GITHUB_ENV"
+          echo "XDEBUG_MODE=coverage" >> "$GITHUB_ENV"
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -36,10 +41,10 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.composer/cache
-          key: ${{ runner.os }}-php-8.5-tia-composer-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.6-tia-composer-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.5-tia-composer-
-            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.6-tia-composer-
+            ${{ runner.os }}-php-8.6-composer-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions

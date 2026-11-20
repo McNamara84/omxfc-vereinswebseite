@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 final class PruneMaddraxikonAuditCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:prune-audit
         {--pretend : Nur die Anzahl abgelaufener Datensaetze anzeigen}';
 
+    #[\Override]
     protected $description = 'Loescht abgelaufene Maddraxikon-Zuordnungskorrekturen nach der Aufbewahrungsfrist.';
 
     public function handle(): int

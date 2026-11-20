@@ -208,8 +208,8 @@ class KompendiumSearchService
             if ($isNegated) {
                 $bucket = $isPhrase ? 'excludedPhrases' : 'excludedTerms';
 
-                if (! in_array($normalizedValue, $$bucket, true)) {
-                    $$bucket[] = $normalizedValue;
+                if (! in_array($normalizedValue, ${$bucket}, true)) {
+                    ${$bucket}[] = $normalizedValue;
                 }
 
                 continue;
@@ -436,13 +436,7 @@ class KompendiumSearchService
             }
         }
 
-        foreach ($excludedTerms as $term) {
-            if (mb_stripos($text, $term) !== false) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($excludedTerms, fn ($term) => mb_stripos($text, $term) !== false);
     }
 
     /**
@@ -562,11 +556,11 @@ class KompendiumSearchService
     private function extractPaths(array $raw): array
     {
         if (isset($raw['paths']) && is_array($raw['paths'])) {
-            return array_values(array_filter($raw['paths'], 'is_string'));
+            return array_values(array_filter($raw['paths'], is_string(...)));
         }
 
         if (isset($raw['ids']) && is_array($raw['ids'])) {
-            return array_values(array_filter($raw['ids'], 'is_string'));
+            return array_values(array_filter($raw['ids'], is_string(...)));
         }
 
         if (! isset($raw['hits']) || ! is_array($raw['hits'])) {

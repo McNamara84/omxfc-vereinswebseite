@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 
 class RpgNpcController extends Controller
 {
-    public function __construct(private RpgNpcService $service) {}
+    public function __construct(private readonly RpgNpcService $service) {}
 
     public function create(Request $request)
     {

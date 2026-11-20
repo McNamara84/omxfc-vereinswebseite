@@ -23,6 +23,7 @@ class BookRequest extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'series',

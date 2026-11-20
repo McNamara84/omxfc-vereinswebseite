@@ -14,13 +14,13 @@ use Illuminate\Support\Str;
 
 class RpgCharEditorController extends Controller
 {
-    private const PDF_EXPORT_SESSION_MINUTES = 10;
+    private const int PDF_EXPORT_SESSION_MINUTES = 10;
 
-    private const PDF_EXPORT_CACHE_STORE = 'rpg_pdf_exports';
+    private const string PDF_EXPORT_CACHE_STORE = 'rpg_pdf_exports';
 
-    private const PDF_EXPORT_CACHE_KEY_PREFIX = 'rpg-char-editor-pdf:';
+    private const string PDF_EXPORT_CACHE_KEY_PREFIX = 'rpg-char-editor-pdf:';
 
-    private const PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
+    private const string PDF_EXPORT_SESSION_ACTIVE_TOKEN_KEY = 'rpg-char-editor-pdf.active-token';
 
     public function __construct(
         private readonly RpgCharacterSheetService $characterSheetService,

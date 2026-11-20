@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RpgCheckQuery
 {
-    public function __construct(private RpgAccess $access, private RpgCheckPresenter $presenter) {}
+    public function __construct(private readonly RpgAccess $access, private readonly RpgCheckPresenter $presenter) {}
 
     public function forUser(User $user): Builder
     {

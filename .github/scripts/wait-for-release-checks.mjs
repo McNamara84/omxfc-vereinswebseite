@@ -15,7 +15,7 @@ const api = async path => {
         headers: {
             Authorization: `Bearer ${process.env.GH_TOKEN}`,
             Accept: 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28',
+            'X-GitHub-Api-Version': '2026-03-10',
         },
         signal: AbortSignal.timeout(30_000),
     });
@@ -24,7 +24,8 @@ const api = async path => {
 };
 
 export function selectReleaseChecks(runs) {
-    const selected = required.map(file => runs.find(run => run.path === `.github/workflows/${file}`));
+    const selected = required.map(file => runs.find(run => typeof run.path === 'string'
+        && run.path.split('@')[0] === `.github/workflows/${file}`));
     const codeql = runs.find(run => run.name === 'CodeQL');
     if (codeql) selected.push(codeql);
     return selected;

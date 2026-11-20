@@ -24,7 +24,7 @@ class ThreeDModelService
 
     public const THUMBNAIL_STORAGE_PATH = '3d-thumbnails';
 
-    private const EXTENSION_TO_FORMAT = [
+    private const array EXTENSION_TO_FORMAT = [
         'stl' => 'stl',
         'obj' => 'obj',
         'fbx' => 'fbx',

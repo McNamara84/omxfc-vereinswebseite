@@ -9,8 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class RpgInventoryTransaction extends Model
 {
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

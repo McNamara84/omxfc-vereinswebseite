@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /** @extends Factory<BookCover> */
 class BookCoverFactory extends Factory
 {
+    #[\Override]
     protected $model = BookCover::class;
 
     public function definition(): array

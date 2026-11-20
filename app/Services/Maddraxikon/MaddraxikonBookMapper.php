@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class MaddraxikonBookMapper
 {
-    private const MAX_REDIRECTS = 5;
+    private const int MAX_REDIRECTS = 5;
 
     public function resolve(string $pageTitle): ?MaddraxikonPageMapping
     {

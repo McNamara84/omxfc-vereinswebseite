@@ -14,14 +14,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-$syncMinutes = max(
-    1,
-    min(59, (int) config('maddraxikon.sync.interval_minutes', 15))
-);
-$ratingSyncMinutes = max(
-    1,
-    min(59, (int) config('maddraxikon.ratings.sync_interval_minutes', 15))
-);
+$syncMinutes = clamp((int) config('maddraxikon.sync.interval_minutes', 15), 1, 59);
+$ratingSyncMinutes = clamp((int) config('maddraxikon.ratings.sync_interval_minutes', 15), 1, 59);
 
 Schedule::command('member-map:refresh')->hourly();
 Schedule::command('rpg:process-combats')->everyMinute()->withoutOverlapping(10);

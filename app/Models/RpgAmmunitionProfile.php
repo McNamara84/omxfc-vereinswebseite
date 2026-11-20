@@ -6,8 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class RpgAmmunitionProfile extends Model
 {
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = ['id'];
 
     protected static function booted(): void

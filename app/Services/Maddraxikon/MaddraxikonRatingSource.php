@@ -32,10 +32,7 @@ class MaddraxikonRatingSource
 
         $ratings = [];
         $invalidCount = 0;
-        $batchSize = min(
-            500,
-            max(1, (int) config('maddraxikon.ratings.source_batch_size', 100))
-        );
+        $batchSize = clamp((int) config('maddraxikon.ratings.source_batch_size', 100), 1, 500);
 
         foreach (array_chunk(array_values($unique), $batchSize) as $batch) {
             $rows = DB::connection('maddraxikon')

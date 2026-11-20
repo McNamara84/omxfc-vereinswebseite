@@ -9,8 +9,10 @@ class RpgCombatEvent extends Model
 {
     use UsesUtcCombatDates;
 
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = [];
 
     protected function casts(): array

@@ -27,8 +27,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class KompendiumRoman extends Model
 {
+    #[\Override]
     protected $table = 'kompendium_romane';
 
+    #[\Override]
     protected $fillable = [
         'dateiname',
         'dateipfad',
@@ -44,6 +46,7 @@ class KompendiumRoman extends Model
         'fehler_nachricht',
     ];
 
+    #[\Override]
     protected $casts = [
         'erstveroeffentlicht_am' => 'date',
         'hochgeladen_am' => 'datetime',

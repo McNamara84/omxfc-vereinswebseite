@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class MaddraxikonBookImporter
 {
-    private const UPSERT_BATCH_SIZE = 250;
+    private const int UPSERT_BATCH_SIZE = 250;
 
     /** @param array<int|string, array<int, array<string, mixed>>> $datasets */
     public function import(array $datasets, bool $transaction = true): void
@@ -54,7 +54,7 @@ class MaddraxikonBookImporter
         foreach ($rows as $row) {
             $authorData = $row['text'] ?? null;
             $author = is_array($authorData)
-                ? implode(', ', array_map('strval', $authorData))
+                ? implode(', ', array_map(strval(...), $authorData))
                 : (string) ($authorData ?? '');
             $pageTitle = is_string($row['maddraxikon_seitentitel'] ?? null)
                 ? trim($row['maddraxikon_seitentitel'])

@@ -10,6 +10,7 @@ class ReviewBaxxSpecialOffer extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'points',
         'every_count',

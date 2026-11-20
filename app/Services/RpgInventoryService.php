@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-final class RpgInventoryService
+final readonly class RpgInventoryService
 {
     public function __construct(private RpgAccess $access, private RpgInventoryAdapter $adapter, private RpgInventoryEvaluator $evaluator) {}
 

@@ -54,13 +54,13 @@ class UpdateProfileInformationForm extends Component
             'nextcloud_username',
         ]);
 
-        $this->state['alias'] = $this->state['alias'] ?? '';
+        $this->state['alias'] ??= '';
         $this->state['author_aliases'] = $this->state['author_aliases'] ?: [''];
         $this->state['contact_release_email'] = (bool) ($this->state['contact_release_email'] ?? false);
         $this->state['contact_release_phone'] = (bool) ($this->state['contact_release_phone'] ?? false);
         $this->state['contact_release_maddraxikon'] = (bool) ($this->state['contact_release_maddraxikon'] ?? false);
         $this->state['contact_release_nextcloud'] = (bool) ($this->state['contact_release_nextcloud'] ?? false);
-        $this->state['nextcloud_username'] = $this->state['nextcloud_username'] ?? '';
+        $this->state['nextcloud_username'] ??= '';
     }
 
     /**

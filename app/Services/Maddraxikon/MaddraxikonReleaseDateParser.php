@@ -9,7 +9,7 @@ use UnexpectedValueException;
 
 class MaddraxikonReleaseDateParser
 {
-    private const GERMAN_MONTHS = [
+    private const array GERMAN_MONTHS = [
         'januar' => 'January',
         'februar' => 'February',
         'märz' => 'March',
@@ -25,7 +25,7 @@ class MaddraxikonReleaseDateParser
         'dezember' => 'December',
     ];
 
-    private const SUPPORTED_FORMATS = [
+    private const array SUPPORTED_FORMATS = [
         '/^\d{4}-\d{2}-\d{2}$/' => '!Y-m-d',
         '/^\d{4}-\d{2}$/' => '!Y-m',
         '/^\d{4}-\d$/' => '!Y-n',
@@ -50,15 +50,7 @@ class MaddraxikonReleaseDateParser
 
         try {
             $timezone = (string) config('maddraxikon.timezone', 'Europe/Berlin');
-            $format = null;
-
-            foreach (self::SUPPORTED_FORMATS as $pattern => $candidateFormat) {
-                if (preg_match($pattern, $normalized) === 1) {
-                    $format = $candidateFormat;
-
-                    break;
-                }
-            }
+            $format = array_find(self::SUPPORTED_FORMATS, fn ($candidateFormat, $pattern) => preg_match($pattern, $normalized) === 1);
 
             if ($format === null) {
                 throw new UnexpectedValueException('Nicht unterstütztes Datumsformat.');

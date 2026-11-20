@@ -10,11 +10,13 @@ use Illuminate\Support\Str;
 
 class IndexRomane extends Command
 {
-    private const BATCH_SIZE = 25;
+    private const int BATCH_SIZE = 25;
 
     /** artisan romane:index  */
+    #[\Override]
     protected $signature = 'romane:index {--fresh : löscht vorhandenen Index zuerst}';
 
+    #[\Override]
     protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout';
 
     public function handle(): int

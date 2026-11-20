@@ -10,8 +10,10 @@ class ThreeDModel extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'three_d_models';
 
+    #[\Override]
     protected $fillable = [
         'name',
         'description',
@@ -24,6 +26,7 @@ class ThreeDModel extends Model
         'uploaded_by',
     ];
 
+    #[\Override]
     protected $casts = [
         'file_size' => 'integer',
     ];

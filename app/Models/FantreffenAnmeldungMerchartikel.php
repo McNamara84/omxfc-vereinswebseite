@@ -10,8 +10,10 @@ class FantreffenAnmeldungMerchartikel extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'fantreffen_anmeldung_merchartikel';
 
+    #[\Override]
     protected $fillable = [
         'fantreffen_anmeldung_id',
         'veranstaltungs_merchartikel_id',
@@ -21,6 +23,7 @@ class FantreffenAnmeldungMerchartikel extends Model
         'status_erledigt_am',
     ];
 
+    #[\Override]
     protected $casts = [
         'preis_zum_bestellzeitpunkt' => 'decimal:2',
         'status_erledigt' => 'boolean',
