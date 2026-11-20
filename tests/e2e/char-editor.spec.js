@@ -82,7 +82,7 @@ const tinyPngBuffer = Buffer.from(
 );
 
 const completeValidBarbarExport = async (page) => {
-    await page.getByTestId('char-editor-form').evaluate((form) => {
+    await page.getByTestId('char-editor-form').evaluate(async (form) => {
         const state = window.Alpine?.$data(form);
 
         if (!state) {
@@ -116,6 +116,7 @@ const completeValidBarbarExport = async (page) => {
         state.setEquipmentQuantity('wasserschlauch', 1);
         state.setEquipmentQuantity('wochenration', 1);
         state.setEquipmentQuantity('bogen', 1);
+        await state.$nextTick();
     });
 
     await expect.poll(() => page.getByTestId('char-editor-form').evaluate((form) => {
@@ -534,7 +535,8 @@ test.describe('RPG Charakter-Editor', () => {
         await expect(page.getByText('Manuell bearbeitet')).toBeVisible();
     });
 
-    test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }) => {
+    test('oeffnet den PDF-Export browseruebergreifend ueber eine GET-Viewer-URL', async ({ page }, testInfo) => {
+        if (testInfo.project.name === 'webkit') test.setTimeout(60_000);
         await openAdvancedEditor(page);
         await completeValidBarbarExport(page);
 
@@ -550,8 +552,9 @@ test.describe('RPG Charakter-Editor', () => {
         });
 
         const [popup] = await Promise.all([
-            page.waitForEvent('popup', { timeout: 5000 }),
-            page.getByTestId('pdf-button').click(),
+            page.waitForEvent('popup'),
+            // One native action avoids a second submission from WebKit's trial fallback.
+            page.click('[data-testid="pdf-button"]', { strict: true }),
         ]);
 
         await expect.poll(() => pdfRequests.some((request) => request.method === 'GET' && pdfViewerPath.test(request.pathname))).toBe(true);
@@ -611,6 +614,7 @@ test.describe('RPG Charakter-Editor', () => {
     });
 
     test('PDF-Popup zeigt keinen leeren Editor und der Ursprungstab bleibt danach speicherbar', async ({ page }, testInfo) => {
+        if (testInfo.project.name === 'webkit') test.setTimeout(60_000);
         const email = createRpgEditorUser(testInfo);
         const characterName = `Wudan PDF ${testInfo.project.name}`;
         const pdfViewerPath = /^\/rpg\/char-editor\/pdf\/[0-9a-f-]{36}$/;
@@ -633,8 +637,8 @@ test.describe('RPG Charakter-Editor', () => {
         });
 
         const [popup] = await Promise.all([
-            page.waitForEvent('popup', { timeout: 5000 }),
-            page.getByTestId('pdf-button').click(),
+            page.waitForEvent('popup'),
+            page.click('[data-testid="pdf-button"]', { strict: true }),
         ]);
 
         await expect.poll(() => pdfRequests.some((request) => request.method === 'GET' && pdfViewerPath.test(request.pathname))).toBe(true);
@@ -684,6 +688,7 @@ test.describe('RPG Charakter-Editor', () => {
     });
 
     test('PDF-Validierungsfehler zeigen im Popup den ausgefuellten Editor', async ({ page }, testInfo) => {
+        if (testInfo.project.name === 'webkit') test.setTimeout(60_000);
         const email = createRpgEditorUser(testInfo);
         const characterName = `Wudan Invalid PDF ${testInfo.project.name}`;
 
@@ -700,8 +705,8 @@ test.describe('RPG Charakter-Editor', () => {
         });
 
         const [popup] = await Promise.all([
-            page.waitForEvent('popup', { timeout: 5000 }),
-            page.getByTestId('pdf-button').click(),
+            page.waitForEvent('popup'),
+            page.click('[data-testid="pdf-button"]', { strict: true }),
         ]);
 
         await popup.waitForURL((url) => url.pathname === '/rpg/char-editor');

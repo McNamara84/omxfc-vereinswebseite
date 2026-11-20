@@ -30,14 +30,16 @@ describe('map utils role detection', () => {
 });
 
 describe('global exposure', () => {
+    afterEach(() => vi.unstubAllGlobals());
+
     it('preserves custom properties while updating helper methods', async () => {
         vi.resetModules();
-        global.window = {
+        vi.stubGlobal('window', {
             omxfcMemberMap: {
                 custom: 'value',
                 getRoleIconType: () => 'custom',
             },
-        };
+        });
 
         const module = await import('@/mitglieder/map-utils');
 
@@ -45,19 +47,17 @@ describe('global exposure', () => {
         expect(window.omxfcMemberMap.getRoleIconType).toBe(module.getRoleIconType);
         expect(window.omxfcMemberMap.buildMemberPopup).toBe(module.buildMemberPopup);
 
-        delete global.window;
     });
 
     it('initializes helpers when an invalid map utils object exists', async () => {
         vi.resetModules();
-        global.window = { omxfcMemberMap: 'invalid' };
+        vi.stubGlobal('window', { omxfcMemberMap: 'invalid' });
 
         const module = await import('@/mitglieder/map-utils');
 
         expect(typeof window.omxfcMemberMap.getRoleIconType).toBe('function');
         expect(window.omxfcMemberMap.defaultLegendItems).toEqual(module.defaultLegendItems);
 
-        delete global.window;
     });
 });
 

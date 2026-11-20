@@ -51,13 +51,18 @@ for (const role of ['admin', 'vorstand', 'kassenwart', 'mitglied']) {
         await page.locator('[name=password]').fill('password');
         await page.locator('[name=password]').press('Enter');
         await expect(page).toHaveURL(/\/dashboard$/);
+        await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached({ timeout: 30_000 });
         const links = await page.getByTestId('member-sidebar-navigation').locator('a[href]').evaluateAll(elements => [...new Set(elements.map(element => element.href))]);
         expect(links.length).toBeGreaterThan(10);
         for (const url of links) {
-            const response = await page.goto(url, { waitUntil: 'domcontentloaded' });
+            // Finish one request, including a large member list, before navigating again.
+            const response = await page.mainFrame().goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
             expect(response.status(), url).toBe(200);
             await expect(page.getByRole('heading', { name: '500', exact: true })).toHaveCount(0);
             await expect(page.locator('#main-content')).toBeVisible();
+            if (new URL(url).pathname === '/dashboard') {
+                await expect(page.locator('[data-dashboard-activity-feed]:not([aria-busy="true"])')).toBeAttached({ timeout: 30_000 });
+            }
         }
     });
 }

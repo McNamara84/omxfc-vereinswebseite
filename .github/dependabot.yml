@@ -27,6 +27,8 @@ updates:
         patterns:
           - pestphp/*
           - phpunit/phpunit
+          - brianium/paratest
+          - phpstan/phpstan
           - nunomaduro/collision
           - rector/rector
       production-patch-and-minor:
@@ -43,6 +45,8 @@ updates:
         exclude-patterns:
           - pestphp/*
           - phpunit/phpunit
+          - brianium/paratest
+          - phpstan/phpstan
           - nunomaduro/collision
           - rector/rector
         update-types:
@@ -66,6 +70,8 @@ updates:
       browser-test-stack:
         patterns:
           - "@playwright/test"
+          - playwright
+          - playwright-core
           - "@axe-core/playwright"
       vitest-stack:
         patterns:
@@ -96,6 +102,8 @@ updates:
           - vite
           - laravel-vite-plugin
           - "@playwright/test"
+          - playwright
+          - playwright-core
           - "@axe-core/playwright"
           - vitest
           - "@vitest/*"

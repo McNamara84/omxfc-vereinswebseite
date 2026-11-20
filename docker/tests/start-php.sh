@@ -23,6 +23,7 @@ cp /source/bootstrap/app.php /source/bootstrap/providers.php bootstrap/
 cp /source/artisan /source/server.php /source/composer.json /source/composer.lock .
 cp /source/package.json /source/package-lock.json /source/vite.config.js /source/vitest.config.js /source/playwright.config.js /source/playwright.benchmark.config.js .
 cp /source/vitest.browser.config.js /source/vitest.diagnostics.config.js .
+cp /source/playwright.aria.config.js .
 cp /source/phpstan.neon /source/rector.php .
 cp /source/phpunit*.xml .
 cp /source/.env.testing .env

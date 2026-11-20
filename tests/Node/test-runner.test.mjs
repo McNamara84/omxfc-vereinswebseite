@@ -83,6 +83,21 @@ test('the CI browser selection matches the Playwright configuration', () => {
     assert.deepEqual(browsers.map(command => command.args.at(-1)), ['--project=chromium', '--project=firefox']);
 });
 
+test('all Vitest and Playwright invocations reject deprecations in host and Docker scopes', () => {
+    for (const runtime of ['host', 'docker']) {
+        for (const scope of ['fast', 'all']) {
+            const commands = commandsFor(scope, { runtime }).filter(command => command.args.some(arg => /node_modules\/(?:vitest\/vitest\.mjs|playwright\/cli\.js)/.test(arg)));
+            assert.ok(commands.length > 0);
+            for (const command of commands) {
+                const guard = command.args.indexOf('tools/testing/check-deprecations.mjs');
+                assert.ok(guard >= 0);
+                assert.equal(command.args[guard + 1], '--run');
+                assert.match(command.args[guard + 2], /^node_modules\/(?:vitest\/vitest\.mjs|playwright\/cli\.js)$/);
+            }
+        }
+    }
+});
+
 test('the native dialog pilot belongs to the complete host and Docker scopes, not the fast scope', () => {
     assert.ok(!commandsFor('fast').some(command => command.args.includes('vitest.browser.config.js')));
     for (const runtime of ['host', 'docker']) {

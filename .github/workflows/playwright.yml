@@ -128,8 +128,10 @@ jobs:
             exit 1
           fi
           echo "Asset serving test passed!"
-      - run: npx playwright install-deps ${{ matrix.browser }}
-      - run: npx playwright install ${{ matrix.browser }}
+      - run: node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js install-deps ${{ matrix.browser }}
+      - run: node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js install ${{ matrix.browser }}
+      - name: Verify native ARIA references with axe before the full suite
+        run: node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js test --config=playwright.aria.config.js --project=${{ matrix.browser }}
       - name: Run browser tests
         env:
           SHUFFLE_SEED: ${{ inputs.shuffle-seed }}
@@ -138,9 +140,9 @@ jobs:
           if [ -n "$SHUFFLE_SEED" ]; then
             case "$SHUFFLE_SEED" in *[!0-9]*) echo 'Shuffle seed must be numeric.'; exit 1 ;; esac
             echo "Playwright shuffle seed: $SHUFFLE_SEED"
-            npx playwright test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2 --shuffle="$SHUFFLE_SEED"
+            node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2 --shuffle="$SHUFFLE_SEED"
           else
-            npx playwright test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2
+            node tools/testing/check-deprecations.mjs --run node_modules/playwright/cli.js test --project="$BROWSER_PROJECT" --shard=${{ matrix.shard }}/2
           fi
       - name: Upload browser failure diagnostics
         if: failure()

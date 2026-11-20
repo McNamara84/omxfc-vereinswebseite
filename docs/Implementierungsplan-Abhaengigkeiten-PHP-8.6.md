@@ -1,6 +1,6 @@
 # Implementierungsplan: Abhängigkeiten und PHP-8.6-Kompatibilität
 
-Stand: 1. November 2026. Dieser Plan ist umgesetzt; den tatsächlichen Versionsstand, Prüfnachweise und verbleibende Grenzen dokumentiert der [Umsetzungsbericht](Abhaengigkeiten-PHP-8.6-Ergebnis.md).
+Stand: 1. November 2026. Dieser Plan ist umgesetzt.
 
 ## 1. Vereinbarter Umfang
 

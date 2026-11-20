@@ -17,7 +17,7 @@ describe('dashboard activity feed infinite scrolling', () => {
             </div>
         `;
 
-        window.IntersectionObserver = class {
+        vi.stubGlobal('IntersectionObserver', class {
             constructor(callback, options) {
                 this.observe = vi.fn();
                 this.disconnect = vi.fn();
@@ -25,11 +25,12 @@ describe('dashboard activity feed infinite scrolling', () => {
                 callbacks.push(callback);
                 instances.push(this);
             }
-        };
+        });
     });
 
     afterEach(() => {
         disconnectDashboardActivityFeedObservers();
+        vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
 
