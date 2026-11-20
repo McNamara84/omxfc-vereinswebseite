@@ -52,7 +52,7 @@ test('integrity checks preserve the manifest and detect lockfile tampering', fun
         expect($verify->getExitCode())->toBe(1)
             ->and($verify->getErrorOutput())->toContain('changed during the check');
         file_put_contents($directory.'/composer.lock', $lock);
-        file_put_contents($directory.'/composer.json', str_replace('~8.5.0 || ~8.6.0', '~8.5.0', $manifest));
+        file_put_contents($directory.'/composer.json', str_replace('~8.5.13 || ~8.6.0', '~8.5.13', $manifest));
         $verify->run();
         expect($verify->getExitCode())->toBe(1)
             ->and($verify->getErrorOutput())->toContain('does not match its manifest');

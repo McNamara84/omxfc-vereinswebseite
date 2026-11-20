@@ -28,14 +28,14 @@
     "require": {
         "ext-uri": "*",
         "ext-zip": "*",
-        "php": "~8.5.0 || ~8.6.0",
+        "php": "~8.5.13 || ~8.6.0",
         "dompdf/dompdf": "^3.1.6",
         "intervention/image": "^4.4.1",
-        "laravel/framework": "^13.42.0",
+        "laravel/framework": "^13.43.0",
         "laravel/jetstream": "^5.5.3",
-        "laravel/sanctum": "^4.4.0",
-        "laravel/scout": "^11.10.0",
-        "laravel/tinker": "^3.1.0",
+        "laravel/sanctum": "^4.5.0",
+        "laravel/scout": "^11.11.0",
+        "laravel/tinker": "^3.2.0",
         "livewire/livewire": "^4.4.8",
         "robsontenorio/mary": "^2.9.11",
         "spatie/laravel-pdf": "^2.14.0",
@@ -48,7 +48,7 @@
         "laravel/pint": "^1.32.3",
         "mockery/mockery": "^1.6.15",
         "nunomaduro/collision": "^8.9.6",
-        "pestphp/pest": "^5.3.5",
+        "pestphp/pest": "^5.3.7",
         "pestphp/pest-plugin": "^5.0.0",
         "pestphp/pest-plugin-agent": "^5.0.0",
         "pestphp/pest-plugin-arch": "^5.0.0",
@@ -58,12 +58,9 @@
         "pestphp/pest-plugin-phpstan": "^5.3.1",
         "pestphp/pest-plugin-profanity": "^5.0.1",
         "pestphp/pest-plugin-rector": "^5.0.6",
-        "phpunit/phpunit": "^13.4.5",
-        "rector/rector": "^2.8.4",
+        "phpunit/phpunit": "^13.4.7",
+        "rector/rector": "^2.8.5",
         "symfony/process": "^8.1.10"
-    },
-    "conflict": {
-        "brianium/paratest": "7.28.0"
     },
     "autoload": {
         "psr-4": {

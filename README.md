@@ -168,9 +168,9 @@ Remove-Item Env:UX_CAPTURE_SCREENSHOTS
 | Komponente       | Version / Hinweis                                      |
 |------------------|---------------------------------------------------------|
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
-| PHP              | 8.5.x inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
+| PHP              | 8.5.13 oder neuer innerhalb von 8.5, inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | 2.11.2, nur für klassische Host-Entwicklung nötig        |
-| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.2 (`packageManager`), nur für klassische Host-Entwicklung nötig |
+| Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.3 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
@@ -1058,19 +1058,24 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **12. November 2026**. PHP 8.5.12 basiert auf Debian
-Trixie; Node 26.13.1 verwendet Alpine 3.24 und npm 12.2.2. Composer 2.11.2 ist
+Stand der Aktualisierung: **19. November 2026**. Das
+[PHP-Sicherheitsrelease 8.5.13](https://www.php.net/ChangeLog-8.php#8.5.13)
+ist in Produktions-, Entwicklungs- und Browser-Testimages sowie den PHP-8.5-
+Workflows gepinnt. Composer verlangt mindestens PHP 8.5.13 im 8.5-Zweig;
+PHP 8.6 bleibt unterstützt. PHP basiert auf Debian
+Trixie; Node 26.13.1 verwendet Alpine 3.24 und npm 12.2.3. Composer 2.11.2 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
-MariaDB 13.0.2, nginx 1.31.8 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
+MariaDB 13.0.2, nginx 1.31.9 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
 30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
 Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
-nginx 1.31.8 enthält die [aktuellen Sicherheitskorrekturen](https://nginx.org/en/CHANGES).
+nginx 1.31.9 enthält die [aktuellen Korrekturen](https://nginx.org/en/CHANGES).
 Livewire 4.4.8 behebt [GHSA-mhf7-xp6r-6qrc](https://github.com/livewire/livewire/security/advisories/GHSA-mhf7-xp6r-6qrc).
 Composer-Image-Digest und Prüfsumme der Composer-2.11.2-PHAR sind unabhängig
-voneinander geprüft und gepinnt. PHP verwendet die Image-Neubauten vom
-6. November, nginx den Neubau vom 10. November. Der MariaDB-Digest wurde auf den
-Neubau vom 12. November aktualisiert und ist in
-Dockerfile, Test-Stack und CI einheitlich gepinnt.
+voneinander geprüft und gepinnt. PHP und Composer verwenden die Image-Neubauten
+vom 19. November, nginx den Neubau vom 18. November. Der MariaDB-Neubau vom
+12. November bleibt aktuell; sein Digest ist in Dockerfile, Test-Stack und CI
+einheitlich gepinnt. Die unveränderten Node- und Typesense-Digests wurden ebenfalls
+mit der Registry abgeglichen.
 Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
 Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
 Betriebssystemupdates ein; ein aktueller Image-Tag allein ersetzt diesen Schritt nicht.
@@ -1094,66 +1099,81 @@ verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselb
 Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
 
 Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.5 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.5;
-das neuere PHPUnit 13.4.6 bleibt deshalb ausgeschlossen. Pest Browser bleibt auf
-5.2.0; PHPStan und Rector stehen auf 2.3.5 beziehungsweise 2.8.4. maryUI 2.9.11 benötigt
+aktualisiert. Pest 5.3.7 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.7;
+das neuere PHPUnit 13.4.8 bleibt deshalb ausgeschlossen. Pest Browser bleibt auf
+5.2.0; PHPStan und Rector stehen auf 2.3.7 beziehungsweise 2.8.5. maryUI 2.9.11 benötigt
 `jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
 Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
-Fortify benötigt weiterhin `laravel/passkeys` 0.2.x; dessen Version 0.3.0 bleibt
-deshalb ebenfalls ausgeschlossen.
+Fortify 1.43.0 unterstützt nun `laravel/passkeys` 0.3.0; beide Pakete sind aktualisiert.
 
-Die Auflösung vom 12. November aktualisiert unter anderem Laravel auf 13.42.0,
-Sanctum auf 4.4.0, Scout auf 11.10.0, Tinker auf 3.1.0 und Pail auf 1.3.0.
-Am 13. November folgen Guzzle 8.5.0 und PSR-7 3.4.0. ParaTest 7.28.0 ist
-wegen einer inkompatiblen `SuiteLoader::tests`-Struktur mit Pest 5.3.5 explizit
-ausgeschlossen: Der parallele Lauf bricht in `WrapperRunner::getTestFiles()` ab.
-Die getestete Version 7.27.5 bleibt erhalten; bei einem kompatiblen Pest-Update
-ist dieser Konflikt erneut zu prüfen.
+Die Auflösung vom 19. November aktualisiert 21 Composer-Pakete, darunter Laravel
+13.43.0, Sanctum 4.5.0, Scout 11.11.0, Tinker 3.2.0, Guzzle 8.5.2 und PSR-7 3.5.0.
+Pest 5.3.7 unterstützt ParaTest 7.29.0; die bisherige Konfliktregel für ParaTest
+7.28.0 entfällt. Monolog 3.13.0, Ramsey UUID 4.10.0 und die aktuellen kompatiblen
+WebAuthn-Pakete sind ebenfalls im Lockfile enthalten.
 Auch die kompatiblen transitiven Pakete, einschließlich PHP-Coverage 14.5.2,
 League URI Components 7.10.0 und der Symfony-8.1-Komponenten, sind aktualisiert.
 Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
 transitiven Updates. Der gezielte npm-Sicherheitspatch für `ip-address` steht auf
-10.7.6; Undici 6.29.1 ist bereits in npm 12.2.2 enthalten.
+10.7.6; Undici 6.29.1 ist bereits in npm 12.2.3 enthalten.
 Rolldown 1.2.19 referenziert für seinen optionalen WASM-Fallback die
 `@emnapi/core`- und `@emnapi/runtime`-Version 2.0.0-beta.2. Die verwendeten
 Linux-Images installieren die nativen Bindings; diese Upstream-Vorgaben werden
 nicht durch Overrides verändert.
-Der benötigte Selector-Parser-Override ist auf 7.2.0 aktualisiert.
+Der benötigte Selector-Parser-Override ist auf 7.2.1 aktualisiert.
 Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
 Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
-Vitest/Coverage/Browser-Provider bleiben auf 5.1.0. Playwright ist vorübergehend
+Vitest/Coverage/Browser-Provider stehen auf 5.1.1. Playwright ist vorübergehend
 exakt auf 1.64.1 gepinnt: 1.65.0 löst beim gemeinsamen Einsatz von Rollen-Locators
 und axe einen nativen Firefox-Absturz beim Lesen von `ariaLabelledByElements` aus
 ([Playwright #43967](https://github.com/microsoft/playwright/issues/43967),
 [Mozilla #2090055](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055)).
+Auch [Playwright 1.65.1](https://github.com/microsoft/playwright/blob/v1.65.1/packages/playwright-core/browsers.json)
+enthält weiterhin den betroffenen Firefox-Build 1572.
 Der E2E-Regressionstest prüft beide Lesereihenfolgen; Firefox und sämtliche
 Barrierefreiheitsregeln bleiben aktiv. Den Pin erst mit einer stabilen Version
 mit behobenem Firefox-Build und erfolgreichem Regressionstest anheben.
 Die npm-Overrides binden auch `playwright` und `playwright-core` aus Vitest und
 axe an diesen Pin, damit nur eine einheitliche Playwright-Version installiert wird.
-axe 4.14.0 und Zod 4.6.7 bleiben erhalten; daisyUI steht auf 5.8.0. jsdom 30.1.3 bleibt
-innerhalb der bestehenden Hauptversion; jsdom 31 ist nicht Teil dieses Updates.
+axe 4.14.0 und Zod 4.6.7 bleiben erhalten; das transitive axe-core steht auf 4.14.1,
+daisyUI auf 5.8.1 und jsdom auf 31.0.1. Die JavaScript-Suite mit 627 Tests und ihre
+bestehenden Coverage-Grenzen bestehen mit jsdom 31.
 Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
-`docker/login-action` ist auf 4.8.0 mit dem zugehörigen Commit-Pin aktualisiert,
-die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
-auf 0.121.3. Die PHP-Coverage-Badge wird weiterhin lokal durch
+`actions/dependency-review-action` ist auf 5.0.1 mit dem zugehörigen Commit-Pin
+aktualisiert, die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
+auf 0.122.1. Die PHP-Coverage-Badge wird weiterhin lokal durch
 `tools/testing/php-coverage-badge.mjs` erzeugt.
 
-Die lokalen Grype-Scans vom 12. November bestehen für Composer, PHP-FPM, Node,
-nginx und MariaDB die unveränderte CI-Grenze `--only-fixed --fail-on high`.
+Die lokalen Grype-Scans vom 19. November bestehen für Composer, PHP-FPM, Node
+und nginx die unveränderte CI-Grenze `--only-fixed --fail-on high`.
 Im npm-Bundle verbleiben mittlere Befunde für
 [`glob`](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) und
 [`minimatch`](https://github.com/advisories/GHSA-g3hv-75wg-m249). Die veröffentlichten
 Korrekturen liegen in 14.0.2 beziehungsweise 11.0.1; auch die neuesten kompatiblen
 13.x-/10.x-Patches bleiben betroffen. Diese npm-internen Hauptversionen werden
 nicht erzwungen ausgetauscht.
-MariaDB meldet zusätzlich einen mittleren Befund für das in gosu gebündelte
+Der frühere MariaDB-Scan vom 12. November meldete zusätzlich einen mittleren Befund für das in gosu gebündelte
 `github.com/moby/sys/user` 0.1.0. Zwei weitere Meldungen betreffen das
 `coreutils`-Metapaket mit der Versionskennung 9.5: Das eigentliche
 `gnu-coreutils` ist bereits auf 9.7-3ubuntu2.1 aktualisiert, und die aktiven
 Standardwerkzeuge stammen aus `rust-coreutils` 0.10.0. Scanner-Ausnahmen oder
 abgesenkte Grenzwerte wurden nicht eingeführt. Die vollständige Image-Matrix
-bleibt Aufgabe der CI; die lokalen Scans umfassen diese fünf gebauten Images.
+bleibt Aufgabe der CI; die aktuellen lokalen Scans umfassen die vier oben genannten
+neu gebauten Images.
+
+Lokal bestanden 4.766 reguläre PHP-Tests (84 Skips), 705 zusätzlich parallel
+ausgeführte Unit-Tests und alle 631 Tests der drei MariaDB-Suiten ohne Skips.
+Außerdem bestehen 627 Vitest-Tests samt Coverage-Grenzen, 123 Node-Tests, drei
+native Chromium-Dialogtests und je 25 gezielte Playwright-Regressionen in Chromium
+und Firefox. Der vollständige Produktionsbuild, die Composer-/npm-Audits und die
+PHP-Qualitätsprüfungen bestehen. Die Gegenprobe weist PHP 8.5.12 zurück; die
+unveränderte Lockfile-Integrität wurde zusätzlich unter PHP 8.6.0 geprüft.
+
+Im zusätzlichen WebKit-Lauf bestanden 21 von 25 Fällen. Vier Fokusprüfungen des
+Suchdialogs schlugen fehl; der Vergleichslauf mit Laravel 13.42.0 und daisyUI 5.8.0
+reproduzierte zwei dieser Fehler (vier von sechs gezielt ausgewählten Fällen
+bestanden). Diese WebKit-Einschränkung bleibt bei der Bewertung der Browserabnahme
+sichtbar; die bestehende CI führt Chromium und Firefox aus.
 
 Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
 der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
@@ -1253,11 +1273,11 @@ werden bei Änderungen sowie wöchentlich gescannt. Lockfile-Audits laufen auch
 wöchentlich, auf `main` und manuell. Dependabot überwacht zusätzlich den
 Playwright-Dockerfile unter `docker/` und die Compose-Service-Images.
 
-Auch npm 12.2.2 selbst erhält über `docker/patch-npm-security.sh` überprüfte
+Auch npm 12.2.3 selbst erhält über `docker/patch-npm-security.sh` überprüfte
 Sicherheitskorrekturen für seine gebündelten Abhängigkeiten. Deren eigenes Lockfile
 unter `docker/npm-security/` wird separat auditiert und durch Dependabot überwacht.
 Das gebündelte `ip-address` 10.7.5 wird durch 10.7.6 ersetzt. Undici
-[6.29.1](https://github.com/nodejs/undici/releases/tag/v6.29.1) liefert npm 12.2.2
+[6.29.1](https://github.com/nodejs/undici/releases/tag/v6.29.1) liefert npm 12.2.3
 bereits selbst mit; die zusätzliche Ersetzung wurde entfernt. Die früheren
 Ersetzungen für `brace-expansion`, `postcss-selector-parser` und
 `http-cache-semantics` bleiben ebenfalls entfernt.
@@ -1373,7 +1393,7 @@ Auch das Deployment wartet für dieselbe Revision auf einen erfolgreichen Lauf.
 Reguläre PHP-8.5- und Sicherheitsprüfungen bleiben verpflichtend. Logs und
 Browserdiagnosen werden 14 Tage als Artefakte gespeichert.
 
-Composer unterstützt regulär `~8.5.0 || ~8.6.0`. Die isolierte Prüfung verändert
+Composer unterstützt regulär `~8.5.13 || ~8.6.0`. Die isolierte Prüfung verändert
 weder Manifest noch Lockfile; Hashvergleiche sichern beide Dateien und sämtliche
 Paketmetadaten ab. Anforderungen der Abhängigkeiten und Plattformprüfungen bleiben
 aktiv. Die produktive Laufzeit bleibt zunächst PHP 8.5.
@@ -1650,7 +1670,7 @@ Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.
 Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
 und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
-Der Test-Stack verwendet Pest 5.3.5, PHPUnit 13.4.5 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md).
+Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert. Weitere Hintergründe stehen im [Ergebnisbericht zur Pest-Modernisierung](docs/Pest-Modernisierung-Ergebnis.md).
 
 Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebundene Datasets und nach Bedarf lokale Fixture-Traits. Fünf abstrakte Fixture-Basen erhalten die gesonderten Transaktions-Lifecycles. Konventionen und die Zuordnung der bisherigen Prüffälle stehen in [tests/README.md](tests/README.md) und [tests/pest-migration-map.json](tests/pest-migration-map.json). `composer test:mutate:core` ergänzt das bisherige 100-%-Mutation-Gate um Geld- und RPG-Kostenregeln und läuft auch bei Pull Requests. TIA umfasst Unit-, Feature- und reguläre Integrationstests; MariaDB-Parallelzugriffe, Browsertests und der manuelle Typesense-Test behalten eigene Läufe.
 
@@ -1658,7 +1678,7 @@ Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebunde
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.13.1 und gepatchtem npm 12.2.2 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 26.13.1 und gepatchtem npm 12.2.3 (`npm ci` + `npm run build`).
 2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
 3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.

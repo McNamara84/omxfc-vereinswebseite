@@ -1,10 +1,10 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2.11.2@sha256:5bcb28b8d0edc4091125f8218f9d088f998bdfc843f8fbb9a4beb4dcd8625684 AS composer-bin
+FROM composer:2.11.2@sha256:8c47c745534c6717c94a307e6f7b73e5b93f37c7679fe9faf50ff54eb12be32f AS composer-bin
 
 RUN apk upgrade --no-cache
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.12-fpm-trixie@sha256:baf3ea13a8207fa18e1011bad1016e8b5e59fc974c6966d0efa6f36a16f875f0 AS php-base
+FROM php:8.5.13-fpm-trixie@sha256:52ba6f178d0a08f348578b03595661b7ff13defafacf4c823d045f2ecba8db8f AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -59,9 +59,9 @@ FROM node:26.13.1-alpine3.24@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa
 COPY docker/patch-npm-security.sh /opt/npm-patches/patch-npm-security.sh
 COPY docker/npm-security/ /opt/npm-patches/npm-security/
 RUN apk upgrade --no-cache \
-    && npm install --global npm@12.2.2 --ignore-scripts \
+    && npm install --global npm@12.2.3 --ignore-scripts \
     && sh /opt/npm-patches/patch-npm-security.sh \
-    && test "$(npm --version)" = "12.2.2"
+    && test "$(npm --version)" = "12.2.3"
 
 FROM node-base AS node-builder
 
@@ -164,7 +164,7 @@ COPY --from=test-node-bin /usr/local/bin/node /usr/local/bin/node
 COPY --from=test-node-bin /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
 RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -sf /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
-    && npm install --global npm@12.2.2 --ignore-scripts \
+    && npm install --global npm@12.2.3 --ignore-scripts \
     && sh docker/patch-npm-security.sh \
     && npm ci
 
