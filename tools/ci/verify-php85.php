@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Tools\Ci;
+
 // This check runs before Composer dependencies are installed.
 $minimumVersion = '8.5.13';
 

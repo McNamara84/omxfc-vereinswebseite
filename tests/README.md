@@ -49,6 +49,14 @@ zusammen mit den Regressionstests überprüft.
 
 ## Verbindliche Prüfungen
 
+`Integration/Php85SecurityGateTest.php` führt das CI-Gate in frischen PHP-
+Unterprozessen ohne INI-Konfiguration oder Composer-Bootstrap aus. Die isolierte
+Fixture setzt nur für diese Prozesse Laufzeitkonstanten im Namespace des Gates;
+damit werden dessen echte Entscheidung, Exitcode und beide Ausgabekanäle für
+8.5.13, ältere und neuere Patches, einen Release Candidate und andere Versionszweige
+geprüft. Ein zusätzlicher Aufruf des unveränderten CLI-Einstiegs stellt sicher,
+dass Argumente und Umgebungsvariablen die tatsächliche PHP-Version nicht ersetzen.
+
 `composer test` führt die vollständige reguläre Suite aus. Die drei MariaDB-Suiten
 laufen gesondert mit `--fail-on-skipped`; SQLite-Skips ersetzen ihre Abnahme nicht.
 Die Coverage-Grenzen in `coverage-baselines/` gelten insgesamt, je Datei und für
