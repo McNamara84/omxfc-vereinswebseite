@@ -1168,9 +1168,12 @@ abgesenkte Grenzwerte wurden nicht eingeführt. Die vollständige Image-Matrix
 bleibt Aufgabe der CI; die aktuellen lokalen Scans umfassen die vier oben genannten
 neu gebauten Images.
 
+Die abschließende Vitest-Nachprüfung vom 20. November bestätigte 628 erfolgreiche
+Tests und die Einhaltung der unveränderten Coverage-Grenzen.
+
 Bei der Abnahme vom 19. November bestanden 4.766 reguläre PHP-Tests (84 Skips), 705 zusätzlich parallel
 ausgeführte Unit-Tests und alle 631 Tests der drei MariaDB-Suiten ohne Skips.
-Außerdem bestanden 627 Vitest-Tests samt Coverage-Grenzen, 123 Node-Tests, drei
+Außerdem bestanden 123 Node-Tests, drei
 native Chromium-Dialogtests und je 25 gezielte Playwright-Regressionen in Chromium
 und Firefox. Der vollständige Produktionsbuild, die Composer-/npm-Audits und die
 PHP-Qualitätsprüfungen bestehen. Die Gegenprobe weist PHP 8.5.12 zurück; die
