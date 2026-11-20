@@ -1060,8 +1060,14 @@ synchronisiert oder neu aufgebaut werden.
 
 Stand der Aktualisierung: **19. November 2026**. Das
 [PHP-Sicherheitsrelease 8.5.13](https://www.php.net/ChangeLog-8.php#8.5.13)
-ist in Produktions-, Entwicklungs- und Browser-Testimages sowie den PHP-8.5-
-Workflows gepinnt. Composer verlangt mindestens PHP 8.5.13 im 8.5-Zweig;
+ist in Produktions-, Entwicklungs- und Browser-Testimages versions- und digestgenau
+gepinnt. Alle 13 PHP-8.5-Setup-Schritte in CI wählen den Zweig `8.5`, erzwingen
+mit `update: 'true'` den aktuellen Patch und prüfen direkt danach die tatsächliche
+Laufzeit mit [verify-php85.php](tools/ci/verify-php85.php). Die Prüfung benötigt
+keine Composer-Abhängigkeiten und weist PHP unter 8.5.13 sowie andere Versionszweige
+vor den nachfolgenden Schritten zurück. Eine Patchangabe allein pinnt die Laufzeit
+bei der verwendeten `setup-php`-Version nicht. Composer verlangt mindestens
+PHP 8.5.13 im 8.5-Zweig;
 PHP 8.6 bleibt unterstützt. PHP basiert auf Debian
 Trixie; Node 26.13.1 verwendet Alpine 3.24 und npm 12.2.3. Composer 2.11.2 ist
 in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden

@@ -21,10 +21,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: intl, zip, sockets
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -61,12 +65,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: gd, exif, zip, sockets
           coverage: xdebug
           ini-values: xdebug.mode=coverage
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -148,10 +156,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, zip, sockets
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -208,11 +220,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -267,11 +283,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: pdo_mysql, intl, zip, sockets
           coverage: none
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -300,10 +320,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - name: Generate ephemeral application key
         run: php -r "file_put_contents(getenv('GITHUB_ENV'), 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL, FILE_APPEND);"
       - name: Copy .env
@@ -361,11 +385,15 @@ jobs:
           # Match the revision executed by the shards, including the PR merge.
           ref: ${{ github.sha }}
       - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # v2.40.0
+        env:
+          update: 'true'
         with:
-          php-version: '8.5.13'
+          php-version: '8.5'
           tools: composer:2.11.2@sha256:dd158c0afd41d15fac89e1b4e47b5d42911fe316c3687cd5edac98319b25d028
           extensions: zip, sockets
           coverage: none
+      - name: Verify PHP 8.5 security minimum
+        run: php tools/ci/verify-php85.php
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.node-version'
