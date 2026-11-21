@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.20.0",
+    "pub_date": "2026-11-21",
+    "notes": [
+      "[New] Gespeicherte Rollenspiel-Charaktere besitzen jetzt ein Inventar für Gegenstände, Kleidung, Munition und Spielgeld in Bucks. Besitzer können ihren aktuellen Bestand und die Inventarbuchungen unter Ausrüstung ansehen nachvollziehen.",
+      "[New] Die Leitung der AG Rollenspiel kann Funde, Verluste, Verbrauch sowie Käufe, Verkäufe und Tauschgeschäfte buchen. Eine Vorschau zeigt die Auswirkungen auf Ausrüstung und Bucks vor dem Speichern; begründete Rückbuchungen bleiben im Inventarverlauf nachvollziehbar.",
+      "[New] Die Leitung der AG Rollenspiel kann eigene Gegenstände entwerfen und bei Bedarf als Startausrüstung freigeben. Schaden, Schutzfaktor und Tauschwert werden nach dem Regelwerk berechnet und vor dem Speichern erklärt. Bereits vergebene Exemplare behalten beim Überarbeiten ihre Werte und lassen sich gezielt auf neue Fassungen umstellen; laufende Übungskämpfe behalten ihren bisherigen Stand.",
+      "[New] Eigene gespeicherte Rollenspiel-Charaktere lassen sich unter Meine Charaktere für jeweils 25 Baxx umbenennen. Das Formular zeigt Preis und verfügbares Guthaben vor der Bestätigung. Der neue Name erscheint auch auf neu erzeugten PDF-Bögen; bisherige Namen, Zeitpunkt und Kosten bleiben im Charakterverlauf sichtbar. Unveränderte Namen und fehlgeschlagene Versuche kosten keine Baxx.",
+      "[Improved] PDF-Charakterbögen zeigen jetzt auch Spielgeld, Munitionsbestände und den Inventarverlauf. Neue Übungskämpfe übernehmen die aktuelle Ausrüstung und verwenden weiterhin eigene Simulationsmunition, ohne den Charakterbestand zu verändern.",
+      "[Fixed] Der PDF-Hauptbogen bleibt auch mit langen Charakterbeschreibungen und mehrzeiligen Vor- und Nachteilen übersichtlich auf einer A4-Seite. Überlange Texte werden an den verfügbaren Platz angepasst und bei Bedarf mit Auslassungspunkten gekürzt; die vollständigen Angaben bleiben gespeichert.",
+      "[Fixed] Das Hinweisfenster der Profilpflege-Tour bleibt auch auf größeren Bildschirmen kompakt und scrollbar, damit Eingabefelder und die Speichern-Schaltfläche erreichbar bleiben.",
+      "[Fixed] Die Rezensionsübersicht sortiert Maddrax-Zyklen nach der Romanreihenfolge und zeigt den neuesten Zyklus zuerst. Neu hinzugekommene Zyklen werden dabei automatisch richtig eingeordnet."
+    ]
+  },
+  {
     "version": "1.19.0",
     "pub_date": "2026-10-26",
     "notes": [
