@@ -1055,7 +1055,7 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **20. November 2026**. Produktion, Entwicklung und
+Stand der Aktualisierung: **21. November 2026**. Produktion, Entwicklung und
 Browser-Testserver verwenden ausschließlich das stabile PHP 8.6.0 auf Debian
 Trixie. Composer verlangt `~8.6.0`. Die Laufzeitprüfung
 [verify-php86.php](tools/ci/verify-php86.php) weist andere PHP-Reihen und
@@ -1064,10 +1064,15 @@ Vorabversionen vor der Paketinstallation zurück; die regulären CI-Jobs wählen
 Digests der offiziellen stabilen Builds gepinnt.
 
 Der vollständige Composer- und npm-Graph wurde mit den offiziellen Registries
-abgeglichen. Neu aufgelöst sind Guzzle Promises 3.1.1, PSR-7 3.5.1 und Revolt
-1.1.0 sowie kompatible transitive npm-Updates. Laravel 13.43.0, Livewire 4.4.8,
-Pest 5.3.7, PHPUnit 13.4.7, PHPStan 2.3.7 und Rector 2.8.5 bilden weiterhin die
-höchste regulär auflösbare stabile Kombination. Pest begrenzt PHPUnit auf 13.4.7;
+abgeglichen. Neu aufgelöst sind Livewire 4.4.9, Guzzle 8.5.4 und Promises 3.2.0
+sowie daisyUI 5.8.2 und das über jsdom eingebundene Undici 8.13.1. Livewire und
+Guzzle enthalten Sicherheitskorrekturen. Die neue
+[Guzzle-Sicherheitsmeldung](https://github.com/guzzle/guzzle/security/advisories/GHSA-q8h8-pjjq-cq2h)
+wird zusätzlich zum Composer-Audit berücksichtigt. Nach dem Livewire-Deployment
+sollen bereits geöffnete Seiten gemäß den
+[Release-Hinweisen](https://github.com/livewire/livewire/releases/tag/v4.4.9)
+neu geladen werden. Laravel 13.43.0, Pest 5.3.7, PHPUnit 13.4.7, PHPStan 2.3.7
+und Rector 2.8.5 bleiben aktuell. Pest begrenzt PHPUnit auf 13.4.7;
 maryUI 2.9.11 benötigt weiterhin Diff 6.x und Sequence Matcher 4.x. Diese
 Upstream-Grenzen werden nicht durch Aliase oder erzwungene Major-Overrides umgangen.
 
@@ -1076,13 +1081,21 @@ nennt für Laravel 13 am Prüftag weiterhin PHP 8.3 bis 8.5. Die hier ausgeführ
 PHP-8.6-Projekttests sind ein eigener Kompatibilitätsnachweis; eine offizielle
 PHP-8.6-Freigabe von Laravel wird damit nicht behauptet.
 
-Node 26.13.1, npm 12.2.3 und Composer 2.11.2 sind weiterhin aktuell. Der erneuerte
-Composer-Image-Digest wurde mit der Registry abgeglichen. Alle 14 GitHub Actions
-sind gegen das jeweils aktuelle offizielle Release und dessen vollständige
-Commit-SHA geprüft. Auch nginx 1.31.9, MariaDB 13.0.2, Typesense 30.2 und die
-zugehörigen Image-Digests wurden erneut abgeglichen. Die vorhandenen OS-Updates,
-MariaDB-/Typesense-Härtungen und die strikte npm-Installationsskript-Policy bleiben
-erhalten. Frische Builds und die bestehende Image-Scan-Policy sind verbindlich.
+Node 26.13.1, npm 12.2.3 und Composer 2.11.2 sind weiterhin aktuell. Alle 14
+GitHub Actions sind gegen das jeweils aktuelle offizielle Release und dessen
+vollständige Commit-SHA geprüft; dabei sind keine Updates offen. Auch PHP 8.6.0,
+nginx 1.31.9, MariaDB 13.0.2, Typesense 30.2 und die zugehörigen Image-Digests
+der Build-Dateien wurden erneut abgeglichen. Für das unverändert versionierte
+Composer-Image 2.11.2 ist ein neuer Registry-Digest
+`sha256:50ea4d33fdcde1adb0f045547295faa1548b33872e5f789dae5b02ce2fb5de93`
+verfügbar; Dockerfile und Scan-Matrix verwenden noch den bisherigen Digest.
+Die Basisdatei `docker-compose.yml` enthält außerdem noch nginx 1.31.8 und einen
+älteren MariaDB-13.0.2-Digest. Das reguläre Deployment ersetzt diese Vorgaben
+durch die gescannten GHCR-Images und prüft das zusammengeführte Compose-Modell.
+Die Image-Pins sind als eigener Wartungsschritt abzugleichen. Die vorhandenen
+OS-Updates, MariaDB-/Typesense-Härtungen und die strikte npm-Installationsskript-
+Policy bleiben erhalten. Frische Builds und die bestehende Image-Scan-Policy
+sind verbindlich.
 
 Entfernbare Paket-Pins werden durch passende Versionsbereiche und Lockfiles
 ersetzt. Der Badge-Helfer verwendet nun einen normalen kompatiblen Bereich.
@@ -1094,6 +1107,9 @@ Override bleibt wegen Typography 0.5.20 erhalten, das weiterhin 6.0.10 verlangt.
 Auch der npm-interne Sicherheitspatch für ip-address bleibt notwendig.
 [Playwright-Regressionsbericht](https://github.com/microsoft/playwright/issues/43967),
 [Mozilla-Fehlerbericht](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055).
+
+Leaflet 1.9.4 und MarkerCluster 1.5.3 bleiben auf ihren stabilen Releases;
+die verfügbaren 2.0-Betas werden nicht übernommen.
 
 Die PHP-Modernisierung umfasst typisierte Konstanten, readonly-Eigenschaften und
 geeignete readonly-Klassen, Constructor Promotion, Override-Attribute, native
