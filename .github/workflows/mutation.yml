@@ -1,4 +1,4 @@
-name: Mutation tests
+name: Mutation Tests
 
 on:
   merge_group:
@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   mutation:
+    name: Verify Test Assertions with Mutations
     runs-on: ubuntu-latest
     timeout-minutes: 90
 

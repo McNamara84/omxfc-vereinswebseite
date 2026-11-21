@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { assessReleaseChecks } from '../../.github/scripts/wait-for-release-checks.mjs';
 
-const workflows = ['phpunit.yml', 'vitest.yml', 'playwright.yml', 'dependency-review.yml', 'mutation.yml', 'service-image-scan.yml', 'php86-compatibility.yml'];
+const workflows = ['phpunit.yml', 'vitest.yml', 'playwright.yml', 'dependency-review.yml', 'mutation.yml', 'service-image-scan.yml', 'ci.yml'];
 const successfulRuns = () => workflows.map(file => ({
     path: `.github/workflows/${file}`, name: file, status: 'completed', conclusion: 'success',
 }));
@@ -23,13 +23,13 @@ test('release waits for every required workflow, including missing or running ch
     assert.deepEqual(assessReleaseChecks(successfulRuns()), { ready: true, pending: 0 });
 });
 
-test('PHP 8.6 must complete successfully before deployment', () => {
+test('CI verification must complete successfully before deployment', () => {
     const runs = successfulRuns();
-    assert.equal(assessReleaseChecks(runs.filter(run => run.path !== '.github/workflows/php86-compatibility.yml')).ready, false);
-    const php86 = runs.find(run => run.path === '.github/workflows/php86-compatibility.yml');
+    assert.equal(assessReleaseChecks(runs.filter(run => run.path !== '.github/workflows/ci.yml')).ready, false);
+    const ci = runs.find(run => run.path === '.github/workflows/ci.yml');
     for (const conclusion of ['failure', 'cancelled', 'skipped', 'timed_out', 'neutral', null]) {
-        php86.conclusion = conclusion;
-        assert.throws(() => assessReleaseChecks(runs), /Deployment blocked by php86/);
+        ci.conclusion = conclusion;
+        assert.throws(() => assessReleaseChecks(runs), /Deployment blocked by ci/);
     }
 });
 

@@ -1,4 +1,4 @@
-name: JS Unit Tests
+name: JavaScript Tests
 run-name: '${{ github.workflow }} @ ${{ github.sha }}'
 
 on:
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   vitest:
     runs-on: ubuntu-latest
-    name: Vitest under PHP 8.6
+    name: JavaScript Unit, Browser and Tooling Tests
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

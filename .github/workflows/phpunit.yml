@@ -1,4 +1,4 @@
-name: PHP Unit Tests
+name: PHP Tests and Quality
 run-name: '${{ github.workflow }} @ ${{ github.sha }}'
 
 on:
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   pest_quality:
     runs-on: ubuntu-latest
-    name: Pest 5 Quality Gates
+    name: PHP Static Analysis and Architecture
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -62,7 +62,7 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    name: PHP 8.6 Tests (shard ${{ matrix.shard }}/2)
+    name: PHP Tests (shard ${{ matrix.shard }}/2)
     strategy:
       fail-fast: false
       matrix:
@@ -140,7 +140,7 @@ jobs:
 
   maddraxikon_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.6 Maddraxikon (MariaDB 13.0)
+    name: Application Database Tests
     services:
       mariadb:
         image: mariadb:13.0.2@sha256:54f493ea0d60b621a5bff84e5b20100f8b86b6efa6b79158e04756c5194a5e4d
@@ -202,7 +202,7 @@ jobs:
 
   rpg_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.6 RPG Concurrency (MariaDB 13.0)
+    name: RPG Database Concurrency
     timeout-minutes: 15
     services:
       mariadb:
@@ -265,7 +265,7 @@ jobs:
 
   veranstaltungs_baxx_mariadb:
     runs-on: ubuntu-latest
-    name: PHP 8.6 Veranstaltungs-Baxx Concurrency (MariaDB 13.0)
+    name: Veranstaltungs-Baxx Database Concurrency
     timeout-minutes: 15
     services:
       mariadb:
@@ -328,7 +328,7 @@ jobs:
 
   browser_preview:
     runs-on: ubuntu-latest
-    name: PHP 8.6 Browser Preview Regression
+    name: Modal Preview Regression
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -392,7 +392,7 @@ jobs:
   coverage:
     needs: [tests]
     runs-on: ubuntu-latest
-    name: PHP 8.6 - Coverage
+    name: PHP Coverage
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -467,7 +467,7 @@ jobs:
     needs:
       - tests
     runs-on: ubuntu-latest
-    name: JS Coverage
+    name: Import JavaScript Coverage
     timeout-minutes: 25
 
     steps:
@@ -504,6 +504,7 @@ jobs:
           if-no-files-found: error
 
   deploy-coverage:
+    name: Publish Coverage Reports and Badges
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write

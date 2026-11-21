@@ -453,7 +453,7 @@ Testumgebung setzen. Dann
 Der Test migriert diese Datenbank frisch; SQLite-Läufe überspringen diese
 separate Testsuite. Die Verbindungsdaten werden an die Worker vererbt.
 
-Der Job **PHP 8.6 RPG Concurrency (MariaDB 13.0)** im Workflow
+Der Job **RPG Database Concurrency** im Workflow
 `.github/workflows/phpunit.yml` führt diese Suite bei Pull Requests gegen
 `main` und Pushes auf `main` automatisch aus. Sein eigener MariaDB-Service
 erstellt `omxfc_rpg_test`; übersprungene Tests lassen den Job fehlschlagen.
@@ -1407,16 +1407,16 @@ fehlendes `wire:navigate`. Die erneute vollständige PHP-Abnahme im folgenden
 Testrefactoring ist erfolgreich; Messbedingungen und Ergebnisse sind dort
 dokumentiert.
 
-## Verbindliche PHP-8.6-Prüfung
+## Verbindliche CI-Prüfung
 
-Der Workflow [PHP 8.6 Compatibility](.github/workflows/php86-compatibility.yml)
+Der Workflow [CI Verification](.github/workflows/ci.yml)
 prüft die stabile PHP-8.6-Laufzeit, Paketinstallation, Plattformanforderungen,
 Anwendungsstart und Laravel-Caches. Manifest, Lockfile und Paketmetadaten müssen
 dabei unverändert bleiben. Die Root-Anforderung muss ausschließlich die stabile
 PHP-8.6-Reihe freigeben; Plattformsimulationen und ignorierte
 Plattformanforderungen bleiben ausgeschlossen.
 
-Der Pflichtcheck **PHP 8.6 erforderlich** wartet bei Pull Requests, Pushes auf main
+Der Pflichtcheck **CI erforderlich** wartet bei Pull Requests, Pushes auf main
 und Merge Queues zusätzlich auf die erfolgreichen regulären PHP-, JavaScript-
 und Playwright-Workflows. Deren PHP-Qualität, Coverage, MariaDB-, Pest-Browser-,
 Chromium- und Firefox-Prüfungen werden nicht nochmals ausgeführt. Die Zuordnung
@@ -1425,12 +1425,37 @@ tatsächlich getesteten PR-Merge-Commit fest. Ergebnisse vor einer Änderung des
 PR-Zielbranches können dadurch keine aktuelle Freigabe ersetzen. Fehlende,
 abgebrochene oder fehlgeschlagene Testläufe geben den Pflichtcheck nicht frei.
 
-Die täglichen und manuellen Laufzeitdiagnosen heißen **PHP 8.6 Laufzeitdiagnose**
+Die täglichen und manuellen Laufzeitdiagnosen heißen **PHP Runtime Diagnostics**
 und ersetzen keinen Pflichtcheck. Die regulären Testworkflows bieten weiterhin
 tägliche und manuelle vollständige Prüfungen. Ereignisspezifische
 Concurrency-Gruppen verhindern, dass Diagnosen einen Push-Lauf verdrängen.
 Die bestehenden Release-Warteketten, Sicherheitsprüfungen, Mutationstests,
 Performance-Messungen und die TIA-Graph-Erzeugung bleiben erhalten.
+
+Beim Wechsel vom bisherigen Check **PHP 8.6 erforderlich** muss auch der
+erforderliche Statuskontext im GitHub-Ruleset
+[Secure main](https://github.com/McNamara84/omxfc-vereinswebseite/settings/rules/4508779)
+auf **CI erforderlich** umgestellt werden. Die Zuordnung zur GitHub-Actions-App
+und alle übrigen Schutzregeln bleiben erhalten. Zuerst wird der Commit mit dem
+neuen Workflow auf dem PR-Branch bereitgestellt; sobald dessen neuer Check
+vorliegt, wird der Statuskontext ersetzt. Historische Läufe behalten ihren
+ursprünglichen Namen.
+
+Alle Workflows sind nach ihrer Aufgabe benannt; PHP- und Werkzeugversionen stehen
+in der Laufzeitkonfiguration statt in dauerhaften Checknamen:
+
+| Workflow | Aufgabe |
+| --- | --- |
+| [CI Verification](.github/workflows/ci.yml) | Laufzeit, unveränderte Abhängigkeiten und gemeinsame Freigabe der Testworkflows |
+| [PHP Tests and Quality](.github/workflows/phpunit.yml) | PHP-Analyse, funktionale Tests, MariaDB, Browser-Regression und Coverage |
+| [JavaScript Tests](.github/workflows/vitest.yml) | Vitest, Node-Prüfungen, Browser-Pilot und Ressourcenlecks |
+| [Browser Tests](.github/workflows/playwright.yml) | Accessibility und vollständige Chromium-/Firefox-Matrix |
+| [Dependency Security](.github/workflows/dependency-review.yml) | Änderungen am Abhängigkeitsgraphen sowie Composer-/npm-Audits |
+| [Container Security](.github/workflows/service-image-scan.yml) | Gebaute Containerstufen und Datenbank-Upgradepfade prüfen |
+| [Mutation Tests](.github/workflows/mutation.yml) | Wirksamkeit der fachlichen Assertions durch Mutationen prüfen |
+| [Test Impact Baseline](.github/workflows/tia-baseline.yml) | Abhängigkeitsgraph für gezielte lokale Wiederholungen erzeugen |
+| [Homepage Performance](.github/workflows/performance-benchmark.yml) | Homepage-Ladezeiten getrennt von funktionalen Tests messen |
+| [Production Deployment](.github/workflows/deploy.yml) | Produktionsimages bauen, prüfen und nach erfolgreichen Release-Gates ausrollen |
 
 `composer test:compatibility` prüft den eigenen PHP-Bestand einschließlich
 Sprachdateien mit PHP-8.6-AST- und nativen Syntaxprüfungen auf veraltete Nutzung.

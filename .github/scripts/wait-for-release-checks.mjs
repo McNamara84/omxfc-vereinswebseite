@@ -7,7 +7,7 @@ const sha = process.env.GITHUB_SHA;
 const required = [
     'phpunit.yml', 'vitest.yml', 'playwright.yml',
     'dependency-review.yml', 'mutation.yml', 'service-image-scan.yml',
-    'php86-compatibility.yml',
+    'ci.yml',
 ];
 const deadline = Date.now() + 200 * 60_000;
 const api = async path => {

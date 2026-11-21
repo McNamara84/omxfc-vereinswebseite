@@ -1,4 +1,4 @@
-name: PHP 8.6 Compatibility
+name: CI Verification
 
 on:
   push:
@@ -15,13 +15,13 @@ permissions:
   actions: read
 
 concurrency:
-  group: php86-compatibility-${{ github.event_name }}-${{ github.ref }}
+  group: ci-verification-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   report:
-    # Preserve the required check name and workflow path used by release gates.
-    name: ${{ contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name) && 'PHP 8.6 erforderlich' || 'PHP 8.6 Laufzeitdiagnose' }}
+    # The required context must also match the repository ruleset; see README.
+    name: ${{ contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name) && 'CI erforderlich' || 'PHP Runtime Diagnostics' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
@@ -99,7 +99,7 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: php86-compatibility
+          name: ci-runtime-diagnostics
           path: ${{ runner.temp }}/php86-reports/
           if-no-files-found: ignore
           retention-days: 14

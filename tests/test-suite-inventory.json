@@ -7811,7 +7811,7 @@
     "methods": [
       "merge queues retain every release check after removing the duplicate compatibility test run",
       "release waits for every required workflow, including missing or running checks",
-      "PHP 8.6 must complete successfully before deployment",
+      "CI verification must complete successfully before deployment",
       "GitHub API workflow path references retain every required release gate",
       "failed, cancelled, skipped and timed out release checks cannot deploy",
       "latest attempt is authoritative and managed CodeQL failures block deployment"

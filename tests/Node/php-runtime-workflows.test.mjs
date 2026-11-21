@@ -10,7 +10,7 @@ const workflows = [
     ['performance-benchmark.yml', 1],
     ['dependency-review.yml', 1],
     ['vitest.yml', 1],
-    ['php86-compatibility.yml', 1],
+    ['ci.yml', 1],
 ];
 
 for (const [filename, expectedCount] of workflows) {
@@ -36,7 +36,7 @@ for (const [filename, expectedCount] of workflows) {
 }
 
 test('scheduled and manual runtime checks cannot cancel required push checks', () => {
-    const workflow = readFileSync(new URL('../../.github/workflows/php86-compatibility.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
+    const workflow = readFileSync(new URL('../../.github/workflows/ci.yml', import.meta.url), 'utf8').replaceAll('\r\n', '\n');
     const concurrency = workflow.match(/^concurrency:\n {2}group: (.+)\n {2}cancel-in-progress: (.+)$/m);
     assert.ok(concurrency);
     assert.equal(concurrency[2], 'true');

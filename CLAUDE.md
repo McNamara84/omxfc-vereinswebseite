@@ -1290,12 +1290,20 @@ response()->view('view', $data)
 ### GitHub Actions
 
 **Workflows:**
-- `phpunit.yml` - PHP tests on PHP 8.6 with the pinned test-only Xdebug coverage driver
-- `playwright.yml` - E2E tests on Chromium, Firefox, WebKit
-- `vitest.yml` - Vitest JavaScript tests
-- `deploy.yml` - Deployment workflow
-- `performance-benchmark.yml` - Performance testing
-- `php86-compatibility.yml` - Required stable PHP 8.6 compatibility and integrity checks
+- `ci.yml` - CI Verification: runtime integrity and the required aggregate test check
+- `phpunit.yml` - PHP Tests and Quality: analysis, PHP/MariaDB suites, browser regression and coverage
+- `playwright.yml` - Browser Tests: Chromium and Firefox in CI; WebKit remains available locally
+- `vitest.yml` - JavaScript Tests: Vitest, Node tooling, native browser pilot and leak diagnostics
+- `dependency-review.yml` - Dependency Security: dependency changes and lockfile audits
+- `service-image-scan.yml` - Container Security: rebuilt image stages and database upgrade checks
+- `mutation.yml` - Mutation Tests: verify monetary, progression and application assertions
+- `tia-baseline.yml` - Test Impact Baseline: record the full test dependency graph
+- `performance-benchmark.yml` - Homepage Performance: isolated loading-time measurements
+- `deploy.yml` - Production Deployment: build, scan and release the verified revision
+
+The required check is `CI erforderlich`. Renaming the former `PHP 8.6 erforderlich`
+context also requires updating the `Secure main` GitHub ruleset, preserving the
+GitHub Actions integration and all other protections; see README.
 
 **Coverage Badges:**
 - Generated on `main` branch pushes
