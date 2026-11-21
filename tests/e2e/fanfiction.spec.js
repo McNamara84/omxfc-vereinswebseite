@@ -10,7 +10,7 @@ import { test, expect } from './test-support.js';
  * - #497: Sichtbarkeit für Gäste (Teaser)
  */
 
-test.describe('Fanfiction für Gäste (Issue #497)', () => {
+test.describe('Fanfiction für Gäste', () => {
     test('Gast kann öffentliche Teaser-Seite aufrufen', async ({ page }) => {
         await page.goto('/fanfiction-teaser');
 
@@ -55,7 +55,7 @@ test.describe('Fanfiction für Gäste (Issue #497)', () => {
     });
 });
 
-test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
+test.describe('Fanfiction Menüpunkt', () => {
     test('Vorstand-Menü enthält Fanfiction-Unterpunkt', async ({ page }) => {
         // Login als Admin
         await page.goto('/login');
@@ -88,7 +88,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
     });
 });
 
-test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
+test.describe('Fanfiction Verwaltung für Vorstand', () => {
     test.beforeEach(async ({ page }) => {
         // Login als Admin/Vorstand
         await page.goto('/login');
@@ -176,7 +176,7 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     });
 });
 
-test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () => {
+test.describe('Fanfiction Übersicht für Mitglieder', () => {
     test.beforeEach(async ({ page }) => {
         // Login als Mitglied
         await page.goto('/login');

@@ -208,8 +208,8 @@ describe('alpine-init', () => {
         });
     });
 
-    describe('Regression: Doppelte Alpine-Instanz (MaryUI @entangle Bug)', () => {
-        it('überschreibt NIEMALS ein existierendes window.Alpine', () => {
+    describe('Einmalige Initialisierung von Alpine mit und ohne Livewire', () => {
+        it('erhält vorhandenes Alpine mit seinen Livewire-Erweiterungen', () => {
             // Dies ist der exakte Bug der aufgetreten ist:
             // Livewire setzt window.Alpine mit Extensions ($wire, @entangle)
             // app.js darf es NICHT mit einem "nackten" Alpine überschreiben
@@ -256,7 +256,7 @@ describe('alpine-init', () => {
             expect(window.Alpine.plugin).not.toHaveBeenCalled();
         });
 
-        it('prüft nicht _x_dataStack als Guard (alter fehlerhafter Guard)', () => {
+        it('erhält vorhandenes Alpine auch ohne _x_dataStack', () => {
             // Der alte Guard war: if (!window.Alpine?._x_dataStack)
             // Das schlug fehl weil _x_dataStack erst bei Alpine.start() gesetzt wird
             // Neuer Guard prüft nur: if (window.Alpine)
@@ -599,7 +599,7 @@ describe('scheduleInitAlpine', () => {
         });
     });
 
-    describe('Regression: Ladereihenfolge-Sicherheit', () => {
+    describe('Ladereihenfolge von Alpine und Livewire', () => {
         it('verhindert Standalone-Start wenn Livewire-Script noch laden muss', () => {
             // Szenario: app.js (Module) wird geparst während DOM noch lädt.
             // Livewires reguläres Script kommt danach im DOM.

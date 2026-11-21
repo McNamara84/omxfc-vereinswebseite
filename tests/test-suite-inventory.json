@@ -2189,18 +2189,6 @@
     ]
   },
   {
-    "file": "tests/Feature/FixMissionMarsEnumMigrationTest.php",
-    "runner": "php-feature",
-    "laravel": true,
-    "database": true,
-    "methods": [
-      "migration updates mission mars value in sqlite",
-      "books table accepts all book type enum values",
-      "book type enum matches database values"
-    ],
-    "seeders": []
-  },
-  {
     "file": "tests/Feature/FooterVersionTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -3726,6 +3714,18 @@
     "seeders": []
   },
   {
+    "file": "tests/Feature/MissionMarsBookTypeMigrationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "migration updates mission mars value in sqlite",
+      "books table accepts all book type enum values",
+      "book type enum matches database values"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Feature/MissionModelTest.php",
     "runner": "php-feature",
     "laravel": true,
@@ -4669,7 +4669,7 @@
     "seeders": []
   },
   {
-    "file": "tests/Feature/RomantauschReviewRegressionTest.php",
+    "file": "tests/Feature/RomantauschPhotoAndSwapIntegrityTest.php",
     "runner": "php-feature",
     "laravel": true,
     "database": true,
@@ -8550,10 +8550,10 @@
       "window.Alpine = false wird als Nicht-Livewire behandelt",
       "Plugins-Reihenfolge wird beibehalten",
       "führt Plugin-Funktionen im Livewire-Modus nicht aus",
-      "überschreibt NIEMALS ein existierendes window.Alpine",
+      "erhält vorhandenes Alpine mit seinen Livewire-Erweiterungen",
       "verhindert doppeltes Alpine.start()",
       "verhindert doppelte Persist-Registrierung auf Livewire-Alpine",
-      "prüft nicht _x_dataStack als Guard (alter fehlerhafter Guard)",
+      "erhält vorhandenes Alpine auch ohne _x_dataStack",
       "Standalone-Modus setzt Alpine korrekt auf Nicht-Livewire-Seiten",
       "crasht nicht wenn window.Alpine.plugin keine Funktion ist",
       "crasht nicht wenn window.Alpine.plugin fehlt",

@@ -4,6 +4,14 @@ Die PHP-Suite verwendet funktionale Pest-Tests. `test()` beschreibt einen
 fachlichen Vertrag; passende Laravel-, Livewire-, HTTP- und Datenbank-Assertions
 ergänzen `expect()`. Strikte Gleichheit bleibt mit `toBe()` erhalten.
 
+Datei- und Gruppennamen benennen Fachbereich und Prüfziel; Testtitel beschreiben
+das erwartete Verhalten. Ticketnummern und die Entstehungsgeschichte eines Fehlers
+gehören bei Bedarf in einen Hintergrundkommentar. Beispiele sind
+`MissionMarsBookTypeMigrationTest` und `RomantauschPhotoAndSwapIntegrityTest`.
+Bei Dateiumbenennungen werden Suite-Konfiguration, Fixtures und Testinventar
+mitgeführt. Die Migrationszuordnung behält historische Klassen und Quellhashes;
+`previousFile` hält dort gegebenenfalls den früheren Dateipfad fest.
+
 ## Aufbau und Fixtures
 
 - `Unit`: ohne Laravel-Bootstrapping, außer wenn die Datei ihre Basis ausdrücklich

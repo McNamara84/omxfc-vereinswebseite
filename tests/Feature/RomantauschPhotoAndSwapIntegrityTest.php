@@ -23,10 +23,10 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
-pest()->extend(TestCase::class)->use(RomantauschReviewRegressionTestFixtures::class);
-dataset('RomantauschReviewRegressionTest.missingSources', static fn (): array => [['offer', false], ['request', false], ['offer', true], ['request', true]]);
-dataset('RomantauschReviewRegressionTest.historySizes', static fn (): array => [[0], [200]]);
-dataset('RomantauschReviewRegressionTest.cancelledSources', static fn (): array => [['offer', false], ['request', false], ['bundle', false], ['offer', true], ['request', true], ['bundle', true]]);
+pest()->extend(TestCase::class)->use(RomantauschPhotoAndSwapIntegrityTestFixtures::class);
+dataset('RomantauschPhotoAndSwapIntegrityTest.missingSources', static fn (): array => [['offer', false], ['request', false], ['offer', true], ['request', true]]);
+dataset('RomantauschPhotoAndSwapIntegrityTest.historySizes', static fn (): array => [[0], [200]]);
+dataset('RomantauschPhotoAndSwapIntegrityTest.cancelledSources', static fn (): array => [['offer', false], ['request', false], ['bundle', false], ['offer', true], ['request', true], ['bundle', true]]);
 beforeEach(function (): void {
     Storage::fake('public');
     Mail::fake();
@@ -93,7 +93,7 @@ test('confirmation returns not found when a source disappears before eager loadi
     $this->assertDatabaseCount('book_swaps', 0);
     $this->assertDatabaseCount('user_points', 0);
     expect(Activity::where('action', 'swap_completed')->count())->toBe(0);
-})->with('RomantauschReviewRegressionTest.missingSources');
+})->with('RomantauschPhotoAndSwapIntegrityTest.missingSources');
 test('photo cleanup checks exact references without loading the offer history', function (int $historySize): void {
     $owner = $this->actingMember();
     $removed = 'book-offers/remove "quoted".jpg';
@@ -120,7 +120,7 @@ test('photo cleanup checks exact references without loading the offer history', 
     foreach ($queries as $sql) {
         expect(strtolower($sql))->toContain('select exists');
     }
-})->with('RomantauschReviewRegressionTest.historySizes');
+})->with('RomantauschPhotoAndSwapIntegrityTest.historySizes');
 test('deleting a matched source displays a cancellation in the dashboard', function (string $kind, bool $http): void {
     $owner = $this->actingMember();
     $other = $this->createUserWithRole(Role::Mitglied);
@@ -143,4 +143,4 @@ test('deleting a matched source displays a cancellation in the dashboard', funct
     $this->assertDatabaseCount('book_swaps', 0);
     $this->actingAs($affected->user);
     Livewire::test(DashboardActivityFeed::class)->assertSeeText('Tauschzuordnung aufgehoben: Roman1')->assertSeeText($kind === 'request' ? 'Das zugeordnete Gesuch wurde entfernt.' : 'Das zugeordnete Angebot wurde entfernt.')->assertDontSeeText('Neues Angebot:')->assertDontSeeText('Neues Gesuch:');
-})->with('RomantauschReviewRegressionTest.cancelledSources');
+})->with('RomantauschPhotoAndSwapIntegrityTest.cancelledSources');
