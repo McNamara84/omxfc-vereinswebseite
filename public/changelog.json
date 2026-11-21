@@ -3,7 +3,7 @@
     "version": "1.20.0",
     "pub_date": "2026-11-21",
     "notes": [
-      "[New] Gespeicherte Rollenspiel-Charaktere besitzen jetzt ein Inventar für Gegenstände, Kleidung, Munition und Spielgeld in Bucks. Besitzer können ihren aktuellen Bestand und die Inventarbuchungen unter Ausrüstung ansehen nachvollziehen.",
+      "[New] Gespeicherte Rollenspiel-Charaktere besitzen jetzt ein Inventar für Gegenstände, Kleidung, Munition und Spielgeld in Bucks. Besitzer können ihren aktuellen Bestand und die Inventarbuchungen unter „Ausrüstung ansehen“ nachvollziehen.",
       "[New] Die Leitung der AG Rollenspiel kann Funde, Verluste, Verbrauch sowie Käufe, Verkäufe und Tauschgeschäfte buchen. Eine Vorschau zeigt die Auswirkungen auf Ausrüstung und Bucks vor dem Speichern; begründete Rückbuchungen bleiben im Inventarverlauf nachvollziehbar.",
       "[New] Die Leitung der AG Rollenspiel kann eigene Gegenstände entwerfen und bei Bedarf als Startausrüstung freigeben. Schaden, Schutzfaktor und Tauschwert werden nach dem Regelwerk berechnet und vor dem Speichern erklärt. Bereits vergebene Exemplare behalten beim Überarbeiten ihre Werte und lassen sich gezielt auf neue Fassungen umstellen; laufende Übungskämpfe behalten ihren bisherigen Stand.",
       "[New] Eigene gespeicherte Rollenspiel-Charaktere lassen sich unter Meine Charaktere für jeweils 25 Baxx umbenennen. Das Formular zeigt Preis und verfügbares Guthaben vor der Bestätigung. Der neue Name erscheint auch auf neu erzeugten PDF-Bögen; bisherige Namen, Zeitpunkt und Kosten bleiben im Charakterverlauf sichtbar. Unveränderte Namen und fehlgeschlagene Versuche kosten keine Baxx.",
