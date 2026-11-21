@@ -16,19 +16,24 @@ class RomanExcerpt extends Model
 {
     use Searchable;
 
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = [];
 
     /* eigener Primärschlüssel = path */
+    #[\Override]
     protected $primaryKey = 'path';
 
+    #[\Override]
     public $incrementing = false;
 
+    #[\Override]
     protected $keyType = 'string';
 
     /** deutschsprachige Stop-Words (+ deine Beispiele) */
-    private const STOP_WORDS = [
+    private const array STOP_WORDS = [
         'und', 'oder', 'aber', 'weil', 'dass', 'der', 'die', 'das', 'ein', 'eine', 'einer', 'eines',
         'auf', 'in', 'im', 'ist', 'sind', 'war', 'waren', 'mit', 'von', 'für',
     ];

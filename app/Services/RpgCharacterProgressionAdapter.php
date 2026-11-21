@@ -21,7 +21,7 @@ final class RpgCharacterProgressionAdapter
             }
             $payload[$key] = $normalized;
         }
-        $payload['attributes'] = array_replace(array_fill_keys(RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS, 0), array_map('intval', $payload['attributes'] ?? []));
+        $payload['attributes'] = array_replace(array_fill_keys(RpgCharEditorSpecialRules::ATTRIBUTE_TARGETS, 0), array_map(intval(...), $payload['attributes'] ?? []));
         $skills = [];
         foreach ($payload['skills'] ?? [] as $skill) {
             $name = $names->canonicalSkillName($skill['name']);

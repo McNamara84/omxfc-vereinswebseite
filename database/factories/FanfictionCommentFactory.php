@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class FanfictionCommentFactory extends Factory
 {
+    #[\Override]
     protected $model = FanfictionComment::class;
 
     /**

@@ -7,9 +7,9 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-final class EnsureMaddraxikonEligible
+final readonly class EnsureMaddraxikonEligible
 {
-    public function __construct(private readonly AccountEligibility $eligibility) {}
+    public function __construct(private AccountEligibility $eligibility) {}
 
     /**
      * @param  Closure(Request): Response  $next

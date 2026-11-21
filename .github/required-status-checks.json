@@ -1,0 +1,16 @@
+[
+    { "context": "CI erforderlich", "integration_id": 15368 },
+    { "context": "PHP Static Analysis and Architecture", "integration_id": 15368 },
+    { "context": "PHP Tests (shard 1/2)", "integration_id": 15368 },
+    { "context": "PHP Tests (shard 2/2)", "integration_id": 15368 },
+    { "context": "Application Database Tests", "integration_id": 15368 },
+    { "context": "RPG Database Concurrency", "integration_id": 15368 },
+    { "context": "Veranstaltungs-Baxx Database Concurrency", "integration_id": 15368 },
+    { "context": "Modal Preview Regression", "integration_id": 15368 },
+    { "context": "PHP Coverage", "integration_id": 15368 },
+    { "context": "JavaScript Unit, Browser and Tooling Tests", "integration_id": 15368 },
+    { "context": "Browser Tests (chromium, shard 1/2)", "integration_id": 15368 },
+    { "context": "Browser Tests (chromium, shard 2/2)", "integration_id": 15368 },
+    { "context": "Browser Tests (firefox, shard 1/2)", "integration_id": 15368 },
+    { "context": "Browser Tests (firefox, shard 2/2)", "integration_id": 15368 }
+]

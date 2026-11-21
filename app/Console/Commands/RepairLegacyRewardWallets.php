@@ -11,10 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class RepairLegacyRewardWallets extends Command
 {
+    #[\Override]
     protected $signature = 'rewards:repair-legacy-wallets
         {--apply : Persistiert Änderungen statt nur einen Bericht auszugeben}
         {--user=* : User-ID oder E-Mail-Adresse für eine gezielte Zuordnung nach manueller Prüfung}';
 
+    #[\Override]
     protected $description = 'Analysiert Legacy-Reward-Käufe ohne Wallet-Zuordnung und weist sie dem Mitglieder-Team zu, wenn der Fall sicher oder manuell geprüft ist.';
 
     public function handle(): int

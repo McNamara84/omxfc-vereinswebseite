@@ -2,7 +2,7 @@
   {
     "file": "tests/Arch.php",
     "runner": "architecture",
-    "laravel": false,
+    "laravel": true,
     "database": false,
     "methods": [],
     "seeders": []
@@ -1025,6 +1025,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "an empty legacy visit path is counted as a homepage visit",
       "admin route denied for unauthorized roles",
       "admin route allows vorstand and kassenwart",
       "page visit logged and admin can view",
@@ -2040,6 +2041,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "changing the payment filter removes unpaid registrations from cached results",
       "admin dashboard is accessible for admin",
       "legacy admin dashboard route redirects to canonical event route",
       "admin dashboard is accessible for vorstand",
@@ -2113,6 +2115,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "legacy registration rejects honeypot submissions without saving an attendee",
       "create ignores legacy cached vip author models"
     ],
     "seeders": []
@@ -2184,18 +2187,6 @@
     "seeders": [
       "FantreffenPlaywrightSeeder"
     ]
-  },
-  {
-    "file": "tests/Feature/FixMissionMarsEnumMigrationTest.php",
-    "runner": "php-feature",
-    "laravel": true,
-    "database": true,
-    "methods": [
-      "migration updates mission mars value in sqlite",
-      "books table accepts all book type enum values",
-      "book type enum matches database values"
-    ],
-    "seeders": []
   },
   {
     "file": "tests/Feature/FooterVersionTest.php",
@@ -2843,6 +2834,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "latest previews return an empty list when the members team has no reviews",
       "endpoint returns five latest member reviews",
       "response contains truncated excerpt",
       "response contains reviewed at timestamp",
@@ -3079,6 +3071,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "token transport failures expose only the public oauth error",
       "client rejects non https or wrong callback path",
       "callback origin must exactly match app url origin",
       "client rejects maddraxikon endpoint on another host",
@@ -3299,6 +3292,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "a removed rating is not exposed when its relationship is loaded lazily",
       "review renders the personal rating as five accessible green comets with fire tails",
       "stale or disconnected or disabled ratings are not rendered",
       "snapshot for another identity or page is never rendered",
@@ -3333,6 +3327,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "retrying a missing contribution cannot award points or call the wiki",
       "feature flag prevents evaluation without api calls",
       "evaluation fails closed when awards are enabled without import",
       "open recovery window blocks all evaluation even when forced",
@@ -3715,6 +3710,18 @@
       "applicant is not active inside the locked snapshot",
       "regular member cannot approve or reject applicants",
       "stale applicant action cannot change an active member"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Feature/MissionMarsBookTypeMigrationTest.php",
+    "runner": "php-feature",
+    "laravel": true,
+    "database": true,
+    "methods": [
+      "migration updates mission mars value in sqlite",
+      "books table accepts all book type enum values",
+      "book type enum matches database values"
     ],
     "seeders": []
   },
@@ -4662,7 +4669,7 @@
     "seeders": []
   },
   {
-    "file": "tests/Feature/RomantauschReviewRegressionTest.php",
+    "file": "tests/Feature/RomantauschPhotoAndSwapIntegrityTest.php",
     "runner": "php-feature",
     "laravel": true,
     "database": true,
@@ -6450,7 +6457,8 @@
       "megabytes to bytes accepts numeric configuration values",
       "limits use lowest known candidate as effective upload size",
       "zero byte payload candidate can be effective upload size",
-      "format bytes returns german readable values"
+      "format bytes returns german readable values",
+      "storage limits keep the configured free space ratio inside its supported bounds"
     ],
     "seeders": []
   },
@@ -6595,6 +6603,7 @@
     "laravel": true,
     "database": false,
     "methods": [
+      "photo metadata excludes non string empty and external paths",
       "bild tag is replaced with figure element",
       "bild tag with position links",
       "bild tag with position rechts",
@@ -6777,6 +6786,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "a misconfigured typesense driver cannot report a different engine as available",
       "it returns false for non supported drivers even if a legacy index file exists",
       "it uses the legacy index check only for tntsearch",
       "it returns false when the typesense collection is missing",
@@ -6825,6 +6835,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "recent changes rejects a malformed result list instead of treating it as no changes",
       "recent changes follows continuation and uses a fixed window",
       "user contributions batch numeric ids and follow continuation",
       "api url must use https and match the configured origin",
@@ -7121,23 +7132,23 @@
     "seeders": []
   },
   {
-    "file": "tests/Integration/Php85SecurityGateTest.php",
-    "runner": "php-integration",
-    "laravel": false,
-    "database": false,
-    "methods": [
-      "the PHP 8.5 security gate enforces the patched version boundary",
-      "the standalone security gate uses the actual interpreter despite version arguments and environment variables"
-    ],
-    "seeders": []
-  },
-  {
     "file": "tests/Integration/Php86IntegrityTest.php",
     "runner": "php-integration",
     "laravel": false,
     "database": false,
     "methods": [
       "integrity checks preserve the manifest and detect lockfile tampering"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Integration/Php86SecurityGateTest.php",
+    "runner": "php-integration",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the PHP 8.6 security gate requires a stable supported release",
+      "the standalone security gate uses the actual interpreter despite version arguments and environment variables"
     ],
     "seeders": []
   },
@@ -7372,6 +7383,7 @@
     "laravel": true,
     "database": true,
     "methods": [
+      "an unreadable active snapshot does not silently expose stale legacy data",
       "get maddrax romane returns collection",
       "get maddrax romane returns empty collection when file missing",
       "get cycle map returns nummer to zyklus mapping",
@@ -7612,6 +7624,48 @@
     "seeders": []
   },
   {
+    "file": "tests/Node/ci-coverage-artifacts.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "coverage lookup queries only main pushes for the requested workflow and revision",
+      "coverage from other revisions branches events and workflows is never reused",
+      "missing queued and running producers are awaited before returning their artifacts",
+      "a ${conclusion} producer cannot be hidden behind an older successful run",
+      "a pending newer producer cannot reuse an older successful artifact",
+      "unordered responses still select the newest successful producer",
+      "an older producer rerun after a newer success cannot supply coverage while ${status}",
+      "coverage uses the successful later attempt even when its run ID is lower",
+      "missing or invalid attempt timing cannot select coverage from an older success",
+      "GitHub API workflow path references still identify the same Vitest workflow",
+      "lookup rejects unreadable or malformed API results",
+      "invalid run IDs cannot become download selectors or hide behind an older result",
+      "invalid lookup configuration fails before making a request"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/ci-runtime-tests.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "the gate uses the API event and head SHA while requiring the actual tested PR merge SHA",
+      "producer workflows attest their tested revision and retain nightly and manual checks",
+      "old merge results, other events, revisions and workflow paths cannot approve the runtime",
+      "missing, queued and running workflows are awaited without repeating their tests",
+      "a ${conclusion} test workflow blocks approval even with an older successful run",
+      "a pending newer run cannot be hidden by an older success or another tested merge SHA",
+      "an older run rerun after a newer success blocks runtime approval while ${status}",
+      "a successful later attempt of an older run supersedes a newer-ID failure",
+      "missing or invalid attempt timing cannot approve a runtime",
+      "API path references are accepted but malformed run IDs and metadata fail closed",
+      "HTTP errors and missing configuration cannot approve a runtime"
+    ],
+    "seeders": []
+  },
+  {
     "file": "tests/Node/coverage-baseline.test.mjs",
     "runner": "node",
     "laravel": false,
@@ -7739,35 +7793,8 @@
     "laravel": false,
     "database": false,
     "methods": [
-      "${filename} updates and verifies every PHP 8.5 runtime before dependent steps"
-    ],
-    "seeders": []
-  },
-  {
-    "file": "tests/Node/php86-compatibility.test.mjs",
-    "runner": "node",
-    "laravel": false,
-    "database": false,
-    "methods": [
-      "scheduled and manual compatibility checks cannot cancel required push checks",
-      "the actual CI preparation retains export-ignored test inputs and excludes private untracked files",
-      "a failure in ${stageNames[failingIndex]} prevents every dependent stage from executing",
-      "only successful execution of every stage reports compatibility",
-      "unknown exceptions and interrupted commands are not compatibility diagnoses",
-      "successful stages cannot hide missing or damaged lockfile integrity evidence",
-      "actual PHP dependency and test errors are distinguished from download failures",
-      "completed Playwright assertion timeouts are test failures rather than provisioning failures",
-      "Composer post-autoload PHP runtime failures are compatibility diagnoses",
-      "concrete infrastructure failures and interrupted processes still override runtime and test diagnostics",
-      "the real stage definitions defer MariaDB and browser provisioning until their stage",
-      "PHP workers receive the in-memory database and later browser stages regain their file database",
-      "each real MariaDB stage invocation exports its own database to independent PHP workers",
-      "summary escapes diagnostics and distinguishes technical compatibility from production approval",
-      "the executable probe fails closed on PHP provisioning and skips all expensive commands",
-      "native and PHPUnit deprecation diagnostics are failures while ordinary prose is not",
-      "Laravel and native log evidence is required and both kinds of deprecation block",
-      "an exit-zero command cannot hide an early deprecation behind large later output",
-      "the final GitHub job uses a stable name and rejects every incomplete result"
+      "${filename} updates and verifies every PHP 8.6 runtime before dependent steps",
+      "scheduled and manual runtime checks cannot cancel required push checks"
     ],
     "seeders": []
   },
@@ -7788,10 +7815,24 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "merge queues retain every release check after removing the duplicate compatibility test run",
       "release waits for every required workflow, including missing or running checks",
-      "PHP 8.6 must complete successfully before deployment",
+      "CI verification must complete successfully before deployment",
+      "GitHub API workflow path references retain every required release gate",
       "failed, cancelled, skipped and timed out release checks cannot deploy",
-      "latest attempt is authoritative and managed CodeQL failures block deployment"
+      "latest attempt is authoritative and managed CodeQL failures block deployment",
+      "deployment considers an older run rerun after a newer success while ${status}",
+      "deployment accepts a successful latest attempt independently of API order and run ID"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/required-status-checks.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "merge protection requires every PHP, JavaScript and browser job independently of the aggregate gate"
     ],
     "seeders": []
   },
@@ -7827,6 +7868,18 @@
       "a failed command stops the sequence and propagates its exit code",
       "the complete Node command discovers every matching fixture without shell expansion",
       "a failure discovered through the literal Node glob propagates to the complete runner"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/workflow-attempts.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "attempt start time takes precedence over run ID, initial creation, completion and attempt count",
+      "failures and pending attempts take precedence when start times are indistinguishable",
+      "invalid attempt numbers and malformed, impossible or inverted timestamps fail closed"
     ],
     "seeders": []
   },
@@ -7904,7 +7957,8 @@
       "cli budget leaves time before the two hour lock expires",
       "expired budgets fail instead of disabling http timeouts",
       "http timeout is capped and never zero",
-      "backoff must fit in the remaining budget"
+      "backoff must fit in the remaining budget",
+      "a subsecond remaining budget stays below the configured minimum"
     ],
     "seeders": []
   },
@@ -8242,6 +8296,7 @@
     "laravel": false,
     "database": false,
     "methods": [
+      "an invalid creation level falls back to the supported default on the sheet",
       "it maps character data into the fixed sheet structure",
       "it uses adventurer for an empty training selection and limits long text",
       "description is normalized without discarding text for pdf layout",
@@ -8525,10 +8580,10 @@
       "window.Alpine = false wird als Nicht-Livewire behandelt",
       "Plugins-Reihenfolge wird beibehalten",
       "führt Plugin-Funktionen im Livewire-Modus nicht aus",
-      "überschreibt NIEMALS ein existierendes window.Alpine",
+      "erhält vorhandenes Alpine mit seinen Livewire-Erweiterungen",
       "verhindert doppeltes Alpine.start()",
       "verhindert doppelte Persist-Registrierung auf Livewire-Alpine",
-      "prüft nicht _x_dataStack als Guard (alter fehlerhafter Guard)",
+      "erhält vorhandenes Alpine auch ohne _x_dataStack",
       "Standalone-Modus setzt Alpine korrekt auf Nicht-Livewire-Seiten",
       "crasht nicht wenn window.Alpine.plugin keine Funktion ist",
       "crasht nicht wenn window.Alpine.plugin fehlt",

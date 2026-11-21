@@ -11,9 +11,9 @@ use LogicException;
 
 class MaddraxikonSnapshotRepository
 {
-    private const POINTERS_TABLE = 'maddraxikon_book_snapshot_pointers';
+    private const string POINTERS_TABLE = 'maddraxikon_book_snapshot_pointers';
 
-    private const SNAPSHOTS_TABLE = 'maddraxikon_book_snapshots';
+    private const string SNAPSHOTS_TABLE = 'maddraxikon_book_snapshots';
 
     private ?bool $tablesAvailable = null;
 

@@ -13,6 +13,7 @@ class FantreffenVipAuthor extends Model
      *
      * @var string
      */
+    #[\Override]
     protected $table = 'fantreffen_vip_authors';
 
     /**
@@ -20,6 +21,7 @@ class FantreffenVipAuthor extends Model
      *
      * @var array<int, string>
      */
+    #[\Override]
     protected $fillable = [
         'veranstaltung_id',
         'name',
@@ -34,6 +36,7 @@ class FantreffenVipAuthor extends Model
      *
      * @var array<string, string>
      */
+    #[\Override]
     protected $casts = [
         'is_active' => 'boolean',
         'is_tentative' => 'boolean',

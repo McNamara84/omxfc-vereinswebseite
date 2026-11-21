@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /** @extends Factory<CoverRating> */
 class CoverRatingFactory extends Factory
 {
+    #[\Override]
     protected $model = CoverRating::class;
 
     public function definition(): array

@@ -15,7 +15,7 @@ class RpgCharacterSlotService
 {
     public const SLOT_REWARD_SLUG = 'rpg-character-slot';
 
-    private const SLOT_REWARD_TITLE = 'RPG-Charakter-Speicherplatz';
+    private const string SLOT_REWARD_TITLE = 'RPG-Charakter-Speicherplatz';
 
     public function __construct(
         private readonly RewardService $rewardService

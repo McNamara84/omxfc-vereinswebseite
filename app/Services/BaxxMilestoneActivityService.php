@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class BaxxMilestoneActivityService
 {
-    private const ACTION_KEY = 'dashboard_baxx_milestone';
+    private const string ACTION_KEY = 'dashboard_baxx_milestone';
 
     /** @var list<int> */
-    private const MILESTONES = [1, 25, 100, 250, 500];
+    private const array MILESTONES = [1, 25, 100, 250, 500];
 
     public function recordForUserPoint(int $userPointId): void
     {

@@ -17,6 +17,7 @@ class MaddraxikonAccountLink extends Model
     /** @use HasFactory<MaddraxikonAccountLinkFactory> */
     use HasFactory, HasUtcEpochAttributes;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'wiki_key',

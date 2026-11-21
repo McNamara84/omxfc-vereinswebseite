@@ -6,7 +6,7 @@ use App\Support\RpgEquipmentCatalog;
 
 final class RpgInventoryEvaluator
 {
-    public function __construct(private RpgInventoryAdapter $adapter, private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+    public function __construct(private readonly RpgInventoryAdapter $adapter, private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
 
     public function useCatalog(RpgEquipmentCatalog $catalog): void
     {

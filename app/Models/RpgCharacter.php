@@ -25,6 +25,7 @@ class RpgCharacter extends Model
     /** @use HasFactory<RpgCharacterFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'character_name',

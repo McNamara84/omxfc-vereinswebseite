@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesUserWithRole;
 
-trait RomantauschReviewRegressionTestFixtures
+trait RomantauschPhotoAndSwapIntegrityTestFixtures
 {
     use CreatesUserWithRole;
     use RefreshDatabase;

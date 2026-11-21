@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Cache;
 
 final class MaddraxikonRefreshLock
 {
-    private const NAME = 'maddraxikon-books-refresh';
+    private const string NAME = 'maddraxikon-books-refresh';
 
-    private const LEASE_SAFETY_MARGIN_SECONDS = 300;
+    private const int LEASE_SAFETY_MARGIN_SECONDS = 300;
 
     public function runtimeLimitSeconds(): int
     {

@@ -24,10 +24,10 @@ use Illuminate\Validation\ValidationException;
 class RpgProgressionController extends Controller
 {
     public function __construct(
-        private RpgAccess $access,
-        private RpgExperienceAwardService $awards,
-        private RpgCharacterAdvancementService $advancements,
-        private RpgProgressionHistory $history,
+        private readonly RpgAccess $access,
+        private readonly RpgExperienceAwardService $awards,
+        private readonly RpgCharacterAdvancementService $advancements,
+        private readonly RpgProgressionHistory $history,
     ) {}
 
     public function adventures()

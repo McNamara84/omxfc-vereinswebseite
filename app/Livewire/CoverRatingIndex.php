@@ -91,7 +91,7 @@ class CoverRatingIndex extends Component
         if ($this->currentCoverId) {
             $this->skippedCoverIds[] = $this->currentCoverId;
             $this->skippedCoverIds = array_values(array_unique(array_map(
-                'intval',
+                intval(...),
                 array_slice($this->skippedCoverIds, -2000),
             )));
         }

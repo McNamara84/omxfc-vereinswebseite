@@ -13,6 +13,7 @@ class MaddraxikonSyncState extends Model
     /** @use HasFactory<MaddraxikonSyncStateFactory> */
     use HasFactory, HasUtcEpochAttributes;
 
+    #[\Override]
     protected $fillable = [
         'wiki_key',
         'watermark_at',

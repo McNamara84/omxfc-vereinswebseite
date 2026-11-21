@@ -16,6 +16,7 @@ dataset('PhpCompatibilityAuditTest.obsoleteCode', static function (): iterable {
     yield 'implicit CSV string escape' => ['str_getcsv($line);'];
     yield 'fully qualified obsolete function' => ['\imagedestroy($image);'];
     yield 'type alias' => ['is_integer($value);'];
+    yield 'obsolete callable reference' => ['$destroy = imagedestroy(...);'];
     yield 'mbregex' => ['mb_ereg("test", $value);'];
     yield 'obsolete mbstring encoder' => ['mb_convert_encoding($html, "HTML-ENTITIES", "UTF-8");'];
     yield 'locale sorting' => ['sort($values, SORT_LOCALE_STRING);'];
@@ -29,6 +30,18 @@ dataset('PhpCompatibilityAuditTest.obsoleteCode', static function (): iterable {
     yield 'union debug info' => ['class Example { function __debugInfo(): array|null { return []; } }'];
     yield 'obsolete define argument' => ['define("VALUE", 1, false);'];
     yield 'namespace class constant' => ['class Example { const NAMESPACE = "value"; }'];
+    yield 'implicit nullable parameter' => ['function value(string $input = null) {}'];
+    yield 'reserved constant' => ['const let = 1;'];
+    yield 'reserved defined constant' => ['define("is", 1);'];
+    yield 'reserved class alias' => ['class_alias(Example::class, "let");'];
+    yield 'reserved import alias' => ['use Example as let;'];
+    yield 'reserved group import alias' => ['use Example\{Value as is};'];
+    yield 'class string with implicit false' => ['is_a(Example::class, ParentExample::class);'];
+    yield 'class string with explicit false' => ['is_subclass_of("Example", "ParentExample", false);'];
+    yield 'named class string with explicit false' => ['is_a(allow_string: false, class: "ParentExample", object_or_class: "Example");'];
+    yield 'object in array walk' => ['array_walk(new stdClass, $callback);'];
+    yield 'object in recursive array walk' => ['array_walk_recursive((object) [], $callback);'];
+    yield 'object in query builder' => ['http_build_query(new stdClass);'];
 });
 dataset('PhpCompatibilityAuditTest.compatibleCode', static function (): iterable {
     yield 'named CSV escape' => ['fputcsv($stream, $fields, escape: "");'];
@@ -40,6 +53,16 @@ dataset('PhpCompatibilityAuditTest.compatibleCode', static function (): iterable
     yield 'nested closure in constructor may return' => ['class Example { function __construct() { $fn = function () { return 1; }; return; } }'];
     yield 'normal debug info' => ['class Example { function __debugInfo(): array { return []; } }'];
     yield 'PDO driver replacement' => ['$options = [Pdo\Mysql::ATTR_SSL_CA => $path];'];
+    yield 'explicit nullable parameter' => ['function value(?string $input = null) {}'];
+    yield 'mixed is already nullable' => ['function value(mixed $input = null) {}'];
+    yield 'class string explicitly allowed' => ['is_a(Example::class, ParentExample::class, true);'];
+    yield 'subclass strings are allowed by default' => ['is_subclass_of(Example::class, ParentExample::class);'];
+    yield 'object instance in type check' => ['is_a(new Example, ParentExample::class);'];
+    yield 'gettext import' => ['use function Example\_ as _;'];
+    yield 'first class CSV callable' => ['$write = fputcsv(...);'];
+    yield 'PHP 8.6 partial application' => ['$replace = str_replace("old", "new", ?);'];
+    yield 'PHP 8.6 partial CSV with explicit escape' => ['$write = fputcsv($stream, ?, escape: "");'];
+    yield 'PHP 8.6 clamp' => ['$percentage = clamp($value, 0, 100);'];
 });
 test('it detects obsolete php usage without running it', function (string $code): void {
     expect(compatibilityIssues('<?php '.$code))->not->toBeEmpty();

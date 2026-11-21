@@ -199,9 +199,9 @@ class VeranstaltungVerwaltungController extends Controller
         $validated['tshirt_deadline'] = $veranstaltung?->tshirt_deadline;
         $validated['vip_autoren_aktiv'] = $request->boolean('vip_autoren_aktiv');
         $validated['ist_highlight'] = $request->boolean('ist_highlight');
-        $validated['gastgebuehr'] = $validated['gastgebuehr'] ?? 0;
+        $validated['gastgebuehr'] ??= 0;
         $validated['tshirt_preis'] = $veranstaltung?->tshirt_preis ?? FantreffenAnmeldung::TSHIRT_PRICE;
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] ??= 0;
 
         return $validated;
     }
@@ -216,9 +216,9 @@ class VeranstaltungVerwaltungController extends Controller
             'varianten' => ['nullable', 'string'],
         ]);
 
-        $validated['beschreibung'] = $validated['beschreibung'] ?? null;
+        $validated['beschreibung'] ??= null;
         $validated['is_active'] = $request->boolean('is_active', false);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] ??= 0;
         $validated['varianten'] = $this->parseVarianten($validated['varianten'] ?? null);
 
         return $validated;
@@ -234,7 +234,7 @@ class VeranstaltungVerwaltungController extends Controller
         ]);
 
         $validated['is_visible'] = $request->boolean('is_visible', true);
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['sort_order'] ??= 0;
 
         return $validated;
     }

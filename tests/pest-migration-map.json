@@ -5684,7 +5684,8 @@
         }
       }
     },
-    "tests/Feature/FixMissionMarsEnumMigrationTest.php": {
+    "tests/Feature/MissionMarsBookTypeMigrationTest.php": {
+      "previousFile": "tests/Feature/FixMissionMarsEnumMigrationTest.php",
       "previousClass": "Tests\\Feature\\FixMissionMarsEnumMigrationTest",
       "previousSourceSha256": "2685dda339ed61ac717c4b695e51a3454777c45440a2ce3d28bc7848bd95c369",
       "methods": {
@@ -10425,7 +10426,8 @@
         }
       }
     },
-    "tests/Feature/RomantauschReviewRegressionTest.php": {
+    "tests/Feature/RomantauschPhotoAndSwapIntegrityTest.php": {
+      "previousFile": "tests/Feature/RomantauschReviewRegressionTest.php",
       "previousClass": "Tests\\Feature\\RomantauschReviewRegressionTest",
       "previousSourceSha256": "3a0d94aac7d448e0004f37c6b265dda06fb74aa7e8e97651728ed1bf08d64b1b",
       "methods": {

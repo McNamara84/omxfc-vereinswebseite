@@ -27,6 +27,7 @@ class Mission extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'name',
@@ -40,6 +41,7 @@ class Mission extends Model
         'completed',
     ];
 
+    #[\Override]
     protected $casts = [
         'started_at' => 'datetime',
         'arrival_at' => 'datetime',

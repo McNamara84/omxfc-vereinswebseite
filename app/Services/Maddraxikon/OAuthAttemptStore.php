@@ -14,9 +14,9 @@ use Throwable;
 
 final class OAuthAttemptStore
 {
-    private const CACHE_PREFIX = 'maddraxikon:oauth:attempt:';
+    private const string CACHE_PREFIX = 'maddraxikon:oauth:attempt:';
 
-    private const LIFETIME_MINUTES = 10;
+    private const int LIFETIME_MINUTES = 10;
 
     public function create(
         User $user,

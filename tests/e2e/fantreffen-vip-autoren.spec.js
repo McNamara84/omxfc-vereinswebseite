@@ -69,7 +69,9 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
         // Submit ohne Name
-        await page.getByRole('button', { name: /Hinzufügen/i }).click();
+        const submitButton = page.getByRole('button', { name: /^Hinzufügen$/i });
+        await expect(submitButton).toBeVisible();
+        await submitButton.click();
         await page.waitForLoadState('networkidle');
 
         // Fehlermeldung sichtbar (maryUI rendert Fehler als <div class="text-error"> in <fieldset>)

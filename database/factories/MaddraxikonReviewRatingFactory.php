@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaddraxikonReviewRatingFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonReviewRating::class;
 
     public function definition(): array
@@ -20,11 +21,9 @@ class MaddraxikonReviewRatingFactory extends Factory
             'review_id' => Review::factory(),
             'book_id' => fn (array $attributes): int => Review::findOrFail($attributes['review_id'])->book_id,
             'user_id' => fn (array $attributes): int => Review::findOrFail($attributes['review_id'])->user_id,
-            'account_link_id' => function (array $attributes): int {
-                return MaddraxikonAccountLink::factory()->create([
-                    'user_id' => $attributes['user_id'],
-                ])->id;
-            },
+            'account_link_id' => fn (array $attributes): int => MaddraxikonAccountLink::factory()->create([
+                'user_id' => $attributes['user_id'],
+            ])->id,
             'maddraxikon_page_id' => function (array $attributes): int {
                 $review = Review::findOrFail($attributes['review_id']);
                 $pageId = $review->book->maddraxikon_page_id

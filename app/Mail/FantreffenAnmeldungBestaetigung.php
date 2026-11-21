@@ -16,15 +16,10 @@ class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public FantreffenAnmeldung $anmeldung;
-
     /**
      * Create a new message instance.
      */
-    public function __construct(FantreffenAnmeldung $anmeldung)
-    {
-        $this->anmeldung = $anmeldung;
-    }
+    public function __construct(public FantreffenAnmeldung $anmeldung) {}
 
     /**
      * Get the message envelope.

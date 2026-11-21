@@ -8,8 +8,10 @@ use LogicException;
 
 final class MaddraxikonAccountLinkCorrection extends Model
 {
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = ['*'];
 
     protected function casts(): array

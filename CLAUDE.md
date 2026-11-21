@@ -43,7 +43,7 @@ This document provides comprehensive guidance for AI assistants working with the
 
 ### Backend
 - **Framework:** Laravel 13 (latest version)
-- **PHP:** 8.5 (PHP 8.5 only)
+- **PHP:** 8.6 (stable PHP 8.6 only)
 - **Key Packages:**
   - Laravel Jetstream 5.5 (team management, authentication)
   - Laravel Sanctum 4.3 (API authentication)
@@ -956,7 +956,7 @@ Route::name('mitglieder.')->group(function () {
 
 ### PHP Code Style
 
-**Modern PHP Features (8.5+):**
+**Modern PHP Features (8.6):**
 ```php
 // Readonly properties
 public function __construct(
@@ -973,7 +973,15 @@ enum Role: string
 // Type declarations
 public function getPoints(): int
 public function getUsers(): Collection
+
+// Ordered, non-NaN bounds can use the native PHP 8.6 clamp function.
+$batchSize = clamp((int) $configuredBatchSize, 1, 50);
 ```
+
+Partial application syntax currently breaks Rector 2.8.5's scope resolver;
+keep ordinary typed closures until the stable tooling supports it.
+Coverage and mutation use the explicitly pinned Xdebug 3.6.0alpha1 test-only
+exception. Production must not load that extension.
 
 **Laravel Pint:**
 - Follow Laravel's code style
@@ -1282,12 +1290,20 @@ response()->view('view', $data)
 ### GitHub Actions
 
 **Workflows:**
-- `phpunit.yml` - PHP tests on PHP 8.5 with coverage
-- `playwright.yml` - E2E tests on Chromium, Firefox, WebKit
-- `vitest.yml` - Vitest JavaScript tests
-- `deploy.yml` - Deployment workflow
-- `performance-benchmark.yml` - Performance testing
-- `php-8-5-compatibility.yml` - Future PHP compatibility
+- `ci.yml` - CI Verification: runtime integrity and the required aggregate test check
+- `phpunit.yml` - PHP Tests and Quality: analysis, PHP/MariaDB suites, browser regression and coverage
+- `playwright.yml` - Browser Tests: Chromium and Firefox in CI; WebKit remains available locally
+- `vitest.yml` - JavaScript Tests: Vitest, Node tooling, native browser pilot and leak diagnostics
+- `dependency-review.yml` - Dependency Security: dependency changes and lockfile audits
+- `service-image-scan.yml` - Container Security: rebuilt image stages and database upgrade checks
+- `mutation.yml` - Mutation Tests: verify monetary, progression and application assertions
+- `tia-baseline.yml` - Test Impact Baseline: record the full test dependency graph
+- `performance-benchmark.yml` - Homepage Performance: isolated loading-time measurements
+- `deploy.yml` - Production Deployment: build, scan and release the verified revision
+
+The required check is `CI erforderlich`. Renaming the former `PHP 8.6 erforderlich`
+context also requires updating the `Secure main` GitHub ruleset, preserving the
+GitHub Actions integration and all other protections; see README.
 
 **Coverage Badges:**
 - Generated on `main` branch pushes
@@ -1335,5 +1351,5 @@ php artisan migrate --force
 
 **Last Updated:** 2026-05-24
 **Laravel Version:** 13.0
-**PHP Version:** 8.5
+**PHP Version:** 8.6
 **Node Version:** 26

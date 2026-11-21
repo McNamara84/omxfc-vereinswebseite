@@ -19,6 +19,7 @@ class MaddraxikonContribution extends Model
     /** @use HasFactory<MaddraxikonContributionFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'wiki_key',
         'rc_id',

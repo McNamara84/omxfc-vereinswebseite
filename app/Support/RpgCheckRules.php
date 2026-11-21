@@ -6,9 +6,9 @@ use App\Services\RpgCharacterSheetService;
 
 final class RpgCheckRules
 {
-    public const VERSION = 'maddrax-2007-checks-v1';
+    public const string VERSION = 'maddrax-2007-checks-v1';
 
-    public const DIFFICULTIES = ['Leicht' => 7, 'Mittel' => 10, 'Schwer' => 11, 'Extrem' => 12, 'Legendär' => 14];
+    public const array DIFFICULTIES = ['Leicht' => 7, 'Mittel' => 10, 'Schwer' => 11, 'Extrem' => 12, 'Legendär' => 14];
 
     public static function attributes(): array
     {

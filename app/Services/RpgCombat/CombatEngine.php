@@ -404,7 +404,7 @@ final class CombatEngine
                     }
                 }
                 if ($input['kind'] === 'attack' && count($actor['held']) === 2) {
-                    $other = array_values(array_diff($actor['held'], [$input['weapon']]))[0] ?? null;
+                    $other = array_first(array_diff($actor['held'], [$input['weapon']])) ?? null;
                     if ($other !== null) {
                         $second = array_replace($input, ['weapon' => $other, 'mode' => 0, 'aim' => 0, 'fire' => 'E']);
                         unset($second['attribute']);

@@ -24,6 +24,7 @@ class FantreffenAnmeldung extends Model
      *
      * @var string
      */
+    #[\Override]
     protected $table = 'fantreffen_anmeldungen';
 
     /**
@@ -31,6 +32,7 @@ class FantreffenAnmeldung extends Model
      *
      * @var array<int, string>
      */
+    #[\Override]
     protected $fillable = [
         'veranstaltung_id',
         'user_id',
@@ -54,6 +56,7 @@ class FantreffenAnmeldung extends Model
      *
      * @var array<string, string>
      */
+    #[\Override]
     protected $casts = [
         'teilgenommen' => 'boolean',
         'teilnahme_bestaetigt_am' => 'datetime',

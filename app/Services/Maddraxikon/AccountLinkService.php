@@ -25,11 +25,11 @@ use InvalidArgumentException;
 use LogicException;
 use Throwable;
 
-final class AccountLinkService
+final readonly class AccountLinkService
 {
     public function __construct(
-        private readonly MembersTeamMembershipLock $membershipLock,
-        private readonly ProfileContactUpdateNotifier $profileContactUpdateNotifier,
+        private MembersTeamMembershipLock $membershipLock,
+        private ProfileContactUpdateNotifier $profileContactUpdateNotifier,
     ) {}
 
     public function activate(

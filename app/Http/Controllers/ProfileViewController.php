@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 
 class ProfileViewController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService) {}
+    public function __construct(private readonly UserRoleService $userRoleService) {}
 
     public function show(User $user)
     {

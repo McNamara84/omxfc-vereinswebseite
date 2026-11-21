@@ -4,15 +4,15 @@ namespace App\Support;
 
 final class RpgCombatRules
 {
-    public const VERSION = 'maddrax-2007-duel-v1';
+    public const string VERSION = 'maddrax-2007-duel-v1';
 
-    public const NPC_VERSION = 'maddrax-2007-npc-duel-v1';
+    public const string NPC_VERSION = 'maddrax-2007-npc-duel-v1';
 
-    public const CATALOG_VERSION = 'maddrax-2007-equipment-v2';
+    public const string CATALOG_VERSION = 'maddrax-2007-equipment-v2';
 
-    public const RULEBOOK_SHA256 = '6f70cc6b0f2f22b5a1c7cada0c287e81e56aa1fc0fe3c8516aed2497a24e9cf0';
+    public const string RULEBOOK_SHA256 = '6f70cc6b0f2f22b5a1c7cada0c287e81e56aa1fc0fe3c8516aed2497a24e9cf0';
 
-    public const ROUND_SECONDS = 3;
+    public const int ROUND_SECONDS = 3;
 
     /** The first option is the published timeout ruling, never a hidden random choice. */
     public static function rulings(): array

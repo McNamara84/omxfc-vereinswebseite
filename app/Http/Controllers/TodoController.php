@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Auth;
 class TodoController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService,
-        private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider,
+        private readonly TeamPointService $teamPointService,
+        private readonly UserRoleService $userRoleService,
+        private readonly MembersTeamProvider $membersTeamProvider,
     ) {}
 
     /**

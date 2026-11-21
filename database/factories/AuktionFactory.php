@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AuktionFactory extends Factory
 {
+    #[\Override]
     protected $model = Auktion::class;
 
     public function definition(): array

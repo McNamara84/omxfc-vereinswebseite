@@ -17,6 +17,27 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(FantreffenAdminDashboardTestFixtures::class);
 
+test('changing the payment filter removes unpaid registrations from cached results', function (): void {
+    $admin = $this->createUserWithRole(Role::Admin);
+    foreach (['paid' => 'Bezahlt', 'pending' => 'Ausstehend'] as $status => $name) {
+        FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => $name,
+            'nachname' => 'Filterprobe',
+            'email' => $status.'@example.test',
+            'ist_mitglied' => false,
+            'payment_status' => $status,
+            'payment_amount' => 5.0,
+        ]);
+    }
+
+    Livewire::actingAs($admin)->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+        ->assertSee('Ausstehend Filterprobe')
+        ->set('filterPayment', 'bezahlt')
+        ->assertSee('Bezahlt Filterprobe')
+        ->assertDontSee('Ausstehend Filterprobe');
+});
+
 beforeEach(function (): void {
     Config::set('app.testing_minimal_layout', true);
     $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();

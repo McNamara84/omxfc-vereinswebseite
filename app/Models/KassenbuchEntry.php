@@ -39,6 +39,7 @@ class KassenbuchEntry extends Model
 {
     use HasFactory, SoftDeletes;
 
+    #[\Override]
     protected $fillable = [
         'team_id',
         'created_by',
@@ -51,6 +52,7 @@ class KassenbuchEntry extends Model
         'last_edit_reason',
     ];
 
+    #[\Override]
     protected $casts = [
         'buchungsdatum' => 'date',
         'betrag' => 'decimal:2',

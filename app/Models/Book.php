@@ -27,6 +27,7 @@ class Book extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'roman_number',
         'title',
@@ -38,6 +39,7 @@ class Book extends Model
         'maddraxikon_page_verified_at',
     ];
 
+    #[\Override]
     protected $casts = [
         'type' => BookType::class,
         'maddraxikon_page_id' => 'integer',

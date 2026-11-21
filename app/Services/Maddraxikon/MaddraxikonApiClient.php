@@ -162,13 +162,7 @@ class MaddraxikonApiClient
         }
 
         $contributions = [];
-        $batchSize = min(
-            50,
-            max(
-                1,
-                (int) config('maddraxikon.sync.usercontribs_batch_size', 50)
-            )
-        );
+        $batchSize = clamp((int) config('maddraxikon.sync.usercontribs_batch_size', 50), 1, 50);
 
         foreach (array_chunk($wikiUserIds, $batchSize) as $userIdBatch) {
             $continuation = [];
@@ -772,7 +766,7 @@ class MaddraxikonApiClient
                 }
             } catch (MaddraxikonApiException|CoverSyncTimeoutException $exception) {
                 throw $exception;
-            } catch (Throwable $exception) {
+            } catch (Throwable) {
                 throw new MaddraxikonApiException(
                     'Die Antwort der Maddraxikon-API konnte nicht verarbeitet werden.'
                 );
@@ -792,7 +786,7 @@ class MaddraxikonApiClient
     {
         try {
             $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $exception) {
+        } catch (JsonException) {
             throw new MaddraxikonApiException(
                 'Die Maddraxikon-API lieferte ungültiges JSON.',
                 null,
@@ -864,7 +858,7 @@ class MaddraxikonApiClient
             return;
         }
 
-        $jitterMs = random_int(0, min(250, max(1, intdiv($delayMs, 5))));
+        $jitterMs = random_int(0, clamp(intdiv($delayMs, 5), 1, 250));
         $sleepMs = min($maximumDelayMs, $delayMs + $jitterMs);
         // Do not start a backoff that cannot finish within this run's budget.
         $deadline?->ensureRemaining($sleepMs / 1000);

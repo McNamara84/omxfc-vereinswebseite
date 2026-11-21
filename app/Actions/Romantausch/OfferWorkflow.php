@@ -20,9 +20,9 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
-final class OfferWorkflow
+final readonly class OfferWorkflow
 {
-    public function __construct(private readonly MutationLock $lock, private readonly BookPhotoService $photos, private readonly RomantauschBaxxService $baxx, private readonly CommittedMatching $matching, private readonly SourceDeletion $deletion) {}
+    public function __construct(private MutationLock $lock, private BookPhotoService $photos, private RomantauschBaxxService $baxx, private CommittedMatching $matching, private SourceDeletion $deletion) {}
 
     public function create(User $actor, array $data): MutationResult
     {

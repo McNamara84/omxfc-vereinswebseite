@@ -10,7 +10,7 @@ class KompendiumSearchLogService
 {
     public const MAX_QUERY_LENGTH = 255;
 
-    private const MAX_NORMALIZED_QUERY_LENGTH = 255;
+    private const int MAX_NORMALIZED_QUERY_LENGTH = 255;
 
     public function __construct(
         private readonly RewardService $rewardService

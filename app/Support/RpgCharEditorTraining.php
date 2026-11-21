@@ -4,9 +4,9 @@ namespace App\Support;
 
 final class RpgCharEditorTraining
 {
-    public const MAX_TRAININGS = 10;
+    public const int MAX_TRAININGS = 10;
 
-    public const MAX_ALLOCATIONS = 64;
+    public const int MAX_ALLOCATIONS = 64;
 
     /**
      * @return array<string, array{

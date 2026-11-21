@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-final class RpgNpcService
+final readonly class RpgNpcService
 {
     public function __construct(private RpgAccess $access, private NpcCombatSnapshotFactory $snapshots) {}
 
@@ -36,7 +36,7 @@ final class RpgNpcService
         $configuration = [];
         if ($row['key'] === 'daamure') {
             $configuration = ['rank' => $data['rank'] ?? 'Leq', 'profession' => $data['profession'] ?? 'Techniker',
-                'skill_increases' => array_map('intval', $data['skill_increases'] ?? []), 'reason' => trim($data['reason'] ?? '')];
+                'skill_increases' => array_map(intval(...), $data['skill_increases'] ?? []), 'reason' => trim($data['reason'] ?? '')];
             $budget = RpgNpcCatalog::ranks()[$configuration['rank']]['fp'];
             $this->ensure(array_diff(array_keys($configuration['skill_increases']), RpgNpcCatalog::SKILLS) === [], 'Unbekannte oder nicht freigeschaltete Fertigkeit.');
             $this->ensure(array_sum($configuration['skill_increases']) === $budget, 'Die zusätzlichen '.$budget.' FP müssen vollständig verteilt werden.');

@@ -4,7 +4,7 @@
 
 ## Bevorzugte Technologien
 
-- **PHP 8.5** – Nutze neueste Features: Property Hooks, `array_*` Funktionen, Pipe Operator, Asymmetric Visibility
+- **PHP 8.6** – Nutze passende aktuelle Features: `clamp()`, typisierte Konstanten, native Array-Prädikate, Pipe Operator und readonly-Wertobjekte. Neue Syntax muss von den stabilen Analysewerkzeugen verarbeitet werden.
 - **Tailwind CSS 4** – Nutze moderne Syntax: `@theme`, CSS-Variablen, Container Queries, `@starting-style`
 - **Livewire 4** – Nutze aktuelle Patterns: `#[Computed]`, `#[Locked]`, `wire:model.live`, Lazy Loading
 
@@ -12,7 +12,7 @@
 
 | Layer | Stack | Pfad |
 |-------|-------|------|
-| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.5 | `app/` |
+| Backend | Laravel 13, PHP 8.6, Livewire 4, Jetstream 5.5 | `app/` |
 | Frontend | Vite 8, Tailwind 4, Alpine.js | `resources/` |
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
 | CI | PHPUnit, Vitest 5, Playwright | `.github/workflows/` |

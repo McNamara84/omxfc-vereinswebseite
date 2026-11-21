@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class KassenbuchEditRequestFactory extends Factory
 {
+    #[\Override]
     protected $model = KassenbuchEditRequest::class;
 
     /**

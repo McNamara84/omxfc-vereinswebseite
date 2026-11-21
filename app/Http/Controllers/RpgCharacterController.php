@@ -24,7 +24,7 @@ use Throwable;
 
 class RpgCharacterController extends Controller
 {
-    private const PORTRAIT_STORAGE_ERROR_MESSAGE = 'Das Porträt konnte nicht gespeichert werden.';
+    private const string PORTRAIT_STORAGE_ERROR_MESSAGE = 'Das Porträt konnte nicht gespeichert werden.';
 
     public function __construct(
         private readonly RpgCharacterSlotService $slotService,

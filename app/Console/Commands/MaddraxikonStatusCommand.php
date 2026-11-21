@@ -26,9 +26,11 @@ use Throwable;
 
 class MaddraxikonStatusCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:status
         {--skip-api : Namensräume nicht live über die Maddraxikon-API prüfen}';
 
+    #[\Override]
     protected $description = 'Zeigt Schalter, Synchronisationszustand und Namespace-Integrität an.';
 
     public function handle(

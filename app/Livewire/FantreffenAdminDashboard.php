@@ -293,13 +293,9 @@ class FantreffenAdminDashboard extends Component
                 $vergabe = $vergaben->get($anmeldung->user_id);
                 $orderedMerchandise = $anmeldung->ordered_merchandise;
 
-                $merchandise = $orderedMerchandise->map(function (array $bestellung) {
-                    return $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : '');
-                })->implode('; ');
+                $merchandise = $orderedMerchandise->map(fn (array $bestellung) => $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : ''))->implode('; ');
 
-                $merchStatus = $orderedMerchandise->map(function (array $bestellung) {
-                    return $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen');
-                })->implode('; ');
+                $merchStatus = $orderedMerchandise->map(fn (array $bestellung) => $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen'))->implode('; ');
 
                 fputcsv($output, $this->sanitizeCsvRow([
                     $anmeldung->full_name,
@@ -430,7 +426,7 @@ class FantreffenAdminDashboard extends Component
 
     private function sanitizeCsvRow(array $values): array
     {
-        return array_map(fn (mixed $value) => $this->sanitizeCsvValue($value), $values);
+        return array_map($this->sanitizeCsvValue(...), $values);
     }
 
     private function sanitizeCsvValue(mixed $value): string

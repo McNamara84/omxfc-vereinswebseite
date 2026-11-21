@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaddraxikonSyncStateFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonSyncState::class;
 
     public function definition(): array

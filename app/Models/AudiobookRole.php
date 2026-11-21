@@ -10,6 +10,7 @@ class AudiobookRole extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'episode_id',
         'name',
@@ -22,6 +23,7 @@ class AudiobookRole extends Model
         'uploaded',
     ];
 
+    #[\Override]
     protected $casts = [
         'uploaded' => 'boolean',
     ];

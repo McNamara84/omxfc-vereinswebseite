@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\File;
 
 class CleanupDatabaseMaintenanceFiles extends Command
 {
+    #[\Override]
     protected $signature = 'database-maintenance:cleanup';
 
+    #[\Override]
     protected $description = 'Loescht alte Datenbank-Wartungsdumps und temporaere Dateien.';
 
     public function handle(): int

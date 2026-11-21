@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 
 class RpgCheckController extends Controller
 {
-    public function __construct(private RpgCheckService $service, private RpgCheckQuery $query, private RpgAccess $access) {}
+    public function __construct(private readonly RpgCheckService $service, private readonly RpgCheckQuery $query, private readonly RpgAccess $access) {}
 
     public function index(Request $request)
     {

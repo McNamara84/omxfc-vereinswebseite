@@ -32,13 +32,13 @@ class BelohnungenAdmin extends Component
 {
     use WithFileUploads;
 
-    private const PURCHASE_SORT_COLUMNS = [
+    private const array PURCHASE_SORT_COLUMNS = [
         'cost_baxx' => 'cost_baxx',
         'purchased_at' => 'purchased_at',
         'refunded_at' => 'refunded_at',
     ];
 
-    private const DOWNLOAD_SORT_COLUMNS = [
+    private const array DOWNLOAD_SORT_COLUMNS = [
         'sort_order' => 'sort_order',
         'title' => 'title',
         'category' => 'category',

@@ -22,9 +22,9 @@ class NewsletterImageService
 
     public const ORIGINAL_STORAGE_PATH = 'newsletter-image-originals';
 
-    private const OUTPUT_QUALITY = 85;
+    private const int OUTPUT_QUALITY = 85;
 
-    private const MIME_TO_EXTENSION = [
+    private const array MIME_TO_EXTENSION = [
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/gif' => 'gif',
@@ -201,7 +201,7 @@ class NewsletterImageService
     private function sanitizePaths(array $paths): array
     {
         return array_values(array_unique(array_filter(array_map(
-            fn (mixed $path): ?string => $this->sanitizePath($path),
+            $this->sanitizePath(...),
             $paths,
         ))));
     }

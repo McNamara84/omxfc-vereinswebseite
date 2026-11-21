@@ -1,6 +1,7 @@
-name: Service image security scan
+name: Container Security
 
 on:
+  merge_group:
   pull_request:
     paths:
       - Dockerfile
@@ -18,17 +19,18 @@ permissions:
 
 jobs:
   scan:
+    name: Scan Container Stage (${{ matrix.target }})
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         include:
-          - image: composer:2.11.2@sha256:8c47c745534c6717c94a307e6f7b73e5b93f37c7679fe9faf50ff54eb12be32f
+          - image: composer:2.11.2@sha256:919efe8e62179c71dfd31fad035fd671fe7454211c6b2aa30a10af0ab4acedba
             target: composer-bin
-          - image: php:8.5.13-fpm-trixie@sha256:52ba6f178d0a08f348578b03595661b7ff13defafacf4c823d045f2ecba8db8f
+          - image: php:8.6.0-fpm-trixie@sha256:cf1219d285d49cc07f37b94babecd02db21947dbd14c1d60d13860e051209790
             target: php-base
-          - image: php:8.5.13-cli-trixie@sha256:994d78db9de7808cfe1a077e4f266b333570393918832dcd7427c71c7c618e56
+          - image: php:8.6.0-cli-trixie@sha256:d84acf3155d907afaa5afa9b9457c5f12016b6dc7ade84659f40cdc505cc087d
             target: playwright-php
             file: docker/playwright-php.Dockerfile
           - image: node:26.13.1-alpine3.24@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5
@@ -43,7 +45,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the patched stage actually used by the application
-        if: matrix.target != ''
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
@@ -59,7 +60,6 @@ jobs:
         if: matrix.target == 'mariadb'
         run: bash docker/verify-mariadb-upgrade.sh omxfc-service-base:security-scan
       - name: Report upstream findings separately
-        if: matrix.target != ''
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: ${{ matrix.image }}
@@ -67,11 +67,11 @@ jobs:
           fail-build: false
           output-format: json
           output-file: upstream-grype-report.json
-      - name: Report all vulnerabilities in ${{ matrix.image }}
+      - name: Report all vulnerabilities in rebuilt ${{ matrix.target }}
         id: scan
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
+          image: omxfc-service-base:security-scan
           grype-version: v0.122.1
           # Keep unfixed findings visible; the next step enforces the deployment policy.
           # Scanner/database errors still fail this action with fail-build disabled.
@@ -82,7 +82,7 @@ jobs:
       - name: Block fixable high and critical vulnerabilities
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
-          image: ${{ matrix.target != '' && 'omxfc-service-base:security-scan' || matrix.image }}
+          image: omxfc-service-base:security-scan
           grype-version: v0.122.1
           fail-build: true
           severity-cutoff: high

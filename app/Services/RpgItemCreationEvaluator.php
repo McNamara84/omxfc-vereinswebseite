@@ -8,9 +8,9 @@ use InvalidArgumentException;
 /** Pure rules for new equipment, rulebook pp. 39–44 and 49. */
 final class RpgItemCreationEvaluator
 {
-    public const VERSION = 'maddrax-item-creation-2026-11-08';
+    public const string VERSION = 'maddrax-item-creation-2026-11-08';
 
-    public const COMMON = ['name', 'description', 'category', 'size', 'rarity', 'beautiful', 'material', 'high_tech', 'tech_factor', 'utility', 'bucks', 'reference', 'minimum_education'];
+    public const array COMMON = ['name', 'description', 'category', 'size', 'rarity', 'beautiful', 'material', 'high_tech', 'tech_factor', 'utility', 'bucks', 'reference', 'minimum_education'];
 
     public static function fields(): array
     {

@@ -29,6 +29,15 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(MaddraxikonRewardServiceTestFixtures::class);
 covers(MaddraxikonRewardService::class);
+
+test('retrying a missing contribution cannot award points or call the wiki', function (): void {
+    $api = Mockery::mock(MaddraxikonApiClient::class);
+    $api->shouldNotReceive('revisionDetails');
+    $api->shouldNotReceive('pageDetails');
+
+    expect($this->service($api)->evaluate(onlyContributionId: PHP_INT_MAX))->toBe(0);
+    $this->assertDatabaseCount('maddraxikon_reward_events', 0);
+});
 dataset('MaddraxikonRewardServiceTest.invalidArticleProvider', static fn (): array => ['revision reverted' => [['tags' => ['mw-reverted']], [], 'revision_reverted'], 'page deleted' => [[], ['exists' => false], 'page_missing'], 'redirect' => [[], ['redirect' => true], 'page_is_redirect'], 'too short' => [[], ['size' => 499], 'article_too_short'], 'wrong namespace' => [[], ['namespace_id' => 10], 'not_an_article'], 'SHA-1 hidden by revision deletion' => [['sha1_hidden' => true], [], 'revision_hidden'], 'text hidden by revision deletion' => [['text_hidden' => true], [], 'revision_hidden'], 'author suppressed' => [['user_hidden' => true, 'suppressed' => true], [], 'revision_hidden']]);
 beforeEach(function (): void {
     config(['maddraxikon.features.awards_enabled' => true, 'maddraxikon.features.sync_enabled' => true, 'maddraxikon.daily_point_cap' => 10, 'maddraxikon.minimum_article_bytes' => 500, 'maddraxikon.article_namespace' => 0, 'maddraxikon.session_window_minutes' => 30, 'maddraxikon.timezone' => 'Europe/Berlin', 'maddraxikon.evaluation.source_batch_size' => 100, 'maddraxikon.evaluation.api_batch_size' => 50]);

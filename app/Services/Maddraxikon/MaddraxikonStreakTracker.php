@@ -7,9 +7,9 @@ use App\Models\MaddraxikonContribution;
 use App\Models\MaddraxikonStreakDay;
 use App\Models\MaddraxikonStreakState;
 
-final class MaddraxikonStreakTracker
+final readonly class MaddraxikonStreakTracker
 {
-    public function __construct(private readonly MaddraxikonStreakSettings $settings) {}
+    public function __construct(private MaddraxikonStreakSettings $settings) {}
 
     /** Called inside the import transaction, after its sync/team locks. */
     public function record(MaddraxikonContribution $source, MaddraxikonAccountLink $link): void

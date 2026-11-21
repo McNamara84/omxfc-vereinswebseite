@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 final class SanitizedMarkdown
 {
-    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
+    private const string ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
     public static function render(string $markdown, array $markdownOptions = []): string
     {

@@ -6,9 +6,9 @@ use App\Models\Mission;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-final class MissionCompletionService
+final readonly class MissionCompletionService
 {
-    public function __construct(private readonly MaddraxiversumBaxxService $baxx) {}
+    public function __construct(private MaddraxiversumBaxxService $baxx) {}
 
     public function status(User $user): string
     {

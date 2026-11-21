@@ -10,6 +10,7 @@ class MaddraxikonReviewRating extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'review_id',
         'book_id',

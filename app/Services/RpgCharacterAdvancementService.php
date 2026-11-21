@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-final class RpgCharacterAdvancementService
+final readonly class RpgCharacterAdvancementService
 {
     public function __construct(private RpgAccess $access, private RpgCharacterAdvancementEvaluator $evaluator) {}
 

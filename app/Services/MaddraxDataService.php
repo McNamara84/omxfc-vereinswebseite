@@ -36,7 +36,7 @@ class MaddraxDataService
     /**
      * Mapping von Serien-Keys zu Dateinamen.
      */
-    private const SERIES_FILES = [
+    private const array SERIES_FILES = [
         'maddrax' => 'private/maddrax.json',
         'hardcovers' => 'private/hardcovers.json',
         'missionmars' => 'private/missionmars.json',
@@ -333,9 +333,7 @@ class MaddraxDataService
         $titel = collect($data)->pluck('titel')->flatten()->values();
         $nummer = collect($data)->pluck('nummer')->flatten()->values();
 
-        return collect($nummer)->map(function ($item, $key) use ($titel) {
-            return $item.' - '.$titel[$key];
-        })->toArray();
+        return collect($nummer)->map(fn ($item, $key) => $item.' - '.$titel[$key])->toArray();
     }
 
     /**

@@ -6,7 +6,7 @@ use Throwable;
 
 class KompendiumRomanArchiveTemporaryFileFactory
 {
-    private const MAX_ATTEMPTS = 10;
+    private const int MAX_ATTEMPTS = 10;
 
     public function create(string $directory): string
     {

@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-final class RpgItemService
+final readonly class RpgItemService
 {
     public function __construct(private RpgAccess $access, private RpgItemCreationEvaluator $evaluator, private RpgEquipmentCatalogResolver $catalogs) {}
 

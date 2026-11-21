@@ -3,7 +3,9 @@ includes:
 
 parameters:
     level: 10
+    phpVersion: 80600
     paths:
+        - app/Data
         - tests/Unit/MaddraxikonIdentityHmacPeppersTest.php
         - tests/Unit/UriSupportTest.php
         - tests/Unit/EuroTest.php

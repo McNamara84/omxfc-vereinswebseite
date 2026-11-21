@@ -28,9 +28,9 @@ use Illuminate\Support\Facades\Mail;
 class KassenbuchController extends Controller
 {
     public function __construct(
-        private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider,
-        private KassenbuchService $kassenbuchService,
+        private readonly UserRoleService $userRoleService,
+        private readonly MembersTeamProvider $membersTeamProvider,
+        private readonly KassenbuchService $kassenbuchService,
     ) {}
 
     public function kassenstand()

@@ -12,13 +12,16 @@ class Veranstaltung extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'veranstaltungen';
 
+    #[\Override]
     protected $attributes = [
         'teilnahme_baxx' => 10,
         'baxx_status' => 'offen',
     ];
 
+    #[\Override]
     protected $fillable = [
         'titel',
         'slug',
@@ -50,6 +53,7 @@ class Veranstaltung extends Model
         'teilnahme_baxx',
     ];
 
+    #[\Override]
     protected $casts = [
         'teilnahme_baxx' => 'integer',
         'baxx_status' => VeranstaltungsBaxxStatus::class,

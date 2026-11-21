@@ -18,8 +18,8 @@ use Illuminate\View\View;
 class MaddraxiversumController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService,
-        private MaddraxiversumBaxxService $maddraxiversumBaxxService,
+        private readonly TeamPointService $teamPointService,
+        private readonly MaddraxiversumBaxxService $maddraxiversumBaxxService,
     ) {}
 
     /**
@@ -37,7 +37,7 @@ class MaddraxiversumController extends Controller
             try {
                 $this->teamPointService->assertRewardUnlocked('maddraxiversum');
                 $showMap = true;
-            } catch (AuthorizationException $e) {
+            } catch (AuthorizationException) {
                 $showMap = false;
             }
         }

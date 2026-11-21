@@ -24,9 +24,9 @@ use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
-final class BundleWorkflow
+final readonly class BundleWorkflow
 {
-    public function __construct(private readonly MutationLock $lock, private readonly BookPhotoService $photos, private readonly BundleService $bundles, private readonly RomantauschBaxxService $baxx, private readonly CommittedMatching $matching, private readonly SourceDeletion $deletion) {}
+    public function __construct(private MutationLock $lock, private BookPhotoService $photos, private BundleService $bundles, private RomantauschBaxxService $baxx, private CommittedMatching $matching, private SourceDeletion $deletion) {}
 
     public function create(User $actor, array $data): MutationResult
     {

@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 
 class ValidReleaseTime implements ValidationRule
 {
-    private const PATTERN = '/^(((0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2})|(0[1-9]|1[0-2])\.(19|20)\d{2}|(19|20)\d{2})$/';
+    private const string PATTERN = '/^(((0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19|20)\d{2})|(0[1-9]|1[0-2])\.(19|20)\d{2}|(19|20)\d{2})$/';
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

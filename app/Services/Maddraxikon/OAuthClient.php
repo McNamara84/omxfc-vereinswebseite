@@ -296,12 +296,6 @@ final class OAuthClient
      */
     private function apiUserIsBlocked(array $apiUser): bool
     {
-        foreach (['blockid', 'blockedby', 'blockedbyid', 'blockedtimestamp', 'blockexpiry'] as $key) {
-            if (array_key_exists($key, $apiUser)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(['blockid', 'blockedby', 'blockedbyid', 'blockedtimestamp', 'blockexpiry'], fn ($key) => array_key_exists($key, $apiUser));
     }
 }

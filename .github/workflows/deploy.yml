@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Production Deployment
 on:
   push:
     branches: [ main ]
@@ -9,6 +9,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
+    name: Build and Scan Production Images
     permissions:
       contents: read
       packages: write
@@ -133,6 +134,7 @@ jobs:
         run: bash docker/verify-deployment-compose.sh 'ghcr.io/mcnamara84/omxfc-vereinswebseite@${{ steps.build-and-push.outputs.digest }}'
 
   deploy:
+    name: Deploy Production
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 240

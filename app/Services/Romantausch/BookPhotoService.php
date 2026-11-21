@@ -100,7 +100,7 @@ class BookPhotoService
      * Sichere Mapping von MIME-Types zu Extensions.
      * Verhindert das Hochladen von ausführbaren Dateien.
      */
-    private const MIME_TO_EXTENSION = [
+    private const array MIME_TO_EXTENSION = [
         'image/jpeg' => 'jpg',
         'image/png' => 'png',
         'image/gif' => 'gif',

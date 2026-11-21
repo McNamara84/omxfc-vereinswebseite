@@ -99,7 +99,7 @@ class BookCoverSynchronizer
             $oldPaths = array_values(array_filter([
                 $cover->small_path,
                 $cover->large_path,
-            ], 'is_string'));
+            ], is_string(...)));
 
             $cover->fill([
                 ...$this->sourceAttributes($source),

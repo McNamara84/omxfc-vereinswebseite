@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RpgItemVersion extends Model
 {
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

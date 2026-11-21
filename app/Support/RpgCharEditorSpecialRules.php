@@ -4,25 +4,25 @@ namespace App\Support;
 
 final class RpgCharEditorSpecialRules
 {
-    public const DEFAULT_CREATION_LEVEL = 3;
+    public const int DEFAULT_CREATION_LEVEL = 3;
 
     /** @deprecated Use DEFAULT_CREATION_LEVEL or creationLevel() for level-dependent rules. */
-    public const CREATION_LEVEL = self::DEFAULT_CREATION_LEVEL;
+    public const int CREATION_LEVEL = self::DEFAULT_CREATION_LEVEL;
 
-    public const BASE_ATTRIBUTE_POINTS = 2;
+    public const int BASE_ATTRIBUTE_POINTS = 2;
 
-    public const MAX_EXTRA_ATTRIBUTE_POINTS = 1;
+    public const int MAX_EXTRA_ATTRIBUTE_POINTS = 1;
 
-    public const FREE_ADVANTAGE_UNITS = 1;
+    public const int FREE_ADVANTAGE_UNITS = 1;
 
-    public const MAX_EXTRA_ADVANTAGE_UNITS = 2;
+    public const int MAX_EXTRA_ADVANTAGE_UNITS = 2;
 
     /**
      * Figurenstärken according to Regelwerk 2007, page 15.
      *
      * @var array<int, array<string, mixed>>
      */
-    public const CREATION_LEVELS = [
+    public const array CREATION_LEVELS = [
         1 => [
             'level' => 1,
             'attributePoints' => 0,
@@ -70,11 +70,11 @@ final class RpgCharEditorSpecialRules
         ],
     ];
 
-    public const ATTRIBUTE_TARGETS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+    public const array ATTRIBUTE_TARGETS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
-    public const SENSE_TARGETS = ['Sehen', 'Hören', 'Riechen', 'Schmecken', 'Tasten'];
+    public const array SENSE_TARGETS = ['Sehen', 'Hören', 'Riechen', 'Schmecken', 'Tasten'];
 
-    public const PSYCHIC_POWER_TARGETS = [
+    public const array PSYCHIC_POWER_TARGETS = [
         'Beherrschung',
         'Empathie',
         'Gedankenschild',

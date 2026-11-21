@@ -27,6 +27,7 @@ class PollVote extends Model
         });
     }
 
+    #[\Override]
     protected $fillable = [
         'poll_id',
         'poll_option_id',

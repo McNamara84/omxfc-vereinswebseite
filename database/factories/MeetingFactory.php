@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MeetingFactory extends Factory
 {
+    #[\Override]
     protected $model = Meeting::class;
 
     /**

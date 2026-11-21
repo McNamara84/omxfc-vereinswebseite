@@ -46,6 +46,7 @@ class AuthServiceProvider extends ServiceProvider
      *
      * @var array<class-string, class-string>
      */
+    #[\Override]
     protected $policies = [
         Team::class => TeamPolicy::class,
         BookOffer::class => BookOfferPolicy::class,
@@ -80,14 +81,10 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('manage-rpg-checks', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
         Gate::define('manage-rpg-npcs', fn (User $user): bool => app(RpgAccess::class)->isLeader($user));
 
-        Gate::define('access-dashboard', function (User $user) {
-            return $user->currentTeam !== null
-                && $user->hasTeamPermission($user->currentTeam, 'read');
-        });
+        Gate::define('access-dashboard', fn (User $user) => $user->currentTeam !== null
+            && $user->hasTeamPermission($user->currentTeam, 'read'));
 
-        Gate::define('access-rpg-char-editor', function (User $user) {
-            return $user->hasAnyMitgliederTeamRole(Role::Admin)
-                || $user->isMemberOfTeam('AG Rollenspiel');
-        });
+        Gate::define('access-rpg-char-editor', fn (User $user) => $user->hasAnyMitgliederTeamRole(Role::Admin)
+            || $user->isMemberOfTeam('AG Rollenspiel'));
     }
 }

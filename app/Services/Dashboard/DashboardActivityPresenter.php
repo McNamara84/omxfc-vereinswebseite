@@ -27,7 +27,7 @@ use Illuminate\Database\Eloquent\Collection;
 class DashboardActivityPresenter
 {
     /** @var array<class-string, string> */
-    private const TYPE_LABELS = [
+    private const array TYPE_LABELS = [
         Review::class => 'Rezension',
         Fanfiction::class => 'Fanfiction',
         ReviewComment::class => 'Kommentar',

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-final class RpgExperienceAwardService
+final readonly class RpgExperienceAwardService
 {
     public function __construct(private RpgAccess $access, private RpgExperienceAwardCalculator $calculator) {}
 

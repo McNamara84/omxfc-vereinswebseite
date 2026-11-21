@@ -72,9 +72,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(RpgEquipmentCatalog::class, fn () => app(RpgEquipmentCatalogResolver::class)->resolve());
         $this->app->scoped(MembershipContext::class);
         if (! Route::hasMacro('livewire')) {
-            Route::macro('livewire', function (string $uri, string $component) {
-                return Route::get($uri, $component);
-            });
+            Route::macro('livewire', fn (string $uri, string $component) => Route::get($uri, $component));
         }
     }
 
@@ -161,29 +159,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(15)->by($request->ip());
         });
 
-        RateLimiter::for('arbeitsgruppen-kontakt', function ($request) {
-            return Limit::perHour(5)->by($request->ip());
-        });
+        RateLimiter::for('arbeitsgruppen-kontakt', fn ($request) => Limit::perHour(5)->by($request->ip()));
 
-        RateLimiter::for('database-dump', function ($request) {
-            return Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
-        });
+        RateLimiter::for('database-dump', fn ($request) => Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip()));
 
-        RateLimiter::for('database-restore', function ($request) {
-            return Limit::perHour(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
-        });
+        RateLimiter::for('database-restore', fn ($request) => Limit::perHour(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip()));
 
-        RateLimiter::for('maddraxikon-oauth-start', function ($request) {
-            return Limit::perMinute(5)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
-        });
+        RateLimiter::for('maddraxikon-oauth-start', fn ($request) => Limit::perMinute(5)->by(($request->user()?->id ?? 'guest').'|'.$request->ip()));
 
-        RateLimiter::for('maddraxikon-oauth-callback', function ($request) {
-            return Limit::perMinute(10)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
-        });
+        RateLimiter::for('maddraxikon-oauth-callback', fn ($request) => Limit::perMinute(10)->by(($request->user()?->id ?? 'guest').'|'.$request->ip()));
 
-        RateLimiter::for('maddraxikon-oauth-disconnect', function ($request) {
-            return Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip());
-        });
+        RateLimiter::for('maddraxikon-oauth-disconnect', fn ($request) => Limit::perMinute(3)->by(($request->user()?->id ?? 'guest').'|'.$request->ip()));
 
         $version = Config::get('app.version');
 
@@ -205,7 +191,7 @@ class AppServiceProvider extends ServiceProvider
                         $version = trim($describe->output());
                     }
                 }
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 // use default version
             }
         }
@@ -215,7 +201,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['layouts.app', 'layouts.guest', 'layouts.member'], function ($view) {
             try {
                 $defaultImagePath = Vite::asset('resources/images/omxfc-logo.png');
-            } catch (\Throwable $e) {
+            } catch (\Throwable) {
                 $defaultImagePath = 'resources/images/omxfc-logo.png';
             }
 

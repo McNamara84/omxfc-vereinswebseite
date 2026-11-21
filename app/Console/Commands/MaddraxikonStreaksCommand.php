@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Validator;
 
 class MaddraxikonStreaksCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:streaks
         {--recheck : Bereits geprüfte Revisionen erneut prüfen}
         {--user= : Nur Tagesansprüche dieses Mitglieds neu berechnen}
         {--from= : Frühester neu zu berechnender Tag (YYYY-MM-DD)}
         {--pretend : Nur lokal gespeicherte Ansprüche vergleichen, keine Änderungen oder API-Abfragen}';
 
+    #[\Override]
     protected $description = 'Prüft Maddraxikon-Serien und verbucht fehlende Bonusdifferenzen.';
 
     public function handle(MaddraxikonStreakService $service): int

@@ -11,8 +11,10 @@ use Illuminate\Console\Command;
 
 class ProcessRpgCombats extends Command
 {
+    #[\Override]
     protected $signature = 'rpg:process-combats';
 
+    #[\Override]
     protected $description = 'Übungskämpfe prüfen, fällige Entscheidungen ersetzen und Benachrichtigungen zustellen';
 
     public function handle(CombatService $service): int

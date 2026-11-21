@@ -4,6 +4,14 @@ Die PHP-Suite verwendet funktionale Pest-Tests. `test()` beschreibt einen
 fachlichen Vertrag; passende Laravel-, Livewire-, HTTP- und Datenbank-Assertions
 ergänzen `expect()`. Strikte Gleichheit bleibt mit `toBe()` erhalten.
 
+Datei- und Gruppennamen benennen Fachbereich und Prüfziel; Testtitel beschreiben
+das erwartete Verhalten. Ticketnummern und die Entstehungsgeschichte eines Fehlers
+gehören bei Bedarf in einen Hintergrundkommentar. Beispiele sind
+`MissionMarsBookTypeMigrationTest` und `RomantauschPhotoAndSwapIntegrityTest`.
+Bei Dateiumbenennungen werden Suite-Konfiguration, Fixtures und Testinventar
+mitgeführt. Die Migrationszuordnung behält historische Klassen und Quellhashes;
+`previousFile` hält dort gegebenenfalls den früheren Dateipfad fest.
+
 ## Aufbau und Fixtures
 
 - `Unit`: ohne Laravel-Bootstrapping, außer wenn die Datei ihre Basis ausdrücklich
@@ -49,11 +57,11 @@ zusammen mit den Regressionstests überprüft.
 
 ## Verbindliche Prüfungen
 
-`Integration/Php85SecurityGateTest.php` führt das CI-Gate in frischen PHP-
+`Integration/Php86SecurityGateTest.php` führt das CI-Gate in frischen PHP-
 Unterprozessen ohne INI-Konfiguration oder Composer-Bootstrap aus. Die isolierte
 Fixture setzt nur für diese Prozesse Laufzeitkonstanten im Namespace des Gates;
 damit werden dessen echte Entscheidung, Exitcode und beide Ausgabekanäle für
-8.5.13, ältere und neuere Patches, einen Release Candidate und andere Versionszweige
+8.6.0, spätere stabile Patches, Release Candidates, Entwicklungsstände und andere Versionszweige
 geprüft. Ein zusätzlicher Aufruf des unveränderten CLI-Einstiegs stellt sicher,
 dass Argumente und Umgebungsvariablen die tatsächliche PHP-Version nicht ersetzen.
 
@@ -64,6 +72,10 @@ die bisher abgedeckten Stellen unveränderter Quellen. Vor einer strukturellen
 Migration kommt ein frischer Vorher-Snapshot als zusätzliche Vergleichsbasis hinzu.
 Für diese Migration wird er unverändert als
 `coverage-baselines/php-pest-modernization-before.json` zusätzlich in CI geschützt.
+Für die PHP-8.6-Modernisierung kommt der frische PHP-8.5-Vergleichsstand in
+`coverage-baselines/php86-modernization-before.json` hinzu. Die JavaScript-Baseline
+wird auf die unter Windows und Linux übereinstimmend gemessene höhere Abdeckung
+angehoben; die bisherigen PHP-Untergrenzen bleiben erhalten.
 
 `composer test:types`, `composer test:rector`, `composer test:arch` und
 `composer test:profanity` prüfen die festgelegten Bereiche. PHPStan bleibt auf
@@ -87,9 +99,11 @@ behalten eigene Aufrufe. TIA ersetzt keinen vollständigen CI-/Coverage-Lauf.
 Änderungen an gemeinsamen Fixtures, Seedern und Testwerkzeugen führen zu einer
 breiteren Neuausführung.
 
-Der Baseline-Workflow verwendet PCOV für den vollständigen Graphaufbau. Lokal
-unterstützt Pest PCOV oder Xdebug; die Composer-Aufrufe aktivieren bei installiertem
-Xdebug dessen Coverage-Modus. Der Workflow prüft den geschriebenen JSON-Graph vor
+Der Baseline-Workflow verwendet den exakt fixierten Xdebug-3.6.0alpha1-Testtreiber
+für den vollständigen Graphaufbau. Für PHP 8.6 ist diese Ausnahme nötig, bis ein
+passender stabiler Treiber erscheint. Der Docker-Service `php-coverage` und die CI
+verwenden denselben Quellstand mit SHA-256-Prüfung; Produktion bleibt ohne Xdebug.
+Der Workflow prüft den geschriebenen JSON-Graph vor
 dem Upload. Binäre oder ungültige UTF-8-Eingaben erhalten benannte Dataset-Zeilen,
 damit die Test-IDs als JSON gespeichert werden können; die Testeingaben bleiben
 unverändert.
@@ -105,8 +119,12 @@ Mit Pest 5.3.7 lädt ausschließlich `tia-bootstrap.php` zusätzlich
 `fsync()` des Maddraxikon Atomic Writers auf seinen nativen Stream zurückgeführt.
 Die Aufzeichnung und das native Fehlerverhalten bleiben erhalten; ein isolierter
 Prozesstest sichert diesen vorübergehenden Kompatibilitätspfad ab. Das vollständige
-TIA-Profil verwendet wegen seines Abhängigkeitsgraphen 1 GiB Speicher. Reguläre
-Tests und Coverage behalten 512 MiB.
+TIA-Profil sowie die regulären Tests und Coverage verwenden 1 GiB Speicher.
+CI zeichnet die vollständige PHP-Coverage in zwei getrennten Testprozessen auf.
+Der TIA-Workflow hat mit dem temporären Xdebug-Treiber 60 Minuten Zeitbudget.
+Die Refresh-Command-Tests stellen das vorherige PHP-Ausführungszeitlimit nach
+jedem Fall wieder her, damit das 30-Minuten-Budget eines einzelnen Crawls nicht
+auf nachfolgende Tests im selben Prozess übergeht.
 
 `composer test:stability:repeat` startet den gewählten Umfang zweimal in getrennten
 Prozessen und erhält den Fehlerstatus eines früheren Durchgangs.

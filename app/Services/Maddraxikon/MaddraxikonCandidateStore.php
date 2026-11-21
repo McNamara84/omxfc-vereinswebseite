@@ -12,11 +12,11 @@ use JsonException;
 
 class MaddraxikonCandidateStore
 {
-    private const BASELINE_FILE = 'legacy_file';
+    private const string BASELINE_FILE = 'legacy_file';
 
-    private const BASELINE_NONE = 'none';
+    private const string BASELINE_NONE = 'none';
 
-    private const BASELINE_SNAPSHOT = 'database_snapshot';
+    private const string BASELINE_SNAPSHOT = 'database_snapshot';
 
     public function __construct(
         private readonly Filesystem $files,

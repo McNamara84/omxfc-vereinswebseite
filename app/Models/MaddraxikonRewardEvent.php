@@ -20,6 +20,7 @@ class MaddraxikonRewardEvent extends Model
     /** @use HasFactory<MaddraxikonRewardEventFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'wiki_key',
         'user_id',

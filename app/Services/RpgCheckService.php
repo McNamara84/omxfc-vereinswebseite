@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 
 class RpgCheckService
 {
-    public function __construct(private RpgAccess $access, private RpgCheckCalculator $calculator, private RpgCheckDice $dice) {}
+    public function __construct(private readonly RpgAccess $access, private readonly RpgCheckCalculator $calculator, private readonly RpgCheckDice $dice) {}
 
     public function preview(User $actor, array $input): array
     {

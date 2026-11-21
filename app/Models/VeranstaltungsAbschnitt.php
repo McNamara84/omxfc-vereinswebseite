@@ -11,8 +11,10 @@ class VeranstaltungsAbschnitt extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'veranstaltungs_abschnitte';
 
+    #[\Override]
     protected $fillable = [
         'veranstaltung_id',
         'schluessel',
@@ -22,6 +24,7 @@ class VeranstaltungsAbschnitt extends Model
         'is_visible',
     ];
 
+    #[\Override]
     protected $casts = [
         'is_visible' => 'boolean',
         'sort_order' => 'integer',

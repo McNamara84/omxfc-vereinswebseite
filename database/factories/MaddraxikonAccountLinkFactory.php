@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaddraxikonAccountLinkFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonAccountLink::class;
 
     public function definition(): array

@@ -7,9 +7,11 @@ use Illuminate\Console\Command;
 
 class EvaluateMaddraxikonCommand extends Command
 {
+    #[\Override]
     protected $signature = 'maddraxikon:evaluate
         {--force : Auswertung auch bei deaktiviertem Feature-Schalter ausführen}';
 
+    #[\Override]
     protected $description = 'Wertet fällige Maddraxikon-Beiträge aus und verbucht Baxx.';
 
     public function handle(MaddraxikonRewardService $rewardService): int

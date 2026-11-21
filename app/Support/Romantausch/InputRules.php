@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 final class InputRules
 {
-    public const TYPES = [BookType::MaddraxDieDunkleZukunftDerErde, BookType::MaddraxHardcover, BookType::MissionMars, BookType::DasVolkDerTiefe, BookType::ZweiTausendZwölfDasJahrDerApokalypse, BookType::DieAbenteurer];
+    public const array TYPES = [BookType::MaddraxDieDunkleZukunftDerErde, BookType::MaddraxHardcover, BookType::MissionMars, BookType::DasVolkDerTiefe, BookType::ZweiTausendZwölfDasJahrDerApokalypse, BookType::DieAbenteurer];
 
     public static function single(bool $photos = false): array
     {

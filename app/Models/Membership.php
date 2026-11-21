@@ -20,6 +20,7 @@ class Membership extends JetstreamMembership
      *
      * @var bool
      */
+    #[\Override]
     public $incrementing = true;
 
     protected static function booted(): void

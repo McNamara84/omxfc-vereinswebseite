@@ -61,7 +61,7 @@ foreach (['player' => 'Arkon', 'other' => 'Mira'] as $role => $name) {
     $skillValue = $role === 'player' ? 20 : 0;
     if (in_array($scenario, ['invitation', 'npc'], true)) {
         // Match the numeric strings persisted by the character editor.
-        $attributes = array_map('strval', $attributes);
+        $attributes = array_map(strval(...), $attributes);
         $skillValue = (string) $skillValue;
     }
     $characters[$role] = RpgCharacter::factory()->create(['user_id' => $users[$role]->id, 'character_name' => $name.' Kampf '.substr($suffix, 0, 8),

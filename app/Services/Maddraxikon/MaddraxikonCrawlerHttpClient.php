@@ -132,14 +132,11 @@ class MaddraxikonCrawlerHttpClient
         $delayMs = min($maximumDelayMs, max($backoffMs, $retryAfterMs));
 
         if ($delayMs > 0) {
-            $jitterMs = random_int(0, min(250, max(1, intdiv($delayMs, 5))));
+            $jitterMs = random_int(0, clamp(intdiv($delayMs, 5), 1, 250));
             $sleepMs = min($maximumDelayMs, $delayMs + $jitterMs);
 
             if ($deadline instanceof MaddraxikonCrawlDeadline) {
-                $sleepMs = min(
-                    $sleepMs,
-                    max(0, (int) floor($deadline->remainingSeconds() * 1000)),
-                );
+                $sleepMs = min($sleepMs, max(0, (int) floor($deadline->remainingSeconds() * 1000)));
             }
 
             if ($sleepMs > 0) {

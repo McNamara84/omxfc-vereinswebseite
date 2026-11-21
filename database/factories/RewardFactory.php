@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
  */
 class RewardFactory extends Factory
 {
+    #[\Override]
     protected $model = Reward::class;
 
     /**

@@ -10,6 +10,7 @@ class MemberClientSnapshot extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'user_agent_hash',
@@ -17,6 +18,7 @@ class MemberClientSnapshot extends Model
         'last_seen_at',
     ];
 
+    #[\Override]
     protected $casts = [
         'last_seen_at' => 'datetime',
     ];

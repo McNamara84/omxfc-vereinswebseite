@@ -51,6 +51,7 @@ class Poll extends Model
             ->orderByDesc('id');
     }
 
+    #[\Override]
     protected $fillable = [
         'question',
         'menu_label',

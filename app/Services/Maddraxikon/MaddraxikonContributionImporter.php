@@ -1054,7 +1054,7 @@ class MaddraxikonContributionImporter
             /** @var MaddraxikonContribution $first */
             $first = $session[0];
             /** @var MaddraxikonContribution $last */
-            $last = $session[array_key_last($session)];
+            $last = array_last($session);
             $eligibleAfter = $last->occurredAtUtc()->addHours($delayHours);
 
             foreach ($session as $contribution) {

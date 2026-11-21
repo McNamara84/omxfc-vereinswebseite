@@ -9,6 +9,7 @@ class RpgCombatMilestone extends Model
 {
     use UsesUtcCombatDates;
 
+    #[\Override]
     protected $guarded = [];
 
     protected function casts(): array

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class RewardPurchaseFactory extends Factory
 {
+    #[\Override]
     protected $model = RewardPurchase::class;
 
     /**

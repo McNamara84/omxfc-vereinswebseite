@@ -280,9 +280,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::prefix('profil')->name('profile.')->group(function () {
-        Route::get('anzeigen', function () {
-            return app(ProfileViewController::class)->show(Auth::user());
-        })->name('view.self');
+        Route::get('anzeigen', fn () => app(ProfileViewController::class)->show(Auth::user()))->name('view.self');
         Route::get('{user}', [ProfileViewController::class, 'show'])->name('view');
     });
 

@@ -57,3 +57,20 @@ test('format bytes returns german readable values', function (): void {
         ->and(DatabaseMaintenanceLimitService::formatBytes(0))->toBe('0 B')
         ->and(DatabaseMaintenanceLimitService::formatBytes(1572864))->toBe('1,5 MB');
 });
+
+test('storage limits keep the configured free space ratio inside its supported bounds', function (float $configured, float $expected): void {
+    config(['database-maintenance.storage_free_space_ratio' => $configured]);
+    $limits = app(DatabaseMaintenanceLimitService::class)->limits();
+
+    expect($limits['storage_free_bytes'])->toBeGreaterThan(0)
+        ->and($limits['storage_candidate_bytes'])->toBe((int) floor($limits['storage_free_bytes'] * $expected));
+})->with([
+    'negative ratio' => [-1.0, 0.05],
+    'zero ratio' => [0.0, 0.05],
+    'lower boundary' => [0.05, 0.05],
+    'intermediate ratio' => [0.5, 0.5],
+    'upper boundary' => [1.0, 1.0],
+    'oversized ratio' => [2.0, 1.0],
+    'negative infinity' => [-INF, 0.05],
+    'positive infinity' => [INF, 1.0],
+]);

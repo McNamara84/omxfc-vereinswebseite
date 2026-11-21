@@ -6,9 +6,18 @@ namespace Tests\Unit;
 
 use App\Services\RpgCharacterCombatCalculator;
 use App\Services\RpgCharacterSheetPresenter;
+use App\Support\RpgCharEditorSpecialRules;
 use PHPUnit\Framework\TestCase;
 
 pest()->extend(TestCase::class);
+
+test('an invalid creation level falls back to the supported default on the sheet', function (): void {
+    $data = ['rules' => ['creation_level' => PHP_INT_MAX]];
+    $combat = (new RpgCharacterCombatCalculator)->calculate([]);
+    $sheet = (new RpgCharacterSheetPresenter)->present($data, $combat);
+
+    expect($sheet['creation_level'])->toBe(RpgCharEditorSpecialRules::DEFAULT_CREATION_LEVEL);
+});
 
 test('it maps character data into the fixed sheet structure', function (): void {
     $data = ['rules' => ['creation_level' => 5], 'character' => ['character_name' => 'Aruula', 'player_name' => 'Spielerin', 'gender' => 'weiblich', 'race' => 'Barbar', 'culture' => 'Landbewohner', 'description' => 'Eine erfahrene Kämpferin.'], 'attributes' => ['st' => 2, 'au' => -1], 'skills' => [['name' => 'Nahkampf', 'value' => 4], ['name' => 'Beruf: Jägerin', 'value' => 2], ['name' => 'Kunde: Kräuter', 'value' => 3], ['name' => 'Kunde: Wetter', 'value' => 1]], 'advantages' => ['Zäh', 'Panzerung'], 'advantage_counts' => ['Panzerung' => 2], 'disadvantages' => ['Verwundbarkeit'], 'disadvantage_details' => ['Verwundbarkeit' => 'Feuer'], 'trainings' => ['Krieger', 'Arbeiter'], 'equipment' => ['clothing' => ['name' => 'Kleidung, Wanderer'], 'items' => [['id' => 'schwert', 'name' => 'Schwert', 'quantity' => 1], ['id' => 'seil', 'name' => 'Seil', 'quantity' => 2]], 'ammunition' => [['source' => 'Bogen', 'quantity' => 30, 'unit' => 'Pfeile']], 'notes' => 'Schwert frisch geschärft.']];

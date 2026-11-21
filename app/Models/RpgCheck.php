@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RpgCheck extends Model
 {
+    #[\Override]
     protected $guarded = [];
 
     protected function casts(): array

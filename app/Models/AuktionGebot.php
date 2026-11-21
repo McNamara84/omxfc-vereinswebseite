@@ -11,8 +11,10 @@ class AuktionGebot extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'auktion_gebote';
 
+    #[\Override]
     protected $fillable = [
         'auktion_id',
         'user_id',
@@ -20,6 +22,7 @@ class AuktionGebot extends Model
         'betrag_cent',
     ];
 
+    #[\Override]
     protected $casts = [
         'betrag_cent' => 'integer',
     ];

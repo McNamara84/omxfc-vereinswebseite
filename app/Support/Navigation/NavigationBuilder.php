@@ -89,7 +89,7 @@ class NavigationBuilder
             ];
         }
 
-        $href = isset($entry['href']) ? $entry['href'] : route($entry['route']);
+        $href = $entry['href'] ?? route($entry['route']);
         $active = $this->isActive($entry['active_patterns'] ?? [$entry['route']]);
         $current = $active && request()->url() === strtok($href, '?');
 
@@ -231,7 +231,7 @@ class NavigationBuilder
         }
 
         if (isset($predicate['team_any'])) {
-            $teamNames = array_filter($predicate['team_any'], 'is_string');
+            $teamNames = array_filter($predicate['team_any'], is_string(...));
             $memberTeamNames = $visibilityState['team_names'] ?? [];
 
             if (! $user || $teamNames === [] || ! collect($teamNames)->contains(fn (string $teamName): bool => isset($memberTeamNames[$teamName]))) {
@@ -278,7 +278,7 @@ class NavigationBuilder
         $user->loadMissing('ownedTeams');
         $currentRole = $roles['current'];
         $mitgliederTeamRole = $roles['members'];
-        $teamNames = array_values(array_filter($user->teams->pluck('name')->all(), 'is_string'));
+        $teamNames = array_values(array_filter($user->teams->pluck('name')->all(), is_string(...)));
 
         return [
             'current_role' => $currentRole,

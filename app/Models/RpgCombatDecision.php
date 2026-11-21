@@ -10,10 +10,13 @@ class RpgCombatDecision extends Model
 {
     use UsesUtcCombatDates;
 
+    #[\Override]
     public $timestamps = false;
 
+    #[\Override]
     protected $guarded = [];
 
+    #[\Override]
     protected $hidden = ['response', 'response_hash', 'context'];
 
     protected function casts(): array

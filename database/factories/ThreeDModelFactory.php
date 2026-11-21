@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class ThreeDModelFactory extends Factory
 {
+    #[\Override]
     protected $model = ThreeDModel::class;
 
     /**

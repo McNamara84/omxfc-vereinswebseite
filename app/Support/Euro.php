@@ -6,9 +6,9 @@ use InvalidArgumentException;
 
 class Euro
 {
-    private const VALIDATION_PATTERN = '/^\d+(?:[.,]\d{1,2})?$/';
+    private const string VALIDATION_PATTERN = '/^\d+(?:[.,]\d{1,2})?$/';
 
-    public const VALIDATION_RULE = 'regex:'.self::VALIDATION_PATTERN;
+    public const string VALIDATION_RULE = 'regex:'.self::VALIDATION_PATTERN;
 
     public static function toCents(string|int|float $amount): int
     {
@@ -61,6 +61,7 @@ class Euro
             return number_format($amount, 2, '.', '');
         }
 
-        return trim($amount);
+        // Preserve the accepted money grammar when PHP 8.6 adds form feed to trim().
+        return trim($amount, " \t\n\r\0\x0B");
     }
 }

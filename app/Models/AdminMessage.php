@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class AdminMessage extends Model
 {
+    #[\Override]
     protected $fillable = [
         'user_id',
         'message',

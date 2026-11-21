@@ -22,6 +22,7 @@ class MaddraxikonRewardPolicy extends Model
     /** @use HasFactory<MaddraxikonRewardPolicyFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'name',
         'status',

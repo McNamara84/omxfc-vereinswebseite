@@ -28,7 +28,7 @@ class KompendiumService
         'abenteurer' => 'Die Abenteurer',
     ];
 
-    private const PUBLICATION_DATE_FIELDS = [
+    private const array PUBLICATION_DATE_FIELDS = [
         'erstveroeffentlicht_am',
         'erstveroeffentlicht',
         'erstveroeffentlichung',

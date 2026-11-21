@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class KompendiumSearchLog extends Model
 {
+    #[\Override]
     protected $fillable = [
         'user_id',
         'query',
@@ -25,6 +26,7 @@ class KompendiumSearchLog extends Model
         'scanned_candidates',
     ];
 
+    #[\Override]
     protected $casts = [
         'parsed_query' => 'array',
         'selected_serien' => 'array',

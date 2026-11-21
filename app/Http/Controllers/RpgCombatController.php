@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class RpgCombatController extends Controller
 {
-    public function __construct(private CombatService $service, private CombatQuery $query, private RpgAccess $access) {}
+    public function __construct(private readonly CombatService $service, private readonly CombatQuery $query, private readonly RpgAccess $access) {}
 
     public function index(Request $request)
     {

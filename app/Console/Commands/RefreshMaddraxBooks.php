@@ -13,11 +13,13 @@ use Illuminate\Support\Facades\Log;
 
 class RefreshMaddraxBooks extends Command
 {
+    #[\Override]
     protected $signature = 'books:refresh
         {--series=all : Serien-Key oder all}
         {--dry-run : Kandidat erzeugen und validieren, aber nicht freigeben}
         {--promote= : Bereits validierten Kandidaten anhand seiner ID freigeben}';
 
+    #[\Override]
     protected $description = 'Crawl, validate and atomically refresh Maddraxikon book data';
 
     public function handle(

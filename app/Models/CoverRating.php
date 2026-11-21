@@ -23,6 +23,7 @@ class CoverRating extends Model
 
     use SoftDeletes;
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'book_cover_id',

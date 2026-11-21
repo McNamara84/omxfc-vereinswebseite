@@ -38,7 +38,7 @@ if (class_exists(SQLite3::class)) {
     } catch (Throwable $e) {
         try {
             $db->exec('ROLLBACK');
-        } catch (Throwable $rollbackError) {
+        } catch (Throwable) {
             // ignore
         }
 
@@ -60,7 +60,7 @@ if (class_exists(SQLite3::class)) {
     } catch (Throwable $e) {
         try {
             $pdo->rollBack();
-        } catch (Throwable $rollbackError) {
+        } catch (Throwable) {
             // ignore
         }
 

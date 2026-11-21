@@ -18,6 +18,7 @@ class ImportOldReviews extends Command
      *
      * @var string
      */
+    #[\Override]
     protected $signature = 'reviews:import-old
                             {--path=private/maddrax_forum_posts.csv : Path to CSV file relative to storage/app}
                             {--fresh : Reset members-team reviews only when no ambiguous Baxx bookings exist}';
@@ -27,6 +28,7 @@ class ImportOldReviews extends Command
      *
      * @var string
      */
+    #[\Override]
     protected $description = 'Import legacy reviews from forum CSV into reviews table';
 
     /**
@@ -127,7 +129,7 @@ class ImportOldReviews extends Command
             try {
                 $dt = Carbon::createFromFormat('j. F Y, H:i', $dateEn, config('app.timezone'))
                     ->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 $bar->advance();
 
                 continue;

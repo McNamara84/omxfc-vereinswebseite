@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /** @extends Factory<MaddraxikonRewardPolicyTier> */
 class MaddraxikonRewardPolicyTierFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonRewardPolicyTier::class;
 
     public function definition(): array

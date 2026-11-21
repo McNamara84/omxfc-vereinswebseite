@@ -15,9 +15,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-final class TodoWorkflow
+final readonly class TodoWorkflow
 {
-    public function __construct(private readonly MembersTeamProvider $teams, private readonly BaxxBookingWriter $writer) {}
+    public function __construct(private MembersTeamProvider $teams, private BaxxBookingWriter $writer) {}
 
     public static function rules(): array
     {

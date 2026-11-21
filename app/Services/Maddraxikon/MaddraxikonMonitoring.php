@@ -8,7 +8,7 @@ use Throwable;
 
 final class MaddraxikonMonitoring
 {
-    public const SCHEDULER_HEARTBEAT_CACHE_KEY = 'maddraxikon:monitoring:scheduler-heartbeat';
+    public const string SCHEDULER_HEARTBEAT_CACHE_KEY = 'maddraxikon:monitoring:scheduler-heartbeat';
 
     public function recordSchedulerHeartbeat(): CarbonImmutable
     {

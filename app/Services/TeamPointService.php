@@ -178,7 +178,7 @@ class TeamPointService
 
         $percentage = ($value / $target) * 100;
 
-        return (int) max(0, min(100, round($percentage)));
+        return (int) clamp(round($percentage), 0, 100);
     }
 
     private function calculateWeeklyTarget(User $user, Team $team, int $days = 7): int

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RpgAdventure extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

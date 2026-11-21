@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BookCoverKeyword extends Model
 {
+    #[\Override]
     protected $fillable = ['keyword', 'normalized_keyword'];
 
     public function cover(): BelongsTo

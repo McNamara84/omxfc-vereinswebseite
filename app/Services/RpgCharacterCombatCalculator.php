@@ -4,11 +4,11 @@ namespace App\Services;
 
 use App\Support\RpgEquipmentCatalog;
 
-final class RpgCharacterCombatCalculator
+final readonly class RpgCharacterCombatCalculator
 {
     public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
 
-    private const ATTRIBUTE_LABELS = [
+    private const array ATTRIBUTE_LABELS = [
         'st' => 'ST',
         'ge' => 'GE',
         'ro' => 'RO',

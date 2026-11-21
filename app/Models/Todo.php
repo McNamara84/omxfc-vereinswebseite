@@ -36,6 +36,7 @@ class Todo extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'team_id',
         'created_by',

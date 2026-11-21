@@ -16,6 +16,14 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
+test('latest previews return an empty list when the members team has no reviews', function (): void {
+    $team = Team::factory()->create(['name' => 'Mitglieder']);
+    Team::clearMembersTeamCache();
+    Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+    $this->getJson(route('api.reviews.latest'))->assertOk()->assertExactJson([]);
+});
+
 test('endpoint returns five latest member reviews', function (): void {
     $team = Team::factory()->create(['name' => 'Mitglieder']);
     $otherTeam = Team::factory()->create();

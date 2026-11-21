@@ -14,6 +14,7 @@ class Activity extends Model
 
     public const ACTION_MADDRAXIKON_BAXX_AWARDED_PREFIX = 'maddraxikon_baxx_awarded_';
 
+    #[\Override]
     protected $fillable = [
         'user_id',
         'subject_type',

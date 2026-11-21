@@ -11,8 +11,10 @@ class VeranstaltungsMerchvariante extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'veranstaltungs_merchvarianten';
 
+    #[\Override]
     protected $fillable = [
         'veranstaltungs_merchartikel_id',
         'bezeichnung',
@@ -20,6 +22,7 @@ class VeranstaltungsMerchvariante extends Model
         'is_active',
     ];
 
+    #[\Override]
     protected $casts = [
         'is_active' => 'boolean',
     ];

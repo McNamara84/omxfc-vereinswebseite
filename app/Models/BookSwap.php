@@ -20,6 +20,7 @@ class BookSwap extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'offer_id',
         'request_id',
@@ -28,6 +29,7 @@ class BookSwap extends Model
         'request_confirmed',
     ];
 
+    #[\Override]
     protected $casts = [
         'completed_at' => 'datetime',
         'offer_confirmed' => 'boolean',

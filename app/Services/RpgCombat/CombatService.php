@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
-final class CombatService
+final readonly class CombatService
 {
     public function __construct(private RpgAccess $access, private CombatSnapshotFactory $snapshots, private CombatEngine $engine, private AutomaticDecision $automatic, private CombatAuthority $authority, private NpcCombatSnapshotFactory $npcSnapshots) {}
 

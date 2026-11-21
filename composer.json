@@ -28,7 +28,7 @@
     "require": {
         "ext-uri": "*",
         "ext-zip": "*",
-        "php": "~8.5.13 || ~8.6.0",
+        "php": "~8.6.0",
         "dompdf/dompdf": "^3.1.6",
         "intervention/image": "^4.4.1",
         "laravel/framework": "^13.43.0",
@@ -94,7 +94,7 @@
         "test": "@php vendor/bin/pest --compact --timeout=1800",
         "test:unit": "@php vendor/bin/pest --testsuite=Unit --compact",
         "test:integration": "@php vendor/bin/pest --testsuite=Integration --compact",
-        "test:coverage": "@php -d xdebug.mode=coverage vendor/bin/pest --compact --timeout=1800 --coverage-php=coverage/php.php --coverage-clover=coverage/php-clover.xml",
+        "test:coverage": "@php -d xdebug.mode=coverage vendor/bin/pest --compact --timeout=3600 --coverage-php=coverage/php.php --coverage-clover=coverage/php-clover.xml",
         "test:stability:repeat": "@php tools/testing/stability.php repeat --attempts=2",
         "test:stability:retry": "@php tools/testing/stability.php retry --attempts=2",
         "test:arch": "@php vendor/bin/pest tests/Arch.php --compact",

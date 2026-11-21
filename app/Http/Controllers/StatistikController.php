@@ -13,8 +13,8 @@ use Illuminate\View\View;
 class StatistikController extends Controller
 {
     public function __construct(
-        private MaddraxDataService $maddraxDataService,
-        private RewardService $rewardService,
+        private readonly MaddraxDataService $maddraxDataService,
+        private readonly RewardService $rewardService,
     ) {}
 
     /**

@@ -12,6 +12,7 @@ class NavigationMenu extends Component
     public string $variant = 'public-navbar';
 
     /** @var array<string, string> */
+    #[\Override]
     protected $listeners = [
         'refresh-navigation-menu' => '$refresh',
     ];

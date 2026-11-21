@@ -9,6 +9,7 @@ class RpgCharacterRename extends Model
 {
     public const UPDATED_AT = null;
 
+    #[\Override]
     protected $guarded = ['id'];
 
     protected function casts(): array

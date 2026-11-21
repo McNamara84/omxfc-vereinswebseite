@@ -26,6 +26,7 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)->use(MaddraxikonRefreshTestFixtures::class);
 
 beforeEach(function (): void {
+    $this->initialExecutionTimeLimit = (int) ini_get('max_execution_time');
     $this->testStoragePath = base_path('storage/testing-maddrax-refresh');
     $this->app->useStoragePath($this->testStoragePath);
     File::ensureDirectoryExists($this->testStoragePath.'/app/private');
@@ -34,9 +35,15 @@ beforeEach(function (): void {
 });
 
 afterEach(function (): void {
-    CarbonImmutable::setTestNow();
-    File::deleteDirectory($this->testStoragePath);
-    Mockery::close();
+    try {
+        CarbonImmutable::setTestNow();
+        File::deleteDirectory($this->testStoragePath);
+        Mockery::close();
+    } finally {
+        // books:refresh changes the process-wide limit. Do not impose that
+        // command's budget on subsequent tests or the full TIA graph build.
+        set_time_limit($this->initialExecutionTimeLimit);
+    }
 });
 
 test('explicit empty promote option is rejected without starting a crawl', function (): void {

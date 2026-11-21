@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Log;
 
 class NextcloudGalleryService
 {
-    private const SUCCESSFUL_LISTING_CACHE_MINUTES = 30;
+    private const int SUCCESSFUL_LISTING_CACHE_MINUTES = 30;
 
-    private const EMPTY_LISTING_CACHE_MINUTES = 2;
+    private const int EMPTY_LISTING_CACHE_MINUTES = 2;
 
     /**
      * @var array<int, string>
      */
-    private const ALLOWED_IMAGE_CONTENT_TYPES = [
+    private const array ALLOWED_IMAGE_CONTENT_TYPES = [
         'image/jpeg',
         'image/png',
         'image/webp',
@@ -26,7 +26,7 @@ class NextcloudGalleryService
         'image/avif',
     ];
 
-    private const PROPFIND_BODY = <<<'XML'
+    private const string PROPFIND_BODY = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <d:propfind xmlns:d="DAV:">
     <d:prop>

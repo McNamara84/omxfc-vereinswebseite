@@ -8,6 +8,7 @@ use LogicException;
 
 class MaddraxikonIdentityTombstone extends Model
 {
+    #[\Override]
     protected $fillable = [
         'wiki_key',
         'hash_key_version',
@@ -204,7 +205,7 @@ class MaddraxikonIdentityTombstone extends Model
 
     private static function currentPepper(): string
     {
-        return array_values(static::peppers())[0];
+        return array_first(static::peppers());
     }
 
     /**

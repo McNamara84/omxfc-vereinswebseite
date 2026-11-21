@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RpgExperienceAward extends Model
 {
+    #[\Override]
     protected $guarded = ['id'];
 
+    #[\Override]
     protected $hidden = ['criteria', 'reason'];
 
     protected function casts(): array

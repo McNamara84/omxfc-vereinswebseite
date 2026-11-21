@@ -148,7 +148,7 @@ class DatabaseMaintenanceLimitService
         }
 
         $ratio = (float) config('database-maintenance.storage_free_space_ratio', 0.5);
-        $ratio = max(0.05, min(1.0, $ratio));
+        $ratio = clamp($ratio, 0.05, 1.0);
 
         return (int) floor($freeStorageBytes * $ratio);
     }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class DownloadFactory extends Factory
 {
+    #[\Override]
     protected $model = Download::class;
 
     /**

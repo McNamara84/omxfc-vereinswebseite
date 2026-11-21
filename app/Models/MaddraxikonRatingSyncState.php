@@ -9,6 +9,7 @@ class MaddraxikonRatingSyncState extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'wiki_key',
         'last_started_at',

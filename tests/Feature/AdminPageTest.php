@@ -12,6 +12,15 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(AdminPageTestFixtures::class);
 
+test('an empty legacy visit path is counted as a homepage visit', function (): void {
+    $admin = $this->adminUser();
+    PageVisit::create(['user_id' => $admin->id, 'path' => '']);
+
+    $this->actingAs($admin)->get('/admin/statistiken')
+        ->assertOk()
+        ->assertViewHas('homepageVisits', 1);
+});
+
 test('admin route denied for unauthorized roles', function (): void {
     $member = $this->memberUser();
     $this->actingAs($member)->get('/admin/statistiken')->assertStatus(403);

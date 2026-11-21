@@ -15,12 +15,14 @@ class NewsletterAusgabe extends Model
 {
     use HasFactory;
 
-    private const FALLBACK_SLUG = 'newsletter';
+    private const string FALLBACK_SLUG = 'newsletter';
 
-    private const MAX_SLUG_LENGTH = 255;
+    private const int MAX_SLUG_LENGTH = 255;
 
+    #[\Override]
     protected $table = 'newsletter_ausgaben';
 
+    #[\Override]
     protected $fillable = [
         'subject',
         'slug',

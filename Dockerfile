@@ -1,10 +1,10 @@
 # Composer wird als eigener, unveränderlich gepinnter Build-Stage eingebunden.
-FROM composer:2.11.2@sha256:8c47c745534c6717c94a307e6f7b73e5b93f37c7679fe9faf50ff54eb12be32f AS composer-bin
+FROM composer:2.11.2@sha256:919efe8e62179c71dfd31fad035fd671fe7454211c6b2aa30a10af0ab4acedba AS composer-bin
 
 RUN apk upgrade --no-cache
 
 # Gemeinsame PHP-Basis für Production und Development
-FROM php:8.5.13-fpm-trixie@sha256:52ba6f178d0a08f348578b03595661b7ff13defafacf4c823d045f2ecba8db8f AS php-base
+FROM php:8.6.0-fpm-trixie@sha256:cf1219d285d49cc07f37b94babecd02db21947dbd14c1d60d13860e051209790 AS php-base
 
 # Install available security updates before adding required system packages.
 # The base image digest stays pinned, while rebuilt images still receive fixes
@@ -171,6 +171,14 @@ RUN ln -sf /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 FROM test-node AS test-browser
 
 RUN node node_modules/playwright/cli.js install --with-deps chromium firefox webkit
+
+# Coverage remains an explicit test-only target; production has no Xdebug.
+FROM test-node AS test-coverage
+
+RUN sh tools/ci/install-xdebug.sh /opt/php-coverage
+
+ENV PHP_INI_SCAN_DIR=:/opt/php-coverage \
+    XDEBUG_MODE=coverage
 
 # Preserve the previous default build result; test tools are explicit targets.
 FROM development AS development-default

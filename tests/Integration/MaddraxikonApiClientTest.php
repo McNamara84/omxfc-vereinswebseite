@@ -14,6 +14,16 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)->use(RefreshDatabase::class);
 
+test('recent changes rejects a malformed result list instead of treating it as no changes', function (): void {
+    Http::fakeSequence()->push(['query' => ['recentchanges' => 'invalid']]);
+
+    expect(fn () => app(MaddraxikonApiClient::class)->recentChanges(
+        CarbonImmutable::parse('2026-07-18 10:00:00', 'UTC'),
+        CarbonImmutable::parse('2026-07-18 12:00:00', 'UTC'),
+    ))->toThrow(MaddraxikonApiException::class, 'keine gültige RecentChanges-Liste');
+    Http::assertSentCount(1);
+});
+
 beforeEach(function (): void {
     config(['maddraxikon.base_url' => 'https://wiki.example.test', 'maddraxikon.api_url' => 'https://wiki.example.test/api.php', 'maddraxikon.allowed_namespaces' => [0, 10, 14], 'maddraxikon.http.attempts' => 3, 'maddraxikon.http.retry_delay_ms' => 0, 'maddraxikon.http.retry_max_delay_ms' => 0, 'maddraxikon.http.user_agent' => 'OMXFC-Test/1.0']);
 });

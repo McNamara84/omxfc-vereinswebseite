@@ -17,4 +17,4 @@ define(__NAMESPACE__.'\\PHP_VERSION', $version);
 define(__NAMESPACE__.'\\PHP_MAJOR_VERSION', (int) $major);
 define(__NAMESPACE__.'\\PHP_MINOR_VERSION', (int) $minor);
 
-require dirname(__DIR__, 3).'/tools/ci/verify-php85.php';
+require dirname(__DIR__, 3).'/tools/ci/verify-php86.php';

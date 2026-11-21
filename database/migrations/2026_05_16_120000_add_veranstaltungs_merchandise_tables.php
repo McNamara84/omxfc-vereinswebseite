@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    private const DEFAULT_TSHIRT_VARIANTEN = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+    private const array DEFAULT_TSHIRT_VARIANTEN = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
     public const FOREIGN_KEY_MERCHVARIANTEN_ARTIKEL = 'vmv_artikel_fk';
 

@@ -15,21 +15,21 @@ use Spatie\LaravelPdf\Facades\Pdf;
 
 class RpgCharacterSheetService
 {
-    public function __construct(private RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
+    public function __construct(private readonly RpgEquipmentCatalog $catalog = new RpgEquipmentCatalog) {}
 
-    private const ATTRIBUTE_CREATION_POINTS = 2;
+    private const int ATTRIBUTE_CREATION_POINTS = 2;
 
-    private const ATTRIBUTE_BASE_MIN = -1;
+    private const int ATTRIBUTE_BASE_MIN = -1;
 
-    private const ATTRIBUTE_BASE_MAX = 1;
+    private const int ATTRIBUTE_BASE_MAX = 1;
 
-    private const ATTRIBUTE_ABSOLUTE_MIN = -2;
+    private const int ATTRIBUTE_ABSOLUTE_MIN = -2;
 
-    private const ATTRIBUTE_ABSOLUTE_MAX = 2;
+    private const int ATTRIBUTE_ABSOLUTE_MAX = 2;
 
-    private const ATTRIBUTE_KEYS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
+    private const array ATTRIBUTE_KEYS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
-    private const ATTRIBUTE_LABELS = [
+    private const array ATTRIBUTE_LABELS = [
         'st' => 'Stärke (ST)',
         'ge' => 'Geschicklichkeit (GE)',
         'ro' => 'Robustheit (RO)',
@@ -39,7 +39,7 @@ class RpgCharacterSheetService
         'au' => 'Auftreten (AU)',
     ];
 
-    private const ATTRIBUTE_RULES = [
+    private const array ATTRIBUTE_RULES = [
         'st' => [
             'label' => 'Stärke (ST)',
             'short' => 'ST',
@@ -133,7 +133,7 @@ class RpgCharacterSheetService
         ],
     ];
 
-    private const CHARACTER_KEYS = [
+    private const array CHARACTER_KEYS = [
         'player_name',
         'character_name',
         'gender',
@@ -143,17 +143,17 @@ class RpgCharacterSheetService
         'equipment',
     ];
 
-    private const CHARACTER_NAME_MAX_CHARS = 255;
+    private const int CHARACTER_NAME_MAX_CHARS = 255;
 
-    private const GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
+    private const array GENDER_VALUES = ['weiblich', 'maennlich', 'divers'];
 
-    private const BASE_SKILL_POINTS = 20;
+    private const int BASE_SKILL_POINTS = 20;
 
-    private const SKILL_BASE_MIN = 0;
+    private const int SKILL_BASE_MIN = 0;
 
-    private const SKILL_BASE_MAX = 4;
+    private const int SKILL_BASE_MAX = 4;
 
-    private const SKILL_VALUES = [
+    private const array SKILL_VALUES = [
         'Athletik',
         'Beruf',
         'Bildung',
@@ -176,17 +176,17 @@ class RpgCharacterSheetService
         'Wissenschaftler',
     ];
 
-    private const TECHNO_SKILL_POOL_VALUES = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
+    private const array TECHNO_SKILL_POOL_VALUES = ['Fahren', 'Feuerwaffen', 'Heiler', 'Pilot', 'Techniker', 'Wissenschaftler'];
 
-    private const TECHNO_SKILL_POOL_POINTS = 12;
+    private const int TECHNO_SKILL_POOL_POINTS = 12;
 
-    private const PRAEKRISTOFLUU_SKILL_POOL_POINTS = RpgCharEditorRuleCatalog::POOL_POINTS;
+    private const int PRAEKRISTOFLUU_SKILL_POOL_POINTS = RpgCharEditorRuleCatalog::POOL_POINTS;
 
-    private const BUNKERMENSCH_BONUS_SKILL_VALUES = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
+    private const array BUNKERMENSCH_BONUS_SKILL_VALUES = ['Feuerwaffen', 'Pilot', 'Wissenschaftler'];
 
-    private const MENSCH_21_BONUS_SKILL_VALUES = ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'];
+    private const array MENSCH_21_BONUS_SKILL_VALUES = ['Bildung', 'Pilot', 'Techniker', 'Wissenschaftler'];
 
-    private const SKILL_SUGGESTIONS = [
+    private const array SKILL_SUGGESTIONS = [
         'Athletik',
         'Beruf',
         'Beruf: Bauer',
@@ -218,7 +218,7 @@ class RpgCharacterSheetService
         'Wissenschaftler',
     ];
 
-    private const SKILL_RULES = [
+    private const array SKILL_RULES = [
         'Athletik' => [
             'attributes' => ['ST', 'GE', 'RO'],
             'description' => 'Athletik umfasst Klettern, Schwimmen, Laufen und allgemeine körperliche Fitness; ein hoher Wert hilft auch, Angriffen auszuweichen.',
@@ -311,7 +311,7 @@ class RpgCharacterSheetService
         ],
     ];
 
-    private const SKILL_NAME_ALIASES = [
+    private const array SKILL_NAME_ALIASES = [
         'Ueberleben' => 'Überleben',
         'Natuerliche Waffen' => 'Natürliche Waffen',
         'Beruf: Kuenstler' => 'Beruf: Künstler',
@@ -319,9 +319,9 @@ class RpgCharacterSheetService
         'Kunde: Kraeuter' => 'Kunde: Kräuter',
     ];
 
-    private const LEGACY_FREE_ADVANTAGE_UNITS = 2;
+    private const int LEGACY_FREE_ADVANTAGE_UNITS = 2;
 
-    private const SPECIAL_NAME_ALIASES = [
+    private const array SPECIAL_NAME_ALIASES = [
         'Anfuehrer' => 'Anführer',
         'High-Tech-Ausruestung' => 'High-Tech-Ausrüstung',
         'Kaltbluetig' => 'Kaltblütig',
@@ -336,19 +336,19 @@ class RpgCharacterSheetService
         'Toedliche Immunschwaeche' => 'Tödliche Immunschwäche',
     ];
 
-    private const SPECIAL_DETAIL_MAX_ITEMS = 32;
+    private const int SPECIAL_DETAIL_MAX_ITEMS = 32;
 
-    private const SPECIAL_DETAIL_MAX_CHARS = 255;
+    private const int SPECIAL_DETAIL_MAX_CHARS = 255;
 
-    private const ADVANTAGE_COUNT_MAX_ITEMS = 20;
+    private const int ADVANTAGE_COUNT_MAX_ITEMS = 20;
 
-    private const ADVANTAGE_COUNT_MAX_VALUE = 20;
+    private const int ADVANTAGE_COUNT_MAX_VALUE = 20;
 
-    private const PORTRAIT_MAX_BYTES = 2_097_152;
+    private const int PORTRAIT_MAX_BYTES = 2_097_152;
 
-    private const PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
+    private const int PORTRAIT_MAX_BASE64_CHARS = 2_796_204;
 
-    private const PORTRAIT_DATA_URL_PREFIX_MAX_CHARS = 23;
+    private const int PORTRAIT_DATA_URL_PREFIX_MAX_CHARS = 23;
 
     private const PORTRAIT_DATA_URL_MAX_CHARS = self::PORTRAIT_DATA_URL_PREFIX_MAX_CHARS + self::PORTRAIT_MAX_BASE64_CHARS;
 
@@ -2072,7 +2072,7 @@ class RpgCharacterSheetService
     private function canonicalSpecialList(array $values): array
     {
         return array_values(array_unique(array_map(
-            fn (string $value) => $this->canonicalSpecialName($value),
+            $this->canonicalSpecialName(...),
             $values,
         )));
     }

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class MaddraxikonRewardEventFactory extends Factory
 {
+    #[\Override]
     protected $model = MaddraxikonRewardEvent::class;
 
     public function definition(): array

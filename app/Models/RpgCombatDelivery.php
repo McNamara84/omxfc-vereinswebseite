@@ -10,6 +10,7 @@ class RpgCombatDelivery extends Model
 {
     use UsesUtcCombatDates;
 
+    #[\Override]
     protected $guarded = [];
 
     protected function casts(): array

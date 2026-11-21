@@ -6,8 +6,10 @@ use Illuminate\Console\Command;
 
 class CrawlHardcovers extends Command
 {
+    #[\Override]
     protected $signature = 'crawlhardcovers';
 
+    #[\Override]
     protected $description = 'Safely refresh Maddraxikon hardcover information';
 
     public function handle(): int

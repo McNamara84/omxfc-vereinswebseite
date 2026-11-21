@@ -13,9 +13,9 @@ use App\Services\Romantausch\RomantauschBaxxService;
 use App\Support\Romantausch\SwapResult;
 use Illuminate\Validation\ValidationException;
 
-final class SwapWorkflow
+final readonly class SwapWorkflow
 {
-    public function __construct(private readonly MutationLock $lock, private readonly RomantauschBaxxService $baxx) {}
+    public function __construct(private MutationLock $lock, private RomantauschBaxxService $baxx) {}
 
     public function confirm(User $actor, int $id): SwapResult
     {

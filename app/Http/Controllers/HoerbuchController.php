@@ -24,9 +24,7 @@ class HoerbuchController extends Controller
     {
         $episodes = AudiobookEpisode::with(['roles:id,episode_id,name,user_id,speaker_name'])
             ->get()
-            ->sortBy(function ($episode) {
-                return $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31);
-            })
+            ->sortBy(fn ($episode) => $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31))
             ->values();
 
         $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();

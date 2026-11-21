@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RpgCheckParticipant extends Model
 {
+    #[\Override]
     protected $guarded = [];
 
     protected function casts(): array

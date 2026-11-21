@@ -12,10 +12,13 @@ class RpgCombat extends Model
 
     public const OPEN_STATUSES = ['challenged', 'preparing', 'active', 'awaiting_ruling'];
 
+    #[\Override]
     protected $guarded = [];
 
+    #[\Override]
     protected $attributes = ['kind' => 'player_vs_player'];
 
+    #[\Override]
     protected $hidden = ['state', 'submission_hash'];
 
     protected function casts(): array

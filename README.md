@@ -1,7 +1,7 @@
 # OMFXC Vereinswebseite
 
 ![Laravel 13](https://img.shields.io/badge/laravel-13-red?logo=laravel&style=flat)
-![PHP 8.5](https://img.shields.io/badge/php-8.5-blue?logo=php)
+![PHP 8.6](https://img.shields.io/badge/php-8.6-blue?logo=php)
 ![Node 26](https://img.shields.io/badge/node-26-5FA04E?logo=node.js&logoColor=white)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
@@ -35,7 +35,7 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
     - [Preisstruktur](#preisstruktur)
     - [Zugriffskontrolle](#zugriffskontrolle)
   - [Abhängigkeiten und Supply-Chain-Prüfungen](#abhängigkeiten-und-supply-chain-prüfungen)
-  - [Zusätzlicher PHP-8.6-Kompatibilitätscheck](#zusätzlicher-php-86-kompatibilitätscheck)
+  - [Verbindliche PHP-8.6-Prüfung](#verbindliche-php-86-prüfung)
   - [Tests \& Qualitätssicherung](#tests--qualitätssicherung)
   - [Deployment](#deployment)
   - [Nützliche Artisan-Befehle](#nützliche-artisan-befehle)
@@ -165,7 +165,7 @@ Remove-Item Env:UX_CAPTURE_SCREENSHOTS
 | Komponente       | Version / Hinweis                                      |
 |------------------|---------------------------------------------------------|
 | Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
-| PHP              | 8.5.13 oder neuer innerhalb von 8.5, inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
+| PHP              | 8.6.0 oder neuer innerhalb der stabilen 8.6-Reihe, inklusive Extensions: `uri`, `zip`, `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | 2.11.2, nur für klassische Host-Entwicklung nötig        |
 | Node.js & npm    | Node 26.x (`.node-version`) und npm 12.2.3 (`packageManager`), nur für klassische Host-Entwicklung nötig |
 | Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
@@ -453,7 +453,7 @@ Testumgebung setzen. Dann
 Der Test migriert diese Datenbank frisch; SQLite-Läufe überspringen diese
 separate Testsuite. Die Verbindungsdaten werden an die Worker vererbt.
 
-Der Job **PHP 8.5 RPG Concurrency (MariaDB 13.0)** im Workflow
+Der Job **RPG Database Concurrency** im Workflow
 `.github/workflows/phpunit.yml` führt diese Suite bei Pull Requests gegen
 `main` und Pushes auf `main` automatisch aus. Sein eigener MariaDB-Service
 erstellt `omxfc_rpg_test`; übersprungene Tests lassen den Job fehlschlagen.
@@ -578,8 +578,8 @@ und Dashboard-Meilensteine bleiben davon unabhängig einmalig.
 
 ```bash
 php vendor/bin/pest -c phpunit.rpg-combat.xml
-# Optional mit installierter PCOV-Erweiterung:
-php -d pcov.enabled=1 vendor/bin/pest -c phpunit.rpg-combat.xml --coverage-text
+# Mit dem isolierten PHP-8.6-Coverage-Image und fixiertem Xdebug:
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps php-coverage php -d xdebug.mode=coverage vendor/bin/pest -c phpunit.rpg-combat.xml --coverage-text
 npm run test:vitest -- tests/Vitest/rpg-combats.test.js tests/Vitest/rpg-checks.test.js
 npm run test:e2e:docker -- tests/e2e/rpg-combats.spec.js --project=chromium
 ```
@@ -1055,135 +1055,160 @@ synchronisiert oder neu aufgebaut werden.
 
 ## Abhängigkeiten und Supply-Chain-Prüfungen
 
-Stand der Aktualisierung: **19. November 2026**. Das
-[PHP-Sicherheitsrelease 8.5.13](https://www.php.net/ChangeLog-8.php#8.5.13)
-ist in Produktions-, Entwicklungs- und Browser-Testimages versions- und digestgenau
-gepinnt. Alle 13 PHP-8.5-Setup-Schritte in CI wählen den Zweig `8.5`, erzwingen
-mit `update: 'true'` den aktuellen Patch und prüfen direkt danach die tatsächliche
-Laufzeit mit [verify-php85.php](tools/ci/verify-php85.php). Die Prüfung benötigt
-keine Composer-Abhängigkeiten und weist PHP unter 8.5.13 sowie andere Versionszweige
-vor den nachfolgenden Schritten zurück. Eine Patchangabe allein pinnt die Laufzeit
-bei der verwendeten `setup-php`-Version nicht. Composer verlangt mindestens
-PHP 8.5.13 im 8.5-Zweig;
-PHP 8.6 bleibt unterstützt. PHP basiert auf Debian
-Trixie; Node 26.13.1 verwendet Alpine 3.24 und npm 12.2.3. Composer 2.11.2 ist
-in Docker und allen PHP-Workflows vereinheitlicht. Die Service-Images verwenden
-MariaDB 13.0.2, nginx 1.31.9 (aktueller Mainline-Zweig, Alpine 3.24 Slim) und Typesense
-30.2. Auch bei unveränderter Versionsnummer wurden aktuelle Image-Digests geprüft.
-Die nginx-Slim-Variante enthält keine hier ungenutzten Bildverarbeitungsmodule.
-nginx 1.31.9 enthält die [aktuellen Korrekturen](https://nginx.org/en/CHANGES).
-Livewire 4.4.8 behebt [GHSA-mhf7-xp6r-6qrc](https://github.com/livewire/livewire/security/advisories/GHSA-mhf7-xp6r-6qrc).
-Composer-Image-Digest und Prüfsumme der Composer-2.11.2-PHAR sind unabhängig
-voneinander geprüft und gepinnt. PHP und Composer verwenden die Image-Neubauten
-vom 19. November, nginx den Neubau vom 18. November. Der MariaDB-Neubau vom
-12. November bleibt aktuell; sein Digest ist in Dockerfile, Test-Stack und CI
-einheitlich gepinnt. Die unveränderten Node- und Typesense-Digests wurden ebenfalls
-mit der Registry abgeglichen.
-Die offiziellen Docker-Tags und ihre gepinnten Digests wurden erneut mit der
-Registry abgeglichen. Neubauten spielen zusätzlich die verfügbaren
-Betriebssystemupdates ein; ein aktueller Image-Tag allein ersetzt diesen Schritt nicht.
-Für eine erneute Sicherheitsabnahme mit `--no-cache` bauen, wie es die CI bereits
-tut. Auch nachgelagerte Stufen müssen die aktualisierte OS-Basis übernehmen;
-ein nur teilweise umgangener Build-Cache reicht dafür als Nachweis nicht aus.
-Typesense wird über `docker/typesense.Dockerfile` mit den aktuellen Ubuntu-
-Sicherheitsupdates gebaut, weil das offizielle Image noch verwundbare
-OpenSSL-Pakete enthält. Der Deploy-Workflow veröffentlicht dieses Image als
-`ghcr.io/mcnamara84/omxfc-vereinswebseite:typesense-30.2`, scannt es und übergibt
-den geprüften Digest an das Deployment.
-MariaDB wird über `docker/mariadb.Dockerfile` gehärtet: Das ungenutzte
-`/usr/bin/pebble` aus dem Ubuntu-Basisimage wird entfernt, da dessen eingebettete
-Go-Laufzeit behebbare High/Critical-Befunde verursacht. MariaDB verwendet seinen
-eigenen Entrypoint mit `gosu`. Verfügbare Betriebssystemupdates werden eingespielt;
-ein unbeabsichtigtes MariaDB-Paketupdate lässt den Build fehlschlagen.
-CI prüft den Start mit leerem Datenvolume, den Benutzerwechsel und den Erhalt
-geschriebener Daten nach einem Neustart. Der Deploy-Workflow veröffentlicht
-`ghcr.io/mcnamara84/omxfc-vereinswebseite:mariadb-13.0.2`, scannt das Image und
-verwendet dessen unveränderlichen Digest. Die Entwicklungsumgebung baut dasselbe
-Dockerfile; die Upstream-Befunde bleiben als separates CI-Artefakt sichtbar.
+Stand der Aktualisierung: **20. November 2026**. Produktion, Entwicklung und
+Browser-Testserver verwenden ausschließlich das stabile PHP 8.6.0 auf Debian
+Trixie. Composer verlangt `~8.6.0`. Die Laufzeitprüfung
+[verify-php86.php](tools/ci/verify-php86.php) weist andere PHP-Reihen und
+Vorabversionen vor der Paketinstallation zurück; die regulären CI-Jobs wählen
+8.6 mit aktiviertem Patchupdate. FPM- und CLI-Images sind mit den verifizierten
+Digests der offiziellen stabilen Builds gepinnt.
 
-Die Pakete sind auf die neuesten miteinander kompatiblen stabilen Versionen
-aktualisiert. Pest 5.3.7 begrenzt PHPUnit ausdrücklich auf höchstens 13.4.7;
-das neuere PHPUnit 13.4.8 bleibt deshalb ausgeschlossen. Pest Browser bleibt auf
-5.2.0; PHPStan und Rector stehen auf 2.3.7 beziehungsweise 2.8.5. maryUI 2.9.11 benötigt
-`jfcherng/php-diff` 6.x und damit `jfcherng/php-sequence-matcher` 4.x. Diese
-Constraints werden nicht durch Aliase oder erzwungene Overrides umgangen.
-Fortify 1.43.0 unterstützt nun `laravel/passkeys` 0.3.0; beide Pakete sind aktualisiert.
+Der vollständige Composer- und npm-Graph wurde mit den offiziellen Registries
+abgeglichen. Neu aufgelöst sind Guzzle Promises 3.1.1, PSR-7 3.5.1 und Revolt
+1.1.0 sowie kompatible transitive npm-Updates. Laravel 13.43.0, Livewire 4.4.8,
+Pest 5.3.7, PHPUnit 13.4.7, PHPStan 2.3.7 und Rector 2.8.5 bilden weiterhin die
+höchste regulär auflösbare stabile Kombination. Pest begrenzt PHPUnit auf 13.4.7;
+maryUI 2.9.11 benötigt weiterhin Diff 6.x und Sequence Matcher 4.x. Diese
+Upstream-Grenzen werden nicht durch Aliase oder erzwungene Major-Overrides umgangen.
 
-Die Auflösung vom 19. November aktualisiert 21 Composer-Pakete, darunter Laravel
-13.43.0, Sanctum 4.5.0, Scout 11.11.0, Tinker 3.2.0, Guzzle 8.5.2 und PSR-7 3.5.0.
-Pest 5.3.7 unterstützt ParaTest 7.29.0; die bisherige Konfliktregel für ParaTest
-7.28.0 entfällt. Monolog 3.13.0, Ramsey UUID 4.10.0 und die aktuellen kompatiblen
-WebAuthn-Pakete sind ebenfalls im Lockfile enthalten.
-Auch die kompatiblen transitiven Pakete, einschließlich PHP-Coverage 14.5.2,
-League URI Components 7.10.0 und der Symfony-8.1-Komponenten, sind aktualisiert.
-Das npm-Lockfile enthält Three.js 0.187.0 und die aktuellen kompatiblen
-transitiven Updates. Der gezielte npm-Sicherheitspatch für `ip-address` steht auf
-10.7.6; Undici 6.29.1 ist bereits in npm 12.2.3 enthalten.
-Rolldown 1.2.19 referenziert für seinen optionalen WASM-Fallback die
-`@emnapi/core`- und `@emnapi/runtime`-Version 2.0.0-beta.2. Die verwendeten
-Linux-Images installieren die nativen Bindings; diese Upstream-Vorgaben werden
-nicht durch Overrides verändert.
-Der benötigte Selector-Parser-Override ist auf 7.2.1 aktualisiert.
-Livewire 4.4.8, Alpine samt Plugins 3.17.5 und Chart.js 4.6.1 bleiben aktuell;
-Vite steht auf 8.3.8, Tailwind samt Vite-Plugin auf 4.3.5 und concurrently auf 10.0.7.
-Vitest, V8-Coverage, Browser-Provider und UI stehen auf 5.1.1. Playwright ist vorübergehend
-exakt auf 1.64.1 gepinnt: 1.65.0 löst beim gemeinsamen Einsatz von Rollen-Locators
-und axe einen nativen Firefox-Absturz beim Lesen von `ariaLabelledByElements` aus
-([Playwright #43967](https://github.com/microsoft/playwright/issues/43967),
-[Mozilla #2090055](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055)).
-Auch [Playwright 1.65.1](https://github.com/microsoft/playwright/blob/v1.65.1/packages/playwright-core/browsers.json)
-enthält weiterhin den betroffenen Firefox-Build 1572.
-`npm run test:e2e:aria` prüft beide Lesereihenfolgen ohne Laravel oder Datenbank;
-die CI führt die Probe vor der vollständigen Browser-Suite aus. Firefox und
-sämtliche Barrierefreiheitsregeln bleiben aktiv. Den Pin erst mit einer stabilen Version
-mit behobenem Firefox-Build und erfolgreichem Regressionstest anheben.
-Die npm-Overrides binden auch `playwright` und `playwright-core` aus Vitest und
-axe an diesen Pin, damit nur eine einheitliche Playwright-Version installiert wird.
-axe 4.14.0 und Zod 4.6.7 bleiben erhalten; das transitive axe-core steht auf 4.14.1,
-daisyUI auf 5.8.1 und jsdom auf 31.0.1. Die JavaScript-Suite mit 628 Tests und ihre
-bestehenden Coverage-Grenzen verwenden jsdom 31.
-Die Releases aller 14 externen GitHub Actions wurden erneut geprüft.
-`actions/dependency-review-action` ist auf 5.0.1 mit dem zugehörigen Commit-Pin
-aktualisiert, die anderen Actions sind bereits aktuell. Grype steht in beiden Image-Workflows
-auf 0.122.1. Die PHP-Coverage-Badge wird weiterhin lokal durch
-`tools/testing/php-coverage-badge.mjs` erzeugt.
+Die [offizielle Laravel-Supporttabelle](https://laravel.com/framework/docs/13.x/releases#support-policy)
+nennt für Laravel 13 am Prüftag weiterhin PHP 8.3 bis 8.5. Die hier ausgeführten
+PHP-8.6-Projekttests sind ein eigener Kompatibilitätsnachweis; eine offizielle
+PHP-8.6-Freigabe von Laravel wird damit nicht behauptet.
 
-Die vollständige WebKit-Abnahme und die Sicherheitsfreigabe des Browser-Testimages
-mit den älteren, an den Playwright-Pin gekoppelten Firefox-Binaries stehen weiterhin aus.
+Node 26.13.1, npm 12.2.3 und Composer 2.11.2 sind weiterhin aktuell. Der erneuerte
+Composer-Image-Digest wurde mit der Registry abgeglichen. Alle 14 GitHub Actions
+sind gegen das jeweils aktuelle offizielle Release und dessen vollständige
+Commit-SHA geprüft. Auch nginx 1.31.9, MariaDB 13.0.2, Typesense 30.2 und die
+zugehörigen Image-Digests wurden erneut abgeglichen. Die vorhandenen OS-Updates,
+MariaDB-/Typesense-Härtungen und die strikte npm-Installationsskript-Policy bleiben
+erhalten. Frische Builds und die bestehende Image-Scan-Policy sind verbindlich.
 
-Die lokalen Grype-Scans vom 19. November bestehen für Composer, PHP-FPM, Node
-und nginx die unveränderte CI-Grenze `--only-fixed --fail-on high`.
-Im npm-Bundle verbleiben mittlere Befunde für
-[`glob`](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) und
-[`minimatch`](https://github.com/advisories/GHSA-g3hv-75wg-m249). Die veröffentlichten
-Korrekturen liegen in 14.0.2 beziehungsweise 11.0.1; auch die neuesten kompatiblen
-13.x-/10.x-Patches bleiben betroffen. Diese npm-internen Hauptversionen werden
-nicht erzwungen ausgetauscht.
-Der frühere MariaDB-Scan vom 12. November meldete zusätzlich einen mittleren Befund für das in gosu gebündelte
-`github.com/moby/sys/user` 0.1.0. Zwei weitere Meldungen betreffen das
-`coreutils`-Metapaket mit der Versionskennung 9.5: Das eigentliche
-`gnu-coreutils` ist bereits auf 9.7-3ubuntu2.1 aktualisiert, und die aktiven
-Standardwerkzeuge stammen aus `rust-coreutils` 0.10.0. Scanner-Ausnahmen oder
-abgesenkte Grenzwerte wurden nicht eingeführt. Die vollständige Image-Matrix
-bleibt Aufgabe der CI; die aktuellen lokalen Scans umfassen die vier oben genannten
-neu gebauten Images.
+Entfernbare Paket-Pins werden durch passende Versionsbereiche und Lockfiles
+ersetzt. Der Badge-Helfer verwendet nun einen normalen kompatiblen Bereich.
+Playwright bleibt dagegen auf 1.64.1: Die isolierte Gegenprobe mit 1.65.1
+reproduziert beide Firefox-Abstürze bei ARIA-Referenzen und Rollen-Locators.
+Firefox und alle Accessibility-Prüfungen bleiben aktiv. Die Playwright-/Core-
+Overrides sichern den einheitlichen funktionierenden Stand. Der Selector-Parser-
+Override bleibt wegen Typography 0.5.20 erhalten, das weiterhin 6.0.10 verlangt.
+Auch der npm-interne Sicherheitspatch für ip-address bleibt notwendig.
+[Playwright-Regressionsbericht](https://github.com/microsoft/playwright/issues/43967),
+[Mozilla-Fehlerbericht](https://bugzilla.mozilla.org/show_bug.cgi?id=2090055).
 
-Die abschließende Vitest-Nachprüfung vom 20. November bestätigte 628 erfolgreiche
-Tests und die Einhaltung der unveränderten Coverage-Grenzen.
+Die PHP-Modernisierung umfasst typisierte Konstanten, readonly-Eigenschaften und
+geeignete readonly-Klassen, Constructor Promotion, Override-Attribute, native
+Array-Suche und Prädikate sowie PHP-8.6-`clamp()` an geprüften Begrenzungen.
+Die Navigation verwendet `array_all()` und eine lineare Normalisierung mit dem
+Pipe-Operator. Rector prüft jetzt sämtliche eigenen PHP-Bereiche einschließlich
+Migrationen, Sprachdateien, Tests und Werkzeugen. PHPStan bleibt auf Level 10 und
+prüft zusätzlich die Datenobjekte unter `app/Data`.
 
-Bei der Abnahme vom 19. November bestanden 4.766 reguläre PHP-Tests (84 Skips), 705 zusätzlich parallel
-ausgeführte Unit-Tests und alle 631 Tests der drei MariaDB-Suiten ohne Skips.
-Außerdem bestanden 123 Node-Tests, drei
-native Chromium-Dialogtests und je 25 gezielte Playwright-Regressionen in Chromium
-und Firefox. Der vollständige Produktionsbuild, die Composer-/npm-Audits und die
-PHP-Qualitätsprüfungen bestehen. Die Gegenprobe weist PHP 8.5.12 zurück; die
-unveränderte Lockfile-Integrität wurde zusätzlich unter PHP 8.6.0 geprüft.
+Partielle Funktionsanwendung wurde gegen PHP und Parser geprüft, wird aber noch
+nicht im Anwendungscode eingesetzt: Der Scope-Resolver des aktuellen stabilen
+Rector 2.8.5 bricht dabei ab. Dynamische oder möglicherweise vertauschte Grenzen
+bleiben gezielt bei `min()/max()`; `clamp()` würde hier neue Exceptions auslösen.
+Ein zusätzlicher Regressionstest schützt insbesondere verbleibende HTTP-Budgets
+unter einer Sekunde. Die Geldnormalisierung erhält mit einer expliziten
+Whitespace-Liste ihre bisherige Eingabegrammatik, obwohl PHP 8.6 Form Feed nun
+standardmäßig trimmt.
 
-Im zusätzlichen WebKit-Lauf bestanden 21 von 25 Fällen. Vier Fokusprüfungen des
-Suchdialogs schlugen fehl; der Vergleichslauf mit Laravel 13.42.0 und daisyUI 5.8.0
-reproduzierte zwei dieser Fehler (vier von sechs gezielt ausgewählten Fällen
-bestanden). Diese WebKit-Einschränkung bleibt bei der Bewertung der Browserabnahme
-sichtbar; die bestehende CI führt Chromium und Firefox aus.
+`Time\Duration` wurde für die HTTP-Budgets geprüft. Die bestehenden Schnittstellen
+verwenden Sekundenwerte und monotone `hrtime()`-Fristen; zusätzliche Objekt- und
+Einheitenkonvertierungen bringen hier keinen Vorteil. Eloquent-/Livewire-Felder
+behalten ihre Framework-Zugriffsverträge. Eigene unveränderliche Datenobjekte
+werden über readonly-Eigenschaften abgesichert; zusätzliche Property Hooks oder
+asymmetrische Setter sind dafür nicht erforderlich.
+
+Verbleibende Bindungen werden unter folgenden Bedingungen aufgehoben:
+
+| Bindung | Bedingung für das nächste Update |
+| --- | --- |
+| Playwright 1.64.1 und Core-Overrides | ARIA-/Rollen-Locator-Absturz im neueren Firefox behoben; vollständige Browserläufe und Image-Sicherheitsprüfung bestehen. |
+| PHPUnit 13.4.7 | Ein stabiles Pest-Release lässt neuere PHPUnit-Versionen zu; der gemeinsame Test-/Plugin-Graph besteht. |
+| Diff 6.x und Sequence Matcher 4.x | maryUI hebt seine transitiven Anforderungen an; Composer löst den Graphen regulär auf. |
+| Selector-Parser-Override 7.2.1 | Typography löst regulär einen aktuellen kompatiblen Parser auf; npm-Auflösung, Audit und Tests bestehen ohne Override. |
+| npm-interner ip-address-Patch | Ein stabiles npm enthält die korrigierte Version 10.7.6 oder neuer bereits selbst. |
+| Xdebug 3.6.0alpha1 nur für Tests | Ein stabiler PHP-8.6-Treiber besteht Coverage-, Mutation- und TIA-Prüfungen; Quellstand und Prüfsumme werden gemeinsam aktualisiert. |
+
+Die Gegenprüfungen verwenden die offiziellen Paketmetadaten von
+[Packagist](https://packagist.org/) und der [npm-Registry](https://www.npmjs.com/)
+sowie die oben verlinkten Upstream-Fehlerberichte. Integritätspins in Lockfiles,
+Image-Digests und Action-SHAs bleiben für reproduzierbare Installationen erhalten.
+
+Die bisherigen PHP-Coverage-Untergrenzen bleiben unverändert. Die PHP-8.6-Abnahme
+umfasst 4.824 erfolgreiche Tests, 84 bestehende Skips und 24.692 Assertions.
+Die acht vollständigen Testgruppen wurden gegen alle 4.896 ursprünglichen Fälle
+abgeglichen; zwölf zusätzliche Regressionstests bestehen mit den bestehenden
+Fällen ihrer betroffenen Dateien. Sie schützen unter anderem OAuth-Fehler,
+ungültige API-Antworten, fehlende Bewertungen und Snapshots sowie Cache-Filter.
+Die drei MariaDB-Suiten bestehen separat mit zusammen 631 Fällen ohne Skips.
+Alle 628 Vitest-Tests bestehen unter Windows und Linux mit identischen Messdaten.
+
+| Coverage-Metrik | Frisch gemessener Ausgangsstand | PHP-8.6-Abnahme |
+| --- | ---: | ---: |
+| PHP-Zeilen | 88,87 % | 88,99 % |
+| PHP-Methoden | 73,92 % | 74,23 % |
+| JavaScript-Zeilen | 89,17 % | 89,17 % |
+
+Der kürzere modernisierte Code enthält weniger ausführbare Zeilen. Die Prüfung
+bewahrt die Abdeckung insgesamt, je Datei und an unveränderten Quellstellen;
+alle drei bisherigen PHP-Vergleichsbasen bestehen. Die JavaScript-Baseline wird
+auf den unter beiden Plattformen bestätigten höheren Stand angehoben.
+Beide Mutation-Gates bestehen weiterhin mit 100 %.
+
+Die PHP-Coverage-/Mutation-Abnahme verwendet die ausdrücklich freigegebene
+Testausnahme Xdebug 3.6.0alpha1. Stabiles Xdebug 3.5.3 und PCOV 1.0.12 unterstützen
+PHP 8.6 noch nicht. [install-xdebug.sh](tools/ci/install-xdebug.sh) fixiert den
+offiziellen Commit und die SHA-256-Prüfsumme des Quellarchivs. Ein zusätzliches
+Gate prüft die tatsächlich geladene Version und den aktiven Coverage-Modus.
+Der Treiber wird ausschließlich in CI und im Docker-Target `test-coverage`
+geladen. Produktions-, Entwicklungs- und Browserimages enthalten ihn nicht.
+Die Test-Speichergrenze beträgt für die inzwischen knapp 4.900 Fälle 1 GiB;
+CI erfasst die PHP-Coverage weiterhin mit zwei getrennten Prozessen.
+Das Coverage-Zeitbudget beträgt wegen des langsameren temporären Treibers
+60 Minuten pro Testprozess; der reguläre Lauf ohne Coverage behält 30 Minuten.
+Der lokale Abnahmevergleich verteilt denselben vollständigen Testbestand auf acht
+kleinere Gruppen. Fehler, fehlende Tests und Coverage-Verluste bleiben blockierend.
+[Xdebug-Releases und PHP-Unterstützung](https://xdebug.org/download).
+
+Die Image-Nachprüfung vom **20. November 2026** verwendet das offizielle
+Linux-Grype **0.122.1** wie die CI. Die vollständig neu gebauten Images liefern
+folgende Paketzuordnungen; Befunde ohne verfügbaren Fix gelten weiterhin als offen:
+
+| Image | Critical | High | Davon mit verfügbarem Fix |
+| --- | ---: | ---: | ---: |
+| PHP-FPM-Basis / Production (je Image) | 42 | 296 | 0 |
+| Composer-Buildstage | 0 | 5 | 0 |
+| Node-Buildstage | 0 | 0 | 0 |
+| nginx / MariaDB / Typesense (je Image) | 0 | 0 | 0 |
+| Browser-Testimage mit Entwicklungswerkzeugen | 147 | 1.020 | 336 |
+
+Produktion und die geprüften Service-Images erfüllen die unveränderte Grenze
+für behebbare High-/Critical-Befunde. Die Sicherheitsfreigabe des Browserimages
+bleibt offen: 244 behebbare Zuordnungen betreffen das gebündelte Firefox.
+Weitere 92 ordnet Grype unbenutzten Windows-PHPStan-DLLs im Linux-Testimage als
+PHP zu; diese sind keine ausgeführte PHP-Laufzeit. Es werden weder Befunde
+ausgeblendet noch Scan-Grenzen abgesenkt. Der funktional notwendige
+Playwright-Pin ist damit ausdrücklich keine vollständige Sicherheitsabnahme.
+Composer und beide npm-Lockfile-Audits melden keine bekannten Paketlücken.
+
+Chromium und Firefox bestehen vollständig mit jeweils 293 erfolgreichen Fällen
+und denselben zwei bestehenden Skips. Der VIP-Autoren-Validierungstest wartet
+beim Öffnen des Livewire-Formulars nun auf den exakt benannten Submit-Button und
+besteht auch in WebKit. Der zusätzliche vollständige WebKit-Lauf enthält
+277 erfolgreiche Fälle, zwei Skips und 16 Fehler bei UI-Interaktionen und
+Fokusführung und erhält keine Freigabe. Chromium und Firefox bleiben die
+verpflichtende CI-Matrix; die Prüfungen werden nicht abgeschwächt.
+
+Der lokale frische TIA-Graphaufbau besteht mit 4.824 Tests und 24.692 Assertions
+in rund 35 Minuten. Die vollständige Baseline und alle 4.824 gespeicherten
+Ergebnisse wurden validiert. Die Refresh-Tests stellen das vom Command gesetzte
+PHP-Zeitlimit nach jedem Fall wieder her; ihre 22 Fälle bestehen mit 159 Assertions.
+Der abschließende Linux-Node-Lauf besteht mit allen 140 Fällen ohne Skips.
+Auch die neue CI-Laufzeitprüfung einschließlich
+Composer-Skripten, Plattformanforderungen, Laravel-Caches und 334 kompilierten
+Blade-Views besteht bei unverändertem Manifest und Lockfile.
+`nextcloud/` ist vom gesamten Upgrade ausgenommen.
 
 Die Meetingverwaltung nutzt maryUIs Feld-Popovers jetzt auch für die Zählweise
 der Woche im Monat und den Start eines Wochenrhythmus. Aktivitätsfilter leiten
@@ -1382,39 +1407,90 @@ fehlendes `wire:navigate`. Die erneute vollständige PHP-Abnahme im folgenden
 Testrefactoring ist erfolgreich; Messbedingungen und Ergebnisse sind dort
 dokumentiert.
 
-## Zusätzlicher PHP-8.6-Kompatibilitätscheck
+## Verbindliche CI-Prüfung
 
-Der Workflow [PHP 8.6 Compatibility](.github/workflows/php86-compatibility.yml)
-läuft bei Pull Requests gegen `main`, Pushes auf `main`, täglich um 05:17 UTC
-(06:17 MEZ / 07:17 MESZ), für Merge Queues und manuell. Er verwendet ausdrücklich die PHP-8.6-Reihe,
-zunächst als Vorabversion und nach Veröffentlichung als aktuelle stabile Version.
+Der Workflow [CI Verification](.github/workflows/ci.yml)
+prüft die stabile PHP-8.6-Laufzeit, Paketinstallation, Plattformanforderungen,
+Anwendungsstart und Laravel-Caches. Manifest, Lockfile und Paketmetadaten müssen
+dabei unverändert bleiben. Die Root-Anforderung muss ausschließlich die stabile
+PHP-8.6-Reihe freigeben; Plattformsimulationen und ignorierte
+Plattformanforderungen bleiben ausgeschlossen.
 
-Die Probe prüft nacheinander die festgeschriebenen Composer-Abhängigkeiten,
-Anwendungsstart und Assets, PHP-Suiten und Qualitätsregeln, MariaDB,
-Pest Browser, Chromium und Firefox. Nach einer fehlgeschlagenen Voraussetzung
-entfallen die Folgestufen. MariaDB startet erst nach erfolgreichen PHP-Prüfungen;
-Browser werden erst bei Bedarf installiert. Abhängigkeiten und Assets werden
-innerhalb des Probelaufs wiederverwendet.
+Der Pflichtcheck **CI erforderlich** wartet bei Pull Requests, Pushes auf main
+und Merge Queues zusätzlich auf die erfolgreichen regulären PHP-, JavaScript-
+und Playwright-Workflows. Deren PHP-Qualität, Coverage, MariaDB-, Pest-Browser-,
+Chromium- und Firefox-Prüfungen werden nicht nochmals ausgeführt. Die Zuordnung
+prüft Ereignis, Workflow und Revision; der explizite Laufname hält auch den
+tatsächlich getesteten PR-Merge-Commit fest. Ergebnisse vor einer Änderung des
+PR-Zielbranches können dadurch keine aktuelle Freigabe ersetzen. Fehlende,
+abgebrochene oder fehlgeschlagene Testläufe geben den Pflichtcheck nicht frei.
+Bei mehreren Läufen entscheidet der validierte Startzeitpunkt des letzten
+Versuchs (`run_started_at`), nicht die bei Wiederholungen unveränderte Lauf-ID.
+Ein später wiederholter älterer Lauf verdrängt dadurch einen früheren Erfolg
+einer höheren Lauf-ID. Fehlende oder widersprüchliche Versuchsdaten blockieren
+die Freigabe; bei gleichen Startzeiten haben Fehler und laufende Versuche Vorrang.
+Coverage-Übernahme und Deployment verwenden dieselbe Auswahlregel.
 
-Der feste abschließende Check **„PHP 8.6 erforderlich“** schlägt bei Inkompatibilität,
-PHP-Deprecations oder unvollständigen Prüfnachweisen fehl. Die Zusammenfassung
-unterscheidet weiterhin **„kompatibel“**, **„nicht kompatibel“** und **„nicht prüfbar“**.
-Auch das Deployment wartet für dieselbe Revision auf einen erfolgreichen Lauf.
-Reguläre PHP-8.5- und Sicherheitsprüfungen bleiben verpflichtend. Logs und
-Browserdiagnosen werden 14 Tage als Artefakte gespeichert.
+Die täglichen und manuellen Laufzeitdiagnosen heißen **PHP Runtime Diagnostics**
+und ersetzen keinen Pflichtcheck. Die regulären Testworkflows bieten weiterhin
+tägliche und manuelle vollständige Prüfungen. Ereignisspezifische
+Concurrency-Gruppen verhindern, dass Diagnosen einen Push-Lauf verdrängen.
+Die bestehenden Release-Warteketten, Sicherheitsprüfungen, Mutationstests,
+Performance-Messungen und die TIA-Graph-Erzeugung bleiben erhalten.
 
-Composer unterstützt regulär `~8.5.13 || ~8.6.0`. Die isolierte Prüfung verändert
-weder Manifest noch Lockfile; Hashvergleiche sichern beide Dateien und sämtliche
-Paketmetadaten ab. Anforderungen der Abhängigkeiten und Plattformprüfungen bleiben
-aktiv. Die produktive Laufzeit bleibt zunächst PHP 8.5.
+Das GitHub-Ruleset
+[Secure main](https://github.com/McNamara84/omxfc-vereinswebseite/settings/rules/4508779)
+verlangt zusätzlich zu **CI erforderlich** alle 13 zugrunde liegenden PHP-,
+JavaScript- und Browser-Jobkontexte. Damit blockiert auch eine Wiederholung
+einzelner Tests den Merge unmittelbar, wenn der Sammelcheck bereits erfolgreich
+abgeschlossen ist. Die acht PHP-Jobs umfassen beide Shards, statische Analyse,
+die drei Datenbankprüfungen, Modal-Vorschau und Coverage; hinzu kommen der
+JavaScript-Job und die vier Chromium-/Firefox-Shards.
+Die vollständigen Namen und ihre Bindung an die GitHub-Actions-App stehen in
+[required-status-checks.json](.github/required-status-checks.json). Änderungen an
+Jobnamen oder der Matrix müssen diese Liste und das aktive Ruleset gemeinsam
+aktualisieren. Die Datei dokumentiert die erforderlichen GitHub-Einstellungen;
+GitHub übernimmt sie nicht automatisch. Ein Node-Test vergleicht die Liste mit
+den tatsächlichen Jobnamen und Matrixkombinationen. Alle übrigen Schutzregeln
+bleiben erhalten. Tägliche und manuelle Diagnosen ersetzen **CI erforderlich**
+nicht; der historische Name **PHP 8.6 erforderlich** ist kein Pflichtcheck mehr.
 
-`composer test:compatibility` prüft den eigenen PHP-Bestand mit AST- und
-Syntaxprüfungen auf veraltete Nutzung und PHP-8.5-kompatible Syntax. Die
-PHP-8.6-Pipeline prüft außerdem die kompilierten Blade-Views. PHPUnit und Laravel
-erfassen PHP-Deprecations auch während Tests und in Unterprozessen; die
-Browserphasen werten zusätzlich die PHP- und Laravel-Diagnoselogs aus.
+Alle Workflows sind nach ihrer Aufgabe benannt; PHP- und Werkzeugversionen stehen
+in der Laufzeitkonfiguration statt in dauerhaften Checknamen:
+
+| Workflow | Aufgabe |
+| --- | --- |
+| [CI Verification](.github/workflows/ci.yml) | Laufzeit, unveränderte Abhängigkeiten und gemeinsame Freigabe der Testworkflows |
+| [PHP Tests and Quality](.github/workflows/phpunit.yml) | PHP-Analyse, funktionale Tests, MariaDB, Browser-Regression und Coverage |
+| [JavaScript Tests](.github/workflows/vitest.yml) | Vitest, Node-Prüfungen, Browser-Pilot und Ressourcenlecks |
+| [Browser Tests](.github/workflows/playwright.yml) | Accessibility und vollständige Chromium-/Firefox-Matrix |
+| [Dependency Security](.github/workflows/dependency-review.yml) | Änderungen am Abhängigkeitsgraphen sowie Composer-/npm-Audits |
+| [Container Security](.github/workflows/service-image-scan.yml) | Gebaute Containerstufen und Datenbank-Upgradepfade prüfen |
+| [Mutation Tests](.github/workflows/mutation.yml) | Wirksamkeit der fachlichen Assertions durch Mutationen prüfen |
+| [Test Impact Baseline](.github/workflows/tia-baseline.yml) | Abhängigkeitsgraph für gezielte lokale Wiederholungen erzeugen |
+| [Homepage Performance](.github/workflows/performance-benchmark.yml) | Homepage-Ladezeiten getrennt von funktionalen Tests messen |
+| [Production Deployment](.github/workflows/deploy.yml) | Produktionsimages bauen, prüfen und nach erfolgreichen Release-Gates ausrollen |
+
+`composer test:compatibility` prüft den eigenen PHP-Bestand einschließlich
+Sprachdateien mit PHP-8.6-AST- und nativen Syntaxprüfungen auf veraltete Nutzung.
+Die Pipeline prüft zusätzlich kompilierte Blade-Views. PHPUnit, Laravel- und
+native PHP-Logs erfassen Deprecations auch in Unterprozessen und Browserphasen.
+Logs und Browserdiagnosen werden 14 Tage als Artefakte aufbewahrt.
 
 ## Tests & Qualitätssicherung
+
+Der isolierte Coverage-Service baut den geprüften Treiber ohne lokale PHP-Installation:
+
+```powershell
+docker compose -f docker-compose.tests.yml build php-coverage node
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps assets
+docker compose -f docker-compose.tests.yml run --rm -T --no-deps php-coverage composer test:coverage
+```
+
+Messdaten landen im Hostverzeichnis `coverage/`. Zusätzlich zu den bisherigen
+Untergrenzen schützt `tests/coverage-baselines/php86-modernization-before.json`
+den frisch gemessenen Zustand vor dieser Modernisierung. Diese Baselines werden
+bei späteren Änderungen nicht abgesenkt.
 
 Für Windows und Docker gibt es einen eigenen Test-Stack. Er kopiert die aktuellen
 Quellen in kurzlebige Container und verwendet native Linux-Abhängigkeiten. Die
@@ -1424,7 +1500,7 @@ SQLite-Tests laufen im Speicher; die drei MariaDB-Suiten erhalten eigene
 Testdatenbanken in einem flüchtigen MariaDB-Container ohne freigegebenen Hostport.
 Dateibasierte SQLite-Browser-Tests benötigen zusätzlich die `sqlite3`-CLI für
 Laravels Schema-Dump. Development- und Playwright-PHP-Images enthalten sie;
-die PHP-8.6-Probe stellt sie bei Bedarf erst nach erfolgreicher Paketinstallation bereit.
+der reguläre Playwright-Workflow prüft ihre Verfügbarkeit ebenfalls.
 
 ```powershell
 # Einmalig und nach Änderungen an Abhängigkeiten oder Testimages:
@@ -1570,9 +1646,12 @@ PHP-Coverage wird in CI aus den beiden regulären Pest-Shards zusammengeführt;
 ein zusätzlicher vollständiger PHP-Coverage-Lauf entfällt. Die PHP-13-Serialisierung
 wird mit dem installierten Coverage-Merger verarbeitet, der Laufzeit und Treiber
 der Shards abgleicht. PHP-Artefakte werden ausschließlich aus demselben Workflow
-geladen; die versionierten Referenzen sind JSON. Vitest läuft im PR einmal mit
-Coverage. Weitere Badge-Aufbereitung, Mutation und Leckdiagnosen laufen auf main
-oder regelmäßig. Die Browsermatrix umfasst weiterhin Chromium und Firefox, nun
+geladen; die versionierten Referenzen sind JSON. Vitest läuft pro Ereignis einmal
+mit Coverage. Für main erzeugt dieser Lauf auch das JS-Badge. Der gemeinsame
+Badge-Publisher übernimmt Bericht und Badge ausschließlich aus dem erfolgreichen
+Vitest-Push-Lauf derselben main-Revision; ein zweiter Vitest-Lauf entfällt.
+Die beiden Badges werden weiterhin gemeinsam veröffentlicht. Mutation und
+Leckdiagnosen laufen auf main oder regelmäßig. Die Browsermatrix umfasst weiterhin Chromium und Firefox, nun
 mit zwei getrennten Shards pro Browser und jeweils einem Worker. Neue PR-Pushes
 brechen veraltete Prüfungen ab; main-Läufe werden nicht auf diese Weise abgebrochen.
 
@@ -1654,7 +1733,7 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
 | JavaScript-Tests (Vitest)    | `npm run docker:dev:test:js` |
 | Komponenten-Tests (Vitest im Docker-Container) | `npm run docker:dev:test:vitest` |
-| End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
+| End-to-End-Checks mit Docker-PHP 8.6 | `npm run test:e2e:docker` |
 | Isolierte ARIA-/axe-Probe vor Browser-Upgrades | `npm run test:e2e:aria` |
 | Reihenfolgeabhängigkeiten mit Seed prüfen | `npm run test:e2e:shuffle -- 12345` |
 | Vitest-Ressourcenlecks prüfen | `npm run test:leaks` |
@@ -1663,9 +1742,9 @@ bleibt streng. Die einzelnen Läufe sind im Messbericht getrennt ausgewiesen.
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5.1 trennt sechs reine Node-Testdateien von 37 DOM-Testdateien; der Chromium-Pilot läuft separat. Die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA benötigt PCOV oder Xdebug; der Baseline-Workflow verwendet PCOV. Mutation Testing verwendet Xdebug im Coverage-Modus. Die Composer-Skripte aktivieren den Coverage-Modus bei installiertem Xdebug automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
+Die schnellen Standard-Checks laufen auf SQLite `:memory:`. Vitest 5.1 trennt sechs reine Node-Testdateien von 37 DOM-Testdateien; der Chromium-Pilot läuft separat. Die zusätzliche Ressourcenleckprüfung läuft auf main und regelmäßig. Die Runtime verwendet MariaDB, Typesense, Nginx und Queue. TIA verwendet unter PHP 8.6 den fixierten Xdebug-Testtreiber. Mutation Testing verwendet Xdebug im Coverage-Modus. Die Composer-Skripte aktivieren den Coverage-Modus bei installiertem Xdebug automatisch. Der Mutation-Job erzwingt für die derzeit 130 Mutationen einen Score von 100 % und läuft auf main, wöchentlich und manuell. Der explizite Anwendungspfad erhält die korrekte Pfadauflösung unter Windows. `phpunit.tia.xml` enthält ausschließlich funktionale Pest-Tests. Der Workflow `tia-baseline.yml` zeichnet auf `main` mit `composer test:tia:fresh` eine neue Baseline auf und veröffentlicht sie als Artefakt. Dabei werden keine ältere Baseline und keine GitHub-CLI-Authentifizierung benötigt. Lokale TIA-Läufe mit `composer test:tia` können diese Baseline über die authentifizierte GitHub CLI laden; `composer test:tia:fresh` baut sie lokal neu auf. Die vollständige Suite bleibt Pflicht.
 Die Pest-Diagnosen `test:stability:repeat` und `test:stability:retry` verwenden getrennte Prozesse: Repeat führt den gewählten Umfang zweimal aus, Retry wiederholt ausschließlich fehlgeschlagene Fälle. Frühere Fehler bleiben im Protokoll sichtbar; diese Zusatzprüfungen ersetzen keinen regulär erfolgreichen Testlauf.
-Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
+Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.6-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
@@ -1673,7 +1752,7 @@ Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.
 Für den separat ausgeführten Snapshot-Integrationstest `TYPESENSE_INTEGRATION_HOST`
 und `TYPESENSE_INTEGRATION_API_KEY` auf eine isolierte Typesense-30.2-Instanz setzen.
 
-Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7, ParaTest 7.29.0 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.5 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert.
+Der Test-Stack verwendet Pest 5.3.7, PHPUnit 13.4.7, ParaTest 7.29.0 und Pest-PHPStan 5.3.1 mit den kompatiblen Pest-5-Plugins. PHP 8.6 erfüllt die Mindestanforderung von Pest 5 (PHP 8.4). Das Pest-Agent-Plugin darf ausschließlich lokal auf einem geprüften Arbeitsbaum ohne Produktions-Credentials verwendet werden; automatisch erzeugte Änderungen werden wie Fremdcode geprüft und durch die normalen Tests abgesichert.
 
 Die PHP-Tests verwenden funktionale Pest-Tests, benannte beziehungsweise gebundene Datasets und nach Bedarf lokale Fixture-Traits. Fünf abstrakte Fixture-Basen erhalten die gesonderten Transaktions-Lifecycles. Konventionen und die Zuordnung der bisherigen Prüffälle stehen in [tests/README.md](tests/README.md) und [tests/pest-migration-map.json](tests/pest-migration-map.json). `composer test:mutate:core` ergänzt das bisherige 100-%-Mutation-Gate um Geld- und RPG-Kostenregeln und läuft auch bei Pull Requests. TIA umfasst Unit-, Feature- und reguläre Integrationstests; MariaDB-Parallelzugriffe, Browsertests und der manuelle Typesense-Test behalten eigene Läufe.
 

@@ -192,7 +192,7 @@ class TourController extends Controller
     {
         return array_values(array_filter(
             $request->session()->get(TourAssignmentService::SESSION_SUPPRESSION_KEY, []),
-            static fn (mixed $assignmentId): bool => is_int($assignmentId),
+            is_int(...),
         ));
     }
 }

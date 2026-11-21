@@ -13,6 +13,7 @@ class MaddraxikonRewardPolicyTier extends Model
     /** @use HasFactory<MaddraxikonRewardPolicyTierFactory> */
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'maddraxikon_reward_policy_id',
         'minimum_added_bytes',

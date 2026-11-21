@@ -20,14 +20,17 @@ class Kassenstand extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $table = 'kassenstand';
 
+    #[\Override]
     protected $fillable = [
         'team_id',
         'betrag',
         'letzte_aktualisierung',
     ];
 
+    #[\Override]
     protected $casts = [
         'betrag' => 'decimal:2',
         'letzte_aktualisierung' => 'date',

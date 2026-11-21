@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class PageNavigation
 {
-    public function __construct(private NavigationBuilder $builder, private NavigationContext $context) {}
+    public function __construct(private readonly NavigationBuilder $builder, private readonly NavigationContext $context) {}
 
     /** @return array{title: string, breadcrumbs: list<array{label: string, link?: string}>} */
     public function resolve(?User $user, string $scope): array

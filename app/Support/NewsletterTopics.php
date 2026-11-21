@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 final class NewsletterTopics
 {
-    private const LEGACY_KEY_PREFIX = 'legacy-topic-';
+    private const string LEGACY_KEY_PREFIX = 'legacy-topic-';
 
     /**
      * @param  array<int, mixed>|null  $topics

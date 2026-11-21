@@ -28,6 +28,7 @@ class RomantauschBaxxSpecialOffer extends Model
         ],
     ];
 
+    #[\Override]
     protected $fillable = [
         'action_key',
         'points',

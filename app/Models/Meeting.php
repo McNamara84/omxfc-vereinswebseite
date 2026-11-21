@@ -31,6 +31,7 @@ class Meeting extends Model
      *
      * @var array<int, string>
      */
+    #[\Override]
     protected $fillable = [
         'title',
         'slug',
@@ -54,6 +55,7 @@ class Meeting extends Model
      *
      * @var array<string, string>
      */
+    #[\Override]
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',

@@ -15,7 +15,7 @@ class CombatDice
             throw new \InvalidArgumentException('Ein oder zwei W6 erforderlich.');
         }
 
-        return array_map(fn () => $this->die(), range(1, $count));
+        return array_map($this->die(...), range(1, $count));
     }
 
     public function w66(): array

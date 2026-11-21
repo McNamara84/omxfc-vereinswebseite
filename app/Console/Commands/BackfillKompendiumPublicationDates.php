@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class BackfillKompendiumPublicationDates extends Command
 {
+    #[\Override]
     protected $signature = 'kompendium:backfill-publication-dates {--dry-run : Zeigt nur, wie viele Datensaetze aktualisiert wuerden}';
 
+    #[\Override]
     protected $description = 'Befuellt Erstveroeffentlichungsdaten im Kompendium aus den Serien-Metadaten';
 
     public function handle(KompendiumService $kompendiumService): int

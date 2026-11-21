@@ -12,6 +12,7 @@ class Download extends Model
 {
     use HasFactory;
 
+    #[\Override]
     protected $fillable = [
         'title',
         'slug',
