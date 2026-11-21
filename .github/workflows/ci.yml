@@ -20,7 +20,8 @@ concurrency:
 
 jobs:
   report:
-    # The required context must also match the repository ruleset; see README.
+    # The ruleset also requires the producer jobs so reruns revoke merge approval.
+    # Keep the contexts aligned with .github/required-status-checks.json; see README.
     name: ${{ contains(fromJSON('["push", "pull_request", "merge_group"]'), github.event_name) && 'CI erforderlich' || 'PHP Runtime Diagnostics' }}
     runs-on: ubuntu-latest
     timeout-minutes: 120

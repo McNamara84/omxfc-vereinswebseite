@@ -1,6 +1,7 @@
 import { appendFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { latestWorkflowRun } from './latest-workflow-run.mjs';
 
 // Never reuse another revision or hide a failed newer run behind an old success.
 export async function findVitestCoverageRun({
@@ -30,8 +31,7 @@ export async function findVitestCoverageRun({
         const matching = data.workflow_runs.filter(run => run?.head_sha === sha
             && run.event === 'push' && run.head_branch === 'main'
             && typeof run.path === 'string' && run.path.split('@')[0] === '.github/workflows/vitest.yml');
-        if (matching.some(run => !Number.isSafeInteger(run.id) || run.id <= 0)) throw new Error('Invalid Vitest workflow run ID.');
-        const latest = matching.sort((first, second) => second.id - first.id)[0];
+        const latest = latestWorkflowRun(matching, 'Vitest');
         if (latest?.status === 'completed') {
             if (latest.conclusion !== 'success') throw new Error(`Vitest coverage is unavailable: ${latest.conclusion}`);
             return latest.id;

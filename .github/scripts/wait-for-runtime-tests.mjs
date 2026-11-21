@@ -1,5 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { latestWorkflowRun } from './latest-workflow-run.mjs';
 
 const required = ['phpunit.yml', 'vitest.yml', 'playwright.yml'];
 const events = ['push', 'pull_request', 'merge_group'];
@@ -39,8 +40,7 @@ export async function waitForRuntimeTests({
             && run.event === event && typeof run.display_title === 'string' && run.display_title.endsWith(` @ ${sha}`));
         const selected = required.map(file => {
             const runs = matching.filter(run => typeof run.path === 'string' && run.path.split('@')[0] === `.github/workflows/${file}`);
-            if (runs.some(run => !Number.isSafeInteger(run.id) || run.id <= 0)) throw new Error('Invalid test workflow run ID.');
-            return runs.sort((first, second) => second.id - first.id)[0];
+            return latestWorkflowRun(runs, 'test');
         });
         const failed = selected.find(run => run?.status === 'completed' && run.conclusion !== 'success');
         if (failed) throw new Error(`PHP runtime approval blocked by ${failed.path}: ${failed.conclusion}`);

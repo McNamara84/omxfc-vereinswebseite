@@ -1424,6 +1424,12 @@ prüft Ereignis, Workflow und Revision; der explizite Laufname hält auch den
 tatsächlich getesteten PR-Merge-Commit fest. Ergebnisse vor einer Änderung des
 PR-Zielbranches können dadurch keine aktuelle Freigabe ersetzen. Fehlende,
 abgebrochene oder fehlgeschlagene Testläufe geben den Pflichtcheck nicht frei.
+Bei mehreren Läufen entscheidet der validierte Startzeitpunkt des letzten
+Versuchs (`run_started_at`), nicht die bei Wiederholungen unveränderte Lauf-ID.
+Ein später wiederholter älterer Lauf verdrängt dadurch einen früheren Erfolg
+einer höheren Lauf-ID. Fehlende oder widersprüchliche Versuchsdaten blockieren
+die Freigabe; bei gleichen Startzeiten haben Fehler und laufende Versuche Vorrang.
+Coverage-Übernahme und Deployment verwenden dieselbe Auswahlregel.
 
 Die täglichen und manuellen Laufzeitdiagnosen heißen **PHP Runtime Diagnostics**
 und ersetzen keinen Pflichtcheck. Die regulären Testworkflows bieten weiterhin
@@ -1432,14 +1438,22 @@ Concurrency-Gruppen verhindern, dass Diagnosen einen Push-Lauf verdrängen.
 Die bestehenden Release-Warteketten, Sicherheitsprüfungen, Mutationstests,
 Performance-Messungen und die TIA-Graph-Erzeugung bleiben erhalten.
 
-Beim Wechsel vom bisherigen Check **PHP 8.6 erforderlich** muss auch der
-erforderliche Statuskontext im GitHub-Ruleset
+Das GitHub-Ruleset
 [Secure main](https://github.com/McNamara84/omxfc-vereinswebseite/settings/rules/4508779)
-auf **CI erforderlich** umgestellt werden. Die Zuordnung zur GitHub-Actions-App
-und alle übrigen Schutzregeln bleiben erhalten. Zuerst wird der Commit mit dem
-neuen Workflow auf dem PR-Branch bereitgestellt; sobald dessen neuer Check
-vorliegt, wird der Statuskontext ersetzt. Historische Läufe behalten ihren
-ursprünglichen Namen.
+verlangt zusätzlich zu **CI erforderlich** alle 13 zugrunde liegenden PHP-,
+JavaScript- und Browser-Jobkontexte. Damit blockiert auch eine Wiederholung
+einzelner Tests den Merge unmittelbar, wenn der Sammelcheck bereits erfolgreich
+abgeschlossen ist. Die acht PHP-Jobs umfassen beide Shards, statische Analyse,
+die drei Datenbankprüfungen, Modal-Vorschau und Coverage; hinzu kommen der
+JavaScript-Job und die vier Chromium-/Firefox-Shards.
+Die vollständigen Namen und ihre Bindung an die GitHub-Actions-App stehen in
+[required-status-checks.json](.github/required-status-checks.json). Änderungen an
+Jobnamen oder der Matrix müssen diese Liste und das aktive Ruleset gemeinsam
+aktualisieren. Die Datei dokumentiert die erforderlichen GitHub-Einstellungen;
+GitHub übernimmt sie nicht automatisch. Ein Node-Test vergleicht die Liste mit
+den tatsächlichen Jobnamen und Matrixkombinationen. Alle übrigen Schutzregeln
+bleiben erhalten. Tägliche und manuelle Diagnosen ersetzen **CI erforderlich**
+nicht; der historische Name **PHP 8.6 erforderlich** ist kein Pflichtcheck mehr.
 
 Alle Workflows sind nach ihrer Aufgabe benannt; PHP- und Werkzeugversionen stehen
 in der Laufzeitkonfiguration statt in dauerhaften Checknamen:

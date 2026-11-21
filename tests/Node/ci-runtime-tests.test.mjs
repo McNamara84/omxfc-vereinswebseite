@@ -9,6 +9,7 @@ const files = ['phpunit.yml', 'vitest.yml', 'playwright.yml'];
 const successfulRuns = () => files.map((file, index) => ({
     id: 100 + index, head_sha: headSha, event: 'pull_request',
     path: `.github/workflows/${file}`, display_title: `Test workflow @ ${sha}`,
+    run_attempt: 1, created_at: '2026-11-21T08:00:00Z', run_started_at: '2026-11-21T08:00:00Z',
     status: 'completed', conclusion: 'success',
 }));
 const options = (runs = successfulRuns(), changes = {}) => ({
@@ -92,6 +93,45 @@ test('a pending newer run cannot be hidden by an older success or another tested
         ...runs, { ...runs[0], id: 200, status: 'in_progress', conclusion: null },
         { ...runs[0], id: 300, display_title: `Test workflow @ ${'c'.repeat(40)}` },
     ], { now: () => clock, timeoutMs: 1, sleep: async ms => { clock += ms; } })), /Required tests/);
+});
+
+for (const status of ['queued', 'in_progress', 'completed']) {
+    test(`an older run rerun after a newer success blocks runtime approval while ${status}`, async () => {
+        const runs = successfulRuns();
+        let clock = 0;
+        await assert.rejects(waitForRuntimeTests(options([
+            ...runs, {
+                ...runs[0], id: 50, run_attempt: 2,
+                created_at: '2026-11-21T07:00:00Z', run_started_at: '2026-11-21T09:00:00Z',
+                status, conclusion: status === 'completed' ? 'failure' : null,
+            },
+        ], { now: () => clock, timeoutMs: 1, sleep: async ms => { clock += ms; } })),
+        status === 'completed' ? /PHP runtime approval blocked by/ : /Required tests/);
+    });
+}
+
+test('a successful later attempt of an older run supersedes a newer-ID failure', async () => {
+    const runs = successfulRuns();
+    await waitForRuntimeTests(options([
+        ...runs.map(run => ({ ...run, conclusion: 'failure' })),
+        ...runs.map(run => ({
+            ...run, id: run.id - 50, run_attempt: 2,
+            created_at: '2026-11-21T07:00:00Z', run_started_at: '2026-11-21T09:00:00Z',
+        })),
+    ]));
+});
+
+test('missing or invalid attempt timing cannot approve a runtime', async () => {
+    for (const changes of [
+        { run_started_at: undefined }, { run_started_at: 'invalid' },
+        { run_started_at: '2026-02-30T09:00:00Z' }, { created_at: null },
+        { run_started_at: '2026-11-21T07:00:00Z' }, { run_attempt: 0 },
+    ]) {
+        const runs = successfulRuns();
+        await assert.rejects(waitForRuntimeTests(options([
+            ...runs, { ...runs[0], id: 50, ...changes },
+        ])), /Invalid test workflow attempt timing/);
+    }
 });
 
 test('API path references are accepted but malformed run IDs and metadata fail closed', async () => {

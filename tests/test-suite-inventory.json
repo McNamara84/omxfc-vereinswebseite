@@ -7635,6 +7635,9 @@
       "a ${conclusion} producer cannot be hidden behind an older successful run",
       "a pending newer producer cannot reuse an older successful artifact",
       "unordered responses still select the newest successful producer",
+      "an older producer rerun after a newer success cannot supply coverage while ${status}",
+      "coverage uses the successful later attempt even when its run ID is lower",
+      "missing or invalid attempt timing cannot select coverage from an older success",
       "GitHub API workflow path references still identify the same Vitest workflow",
       "lookup rejects unreadable or malformed API results",
       "invalid run IDs cannot become download selectors or hide behind an older result",
@@ -7654,6 +7657,9 @@
       "missing, queued and running workflows are awaited without repeating their tests",
       "a ${conclusion} test workflow blocks approval even with an older successful run",
       "a pending newer run cannot be hidden by an older success or another tested merge SHA",
+      "an older run rerun after a newer success blocks runtime approval while ${status}",
+      "a successful later attempt of an older run supersedes a newer-ID failure",
+      "missing or invalid attempt timing cannot approve a runtime",
       "API path references are accepted but malformed run IDs and metadata fail closed",
       "HTTP errors and missing configuration cannot approve a runtime"
     ],
@@ -7814,7 +7820,19 @@
       "CI verification must complete successfully before deployment",
       "GitHub API workflow path references retain every required release gate",
       "failed, cancelled, skipped and timed out release checks cannot deploy",
-      "latest attempt is authoritative and managed CodeQL failures block deployment"
+      "latest attempt is authoritative and managed CodeQL failures block deployment",
+      "deployment considers an older run rerun after a newer success while ${status}",
+      "deployment accepts a successful latest attempt independently of API order and run ID"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/required-status-checks.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "merge protection requires every PHP, JavaScript and browser job independently of the aggregate gate"
     ],
     "seeders": []
   },
@@ -7850,6 +7868,18 @@
       "a failed command stops the sequence and propagates its exit code",
       "the complete Node command discovers every matching fixture without shell expansion",
       "a failure discovered through the literal Node glob propagates to the complete runner"
+    ],
+    "seeders": []
+  },
+  {
+    "file": "tests/Node/workflow-attempts.test.mjs",
+    "runner": "node",
+    "laravel": false,
+    "database": false,
+    "methods": [
+      "attempt start time takes precedence over run ID, initial creation, completion and attempt count",
+      "failures and pending attempts take precedence when start times are indistinguishable",
+      "invalid attempt numbers and malformed, impossible or inverted timestamps fail closed"
     ],
     "seeders": []
   },

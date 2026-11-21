@@ -5,6 +5,7 @@ import { findVitestCoverageRun } from '../../.github/scripts/find-vitest-coverag
 const sha = 'a'.repeat(40);
 const run = (changes = {}) => ({
     id: 123, head_sha: sha, head_branch: 'main', event: 'push',
+    run_attempt: 1, created_at: '2026-11-21T08:00:00Z', run_started_at: '2026-11-21T08:00:00Z',
     path: '.github/workflows/vitest.yml', status: 'completed', conclusion: 'success', ...changes,
 });
 const options = (runs, changes = {}) => ({
@@ -74,6 +75,41 @@ test('a pending newer producer cannot reuse an older successful artifact', async
 
 test('unordered responses still select the newest successful producer', async () => {
     assert.equal(await findVitestCoverageRun(options([run({ id: 124 }), run({ id: 121 })])), 124);
+});
+
+for (const status of ['queued', 'in_progress', 'completed']) {
+    test(`an older producer rerun after a newer success cannot supply coverage while ${status}`, async () => {
+        let clock = 0;
+        await assert.rejects(findVitestCoverageRun(options([
+            run(), run({
+                id: 50, run_attempt: 2,
+                created_at: '2026-11-21T07:00:00Z', run_started_at: '2026-11-21T09:00:00Z',
+                status, conclusion: status === 'completed' ? 'failure' : null,
+            }),
+        ], { now: () => clock, timeoutMs: 1, sleep: async ms => { clock += ms; } })),
+        status === 'completed' ? /Vitest coverage is unavailable/ : /No successful Vitest push/);
+    });
+}
+
+test('coverage uses the successful later attempt even when its run ID is lower', async () => {
+    assert.equal(await findVitestCoverageRun(options([
+        run({ conclusion: 'failure' }), run({
+            id: 50, run_attempt: 2,
+            created_at: '2026-11-21T07:00:00Z', run_started_at: '2026-11-21T09:00:00Z',
+        }),
+    ])), 50);
+});
+
+test('missing or invalid attempt timing cannot select coverage from an older success', async () => {
+    for (const changes of [
+        { run_started_at: undefined }, { run_started_at: 'invalid' },
+        { run_started_at: '2026-02-30T09:00:00Z' }, { created_at: null },
+        { run_started_at: '2026-11-21T07:00:00Z' }, { run_attempt: 0 },
+    ]) {
+        await assert.rejects(findVitestCoverageRun(options([
+            run(), run({ id: 50, ...changes }),
+        ])), /Invalid Vitest workflow attempt timing/);
+    }
 });
 
 test('GitHub API workflow path references still identify the same Vitest workflow', async () => {

@@ -1,6 +1,7 @@
 import { appendFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import { pathToFileURL } from 'node:url';
+import { latestWorkflowRun } from './latest-workflow-run.mjs';
 
 const repository = process.env.GITHUB_REPOSITORY;
 const sha = process.env.GITHUB_SHA;
@@ -24,9 +25,10 @@ const api = async path => {
 };
 
 export function selectReleaseChecks(runs) {
-    const selected = required.map(file => runs.find(run => typeof run.path === 'string'
-        && run.path.split('@')[0] === `.github/workflows/${file}`));
-    const codeql = runs.find(run => run.name === 'CodeQL');
+    if (!Array.isArray(runs)) throw new Error('Malformed release workflow response.');
+    const selected = required.map(file => latestWorkflowRun(runs.filter(run => typeof run?.path === 'string'
+        && run.path.split('@')[0] === `.github/workflows/${file}`)));
+    const codeql = latestWorkflowRun(runs.filter(run => run?.name === 'CodeQL'));
     if (codeql) selected.push(codeql);
     return selected;
 }
